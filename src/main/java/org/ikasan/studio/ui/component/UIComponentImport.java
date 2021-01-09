@@ -1,0 +1,119 @@
+package org.ikasan.studio.ui.component;
+
+import org.apache.log4j.Logger;
+import org.ikasan.studio.Context;
+import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
+import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
+
+import javax.swing.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+
+
+public class UIComponentImport extends TransferHandler // implements Transferable
+{
+    private static final Logger log = Logger.getLogger(UIComponentImport.class);
+    private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
+    private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
+    private String projectKey;
+
+    public UIComponentImport(String projectKey) {
+        this.projectKey = projectKey;
+    }
+    // Source actions i.e. methods called for the source of the copy
+
+//    /**
+//     * For IkasanFlowUIComponentSelection we only want to copy a component onto the design window, not link or move
+//     * @param sourceComponent the sourceComponent
+//     * @return
+//     */
+//    public int getSourceActions(JComponent sourceComponent) {
+//        return TransferHandler.COPY;
+//    }
+//
+//    public Transferable createTransferable(JComponent sourceComponent) {
+//        // Clear
+//        IkasanFlowUIComponentTransferable ikasanFlowUIComponent = null;
+//
+//        if (sourceComponent instanceof JList &&
+//                ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem) {
+//            JList paletteList = (JList)sourceComponent;
+//            PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
+////            ikasanFlowUIComponent = item.getIkasanFlowUIComponent();
+//            IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getIkasanFlowUIComponent());
+//            return newTranferrable;
+//        }
+//
+//        return null;
+//    }
+    //These methods are invoked for the drop gesture, or the paste action, when the component is the target of the operation
+
+    /**
+     * This method is called repeatedly during a drag gesture and returns true if the area below the cursor can accept the
+     * transfer, or false if the transfer will be rejected. For example, if a user drags a color over a component that
+     * accepts only text, the canImport method for that component's TransferHandler should return false.
+     * @param targetComponent that the mouse is over that has registered this as its Transfer Handler.
+     * @param destinationSupportedflavors
+     * @return
+     */
+    public boolean canImport(JComponent targetComponent, DataFlavor destinationSupportedflavors[]) {
+        log.warn("Component is " + targetComponent);
+        if (!(targetComponent instanceof JPanel)) {
+            return false;
+        }
+
+        for(DataFlavor flavor : destinationSupportedflavors) {
+            if (flavor.equals(ikasanFlowUIComponentFlavor)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+// maybe the other would mean we could have different classes from source and destination, not sure.
+//public boolean canImport(TransferHandler.TransferSupport support) {
+//    return support.getComponent() instanceof JComponent ? this.canImport((JComponent)support.getComponent(), support.getDataFlavors()) : false;
+//}
+
+    public boolean importData(TransferSupport support) {
+        IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
+
+
+        System.out.println("Got " + support);
+
+
+//return support.getComponent() instanceof JComponent ? this.importData((JComponent)support.getComponent(), support.getTransferable()) : false;
+        return super.importData(support);
+
+    }
+
+    /**
+     * This method is called on a successful drop (or paste) and initiates the transfer of data to the target component.
+     * This method returns true if the import was successful and false otherwise.
+     * @param targetComponent under the mouse that has registered as being able to recieve this flavor of component.
+     * @param t the data object being dragged.
+     * @return
+     */
+    public boolean importData(JComponent targetComponent, Transferable t) {
+
+        if (targetComponent instanceof JPanel) {
+            JPanel jpanel = (JPanel) targetComponent;
+            if (t.isDataFlavorSupported(ikasanFlowUIComponentFlavor)) {
+                try {
+                    IkasanFlowUIComponentTransferable ikasanFlowUIComponent = (IkasanFlowUIComponentTransferable) t.getTransferData(ikasanFlowUIComponentFlavor);
+                    log.warn("I can perhaps drop " + ikasanFlowUIComponent);
+
+                    return true;
+                } catch (UnsupportedFlavorException ignored) {
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        return false;
+    }
+
+}
+
