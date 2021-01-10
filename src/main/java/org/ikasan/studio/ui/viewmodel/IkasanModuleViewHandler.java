@@ -24,6 +24,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
 
     @Override
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
+        log.debug("paintComponent invoked");
         UIUtils.drawStringLeftAlignedFromTopLeft(g, model.getDescription(),10,10, UIUtils.getBoldFont(g));
 
         int currentY = 0;

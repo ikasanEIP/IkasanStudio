@@ -20,6 +20,15 @@ public class IkasanModule {
     private String version;
     private List<IkasanFlow> flows = new ArrayList<>();
 
+    /**
+     * This will be called if the module is reloaded or re-initialised.
+     */
+    public void reset() {
+        if (flows != null && flows.size() > 0) {
+            flows = new ArrayList<>();
+        }
+    }
+
     public IkasanModule() {
         viewHandler = new IkasanModuleViewHandler(this);
     }
@@ -54,6 +63,11 @@ public class IkasanModule {
 
     public List<IkasanFlow> getFlows() {
         return flows;
+    }
+
+    public boolean addFlow(IkasanFlow ikasanFlow) {
+
+        return flows.add(ikasanFlow);
     }
 
 //    public void setFlows(List<IkasanFlow> flows) {

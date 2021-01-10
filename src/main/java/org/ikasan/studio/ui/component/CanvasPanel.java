@@ -62,8 +62,6 @@ public class CanvasPanel extends JPanel {
         canvasBodyPanel.add(canvasPanel, BorderLayout.CENTER);
         canvasBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-        canvasBodyPanel.setTransferHandler(new UIComponentImport());
-
         setLayout(new BorderLayout());
         add(canvasHeaderPanel, BorderLayout.NORTH);
         add(canvasBodyPanel, BorderLayout.CENTER);

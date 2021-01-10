@@ -238,8 +238,11 @@ public class StudioPsiUtils {
     }
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static IkasanModule getIkasanModuleFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
-        IkasanModule ikasanModule = null;
+    public static void resetIkasanModuleFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
+//        IkasanModule ikasanModule = null;
+        IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
+        ikasanModule.reset();
+
         PsiClass moduleConfigClazz = null ;
         Project project = Context.getProject(projectKey);
         if (!assumeModuleConfigClass) {
@@ -252,8 +255,8 @@ public class StudioPsiUtils {
         }
         if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
             PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
-            ikasanModule = pipsiIkasanModel.buildIkasanModule(moduleConfigClazz.getContainingFile());
+            pipsiIkasanModel.updateIkasanModule(moduleConfigClazz.getContainingFile());
+//            ikasanModule = pipsiIkasanModel.buildIkasanModule(moduleConfigClazz.getContainingFile());
         }
-        return ikasanModule;
     }
 }

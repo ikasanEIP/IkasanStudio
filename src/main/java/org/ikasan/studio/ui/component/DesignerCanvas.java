@@ -8,7 +8,9 @@ import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
+import org.ikasan.studio.model.Ikasan.IkasanFlow;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
+import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.ui.UIUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
@@ -31,11 +33,12 @@ public class DesignerCanvas extends JPanel {
     IkasanModule ikasanModule ;
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
-    private boolean componentMoved = false;
+    private boolean screenChanged = false;
     private String projectKey ;
 
     public DesignerCanvas(String projectKey) {
         this.projectKey = projectKey;
+        ikasanModule = Context.getIkasanModule(projectKey);
         setBorder(BorderFactory.createLineBorder(Color.GRAY));
         setBackground(Color.WHITE);
         addMouseListener(new MouseAdapter() {
@@ -53,6 +56,8 @@ public class DesignerCanvas extends JPanel {
                 moveComponent(e, e.getX(),e.getY());
             }
         });
+
+        setTransferHandler(new UIComponentImportTransferHandler(projectKey, this));
     }
 
     /**
@@ -91,10 +96,18 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    /**
+     * This will be called to redraw the screen after the mouse movement is over, the mouse movement will allow the
+     * component to move across the screen but not redraw the connectors, this will ensure all connectors and whole
+     * screen is redrawn
+     * @param me mouse event
+     * @param x of the current pointer
+     * @param y of the current pointer
+     */
     private void mouseRelease(MouseEvent me, int x, int y){
-        if (componentMoved) {
+        if (screenChanged) {
             this.repaint();
-            componentMoved = false;
+            screenChanged = false;
         }
     }
 
@@ -108,7 +121,7 @@ public class DesignerCanvas extends JPanel {
         boolean didMouseClickStartOnComponents = (getComponentAtXY(clickStartMouseX, clickStartMouseY) != null);
         IkasanFlowElement mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (didMouseClickStartOnComponents && mouseSelectedComponent != null) {
-            componentMoved = true;
+            screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
             log.info("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
                     "] Component selected [" + mouseSelectedComponent.getName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
@@ -164,6 +177,33 @@ public class DesignerCanvas extends JPanel {
         return ikasanFlow;
     }
 
+    public boolean requestToAddComponent(int x, int y, IkasanFlowElementType ikasanFlowElementType) {
+        System.out.println("X Y in");
+        System.out.println("X Y in");
+        if (x >= 0 && y >=0 && ikasanFlowElementType != null) {
+
+
+//            IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
+//            if (ikasanModule == null) {
+//                ikasanModule = new IkasanModule();
+//                Context.setIkasanModule(projectKey, ikasanModule);
+//            }
+
+            if (ikasanModule.getFlows().isEmpty()) {
+                // drop here and create a new flow.
+                // or create source and regenerate ikasanModule ??
+                IkasanFlow newFlow = new IkasanFlow();
+                newFlow.setName("New Flow 1");
+                ikasanModule.addFlow(newFlow);
+                newFlow.addFlowElement(new IkasanFlowElement(ikasanFlowElementType, newFlow));
+            }
+            this.repaint();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Given the x and y coords, return Ikasan elements to the left or right (or both) within reasonable bounds
      * @param xpos
@@ -188,6 +228,7 @@ public class DesignerCanvas extends JPanel {
      */
     @Override
     public void paintComponent(Graphics g) {
+        log.debug("paintComponent invoked");
         super.paintComponent(g);
         if (initialiseCanvas && ikasanModule != null) {
                 ikasanModule.getViewHandler().initialiseDimensions(g, 0,0, this.getWidth(), this.getHeight());
@@ -209,13 +250,13 @@ public class DesignerCanvas extends JPanel {
         this.drawGrid = drawGrid;
     }
 
-    public IkasanModule getIkasanModule() {
-        return ikasanModule;
-    }
-
-    public void setIkasanModule(IkasanModule ikasanModule) {
-        this.ikasanModule = ikasanModule;
-    }
+//    public IkasanModule getIkasanModule() {
+//        return ikasanModule;
+//    }
+//
+//    public void setIkasanModule(IkasanModule ikasanModule) {
+//        this.ikasanModule = ikasanModule;
+//    }
 
     public void saveAsImage(File file, String imageFormat, boolean transparentBackground) {
         int imageType = transparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;

@@ -6,11 +6,11 @@ import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
+import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-
 
 public class IkasanFlowUIComponentSelection extends TransferHandler // implements Transferable
 {
@@ -39,6 +39,11 @@ public class IkasanFlowUIComponentSelection extends TransferHandler // implement
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
 //            ikasanFlowUIComponent = item.getIkasanFlowUIComponent();
             IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getIkasanFlowUIComponent());
+            Image dragImage = item.getIkasanFlowUIComponent().getSmallIcon().getImage();
+            if (dragImage != null) {
+                setDragImage(dragImage);
+            }
+
             return newTranferrable;
         }
 

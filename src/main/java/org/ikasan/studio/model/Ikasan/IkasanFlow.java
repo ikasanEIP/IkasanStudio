@@ -13,8 +13,6 @@ public class IkasanFlow {
     private IkasanFlowElement input;
     private IkasanFlowElement output;
 
-//    private List<IkasanConsumer> consumerList = new ArrayList<>();
-//    private List<IkasanTransition> transitionList = new ArrayList<>();
     private List<IkasanFlowElement> flowElementList = new ArrayList<>();
 
     public IkasanFlow() {
@@ -39,6 +37,10 @@ public class IkasanFlow {
 
     public List<IkasanFlowElement> getFlowElementList() {
         return flowElementList;
+    }
+
+    public boolean addFlowElement(IkasanFlowElement ikasanFlowElement) {
+        return flowElementList.add(ikasanFlowElement);
     }
 
     public ViewHandler getViewHandler() {
@@ -66,8 +68,6 @@ public class IkasanFlow {
         return "IkasanFlow{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-//                ", consumerList=" + consumerList +
-//                ", transitionList=" + transitionList +
                 ", flowElementList=" + flowElementList +
                 '}';
     }

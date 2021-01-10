@@ -41,7 +41,7 @@ public class PsiAtAction extends AnAction
    @Override
    public void actionPerformed(AnActionEvent ae)
    {
-      UIUtils.displayMessage(projectKey, getKeyData(ae));
+//      UIUtils.displayMessage(projectKey, getKeyData(ae));
 //      if(caretModel.getCurrentCaret().hasSelection())
 //      {
 //         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
@@ -56,21 +56,21 @@ public class PsiAtAction extends AnAction
     */
    protected String getKeyData(AnActionEvent ae) {
       StringBuilder message = new StringBuilder();
-//      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-//      CaretModel caretModel = editor.getCaretModel();
-
-      // get the psi file from the action event.
-      PsiFile psiFile = ae.getData(CommonDataKeys.PSI_FILE);
-      if(psiFile != null) {
-//         PIPSIIkasanModel pipsiIkasanModel = (PIPSIIkasanModel)Context.get("pipsiIkasanModel");
-         PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
-         IkasanModule ikasanModule = pipsiIkasanModel.buildIkasanModule(psiFile);
-
-         message.append(ikasanModule.toString());
-//         message.append(StudioPsiUtils.getSimpleFileData(file));
-      }
-
-      message.append("looking for Module config = " + StudioPsiUtils.findClass(ae.getProject(), "ModuleConfig"));
+////      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+////      CaretModel caretModel = editor.getCaretModel();
+//
+//      // get the psi file from the action event.
+//      PsiFile psiFile = ae.getData(CommonDataKeys.PSI_FILE);
+//      if(psiFile != null) {
+////         PIPSIIkasanModel pipsiIkasanModel = (PIPSIIkasanModel)Context.get("pipsiIkasanModel");
+//         PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
+//         IkasanModule ikasanModule = pipsiIkasanModel.buildIkasanModule(psiFile);
+//
+//         message.append(ikasanModule.toString());
+////         message.append(StudioPsiUtils.getSimpleFileData(file));
+//      }
+//
+//      message.append("looking for Module config = " + StudioPsiUtils.findClass(ae.getProject(), "ModuleConfig"));
       return message.toString();
    }
 

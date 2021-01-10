@@ -19,16 +19,43 @@ public class IkasanFlowElement {
         viewHandler = new IkasanFlowElementViewHandler(this);
     }
 
+//    /**
+//     *
+//     * @param parent flow that contains this element
+//     * @param name of the element
+//     * @param description of the element
+//     */
+//    public IkasanFlowElement(IkasanFlow parent, String name, String description) {
+//        this.parent = parent;
+//        this.name = name;
+//        this.description = description;
+//        this.properties = new TreeMap<>();
+//        viewHandler = new IkasanFlowElementViewHandler(this);
+//    }
+
     /**
      *
      * @param parent flow that contains this element
      * @param name of the element
      * @param description of the element
      */
-    public IkasanFlowElement(IkasanFlow parent, String name, String description) {
+    public IkasanFlowElement(IkasanFlowElementType type, IkasanFlow parent, String name, String description) {
+        this.type = type;
         this.parent = parent;
         this.name = name;
         this.description = description;
+        this.properties = new TreeMap<>();
+        viewHandler = new IkasanFlowElementViewHandler(this);
+    }
+
+    /**
+     *
+     * @param type
+     * @param parent
+     */
+    public IkasanFlowElement(IkasanFlowElementType type, IkasanFlow parent) {
+        this.type = type;
+        this.parent = parent;
         this.properties = new TreeMap<>();
         viewHandler = new IkasanFlowElementViewHandler(this);
     }
@@ -42,9 +69,9 @@ public class IkasanFlowElement {
         viewHandler = new IkasanFlowElementViewHandler(this);
     }
 
-    public void setParent(IkasanFlow parent) {
-        this.parent = parent;
-    }
+//    public void setParent(IkasanFlow parent) {
+//        this.parent = parent;
+//    }
 
     public IkasanFlowElementType getType() {
         return type;
@@ -54,9 +81,13 @@ public class IkasanFlowElement {
         return properties;
     }
 
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
+    public void addAllProperties(Map<String, Object> newProperties) {
+        properties.putAll(newProperties);
     }
+
+//    public void setProperties(Map<String, Object> properties) {
+//        this.properties = properties;
+//    }
 
     public String getName() {
         return name;

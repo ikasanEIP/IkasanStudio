@@ -4,12 +4,12 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.ui.component.CanvasPanel;
 import org.ikasan.studio.ui.component.DesignerCanvas;
 import org.ikasan.studio.ui.component.PalettePanel;
 import org.ikasan.studio.ui.component.PropertiesPanel;
-import org.ikasan.studio.ui.component.palette.IkasanFlowUIComponentSelection;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +22,7 @@ public class DesignerUI {
     private Project project;
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     private JPanel mainJPanel = new JPanel();
-    private IkasanFlowUIComponentSelection ikasanFlowUIComponentSelection = new IkasanFlowUIComponentSelection();
+//    private IkasanFlowUIComponentSelection ikasanFlowUIComponentSelection = new IkasanFlowUIComponentSelection();
     /**
      * Create the main Designer window
      * @param toolWindow is the Intellij frame in which this resides
@@ -32,7 +32,11 @@ public class DesignerUI {
         this.project = project;
         this.projectKey = project.getName();
         Context.setProject(projectKey, project);
-
+//        String projectKey = project.getName();
+//        IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
+        if (Context.getIkasanModule(projectKey) == null) {
+            Context.setIkasanModule(projectKey, new IkasanModule());
+        }
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 new PropertiesPanel(projectKey),
                 new CanvasPanel(projectKey, toolWindow));
@@ -60,7 +64,8 @@ public class DesignerUI {
             public void run() {
                 DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
                 if (canvasPanel != null) {
-                    canvasPanel.setIkasanModule(StudioPsiUtils.getIkasanModuleFromSourceCode(projectKey, false));
+                    StudioPsiUtils.resetIkasanModuleFromSourceCode(projectKey, false);
+//                    canvasPanel.setIkasanModule(StudioPsiUtils.updateIkasanModuleFromSourceCode(projectKey, false));
                 }
             }
         });

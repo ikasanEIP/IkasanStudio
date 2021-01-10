@@ -2,10 +2,14 @@ package org.ikasan.studio.model.Ikasan;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The different elements (components) that might be in a flow
  */
 public enum IkasanFlowElementType {
+
     BROKER(IkasanFlowElementCategory.BROKER, "broker"),
     DB_BROKER(IkasanFlowElementCategory.BROKER, "DbBroker"),
     DELAY_GENERATION_BROKER(IkasanFlowElementCategory.BROKER, "DelayGenerationBroker"),
@@ -67,6 +71,8 @@ public enum IkasanFlowElementType {
     public final String associatedMethodName;
     public final IkasanFlowElementCategory elementCategory;
 
+    public static final Map<String, IkasanComponentProperty> xxDefaultProperties = new HashMap<>();
+
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
      * @param elementCategory e.g. CONSUMER, PRODUCER
@@ -96,35 +102,37 @@ public enum IkasanFlowElementType {
         return UNKNOWN;
     }
 
-    public static IkasanFlowElement getEndpointForFlowElement(IkasanFlowElement ikasanFlowElement) {
+
+
+    public static IkasanFlowElement getEndpointForFlowElement(IkasanFlowElement ikasanFlowElement, IkasanFlow ikasanFlow) {
         IkasanFlowElement endpointFlowElement = null ;
         if (ikasanFlowElement.getType() != null) {
             Object description;
             switch (ikasanFlowElement.getType()) {
                 case SFTP_CONSUMER :
-                    endpointFlowElement = new IkasanFlowElement();
-                    endpointFlowElement.setTypeAndViewHandler(SFTP_LOCATION);
+                    endpointFlowElement = new IkasanFlowElement(SFTP_LOCATION, ikasanFlow);
+//                    endpointFlowElement.setTypeAndViewHandler(SFTP_LOCATION);
                     description = ikasanFlowElement.getProperties().get("SftpRemoteHost");
                     endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case FTP_PRODUCER :
                 case FTP_CONSUMER :
-                    endpointFlowElement = new IkasanFlowElement();
-                    endpointFlowElement.setTypeAndViewHandler(FTP_LOCATION);
+                    endpointFlowElement = new IkasanFlowElement(FTP_LOCATION, ikasanFlow);
+//                    endpointFlowElement.setTypeAndViewHandler(FTP_LOCATION);
                     description = ikasanFlowElement.getProperties().get("RemoteHost");
                     endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case JMS_PRODUCER :
                 case JMS_CONSUMER :
-                    endpointFlowElement = new IkasanFlowElement();
-                    endpointFlowElement.setTypeAndViewHandler(CHANNEL);
+                    endpointFlowElement = new IkasanFlowElement(CHANNEL, ikasanFlow);
+//                    endpointFlowElement.setTypeAndViewHandler(CHANNEL);
                     description = ikasanFlowElement.getProperties().get("DestinationJndiName");
                     endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case DB_PRODUCER :
                 case DB_CONSUMER :
-                    endpointFlowElement = new IkasanFlowElement();
-                    endpointFlowElement.setTypeAndViewHandler(DB);
+                    endpointFlowElement = new IkasanFlowElement(DB, ikasanFlow);
+//                    endpointFlowElement.setTypeAndViewHandler(DB);
                     description = ikasanFlowElement.getProperties().get("setConfiguredResourceId");
                     endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;

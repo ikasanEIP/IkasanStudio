@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import org.apache.log4j.Logger;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.UIUtils;
@@ -13,6 +14,7 @@ import java.awt.*;
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
 public class IkasanFlowElementViewHandler extends ViewHandler {
+    private static final Logger log = Logger.getLogger(IkasanFlowElementViewHandler.class);
     public static final int TEXT_VERTICAL_SPACE = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 60;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 90;
@@ -47,7 +49,8 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
      *             determine
      * @return
      */
-    public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY){
+    public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
+        log.debug("paintComponent invoked");
         // here we ket the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);

@@ -11,9 +11,7 @@ import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * Encapsulates the Intellij representation of the Ikasan Module
@@ -29,7 +27,8 @@ public class PIPSIIkasanModel {
     private static final String COMPONENT_BUILDER_NAME_METHOD = "getComponentBuilder";
 
     private String projectKey ;
-    private IkasanModule iIkasanModule = new IkasanModule();
+    private IkasanModule ikasanModule;
+//    private IkasanModule iIkasanModule = new IkasanModule();
 
     /**
      * Plugin PSI (Program Structure Interface) Iksanan Model builder
@@ -39,7 +38,7 @@ public class PIPSIIkasanModel {
      */
     public PIPSIIkasanModel(final String projectKey) {
         this.projectKey = projectKey;
-        Context.setIkasanModule(projectKey, iIkasanModule);
+        ikasanModule = Context.getIkasanModule(projectKey);
     }
 
     protected Project getProject() {
@@ -72,7 +71,7 @@ public class PIPSIIkasanModel {
         PIPSIMethodList moduleBuilderMethodList = extractMethodCallsFromChain(moduleBuilderLocalVariable.getChildren(), new PIPSIMethodList());
         PIPSIMethod moduleBuilderMethod = moduleBuilderMethodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
         //@todo what if parameter is a reference or Sprint variable - chase
-        iIkasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
     }
 
     /**
@@ -81,7 +80,7 @@ public class PIPSIIkasanModel {
      * @return A populated Ikasan Module used by the plugin.
      */
     // New Way
-    public IkasanModule buildIkasanModule(final PsiFile moduleConfigPsiFile) {
+    public void updateIkasanModule(final PsiFile moduleConfigPsiFile) {
         log.debug("Extracting ikasan model from file " + moduleConfigPsiFile.getText());
         PsiClass moduleConfigClass = getClassFromPsiFile(moduleConfigPsiFile);
         if (moduleConfigClass != null) {
@@ -118,7 +117,6 @@ public class PIPSIIkasanModel {
         } else {
             log.error("Could not build moduleConfigClass from moduleConfigPsiFile [" + moduleConfigPsiFile + "]");
         }
-        return iIkasanModule;
     }
 
     /**
@@ -151,14 +149,14 @@ public class PIPSIIkasanModel {
     protected void parseModuleStatementRHS(final PIPSIMethodList methodList, final PsiClass moduleConfigClass) {
         // Set the module description
         PIPSIMethod withDescriptionMethod = methodList.getFirstMethodByName(WITH_DESCRIPTION_METHOD_NAME);
-        iIkasanModule.setDescription(withDescriptionMethod == null ? null :
+        ikasanModule.setDescription(withDescriptionMethod == null ? null :
                 withDescriptionMethod.getLiteralParameterAsString(0, true));
 
         // Just in case we have it here also
         //@todo what it parameter was a reference or spring reference- chase !
         PIPSIMethod moduleBuilderMethod = methodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
         if (moduleBuilderMethod != null) {
-            iIkasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+            ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
         }
 
         // Expose the flows
@@ -265,34 +263,40 @@ public class PIPSIIkasanModel {
                 IkasanFlowElementCategory.ROUTER.associatedMethodName.equals(pipsiMethod.getName()) ||
                 IkasanFlowElementCategory.SPLITTER.associatedMethodName.equals(pipsiMethod.getName()) ||
                 IkasanFlowElementCategory.TRANSLATER.associatedMethodName.equals(pipsiMethod.getName())) {
-                IkasanFlowElement ikasanFlowElement = new IkasanFlowElement(
-                        newFlow,
-                        pipsiMethod.getLiteralParameterAsString(0, true),
-                        pipsiMethod.getLiteralParameterAsString(0, true));
+                String flowElementName = pipsiMethod.getLiteralParameterAsString(0, true);
+                String flowElementDescription = pipsiMethod.getLiteralParameterAsString(0, true);
+                IkasanFlowElement ikasanFlowElement = null;
+
+//                        new IkasanFlowElement(
+//                        newFlow,
+//                        pipsiMethod.getLiteralParameterAsString(0, true),
+//                        pipsiMethod.getLiteralParameterAsString(0, true));
                 // usually the component, or componentFactory.getXX(), or new PayloadToMapConverter()
                 PsiExpression flowComponentParam2 = pipsiMethod.getParameter(1);
+
                 if (flowComponentParam2 != null) {
                     // Simplest scenario e.g. new MapMessageToPayloadConverter()
                     if (flowComponentParam2 instanceof PsiNewExpression) {
                         PsiJavaCodeReferenceElement flowComponentConstructor = (PsiJavaCodeReferenceElement) Arrays.stream(flowComponentParam2.getChildren()).filter(x -> x instanceof PsiJavaCodeReferenceElement).findFirst().orElse(null);
                         if (flowComponentConstructor != null) {
-                            ikasanFlowElement.setTypeAndViewHandler(IkasanFlowElementType.parseMethodName(flowComponentConstructor.getText()));
+                            ikasanFlowElement = new IkasanFlowElement(IkasanFlowElementType.parseMethodName(flowComponentConstructor.getText()), newFlow, flowElementName, flowElementDescription);
+//                            ikasanFlowElement.setTypeAndViewHandler(IkasanFlowElementType.parseMethodName(flowComponentConstructor.getText()));
                         }
                     } else {
                     // More complex scenario, we need to traverse down the call stack until we find a component.
                         PIPSIMethodList pipsiMethodList = getComponentBuilderMethods(flowComponentParam2) ;
-                        updateFlowElementWithTypeAndParams(ikasanFlowElement, pipsiMethodList);
+                        ikasanFlowElement = createFlowElementWithProperties(newFlow, flowElementName, flowElementDescription, pipsiMethodList);
                     }
                 }
                 // This is not the right long term class but will do for now.
                 ikasanFlowElement.getViewHandler().setClassToNavigateTo(moduleConfigClass);
                 ikasanFlowElement.getViewHandler().setOffsetInclassToNavigateTo(
                         pipsiMethod.getMethodDeclaration() != null ? pipsiMethod.getMethodDeclaration().getStartOffsetInParent() : 0);
-                newFlow.getFlowElementList().add(ikasanFlowElement);
+                newFlow.addFlowElement(ikasanFlowElement);
             }
         }
-        addInputOutputForFlow(newFlow);
-        iIkasanModule.getFlows().add(newFlow);
+        newFlow = addInputOutputForFlow(newFlow);
+        ikasanModule.addFlow(newFlow);
     }
 
 
@@ -498,34 +502,36 @@ public class PIPSIIkasanModel {
      * Given we have built up all the flow, deduce the input and output end point for the flow.
      * @param ikasanFlow that holds all the flow elements
      */
-    protected void addInputOutputForFlow(final IkasanFlow ikasanFlow) {
+    protected IkasanFlow addInputOutputForFlow(final IkasanFlow ikasanFlow) {
         List<IkasanFlowElement> flowElements = ikasanFlow.getFlowElementList();
         if (!flowElements.isEmpty()) {
-            IkasanFlowElement input = IkasanFlowElementType.getEndpointForFlowElement(flowElements.get(0));
+            IkasanFlowElement input = IkasanFlowElementType.getEndpointForFlowElement(flowElements.get(0), ikasanFlow);
             if (input != null) {
-                input.setParent(ikasanFlow);
                 ikasanFlow.setInput(input);
             }
-            IkasanFlowElement output = IkasanFlowElementType.getEndpointForFlowElement(flowElements.get(flowElements.size()-1));
+            IkasanFlowElement output = IkasanFlowElementType.getEndpointForFlowElement(flowElements.get(flowElements.size()-1), ikasanFlow);
             if (output != null) {
-                output.setParent(ikasanFlow);
                 ikasanFlow.setOutput(output);
             }
         }
+        return ikasanFlow;
     }
 
     /**
-     * Determine the flow component type and gather all its parameters
-     * @param ikasanFlowElement to be enriched
+     * create a new IkasanFlowElement including any properties that may have been set.
+     * @param parent flow for this element
+     * @param name of the element
+     * @param description for the element
      * @param componentBuilderMethodList e.g. .consumer("Ftp Consumer", componentBuilder.ftpConsumer()
-     *                     .setCronExpression(ftpConsumerCronExpression)
-     *                     .setClientID(ftpConsumerClientID)
-     *                     ...
-     *                         .build()
-     * @return the enriched flow element, however it is also updated due to being passed in so we dont really need to return it,
-     * this is done to emphasize that IkasanFlowElement is updated by tgis method.
+     *      *                     .setCronExpression(ftpConsumerCronExpression)
+     *      *                     .setClientID(ftpConsumerClientID)
+     *      *                     ...
+     *      *                         .build()
+     * @return new new IkasanFlowElement
      */
-    protected IkasanFlowElement updateFlowElementWithTypeAndParams(final IkasanFlowElement ikasanFlowElement, final PIPSIMethodList componentBuilderMethodList) {
+    protected IkasanFlowElement createFlowElementWithProperties(final IkasanFlow parent, final String name, final String description, final PIPSIMethodList componentBuilderMethodList) {
+        IkasanFlowElement ikasanFlowElement = null;
+        Map<String, Object> flowElementProperties = new HashMap<>();
         for (PIPSIMethod componentBuilderMethod: componentBuilderMethodList.getPipsiMethods()) {
             String methodName = componentBuilderMethod.getName();
             if  ("build".equals(methodName) || COMPONENT_BUILDER_NAME_METHOD.equals(methodName)) {
@@ -533,11 +539,15 @@ public class PIPSIIkasanModel {
             }
             else if (methodName.startsWith("set")) {
                 // Only expect 1 param for the setter
-                ikasanFlowElement.getProperties().put(methodName.replaceFirst("set", ""), componentBuilderMethod.getLiteralParameterAsString(0, true));
+                flowElementProperties.put(methodName.replaceFirst("set", ""), componentBuilderMethod.getLiteralParameterAsString(0, true));
             } else {
                 // Must be the component type
-                ikasanFlowElement.setTypeAndViewHandler(IkasanFlowElementType.parseMethodName(methodName));
+                ikasanFlowElement = new IkasanFlowElement(IkasanFlowElementType.parseMethodName(methodName), parent, name, description);
+//                ikasanFlowElement.setTypeAndViewHandler(IkasanFlowElementType.parseMethodName(methodName));
             }
+        }
+        if (ikasanFlowElement != null && ! flowElementProperties.isEmpty()) {
+            ikasanFlowElement.addAllProperties(flowElementProperties);
         }
         return ikasanFlowElement;
     }
@@ -751,8 +761,8 @@ public class PIPSIIkasanModel {
      */
     protected IkasanModule extractModuleName(final PIPSIMethodList methodList) {
         PIPSIMethod moduleBuilderMethod = methodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
-        iIkasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
-        return  iIkasanModule;
+        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+        return  ikasanModule;
     }
 //    /**
 //     * The public entry point, builds the Pseudo Ikasan Module used by the plugin.

@@ -40,6 +40,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private void paintIkasanFlowContainer(Graphics g, int x, int y, int width, int height) {
+        log.debug("paintIkasanFlowContainer invoked");
 //    private void paintIkasanFlowContainer(Graphics g) {
 
         log.info("paintIkasanFlowContainer x [" + x + "] y [" + y + "] width [" + width + "] height [" + height + "]");
@@ -62,6 +63,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public int paintComponent(JPanel canvas, Graphics g, int minimumLeftX, int minimumTopY) {
+        log.debug("paintComponent invoked");
         int newLeftX = getNewCoord(minimumLeftX, getLeftX());
         int newTopY = getNewCoord(minimumTopY, getTopY());
 
