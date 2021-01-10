@@ -15,6 +15,9 @@ import java.util.*;
 
 /**
  * Encapsulates the Intellij representation of the Ikasan Module
+ *
+ * The idea is to keep the Ikasan Module clean of any Initellij specific details, this module will inpect the
+ * code to generate the Ikasan Module and update the code to reflect changes to the Ikasan Module.
  */
 public class PIPSIIkasanModel {
     public static final String MODULE_BEAN_CLASS = "org.ikasan.spec.module.Module";
@@ -28,7 +31,7 @@ public class PIPSIIkasanModel {
 
     private String projectKey ;
     private IkasanModule ikasanModule;
-//    private IkasanModule iIkasanModule = new IkasanModule();
+    private PsiClass moduleConfigClazz;
 
     /**
      * Plugin PSI (Program Structure Interface) Iksanan Model builder
@@ -41,8 +44,18 @@ public class PIPSIIkasanModel {
         ikasanModule = Context.getIkasanModule(projectKey);
     }
 
+    public void setModuleConfigClazz(PsiClass moduleConfigClazz) {
+        this.moduleConfigClazz = moduleConfigClazz;
+    }
+
     protected Project getProject() {
         return Context.getProject(projectKey);
+    }
+
+    public void generateSourceFromModule() {
+        if (moduleConfigClazz == null) {
+//            moduleConfigClazz =
+        }
     }
 
     protected PsiLocalVariable getModuleBuilderLocalVariable(PIPSIMethodList moduleMethodList) {
@@ -76,11 +89,11 @@ public class PIPSIIkasanModel {
 
     /**
      * The public entry point, builds the Pseudo Ikasan Module used by the plugin.
-     * @param moduleConfigPsiFile the java file containing the module declaration.
      * @return A populated Ikasan Module used by the plugin.
      */
     // New Way
-    public void updateIkasanModule(final PsiFile moduleConfigPsiFile) {
+    public void updateIkasanModule() {
+        PsiFile moduleConfigPsiFile = moduleConfigClazz.getContainingFile();
         log.debug("Extracting ikasan model from file " + moduleConfigPsiFile.getText());
         PsiClass moduleConfigClass = getClassFromPsiFile(moduleConfigPsiFile);
         if (moduleConfigClass != null) {
@@ -288,6 +301,10 @@ public class PIPSIIkasanModel {
                         ikasanFlowElement = createFlowElementWithProperties(newFlow, flowElementName, flowElementDescription, pipsiMethodList);
                     }
                 }
+                if (ikasanFlowElement == null) {
+                    ikasanFlowElement = new IkasanFlowElement(IkasanFlowElementType.UNKNOWN, newFlow, flowElementName, flowElementDescription);
+                }
+
                 // This is not the right long term class but will do for now.
                 ikasanFlowElement.getViewHandler().setClassToNavigateTo(moduleConfigClass);
                 ikasanFlowElement.getViewHandler().setOffsetInclassToNavigateTo(
@@ -546,6 +563,12 @@ public class PIPSIIkasanModel {
 //                ikasanFlowElement.setTypeAndViewHandler(IkasanFlowElementType.parseMethodName(methodName));
             }
         }
+
+        // In this case, the object was created before the setter chaining
+        if (ikasanFlowElement == null && componentBuilderMethodList.getBaseType() != null) {
+            ikasanFlowElement = new IkasanFlowElement(IkasanFlowElementType.parseCategoryType(componentBuilderMethodList.getBaseType()), parent, name, description);
+        }
+
         if (ikasanFlowElement != null && ! flowElementProperties.isEmpty()) {
             ikasanFlowElement.addAllProperties(flowElementProperties);
         }

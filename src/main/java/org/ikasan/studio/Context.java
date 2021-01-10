@@ -2,6 +2,7 @@ package org.ikasan.studio;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.DesignerCanvas;
 import org.ikasan.studio.ui.component.PropertiesPanel;
 
@@ -22,6 +23,7 @@ public class Context {
     private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
+    private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
 
     private static Map<String, Map<String, Object>> projectCache = new HashMap<>();
 
@@ -89,5 +91,11 @@ public class Context {
     }
     public static IkasanModule getIkasanModule(String projectKey) {
         return (IkasanModule) getProjectCache(projectKey, IKASAN_MODULE);
+    }
+    public static void setPipsiIkasanModel(String projectKey, PIPSIIkasanModel ikasanModule) {
+        putProjectCache(projectKey, PIPSI_IKASAN_MODEL, ikasanModule);
+    }
+    public static PIPSIIkasanModel getPipsiIkasanModel(String projectKey) {
+        return (PIPSIIkasanModel) getProjectCache(projectKey, PIPSI_IKASAN_MODEL);
     }
 }

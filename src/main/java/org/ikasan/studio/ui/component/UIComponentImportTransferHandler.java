@@ -15,11 +15,9 @@ public class UIComponentImportTransferHandler extends TransferHandler // impleme
     private static final Logger log = Logger.getLogger(UIComponentImportTransferHandler.class);
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
     private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
-    private String projectKey;
     private DesignerCanvas designerCanvas;
 
-    public UIComponentImportTransferHandler(String projectKey, DesignerCanvas designerCanvas) {
-        this.projectKey = projectKey;
+    public UIComponentImportTransferHandler(DesignerCanvas designerCanvas) {
         this.designerCanvas = designerCanvas;
     }
 

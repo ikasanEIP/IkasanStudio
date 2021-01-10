@@ -102,7 +102,16 @@ public enum IkasanFlowElementType {
         return UNKNOWN;
     }
 
-
+    public static IkasanFlowElementType parseCategoryType(String methodName) {
+        if (methodName != null) {
+            for (IkasanFlowElementType name : IkasanFlowElementType.values()) {
+                if (StringUtils.containsIgnoreCase(methodName, name.elementCategory.associatedMethodName)) {
+                    return name;
+                }
+            }
+        }
+        return UNKNOWN;
+    }
 
     public static IkasanFlowElement getEndpointForFlowElement(IkasanFlowElement ikasanFlowElement, IkasanFlow ikasanFlow) {
         IkasanFlowElement endpointFlowElement = null ;

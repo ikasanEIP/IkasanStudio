@@ -12,6 +12,7 @@ import org.ikasan.studio.model.Ikasan.IkasanFlow;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.UIUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 import org.w3c.dom.DOMImplementation;
@@ -57,7 +58,7 @@ public class DesignerCanvas extends JPanel {
             }
         });
 
-        setTransferHandler(new UIComponentImportTransferHandler(projectKey, this));
+        setTransferHandler(new UIComponentImportTransferHandler( this));
     }
 
     /**
@@ -178,24 +179,18 @@ public class DesignerCanvas extends JPanel {
     }
 
     public boolean requestToAddComponent(int x, int y, IkasanFlowElementType ikasanFlowElementType) {
-        System.out.println("X Y in");
-        System.out.println("X Y in");
         if (x >= 0 && y >=0 && ikasanFlowElementType != null) {
-
-
-//            IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
-//            if (ikasanModule == null) {
-//                ikasanModule = new IkasanModule();
-//                Context.setIkasanModule(projectKey, ikasanModule);
-//            }
-
             if (ikasanModule.getFlows().isEmpty()) {
                 // drop here and create a new flow.
                 // or create source and regenerate ikasanModule ??
                 IkasanFlow newFlow = new IkasanFlow();
-                newFlow.setName("New Flow 1");
-                ikasanModule.addFlow(newFlow);
+                ikasanModule.addAnonymousFlow(newFlow);
                 newFlow.addFlowElement(new IkasanFlowElement(ikasanFlowElementType, newFlow));
+
+                PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                pipsiIkasanModel.generateSourceFromModule();
+
+                initialiseCanvas = true;
             }
             this.repaint();
             return true;
@@ -249,14 +244,6 @@ public class DesignerCanvas extends JPanel {
     public void setDrawGrid(boolean drawGrid) {
         this.drawGrid = drawGrid;
     }
-
-//    public IkasanModule getIkasanModule() {
-//        return ikasanModule;
-//    }
-//
-//    public void setIkasanModule(IkasanModule ikasanModule) {
-//        this.ikasanModule = ikasanModule;
-//    }
 
     public void saveAsImage(File file, String imageFormat, boolean transparentBackground) {
         int imageType = transparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;

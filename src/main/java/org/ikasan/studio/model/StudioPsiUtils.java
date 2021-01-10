@@ -3,10 +3,7 @@ package org.ikasan.studio.model;
 import com.intellij.lang.Language;
 import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
@@ -19,6 +16,8 @@ import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+
+import static com.intellij.ide.lightEdit.LightEditUtil.getProject;
 
 public class StudioPsiUtils {
     private static final Logger log = Logger.getLogger(StudioPsiUtils.class);
@@ -239,13 +238,12 @@ public class StudioPsiUtils {
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
     public static void resetIkasanModuleFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
-//        IkasanModule ikasanModule = null;
         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
         ikasanModule.reset();
-
         PsiClass moduleConfigClazz = null ;
         Project project = Context.getProject(projectKey);
         if (!assumeModuleConfigClass) {
+            //@todo this seems quite expensive, see if better way
             PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModel.MODULE_BEAN_CLASS);
             if (getModuleMethod != null) {
                 moduleConfigClazz = getModuleMethod.getContainingClass();
@@ -254,9 +252,14 @@ public class StudioPsiUtils {
             moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfig");
         }
         if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
-            PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
-            pipsiIkasanModel.updateIkasanModule(moduleConfigClazz.getContainingFile());
-//            ikasanModule = pipsiIkasanModel.buildIkasanModule(moduleConfigClazz.getContainingFile());
+            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            pipsiIkasanModel.setModuleConfigClazz(moduleConfigClazz);
+            pipsiIkasanModel.updateIkasanModule();
         }
     }
+
+//    private OgnlFile createFile(final String text) throws {
+//        return (OgnlFile) PsiFileFactory.getInstance(getProject())
+//                .createFileFromText("test.ognl", OgnlLanguage.INSTANCE, text);
+//    }
 }

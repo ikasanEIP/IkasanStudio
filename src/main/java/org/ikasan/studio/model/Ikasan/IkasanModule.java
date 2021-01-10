@@ -27,10 +27,25 @@ public class IkasanModule {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
+        this.name = "New Module";
+        this.description = "New Module, please provide description";
     }
 
+    /**
+     * This will be called when we have a new anonymous flows to add
+     * @param ikasanFlow
+     */
+    public boolean addAnonymousFlow(IkasanFlow ikasanFlow) {
+        // @todo we should look though any existing flows and ensure this name is unique ?
+        ikasanFlow.setName("New Flow 1");
+        return addFlow(ikasanFlow);
+    }
+
+
     public IkasanModule() {
-        viewHandler = new IkasanModuleViewHandler(this);
+        this.viewHandler = new IkasanModuleViewHandler(this);
+        this.name = "New Module";
+        this.description = "New Module, please provide description";
     }
 
     public IkasanModule(String name) {
@@ -66,13 +81,8 @@ public class IkasanModule {
     }
 
     public boolean addFlow(IkasanFlow ikasanFlow) {
-
         return flows.add(ikasanFlow);
     }
-
-//    public void setFlows(List<IkasanFlow> flows) {
-//        this.flows = flows;
-//    }
 
     public ViewHandler getViewHandler() {
         return viewHandler;

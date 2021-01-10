@@ -6,6 +6,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.StudioPsiUtils;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.CanvasPanel;
 import org.ikasan.studio.ui.component.DesignerCanvas;
 import org.ikasan.studio.ui.component.PalettePanel;
@@ -37,6 +38,9 @@ public class DesignerUI {
         if (Context.getIkasanModule(projectKey) == null) {
             Context.setIkasanModule(projectKey, new IkasanModule());
         }
+        if (Context.getPipsiIkasanModel(projectKey) == null) {
+            Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
+        }
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 new PropertiesPanel(projectKey),
                 new CanvasPanel(projectKey, toolWindow));
@@ -65,7 +69,6 @@ public class DesignerUI {
                 DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
                 if (canvasPanel != null) {
                     StudioPsiUtils.resetIkasanModuleFromSourceCode(projectKey, false);
-//                    canvasPanel.setIkasanModule(StudioPsiUtils.updateIkasanModuleFromSourceCode(projectKey, false));
                 }
             }
         });
