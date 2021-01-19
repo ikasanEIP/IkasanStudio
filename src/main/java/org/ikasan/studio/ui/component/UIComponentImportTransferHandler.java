@@ -32,7 +32,7 @@ public class UIComponentImportTransferHandler extends TransferHandler // impleme
      * @return
      */
     public boolean canImport(JComponent targetComponent, DataFlavor destinationSupportedflavors[]) {
-        log.trace("Component is " + targetComponent);
+        log.trace("Generator is " + targetComponent);
         if (!(targetComponent instanceof JPanel)) {
             return false;
         }

@@ -2,13 +2,11 @@ package org.ikasan.studio.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
+import org.ikasan.studio.Context;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
-import org.ikasan.studio.Context;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,7 +83,7 @@ public class DesignerWindow {
 //        paletteList.setCellRenderer(new PaletteCellRenderer(paleteListItems));
 //        paletteList.setCellRenderer(new paleteListItems() {
 //                @Override
-//                public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+//                public Generator getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 //                    // Get the renderer component from parent class
 //                    JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 //                    // Get icon to use for the list item value

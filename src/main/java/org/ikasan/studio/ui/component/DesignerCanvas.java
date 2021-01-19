@@ -13,7 +13,7 @@ import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.UIUtils;
+import org.ikasan.studio.ui.SUIUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -125,7 +125,7 @@ public class DesignerCanvas extends JPanel {
             screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
             log.info("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
-                    "] Component selected [" + mouseSelectedComponent.getName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
+                    "] Generator selected [" + mouseSelectedComponent.getName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
 
             final int componentX = vh.getLeftX();
             final int componentY = vh.getTopY();
@@ -233,7 +233,7 @@ public class DesignerCanvas extends JPanel {
             ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
         }
         if (drawGrid) {
-            UIUtils.paintGrid(g, 0, 0, getWidth(), getHeight());
+            SUIUtils.paintGrid(g, 0, 0, getWidth(), getHeight());
         }
     }
 
@@ -257,12 +257,12 @@ public class DesignerCanvas extends JPanel {
         try {
             boolean saved = ImageIO.write(bufferedImage, imageFormat, file);
             if (!saved) {
-                UIUtils.displayErrorMessage(projectKey, "Could not save file " + file.getAbsolutePath());
+                SUIUtils.displayErrorMessage(projectKey, "Could not save file " + file.getAbsolutePath());
             } else {
-                UIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
+                SUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
             }
         } catch (IOException ioe) {
-            UIUtils.displayErrorMessage(projectKey, "Could not save image to file " + file.getAbsolutePath());
+            SUIUtils.displayErrorMessage(projectKey, "Could not save image to file " + file.getAbsolutePath());
             log.error("Error saving image to file " + file.getAbsolutePath(), ioe);
         }
     }
@@ -280,9 +280,9 @@ public class DesignerCanvas extends JPanel {
 
         try {
             svgGraphics2D.stream(file.getAbsolutePath(), true);
-            UIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
+            SUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
         } catch (SVGGraphics2DIOException se) {
-            UIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
+            SUIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
             log.error("Error saving SVG image to file " + file.getAbsolutePath(), se);
         }
     }

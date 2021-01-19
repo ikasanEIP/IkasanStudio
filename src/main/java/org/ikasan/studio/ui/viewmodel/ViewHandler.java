@@ -1,7 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +40,15 @@ public abstract class ViewHandler {
         return new Point(getLeftX() + (getWidth()/2), getTopY() + getHeight());
     }
 
-    public abstract void initialiseDimensions(Graphics g, int x, int y, int width, int height) ;
+    /**
+     *
+     * @param graphics object
+     * @param x starting point
+     * @param y starting point
+     * @param width of container
+     * @param height of container
+     */
+    public abstract void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) ;
 
     /**
      * Get the y position for the bottom of the component

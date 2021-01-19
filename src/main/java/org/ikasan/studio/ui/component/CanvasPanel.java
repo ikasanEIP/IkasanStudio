@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component;
 
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.actions.LaunchDashboardAction;
 import org.ikasan.studio.actions.ModelRefreshAction;
 import org.ikasan.studio.actions.SaveAction;
 
@@ -22,6 +23,19 @@ public class CanvasPanel extends JPanel {
         DesignerCanvas canvasPanel = new DesignerCanvas(projectKey);
         Context.setDesignerCanvas(projectKey, canvasPanel);
 
+        JPanel canvasHeaderButtonPanel = new JPanel();
+        JButton launchButton = new JButton("Launch");
+        launchButton.addActionListener(new LaunchDashboardAction(projectKey));
+        canvasHeaderButtonPanel.add(launchButton);
+
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(new ModelRefreshAction(projectKey));
+        canvasHeaderButtonPanel.add(refreshButton);
+
+        JButton saveButton = new JButton("Save");
+        canvasHeaderButtonPanel.add(saveButton);
+        saveButton.addActionListener(new SaveAction(projectKey));
+
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
         gridCheckBox.addItemListener(new ItemListener() {
@@ -35,17 +49,6 @@ public class CanvasPanel extends JPanel {
                 designerCanvas.repaint();
             }
         });
-
-//        hideButton.addActionListener(e -> toolWindow.hide(null));
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.addActionListener(new ModelRefreshAction(projectKey));
-
-        JPanel canvasHeaderButtonPanel = new JPanel();;
-        canvasHeaderButtonPanel.add(refreshButton);
-        JButton saveButton = new JButton("Save");
-        canvasHeaderButtonPanel.add(saveButton);
-
-        saveButton.addActionListener(new SaveAction(projectKey));
         canvasHeaderButtonPanel.add(gridCheckBox);
 
         JPanel canvasHeaderTitlePanel = new JPanel();;

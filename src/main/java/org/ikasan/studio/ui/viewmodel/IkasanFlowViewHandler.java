@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 import org.ikasan.studio.ui.PaintMode;
-import org.ikasan.studio.ui.UIUtils;
+import org.ikasan.studio.ui.SUIUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,7 +23,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     IkasanFlow model;
 
     /**
-     * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
+     * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param model
      */
     public IkasanFlowViewHandler(IkasanFlow model) {
@@ -35,16 +35,25 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private int paintFlowTitle(Graphics g, PaintMode paintMode) {
-        return UIUtils.drawCenteredStringFromTopCentre
-                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), UIUtils.getBoldFont( g));
+        return SUIUtils.drawCenteredStringFromTopCentre
+                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), SUIUtils.getBoldFont(g));
     }
+
+    private int getFlowTitleWidth(Graphics g) {
+        return SUIUtils.getTextWidth(g, getText());
+    }
+
+    private int getFlowTitleHeight(Graphics g) {
+        return SUIUtils.getTextHeight(g);
+    }
+
 
     private void paintIkasanFlowContainer(Graphics g, int x, int y, int width, int height) {
         log.debug("paintIkasanFlowContainer invoked");
 //    private void paintIkasanFlowContainer(Graphics g) {
 
         log.info("paintIkasanFlowContainer x [" + x + "] y [" + y + "] width [" + width + "] height [" + height + "]");
-        g.setColor(UIUtils.IKASAN_GREY);
+        g.setColor(SUIUtils.IKASAN_GREY);
         g.fillRoundRect(x, y, width, height, CONTAINER_CORNER_ARC, CONTAINER_CORNER_ARC);
         g.setColor(Color.BLACK);
         Graphics2D g2d = (Graphics2D) g.create();
@@ -54,8 +63,14 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
 
+    /**
+     * Use the value of reset if it is greater than -1
+     * @param reset set to -1 if we don't yet know if we need to override the current value
+     * @param current value that might be overriden
+     * @return reset unless it was -1
+     */
     private int getNewCoord(int reset, int current) {
-        if (reset > -1 && reset != current) {
+        if (reset > -1) {
             return reset;
         } else {
             return current;
@@ -70,14 +85,15 @@ public class IkasanFlowViewHandler extends ViewHandler {
         if (newLeftX != getLeftX() || newTopY != getTopY()) {
             initialiseDimensions(g, newLeftX, newTopY,-1, -1);
         } else {
-            initialiseDimensionsNotChildren(g, newLeftX, newTopY,-1, -1);
+//            initialiseDimensionsNotChildren(g, newLeftX, newTopY,-1, -1);
+            initialiseDimensionsNotChildren(g, newLeftX, newTopY);
         }
         paintIkasanFlowContainer(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
 
         List<IkasanFlowElement> flowElementList = model.getFlowElementList();
         int flowSize = flowElementList.size();
-        UIUtils.setLine(g, 2f);
+        SUIUtils.setLine(g, 2f);
         for (int index=0; index < flowSize; index ++) {
             IkasanFlowElement flowElement = flowElementList.get(index);
 
@@ -108,9 +124,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
                 connectComponents(g, last, vh);
             }
         }
-
-
-        UIUtils.setLine(g,1f);
+        SUIUtils.setLine(g,1f);
         return getBottomY();
     }
 
@@ -126,29 +140,47 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return paintFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;
     }
 
-    public void initialiseDimensions(Graphics g, int newLeftx, int newTopY, int width, int height) {
+    /**
+     * Look at the current components and work out the required x, y , width and height of this container
+     * @param graphics object
+     * @param newLeftx to use
+     * @param newTopY to use
+     * @param width of container which may be ignored if it is set by the component
+     * @param height of container which may be ignored if it is set by the component
+     */
+    public void initialiseDimensions(Graphics graphics, int newLeftx, int newTopY, int width, int height) {
         setLeftX(newLeftx);
         setTopY(newTopY);
         if (width != -1) {
-            setWidth(width); // We initialise the width twice, first to prevent constrains
+            setWidth(width); // We initialise the width twice, first to prevent constraints
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
-        int topYForElements = getYAfterPaintingFlowTitle(g);
-        for (IkasanFlowElement ikasanFlowElement : model.getFlowElementList()) {
-            ikasanFlowElement.getViewHandler().initialiseDimensions(g, currentX, topYForElements, -1, -1);
-            currentX += ikasanFlowElement.getViewHandler().getWidth() + FLOW_X_SPACING;
+        int topYForElements = getYAfterPaintingFlowTitle(graphics);
+        if (model.getFlowElementList().size() > 0) {
+            for (IkasanFlowElement ikasanFlowElement : model.getFlowElementList()) {
+                ikasanFlowElement.getViewHandler().initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
+                currentX += ikasanFlowElement.getViewHandler().getWidth() + FLOW_X_SPACING;
+            }
         }
-        setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
-        setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
+        setWidthHeights(graphics, newTopY);
     }
 
-    public void initialiseDimensionsNotChildren(Graphics g, int newLeftx, int newTopY, int width, int height) {
+//    public void initialiseDimensionsNotChildren(Graphics g, int newLeftx, int newTopY, int width, int height) {
+    public void initialiseDimensionsNotChildren(Graphics graphics, int newLeftx, int newTopY) {
         setLeftX(newLeftx);
         setTopY(newTopY);
-        setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
-        setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
+        setWidthHeights(graphics, newTopY);
     }
 
+    private void setWidthHeights(Graphics graphics, int newTopY) {
+        if (model.getFlowElementList().size() > 0) {
+            setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
+            setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
+        } else {
+            setWidth(getFlowTitleWidth(graphics) + (2 * FLOW_CONTAINER_BORDER));
+            setHeight(getFlowTitleHeight(graphics) + (2 * FLOW_Y_TITLE_SPACING));
+        }
+    }
 
     public int getFlowElementsWidth() {
         return getFlowElementsRightX() - getFlowElementsLeftX();
@@ -160,16 +192,16 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public int getFlowElementsLeftX() {
+        // if there are no elements, should we use title
+
         int minX = model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
         return minX;
     }
 
     public int getFlowElementsRightX() {
-        int maxX = model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
-        return maxX;
+        return model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
     }
     public int getFlowElementsBottomY() {
-        int maxX = model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
-        return maxX;
+        return model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
     }
 }

@@ -48,7 +48,7 @@ public class IkasanFlowUIComponentFactory {
     private static final String WEB_URL_BASE = "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/";
 
     private IkasanFlowUIComponentFactory() {
-        UNKNOWN = createIkasanFlowUIComponent("Bespoke Component", BESPOKE_HELP_TEXT, "Readme.md", IkasanFlowElementType.UNKNOWN, "unknown");
+        UNKNOWN = createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, "Readme.md", IkasanFlowElementType.UNKNOWN, "unknown");
         //@todo add in link to online Ikasan help
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Aggregator","Aggregator is an ipsum", "Readme.md", IkasanFlowElementType.UNKNOWN, "aggregator"));
 
@@ -105,7 +105,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Ftp Location", ENDPOINT_HELP_TEXT, "Readme.md", IkasanFlowElementType.FTP_LOCATION, "sftp-location"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Sftp Location", ENDPOINT_HELP_TEXT, "Readme.md", IkasanFlowElementType.SFTP_LOCATION, "sftp-location"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Bespoke Component", BESPOKE_HELP_TEXT, "Readme.md", IkasanFlowElementType.UNKNOWN, "unknown"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, "Readme.md", IkasanFlowElementType.UNKNOWN, "unknown"));
 
     }
 

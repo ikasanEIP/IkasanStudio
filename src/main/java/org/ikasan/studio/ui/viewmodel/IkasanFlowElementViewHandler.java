@@ -3,7 +3,7 @@ package org.ikasan.studio.ui.viewmodel;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 import org.ikasan.studio.ui.PaintMode;
-import org.ikasan.studio.ui.UIUtils;
+import org.ikasan.studio.ui.SUIUtils;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
@@ -63,18 +63,26 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
     private int paintSymbolText(Graphics g, PaintMode paintMode) {
         flowchartSymbolHeight = getCanvasIcon().getIconHeight();
         flowchartSymbolWidth = getCanvasIcon().getIconWidth();
-        int bottomY = UIUtils.drawCenteredStringFromTopCentre(g, paintMode, getText(),
+        int bottomY = SUIUtils.drawCenteredStringFromTopCentre(g, paintMode, getText(),
                 getBottomConnectorPoint().x, getBottomConnectorPoint().y + TEXT_VERTICAL_SPACE, flowchartSymbolWidth, null);
         setHeight(bottomY - getTopY());
         return bottomY;
     }
 
-    public void initialiseDimensions(Graphics g, int x, int y, int width, int height) {
+    /**
+     * Set the x and y co-ordinates of this component.
+     * @param graphics object
+     * @param x new x location
+     * @param y new y location
+     * @param width of container which may be ignored if it is set by the component
+     * @param height of container which may be ignored if it is set by the component
+     */
+    public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {
         setLeftX(x);
         setTopY(y);
         setWidth(getCanvasIcon().getIconWidth());
         // this has the side effect of setting the correct height.
-        paintSymbolText(g, PaintMode.DIMENSION_ONLY);
+        paintSymbolText(graphics, PaintMode.DIMENSION_ONLY);
     }
 
     public String getText() {

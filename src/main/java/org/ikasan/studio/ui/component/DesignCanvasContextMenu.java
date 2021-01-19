@@ -1,10 +1,7 @@
 package org.ikasan.studio.ui.component;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.actions.ModelRefreshAction;
-import org.ikasan.studio.actions.NavigateToCodeAction;
-import org.ikasan.studio.actions.PopupHelpAction;
-import org.ikasan.studio.actions.SaveAction;
+import org.ikasan.studio.actions.*;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 
 import javax.swing.*;
@@ -17,6 +14,7 @@ public class DesignCanvasContextMenu {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
+        menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
         menu.add(createHelpTextItem(projectKey, "Description", flowElement, mouseEvent));
         menu.add(createWebHelpTextItem(projectKey, "Web help", flowElement, mouseEvent));
         menu.add(createNavigateToCode(projectKey, "Jump to code", flowElement, false));
@@ -52,6 +50,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createRefreshMenuItem(String projectKey, String label) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new ModelRefreshAction(projectKey));
+        return item;
+    }
+
+    private static JMenuItem createLaunchDashboardMenuItem(String projectKey, String label) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new LaunchDashboardAction(projectKey));
         return item;
     }
 

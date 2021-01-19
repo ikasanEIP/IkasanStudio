@@ -15,7 +15,7 @@ public class SampleDialogWrapper extends DialogWrapper {
         this.projectKey = projectKey;
         this.flowElement = flowElement;
         init();
-        setTitle("Component Help");
+        setTitle("Generator Help");
     }
 
 //    @Nullable

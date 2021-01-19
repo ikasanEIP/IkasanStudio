@@ -52,6 +52,9 @@ public class PIPSIIkasanModel {
         return Context.getProject(projectKey);
     }
 
+    /**
+     * An update has been made to the diagram so we need to reverse this into the code.
+     */
     public void generateSourceFromModule() {
         if (moduleConfigClazz == null) {
 //            moduleConfigClazz =

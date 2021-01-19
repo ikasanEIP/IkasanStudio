@@ -11,7 +11,7 @@ public class ModelRefreshAction implements ActionListener
    private static final Logger log = Logger.getLogger(ModelRefreshAction.class);
    private String projectKey;
 
-   public ModelRefreshAction(String projectKey) {
+      public ModelRefreshAction(String projectKey) {
       this.projectKey = projectKey;
    }
       @Override
@@ -19,6 +19,6 @@ public class ModelRefreshAction implements ActionListener
       Context.getDesignerCanvas(projectKey).setInitialiseCanvas(true);
       Context.getDesignerCanvas(projectKey).repaint(); // Tell swing the panel is dirty and needs re-painting.
 //      String message = StudioPsiUtils.getIkasanModuleFromSourceCode().toString();
-//      UIUtils.displayMessage(message);
+//      SUIUtils.displayMessage(message);
    }
 }

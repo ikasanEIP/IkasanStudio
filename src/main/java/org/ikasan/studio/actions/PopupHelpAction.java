@@ -44,7 +44,7 @@ public class PopupHelpAction  implements ActionListener {
          int minHeight = Math.max(designerCanvas.getHeight() > 0 ? designerCanvas.getHeight() / 5 : 200, 200);
 
          JBPopupFactory.getInstance().createComponentPopupBuilder(new JScrollPane(helpPanel), jTextArea)
-                 .setTitle("Component Description")
+                 .setTitle("Generator Description")
                  .setResizable(true)
                  .setMovable(true)
                  .setMinSize(new Dimension(minWidth, minHeight))

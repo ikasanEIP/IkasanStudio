@@ -6,7 +6,7 @@ import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -60,7 +60,7 @@ public class IkasanFlowUIComponentSelection extends TransferHandler // implement
      * @return
      */
     public boolean canImport(JComponent targetComponent, DataFlavor destinationSupportedflavors[]) {
-        log.warn("Component is " + targetComponent);
+        log.warn("Generator is " + targetComponent);
         if (!(targetComponent instanceof JPanel)) {
             return false;
         }

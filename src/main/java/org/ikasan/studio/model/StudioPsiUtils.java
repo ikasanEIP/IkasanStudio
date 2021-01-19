@@ -2,12 +2,20 @@ package org.ikasan.studio.model;
 
 import com.intellij.lang.Language;
 import com.intellij.lang.jvm.JvmMethod;
+import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Utils;
@@ -16,8 +24,8 @@ import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-
-import static com.intellij.ide.lightEdit.LightEditUtil.getProject;
+import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 public class StudioPsiUtils {
     private static final Logger log = Logger.getLogger(StudioPsiUtils.class);
@@ -140,6 +148,7 @@ public class StudioPsiUtils {
 
 
         // Very brute force, go through 52K classes, if its not in project scope ignore, otherwise inspect
+        //@todo use getSourceRootContaining(JAVA)
         for (String className : cache.getAllClassNames()) {
             PsiClass[] psiClasses = cache.getClassesByName(className, ProjectScope.getProjectScope(project));
             if (psiClasses != null) {
@@ -249,7 +258,7 @@ public class StudioPsiUtils {
                 moduleConfigClazz = getModuleMethod.getContainingClass();
             }
         } else {
-            moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfig");
+            moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfigTemplate");
         }
         if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
@@ -258,8 +267,130 @@ public class StudioPsiUtils {
         }
     }
 
-//    private OgnlFile createFile(final String text) throws {
-//        return (OgnlFile) PsiFileFactory.getInstance(getProject())
+    public static void getAllSourceRootsForProject(Project project) {
+        String projectName = project.getName();
+        VirtualFile[] vFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
+        String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
+        System.out.println("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
+    }
+
+    public static String JAVA_CODE = "main/java";
+    public static String JAVA_RESOURCES = "main/resources";
+    public static String JAVA_TESTS = "test";
+    /**
+     * Get the source root that contains the supplied string, possible to get java source, resources or test
+     * @param project to work on
+     * @param searchString to look for
+     * @return the rood of the module / source directory that contains the supplied string.
+     */
+    public static VirtualFile getSourceRootContaining(Project project, String searchString) {
+        VirtualFile sourceCodeRoot = null;
+        VirtualFile[] vFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
+        for (VirtualFile vFile : vFiles) {
+            if (vFile.toString().contains(searchString)) {
+                sourceCodeRoot = vFile;
+                break;
+            }
+        }
+        return sourceCodeRoot;
+    }
+    public static PsiFile createFileInDirectory(final PsiDirectory baseDir, final String filename, final String text, Project project) {
+        PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
+        return newFile;
+    }
+
+
+
+
+
+
+
+
+
+    //From a file by offset: PsiFile.findElementAt(). Note: this returns the lowest level element ("leaf") at the specified offset, normally a lexer token. Most likely, you should use PsiTreeUtil.getParentOfType() to find the element you really need.
+
+//    PsiFile psiFile = anActionEvent.getData(CommonDataKeys.PSI_FILE);
+//    PsiElement element = psiFile.findElementAt(offset);
+//    PsiMethod containingMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+//    PsiClass containingClass = containingMethod.getContainingClass();
+// binary expression holds a PSI expression of the form x==y  whch we need to change to s.equals(y)
+    public static void bob(Project project) {
+        ReadonlyStatusHandler.getInstance(project).ensureFilesWritable();
+        // PsiBinaryExpression binaryExpression = (PsiBinaryExpression) descriptor.getPsiElement();
+//        IElementType opSign = binaryExpression.getOperationTokenType();
+//        PsiExpression lExpr = binaryExpression.getLOperand();
+//        PsiExpression rExpr = binaryExpression.getROperand();
+        // 1 Create replacement fragment from test with 'a' and 'b' as placeholders
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
+        // 2 replace a and b
+//        equalsCall.getMethodExpression().getQualifierExpression().replace(lExpr);
+//        equalsCall.getArgumentList().getExpressions()[0].replace(rExpr);
+        // 3 replace larger element in original file
+//        PsiExpression result = (PsiExpression)binaryExpression.replace(equalsCall);
+    }
+
+
+    public static PsiFile createFile1(final String filename, final String text, Project project) {
+        //  ************************* PsiJavaParserFacadeImpl ********************************
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
+        @NotNull Module[] module = ModuleManager.getInstance(project).getModules();
+//        module[0].getR
+        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
+        PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
+        return newFile;
+    }
+//    public static PsiFile createFile1(final String text) throws {
+//        return PsiFileFactory.getInstance(getProject())
 //                .createFileFromText("test.ognl", OgnlLanguage.INSTANCE, text);
 //    }
+
+
+    /**
+     * Create the supplied directory in the PSI file system if it does not already exists
+     * @param parent directory to contain the new directory
+     * @param newDirectoryName to be created
+     * @return the directory created or a handle to the existing directory if it exists
+     * @throws IncorrectOperationException
+     */
+    public static PsiDirectory createDirectory(PsiDirectory parent, String newDirectoryName)
+            throws IncorrectOperationException {
+        PsiDirectory newDirectory = null;
+
+        if (newDirectoryName != null) {
+            for (PsiDirectory subdirectoryOfParent : parent.getSubdirectories()) {
+                if (subdirectoryOfParent.getName().equalsIgnoreCase(newDirectoryName)) {
+                    newDirectory = subdirectoryOfParent;
+                    break;
+                }
+            }
+        }
+        // doesn't exist, create it.
+        if (null == newDirectory) {
+            newDirectory = parent.createSubdirectory(newDirectoryName);
+        }
+
+        return newDirectory;
+    }
+
+    /**
+     * Create the directories for the supplied package name, returning the handle to the leaf directory
+     * @param sourceRootDir that contains the package
+     * @param qualifiedPackage i.e. dotted notation
+     * @return
+     * @throws IncorrectOperationException
+     */
+    public static PsiDirectory createPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
+            throws IncorrectOperationException {
+        PsiDirectory parentDir = sourceRootDir;
+        if (sourceRootDir != null) {
+            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
+            while (token.hasMoreTokens()) {
+                String dirName = token.nextToken();
+                parentDir = createDirectory(parentDir, dirName);
+            }
+        }
+        return parentDir;
+    }
 }
