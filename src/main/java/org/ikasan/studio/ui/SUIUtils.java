@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Studion UI Utils.
+ * Studion UI SUtils.
  */
 public class SUIUtils {
     public static final Color IKASAN_GREY = new Color(231, 231, 231);
@@ -80,7 +80,8 @@ public class SUIUtils {
      */
     public static int drawCenteredStringFromTopCentre(Graphics g, PaintMode paintMode, String text, int centerX, int topY, int maxWidth, Font font) {
         if (maxWidth <= 0) {
-            log.warn("Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
+            log.error("Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
+            maxWidth = 1;
         }
         Font origFont = g.getFont();
         if (font != null) {

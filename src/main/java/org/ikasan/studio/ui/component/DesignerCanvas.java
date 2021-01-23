@@ -12,6 +12,7 @@ import org.ikasan.studio.model.Ikasan.IkasanFlow;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
 import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.SUIUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
@@ -180,7 +181,7 @@ public class DesignerCanvas extends JPanel {
 
     public boolean requestToAddComponent(int x, int y, IkasanFlowElementType ikasanFlowElementType) {
         if (x >= 0 && y >=0 && ikasanFlowElementType != null) {
-            if (ikasanModule.getFlows().isEmpty()) {
+//            if (ikasanModule.getFlows().isEmpty()) {
                 // drop here and create a new flow.
                 // or create source and regenerate ikasanModule ??
                 IkasanFlow newFlow = new IkasanFlow();
@@ -189,9 +190,11 @@ public class DesignerCanvas extends JPanel {
 
                 PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                 pipsiIkasanModel.generateSourceFromModule();
-
+                StudioPsiUtils.resetIkasanModuleFromSourceCode(projectKey, false);
                 initialiseCanvas = true;
-            }
+//            } else {
+//                // add the components to the flow.
+//            }
             this.repaint();
             return true;
         } else {

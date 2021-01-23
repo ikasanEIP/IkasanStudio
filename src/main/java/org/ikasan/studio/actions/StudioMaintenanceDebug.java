@@ -14,8 +14,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.generator.ApplicationTemplate;
-import org.ikasan.studio.generator.BasicPropertiesTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
+import org.ikasan.studio.generator.PropertiesTemplate;
+import org.ikasan.studio.generator.VelocityUtils;
 import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.Arrays;
@@ -50,6 +51,8 @@ public class StudioMaintenanceDebug extends AnAction
       StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
       System.out.println();
 
+      VelocityUtils.generateFromTemplate("ApplicationTemplate.vm", null);
+
       final PsiFile file = ae.getData(LangDataKeys.PSI_FILE);
       final Project project = ae.getProject();
 
@@ -68,12 +71,12 @@ public class StudioMaintenanceDebug extends AnAction
               project,
               () -> ApplicationManager.getApplication().runWriteAction(
                       () -> {
-                         ApplicationTemplate.createBasicAppication(ae, project);
-                         ModuleConfigTemplate.createBasicModule(ae, project);
+                         ApplicationTemplate.createApplication(project);
+                         ModuleConfigTemplate.createModule(project);
                          //@todo check the file produced, if non produced, bring up messeage in Intillij Error messging window.
-                         BasicPropertiesTemplate.createBasicPropertes(ae, project);
+                         PropertiesTemplate.createProperties(project);
                       }),
-              "Name of command",
+              "Maintenance Debug Command",
               "Undo group ID");
 
 //      SUIUtils.displayMessage(projectKey, getKeyData(ae));

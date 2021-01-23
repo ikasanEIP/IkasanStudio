@@ -18,7 +18,7 @@ import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.Utils;
+import org.ikasan.studio.SUtils;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
@@ -198,7 +198,7 @@ public class StudioPsiUtils {
         // Note, getClassesByName will only work with non-qualified classname
         @NotNull PsiClass[] files = null;
         if (className.contains(".")) {
-            String baseClassName = Utils.getLastToken( "\\.", className);
+            String baseClassName = SUtils.getLastToken( "\\.", className);
             files = PsiShortNamesCache.getInstance(project).getClassesByName(baseClassName, ProjectScope.getProjectScope(project));
             if (null != files) {
                 files = Arrays.stream(files).filter(x -> className.equals(x.getQualifiedName())).toArray(PsiClass[]::new);
@@ -249,22 +249,37 @@ public class StudioPsiUtils {
     public static void resetIkasanModuleFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
         ikasanModule.reset();
+        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+        if (pipsiIkasanModel.getModuleConfigClazz() == null) {
+            updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
+        }
+        if (pipsiIkasanModel.getModuleConfigClazz() != null) {
+            pipsiIkasanModel.updateIkasanModule();
+        }
+    }
+
+    private static final PIPSIIkasanModel updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
+        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+        PsiClass moduleConfigClazz = getModuleConfigClass(projectKey, assumeModuleConfigClass);
+        if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
+            pipsiIkasanModel.setModuleConfigClazz(moduleConfigClazz);
+        }
+        return pipsiIkasanModel;
+    }
+
+    private static final PsiClass getModuleConfigClass(String projectKey, boolean assumeModuleConfigClass) {
         PsiClass moduleConfigClazz = null ;
         Project project = Context.getProject(projectKey);
         if (!assumeModuleConfigClass) {
             //@todo this seems quite expensive, see if better way
-            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModel.MODULE_BEAN_CLASS);
+            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModel.OLD_MODULE_BEAN_CLASS);
             if (getModuleMethod != null) {
                 moduleConfigClazz = getModuleMethod.getContainingClass();
             }
         } else {
-            moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfigTemplate");
+            moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfig");
         }
-        if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
-            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.setModuleConfigClazz(moduleConfigClazz);
-            pipsiIkasanModel.updateIkasanModule();
-        }
+        return moduleConfigClazz;
     }
 
     public static void getAllSourceRootsForProject(Project project) {

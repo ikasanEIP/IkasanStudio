@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.Ikasan;
 
+import org.ikasan.studio.SUtils;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
@@ -9,6 +10,7 @@ import java.util.List;
 public class IkasanFlow {
     private ViewHandler viewHandler;
     private String name;
+    private String javaVariableName;
     private String description;
     private IkasanFlowElement input;
     private IkasanFlowElement output;
@@ -24,7 +26,15 @@ public class IkasanFlow {
     }
 
     public void setName(String name) {
+
         this.name = name;
+        if (name != null && name.length() > 0) {
+            javaVariableName = SUtils.toJavaIdentifier(name);
+        }
+    }
+
+    public String getJavaVariableName() {
+        return javaVariableName;
     }
 
     public String getDescription() {
@@ -71,4 +81,6 @@ public class IkasanFlow {
                 ", flowElementList=" + flowElementList +
                 '}';
     }
+
+
 }

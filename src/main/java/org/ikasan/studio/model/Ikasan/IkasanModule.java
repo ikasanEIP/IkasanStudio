@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.Ikasan;
 
+import com.intellij.psi.PsiFile;
 import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
@@ -14,6 +15,7 @@ import java.util.List;
  */
 public class IkasanModule {
     private ViewHandler viewHandler;
+    private PsiFile moduleConfig;
 
     private String name;
     private String description;
@@ -27,7 +29,7 @@ public class IkasanModule {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-        this.name = "New Module";
+        this.name = "New Reset Module";
         this.description = "New Module, please provide description";
     }
 
@@ -37,7 +39,7 @@ public class IkasanModule {
      */
     public boolean addAnonymousFlow(IkasanFlow ikasanFlow) {
         // @todo we should look though any existing flows and ensure this name is unique ?
-        ikasanFlow.setName("New Flow 1");
+        ikasanFlow.setName("newFlow1");
         return addFlow(ikasanFlow);
     }
 
@@ -100,5 +102,13 @@ public class IkasanModule {
                 ", version='" + version + '\'' +
                 ", flowList=" + flows +
                 '}';
+    }
+
+    public PsiFile getModuleConfig() {
+        return moduleConfig;
+    }
+
+    public void setModuleConfig(PsiFile moduleConfig) {
+        this.moduleConfig = moduleConfig;
     }
 }

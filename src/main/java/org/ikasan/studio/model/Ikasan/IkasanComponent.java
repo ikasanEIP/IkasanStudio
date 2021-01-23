@@ -1,6 +1,6 @@
 package org.ikasan.studio.model.Ikasan;
 
-import org.ikasan.studio.Utils;
+import org.ikasan.studio.SUtils;
 
 /**
  * The different elements (components) that might be in a flow
@@ -34,7 +34,7 @@ public enum IkasanComponent {
 
     public static IkasanComponent parseBaseClass(String baseClassString) {
         for (IkasanComponent ikasanComponent : IkasanComponent.values()) {
-            if (ikasanComponent.baseClass.equals(baseClassString) || Utils.getLastToken("\\.", ikasanComponent.baseClass).equals(baseClassString)) {
+            if (ikasanComponent.baseClass.equals(baseClassString) || SUtils.getLastToken("\\.", ikasanComponent.baseClass).equals(baseClassString)) {
                 return ikasanComponent;
             }
         }

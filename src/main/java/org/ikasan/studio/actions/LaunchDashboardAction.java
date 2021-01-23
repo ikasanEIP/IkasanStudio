@@ -15,6 +15,6 @@ public class LaunchDashboardAction implements ActionListener {
 }
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      BrowserUtil.browse("http:localhost:8090");
+      BrowserUtil.browse("http:localhost:8090/example-im");
    }
 }
