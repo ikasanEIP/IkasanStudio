@@ -4,7 +4,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,7 +60,7 @@ public class PIPSIIkasanModelFtpJmsImTest extends PIPSIIkasanModelAbstractTest {
         Assert.assertThat(flow1.getOutput().getDescription(), is("ftp.private.jms.queue"));
         Assert.assertThat(flow1.getFlowElementList().size(), is(3));
 
-        IkasanFlowElement ftpConsumer = flow1.getFlowElementList().get(0);
+        IkasanFlowComponent ftpConsumer = flow1.getFlowElementList().get(0);
         Assert.assertThat(ftpConsumer.getName(), is("Ftp Consumer"));
         Assert.assertThat(ftpConsumer.getProperties().size(), is(20));
 
@@ -75,13 +75,13 @@ public class PIPSIIkasanModelFtpJmsImTest extends PIPSIIkasanModelAbstractTest {
         Assert.assertThat(flow2.getOutput().getDescription(), is("ftpProducerRemoteHost"));
         Assert.assertThat(flow2.getFlowElementList().size(), is(3));
 
-        IkasanFlowElement jmsConsumer = flow2.getFlowElementList().get(0);
+        IkasanFlowComponent jmsConsumer = flow2.getFlowElementList().get(0);
         Assert.assertThat(jmsConsumer.getName(), is("Ftp Jms Consumer"));
         Assert.assertThat(jmsConsumer.getProperties().size(), is(3));
 
         Assert.assertThat(flow2.getFlowElementList().get(1).getName(), is("MapMessage to FTP Payload Converter"));
 
-        IkasanFlowElement ftpProdcuer = flow2.getFlowElementList().get(2);
+        IkasanFlowComponent ftpProdcuer = flow2.getFlowElementList().get(2);
         Assert.assertThat(ftpProdcuer.getName(), is("Ftp Producer"));
         Assert.assertThat(ftpProdcuer.getProperties().size(), is(8));
     }

@@ -1,0 +1,2 @@
+# Event Generating Consumer - Every component is assumed to have name and description so they do not need to be included here
+# isConfigMandatory|configName|propertyConfigFileLabel|dataType|helpText

@@ -68,7 +68,7 @@ public class DesignerUI {
             public void run() {
                 DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
                 if (canvasPanel != null) {
-                    StudioPsiUtils.resetIkasanModuleFromSourceCode(projectKey, false);
+                    StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
                 }
             }
         });

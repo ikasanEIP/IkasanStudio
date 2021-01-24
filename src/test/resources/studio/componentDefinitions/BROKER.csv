@@ -1,0 +1,4 @@
+# Broker
+# isConfigMandatory|configName|propertyConfigFileLabel|dataType|helpText
+true|name||java.lang.String|The name of the component
+false|total|my.test.total|java.lang.Integer|Total description

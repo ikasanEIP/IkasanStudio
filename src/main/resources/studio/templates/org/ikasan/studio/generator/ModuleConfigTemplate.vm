@@ -15,15 +15,15 @@ org.ikasan.builder.BuilderFactory builderFactory;
 public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
-org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("My Integration Module")
-.withDescription("My first integration module.");
+org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}")
+.withDescription("${module.description}");
 
 // Create a component builder from the builder factory
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 // Add the created flow to the module builder and create the module
 org.ikasan.spec.module.Module module = moduleBuilder
-#foreach($flow in $flows)
+#foreach($flow in $module.flows)
 .addFlow(get_${flow.JavaVariableName}(moduleBuilder, componentBuilder))
 #end
 .build();
@@ -32,7 +32,7 @@ return module;
 
 #foreach($flow in $flows)
 private org.ikasan.spec.flow.Flow get_${flow.JavaVariableName}(org.ikasan.builder.ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
-org.ikasan.builder.FlowBuilder ${flow.JavaVariableName}FlowBuilder = moduleBuilder.getFlowBuilder("Event Generating Flow");
+org.ikasan.builder.FlowBuilder ${flow.JavaVariableName}FlowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
 org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = ${flow.JavaVariableName}FlowBuilder
 .consumer("My Source Consumer", componentBuilder.eventGeneratingConsumer())
 .producer("My Target Producer", componentBuilder.logProducer())

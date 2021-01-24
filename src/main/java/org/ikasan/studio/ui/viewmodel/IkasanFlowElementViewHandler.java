@@ -1,9 +1,9 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.PaintMode;
-import org.ikasan.studio.ui.SUIUtils;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
@@ -22,13 +22,13 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
     IkasanFlowUIComponent ikasanFlowUIComponent;
-    IkasanFlowElement model;
+    IkasanFlowComponent model;
 
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
      * @param model
      */
-    public IkasanFlowElementViewHandler(IkasanFlowElement model) {
+    public IkasanFlowElementViewHandler(IkasanFlowComponent model) {
         this.model = model;
         if (model != null) {
             ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getType());
@@ -63,7 +63,7 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
     private int paintSymbolText(Graphics g, PaintMode paintMode) {
         flowchartSymbolHeight = getCanvasIcon().getIconHeight();
         flowchartSymbolWidth = getCanvasIcon().getIconWidth();
-        int bottomY = SUIUtils.drawCenteredStringFromTopCentre(g, paintMode, getText(),
+        int bottomY = StudioUIUtils.drawCenteredStringFromTopCentre(g, paintMode, getText(),
                 getBottomConnectorPoint().x, getBottomConnectorPoint().y + TEXT_VERTICAL_SPACE, flowchartSymbolWidth, null);
         setHeight(bottomY - getTopY());
         return bottomY;
@@ -86,7 +86,7 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
     }
 
     public String getText() {
-        return model.getDescription();
+        return model.getName();
     }
 
     public ImageIcon getCanvasIcon() {

@@ -60,7 +60,7 @@ public class PIPSIIkasanModelAnvilReconciliationTest extends PIPSIIkasanModelAbs
 //
 //        Assert.assertThat(flow1.getFlowElementList().size(), is(3));
 //
-//        IkasanFlowElement jmsConsumer = flow1.getFlowElementList().get(0);
+//        IkasanFlowComponent jmsConsumer = flow1.getFlowElementList().get(0);
 //        Assert.assertThat(jmsConsumer.getName(), is("JMS Consumer"));
 //        Assert.assertThat(jmsConsumer.getProperties().size(), is(4));
 //

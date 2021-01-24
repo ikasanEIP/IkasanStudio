@@ -29,8 +29,8 @@ public class IkasanModule {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-        this.name = "New Reset Module";
-        this.description = "New Module, please provide description";
+        this.name = "Reset";
+        this.description = "Reset";
     }
 
     /**

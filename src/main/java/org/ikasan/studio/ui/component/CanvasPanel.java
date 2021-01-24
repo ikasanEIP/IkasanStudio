@@ -2,12 +2,11 @@ package org.ikasan.studio.ui.component;
 
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.actions.LaunchDashboardAction;
-import org.ikasan.studio.actions.ModelRefreshAction;
-import org.ikasan.studio.actions.SaveAction;
+import org.ikasan.studio.actions.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -24,17 +23,12 @@ public class CanvasPanel extends JPanel {
         Context.setDesignerCanvas(projectKey, canvasPanel);
 
         JPanel canvasHeaderButtonPanel = new JPanel();
-        JButton launchButton = new JButton("Launch");
-        launchButton.addActionListener(new LaunchDashboardAction(projectKey));
-        canvasHeaderButtonPanel.add(launchButton);
 
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.addActionListener(new ModelRefreshAction(projectKey));
-        canvasHeaderButtonPanel.add(refreshButton);
-
-        JButton saveButton = new JButton("Save");
-        canvasHeaderButtonPanel.add(saveButton);
-        saveButton.addActionListener(new SaveAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Launch", new LaunchDashboardAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Refresh", new ModelRefreshAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Rebuild", new ModelRebuildAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Save", new SaveAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Debug", new DebugAction(projectKey));
 
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
@@ -68,5 +62,11 @@ public class CanvasPanel extends JPanel {
         setLayout(new BorderLayout());
         add(canvasHeaderPanel, BorderLayout.NORTH);
         add(canvasBodyPanel, BorderLayout.CENTER);
+    }
+
+    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al) {
+        JButton newButton = new JButton(title);
+        newButton.addActionListener(al);
+        canvasHeaderButtonPanel.add(newButton);
     }
 }

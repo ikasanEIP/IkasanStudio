@@ -16,6 +16,7 @@ import org.ikasan.studio.model.StudioPsiUtils;
 public class Generator {
     public static final String CLASS_NAME_TAG = "className";
     public static final String FLOWS_TAG = "flows";
+    public static final String MODULE_TAG = "module";
     public static final String FLOW_NAME_TAG = "flowName";
 
 

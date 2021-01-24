@@ -1,0 +1,5 @@
+# Log Producer - Every component is assumed to have name and description so they do not need to be included here
+# isConfigMandatory|configName|propertyConfigFileLabel|dataType|helpText
+true|replacementText|log.replacementText|java.lang.String|Replace the matching text with the following string
+true|regExpPattern|log.regExpPattern|java.lang.String|Only display logs matching this text
+true|logEveryNth|log.logEveryNth|java.lang.Long|Only display every 'nth' log message

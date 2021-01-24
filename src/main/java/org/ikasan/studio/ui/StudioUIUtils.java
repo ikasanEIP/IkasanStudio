@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Studion UI SUtils.
+ * Studion UI StudioUtils.
  */
-public class SUIUtils {
+public class StudioUIUtils {
     public static final Color IKASAN_GREY = new Color(231, 231, 231);
-    private static final Logger log = Logger.getLogger(SUIUtils.class);
+    private static final Logger log = Logger.getLogger(StudioUIUtils.class);
 
     public static void setLine(Graphics g, float width) {
         if (g instanceof Graphics2D) {
@@ -59,7 +59,7 @@ public class SUIUtils {
         if (text == null) {
             text = "";
         }
-        int stringHeight = SUIUtils.getTextHeight(g);
+        int stringHeight = StudioUIUtils.getTextHeight(g);
         // remember the y co-ord for drawstring is the baseline, not the top of the string.
         g.drawString(text, leftX, topY + stringHeight);
         g.setFont(origFont);
@@ -90,13 +90,13 @@ public class SUIUtils {
         if (text == null) {
             text = "";
         }
-        int stringHeight = SUIUtils.getTextHeight(g);
-        int stringWidth = SUIUtils.getTextWidth(g, text);
-        List<String> textToDisplay = SUIUtils.splitStringIntoMultipleRows(text, (stringWidth/maxWidth)+1);
+        int stringHeight = StudioUIUtils.getTextHeight(g);
+        int stringWidth = StudioUIUtils.getTextWidth(g, text);
+        List<String> textToDisplay = StudioUIUtils.splitStringIntoMultipleRows(text, (stringWidth/maxWidth)+1);
         int textY = topY + stringHeight;  // remember the y co-ord for drawstring is the baseline, not the top of the string.
         int numberOfLines = 0;  // debugging
         for (String subString : textToDisplay) {
-            int textX = centerX - (SUIUtils.getTextWidth(g, subString) / 2);
+            int textX = centerX - (StudioUIUtils.getTextWidth(g, subString) / 2);
             if (paintMode.equals(PaintMode.PAINT)) {
                 g.drawString(subString, textX, textY);
             }
@@ -105,7 +105,7 @@ public class SUIUtils {
         }
         g.setFont(origFont);
         int currentBottomY = numberOfLines > 0 ? textY - stringHeight : topY;
-        log.info("drawCenteredStringFromTopCentre : paintMode [" + paintMode + "] text [" + text + "] centerX [" + centerX + "] topy [" + topY + "] maxWidth [" + maxWidth + "] font [" + font + "] leavingBottomY [" + currentBottomY + "]");
+//        log.info("drawCenteredStringFromTopCentre : paintMode [" + paintMode + "] text [" + text + "] centerX [" + centerX + "] topy [" + topY + "] maxWidth [" + maxWidth + "] font [" + font + "] leavingBottomY [" + currentBottomY + "]");
         return currentBottomY;
     }
 
@@ -121,7 +121,7 @@ public class SUIUtils {
      * @return the bottom y value of the last string (se we know how far down we went)
      */
     public static int drawCenteredStringFromMiddleCentre(Graphics g, PaintMode paintMode, String text, int centerX, int centerY, int maxWidth, Font font) {
-        int stringHeight = SUIUtils.getTextHeight(g);
+        int stringHeight = StudioUIUtils.getTextHeight(g);
         int intialY = centerY - (stringHeight / 2);
         return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, intialY, maxWidth, font);
     }

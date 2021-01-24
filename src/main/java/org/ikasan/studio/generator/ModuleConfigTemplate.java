@@ -39,6 +39,7 @@ public class ModuleConfigTemplate extends Generator {
         Map<String, Object> configs = new HashMap<>();
         configs.put(CLASS_NAME_TAG, MODULE_CLASS_NAME);
         configs.put(FLOWS_TAG, ikasanModule.getFlows());
+        configs.put(MODULE_TAG, ikasanModule);
         String templateString = VelocityUtils.generateFromTemplate(MODULE_VM, configs);
         return templateString;
     }

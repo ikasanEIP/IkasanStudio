@@ -2,7 +2,7 @@ package org.ikasan.studio.ui.component;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.actions.*;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
@@ -10,7 +10,7 @@ import java.awt.event.MouseEvent;
 public class DesignCanvasContextMenu {
     public static Logger log = Logger.getInstance(DesignCanvasContextMenu.class);
 
-    public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, IkasanFlowElement flowElement) {
+    public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, IkasanFlowComponent flowElement) {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
@@ -29,13 +29,13 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, event.getX(), event.getY());
     }
 
-    private static JMenuItem createHelpTextItem(String projectKey, String label, IkasanFlowElement flowElement, MouseEvent mouseEvent) {
+    private static JMenuItem createHelpTextItem(String projectKey, String label, IkasanFlowComponent flowElement, MouseEvent mouseEvent) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new PopupHelpAction(projectKey, flowElement, mouseEvent, false));
         return item;
     }
 
-    private static JMenuItem createWebHelpTextItem(String projectKey, String label, IkasanFlowElement flowElement, MouseEvent mouseEvent) {
+    private static JMenuItem createWebHelpTextItem(String projectKey, String label, IkasanFlowComponent flowElement, MouseEvent mouseEvent) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new PopupHelpAction(projectKey, flowElement, mouseEvent, true));
         return item;
@@ -59,7 +59,7 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    private static JMenuItem createNavigateToCode(String projectKey, String label, IkasanFlowElement flowElement, boolean jumpToLine) {
+    private static JMenuItem createNavigateToCode(String projectKey, String label, IkasanFlowComponent flowElement, boolean jumpToLine) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new NavigateToCodeAction(projectKey, flowElement, jumpToLine));
         return item;

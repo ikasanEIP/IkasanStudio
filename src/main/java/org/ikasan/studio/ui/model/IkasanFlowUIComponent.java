@@ -1,27 +1,29 @@
 package org.ikasan.studio.ui.model;
 
-import org.ikasan.studio.model.Ikasan.IkasanFlowElementCategory;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
 
 import javax.swing.*;
 import java.io.Serializable;
 
+/**
+ * Focuses on the presentation / UI specific features for the Ikasan component.
+ *
+ * The technical details of a component are encapsulated in org.ikasan.studio.model.Ikasan.IkasanFlowComponentType
+ */
 public class IkasanFlowUIComponent implements Serializable {
     String text ;
     String helpText;
     String webHelpURL;
-    IkasanFlowElementCategory ikasanFlowElementCategory;
-    IkasanFlowElementType ikasanFlowElementType;
+    IkasanFlowComponentType ikasanFlowComponentType;
     ImageIcon smallIcon;
     ImageIcon canvasIcon;
 
-    public IkasanFlowUIComponent(String text, String helpText, String webHelpURL, IkasanFlowElementType ikasanFlowElementType
+    public IkasanFlowUIComponent(String text, String helpText, String webHelpURL, IkasanFlowComponentType ikasanFlowComponentType
             , ImageIcon smallIcon, ImageIcon canvasIcon) {
         this.text = text;
         this.helpText = helpText;
         this.webHelpURL = webHelpURL;
-        this.ikasanFlowElementCategory = ikasanFlowElementType.getElementCategory();
-        this.ikasanFlowElementType = ikasanFlowElementType;
+        this.ikasanFlowComponentType = ikasanFlowComponentType;
         this.smallIcon = smallIcon;
         this.canvasIcon = canvasIcon;
     }
@@ -46,20 +48,12 @@ public class IkasanFlowUIComponent implements Serializable {
         return webHelpURL;
     }
 
-    public IkasanFlowElementCategory getIkasanFlowElementCategory() {
-        return ikasanFlowElementCategory;
+    public IkasanFlowComponentType getIkasanFlowComponentType() {
+        return ikasanFlowComponentType;
     }
 
-    public void setIkasanFlowElementCategory(IkasanFlowElementCategory ikasanFlowElementCategory) {
-        this.ikasanFlowElementCategory = ikasanFlowElementCategory;
-    }
-
-    public IkasanFlowElementType getIkasanFlowElementType() {
-        return ikasanFlowElementType;
-    }
-
-    public void setIkasanFlowElementType(IkasanFlowElementType ikasanFlowElementType) {
-        this.ikasanFlowElementType = ikasanFlowElementType;
+    public void setIkasanFlowComponentType(IkasanFlowComponentType ikasanFlowComponentType) {
+        this.ikasanFlowComponentType = ikasanFlowComponentType;
     }
 
     public ImageIcon getSmallIcon() {
@@ -83,8 +77,7 @@ public class IkasanFlowUIComponent implements Serializable {
         return "IkasanFlowUIComponent{" +
                 "text='" + text + '\'' +
                 ", helpText='" + helpText + '\'' +
-                ", ikasanFlowElementCategory=" + ikasanFlowElementCategory +
-                ", ikasanFlowElementType=" + ikasanFlowElementType +
+                ", ikasanFlowComponentType=" + ikasanFlowComponentType +
                 ", smallIcon=" + smallIcon +
                 ", canvasIcon=" + canvasIcon +
                 '}';

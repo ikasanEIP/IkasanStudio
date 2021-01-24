@@ -9,12 +9,12 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.SUIUtils;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -71,7 +71,7 @@ public class DesignerCanvas extends JPanel {
     private void mouseClick(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
-        IkasanFlowElement mouseSelectedComponent = getComponentAtXY(x, y);
+        IkasanFlowComponent mouseSelectedComponent = getComponentAtXY(x, y);
         log.info("Mouse mouseClick x [" + clickStartMouseX + "] y [" + clickStartMouseY + "] selected component [" + mouseSelectedComponent + "]");
 
           // One click, show popup
@@ -121,7 +121,7 @@ public class DesignerCanvas extends JPanel {
      */
     private void moveComponent(MouseEvent me, int mouseX, int mouseY){
         boolean didMouseClickStartOnComponents = (getComponentAtXY(clickStartMouseX, clickStartMouseY) != null);
-        IkasanFlowElement mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
+        IkasanFlowComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (didMouseClickStartOnComponents && mouseSelectedComponent != null) {
             screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
@@ -147,7 +147,7 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    public void setSelectedComponent(IkasanFlowElement flowComponent) {
+    public void setSelectedComponent(IkasanFlowComponent flowComponent) {
         ikasanModule.getFlows()
                 .stream()
                 .flatMap(x -> x.getFlowElementList().stream())
@@ -166,8 +166,8 @@ public class DesignerCanvas extends JPanel {
      * @param ypos
      * @return
      */
-    public IkasanFlowElement getComponentAtXY(int xpos, int ypos) {
-        IkasanFlowElement ikasanFlow = null;
+    public IkasanFlowComponent getComponentAtXY(int xpos, int ypos) {
+        IkasanFlowComponent ikasanFlow = null;
         if (ikasanModule != null) {
             ikasanFlow = ikasanModule.getFlows()
                     .stream()
@@ -179,18 +179,18 @@ public class DesignerCanvas extends JPanel {
         return ikasanFlow;
     }
 
-    public boolean requestToAddComponent(int x, int y, IkasanFlowElementType ikasanFlowElementType) {
-        if (x >= 0 && y >=0 && ikasanFlowElementType != null) {
+    public boolean requestToAddComponent(int x, int y, IkasanFlowComponentType ikasanFlowComponentType) {
+        if (x >= 0 && y >=0 && ikasanFlowComponentType != null) {
 //            if (ikasanModule.getFlows().isEmpty()) {
                 // drop here and create a new flow.
                 // or create source and regenerate ikasanModule ??
                 IkasanFlow newFlow = new IkasanFlow();
                 ikasanModule.addAnonymousFlow(newFlow);
-                newFlow.addFlowElement(new IkasanFlowElement(ikasanFlowElementType, newFlow));
+                newFlow.addFlowElement(new IkasanFlowComponent(ikasanFlowComponentType, newFlow));
 
                 PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-                pipsiIkasanModel.generateSourceFromModule();
-                StudioPsiUtils.resetIkasanModuleFromSourceCode(projectKey, false);
+                pipsiIkasanModel.generateSourceFromModel();
+                StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
                 initialiseCanvas = true;
 //            } else {
 //                // add the components to the flow.
@@ -208,8 +208,8 @@ public class DesignerCanvas extends JPanel {
      * @param ypos
      * @return
      */
-    public IkasanFlowElement getComponentsSurroundingY(int xpos, int ypos) {
-        IkasanFlowElement ikasanFlow = null;
+    public IkasanFlowComponent getComponentsSurroundingY(int xpos, int ypos) {
+        IkasanFlowComponent ikasanFlow = null;
         if (ikasanModule != null) {
             ikasanFlow = ikasanModule.getFlows()
                     .stream()
@@ -236,7 +236,7 @@ public class DesignerCanvas extends JPanel {
             ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
         }
         if (drawGrid) {
-            SUIUtils.paintGrid(g, 0, 0, getWidth(), getHeight());
+            StudioUIUtils.paintGrid(g, 0, 0, getWidth(), getHeight());
         }
     }
 
@@ -260,12 +260,12 @@ public class DesignerCanvas extends JPanel {
         try {
             boolean saved = ImageIO.write(bufferedImage, imageFormat, file);
             if (!saved) {
-                SUIUtils.displayErrorMessage(projectKey, "Could not save file " + file.getAbsolutePath());
+                StudioUIUtils.displayErrorMessage(projectKey, "Could not save file " + file.getAbsolutePath());
             } else {
-                SUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
+                StudioUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
             }
         } catch (IOException ioe) {
-            SUIUtils.displayErrorMessage(projectKey, "Could not save image to file " + file.getAbsolutePath());
+            StudioUIUtils.displayErrorMessage(projectKey, "Could not save image to file " + file.getAbsolutePath());
             log.error("Error saving image to file " + file.getAbsolutePath(), ioe);
         }
     }
@@ -283,9 +283,9 @@ public class DesignerCanvas extends JPanel {
 
         try {
             svgGraphics2D.stream(file.getAbsolutePath(), true);
-            SUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
+            StudioUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
         } catch (SVGGraphics2DIOException se) {
-            SUIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
+            StudioUIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
             log.error("Error saving SVG image to file " + file.getAbsolutePath(), se);
         }
     }

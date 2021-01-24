@@ -1,0 +1,5 @@
+# FTP_CONSUMER - Every component is assumed to have name and description so they do not need to be included here
+# isConfigMandatory|configName|propertyConfigFileLabel|dataType|helpText
+false|cronExpression|ftp.consumer.cronExpression|java.lang.String|The cron expression used to trigger the file check
+true|clientID|ftp.consumer.clientID|java.lang.String|The client identifer
+true|username|ftp.consumer.username|java.lang.String|The name of the account to connect to the remote host

@@ -18,7 +18,7 @@ import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.SUtils;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
@@ -198,7 +198,7 @@ public class StudioPsiUtils {
         // Note, getClassesByName will only work with non-qualified classname
         @NotNull PsiClass[] files = null;
         if (className.contains(".")) {
-            String baseClassName = SUtils.getLastToken( "\\.", className);
+            String baseClassName = StudioUtils.getLastToken( "\\.", className);
             files = PsiShortNamesCache.getInstance(project).getClassesByName(baseClassName, ProjectScope.getProjectScope(project));
             if (null != files) {
                 files = Arrays.stream(files).filter(x -> className.equals(x.getQualifiedName())).toArray(PsiClass[]::new);
@@ -246,7 +246,7 @@ public class StudioPsiUtils {
     }
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static void resetIkasanModuleFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
+    public static void resetIkasanModelFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
         ikasanModule.reset();
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);

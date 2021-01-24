@@ -13,11 +13,11 @@ import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.apache.log4j.Logger;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
 import org.ikasan.studio.generator.PropertiesTemplate;
 import org.ikasan.studio.generator.VelocityUtils;
-import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.Arrays;
 
@@ -41,16 +41,31 @@ public class StudioMaintenanceDebug extends AnAction
    }
 
    /**
-    * Display data in message window
+    * Only make this action visible when text is selected.
     * @param ae supplied action event
     */
+   @Override
+   public void update(AnActionEvent ae)
+   {
+      final Editor editor = ae.getRequiredData(CommonDataKeys.EDITOR);
+      CaretModel caretModel = editor.getCaretModel();
+      ae.getPresentation().setEnabledAndVisible(caretModel.getCurrentCaret().hasSelection());
+   }
+
    @Override
    public void actionPerformed(AnActionEvent ae)
    {
       System.out.println("actionPerformed test");
-      StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
-      System.out.println();
+//      try {
+         StudioUtils.readIkasanComponentProperties("/studio/componentDefinitions/BROKER.csv");
+//      } catch (IOException e) {
+//         e.printStackTrace();
+//         log.error("XXXXXXXXXXXXXXXXXXXXXXXXXX can read configs");
+//      }
 
+   }
+
+   private void testModelUpdate(AnActionEvent ae) {
       VelocityUtils.generateFromTemplate("ApplicationTemplate.vm", null);
 
       final PsiFile file = ae.getData(LangDataKeys.PSI_FILE);
@@ -78,21 +93,6 @@ public class StudioMaintenanceDebug extends AnAction
                       }),
               "Maintenance Debug Command",
               "Undo group ID");
-
-//      SUIUtils.displayMessage(projectKey, getKeyData(ae));
-
-//      VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(ae.getProject(),StudioPsiUtils.JAVA_CODE);
-//      PsiDirectory baseDir = PsiDirectoryFactory.getInstance(ae.getProject()).createDirectory(sourceRoot);
-//      PsiDirectory bobDir = StudioPsiUtils.createPackage(baseDir, "bob");
-//      PsiFile newFile = StudioPsiUtils.createFileInDirectory(bobDir, "myFile", "Some text", ae.getProject());
-//      PsiDocumentManager documentManager = PsiDocumentManager.getInstance(ae.getProject());
-//      documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(newFile));
-//      StudioPsiUtils.
-//      if(caretModel.getCurrentCaret().hasSelection())
-//      {
-//         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
-//         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
-//      }
    }
 
    /**
@@ -119,18 +119,24 @@ public class StudioMaintenanceDebug extends AnAction
 //      }
 //
 //      message.append("looking for Module config = " + StudioPsiUtils.findClass(ae.getProject(), "ModuleConfigTemplate"));
+
+      //      StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
+//      StudioUIUtils.displayMessage(projectKey, getKeyData(ae));
+//      VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(ae.getProject(),StudioPsiUtils.JAVA_CODE);
+//      PsiDirectory baseDir = PsiDirectoryFactory.getInstance(ae.getProject()).createDirectory(sourceRoot);
+//      PsiDirectory bobDir = StudioPsiUtils.createPackage(baseDir, "bob");
+//      PsiFile newFile = StudioPsiUtils.createFileInDirectory(bobDir, "myFile", "Some text", ae.getProject());
+//      PsiDocumentManager documentManager = PsiDocumentManager.getInstance(ae.getProject());
+//      documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(newFile));
+//      StudioPsiUtils.
+//      if(caretModel.getCurrentCaret().hasSelection())
+//      {
+//         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
+//         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
+//      }
+
       return message.toString();
    }
 
-   /**
-    * Only make this action visible when text is selected.
-    * @param ae supplied action event
-    */
-   @Override
-   public void update(AnActionEvent ae)
-   {
-      final Editor editor = ae.getRequiredData(CommonDataKeys.EDITOR);
-      CaretModel caretModel = editor.getCaretModel();
-      ae.getPresentation().setEnabledAndVisible(caretModel.getCurrentCaret().hasSelection());
-   }
+
 }

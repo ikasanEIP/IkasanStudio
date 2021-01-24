@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElementType;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 
@@ -49,15 +49,15 @@ public class UIComponentImportTransferHandler extends TransferHandler // impleme
     public boolean importData(TransferSupport support) {
         if (this.canImport((JComponent)support.getComponent(),support.getDataFlavors())) {
             //@todo maybe dont add it to model, first add to code then regenrate model ?
-            IkasanFlowElementType ikasanFlowElementType = null;
+            IkasanFlowComponentType ikasanFlowComponentType = null;
             try {
                 IkasanFlowUIComponentTransferable  ikasanFlowUIComponentTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(ikasanFlowUIComponentFlavor);
-                ikasanFlowElementType = ikasanFlowUIComponentTransferable.getIkasanFlowUIComponent().getIkasanFlowElementType();
+                ikasanFlowComponentType = ikasanFlowUIComponentTransferable.getIkasanFlowUIComponent().getIkasanFlowComponentType();
             } catch (IOException | UnsupportedFlavorException e) {
                 log.error("Could not import flavor " + ikasanFlowUIComponentFlavor + " from support " + support + " due to exception " + e.getMessage());
                 e.printStackTrace();
             }
-            return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanFlowElementType);
+            return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanFlowComponentType);
         } else {
             return false;
         }

@@ -4,7 +4,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,7 +56,7 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 
         Assert.assertThat(flow1.getFlowElementList().size(), is(3));
 
-        IkasanFlowElement jmsConsumer = flow1.getFlowElementList().get(0);
+        IkasanFlowComponent jmsConsumer = flow1.getFlowElementList().get(0);
         Assert.assertThat(jmsConsumer.getName(), is("JMS Consumer"));
         Assert.assertThat(jmsConsumer.getProperties().size(), is(4));
 

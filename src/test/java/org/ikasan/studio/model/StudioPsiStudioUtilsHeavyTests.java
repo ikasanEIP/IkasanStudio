@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 
-public class StudioPsiSUtilsHeavyTests extends JavaPsiTestCase {
+public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
     private String TEST_PROJECT = "testproject";
     private static String TEST_DATA_DIR = "/general/";

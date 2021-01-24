@@ -1,6 +1,6 @@
 package org.ikasan.studio.model.Ikasan;
 
-import org.ikasan.studio.SUtils;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
@@ -12,10 +12,10 @@ public class IkasanFlow {
     private String name;
     private String javaVariableName;
     private String description;
-    private IkasanFlowElement input;
-    private IkasanFlowElement output;
+    private IkasanFlowComponent input;
+    private IkasanFlowComponent output;
 
-    private List<IkasanFlowElement> flowElementList = new ArrayList<>();
+    private List<IkasanFlowComponent> flowElementList = new ArrayList<>();
 
     public IkasanFlow() {
         viewHandler = new IkasanFlowViewHandler(this);
@@ -29,7 +29,7 @@ public class IkasanFlow {
 
         this.name = name;
         if (name != null && name.length() > 0) {
-            javaVariableName = SUtils.toJavaIdentifier(name);
+            javaVariableName = StudioUtils.toJavaIdentifier(name);
         }
     }
 
@@ -45,31 +45,31 @@ public class IkasanFlow {
         this.description = description;
     }
 
-    public List<IkasanFlowElement> getFlowElementList() {
+    public List<IkasanFlowComponent> getFlowElementList() {
         return flowElementList;
     }
 
-    public boolean addFlowElement(IkasanFlowElement ikasanFlowElement) {
-        return flowElementList.add(ikasanFlowElement);
+    public boolean addFlowElement(IkasanFlowComponent ikasanFlowComponent) {
+        return flowElementList.add(ikasanFlowComponent);
     }
 
     public ViewHandler getViewHandler() {
         return viewHandler;
     }
 
-    public IkasanFlowElement getInput() {
+    public IkasanFlowComponent getInput() {
         return input;
     }
 
-    public void setInput(IkasanFlowElement input) {
+    public void setInput(IkasanFlowComponent input) {
         this.input = input;
     }
 
-    public IkasanFlowElement getOutput() {
+    public IkasanFlowComponent getOutput() {
         return output;
     }
 
-    public void setOutput(IkasanFlowElement output) {
+    public void setOutput(IkasanFlowComponent output) {
         this.output = output;
     }
 

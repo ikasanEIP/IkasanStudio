@@ -4,7 +4,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanFlowElement;
+import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.component.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowElementViewHandler;
 
@@ -16,11 +16,11 @@ import java.awt.event.MouseEvent;
 
 public class PopupHelpAction  implements ActionListener {
    private String projectKey;
-   private IkasanFlowElement flowElement;
+   private IkasanFlowComponent flowElement;
    private MouseEvent mouseEvent;
    private boolean webHelp;
 
-   public PopupHelpAction(String projectKey, IkasanFlowElement flowElement, MouseEvent mouseEvent, boolean webHelp) {
+   public PopupHelpAction(String projectKey, IkasanFlowComponent flowElement, MouseEvent mouseEvent, boolean webHelp) {
       this.projectKey = projectKey;
       this.flowElement = flowElement;
       this.mouseEvent = mouseEvent;

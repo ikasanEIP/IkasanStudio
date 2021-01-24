@@ -15,7 +15,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class StudioPsiSUtilsLightTests extends LightJavaCodeInsightFixtureTestCase {
+public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureTestCase {
 
     /**
      * @return path to test data file directory relative to root of this module.
