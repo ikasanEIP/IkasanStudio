@@ -91,7 +91,7 @@ public class StudioUtils {
     private static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
-        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPNENT);
+        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + ".csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);

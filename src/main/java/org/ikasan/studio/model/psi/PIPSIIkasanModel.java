@@ -564,7 +564,7 @@ public class PIPSIIkasanModel {
      * @param ikasanFlow that holds all the flow elements
      */
     protected IkasanFlow addInputOutputForFlow(final IkasanFlow ikasanFlow) {
-        List<IkasanFlowComponent> flowElements = ikasanFlow.getFlowElementList();
+        List<IkasanFlowComponent> flowElements = ikasanFlow.getFlowComponentList();
         if (!flowElements.isEmpty()) {
             IkasanFlowComponent input = IkasanFlowComponentType.getEndpointForFlowElement(flowElements.get(0), ikasanFlow);
             if (input != null) {

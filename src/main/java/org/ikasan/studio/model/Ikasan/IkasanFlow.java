@@ -1,60 +1,32 @@
 package org.ikasan.studio.model.Ikasan;
 
-import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
-import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
-public class IkasanFlow {
-    private ViewHandler viewHandler;
-    private String name;
-    private String javaVariableName;
-    private String description;
+public class IkasanFlow extends IkasanComponent {
+//    private String name;
+//    private String description;
     private IkasanFlowComponent input;
     private IkasanFlowComponent output;
+    private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
 
-    private List<IkasanFlowComponent> flowElementList = new ArrayList<>();
+    public IkasanFlow () {
+        super();
+        properties = new TreeMap<String, IkasanComponentProperty>();
+        properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
+        properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
 
-    public IkasanFlow() {
         viewHandler = new IkasanFlowViewHandler(this);
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-        if (name != null && name.length() > 0) {
-            javaVariableName = StudioUtils.toJavaIdentifier(name);
-        }
-    }
-
-    public String getJavaVariableName() {
-        return javaVariableName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<IkasanFlowComponent> getFlowElementList() {
-        return flowElementList;
+    public List<IkasanFlowComponent> getFlowComponentList() {
+        return flowComponentList;
     }
 
     public boolean addFlowElement(IkasanFlowComponent ikasanFlowComponent) {
-        return flowElementList.add(ikasanFlowComponent);
-    }
-
-    public ViewHandler getViewHandler() {
-        return viewHandler;
+        return flowComponentList.add(ikasanFlowComponent);
     }
 
     public IkasanFlowComponent getInput() {
@@ -76,9 +48,9 @@ public class IkasanFlow {
     @Override
     public String toString() {
         return "IkasanFlow{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", flowElementList=" + flowElementList +
+                "name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", flowElementList=" + flowComponentList +
                 '}';
     }
 

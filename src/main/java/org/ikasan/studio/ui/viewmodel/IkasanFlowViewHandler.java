@@ -91,7 +91,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         paintIkasanFlowContainer(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
 
-        List<IkasanFlowComponent> flowElementList = model.getFlowElementList();
+        List<IkasanFlowComponent> flowElementList = model.getFlowComponentList();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
         for (int index=0; index < flowSize; index ++) {
@@ -156,8 +156,8 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
-        if (model.getFlowElementList().size() > 0) {
-            for (IkasanFlowComponent ikasanFlowComponent : model.getFlowElementList()) {
+        if (model.getFlowComponentList().size() > 0) {
+            for (IkasanFlowComponent ikasanFlowComponent : model.getFlowComponentList()) {
                 ikasanFlowComponent.getViewHandler().initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                 currentX += ikasanFlowComponent.getViewHandler().getWidth() + FLOW_X_SPACING;
             }
@@ -173,7 +173,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private void setWidthHeights(Graphics graphics, int newTopY) {
-        if (model.getFlowElementList().size() > 0) {
+        if (model.getFlowComponentList().size() > 0) {
             setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
         } else {
@@ -187,21 +187,21 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public int getFlowElementsTopY() {
-        int minX = model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getTopY()).min().orElse(0);
+        int minX = model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getTopY()).min().orElse(0);
         return minX;
     }
 
     public int getFlowElementsLeftX() {
         // if there are no elements, should we use title
 
-        int minX = model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
+        int minX = model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
         return minX;
     }
 
     public int getFlowElementsRightX() {
-        return model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
+        return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
     }
     public int getFlowElementsBottomY() {
-        return model.getFlowElementList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
+        return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
     }
 }

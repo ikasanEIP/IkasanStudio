@@ -72,9 +72,10 @@ public class DesignerCanvas extends JPanel {
         clickStartMouseX = x;
         clickStartMouseY = y;
         IkasanFlowComponent mouseSelectedComponent = getComponentAtXY(x, y);
+        IkasanFlow mouseSelectedFlow = getFlowAtXY(x, y);
         log.info("Mouse mouseClick x [" + clickStartMouseX + "] y [" + clickStartMouseY + "] selected component [" + mouseSelectedComponent + "]");
 
-          // One click, show popup
+          // Righ click
         if (me.getButton() == MouseEvent.BUTTON3) {
             if (mouseSelectedComponent != null) {
                 DesignCanvasContextMenu.showPopupAndNavigateMenu(projectKey, this, me, mouseSelectedComponent);
@@ -90,11 +91,19 @@ public class DesignerCanvas extends JPanel {
                 Navigator.navigateToSource(projectKey, mouseSelectedComponent.getViewHandler().getClassToNavigateTo());
             }
         } // Single click -> update properties
-        else if (me.getButton() == MouseEvent.BUTTON1 && mouseSelectedComponent != null) {
-            if (!mouseSelectedComponent.getViewHandler().isAlreadySelected()) {
-                setSelectedComponent(mouseSelectedComponent);
-                Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedComponent);
+        else if (me.getButton() == MouseEvent.BUTTON1 && (mouseSelectedComponent != null || mouseSelectedFlow != null)) {
+            if (mouseSelectedComponent != null) {
+                if (!mouseSelectedComponent.getViewHandler().isAlreadySelected()) {
+                    setSelectedComponent(mouseSelectedComponent);
+                    Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedComponent);
+                }
+            } else {
+                if (!mouseSelectedFlow.getViewHandler().isAlreadySelected()) {
+                    setSelectedFlow(mouseSelectedFlow);
+                    Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedFlow);
+                }
             }
+
         }
     }
 
@@ -120,9 +129,9 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY at the start of the drag
      */
     private void moveComponent(MouseEvent me, int mouseX, int mouseY){
-        boolean didMouseClickStartOnComponents = (getComponentAtXY(clickStartMouseX, clickStartMouseY) != null);
         IkasanFlowComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
-        if (didMouseClickStartOnComponents && mouseSelectedComponent != null) {
+
+        if (mouseSelectedComponent != null) {
             screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
             log.info("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
@@ -148,16 +157,31 @@ public class DesignerCanvas extends JPanel {
     }
 
     public void setSelectedComponent(IkasanFlowComponent flowComponent) {
+        deSelectAllCompnentsAndFlows();
+        // Set selected
         ikasanModule.getFlows()
                 .stream()
-                .flatMap(x -> x.getFlowElementList().stream())
-                .filter(x -> x.getViewHandler().isAlreadySelected())
-                .peek(x -> x.getViewHandler().setAlreadySelected(false));
-        ikasanModule.getFlows()
-                .stream()
-                .flatMap(x -> x.getFlowElementList().stream())
+                .flatMap(x -> x.getFlowComponentList().stream())
                 .filter(x -> x.equals(flowComponent))
                 .peek(x -> x.getViewHandler().setAlreadySelected(true));
+    }
+
+    public void setSelectedFlow(IkasanFlow flow) {
+        deSelectAllCompnentsAndFlows();
+        // Set selected
+        ikasanModule.getFlows()
+                .stream()
+                .filter(x -> x.equals(flow))
+                .peek(x -> x.getViewHandler().setAlreadySelected(true));
+    }
+
+    private void deSelectAllCompnentsAndFlows() {
+        ikasanModule.getFlows()
+                .stream()
+                .peek(x -> x.getViewHandler().setAlreadySelected(false))
+                .flatMap(x -> x.getFlowComponentList().stream())
+                .filter(x -> x.getViewHandler().isAlreadySelected())
+                .peek(x -> x.getViewHandler().setAlreadySelected(false));
     }
 
     /**
@@ -167,11 +191,29 @@ public class DesignerCanvas extends JPanel {
      * @return
      */
     public IkasanFlowComponent getComponentAtXY(int xpos, int ypos) {
-        IkasanFlowComponent ikasanFlow = null;
+        IkasanFlowComponent ikasanFlowComponent = null;
+        if (ikasanModule != null) {
+            ikasanFlowComponent = ikasanModule.getFlows()
+                    .stream()
+                    .flatMap(x -> x.getFlowComponentList().stream())
+                    .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return ikasanFlowComponent;
+    }
+
+    /**
+     * Given the x and y coords, return the Ikasan flow that resides at that x,y.
+     * @param xpos
+     * @param ypos
+     * @return the IkasanFlow that is displayed on the screen at the given x,y or null if there is no such flow.
+     */
+    public IkasanFlow getFlowAtXY(int xpos, int ypos) {
+        IkasanFlow ikasanFlow = null;
         if (ikasanModule != null) {
             ikasanFlow = ikasanModule.getFlows()
                     .stream()
-                    .flatMap(x -> x.getFlowElementList().stream())
                     .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
@@ -213,7 +255,7 @@ public class DesignerCanvas extends JPanel {
         if (ikasanModule != null) {
             ikasanFlow = ikasanModule.getFlows()
                     .stream()
-                    .flatMap(x -> x.getFlowElementList().stream())
+                    .flatMap(x -> x.getFlowComponentList().stream())
                     .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);

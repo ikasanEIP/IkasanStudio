@@ -171,4 +171,12 @@ public enum IkasanFlowComponentType {
         }
         return endpointFlowElement;
     }
+
+    public IkasanFlowComponentCategory getElementCategory() {
+        return elementCategory;
+    }
+
+    public String getAssociatedMethodName() {
+        return associatedMethodName;
+    }
 }

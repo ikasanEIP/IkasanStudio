@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component;
 
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.model.Ikasan.IkasanComponent;
 import org.ikasan.studio.model.Ikasan.IkasanComponentProperty;
 import org.ikasan.studio.model.Ikasan.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
@@ -44,6 +45,45 @@ public class PropertiesPanel extends JPanel {
 //        Context.register("propertieTextArea", propertieTextArea);
     }
 
+
+//
+//    public void updatePropertiesPanel(IkasanFlow selectedFlow) {
+//        List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
+//    }
+
+    /**
+     * For the given component, get all the editable properties and add them the to properties edit panel.
+     * @param componentPropertyEditBoxList
+     * @param selectedComponent
+     * @param propertiesEditorPanel
+     * @param gc
+     * @return
+     */
+    private List<ComponentPropertyEditBox> populateComponentEdit(List<ComponentPropertyEditBox> componentPropertyEditBoxList, IkasanComponent selectedComponent, JPanel propertiesEditorPanel, GridBagConstraints gc) {
+        int tabley = 0;
+        if (selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME) != null) {
+            componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, tabley++));
+        }
+        if (selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION) != null) {
+            componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, tabley++));
+        }
+
+        if (selectedComponent instanceof IkasanFlowComponent) {
+            IkasanFlowComponent selectedFlowComponent = (IkasanFlowComponent) selectedComponent;
+            if (selectedFlowComponent.getType().getProperties().size() > 0) {
+                for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getProperties().entrySet()) {
+                    String key = entry.getKey();
+                    if (!key.equals(IkasanComponentPropertyMeta.NAME) && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)) {
+                        IkasanComponentProperty property = selectedComponent.getProperty(key);
+                        componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, property, gc, tabley++));
+                        tabley++;
+                    }
+                }
+            }
+        }
+        return componentPropertyEditBoxList;
+    }
+
     private ComponentPropertyEditBox addFieldToEdit(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
 
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty);
@@ -55,7 +95,34 @@ public class PropertiesPanel extends JPanel {
         return componentPropertyEditBox;
     }
 
-    public void updatePropertiesPanel(IkasanFlowComponent selectedComponent) {
+
+    private boolean processEditedFlowComponents(List<ComponentPropertyEditBox> componentPropertyEditBoxList, IkasanComponent selectedComponent) {
+        boolean modelUpdated = false;
+        for (ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
+            String key = editPair.getLabel();
+            IkasanComponentProperty componentProperty = (IkasanComponentProperty)selectedComponent.getProperties().get(key);
+            if (hasChanged(componentProperty.getValue(), editPair.getValue())) {
+                modelUpdated = true;
+                componentProperty.setValue(editPair.getValue());
+            }
+        }
+        return modelUpdated;
+    }
+
+    private boolean processEditedFlow(List<ComponentPropertyEditBox> componentPropertyEditBoxList, IkasanComponent selectedComponent) {
+        boolean modelUpdated = false;
+        for (ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
+            String key = editPair.getLabel();
+            IkasanComponentProperty componentProperty = (IkasanComponentProperty)selectedComponent.getProperties().get(key);
+            if (hasChanged(componentProperty.getValue(), editPair.getValue())) {
+                modelUpdated = true;
+                componentProperty.setValue(editPair.getValue());
+            }
+        }
+        return modelUpdated;
+    }
+
+    public void updatePropertiesPanel(IkasanComponent selectedComponent) {
         List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
 
         JPanel propertiesEditorPanel = new JPanel();
@@ -65,26 +132,12 @@ public class PropertiesPanel extends JPanel {
         GridBagConstraints gc = new GridBagConstraints();
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(3, 4, 3, 4);
-        // Update using properties panel
 
-        int tabley = 0;
-        if (selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME) != null) {
-            componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, tabley++));
-        }
-        if (selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION) != null) {
-            componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, tabley++));
-        }
+//        if (selectedComponent instanceof IkasanFlowComponent) {
+//            populateComponentEdit(componentPropertyEditBoxList, selectedComponent, propertiesEditorPanel, gc);
+//        }
 
-        if (selectedComponent.getType().getProperties().size() > 0) {
-            for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getProperties().entrySet()) {
-                String key = entry.getKey();
-                if (!key.equals(IkasanComponentPropertyMeta.NAME) && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)) {
-                    IkasanComponentProperty property = selectedComponent.getProperty(key);
-                    componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, property, gc, tabley++));
-                    tabley++;
-                }
-            }
-        }
+        populateComponentEdit(componentPropertyEditBoxList, selectedComponent, propertiesEditorPanel, gc);
 
         JScrollPane scrollPane = new JScrollPane(propertiesEditorPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
@@ -97,29 +150,12 @@ public class PropertiesPanel extends JPanel {
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 boolean modelUpdated = false;
-                for (ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
-                    String key = editPair.getLabel();
-//                    if (key == "name") {
-//                        if (hasChanged(selectedComponent.getName(), editPair.getTextField().getText())) {
-//                            modelUpdated = true;
-//                            selectedComponent.setName((String)editPair.getValue());
-//                        }
-//                    } else if (key == "description") {
-//                        if (hasChanged(selectedComponent.getDescription(), editPair.getTextField().getText())) {
-//                            modelUpdated = true;
-//                            selectedComponent.setDescription((String)editPair.getValue());
-//                        }
-//                    } else {
-                    IkasanComponentProperty componentProperty = (IkasanComponentProperty)selectedComponent.getProperties().get(key);
-                        if (hasChanged(componentProperty.getValue(), editPair.getValue())) {
-                            modelUpdated = true;
-                            componentProperty.setValue(editPair.getValue());
-                        }
-//                    }
-                }
+//                if (selectedComponent instanceof IkasanFlowComponent) {
+//                    modelUpdated = processEditedFlowComponents(componentPropertyEditBoxList, selectedComponent);
+//                }
+                modelUpdated = processEditedFlowComponents(componentPropertyEditBoxList, selectedComponent);
                 if (modelUpdated) {
                     Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-//                    StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
                     Context.getDesignerCanvas(projectKey).setInitialiseCanvas(true);
                     Context.getDesignerCanvas(projectKey).repaint();
                 }
@@ -139,6 +175,7 @@ public class PropertiesPanel extends JPanel {
         propertiesBodyPanel.revalidate();
         propertiesBodyPanel.repaint();
     }
+
 
     private boolean hasChanged(Object o1, Object o2) {
         if ((o1 == null && o2 == null) ||

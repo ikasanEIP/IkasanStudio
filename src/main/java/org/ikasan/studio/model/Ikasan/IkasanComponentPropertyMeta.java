@@ -10,10 +10,14 @@ import java.util.Objects;
 public class IkasanComponentPropertyMeta {
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
-    public static final IkasanComponentPropertyMeta STD_NAME_META_COMPNENT =
+    public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(true,
             IkasanComponentPropertyMeta.NAME, null, String.class,
-            "The name of the component as displayed on diagrams, also used for the variable name in the generated code");
+            "The name of the component as displayed on diagrams, also used for the variable name in the generated code.");
+    public static final IkasanComponentPropertyMeta STD_DESCIPTION_META_COMPONENT =
+        new IkasanComponentPropertyMeta(true,
+            IkasanComponentPropertyMeta.DESCRIPTION, null, String.class,
+            "A more detailed description of the component that may assist in support.");
 
     Boolean mandatory;
     String propertyName;

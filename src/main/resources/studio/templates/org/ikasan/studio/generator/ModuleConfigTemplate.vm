@@ -16,7 +16,10 @@ public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}")
-.withDescription("${module.description}");
+#if ($module.Description))
+.withDescription("${module.Description}")
+#end
+;
 
 // Create a component builder from the builder factory
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
@@ -34,8 +37,12 @@ return module;
 private org.ikasan.spec.flow.Flow get_${flow.JavaVariableName}(org.ikasan.builder.ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
 org.ikasan.builder.FlowBuilder ${flow.JavaVariableName}FlowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
 org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = ${flow.JavaVariableName}FlowBuilder
-.consumer("My Source Consumer", componentBuilder.eventGeneratingConsumer())
-.producer("My Target Producer", componentBuilder.logProducer())
+#if ($flow.Description)
+.withDescription("$flow.Description")
+#end
+#foreach($ikasanComponent in $flow.flowComponentList)
+    .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}", componentBuilder.${ikasanComponent.type.associatedMethodName}())
+#end
 .build();
 return ${flow.JavaVariableName};
 }

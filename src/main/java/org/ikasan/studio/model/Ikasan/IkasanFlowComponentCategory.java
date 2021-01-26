@@ -53,4 +53,8 @@ public enum IkasanFlowComponentCategory {
             return false;
         }
     }
+
+    public String getAssociatedMethodName() {
+        return associatedMethodName;
+    }
 }
