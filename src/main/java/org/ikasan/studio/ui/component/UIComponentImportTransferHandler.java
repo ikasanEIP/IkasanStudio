@@ -48,7 +48,7 @@ public class UIComponentImportTransferHandler extends TransferHandler // impleme
 
     public boolean importData(TransferSupport support) {
         if (this.canImport((JComponent)support.getComponent(),support.getDataFlavors())) {
-            //@todo maybe dont add it to model, first add to code then regenrate model ?
+
             IkasanFlowComponentType ikasanFlowComponentType = null;
             try {
                 IkasanFlowUIComponentTransferable  ikasanFlowUIComponentTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(ikasanFlowUIComponentFlavor);

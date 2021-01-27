@@ -8,13 +8,12 @@ import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.Pair;
+import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -27,6 +26,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class DesignerCanvas extends JPanel {
     private boolean initialiseCanvas = true;
@@ -71,11 +71,10 @@ public class DesignerCanvas extends JPanel {
     private void mouseClick(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
-        IkasanFlowComponent mouseSelectedComponent = getComponentAtXY(x, y);
-        IkasanFlow mouseSelectedFlow = getFlowAtXY(x, y);
+        IkasanComponent mouseSelectedComponent = getComponentAtXY(x, y);
         log.info("Mouse mouseClick x [" + clickStartMouseX + "] y [" + clickStartMouseY + "] selected component [" + mouseSelectedComponent + "]");
 
-          // Righ click
+          // Right click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
             if (mouseSelectedComponent != null) {
                 DesignCanvasContextMenu.showPopupAndNavigateMenu(projectKey, this, me, mouseSelectedComponent);
@@ -91,19 +90,11 @@ public class DesignerCanvas extends JPanel {
                 Navigator.navigateToSource(projectKey, mouseSelectedComponent.getViewHandler().getClassToNavigateTo());
             }
         } // Single click -> update properties
-        else if (me.getButton() == MouseEvent.BUTTON1 && (mouseSelectedComponent != null || mouseSelectedFlow != null)) {
-            if (mouseSelectedComponent != null) {
-                if (!mouseSelectedComponent.getViewHandler().isAlreadySelected()) {
-                    setSelectedComponent(mouseSelectedComponent);
-                    Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedComponent);
+        else if (me.getButton() == MouseEvent.BUTTON1) {
+            if (!mouseSelectedComponent.getViewHandler().isAlreadySelected()) {
+                setSelectedComponent(mouseSelectedComponent);
+                Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedComponent);
                 }
-            } else {
-                if (!mouseSelectedFlow.getViewHandler().isAlreadySelected()) {
-                    setSelectedFlow(mouseSelectedFlow);
-                    Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedFlow);
-                }
-            }
-
         }
     }
 
@@ -129,9 +120,9 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY at the start of the drag
      */
     private void moveComponent(MouseEvent me, int mouseX, int mouseY){
-        IkasanFlowComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
+        IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
 
-        if (mouseSelectedComponent != null) {
+        if (mouseSelectedComponent != null && mouseSelectedComponent instanceof IkasanFlowComponent) {
             screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
             log.info("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
@@ -156,26 +147,27 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    public void setSelectedComponent(IkasanFlowComponent flowComponent) {
+    public void setSelectedComponent(IkasanComponent component) {
         deSelectAllCompnentsAndFlows();
         // Set selected
-        ikasanModule.getFlows()
-                .stream()
-                .flatMap(x -> x.getFlowComponentList().stream())
-                .filter(x -> x.equals(flowComponent))
-                .peek(x -> x.getViewHandler().setAlreadySelected(true));
-    }
-
-    public void setSelectedFlow(IkasanFlow flow) {
-        deSelectAllCompnentsAndFlows();
-        // Set selected
-        ikasanModule.getFlows()
-                .stream()
-                .filter(x -> x.equals(flow))
-                .peek(x -> x.getViewHandler().setAlreadySelected(true));
+        if (component instanceof IkasanFlowComponent) {
+            ikasanModule.getFlows()
+                    .stream()
+                    .flatMap(x -> x.getFlowComponentList().stream())
+                    .filter(x -> x.equals(component))
+                    .peek(x -> x.getViewHandler().setAlreadySelected(true));
+        } else if (component instanceof IkasanFlow) {
+            ikasanModule.getFlows()
+                    .stream()
+                    .filter(x -> x.equals(component))
+                    .peek(x -> x.getViewHandler().setAlreadySelected(true));
+        } else {
+            ikasanModule.getViewHandler().setAlreadySelected(true);
+        }
     }
 
     private void deSelectAllCompnentsAndFlows() {
+        ikasanModule.getViewHandler().setAlreadySelected(false);
         ikasanModule.getFlows()
                 .stream()
                 .peek(x -> x.getViewHandler().setAlreadySelected(false))
@@ -186,63 +178,36 @@ public class DesignerCanvas extends JPanel {
 
     /**
      * Given the x and y coords, return the Ikasan elements that resides at that x,y.
-     * @param xpos
-     * @param ypos
-     * @return
+     *
+     * This will either be an Ikasan flows component, an Ikasan flow or the whol module.
+     *
+     * @param xpos of the mouse click
+     * @param ypos of the mouse click
+     * @return the Ikasan component (flows component, flow, module) currently selected.
      */
-    public IkasanFlowComponent getComponentAtXY(int xpos, int ypos) {
-        IkasanFlowComponent ikasanFlowComponent = null;
+    public IkasanComponent getComponentAtXY(int xpos, int ypos) {
+        IkasanComponent ikasanComponent = null;
         if (ikasanModule != null) {
-            ikasanFlowComponent = ikasanModule.getFlows()
+            ikasanComponent = ikasanModule.getFlows()
                     .stream()
                     .flatMap(x -> x.getFlowComponentList().stream())
                     .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
         }
-        return ikasanFlowComponent;
-    }
-
-    /**
-     * Given the x and y coords, return the Ikasan flow that resides at that x,y.
-     * @param xpos
-     * @param ypos
-     * @return the IkasanFlow that is displayed on the screen at the given x,y or null if there is no such flow.
-     */
-    public IkasanFlow getFlowAtXY(int xpos, int ypos) {
-        IkasanFlow ikasanFlow = null;
-        if (ikasanModule != null) {
-            ikasanFlow = ikasanModule.getFlows()
+        if (ikasanComponent == null) {
+            ikasanComponent = ikasanModule.getFlows()
                     .stream()
                     .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
         }
-        return ikasanFlow;
-    }
-
-    public boolean requestToAddComponent(int x, int y, IkasanFlowComponentType ikasanFlowComponentType) {
-        if (x >= 0 && y >=0 && ikasanFlowComponentType != null) {
-//            if (ikasanModule.getFlows().isEmpty()) {
-                // drop here and create a new flow.
-                // or create source and regenerate ikasanModule ??
-                IkasanFlow newFlow = new IkasanFlow();
-                ikasanModule.addAnonymousFlow(newFlow);
-                newFlow.addFlowElement(new IkasanFlowComponent(ikasanFlowComponentType, newFlow));
-
-                PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-                pipsiIkasanModel.generateSourceFromModel();
-                StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
-                initialiseCanvas = true;
-//            } else {
-//                // add the components to the flow.
-//            }
-            this.repaint();
-            return true;
-        } else {
-            return false;
+        if (ikasanComponent == null) {
+            ikasanComponent = ikasanModule;
         }
+        return ikasanComponent;
     }
+
 
     /**
      * Given the x and y coords, return Ikasan elements to the left or right (or both) within reasonable bounds
@@ -250,17 +215,66 @@ public class DesignerCanvas extends JPanel {
      * @param ypos
      * @return
      */
-    public IkasanFlowComponent getComponentsSurroundingY(int xpos, int ypos) {
+    public Pair<IkasanFlowComponent,IkasanFlowComponent> getSurroundingComponents(int xpos, int ypos) {
+        Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = new Pair<>();
+        Point dragged = new Point(xpos, ypos);
+        Pair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
+
         IkasanFlowComponent ikasanFlow = null;
         if (ikasanModule != null) {
-            ikasanFlow = ikasanModule.getFlows()
-                    .stream()
-                    .flatMap(x -> x.getFlowComponentList().stream())
-                    .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
-                    .findFirst()
-                    .orElse(null);
+            for (IkasanFlow flow : ikasanModule.getFlows()) {
+                for (IkasanFlowComponent ikasanFlowComponent : flow.getFlowComponentList()) {
+                    Proximity draggedToComponent = Proximity.getRelativeProximity(dragged, ikasanFlowComponent.getViewHandler().getCentrePoint(), proximityDetect);
+                    if (draggedToComponent == Proximity.LEFT) {
+                        surroundingComponents.setLeft(ikasanFlowComponent);
+                    } else if (draggedToComponent == Proximity.RIGHT || draggedToComponent == Proximity.CENTER) {
+                        surroundingComponents.setRight(ikasanFlowComponent);
+                    }
+                }
+            }
         }
-        return ikasanFlow;
+        return surroundingComponents;
+    }
+
+    public boolean requestToAddComponent(int x, int y, IkasanFlowComponentType ikasanFlowComponentType) {
+        if (x >= 0 && y >=0 && ikasanFlowComponentType != null) {
+            IkasanComponent ikasanComponent = getComponentAtXY(x,y);
+
+            // Add new component to existing flow
+            if (ikasanComponent instanceof  IkasanFlowComponent || ikasanComponent instanceof  IkasanFlow) {
+                IkasanFlow containingFlow = null;
+                if (ikasanComponent instanceof  IkasanFlow) {
+                    containingFlow = (IkasanFlow)ikasanComponent;
+                } else {
+                    containingFlow = ((IkasanFlowComponent)ikasanComponent).getParent();
+                }
+                Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
+
+                List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
+                int numberOfComponents = components.size();
+                for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
+                    if (components.get(ii).equals(surroundingComponents.getRight())) {
+                        components.add(ii, new IkasanFlowComponent(ikasanFlowComponentType, containingFlow));
+                        break;
+                    } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
+                        components.add(ii+1, new IkasanFlowComponent(ikasanFlowComponentType, containingFlow));
+                        break;
+                    }
+                }
+            } else {
+                IkasanFlow newFlow = new IkasanFlow();
+                ikasanModule.addAnonymousFlow(newFlow);
+                newFlow.addFlowElement(new IkasanFlowComponent(ikasanFlowComponentType, newFlow));
+            }
+            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            pipsiIkasanModel.generateSourceFromModel();
+            StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
+            initialiseCanvas = true;
+            this.repaint();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

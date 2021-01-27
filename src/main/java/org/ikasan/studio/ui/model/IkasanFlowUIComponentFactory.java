@@ -125,6 +125,7 @@ public class IkasanFlowUIComponentFactory {
         return imageIcon;
     }
 
+    //*todo make into Enum ?
     private static class BillPughSingleton  // Credit where it is due.
     {
         private static final IkasanFlowUIComponentFactory INSTANCE = new IkasanFlowUIComponentFactory();

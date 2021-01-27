@@ -15,11 +15,11 @@ public class IkasanFlow extends IkasanComponent {
 
     public IkasanFlow () {
         super();
-        properties = new TreeMap<String, IkasanComponentProperty>();
-        properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
-        properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
+        this.properties = new TreeMap<String, IkasanComponentProperty>();
+        this.properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
+        this.properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
 
-        viewHandler = new IkasanFlowViewHandler(this);
+        this.viewHandler = new IkasanFlowViewHandler(this);
     }
     public List<IkasanFlowComponent> getFlowComponentList() {
         return flowComponentList;

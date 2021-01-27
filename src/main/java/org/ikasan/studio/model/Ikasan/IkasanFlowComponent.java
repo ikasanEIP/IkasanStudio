@@ -1,6 +1,6 @@
 package org.ikasan.studio.model.Ikasan;
 
-import org.ikasan.studio.ui.viewmodel.IkasanFlowElementViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
 public class IkasanFlowComponent extends IkasanComponent {
     private IkasanFlow parent;
@@ -19,7 +19,7 @@ public class IkasanFlowComponent extends IkasanComponent {
         this.properties = type.getMandatoryProperties();
         setPropertyValue(IkasanComponentPropertyMeta.NAME, name);
         setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
-        viewHandler = new IkasanFlowElementViewHandler(this);
+        viewHandler = new IkasanFlowComponentViewHandler(this);
     }
 
     /**
@@ -31,18 +31,9 @@ public class IkasanFlowComponent extends IkasanComponent {
         this(type, parent, "", "");
     }
 
-//    /**
-//     * The type influences the view handler
-//     * @param type
-//     */
-//    public void setTypeAndViewHandler(IkasanFlowComponentType type) {
-//        this.type = type;
-//        viewHandler = new IkasanFlowElementViewHandler(this);
-//    }
-
-//    public void setParent(IkasanFlow parent) {
-//        this.parent = parent;
-//    }
+    public IkasanFlow getParent() {
+        return parent;
+    }
 
     public IkasanFlowComponentType getType() {
         return type;

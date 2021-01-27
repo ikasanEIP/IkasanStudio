@@ -2,7 +2,7 @@ package org.ikasan.studio.actions;
 
 import com.intellij.openapi.ui.DialogWrapper;
 import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.ui.viewmodel.IkasanFlowElementViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +22,7 @@ public class SampleDialogWrapper extends DialogWrapper {
     @Override
     protected JComponent createCenterPanel() {
         JPanel dialogPanel = new JPanel(new BorderLayout());
-        final IkasanFlowElementViewHandler viewHandler = (IkasanFlowElementViewHandler) flowElement.getViewHandler();
+        final IkasanFlowComponentViewHandler viewHandler = (IkasanFlowComponentViewHandler) flowElement.getViewHandler();
 //        JLabel helpTextDisplay = new JLabel(viewHandler.getIkasanFlowUIComponent().getHelpText());
         JTextArea helpTextDisplay = new JTextArea(viewHandler.getIkasanFlowUIComponent().getHelpText());
         helpTextDisplay.setLineWrap(true);

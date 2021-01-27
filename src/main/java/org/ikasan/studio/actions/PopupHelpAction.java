@@ -4,9 +4,9 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.Ikasan.IkasanComponent;
 import org.ikasan.studio.ui.component.DesignerCanvas;
-import org.ikasan.studio.ui.viewmodel.IkasanFlowElementViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,13 +16,13 @@ import java.awt.event.MouseEvent;
 
 public class PopupHelpAction  implements ActionListener {
    private String projectKey;
-   private IkasanFlowComponent flowElement;
+   private IkasanComponent component;
    private MouseEvent mouseEvent;
    private boolean webHelp;
 
-   public PopupHelpAction(String projectKey, IkasanFlowComponent flowElement, MouseEvent mouseEvent, boolean webHelp) {
+   public PopupHelpAction(String projectKey, IkasanComponent component, MouseEvent mouseEvent, boolean webHelp) {
       this.projectKey = projectKey;
-      this.flowElement = flowElement;
+      this.component = component;
       this.mouseEvent = mouseEvent;
       this.webHelp = webHelp;
    }
@@ -30,7 +30,7 @@ public class PopupHelpAction  implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
 //      new SampleDialogWrapper(projectKey, flowElement).showAndGet();
 
-      final IkasanFlowElementViewHandler viewHandler = (IkasanFlowElementViewHandler) flowElement.getViewHandler();
+      final IkasanFlowComponentViewHandler viewHandler = (IkasanFlowComponentViewHandler) component.getViewHandler();
       if (webHelp) {
          BrowserUtil.browse(viewHandler.getIkasanFlowUIComponent().getWebHelpURL());
       } else {

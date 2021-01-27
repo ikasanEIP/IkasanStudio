@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import org.apache.log4j.Logger;
+import org.ikasan.studio.Pair;
 import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -13,8 +14,8 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowElementViewHandler extends ViewHandler {
-    private static final Logger log = Logger.getLogger(IkasanFlowElementViewHandler.class);
+public class IkasanFlowComponentViewHandler extends ViewHandler {
+    private static final Logger log = Logger.getLogger(IkasanFlowComponentViewHandler.class);
     public static final int TEXT_VERTICAL_SPACE = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 60;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 90;
@@ -24,11 +25,12 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
     IkasanFlowUIComponent ikasanFlowUIComponent;
     IkasanFlowComponent model;
 
+
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
      * @param model
      */
-    public IkasanFlowElementViewHandler(IkasanFlowComponent model) {
+    public IkasanFlowComponentViewHandler(IkasanFlowComponent model) {
         this.model = model;
         if (model != null) {
             ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getType());
@@ -89,6 +91,14 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
         return model.getName();
     }
 
+    /**
+     * How close (x,y) does a dragged component need to be to the centre of this component so that we consider it attachable.
+     * @return
+     */
+    public static final Pair<Integer, Integer> getProximityDetect() {
+        return new Pair(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
+    }
+
     public ImageIcon getCanvasIcon() {
         return ikasanFlowUIComponent.getCanvasIcon();
     }
@@ -117,7 +127,7 @@ public class IkasanFlowElementViewHandler extends ViewHandler {
 
     @Override
     public String toString() {
-        return "IkasanFlowElementViewHandler{" +
+        return "IkasanFlowComponentViewHandler{" +
                 "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
                 '}';
     }

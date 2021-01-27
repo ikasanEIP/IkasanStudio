@@ -6,21 +6,29 @@ import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * This class holds all the information about the Ikasan module flow.
  *
- * Its a deliberate decision not to just use the one inside the Ikasan framework itself in an attempt to insulate us
- * from any changes to Ikasan or dependancies on any particualr Ikasan version.
+ * Its a deliberate decision not to use components from within the Ikasan framework itself in an attempt to insulate
+ * from any changes to Ikasan or dependencies on any particular Ikasan version.
  */
-public class IkasanModule {
-    private ViewHandler viewHandler;
+public class IkasanModule extends IkasanComponent {
     private PsiFile moduleConfig;
 
-    private String name;
-    private String description;
     private String version;
     private List<IkasanFlow> flows = new ArrayList<>();
+
+    public IkasanModule() {
+        super();
+        this.properties = new TreeMap<String, IkasanComponentProperty>();
+        this.properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
+        this.properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
+        this.viewHandler = new IkasanModuleViewHandler(this);
+        setName("New Module");
+        setDescription("New Module, please provide description");
+    }
 
     /**
      * This will be called if the module is reloaded or re-initialised.
@@ -29,8 +37,8 @@ public class IkasanModule {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-        this.name = "Reset";
-        this.description = "Reset";
+        setName("Reset");
+        setDescription("Reset");
     }
 
     /**
@@ -41,33 +49,6 @@ public class IkasanModule {
         // @todo we should look though any existing flows and ensure this name is unique ?
         ikasanFlow.setName("newFlow1");
         return addFlow(ikasanFlow);
-    }
-
-
-    public IkasanModule() {
-        this.viewHandler = new IkasanModuleViewHandler(this);
-        this.name = "New Module";
-        this.description = "New Module, please provide description";
-    }
-
-    public IkasanModule(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getVersion() {
@@ -97,8 +78,8 @@ public class IkasanModule {
     @Override
     public String toString() {
         return "IkasanModule{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
+                "name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
                 ", version='" + version + '\'' +
                 ", flowList=" + flows +
                 '}';

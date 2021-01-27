@@ -16,7 +16,7 @@ public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}")
-#if ($module.Description))
+#if ($module.Description)
 .withDescription("${module.Description}")
 #end
 ;

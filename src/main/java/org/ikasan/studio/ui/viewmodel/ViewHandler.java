@@ -40,6 +40,10 @@ public abstract class ViewHandler {
         return new Point(getLeftX() + (getWidth()/2), getTopY() + getHeight());
     }
 
+    public Point getCentrePoint()  {
+        return new Point(getLeftX() + (getWidth()/2), getTopY() + (getHeight()/2));
+    }
+
     /**
      *
      * @param graphics object
