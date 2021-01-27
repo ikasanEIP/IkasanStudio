@@ -43,15 +43,18 @@ repositories {
 }
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.15.0")
+
 }
 
 // Configure gradle-intellij-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
+
     pluginName = pluginName_
     version = platformVersion
     type = platformType
-    downloadSources = platformDownloadSources.toBoolean()
+//    downloadSources = platformDownloadSources.toBoolean()
+    downloadSources = true
     updateSinceUntilBuild = true
 
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
@@ -124,5 +127,11 @@ tasks {
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://jetbrains.org/intellij/sdk/docs/tutorials/build_system/deployment.html#specifying-a-release-channel
         channels(pluginVersion.split('-').getOrElse(1) { "default" }.split('.').first())
+    }
+
+    // This seems quite brittle, to test, IJ requires to state the local path of where intellij community source code is installed.
+    test {
+        systemProperty("idea.home.path", "/dev/ws/intellij-community-193.7288")
+        // systemProperty("idea.home.path", intellijRootDir().canonicalPath)
     }
 }
