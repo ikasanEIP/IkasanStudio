@@ -78,4 +78,15 @@ public class IkasanComponentPropertyMeta {
     public int hashCode() {
         return Objects.hash(mandatory, propertyName, dataType);
     }
+
+    @Override
+    public String toString() {
+        return "IkasanComponentPropertyMeta{" +
+                "mandatory=" + mandatory +
+                ", propertyName='" + propertyName + '\'' +
+                ", propertyConfigFileLabel='" + propertyConfigFileLabel + '\'' +
+                ", dataType=" + dataType +
+                ", helpText='" + helpText + '\'' +
+                '}';
+    }
 }

@@ -3,7 +3,7 @@ package org.ikasan.studio.ui.component.palette;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
-import org.ikasan.studio.ui.model.PaletteItem;
+import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,10 +33,9 @@ public class IkasanFlowUIComponentSelection extends TransferHandler // implement
         // Clear
         IkasanFlowUIComponentTransferable ikasanFlowUIComponent = null;
 
-        if (sourceComponent instanceof JList &&
-                ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem) {
+        if (sourceComponent instanceof JList && ((JList)sourceComponent).getSelectedValue() instanceof PaletteItemIkasanComponent) {
             JList paletteList = (JList)sourceComponent;
-            PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
+            PaletteItemIkasanComponent item = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
 //            ikasanFlowUIComponent = item.getIkasanFlowUIComponent();
             IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getIkasanFlowUIComponent());
             Image dragImage = item.getIkasanFlowUIComponent().getSmallIcon().getImage();

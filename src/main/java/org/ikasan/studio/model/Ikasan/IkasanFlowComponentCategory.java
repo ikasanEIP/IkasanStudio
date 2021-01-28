@@ -6,23 +6,25 @@ import org.ikasan.studio.StudioUtils;
  * The different elements (components) that might be in a flow
  */
 public enum IkasanFlowComponentCategory {
-    BROKER("broker", "org.ikasan.spec.component.endpoint.Broker"),
-    CONSUMER("consumer", "org.ikasan.spec.component.endpoint.Consumer"),
-    CONVERTER("converter", "org.ikasan.spec.component.transformation.Converter"),
-    DESCRIPTION("withDescription", "String"),
-    ENDPOINT("endPoint", "String"),
-    EXCEPTION_RESOLVER("exceptionResolver", "org.ikasan.exceptionResolver.ExceptionResolver"),
-    FILTER("filter", "org.ikasan.spec.component.filter.Filter"),
-    PRODUCER("producer", "org.ikasan.spec.component.endpoint.Producer"),
-    ROUTER("router", "router"),
-    SPLITTER("splitter", "org.ikasan.spec.component.splitting.Splitter"),
-    TRANSLATER("translater", "translater"),
-    UNKNOWN("unknown", "unknown");
+    BROKER(20, "broker", "org.ikasan.spec.component.endpoint.Broker"),
+    CONSUMER(10,"consumer", "org.ikasan.spec.component.endpoint.Consumer"),
+    CONVERTER(30, "converter", "org.ikasan.spec.component.transformation.Converter"),
+    DESCRIPTION(1001, "withDescription", "String"),
+    ENDPOINT(1002, "endPoint", "String"),
+    EXCEPTION_RESOLVER(90,"exceptionResolver", "org.ikasan.exceptionResolver.ExceptionResolver"),
+    FILTER(40, "filter", "org.ikasan.spec.component.filter.Filter"),
+    PRODUCER(80, "producer", "org.ikasan.spec.component.endpoint.Producer"),
+    ROUTER(50, "router", "router"),
+    SPLITTER(60, "splitter", "org.ikasan.spec.component.splitting.Splitter"),
+    TRANSLATER(70, "translater", "translater"),
+    UNKNOWN(100, "unknown", "unknown");
 
+    private final Integer displayOrder;
     public final String associatedMethodName;
     public final String baseClass;
 
-    IkasanFlowComponentCategory(String associatedMethodName, String associatedBaseClass) {
+    IkasanFlowComponentCategory(Integer displayOrder, String associatedMethodName, String associatedBaseClass) {
+        this.displayOrder = displayOrder;
         this.associatedMethodName = associatedMethodName;
         this.baseClass = associatedBaseClass;
     }
@@ -56,5 +58,9 @@ public enum IkasanFlowComponentCategory {
 
     public String getAssociatedMethodName() {
         return associatedMethodName;
+    }
+
+    public Integer getDisplayOrder() {
+        return displayOrder;
     }
 }

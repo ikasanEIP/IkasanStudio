@@ -6,15 +6,11 @@ public class PaletteItem {
     IkasanFlowUIComponent ikasanFlowUIComponent;
     IkasanPaletteElementViewHandler ikasanFlowElementViewHandler;
 
-    public PaletteItem(IkasanFlowUIComponent ikasanFlowUIComponent) {
-        this.ikasanFlowUIComponent = ikasanFlowUIComponent;
-        ikasanFlowElementViewHandler = new IkasanPaletteElementViewHandler(ikasanFlowUIComponent);
-    }
+    public PaletteItem() {}
 
     public IkasanPaletteElementViewHandler getIkasanFlowElementViewHandler() {
         return ikasanFlowElementViewHandler;
     }
-
     public IkasanFlowUIComponent getIkasanFlowUIComponent() {
         return ikasanFlowUIComponent;
     }

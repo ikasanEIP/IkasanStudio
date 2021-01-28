@@ -33,6 +33,9 @@ public class IkasanComponent {
     public void addAllProperties(Map<String, IkasanComponentProperty> newProperties) {
         properties.putAll(newProperties);
     }
+    public void addComponentProperty(String key, IkasanComponentProperty value) {
+        properties.put(key, value);
+    }
 
     public String getName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);

@@ -28,4 +28,10 @@ public class IkasanComponentProperty {
     public void setMeta(IkasanComponentPropertyMeta meta) {
         this.meta = meta;
     }
+
+    @Override
+    public String toString() {
+        return "IkasanComponentProperty{" +
+                "value=" + value  +'}';
+    }
 }

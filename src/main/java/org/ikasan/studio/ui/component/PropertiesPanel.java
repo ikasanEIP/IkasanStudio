@@ -75,6 +75,10 @@ public class PropertiesPanel extends JPanel {
                     String key = entry.getKey();
                     if (!key.equals(IkasanComponentPropertyMeta.NAME) && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)) {
                         IkasanComponentProperty property = selectedComponent.getProperty(key);
+                        if (property == null) {
+                            // This property has not yet been set for the component
+                            property = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key));
+                        }
                         componentPropertyEditBoxList.add(addFieldToEdit(propertiesEditorPanel, property, gc, tabley++));
                         tabley++;
                     }
@@ -101,9 +105,16 @@ public class PropertiesPanel extends JPanel {
         for (ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
             String key = editPair.getLabel();
             IkasanComponentProperty componentProperty = (IkasanComponentProperty)selectedComponent.getProperties().get(key);
-            if (hasChanged(componentProperty.getValue(), editPair.getValue())) {
+            if (propertyValueHasChanged(componentProperty, editPair)) {
                 modelUpdated = true;
-                componentProperty.setValue(editPair.getValue());
+                if (componentProperty == null) {
+                    // New property added for the first time, for now only components will have new properties not flows
+                    componentProperty = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key), editPair.getValue());
+                    selectedComponent.addComponentProperty(key, componentProperty);
+                } else {
+                    // update existing
+                    componentProperty.setValue(editPair.getValue());
+                }
             }
         }
         return modelUpdated;
@@ -114,7 +125,7 @@ public class PropertiesPanel extends JPanel {
         for (ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
             String key = editPair.getLabel();
             IkasanComponentProperty componentProperty = (IkasanComponentProperty)selectedComponent.getProperties().get(key);
-            if (hasChanged(componentProperty.getValue(), editPair.getValue())) {
+            if (propertyValueHasChanged(componentProperty, editPair)) {
                 modelUpdated = true;
                 componentProperty.setValue(editPair.getValue());
             }
@@ -175,7 +186,61 @@ public class PropertiesPanel extends JPanel {
         propertiesBodyPanel.revalidate();
         propertiesBodyPanel.repaint();
     }
+//
+//    /**
+//     *
+//     * @param property on the existing Ikasan Component
+//     * @param propertyEditBox should never be null when called.
+//     * @return
+//     */
+//    private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
+//        if ((property == null && (propertyEditBox.getValue() == null || !editBoxHasValue(propertyEditBox))) ||
+//            (property != null && property.getValue() == null) ||
+//            (property != null && property.getValue().equals(propertyEditBox.getValue()))) {
+//            return false;
+//        } else {
+//            return true;
+//        }
+//    }
 
+    /**
+     *
+     * @param property on the existing Ikasan Component
+     * @param propertyEditBox should never be null when called.
+     * @return
+     */
+    private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
+        if ((property == null && editBoxHasValue(propertyEditBox)) ||
+            (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())))   {
+            return true;
+        }
+        else {
+            return false;
+        }
+//
+//        if ((property == null && (propertyEditBox.getValue() == null || !editBoxHasValue(propertyEditBox))) ||
+//                (property != null && property.getValue() == null) ||
+//                (property != null && property.getValue().equals(propertyEditBox.getValue()))) {
+//            return false;
+//        } else {
+//            return true;
+//        }
+    }
+
+    private boolean editBoxHasValue(ComponentPropertyEditBox propertyEditBox) {
+        boolean hasValue = false;
+        if (propertyEditBox != null) {
+            Object value = propertyEditBox.getValue();
+            if (value instanceof String) {
+                if (value != null && ((String) value).length() > 0) {
+                    return true;
+                }
+            } else {
+                return (value != null);
+            }
+        }
+        return hasValue;
+    }
 
     private boolean hasChanged(Object o1, Object o2) {
         if ((o1 == null && o2 == null) ||

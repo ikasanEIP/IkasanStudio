@@ -3,9 +3,7 @@ package org.ikasan.studio.ui.component;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.ui.component.palette.IkasanFlowUIComponentSelection;
 import org.ikasan.studio.ui.component.palette.PaletteListCellRenderer;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
-import org.ikasan.studio.ui.model.PaletteItem;
+import org.ikasan.studio.ui.model.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +13,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PalettePanel extends JPanel {
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
@@ -33,39 +33,41 @@ public class PalettePanel extends JPanel {
         this.setLayout(new BorderLayout());
         this.ikasanFlowUIComponentSelection= new IkasanFlowUIComponentSelection();
 
+        // Header
         JLabel paletteHeaderLabel =  new JLabel("Palette");
         paletteHeaderLabel.setBorder(new EmptyBorder(9,0,9,0));
         JPanel paletteHeaderPanel = new JPanel();
         paletteHeaderPanel.add(paletteHeaderLabel);
         paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-        JPanel paletteHelpHeaderPanel = new JPanel();
-        paletteHelpHeaderPanel.add(new JLabel("Description"));
-        paletteHelpHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-
+        // Body
         JPanel paletteHelpBodyPanel = new JPanel(new BorderLayout());
         JTextArea paletteHelpTextArea = new JTextArea();
         paletteHelpTextArea.setLineWrap(true);
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
 
-        JPanel paletteHelpMainPanel = new JPanel(new BorderLayout());
-        paletteHelpMainPanel.add(paletteHelpHeaderPanel, BorderLayout.NORTH);
-        paletteHelpMainPanel.add(paletteHelpBodyPanel, BorderLayout.CENTER);
-
         JList<PaletteItem> paletteList;
         paletteList = new JList(buildPalettItems().toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
-
         paletteList.setTransferHandler(ikasanFlowUIComponentSelection);
-
         JScrollPane paletteScrollPane = new JScrollPane(paletteList);
+
+        // Footer
+        JPanel paletteHelpHeaderPanel = new JPanel();
+        paletteHelpHeaderPanel.add(new JLabel("Description"));
+        paletteHelpHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JPanel paletteHelpMainPanel = new JPanel(new BorderLayout());
+        paletteHelpMainPanel.add(paletteHelpHeaderPanel, BorderLayout.NORTH);
+        paletteHelpMainPanel.add(paletteHelpBodyPanel, BorderLayout.CENTER);
+
+
         final JSplitPane paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, paletteHelpMainPanel);
         paletteSplitPane.setDividerSize(3);
 
-        // At this point, and even when thie method ends, the preferred height only reflects the preferred height of all
-        // the known components, so we deliberatly send the divider off the bottom of the screen until the first time we
-        // click on a palett component.
+        // At this point, and even when the method ends, the preferred height only reflects the preferred height of all
+        // the known components, so we deliberately send the divider off the bottom of the screen until the first time we
+        // click on a palette component.
         paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
 
         JPanel paletteBodyPanel = new JPanel(new BorderLayout());
@@ -77,15 +79,17 @@ public class PalettePanel extends JPanel {
         add(paletteBodyPanel, BorderLayout.CENTER);
         setBorder(new EmptyBorder(1,0,0,0));
 
-        // Please place all listeners at the end of the method
         paletteList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent listSelectionEvent) {
-                // Only do this if its the first time, otherwise it might get annoying.
-                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
-                    paletteSplitPane.setDividerLocation(0.8);
+                if (paletteList.getSelectedValue() instanceof PaletteItemIkasanComponent) {
+                    PaletteItemIkasanComponent paletteItemIkasanComponent = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
+                    // Only do this if its the first time, otherwise it might get annoying.
+                    if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
+                        paletteSplitPane.setDividerLocation(0.8);
+                    }
+                    paletteHelpTextArea.setText(paletteItemIkasanComponent.getIkasanFlowElementViewHandler().getHelpText());
                 }
-                paletteHelpTextArea.setText(paletteList.getSelectedValue().getIkasanFlowElementViewHandler().getHelpText());
             }
         });
 
@@ -98,7 +102,6 @@ public class PalettePanel extends JPanel {
         });
     }
 
-
     /**
      * Create a list of all known Ikasan components
      * @return a list of all known Ikasan components
@@ -106,9 +109,22 @@ public class PalettePanel extends JPanel {
     private java.util.List<PaletteItem> buildPalettItems() {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
         IkasanFlowUIComponentFactory ikasanFlowUIComponentFactory = IkasanFlowUIComponentFactory.getInstance();
+
         List<IkasanFlowUIComponent> ikasanFlowUIComponents = ikasanFlowUIComponentFactory.getIkasanFlowComponents();
-        for (IkasanFlowUIComponent ikasanFlowUIComponent : ikasanFlowUIComponents) {
-            paletteItems.add(new PaletteItem(ikasanFlowUIComponent));
+        List<IkasanFlowUIComponent> displayOrder = ikasanFlowUIComponents
+                .stream()
+                .sorted(Comparator
+                    .comparing((IkasanFlowUIComponent c1) -> c1.getIkasanFlowComponentType().getElementCategory().getDisplayOrder())
+                    .thenComparing(IkasanFlowUIComponent::getTitle))
+                .collect(Collectors.toList());
+
+        String category = "";
+        for (IkasanFlowUIComponent ikasanFlowUIComponent : displayOrder) {
+            if (!category.equals(ikasanFlowUIComponent.getIkasanFlowComponentType().getElementCategory().toString()) ) {
+                category = ikasanFlowUIComponent.getIkasanFlowComponentType().getElementCategory().toString();
+                paletteItems.add(new PaletteItemSeparator(category));
+            }
+            paletteItems.add(new PaletteItemIkasanComponent(ikasanFlowUIComponent));
         }
         return paletteItems;
     }

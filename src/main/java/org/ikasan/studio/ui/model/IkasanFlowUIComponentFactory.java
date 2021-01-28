@@ -53,7 +53,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Aggregator","Aggregator is an ipsum", "Readme.md", IkasanFlowComponentType.UNKNOWN, "aggregator"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/ConcurrentSplitter.md", IkasanFlowComponentType.SPLITTER, "splitter"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/DefaultSplitter.md", IkasanFlowComponentType.LIST_SPLITTER, "splitter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("List Splitter", SPLITTER_HELP_TEXT, "splitter/DefaultSplitter.md", IkasanFlowComponentType.LIST_SPLITTER, "splitter"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Broker", BROKER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.BROKER, "broker"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Generating Broker", BROKER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.EXCEPTION_GENERATING_BROKER, "broker"));
@@ -87,7 +87,6 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XSLT Configuration Converter", XSLT_CONFIGURATION_PARAMETER_HELP_TEXT, "converter/XsltConfigurationParameterConverter.md", IkasanFlowComponentType.XSLT_CONFIGURATION_PARAMETER_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XSLT Converter", XSLT_CONVERTER_HELP_TEXT, "converter/XsltConverter.md", IkasanFlowComponentType.XSLT_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Payload to Map Converter", PAYLOAD_TO_MAP_CONVERTER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.PAYLOAD_TO_MAP_CONVERTER, "message-translator"));
-
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Single Recipient Router", ROUTER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.SINGLE_RECIPIENT_ROUTER, "message-router"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Multi Recipient Router", ROUTER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.MULTI_RECIPIENT_ROUTER, "message-router"));

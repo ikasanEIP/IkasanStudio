@@ -14,7 +14,7 @@ public class IkasanPaletteElementViewHandler extends ViewHandler {
     IkasanFlowUIComponent model;
 
     /**
-     * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
+     * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param model
      */
     public IkasanPaletteElementViewHandler(IkasanFlowUIComponent model) {
@@ -23,7 +23,9 @@ public class IkasanPaletteElementViewHandler extends ViewHandler {
 
     public int paintComponent(JPanel canvas, Graphics g, int topX, int topY){
         log.debug("paintComponent invoked");
-        getDisplayIcon().paintIcon(canvas, g, getLeftX(), getTopY());
+        if (getDisplayIcon() != null) {
+            getDisplayIcon().paintIcon(canvas, g, getLeftX(), getTopY());
+        }
         return getBottomY();
     }
 
@@ -32,7 +34,7 @@ public class IkasanPaletteElementViewHandler extends ViewHandler {
     }
 
     public String getText() {
-        return model.getText();
+        return model.getTitle();
     }
     public String getHelpText() {
         return model.getHelpText();

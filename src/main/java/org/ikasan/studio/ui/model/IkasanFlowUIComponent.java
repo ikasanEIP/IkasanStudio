@@ -11,16 +11,19 @@ import java.io.Serializable;
  * The technical details of a component are encapsulated in org.ikasan.studio.model.Ikasan.IkasanFlowComponentType
  */
 public class IkasanFlowUIComponent implements Serializable {
-    String text ;
+    String title;
     String helpText;
     String webHelpURL;
     IkasanFlowComponentType ikasanFlowComponentType;
     ImageIcon smallIcon;
     ImageIcon canvasIcon;
 
-    public IkasanFlowUIComponent(String text, String helpText, String webHelpURL, IkasanFlowComponentType ikasanFlowComponentType
+    public IkasanFlowUIComponent(String title) {
+        this.title = title;
+    }
+    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanFlowComponentType ikasanFlowComponentType
             , ImageIcon smallIcon, ImageIcon canvasIcon) {
-        this.text = text;
+        this.title = title;
         this.helpText = helpText;
         this.webHelpURL = webHelpURL;
         this.ikasanFlowComponentType = ikasanFlowComponentType;
@@ -28,12 +31,12 @@ public class IkasanFlowUIComponent implements Serializable {
         this.canvasIcon = canvasIcon;
     }
 
-    public String getText() {
-        return text;
+    public String getTitle() {
+        return title;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getHelpText() {
@@ -75,7 +78,7 @@ public class IkasanFlowUIComponent implements Serializable {
     @Override
     public String toString() {
         return "IkasanFlowUIComponent{" +
-                "text='" + text + '\'' +
+                "text='" + title + '\'' +
                 ", helpText='" + helpText + '\'' +
                 ", ikasanFlowComponentType=" + ikasanFlowComponentType +
                 ", smallIcon=" + smallIcon +
