@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.component.palette;
+package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.model.Ikasan.IkasanComponentProperty;
 
@@ -6,9 +6,9 @@ import javax.swing.*;
 import java.text.NumberFormat;
 
 public class ComponentPropertyEditBox {
-    String label;
-    JLabel labelField;
-    JFormattedTextField textField;
+    private String label;
+    private JLabel labelField;
+    private JFormattedTextField textField;
 
     public ComponentPropertyEditBox(IkasanComponentProperty componentProperty) {
         this.label = componentProperty.getMeta().getPropertyName();

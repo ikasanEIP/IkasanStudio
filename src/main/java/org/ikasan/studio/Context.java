@@ -3,12 +3,14 @@ package org.ikasan.studio;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.component.DesignerCanvas;
-import org.ikasan.studio.ui.component.PropertiesPanel;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
+
+//import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 /**
  * The Context allows all the independant parts of the UI to collaborate with each other.

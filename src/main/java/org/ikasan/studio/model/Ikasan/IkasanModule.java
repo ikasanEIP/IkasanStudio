@@ -37,8 +37,8 @@ public class IkasanModule extends IkasanComponent {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-        setName("Reset");
-        setDescription("Reset");
+        setName("My Ikasan Integration Module");
+        setDescription("My Ikasan Integration Module");
     }
 
     /**

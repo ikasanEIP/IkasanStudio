@@ -5,7 +5,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanComponent;
-import org.ikasan.studio.ui.component.DesignerCanvas;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
 import javax.swing.*;

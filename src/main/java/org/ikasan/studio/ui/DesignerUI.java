@@ -7,13 +7,15 @@ import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.component.CanvasPanel;
-import org.ikasan.studio.ui.component.DesignerCanvas;
-import org.ikasan.studio.ui.component.PalettePanel;
-import org.ikasan.studio.ui.component.PropertiesPanel;
+import org.ikasan.studio.ui.component.canvas.CanvasPanel;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.component.palette.PalettePanel;
+import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 import javax.swing.*;
 import java.awt.*;
+
+//import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 /**
  * Create all onscreen components and register inter-thread communication components with Context

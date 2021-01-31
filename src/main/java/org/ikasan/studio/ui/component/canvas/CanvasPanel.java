@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.component;
+package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
@@ -46,22 +46,16 @@ public class CanvasPanel extends JPanel {
         canvasHeaderButtonPanel.add(gridCheckBox);
 
         JPanel canvasHeaderTitlePanel = new JPanel();;
-        canvasHeaderTitlePanel.add(new JLabel("Canvas"));
         JPanel canvasHeaderPanel = new JPanel();
         canvasHeaderPanel.add(canvasHeaderTitlePanel);
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
         canvasHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         Context.setCanvasTextArea(projectKey, canvasTextArea);
         canvasTextArea.setLineWrap(true);
-        JPanel canvasBodyPanel = new JPanel(new BorderLayout());
-        canvasBodyPanel.add(new JScrollPane(canvasTextArea), BorderLayout.SOUTH);
-
-        canvasBodyPanel.add(canvasPanel, BorderLayout.CENTER);
-        canvasBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
         setLayout(new BorderLayout());
         add(canvasHeaderPanel, BorderLayout.NORTH);
-        add(canvasBodyPanel, BorderLayout.CENTER);
+        add(canvasPanel, BorderLayout.CENTER);
     }
 
     private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al) {

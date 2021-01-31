@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.component;
+package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.actions.*;

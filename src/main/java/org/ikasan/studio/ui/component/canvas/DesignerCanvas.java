@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.component;
+package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;

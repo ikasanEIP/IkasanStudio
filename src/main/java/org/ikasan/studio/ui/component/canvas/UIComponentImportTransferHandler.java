@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.component;
+package org.ikasan.studio.ui.component.canvas;
 
 import org.apache.log4j.Logger;
 import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;

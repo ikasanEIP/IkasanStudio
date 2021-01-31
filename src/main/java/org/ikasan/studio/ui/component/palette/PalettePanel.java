@@ -1,8 +1,6 @@
-package org.ikasan.studio.ui.component;
+package org.ikasan.studio.ui.component.palette;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.ui.component.palette.IkasanFlowUIComponentSelection;
-import org.ikasan.studio.ui.component.palette.PaletteListCellRenderer;
 import org.ikasan.studio.ui.model.*;
 
 import javax.swing.*;
@@ -20,9 +18,6 @@ import java.util.stream.Collectors;
 public class PalettePanel extends JPanel {
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     private static final Logger log = Logger.getLogger(PalettePanel.class);
-    private int clickStartMouseX = 0 ;
-    private int clickStartMouseY = 0 ;
-    private boolean componentMoved = false;
     private String projectKey;
 
     private IkasanFlowUIComponentSelection ikasanFlowUIComponentSelection ;
@@ -31,11 +26,12 @@ public class PalettePanel extends JPanel {
         super();
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
+        this.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         this.ikasanFlowUIComponentSelection= new IkasanFlowUIComponentSelection();
 
         // Header
         JLabel paletteHeaderLabel =  new JLabel("Palette");
-        paletteHeaderLabel.setBorder(new EmptyBorder(9,0,9,0));
+        paletteHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
         JPanel paletteHeaderPanel = new JPanel();
         paletteHeaderPanel.add(paletteHeaderLabel);
         paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -45,6 +41,7 @@ public class PalettePanel extends JPanel {
         JTextArea paletteHelpTextArea = new JTextArea();
         paletteHelpTextArea.setLineWrap(true);
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
+        paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
         JList<PaletteItem> paletteList;
         paletteList = new JList(buildPalettItems().toArray());
@@ -52,11 +49,12 @@ public class PalettePanel extends JPanel {
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(ikasanFlowUIComponentSelection);
         JScrollPane paletteScrollPane = new JScrollPane(paletteList);
+        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
 
         // Footer
         JPanel paletteHelpHeaderPanel = new JPanel();
         paletteHelpHeaderPanel.add(new JLabel("Description"));
-        paletteHelpHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+//        paletteHelpHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         JPanel paletteHelpMainPanel = new JPanel(new BorderLayout());
         paletteHelpMainPanel.add(paletteHelpHeaderPanel, BorderLayout.NORTH);
         paletteHelpMainPanel.add(paletteHelpBodyPanel, BorderLayout.CENTER);
@@ -72,7 +70,7 @@ public class PalettePanel extends JPanel {
 
         JPanel paletteBodyPanel = new JPanel(new BorderLayout());
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
-        paletteBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+//        paletteBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         paletteBodyPanel.setBackground(Color.WHITE);
 
         add(paletteHeaderPanel, BorderLayout.NORTH);

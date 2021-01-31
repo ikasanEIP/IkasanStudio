@@ -75,8 +75,6 @@ public enum IkasanFlowComponentType {
     public final IkasanFlowComponentCategory elementCategory;
     Map<String, IkasanComponentPropertyMeta>  properties;
 
-//    public static final Map<String, IkasanComponentPropertyMeta> xxDefaultProperties = new HashMap<>();
-
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
      * @param elementCategory e.g. CONSUMER, PRODUCER
