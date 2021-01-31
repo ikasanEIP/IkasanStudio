@@ -12,6 +12,7 @@ public class DesignCanvasContextMenu {
 
     public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, IkasanComponent component) {
         JPopupMenu menu = new JPopupMenu();
+        menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", component, mouseEvent));
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
         menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
@@ -28,6 +29,12 @@ public class DesignCanvasContextMenu {
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
         menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
         menu.show(designerCanvas, event.getX(), event.getY());
+    }
+
+    private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, IkasanComponent component, MouseEvent mouseEvent) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new DeleteComponentAction(projectKey, component));
+        return item;
     }
 
     private static JMenuItem createHelpTextItem(String projectKey, String label, IkasanComponent component, MouseEvent mouseEvent) {

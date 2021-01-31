@@ -170,12 +170,12 @@ public class PropertiesPanel extends JPanel {
 
     /**
      *
-     * @param property on the existing Ikasan Component
+     * @param property of the existing Ikasan Component
      * @param propertyEditBox should never be null when called.
      * @return
      */
     private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
-        if ((property == null && editBoxHasValue(propertyEditBox)) ||
+        if (((property == null || property.getValue() == null) && editBoxHasValue(propertyEditBox)) ||
                 (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())))   {
             return true;
         }

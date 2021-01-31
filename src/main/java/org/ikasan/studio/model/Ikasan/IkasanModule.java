@@ -63,6 +63,16 @@ public class IkasanModule extends IkasanComponent {
         return flows;
     }
 
+    public IkasanFlow getFlow(IkasanFlow searchedFlow) {
+        if (searchedFlow != null && flows != null && flows.size() > 0) {
+            for (IkasanFlow currentFlow : getFlows()) {
+                if (searchedFlow.equals(currentFlow));
+                return currentFlow;
+            }
+        }
+        return null;
+    }
+
     public boolean addFlow(IkasanFlow ikasanFlow) {
         return flows.add(ikasanFlow);
     }

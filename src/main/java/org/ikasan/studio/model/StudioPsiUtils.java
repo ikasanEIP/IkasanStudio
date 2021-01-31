@@ -52,6 +52,14 @@ public class StudioPsiUtils {
         return message.toString();
     }
 
+    public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
+        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+        pipsiIkasanModel.generateSourceFromModel();
+        StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
+        Context.getDesignerCanvas(projectKey).setInitialiseCanvas(true);
+        Context.getDesignerCanvas(projectKey).repaint();
+    }
+
     public static String dumpProject(Project project) {
         StringBuilder dump = new StringBuilder();
         dump.append("** All class names **");
