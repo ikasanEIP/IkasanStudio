@@ -47,6 +47,4 @@ org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = ${flow.JavaVariableName}Flo
 return ${flow.JavaVariableName};
 }
 #end
-
-
 }

@@ -1,8 +1,7 @@
-package com.baeldung.intellij.stackoverflowplugin;
+package shed;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.lang.Language;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;

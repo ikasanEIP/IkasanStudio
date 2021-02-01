@@ -1,4 +1,4 @@
-package com.baeldung.intellij.stackoverflowplugin;
+package shed;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;

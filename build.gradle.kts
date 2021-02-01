@@ -43,7 +43,11 @@ repositories {
 }
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.15.0")
-
+    implementation("org.ikasan:ikasan-eip-standalone:3.0.1")
+    implementation("org.ikasan:ikasan-h2-standalone-persistence:3.0.1")
+    testImplementation("org.ikasan:ikasan-eip-standalone:3.0.1")
+    testImplementation("org.ikasan:ikasan-test-endpoint:3.0.1")
+    testImplementation("org.ikasan:ikasan-test:3.0.1")
 }
 
 // Configure gradle-intellij-plugin plugin.

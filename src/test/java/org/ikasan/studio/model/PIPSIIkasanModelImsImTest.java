@@ -49,8 +49,8 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
         Assert.assertThat(flow1.getViewHandler(), is(notNullValue()));
         Assert.assertThat(flow1.getName(), is("JMS to JMS Flow"));
         Assert.assertThat(flow1.getDescription(), is("Flow demonstrates usage of JMS Concumer and JMS Producer"));
-        Assert.assertThat(flow1.getInput().getDescription(), is("source"));
-        Assert.assertThat(flow1.getOutput().getDescription(), is("target"));
+//        Assert.assertThat(flow1.getInput().getDescription(), is("source"));
+//        Assert.assertThat(flow1.getOutput().getDescription(), is("target"));
 
         //@todo add in exception reolver
 
@@ -58,7 +58,7 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 
         IkasanFlowComponent jmsConsumer = flow1.getFlowComponentList().get(0);
         Assert.assertThat(jmsConsumer.getName(), is("JMS Consumer"));
-        Assert.assertThat(jmsConsumer.getProperties().size(), is(4));
+        Assert.assertThat(jmsConsumer.getProperties().size(), is(5));
 
         Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("Exception Generating Broker"));
         Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("JMS Producer"));

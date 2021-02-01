@@ -13,10 +13,7 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
-import org.junit.Assert;
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
 
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
@@ -41,7 +38,6 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         // between tests.
 //        myTestProjectRoot = createTestProjectStructure();
         myTestProjectRoot = createTestProjectStructure(root);
-        System.out.println("");
 //        myFixture.copyDirectoryToProject("general", "src/");
 //        IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
 //        LightProjectDescriptor descriptor = new LightProjectDescriptor();
@@ -58,14 +54,14 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         super.tearDown();
     }
 
-    @Test
-    public void test_createPackage_StandardPackage() {
-        PsiDirectory baseDir = createPackageFixture("org.test");
-        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-        Assert.assertThat(psiJavaDirectory.length, is(2));
-        Assert.assertThat(psiJavaDirectory[0].getName(), is("org"));
-        Assert.assertThat(psiJavaDirectory[1].getName(), is("test"));
-    }
+//    @Test
+//    public void test_createPackage_StandardPackage() {
+//        PsiDirectory baseDir = createPackageFixture("org.test");
+//        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
+//        Assert.assertThat(psiJavaDirectory.length, is(2));
+//        Assert.assertThat(psiJavaDirectory[0].getName(), is("org"));
+//        Assert.assertThat(psiJavaDirectory[1].getName(), is("test"));
+//    }
 
     private PsiDirectory createPackageFixture(String packageName) {
 //        Project myProject = myFixture.getProject();

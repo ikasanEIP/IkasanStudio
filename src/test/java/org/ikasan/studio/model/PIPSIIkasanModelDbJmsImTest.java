@@ -54,19 +54,19 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
             Assert.assertThat(flow1.getViewHandler(), is(notNullValue()));
             Assert.assertThat(flow1.getName(), is("dbToJMSFlow"));
             Assert.assertThat(flow1.getDescription(), is("Sample DB to JMS flow"));
-            Assert.assertThat(flow1.getOutput().getDescription(), is("jms.topic.test"));
+//            Assert.assertThat(flow1.getOutput().getDescription(), is("jms.topic.test"));
 
             Assert.assertThat(flow1.getFlowComponentList().size(), is(5));
             Assert.assertThat(flow1.getFlowComponentList().get(0).getName(), is("DB Consumer"));
-            Assert.assertThat(flow1.getFlowComponentList().get(0).getProperties().size(), is(3));
+            Assert.assertThat(flow1.getFlowComponentList().get(0).getProperties().size(), is(4));
             Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("My Filter"));
-            Assert.assertThat(flow1.getFlowComponentList().get(1).getProperties().size(), is(2));
+            Assert.assertThat(flow1.getFlowComponentList().get(1).getProperties().size(), is(3));
             Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("Split list"));
-            Assert.assertThat(flow1.getFlowComponentList().get(2).getProperties().size(), is(0));
+            Assert.assertThat(flow1.getFlowComponentList().get(2).getProperties().size(), is(1));
             Assert.assertThat(flow1.getFlowComponentList().get(3).getName(), is("Person to XML"));
-            Assert.assertThat(flow1.getFlowComponentList().get(3).getProperties().size(), is(1));
+            Assert.assertThat(flow1.getFlowComponentList().get(3).getProperties().size(), is(2));
             Assert.assertThat(flow1.getFlowComponentList().get(4).getName(), is("JMS Producer"));
-            Assert.assertThat(flow1.getFlowComponentList().get(4).getProperties().size(), is(11));
+            Assert.assertThat(flow1.getFlowComponentList().get(4).getProperties().size(), is(12));
         }
         {   // scope protection
             IkasanFlow flow2 = flows.get(1);
@@ -74,14 +74,14 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
             Assert.assertThat(flow2.getName(), is("jmsToDbFlow"));
             Assert.assertThat(flow2.getDescription(), is("Sample JMS to DB flow"));
 
-            Assert.assertThat(flow2.getInput().getDescription(), is("jms.topic.test"));
+//            Assert.assertThat(flow2.getInput().getDescription(), is("jms.topic.test"));
             Assert.assertThat(flow2.getFlowComponentList().size(), is(3));
             Assert.assertThat(flow2.getFlowComponentList().get(0).getName(), is("JMS Consumer"));
-            Assert.assertThat(flow2.getFlowComponentList().get(0).getProperties().size(), is(14));
+            Assert.assertThat(flow2.getFlowComponentList().get(0).getProperties().size(), is(15));
             Assert.assertThat(flow2.getFlowComponentList().get(1).getName(), is("XML to Person"));
-            Assert.assertThat(flow2.getFlowComponentList().get(1).getProperties().size(), is(1));
+            Assert.assertThat(flow2.getFlowComponentList().get(1).getProperties().size(), is(2));
             Assert.assertThat(flow2.getFlowComponentList().get(2).getName(), is("DB Producer"));
-            Assert.assertThat(flow2.getFlowComponentList().get(2).getProperties().size(), is(0));
+            Assert.assertThat(flow2.getFlowComponentList().get(2).getProperties().size(), is(1));
         }
     }
 

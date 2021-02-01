@@ -15,12 +15,7 @@ public class VelocityUtilsTest extends LightJavaCodeInsightFixtureTestCase {
     }
 
     public void tearDown() throws Exception {
-    }
-
-    public void testVelocityGenerateCode() {
-    }
-
-    public void testTestVelocityGenerateCode() {
+        super.tearDown();
     }
 
     @Test

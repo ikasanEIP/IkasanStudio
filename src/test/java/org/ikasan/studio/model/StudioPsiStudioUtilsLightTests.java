@@ -41,7 +41,7 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
         Assert.assertThat(methodFound.getName(), is("getModule"));
 
         PsiJavaFile javaFile = (PsiJavaFile) methodFound.getContainingFile();
-        Assert.assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig_emptyIkasanModel.java"));
+        Assert.assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig.java"));
         Assert.assertThat(javaFile.getPackageName(), is("com.ikasan.studio.example"));
         Assert.assertThat(javaFile.getFileType().getDescription(), is("Java"));
     }

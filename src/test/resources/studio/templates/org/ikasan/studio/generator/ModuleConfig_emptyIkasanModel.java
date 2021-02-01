@@ -15,8 +15,9 @@ org.ikasan.builder.BuilderFactory builderFactory;
 public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
-org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("My Integration Module")
-.withDescription("My first integration module.");
+org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("New Module")
+.withDescription("New Module, please provide description")
+;
 
 // Create a component builder from the builder factory
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();

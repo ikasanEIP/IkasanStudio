@@ -15,25 +15,24 @@ org.ikasan.builder.BuilderFactory builderFactory;
 public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
-org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("My Integration Module")
-.withDescription("My first integration module.");
+org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("New Module")
+.withDescription("New Module, please provide description")
+;
 
 // Create a component builder from the builder factory
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 // Add the created flow to the module builder and create the module
 org.ikasan.spec.module.Module module = moduleBuilder
-.addFlow(get_NewFlow1(moduleBuilder, componentBuilder))
+.addFlow(get_newflow1(moduleBuilder, componentBuilder))
 .build();
 return module;
 }
 
-private org.ikasan.spec.flow.Flow get_NewFlow1(org.ikasan.builder.ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
-FlowBuilder NewFlow1FlowBuilder = moduleBuilder.getFlowBuilder("Event Generating Flow");
-Flow NewFlow1 = NewFlow1FlowBuilder
-.consumer("My Source Consumer", componentBuilder.eventGeneratingConsumer())
-.producer("My Target Producer", componentBuilder.logProducer())
+private org.ikasan.spec.flow.Flow get_newflow1(org.ikasan.builder.ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
+org.ikasan.builder.FlowBuilder newflow1FlowBuilder = moduleBuilder.getFlowBuilder("newFlow1");
+org.ikasan.spec.flow.Flow newflow1 = newflow1FlowBuilder
 .build();
-return NewFlow1;
+return newflow1;
 }
 }
