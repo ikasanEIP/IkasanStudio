@@ -12,13 +12,17 @@ import java.util.List;
  * Studion UI StudioUtils.
  */
 public class StudioUIUtils {
+
+    // Private constructor emphasizes that this is a utils class, not to be instantiated.
+    private StudioUIUtils() {}
+
     public static final Color IKASAN_GREY = new Color(231, 231, 231);
     private static final Logger log = Logger.getLogger(StudioUIUtils.class);
 
     public static void setLine(Graphics g, float width) {
         if (g instanceof Graphics2D) {
             Graphics2D g2d = (Graphics2D)g;
-            g2d.setStroke(new BasicStroke(2f));
+            g2d.setStroke(new BasicStroke(width));
         }
     }
 
@@ -104,9 +108,7 @@ public class StudioUIUtils {
             textY+= stringHeight;
         }
         g.setFont(origFont);
-        int currentBottomY = numberOfLines > 0 ? textY - stringHeight : topY;
-//        log.info("drawCenteredStringFromTopCentre : paintMode [" + paintMode + "] text [" + text + "] centerX [" + centerX + "] topy [" + topY + "] maxWidth [" + maxWidth + "] font [" + font + "] leavingBottomY [" + currentBottomY + "]");
-        return currentBottomY;
+        return numberOfLines > 0 ? textY - stringHeight : topY;
     }
 
     /**
@@ -151,7 +153,7 @@ public class StudioUIUtils {
         return returnList;
     }
 
-    public static void paintGrid(Graphics g, int x, int y, int width, int height) {
+    public static void paintGrid(Graphics g, int width, int height) {
         Graphics2D g2d = (Graphics2D) g.create();
         Stroke dashed = new BasicStroke(1);
         g2d.setStroke(dashed);

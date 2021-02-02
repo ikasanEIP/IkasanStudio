@@ -29,10 +29,6 @@ public class IkasanPaletteElementViewHandler extends ViewHandler {
         return getBottomY();
     }
 
-    public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {
-
-    }
-
     public String getText() {
         return model.getTitle();
     }

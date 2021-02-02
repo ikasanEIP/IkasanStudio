@@ -96,7 +96,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
      * @return
      */
     public static final Pair<Integer, Integer> getProximityDetect() {
-        return new Pair(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
+        return new Pair<>(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
     }
 
     public ImageIcon getCanvasIcon() {
@@ -113,10 +113,12 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
         return new Point(getRightX(), getTopY() + (flowchartSymbolHeight/2));
     }
 
+    @Override
     public Point getTopConnectorPoint() {
         return new Point(getLeftX() + (flowchartSymbolWidth/2), getTopY());
     }
 
+    @Override
     public Point getBottomConnectorPoint() {
         return new Point(getLeftX() + (flowchartSymbolWidth/2), getTopY() + flowchartSymbolHeight);
     }

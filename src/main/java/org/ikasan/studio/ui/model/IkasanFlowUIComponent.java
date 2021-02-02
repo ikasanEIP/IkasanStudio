@@ -3,14 +3,13 @@ package org.ikasan.studio.ui.model;
 import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
 
 import javax.swing.*;
-import java.io.Serializable;
 
 /**
  * Focuses on the presentation / UI specific features for the Ikasan component.
  *
  * The technical details of a component are encapsulated in org.ikasan.studio.model.Ikasan.IkasanFlowComponentType
  */
-public class IkasanFlowUIComponent implements Serializable {
+public class IkasanFlowUIComponent {
     String title;
     String helpText;
     String webHelpURL;

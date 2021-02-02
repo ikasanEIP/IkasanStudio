@@ -292,7 +292,7 @@ public class DesignerCanvas extends JPanel {
             ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
         }
         if (drawGrid) {
-            StudioUIUtils.paintGrid(g, 0, 0, getWidth(), getHeight());
+            StudioUIUtils.paintGrid(g, getWidth(), getHeight());
         }
     }
 

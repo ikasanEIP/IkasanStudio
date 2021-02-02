@@ -52,7 +52,7 @@ public abstract class ViewHandler {
      * @param width of container
      * @param height of container
      */
-    public abstract void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) ;
+    public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {}
 
     /**
      * Get the y position for the bottom of the component
