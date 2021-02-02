@@ -1,12 +1,10 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanComponent;
-import org.ikasan.studio.model.Ikasan.IkasanComponentProperty;
-import org.ikasan.studio.model.Ikasan.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
+import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
+import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -18,17 +16,17 @@ import java.util.List;
 import java.util.Map;
 
 public class PropertiesPanel extends JPanel {
-    private static final Logger log = Logger.getLogger(PropertiesPanel.class);
+    private static final String PROPERTIES_TAG = "Properties";
     String projectKey;
-    IkasanComponent selectedComponent;
-    List<ComponentPropertyEditBox> componentPropertyEditBoxList;
+    transient IkasanComponent selectedComponent;
+    private JLabel propertiesHeaderLabel =  new JLabel(PROPERTIES_TAG);
+    transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     ScrollableGridbagPanel scrollableGridbagPanel;
 
     public PropertiesPanel(String projectKey) {
         super();
         this.projectKey = projectKey ;
 
-        JLabel propertiesHeaderLabel =  new JLabel("Properties");
         JPanel propertiesHeaderPanel = new JPanel();
         propertiesHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
         propertiesHeaderPanel.add(propertiesHeaderLabel);
@@ -72,8 +70,28 @@ public class PropertiesPanel extends JPanel {
         Context.setPropertiesPanel(projectKey,this);
     }
 
+    private void updatePropertiesPanelTitle() {
+        String propertyType = "";
+        if (selectedComponent instanceof IkasanModule) {
+            propertyType = "Module " + PROPERTIES_TAG;
+        } else if (selectedComponent instanceof IkasanFlow) {
+            propertyType = "Flow " + PROPERTIES_TAG;
+        } else if (selectedComponent instanceof IkasanFlowComponent) {
+            IkasanFlowUIComponent type = IkasanFlowUIComponentFactory
+                    .getInstance()
+                    .getIkasanFlowUIComponentFromType((((IkasanFlowComponent) selectedComponent).getType()));
+            if (type.getIkasanFlowComponentType() != IkasanFlowComponentType.UNKNOWN) {
+                propertyType = type.getTitle() + " " + PROPERTIES_TAG;
+            } else {
+                propertyType = "Component " + PROPERTIES_TAG;
+            }
+        }
+        propertiesHeaderLabel.setText(propertyType);
+    }
+
     public void updatePropertiesPanel(IkasanComponent selectedComponent) {
         this.selectedComponent = selectedComponent;
+        updatePropertiesPanelTitle();
         populatePropertiesEditorPanel();
         scrollableGridbagPanel.revalidate();
         scrollableGridbagPanel.repaint();
@@ -150,7 +168,7 @@ public class PropertiesPanel extends JPanel {
         if (componentPropertyEditBoxList != null) {
             for (final ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
                 final String key = editPair.getLabel();
-                IkasanComponentProperty componentProperty = (IkasanComponentProperty)selectedComponent.getProperties().get(key);
+                IkasanComponentProperty componentProperty = selectedComponent.getProperties().get(key);
                 if (propertyValueHasChanged(componentProperty, editPair)) {
                     modelUpdated = true;
                     if (componentProperty == null) {
@@ -175,13 +193,8 @@ public class PropertiesPanel extends JPanel {
      * @return
      */
     private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
-        if (((property == null || property.getValue() == null) && editBoxHasValue(propertyEditBox)) ||
-                (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())))   {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return (((property == null || property.getValue() == null) && editBoxHasValue(propertyEditBox)) ||
+                (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())));
     }
 
     /**
@@ -194,7 +207,7 @@ public class PropertiesPanel extends JPanel {
         if (propertyEditBox != null) {
             Object value = propertyEditBox.getValue();
             if (value instanceof String) {
-                if (value != null && ((String) value).length() > 0) {
+                if (((String) value).length() > 0) {
                     return true;
                 }
             } else {
