@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.actions.*;
 
@@ -11,12 +10,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 public class CanvasPanel extends JPanel {
-    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
-    private String projectKey ;
-
-    public CanvasPanel(String projectKey, ToolWindow toolWindow) {
+    public CanvasPanel(String projectKey) {
         super();
-        this.projectKey = projectKey;
         JTextArea canvasTextArea = new JTextArea();
 
         DesignerCanvas canvasPanel = new DesignerCanvas(projectKey);
@@ -35,17 +30,13 @@ public class CanvasPanel extends JPanel {
         gridCheckBox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 DesignerCanvas designerCanvas = Context.getDesignerCanvas(projectKey);
-                if (e.getStateChange()==1) {
-                    designerCanvas.setDrawGrid(true);
-                } else {
-                    designerCanvas.setDrawGrid(false);
-                }
+                designerCanvas.setDrawGrid(e.getStateChange() == 1);
                 designerCanvas.repaint();
             }
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
 
-        JPanel canvasHeaderTitlePanel = new JPanel();;
+        JPanel canvasHeaderTitlePanel = new JPanel();
         JPanel canvasHeaderPanel = new JPanel();
         canvasHeaderPanel.add(canvasHeaderTitlePanel);
         canvasHeaderPanel.add(canvasHeaderButtonPanel);

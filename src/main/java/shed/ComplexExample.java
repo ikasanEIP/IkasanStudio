@@ -25,7 +25,7 @@ public class ComplexExample extends JFrame implements DragGestureListener {
         add(right);
 
         setSize(40,50);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setVisible(true);
     }
@@ -42,12 +42,10 @@ public class ComplexExample extends JFrame implements DragGestureListener {
     }
 
     class MyDropTargetListener extends DropTargetAdapter {
-        private DropTarget dropTarget;
         private JPanel panel;
 
         public MyDropTargetListener(JPanel panel) {
             this.panel = panel;
-            dropTarget = new DropTarget(panel, DnDConstants.ACTION_COPY, this, true, null);
         }
 
         public void drop(DropTargetDropEvent event) {
@@ -86,9 +84,7 @@ class TransferableColor implements Transferable {
     }
 
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        if (flavor.equals(colorFlavor) || flavor.equals(DataFlavor.stringFlavor))
-            return true;
-        return false;
+        return flavor.equals(colorFlavor) || flavor.equals(DataFlavor.stringFlavor);
     }
 
     public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {

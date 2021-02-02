@@ -25,13 +25,15 @@ public class DeleteComponentAction implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
       if (component instanceof IkasanFlowComponent) {
          IkasanFlowComponent ikasanFlowComponentToRemove = (IkasanFlowComponent)component;
-         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
          IkasanFlow parentFlow = ikasanFlowComponentToRemove.getParent();
-         IkasanFlow flowToChange = ikasanModule.getFlow(parentFlow);
-         if (flowToChange != null) {
-            flowToChange.removeFlowElement(ikasanFlowComponentToRemove);
-            log.info("Removed component " + ikasanFlowComponentToRemove);
+         if (parentFlow != null) {
+            parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
          }
+         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
+      } else if (component instanceof IkasanFlow) {
+         IkasanFlow ikasanFlowToRemove = (IkasanFlow)component;
+         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
+         ikasanModule.getFlows().remove(ikasanFlowToRemove);
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       }
    }

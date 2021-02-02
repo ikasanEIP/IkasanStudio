@@ -45,7 +45,7 @@ public class DesignerUI {
         }
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 new PropertiesPanel(projectKey),
-                new CanvasPanel(projectKey, toolWindow));
+                new CanvasPanel(projectKey));
         propertiesAndCanvasSplitPane.setDividerSize(3);
         propertiesAndCanvasSplitPane.setDividerLocation(0.4);
         Context.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);

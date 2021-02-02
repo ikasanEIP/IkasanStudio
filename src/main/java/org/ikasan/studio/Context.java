@@ -10,10 +10,8 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
-//import org.ikasan.studio.ui.component.properties.PropertiesPanel;
-
 /**
- * The Context allows all the independant parts of the UI to collaborate with each other.
+ * The Context allows all the independent parts of the UI to collaborate with each other.
  *
  * Anything can be placed in the Context, some things are so important that they will have their own getters
  * just for convenience.
@@ -28,22 +26,20 @@ public class Context {
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
 
     private static Map<String, Map<String, Object>> projectCache = new HashMap<>();
-
     public static Map<String, Map<String, Object>> getProjectCache() {
         return projectCache;
     }
 
+    // Ensure it cant be instantiated
+    private Context() { }
+
     private static synchronized void putProjectCache(String projectKey, String key, Object value) {
-        Map cache = projectCache.get(projectKey);
-        if (cache == null) {
-            cache = new HashMap<String, Object>();
-            projectCache.put(projectKey, cache);
-        }
-        cache.put(key, value);
+        projectCache.putIfAbsent(projectKey, new HashMap<>());
+        projectCache.get(projectKey).put(key, value);
     }
 
     private static synchronized Object getProjectCache(String projectKey, String key) {
-        Map cache = projectCache.get(projectKey);
+        Map<String, Object> cache = projectCache.get(projectKey);
         if (cache != null) {
             return cache.get(key);
         }

@@ -31,7 +31,7 @@ public class IkasanFlow extends IkasanComponent {
 
     public void removeFlowElement(IkasanFlowComponent ikasanFlowComponentToBeRemoved) {
         if (ikasanFlowComponentToBeRemoved != null && flowComponentList.size() > 0) {
-            getFlowComponentList().removeIf(x -> x.equals(ikasanFlowComponentToBeRemoved));
+            getFlowComponentList().remove(ikasanFlowComponentToBeRemoved);
         }
     }
 
