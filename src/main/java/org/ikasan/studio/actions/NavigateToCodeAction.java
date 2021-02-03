@@ -1,6 +1,5 @@
 package org.ikasan.studio.actions;
 
-import org.apache.log4j.Logger;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.model.Ikasan.IkasanComponent;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -9,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class NavigateToCodeAction implements ActionListener {
-   private static final Logger log = Logger.getLogger(NavigateToCodeAction.class);
    private String projectKey;
    IkasanComponent component;
    boolean jumpToLine;

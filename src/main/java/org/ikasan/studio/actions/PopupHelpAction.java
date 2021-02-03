@@ -28,8 +28,6 @@ public class PopupHelpAction  implements ActionListener {
    }
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-//      new SampleDialogWrapper(projectKey, flowElement).showAndGet();
-
       final IkasanFlowComponentViewHandler viewHandler = (IkasanFlowComponentViewHandler) component.getViewHandler();
       if (webHelp) {
          BrowserUtil.browse(viewHandler.getIkasanFlowUIComponent().getWebHelpURL());

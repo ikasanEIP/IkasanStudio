@@ -46,8 +46,7 @@ public class IkasanModule extends IkasanComponent {
      * @param ikasanFlow
      */
     public boolean addAnonymousFlow(IkasanFlow ikasanFlow) {
-        // @todo we should look though any existing flows and ensure this name is unique ?
-        ikasanFlow.setName("newFlow1");
+        ikasanFlow.setName("newFlow" + (getFlows().size() + 1));
         return addFlow(ikasanFlow);
     }
 

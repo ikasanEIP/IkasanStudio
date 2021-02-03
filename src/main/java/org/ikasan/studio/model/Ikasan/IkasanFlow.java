@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.TreeMap;
 
 public class IkasanFlow extends IkasanComponent {
-//    private String name;
-//    private String description;
     private IkasanFlowComponent input;
     private IkasanFlowComponent output;
     private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
@@ -35,6 +33,20 @@ public class IkasanFlow extends IkasanComponent {
         }
     }
 
+    public boolean hasConsumer() {
+        return flowComponentList.stream()
+                .filter(e->e.getType().getElementCategory().equals(IkasanFlowComponentCategory.CONSUMER))
+                .findFirst()
+                .isPresent();
+    }
+
+    public boolean hasProducer() {
+        return flowComponentList.stream()
+                .filter(e->e.getType().getElementCategory().equals(IkasanFlowComponentCategory.PRODUCER))
+                .findFirst()
+                .isPresent();
+    }
+
     public IkasanFlowComponent getInput() {
         return input;
     }
@@ -59,6 +71,4 @@ public class IkasanFlow extends IkasanComponent {
                 ", flowElementList=" + flowComponentList +
                 '}';
     }
-
-
 }

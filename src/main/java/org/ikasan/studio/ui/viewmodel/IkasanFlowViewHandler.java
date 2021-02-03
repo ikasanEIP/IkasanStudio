@@ -14,13 +14,15 @@ import java.util.List;
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
 public class IkasanFlowViewHandler extends ViewHandler {
-    private static final Logger log = Logger.getLogger(IkasanFlowViewHandler.class);
     public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
     public static final int CONTAINER_CORNER_ARC = 30;
 
-    IkasanFlow model;
+    private static final Logger log = Logger.getLogger(IkasanFlowViewHandler.class);
+
+    private Color borderColor =  Color.BLACK;
+    private IkasanFlow model;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
@@ -34,10 +36,6 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return model.getName() != null ? model.getName() : model.getDescription();
     }
 
-    private int paintFlowTitle(Graphics g, PaintMode paintMode) {
-        return StudioUIUtils.drawCenteredStringFromTopCentre
-                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), StudioUIUtils.getBoldFont(g));
-    }
 
     private int getFlowTitleWidth(Graphics g) {
         return StudioUIUtils.getTextWidth(g, getText());
@@ -47,17 +45,30 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return StudioUIUtils.getTextHeight(g);
     }
 
-
-    private void paintIkasanFlowContainer(Graphics g, int x, int y, int width, int height) {
+    private void paintFlowRectangle(Graphics g, int x, int y, int width, int height) {
+        Color oldColor = g.getColor();
+        // Central rectangle
         g.setColor(StudioUIUtils.IKASAN_GREY);
         g.fillRoundRect(x, y, width, height, CONTAINER_CORNER_ARC, CONTAINER_CORNER_ARC);
-        g.setColor(Color.BLACK);
+        g.setColor(oldColor);
+    }
+
+    private void paintFlowBorder(Graphics g, int x, int y, int width, int height) {
+        Color oldColor = g.getColor();
+        // Border
+log.info("Set border to color " + borderColor);
+        g.setColor(borderColor);
         Graphics2D g2d = (Graphics2D) g.create();
         Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
         g2d.setStroke(dashed);
         g2d.drawRoundRect(x, y, width, height, CONTAINER_CORNER_ARC, CONTAINER_CORNER_ARC);
+        g.setColor(oldColor);
     }
 
+    private int paintFlowTitle(Graphics g, PaintMode paintMode) {
+        return StudioUIUtils.drawCenteredStringFromTopCentre
+                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), StudioUIUtils.getBoldFont(g));
+    }
 
     /**
      * Use the value of reset if it is greater than -1
@@ -83,47 +94,51 @@ public class IkasanFlowViewHandler extends ViewHandler {
         } else {
             initialiseDimensionsNotChildren(g, newLeftX, newTopY);
         }
-        paintIkasanFlowContainer(g, getLeftX(), getTopY(), getWidth(), getHeight());
+
+        paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
+        paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
 
         List<IkasanFlowComponent> flowElementList = model.getFlowComponentList();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
+
+        // Paint any components between the first and the last
         for (int index=0; index < flowSize; index ++) {
             IkasanFlowComponent flowElement = flowElementList.get(index);
-
             flowElement.getViewHandler().paintComponent(canvas, g, -1, -1);
-
             if (index < flowSize-1) {
-                connectComponents(g, flowElement.getViewHandler(), flowElementList.get(index+1).getViewHandler());
+                drawConnector(g, flowElement.getViewHandler(), flowElementList.get(index+1).getViewHandler());
             }
         }
 
         if (flowSize > 1) {
-            ViewHandler first = flowElementList.get(0).getViewHandler();
-            ViewHandler last = flowElementList.get(flowSize-1).getViewHandler();
+            // Paint the first component
             if (model.getInput() != null) {
+                ViewHandler first = flowElementList.get(0).getViewHandler();
                 ViewHandler vh = model.getInput().getViewHandler();
                 vh.setWidth(first.getWidth());
                 vh.setTopY(first.getTopY());
                 vh.setLeftX(first.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - vh.getWidth());
                 vh.paintComponent(canvas, g, -1, -1);
-                connectComponents(g, vh, first);
+                drawConnector(g, vh, first);
             }
+            // Paint the last component
             if (model.getOutput() != null) {
+                ViewHandler last = flowElementList.get(flowSize-1).getViewHandler();
                 ViewHandler vh = model.getOutput().getViewHandler();
                 vh.setWidth(last.getWidth());
                 vh.setTopY(last.getTopY());
                 vh.setLeftX(last.getLeftX() + vh.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
                 vh.paintComponent(canvas, g, -1, -1);
-                connectComponents(g, last, vh);
+                drawConnector(g, last, vh);
             }
         }
         StudioUIUtils.setLine(g,1f);
         return getBottomY();
     }
 
-    private void connectComponents(Graphics g, ViewHandler start, ViewHandler end) {
+    private void drawConnector(Graphics g, ViewHandler start, ViewHandler end) {
         g.drawLine(
                 start.getRightConnectorPoint().x,
                 start.getRightConnectorPoint().y,
@@ -193,5 +208,24 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
     public int getFlowElementsBottomY() {
         return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
+    }
+
+    public void setBorderGood() {
+        this.borderColor = Color.GREEN;
+    }
+
+    public boolean isBorderGood() {
+        return Color.GREEN.equals(this.borderColor);
+    }
+
+    public void setBorderBad() {
+        this.borderColor = Color.RED;
+    }
+    public void setBorderNormal() {
+        this.borderColor = Color.BLACK;
+    }
+
+    public boolean isNormalBorder() {
+        return Color.BLACK.equals(this.borderColor);
     }
 }

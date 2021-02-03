@@ -20,14 +20,14 @@ public class PalettePanel extends JPanel {
     private static final Logger log = Logger.getLogger(PalettePanel.class);
     private String projectKey;
 
-    private IkasanFlowUIComponentSelection ikasanFlowUIComponentSelection ;
+    private PaletteExportTransferHandler paletteExportTransferHandler;
 
     public PalettePanel(String projectKey) {
         super();
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        this.ikasanFlowUIComponentSelection= new IkasanFlowUIComponentSelection();
+        this.paletteExportTransferHandler = new PaletteExportTransferHandler();
 
         // Header
         JLabel paletteHeaderLabel =  new JLabel("Palette");
@@ -47,7 +47,7 @@ public class PalettePanel extends JPanel {
         paletteList = new JList(buildPalettItems().toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
-        paletteList.setTransferHandler(ikasanFlowUIComponentSelection);
+        paletteList.setTransferHandler(paletteExportTransferHandler);
         JScrollPane paletteScrollPane = new JScrollPane(paletteList);
         paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
 

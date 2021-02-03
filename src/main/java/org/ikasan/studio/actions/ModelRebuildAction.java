@@ -21,7 +21,7 @@ public class ModelRebuildAction implements ActionListener {
       IkasanModule module = Context.getIkasanModule(projectKey);
       log.info("Ikasan module was " + module.toString());
 
-      Context.getDesignerCanvas(projectKey).setInitialiseCanvas(true);
+      Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
       Context.getDesignerCanvas(projectKey).repaint(); // Tell swing the panel is dirty and needs re-painting.
    }
 }

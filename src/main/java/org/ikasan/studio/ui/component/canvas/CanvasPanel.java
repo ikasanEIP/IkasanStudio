@@ -6,8 +6,6 @@ import org.ikasan.studio.actions.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 public class CanvasPanel extends JPanel {
     public CanvasPanel(String projectKey) {
@@ -27,12 +25,10 @@ public class CanvasPanel extends JPanel {
 
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
-        gridCheckBox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                DesignerCanvas designerCanvas = Context.getDesignerCanvas(projectKey);
-                designerCanvas.setDrawGrid(e.getStateChange() == 1);
-                designerCanvas.repaint();
-            }
+        gridCheckBox.addItemListener(e -> {
+            DesignerCanvas designerCanvas = Context.getDesignerCanvas(projectKey);
+            designerCanvas.setDrawGrid(e.getStateChange() == 1);
+            designerCanvas.repaint();
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
 

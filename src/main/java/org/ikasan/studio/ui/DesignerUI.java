@@ -25,7 +25,7 @@ public class DesignerUI {
     private Project project;
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     private JPanel mainJPanel = new JPanel();
-//    private IkasanFlowUIComponentSelection ikasanFlowUIComponentSelection = new IkasanFlowUIComponentSelection();
+//    private PaletteExportTransferHandler ikasanFlowUIComponentSelection = new PaletteExportTransferHandler();
     /**
      * Create the main Designer window
      * @param toolWindow is the Intellij frame in which this resides

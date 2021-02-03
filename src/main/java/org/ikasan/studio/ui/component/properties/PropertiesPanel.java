@@ -51,7 +51,7 @@ public class PropertiesPanel extends JPanel {
                 modelUpdated = processEditedFlowComponents();
                 if (modelUpdated) {
                     Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-                    Context.getDesignerCanvas(projectKey).setInitialiseCanvas(true);
+                    Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
                     Context.getDesignerCanvas(projectKey).repaint();
                 }
             }

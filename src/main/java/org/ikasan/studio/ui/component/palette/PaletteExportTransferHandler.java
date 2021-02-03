@@ -12,16 +12,16 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-public class IkasanFlowUIComponentSelection extends TransferHandler // implements Transferable
+public class PaletteExportTransferHandler extends TransferHandler // implements Transferable
 {
-    private static final Logger log = Logger.getLogger(IkasanFlowUIComponentSelection.class);
+    private static final Logger log = Logger.getLogger(PaletteExportTransferHandler.class);
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
     private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
 
     // Source actions i.e. methods called for the source of the copy
 
     /**
-     * For IkasanFlowUIComponentSelection we only want to copy a component onto the design window, not link or move
+     * For PaletteExportTransferHandler we only want to copy a component onto the design window, not link or move
      * @param sourceComponent the sourceComponent
      * @return
      */
@@ -59,17 +59,20 @@ public class IkasanFlowUIComponentSelection extends TransferHandler // implement
      * @return
      */
     public boolean canImport(JComponent targetComponent, DataFlavor destinationSupportedflavors[]) {
-        log.warn("Generator is " + targetComponent);
-        if (!(targetComponent instanceof JPanel)) {
-            return false;
-        }
-
-        for(DataFlavor flavor : destinationSupportedflavors) {
-            if (flavor.equals(ikasanFlowUIComponentFlavor)) {
-                return true;
-            }
-        }
-
+//        log.trace("can Import check " + targetComponent);
+//        if (!(targetComponent instanceof DesignerCanvas)) {
+//            log.trace("exit due to wrong component " + targetComponent);
+//            return false;
+//        }
+//
+//        System.out.println("On the canvas");
+//        for(DataFlavor flavor : destinationSupportedflavors) {
+//            if (flavor.equals(ikasanFlowUIComponentFlavor)) {
+//                // OK seems we maybe can drop here or can we
+//                return true;
+//            }
+//        }
+        // Cant impot anything to the Pallette
         return false;
     }
 // maybe the other would mean we could have different classes from source and destination, not sure.

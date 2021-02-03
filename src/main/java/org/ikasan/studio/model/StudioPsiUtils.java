@@ -56,7 +56,7 @@ public class StudioPsiUtils {
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateSourceFromModel();
         StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
-        Context.getDesignerCanvas(projectKey).setInitialiseCanvas(true);
+        Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
 

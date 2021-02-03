@@ -1,6 +1,5 @@
 package org.ikasan.studio.actions;
 
-import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanComponent;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
@@ -12,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class DeleteComponentAction implements ActionListener {
-   private static final Logger log = Logger.getLogger(DeleteComponentAction.class);
    private String projectKey;
    IkasanComponent component;
 

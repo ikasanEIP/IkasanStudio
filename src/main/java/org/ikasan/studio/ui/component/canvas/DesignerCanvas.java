@@ -14,6 +14,7 @@ import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -28,11 +29,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * The main painting / design panel
+ */
 public class DesignerCanvas extends JPanel {
-    private boolean initialiseCanvas = true;
+    private boolean initialiseAllDimensions = true;
     private boolean drawGrid = false;
     private static final Logger log = Logger.getLogger(DesignerCanvas.class);
-    IkasanModule ikasanModule ;
+    private transient IkasanModule ikasanModule ;       // Old Swing serialisation not required.
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
@@ -45,21 +49,25 @@ public class DesignerCanvas extends JPanel {
         setBackground(Color.WHITE);
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
+                log.trace("Mouse press x "+ e.getX() + " y " + e.getY());
                 mouseClick(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
+                log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
                 mouseRelease(e, e.getX(),e.getY());
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             public void mouseDragged(MouseEvent e) {
+                log.trace("DesignerCanvas listening to mouse x " + e.getX() + " y " + e.getY());
+
                 moveComponent(e, e.getX(),e.getY());
             }
         });
 
-        setTransferHandler(new UIComponentImportTransferHandler( this));
+        setTransferHandler(new CanvasImportTransferHandler( this));
     }
 
     /**
@@ -72,7 +80,6 @@ public class DesignerCanvas extends JPanel {
         clickStartMouseX = x;
         clickStartMouseY = y;
         IkasanComponent mouseSelectedComponent = getComponentAtXY(x, y);
-        log.info("Mouse mouseClick x [" + clickStartMouseX + "] y [" + clickStartMouseY + "] selected component [" + mouseSelectedComponent + "]");
 
           // Right click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
@@ -147,6 +154,13 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    /**
+     * We have clicked on the canvas.
+     * If we are on a flow component, set that that the selected component
+     * If we are on a flow but not over a flow component, make the flow the selected component
+     * If we are on the  canvas and not any flow, set the module as the selected component
+     * @param component currently pointed to by the mouse.
+     */
     public void setSelectedComponent(IkasanComponent component) {
         deSelectAllCompnentsAndFlows();
         // Set selected
@@ -166,6 +180,9 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    /**
+     * Ensure everything is deselected.
+     */
     private void deSelectAllCompnentsAndFlows() {
         ikasanModule.getViewHandler().setAlreadySelected(false);
         ikasanModule.getFlows()
@@ -208,6 +225,47 @@ public class DesignerCanvas extends JPanel {
         return ikasanComponent;
     }
 
+    /**
+     * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
+     */
+    public void highlightDropLocation(int mouseX, int mouseY) {
+        IkasanComponent ikasanComponent = getComponentAtXY(mouseX, mouseY);
+        // First we do basic - highlight green
+        // Then we do logic, red if we can't add, green if we can add
+        if (ikasanComponent instanceof IkasanFlow) {
+            IkasanFlow ikasanFlow = (IkasanFlow) ikasanComponent;
+            if (!((IkasanFlowViewHandler)ikasanFlow.getViewHandler()).isBorderGood()) {
+                ((IkasanFlowViewHandler)ikasanFlow.getViewHandler()).setBorderGood();
+                this.repaint();
+            }
+        } else {
+
+            boolean redrawNeeded = ikasanModule.getFlows()
+                    .stream()
+                    .filter(x -> ((IkasanFlowViewHandler)x.getViewHandler()).isNormalBorder() != true)
+                    .findAny()
+                    .isPresent();
+            ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setBorderNormal());
+            if (redrawNeeded) {
+                this.repaint();
+            }
+        }
+    }
+
+//    /**
+//     * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
+//     */
+//    public void unHighlightDropLocation(int mouseX, int mouseY) {
+//        IkasanComponent ikasanComponent = getComponentAtXY(mouseX, mouseY);
+//        // First we do basic - highlight green
+//        // Then we do logic, red if we can't add, green if we can add
+//        if (!(ikasanComponent instanceof IkasanFlow)) {
+//            ikasanModule.getFlows()
+//                    .stream()
+//                    .peek(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setBorderNormal());
+//            this.repaint();
+//        }
+//    }
 
     /**
      * Given the x and y coords, return Ikasan elements to the left or right (or both) within reasonable bounds
@@ -236,6 +294,13 @@ public class DesignerCanvas extends JPanel {
         return surroundingComponents;
     }
 
+    /**
+     * We must be on a flow, with a flow component 'in hand', lets see if we can add it to the flow.
+     * @param x location of the mouse
+     * @param y location of the mouse
+     * @param ikasanFlowComponentType to be added
+     * @return true of we managed to add the component.
+     */
     public boolean requestToAddComponent(int x, int y, IkasanFlowComponentType ikasanFlowComponentType) {
         if (x >= 0 && y >=0 && ikasanFlowComponentType != null) {
             IkasanComponent ikasanComponent = getComponentAtXY(x,y);
@@ -269,7 +334,7 @@ public class DesignerCanvas extends JPanel {
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel();
             StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
-            initialiseCanvas = true;
+            initialiseAllDimensions = true;
             this.repaint();
             return true;
         } else {
@@ -284,9 +349,9 @@ public class DesignerCanvas extends JPanel {
     public void paintComponent(Graphics g) {
         log.debug("paintComponent invoked");
         super.paintComponent(g);
-        if (initialiseCanvas && ikasanModule != null) {
+        if (initialiseAllDimensions && ikasanModule != null) {
                 ikasanModule.getViewHandler().initialiseDimensions(g, 0,0, this.getWidth(), this.getHeight());
-                initialiseCanvas = false;
+                initialiseAllDimensions = false;
         }
         if (ikasanModule != null) {
             ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
@@ -296,8 +361,8 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    public void setInitialiseCanvas(boolean initialiseCanvas) {
-        this.initialiseCanvas = initialiseCanvas;
+    public void setInitialiseAllDimensions(boolean initialiseAllDimensions) {
+        this.initialiseAllDimensions = initialiseAllDimensions;
     }
 
     public void setDrawGrid(boolean drawGrid) {

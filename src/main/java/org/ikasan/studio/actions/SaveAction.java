@@ -9,7 +9,6 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 
 import java.awt.event.ActionEvent;
@@ -17,7 +16,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 public class SaveAction implements ActionListener {
-   private static final org.apache.log4j.Logger log = Logger.getLogger(ActionListener.class);
    private String projectKey;
 
    public SaveAction(String projectKey) {
