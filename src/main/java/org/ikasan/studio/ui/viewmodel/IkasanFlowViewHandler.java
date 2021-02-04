@@ -221,6 +221,10 @@ log.info("Set border to color " + borderColor);
     public void setBorderBad() {
         this.borderColor = Color.RED;
     }
+
+    public boolean isBorderBad() {
+        return Color.RED.equals(this.borderColor);
+    }
     public void setBorderNormal() {
         this.borderColor = Color.BLACK;
     }

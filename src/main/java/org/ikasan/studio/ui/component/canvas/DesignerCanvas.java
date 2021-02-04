@@ -13,6 +13,7 @@ import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
@@ -228,26 +229,47 @@ public class DesignerCanvas extends JPanel {
     /**
      * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
      */
-    public void highlightDropLocation(int mouseX, int mouseY) {
-        IkasanComponent ikasanComponent = getComponentAtXY(mouseX, mouseY);
-        // First we do basic - highlight green
-        // Then we do logic, red if we can't add, green if we can add
-        if (ikasanComponent instanceof IkasanFlow) {
-            IkasanFlow ikasanFlow = (IkasanFlow) ikasanComponent;
-            if (!((IkasanFlowViewHandler)ikasanFlow.getViewHandler()).isBorderGood()) {
-                ((IkasanFlowViewHandler)ikasanFlow.getViewHandler()).setBorderGood();
-                this.repaint();
-            }
-        } else {
+    public void highlightDropLocation(int mouseX, int mouseY, IkasanFlowUIComponent ikasanFlowUIComponent) {
+        if (ikasanFlowUIComponent != null) {
+            IkasanComponent targetComponent = getComponentAtXY(mouseX, mouseY);
+            IkasanFlow targetFlow = null;
+            IkasanFlowComponent targetFlowComponent = null;
 
-            boolean redrawNeeded = ikasanModule.getFlows()
-                    .stream()
-                    .filter(x -> ((IkasanFlowViewHandler)x.getViewHandler()).isNormalBorder() != true)
-                    .findAny()
-                    .isPresent();
-            ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setBorderNormal());
-            if (redrawNeeded) {
-                this.repaint();
+            if (targetComponent instanceof IkasanFlowComponent) {
+                targetFlowComponent = (IkasanFlowComponent)targetComponent;
+                targetFlow = targetFlowComponent.getParent();
+            } else if (targetComponent instanceof IkasanFlow) {
+                targetFlow = (IkasanFlow)targetComponent;
+            }
+
+            if (targetFlow != null) {
+                IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
+                if (targetFlow.hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(ikasanFlowUIComponent.getIkasanFlowComponentType().getElementCategory()) ||
+                    targetFlow.hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(ikasanFlowUIComponent.getIkasanFlowComponentType().getElementCategory())) {
+                    // We have a consumer/producer in a flow that already has one, NOT OK to add, set color if not already set
+                    if (!ikasanFlowViewHandler.isBorderBad()) {
+                        ikasanFlowViewHandler.setBorderBad();
+                        this.repaint();
+                    }
+                } else {
+                    // We have a non consumer/producer so OK to add, set color if not already set
+                    if (!ikasanFlowViewHandler.isBorderGood()) {
+                        ikasanFlowViewHandler.setBorderGood();
+                        this.repaint();
+                    }
+                }
+
+            } else {
+                // Reset all the borders back to normal.
+                boolean redrawNeeded = ikasanModule.getFlows()
+                        .stream()
+                        .filter(x -> ((IkasanFlowViewHandler)x.getViewHandler()).isNormalBorder() != true)
+                        .findAny()
+                        .isPresent();
+                ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setBorderNormal());
+                if (redrawNeeded) {
+                    this.repaint();
+                }
             }
         }
     }

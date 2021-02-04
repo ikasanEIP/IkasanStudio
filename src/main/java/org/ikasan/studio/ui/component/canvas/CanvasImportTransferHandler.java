@@ -86,7 +86,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     private void onCanvasActions(final TransferHandler.TransferSupport support) {
         Point currentMouse = support.getDropLocation().getDropPoint();
         final Component targetComponent = support.getComponent();
-        designerCanvas.highlightDropLocation(currentMouse.x, currentMouse.y);
+        designerCanvas.highlightDropLocation(currentMouse.x, currentMouse.y, getDraggedComponent(support));
     }
     /**
      * Causes a transfer to occur from a clipboard or a drag and drop operation. The <code>Transferable</code> to be
@@ -106,20 +106,26 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     public boolean importData(TransferSupport support) {
         log.info("import Data invoked " + support);
         if (this.canImport((JComponent)support.getComponent(),support.getDataFlavors())) {
-
-            IkasanFlowComponentType ikasanFlowComponentType = null;
-            try {
-                log.info("Inside try block");
-                IkasanFlowUIComponentTransferable  ikasanFlowUIComponentTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(ikasanFlowUIComponentFlavor);
-                ikasanFlowComponentType = ikasanFlowUIComponentTransferable.getIkasanFlowUIComponent().getIkasanFlowComponentType();
-            } catch (IOException | UnsupportedFlavorException e) {
-                log.error("Could not import flavor " + ikasanFlowUIComponentFlavor + " from support " + support + " due to exception " + e.getMessage());
-                e.printStackTrace();
+            IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
+            if (ikasanFlowUIComponent != null) {
+                IkasanFlowComponentType ikasanFlowComponentType = getDraggedComponent( support).getIkasanFlowComponentType();
+                return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanFlowComponentType);
             }
-            return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanFlowComponentType);
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    private IkasanFlowUIComponent getDraggedComponent(TransferSupport support) {
+        IkasanFlowUIComponent ikasanFlowComponent = null;
+        try {
+            log.info("Inside try block");
+            IkasanFlowUIComponentTransferable  ikasanFlowUIComponentTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(ikasanFlowUIComponentFlavor);
+            ikasanFlowComponent = ikasanFlowUIComponentTransferable.getIkasanFlowUIComponent();
+        } catch (IOException | UnsupportedFlavorException e) {
+            log.error("Could not import flavor " + ikasanFlowUIComponentFlavor + " from support " + support + " due to exception " + e.getMessage());
+            e.printStackTrace();
+        }
+        return ikasanFlowComponent;
     }
 }
 
