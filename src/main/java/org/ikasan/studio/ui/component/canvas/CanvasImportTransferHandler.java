@@ -118,7 +118,6 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     private IkasanFlowUIComponent getDraggedComponent(TransferSupport support) {
         IkasanFlowUIComponent ikasanFlowComponent = null;
         try {
-            log.info("Inside try block");
             IkasanFlowUIComponentTransferable  ikasanFlowUIComponentTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(ikasanFlowUIComponentFlavor);
             ikasanFlowComponent = ikasanFlowUIComponentTransferable.getIkasanFlowUIComponent();
         } catch (IOException | UnsupportedFlavorException e) {
