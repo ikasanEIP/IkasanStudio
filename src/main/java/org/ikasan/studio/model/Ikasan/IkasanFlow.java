@@ -33,6 +33,21 @@ public class IkasanFlow extends IkasanComponent {
         }
     }
 
+    /**
+     * Return true if it is valid to add the supplied component
+     * @param newComponent
+     * @return
+     */
+    public boolean validToAdd(IkasanFlowComponentType newComponent) {
+        if (newComponent != null &&
+            hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
+            hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public boolean hasConsumer() {
         return flowComponentList.stream()
                 .filter(e->e.getType().getElementCategory().equals(IkasanFlowComponentCategory.CONSUMER))

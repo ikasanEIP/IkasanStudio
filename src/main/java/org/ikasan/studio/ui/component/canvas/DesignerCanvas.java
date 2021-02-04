@@ -244,21 +244,17 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                if (targetFlow.hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(ikasanFlowUIComponent.getIkasanFlowComponentType().getElementCategory()) ||
-                    targetFlow.hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(ikasanFlowUIComponent.getIkasanFlowComponentType().getElementCategory())) {
-                    // We have a consumer/producer in a flow that already has one, NOT OK to add, set color if not already set
-                    if (!ikasanFlowViewHandler.isBorderBad()) {
-                        ikasanFlowViewHandler.setBorderBad();
-                        this.repaint();
-                    }
-                } else {
-                    // We have a non consumer/producer so OK to add, set color if not already set
+                if (targetFlow.validToAdd(ikasanFlowUIComponent.getIkasanFlowComponentType())) {
                     if (!ikasanFlowViewHandler.isBorderGood()) {
                         ikasanFlowViewHandler.setBorderGood();
                         this.repaint();
                     }
+                } else {
+                    if (!ikasanFlowViewHandler.isBorderBad()) {
+                        ikasanFlowViewHandler.setBorderBad();
+                        this.repaint();
+                    }
                 }
-
             } else {
                 // Reset all the borders back to normal.
                 boolean redrawNeeded = ikasanModule.getFlows()
@@ -336,6 +332,9 @@ public class DesignerCanvas extends JPanel {
                     containingFlow = ((IkasanFlowComponent)ikasanComponent).getParent();
                 }
                 Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
+                if (!containingFlow.validToAdd(ikasanFlowComponentType)) {
+                    return false;
+                }
 
                 List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
                 int numberOfComponents = components.size();

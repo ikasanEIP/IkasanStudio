@@ -52,7 +52,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         final Component targetComponent = support.getComponent();
         final DataFlavor destinationSupportedflavors[] = support.getDataFlavors();
 
-        log.trace("Can import check " + targetComponent);
+        log.info("Can import check " + targetComponent);
         // Only allow drop (not paste) and ignore unless on canvas
         if (! support.isDrop() ||
             !(targetComponent instanceof DesignerCanvas)) {
@@ -105,7 +105,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      */
     public boolean importData(TransferSupport support) {
         log.info("import Data invoked " + support);
-        if (this.canImport((JComponent)support.getComponent(),support.getDataFlavors())) {
+        if (this.canImport(support)) {
             IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
             if (ikasanFlowUIComponent != null) {
                 IkasanFlowComponentType ikasanFlowComponentType = getDraggedComponent( support).getIkasanFlowComponentType();
