@@ -61,15 +61,12 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
 
         // Since the canvas is not a simple widget with built in drop handlers, we need to perform that ourselves.
 //        support.setShowDropLocation(true);
-
-
 //        TransferHandler.DropLocation dropLocation = support.getDropLocation();
 
         for(DataFlavor flavor : destinationSupportedflavors) {
-
             // Anywhere on the canvas
             if (flavor.equals(ikasanFlowUIComponentFlavor)) {
-                onCanvasActions(support);
+                flowInFocusActions(support);
                 return true;
             }
         }
@@ -83,7 +80,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
 //        designerCanvas.unHighlightDropLocation(currentMouse.x, currentMouse.y);
 //    }
 
-    private void onCanvasActions(final TransferHandler.TransferSupport support) {
+    private void flowInFocusActions(final TransferHandler.TransferSupport support) {
         Point currentMouse = support.getDropLocation().getDropPoint();
         final Component targetComponent = support.getComponent();
         designerCanvas.highlightDropLocation(currentMouse.x, currentMouse.y, getDraggedComponent(support));
@@ -115,6 +112,11 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         return false;
     }
 
+    /**
+     * Extract the ikasan component being dragged from the Transfer support objecy
+     * @param support standard object containing information about the dragged component.
+     * @return the instance of the IkasanFlowUIComponent currently being dragged.
+     */
     private IkasanFlowUIComponent getDraggedComponent(TransferSupport support) {
         IkasanFlowUIComponent ikasanFlowComponent = null;
         try {

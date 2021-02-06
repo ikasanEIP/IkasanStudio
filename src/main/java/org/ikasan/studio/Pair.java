@@ -1,5 +1,10 @@
 package org.ikasan.studio;
 
+/**
+ * Encapsulate the logic of a generic pair
+ * @param <L> left side
+ * @param <R> right side
+ */
 public class Pair<L,R> {
 
     private L left;
@@ -15,12 +20,12 @@ public class Pair<L,R> {
     public void setLeft(L left) {
         this.left = left;
     }
-    public void setX(L left) {
-        this.left = left;
+    public void setX(L x) {
+        setLeft(x);
     }
 
-    public void setY(R right) {
-        this.right = right;
+    public void setY(R y) {
+        setRight(y);
     }
     public void setRight(R right) {
         this.right = right;
@@ -34,10 +39,10 @@ public class Pair<L,R> {
         return right;
     }
     public L getX() {
-        return left;
+        return getLeft();
     }
 
     public R getY() {
-        return right;
+        return getRight();
     }
 }

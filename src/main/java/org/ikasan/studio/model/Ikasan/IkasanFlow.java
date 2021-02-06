@@ -38,10 +38,47 @@ public class IkasanFlow extends IkasanComponent {
      * @param newComponent
      * @return
      */
-    public boolean validToAdd(IkasanFlowComponentType newComponent) {
+    public boolean isValidToAdd(IkasanFlowComponentType newComponent) {
         if (newComponent != null &&
             hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
             hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Determine the current state of the flow for completeness
+     * @return A status string
+     */
+    public String getFlowIntegrityStatus() {
+        String status = "";
+        if (! hasConsumer()) {
+            status += "The flow needs a consumer";
+        }
+        if (! hasProducer()) {
+            if (status.length() > 0) {
+                status += " and a producer";
+            } else {
+                status += "The flow needs a producer";
+            }
+        }
+        if (status.length() > 0) {
+            status += " to be complete.";
+        }
+        return status;
+    }
+
+    /**
+     * Return true if it is valid to add the supplied component
+     * @param newComponent
+     * @return
+     */
+    public boolean issueCausedByAdding(IkasanFlowComponentType newComponent) {
+        if (newComponent != null &&
+                hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
+                hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
             return false;
         } else {
             return true;

@@ -50,24 +50,30 @@ public class DesignerCanvas extends JPanel {
         setBackground(Color.WHITE);
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                log.trace("Mouse press x "+ e.getX() + " y " + e.getY());
-                mouseClick(e, e.getX(),e.getY());
+//                log.trace("Mouse press x "+ e.getX() + " y " + e.getY());
+                mouseClickAction(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
-                log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
-                mouseRelease(e, e.getX(),e.getY());
+//                log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
+                mouseReleaseAction(e, e.getX(),e.getY());
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             public void mouseDragged(MouseEvent e) {
-                log.trace("DesignerCanvas listening to mouse x " + e.getX() + " y " + e.getY());
-
-                moveComponent(e, e.getX(),e.getY());
+//                log.trace("DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
+                mouseDragAction(e, e.getX(),e.getY());
             }
         });
-
+        if (Context.getOption(projectKey).isHintsEnabled()) {
+            addMouseMotionListener(new MouseAdapter() {
+                public void mouseMoved(MouseEvent e) {
+//                    log.trace("DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
+                    mouseMoveAction(e, e.getX(),e.getY());
+                }
+            });
+        }
         setTransferHandler(new CanvasImportTransferHandler( this));
     }
 
@@ -77,7 +83,7 @@ public class DesignerCanvas extends JPanel {
      * @param x of the start of the mouse click
      * @param y of the start of the mouse click
      */
-    private void mouseClick(MouseEvent me, int x, int y) {
+    private void mouseClickAction(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
         IkasanComponent mouseSelectedComponent = getComponentAtXY(x, y);
@@ -90,19 +96,21 @@ public class DesignerCanvas extends JPanel {
                 DesignCanvasContextMenu.showPopupMenu(projectKey,this, me);
             }
         } // Double click -> go to source
-        else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed() && mouseSelectedComponent != null) {
+        else if (mouseSelectedComponent != null && me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
             if (mouseSelectedComponent.getViewHandler().getOffsetInclassToNavigateTo() != 0) {
                 Navigator.navigateToSource(projectKey, mouseSelectedComponent.getViewHandler().getClassToNavigateTo(), mouseSelectedComponent.getViewHandler().getOffsetInclassToNavigateTo());
             } else {
-                Navigator.navigateToSource(projectKey, mouseSelectedComponent.getViewHandler().getClassToNavigateTo());
+                if (mouseSelectedComponent.getViewHandler().getClassToNavigateTo() != null) {
+                    Navigator.navigateToSource(projectKey, mouseSelectedComponent.getViewHandler().getClassToNavigateTo());
+                }
             }
         } // Single click -> update properties
         else if (me.getButton() == MouseEvent.BUTTON1) {
-            if (!mouseSelectedComponent.getViewHandler().isAlreadySelected()) {
+            if (mouseSelectedComponent != null && !mouseSelectedComponent.getViewHandler().isAlreadySelected()) {
                 setSelectedComponent(mouseSelectedComponent);
                 Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedComponent);
-                }
+            }
         }
     }
 
@@ -111,13 +119,27 @@ public class DesignerCanvas extends JPanel {
      * component to move across the screen but not redraw the connectors, this will ensure all connectors and whole
      * screen is redrawn
      * @param me mouse event
-     * @param x of the current pointer
-     * @param y of the current pointer
+     * @param mouseX of the current pointer
+     * @param mouseY of the current pointer
      */
-    private void mouseRelease(MouseEvent me, int x, int y){
+    private void mouseReleaseAction(MouseEvent me, int mouseX, int mouseY){
         if (screenChanged) {
             this.repaint();
             screenChanged = false;
+        }
+    }
+
+    /**
+     * This will be called for every mouse movement on the canvas so use sparingly
+
+     * @param me mouse event
+     * @param mouseX of the current pointer
+     * @param mouseY of the current pointer
+     */
+    private void mouseMoveAction(MouseEvent me, int mouseX, int mouseY) {
+        IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
+        if (mouseSelectedComponent instanceof IkasanFlow && ((IkasanFlow)mouseSelectedComponent).getFlowIntegrityStatus() != null) {
+            this.setToolTipText(((IkasanFlow)mouseSelectedComponent).getFlowIntegrityStatus());
         }
     }
 
@@ -127,8 +149,9 @@ public class DesignerCanvas extends JPanel {
      * @param mouseX at the start of the drag
      * @param mouseY at the start of the drag
      */
-    private void moveComponent(MouseEvent me, int mouseX, int mouseY){
+    private void mouseDragAction(MouseEvent me, int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
+        log.info("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
         if (mouseSelectedComponent != null && mouseSelectedComponent instanceof IkasanFlowComponent) {
             screenChanged = true;
@@ -244,29 +267,32 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                if (targetFlow.validToAdd(ikasanFlowUIComponent.getIkasanFlowComponentType())) {
-                    if (!ikasanFlowViewHandler.isBorderGood()) {
-                        ikasanFlowViewHandler.setBorderGood();
+                if (targetFlow.isValidToAdd(ikasanFlowUIComponent.getIkasanFlowComponentType())) {
+                    if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
+                        ikasanFlowViewHandler.setFlowReceptiveMode();
                         this.repaint();
                     }
                 } else {
-                    if (!ikasanFlowViewHandler.isBorderBad()) {
-                        ikasanFlowViewHandler.setBorderBad();
+                    if (!ikasanFlowViewHandler.isFlowWarningMode()) {
+                        ikasanFlowViewHandler.setFlowlWarningMode();
                         this.repaint();
                     }
                 }
             } else {
-                // Reset all the borders back to normal.
-                boolean redrawNeeded = ikasanModule.getFlows()
-                        .stream()
-                        .filter(x -> ((IkasanFlowViewHandler)x.getViewHandler()).isNormalBorder() != true)
-                        .findAny()
-                        .isPresent();
-                ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setBorderNormal());
-                if (redrawNeeded) {
-                    this.repaint();
-                }
+                resetContextSensitiveHighlighting();
             }
+        }
+    }
+
+    public void resetContextSensitiveHighlighting() {
+        boolean redrawNeeded = ikasanModule.getFlows()
+                .stream()
+                .filter(x -> ((IkasanFlowViewHandler)x.getViewHandler()).isFlowNormalMode() != true)
+                .findAny()
+                .isPresent();
+        ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setFlowNormalMode());
+        if (redrawNeeded) {
+            this.repaint();
         }
     }
 
@@ -332,7 +358,8 @@ public class DesignerCanvas extends JPanel {
                     containingFlow = ((IkasanFlowComponent)ikasanComponent).getParent();
                 }
                 Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
-                if (!containingFlow.validToAdd(ikasanFlowComponentType)) {
+                if (!containingFlow.isValidToAdd(ikasanFlowComponentType)) {
+                    resetContextSensitiveHighlighting();
                     return false;
                 }
 

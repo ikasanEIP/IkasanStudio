@@ -55,8 +55,6 @@ public class IkasanFlowViewHandler extends ViewHandler {
 
     private void paintFlowBorder(Graphics g, int x, int y, int width, int height) {
         Color oldColor = g.getColor();
-        // Border
-log.info("Set border to color " + borderColor);
         g.setColor(borderColor);
         Graphics2D g2d = (Graphics2D) g.create();
         Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
@@ -210,26 +208,26 @@ log.info("Set border to color " + borderColor);
         return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
     }
 
-    public void setBorderGood() {
+    public void setFlowReceptiveMode() {
         this.borderColor = Color.GREEN;
     }
 
-    public boolean isBorderGood() {
+    public boolean isFlowReceptiveMode() {
         return Color.GREEN.equals(this.borderColor);
     }
 
-    public void setBorderBad() {
+    public void setFlowlWarningMode() {
         this.borderColor = Color.RED;
     }
 
-    public boolean isBorderBad() {
+    public boolean isFlowWarningMode() {
         return Color.RED.equals(this.borderColor);
     }
-    public void setBorderNormal() {
+    public void setFlowNormalMode() {
         this.borderColor = Color.BLACK;
     }
 
-    public boolean isNormalBorder() {
+    public boolean isFlowNormalMode() {
         return Color.BLACK.equals(this.borderColor);
     }
 }

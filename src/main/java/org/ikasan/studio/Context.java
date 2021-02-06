@@ -19,32 +19,46 @@ import java.util.Map;
 public class Context {
     private static final String CANVAS_PANEL = "canvasPanel";
     private static final String PROJECT = "project";
+    private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
     private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
 
-    private static Map<String, Map<String, Object>> projectCache = new HashMap<>();
-    public static Map<String, Map<String, Object>> getProjectCache() {
-        return projectCache;
-    }
+    // projectName -> region -> value
+    // e.g. myProject -> IKASAN_MODULE -> actualModule
+    //      myProject -> PIPSI_IKASAN_MODEL -> actualPipsoModule
+    //      myProject -> PROJECT -> intellijProjectConfigurationData
+
+    private static Map<String, Map<String, Object>> perProjectCache = new HashMap<>();
 
     // Ensure it cant be instantiated
     private Context() { }
 
     private static synchronized void putProjectCache(String projectKey, String key, Object value) {
-        projectCache.putIfAbsent(projectKey, new HashMap<>());
-        projectCache.get(projectKey).put(key, value);
+        perProjectCache.putIfAbsent(projectKey, new HashMap<>());
+        perProjectCache.get(projectKey).put(key, value);
+
+        // We should always make sure the options cache is available.
+        perProjectCache.get(projectKey).putIfAbsent(OPTIONS, new Options());
+
+        // Currently hardcode these options but in future we need to expose via IDE
+
     }
 
     private static synchronized Object getProjectCache(String projectKey, String key) {
-        Map<String, Object> cache = projectCache.get(projectKey);
+        Map<String, Object> cache = perProjectCache.get(projectKey);
         if (cache != null) {
             return cache.get(key);
         }
         return null;
     }
+
+    public static Options getOption(String projectKey) {
+        return (Options)getProjectCache(projectKey, OPTIONS);
+    }
+
 
     public static Project getProject(String projectKey) {
         return (Project)getProjectCache(projectKey, PROJECT);
