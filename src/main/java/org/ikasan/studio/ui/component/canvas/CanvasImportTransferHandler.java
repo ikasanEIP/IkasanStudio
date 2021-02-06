@@ -83,7 +83,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     private void flowInFocusActions(final TransferHandler.TransferSupport support) {
         Point currentMouse = support.getDropLocation().getDropPoint();
         final Component targetComponent = support.getComponent();
-        designerCanvas.highlightDropLocation(currentMouse.x, currentMouse.y, getDraggedComponent(support));
+        designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, getDraggedComponent(support));
     }
     /**
      * Causes a transfer to occur from a clipboard or a drag and drop operation. The <code>Transferable</code> to be

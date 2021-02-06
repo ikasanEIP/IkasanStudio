@@ -252,9 +252,9 @@ public class DesignerCanvas extends JPanel {
     /**
      * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
      */
-    public void highlightDropLocation(int mouseX, int mouseY, IkasanFlowUIComponent ikasanFlowUIComponent) {
+    public void componentDraggedToFlowAction(int mouseX, int mouseY, final IkasanFlowUIComponent ikasanFlowUIComponent) {
         if (ikasanFlowUIComponent != null) {
-            IkasanComponent targetComponent = getComponentAtXY(mouseX, mouseY);
+            final IkasanComponent targetComponent = getComponentAtXY(mouseX, mouseY);
             IkasanFlow targetFlow = null;
             IkasanFlowComponent targetFlowComponent = null;
 
@@ -267,14 +267,15 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                if (targetFlow.isValidToAdd(ikasanFlowUIComponent.getIkasanFlowComponentType())) {
+                String issue = targetFlow.issueCausedByAdding(ikasanFlowUIComponent.getIkasanFlowComponentType());
+                if (issue.length() == 0) {
                     if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
                         ikasanFlowViewHandler.setFlowReceptiveMode();
                         this.repaint();
                     }
                 } else {
                     if (!ikasanFlowViewHandler.isFlowWarningMode()) {
-                        ikasanFlowViewHandler.setFlowlWarningMode();
+                        ikasanFlowViewHandler.setFlowlWarningMode(mouseX, mouseY, issue);
                         this.repaint();
                     }
                 }
@@ -282,6 +283,10 @@ public class DesignerCanvas extends JPanel {
                 resetContextSensitiveHighlighting();
             }
         }
+    }
+
+    private void paintWarning(int mouseX, int mouseY, String message) {
+
     }
 
     public void resetContextSensitiveHighlighting() {

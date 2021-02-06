@@ -10,6 +10,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
+
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
@@ -22,6 +24,9 @@ public class IkasanFlowViewHandler extends ViewHandler {
     private static final Logger log = Logger.getLogger(IkasanFlowViewHandler.class);
 
     private Color borderColor =  Color.BLACK;
+    private String warningText =  "";
+    private int warningX = 0;
+    private int warningY = 0;
     private IkasanFlow model;
 
     /**
@@ -65,7 +70,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
 
     private int paintFlowTitle(Graphics g, PaintMode paintMode) {
         return StudioUIUtils.drawCenteredStringFromTopCentre
-                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), StudioUIUtils.getBoldFont(g));
+                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
     }
 
     /**
@@ -82,6 +87,12 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
     }
 
+    private void paintFlowBox(Graphics g) {
+        paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
+        paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
+        paintFlowTitle(g, PaintMode.PAINT);
+    }
+
     public int paintComponent(JPanel canvas, Graphics g, int minimumLeftX, int minimumTopY) {
         log.debug("paintComponent invoked");
         int newLeftX = getNewCoord(minimumLeftX, getLeftX());
@@ -92,11 +103,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         } else {
             initialiseDimensionsNotChildren(g, newLeftX, newTopY);
         }
-
-        paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
-        paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
-        paintFlowTitle(g, PaintMode.PAINT);
-
+        paintFlowBox(g);
         List<IkasanFlowComponent> flowElementList = model.getFlowComponentList();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
@@ -133,6 +140,9 @@ public class IkasanFlowViewHandler extends ViewHandler {
             }
         }
         StudioUIUtils.setLine(g,1f);
+
+        // The warning must always have the highest z order.
+        StudioUIUtils.paintWarningPopup(g, warningX, warningY, canvas.getX() + canvas.getWidth(), canvas.getY() + canvas.getHeight(), warningText);
         return getBottomY();
     }
 
@@ -209,6 +219,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public void setFlowReceptiveMode() {
+        this.warningText = "";
         this.borderColor = Color.GREEN;
     }
 
@@ -216,7 +227,10 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return Color.GREEN.equals(this.borderColor);
     }
 
-    public void setFlowlWarningMode() {
+    public void setFlowlWarningMode(int mouseX, int mouseY, String message) {
+        this.warningText = message;
+        this.warningX = mouseX;
+        this.warningY = mouseY;
         this.borderColor = Color.RED;
     }
 
@@ -224,6 +238,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return Color.RED.equals(this.borderColor);
     }
     public void setFlowNormalMode() {
+        this.warningText = "";
         this.borderColor = Color.BLACK;
     }
 

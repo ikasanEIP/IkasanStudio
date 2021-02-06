@@ -48,6 +48,22 @@ public class IkasanFlow extends IkasanComponent {
         }
     }
 
+
+    /**
+     * If the component can be added to the flow, return an empty string otherwise state the reason why
+     * @param newComponent to be added
+     * @return reason why the component can not be added or empty string if there is no problem.
+     */
+    public String issueCausedByAdding(IkasanFlowComponentType newComponent) {
+        String reason = "";
+        if (hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(newComponent.getElementCategory())) {
+            reason += "The flow cannot have more then one consumer";
+        } else if (hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
+            reason += "The flow cannot have more then one producer";
+        }
+        return reason;
+    }
+    
     /**
      * Determine the current state of the flow for completeness
      * @return A status string
@@ -70,20 +86,6 @@ public class IkasanFlow extends IkasanComponent {
         return status;
     }
 
-    /**
-     * Return true if it is valid to add the supplied component
-     * @param newComponent
-     * @return
-     */
-    public boolean issueCausedByAdding(IkasanFlowComponentType newComponent) {
-        if (newComponent != null &&
-                hasConsumer() && IkasanFlowComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
-                hasProducer() && IkasanFlowComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
-            return false;
-        } else {
-            return true;
-        }
-    }
 
     public boolean hasConsumer() {
         return flowComponentList.stream()

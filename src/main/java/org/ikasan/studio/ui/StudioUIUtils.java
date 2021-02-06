@@ -42,9 +42,25 @@ public class StudioUIUtils {
         canvasTextArea.setText(message);
     }
 
+    public static int getTextHeight(Graphics g, Font font) {
+        Font oldFond = g.getFont();
+        g.setFont(font);
+        int height = getTextHeight(g);
+        g.setFont(oldFond);
+        return height;
+    }
+
     public static int getTextHeight(Graphics g) {
         FontMetrics metrics = g.getFontMetrics();
         return metrics.getHeight();
+    }
+
+    public static int getTextWidth(Graphics g, String text, Font font) {
+        Font oldFond = g.getFont();
+        g.setFont(font);
+        int width = getTextWidth(g, text);
+        g.setFont(oldFond);
+        return width;
     }
 
     public static int getTextWidth(Graphics g, String text) {
@@ -164,6 +180,38 @@ public class StudioUIUtils {
 
         for (int xx = 0 ; xx < height ; xx += 100) {
             g2d.drawLine(xx, 0, xx, height);
+        }
+    }
+
+    public static void paintWarningPopup(Graphics g, int x, int y, int maxX,int maxY, String text) {
+        if (text.length() > 0) {
+            Font font = StudioUIUtils.getBoldFont(g) ;
+
+            int width = StudioUIUtils.getTextWidth(g, text, font) + 10;
+            int height = StudioUIUtils.getTextHeight(g, font) + 10;
+
+            int popupX = x + width < maxX ? x : x - width - 20;
+            int popupY = y + height < maxY ? y : y -height -20;
+            if (popupX < 0) {
+                popupX = 0;
+            }
+            if (popupY < 0) {
+                popupY = 0;
+            }
+
+            Color oldColor = g.getColor();
+            // Central rectangle
+            g.setColor(Color.LIGHT_GRAY);
+            g.fillRect(popupX, popupY, width, height);
+
+            // Border
+            g.setColor(Color.RED);
+            g.drawRect(popupX, popupY, width, height);
+
+            // Text
+            g.setColor(Color.BLACK);
+            StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, text, popupX + 3, popupY + 3, font);
+            g.setColor(oldColor);
         }
     }
 }
