@@ -140,6 +140,8 @@ public class DesignerCanvas extends JPanel {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (mouseSelectedComponent instanceof IkasanFlow && ((IkasanFlow)mouseSelectedComponent).getFlowIntegrityStatus() != null) {
             this.setToolTipText(((IkasanFlow)mouseSelectedComponent).getFlowIntegrityStatus());
+        } else {
+            this.setToolTipText("");
         }
     }
 
