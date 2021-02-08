@@ -1,4 +1,8 @@
 # Broker
-# isConfigMandatory|configName|propertyConfigFileLabel|dataType|helpText
-true|name||java.lang.String|The name of the component
-false|total|my.test.total|java.lang.Integer|Total description
+# NOTE - Every component is assumed to have name and description so they do not need to be included here
+# isConfigMandatory|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or on object that support Object.value(String)|helpText
+true|additionalName||java.lang.String|MyDefault|The name of the component
+false|total|my.test.total|java.lang.Integer|2|Total description
+false|total||java.lang.Integer||This should be ignored as a duplicate
+false|xx|my.test.total|java.lang.Integer||This should be ignored as a duplicate propertyConfiLabel
+false|other||java.lang.Integer||Total description

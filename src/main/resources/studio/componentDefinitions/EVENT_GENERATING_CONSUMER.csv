@@ -1,2 +1,3 @@
-# Event Generating Consumer - Every component is assumed to have name and description so they do not need to be included here
-# isConfigMandatory|configName|propertyConfigFileLabel|dataType|helpText
+# Event Generating Consumer -
+# NOTE - Every component is assumed to have name and description so they do not need to be included here
+# isConfigMandatory|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or on object that support Object.value(String)|helpText

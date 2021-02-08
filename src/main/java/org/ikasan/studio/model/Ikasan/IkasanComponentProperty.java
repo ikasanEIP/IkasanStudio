@@ -6,7 +6,11 @@ public class IkasanComponentProperty {
 
     public IkasanComponentProperty(IkasanComponentPropertyMeta meta, Object value) {
         this.meta = meta;
-        this.value = value;
+        if (value == null && meta.defaultValue != null) {
+            this.value = meta.defaultValue;
+        } else {
+            this.value = value;
+        }
     }
 
     public IkasanComponentProperty(IkasanComponentPropertyMeta meta) {

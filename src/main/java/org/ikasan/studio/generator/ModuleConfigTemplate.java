@@ -27,15 +27,15 @@ public class ModuleConfigTemplate extends Generator {
         String templateString = "";
         if (GENERATOR_STRATEGY == GeneratorStrategy.VELOCITY) {
             IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
-            templateString = createModuleVelocity(ikasanModule);
+            templateString = generateContents(ikasanModule);
         } else {
             templateString = MODULE_CLASS_IMPL;
         }
-        PsiJavaFile newFile = createTemplateFile(project, DEFAULT_STUDIO_PACKAGE, MODULE_CLASS_NAME, templateString, true);
+        PsiJavaFile newFile = createTemplateFile(project, DEFAULT_STUDIO_PACKAGE, MODULE_CLASS_NAME, templateString, true, true);
         return newFile;
     }
 
-    public static String createModuleVelocity(IkasanModule ikasanModule) {
+    public static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = new HashMap<>();
         configs.put(CLASS_NAME_TAG, MODULE_CLASS_NAME);
         configs.put(FLOWS_TAG, ikasanModule.getFlows());

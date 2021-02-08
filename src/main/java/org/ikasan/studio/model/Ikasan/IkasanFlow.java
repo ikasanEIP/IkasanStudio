@@ -23,7 +23,7 @@ public class IkasanFlow extends IkasanComponent {
         return flowComponentList;
     }
 
-    public boolean addFlowElement(IkasanFlowComponent ikasanFlowComponent) {
+    public boolean addFlowComponent(IkasanFlowComponent ikasanFlowComponent) {
         return flowComponentList.add(ikasanFlowComponent);
     }
 

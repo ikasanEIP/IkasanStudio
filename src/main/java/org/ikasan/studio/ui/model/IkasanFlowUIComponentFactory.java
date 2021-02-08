@@ -74,6 +74,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Generic Message Consumer", GENERIC_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-client/consumer.md", IkasanFlowComponentType.JMS_CONSUMER, "message-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanFlowComponentType.SPRING_JMS_CONSUMER, "message-consumer"));
 
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanFlowComponentType.CUSTOM_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JSON XML Converter", JSON_XML_CONVERTER_HELP_TEXT, "converter/JsonToXmlConverter.md", IkasanFlowComponentType.JSON_XML_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Object Converter", MAP_MESSAGE_OBJECT_CONVERTER_HELP_TEXT, "converter/MapMessageToObjectConverter.md", IkasanFlowComponentType.MAP_MESSAGE_TO_OBJECT_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Payload Converter", MAP_MESSAGE_PAYLOAD_CONVERTER_HELP_TEXT, "converter/MapMessageToPayloadConverter.md", IkasanFlowComponentType.MAP_MESSAGE_TO_PAYLOAD_CONVERTER, "message-translator"));

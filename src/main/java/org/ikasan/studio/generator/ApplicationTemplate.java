@@ -24,14 +24,14 @@ public class ApplicationTemplate extends Generator {
     public static PsiJavaFile createApplication(final Project project) {
         String templateString = "";
         if (GENERATOR_STRATEGY == GeneratorStrategy.VELOCITY) {
-            templateString = createApplicationVelocity();
+            templateString = generateContents();
         } else {
             templateString = APPLICATION_CLASS_IMP;
         }
-        return createTemplateFile(project, DEFAULT_STUDIO_PACKAGE, APPLICATION_CLASS_NAME, templateString, true);
+        return createTemplateFile(project, DEFAULT_STUDIO_PACKAGE, APPLICATION_CLASS_NAME, templateString, true, true);
     }
 
-    public static String createApplicationVelocity() {
+    public static String generateContents() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(CLASS_NAME_TAG, APPLICATION_CLASS_NAME);
         return VelocityUtils.generateFromTemplate(APPLICATION_VM, configs);

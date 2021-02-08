@@ -41,7 +41,15 @@ org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = ${flow.JavaVariableName}Flo
 .withDescription("$flow.Description")
 #end
 #foreach($ikasanComponent in $flow.flowComponentList)
-    .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}", componentBuilder.${ikasanComponent.type.associatedMethodName}())
+    .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}",
+#if ($ikasanComponent.type.custom)
+new .${ikasanComponent.type.bespokeClassName}())
+#else
+componentBuilder.${ikasanComponent.type.associatedMethodName}())
+#end
+
+
+
 #end
 .build();
 return ${flow.JavaVariableName};

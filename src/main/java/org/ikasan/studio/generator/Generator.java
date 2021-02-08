@@ -15,6 +15,7 @@ import org.ikasan.studio.model.StudioPsiUtils;
 
 public class Generator {
     public static final String CLASS_NAME_TAG = "className";
+    public static final String COMPONENT_TAG = "component";
     public static final String FLOWS_TAG = "flows";
     public static final String MODULE_TAG = "module";
     public static final String FLOW_NAME_TAG = "flowName";
@@ -23,7 +24,7 @@ public class Generator {
     public static final String DEFAULT_STUDIO_PACKAGE = "org.ikasan.studio";
     public static final GeneratorStrategy GENERATOR_STRATEGY = GeneratorStrategy.VELOCITY;
 
-    public static PsiJavaFile createTemplateFile(final Project project, final String packageName, final  String clazzName, final String pakeagelessContent, boolean focus) {
+    public static PsiJavaFile createTemplateFile(final Project project, final String packageName, final  String clazzName, final String pakeagelessContent, boolean focus, boolean replaceExisting) {
         String fileName = clazzName + ".java";
         String content = "package " + packageName + ";" + pakeagelessContent;
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(project, StudioPsiUtils.JAVA_CODE);
@@ -31,6 +32,9 @@ public class Generator {
         PsiDirectory myPackage = StudioPsiUtils.createPackage(baseDir, packageName);
         PsiFile psiFile = myPackage.findFile(fileName) ;
         if (psiFile != null) {
+            if (!replaceExisting) {
+                return null;
+            }
             // Recreate
             psiFile.delete();
         }

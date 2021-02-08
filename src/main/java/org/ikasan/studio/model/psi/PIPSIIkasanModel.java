@@ -11,6 +11,7 @@ import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.generator.ApplicationTemplate;
+import org.ikasan.studio.generator.BespokeClassTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
 import org.ikasan.studio.generator.PropertiesTemplate;
 import org.ikasan.studio.model.Ikasan.*;
@@ -74,6 +75,7 @@ public class PIPSIIkasanModel {
                 () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
                         applicationClazz = ApplicationTemplate.createApplication(project);
+                        generateBespokeConponents(project);
                         moduleConfigFile = ModuleConfigTemplate.createModule(project);
                         resourceFile = PropertiesTemplate.createProperties(project);
                         // Basics done, now populate the source with the specifics of the model
@@ -87,6 +89,18 @@ public class PIPSIIkasanModel {
             // @todo verify if above is asynch, if so maybe block or pass in this we we can update moduleConfigClazz.
             moduleConfigClazz = moduleConfigFile.getClasses()[0];
 //        }
+    }
+
+    private void generateBespokeConponents(Project project) {
+        IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+        for(IkasanFlow flow : ikasanModule.getFlows()) {
+            for (IkasanFlowComponent component : flow.getFlowComponentList()) {
+                if (component.getType().isBespokeClass()) {
+
+                    PsiJavaFile bespokeClass = BespokeClassTemplate.createClass(project, component);
+                }
+            }
+        }
     }
 
     protected PsiLocalVariable getModuleBuilderLocalVariable(PIPSIMethodList moduleMethodList) {
@@ -353,7 +367,7 @@ public class PIPSIIkasanModel {
                 ikasanFlowComponent.getViewHandler().setClassToNavigateTo(moduleConfigClass);
                 ikasanFlowComponent.getViewHandler().setOffsetInclassToNavigateTo(
                         pipsiMethod.getMethodDeclaration() != null ? pipsiMethod.getMethodDeclaration().getStartOffsetInParent() : 0);
-                newFlow.addFlowElement(ikasanFlowComponent);
+                newFlow.addFlowComponent(ikasanFlowComponent);
             }
         }
         newFlow = addInputOutputForFlow(newFlow);

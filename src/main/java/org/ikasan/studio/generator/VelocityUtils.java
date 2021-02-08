@@ -281,7 +281,7 @@ public final class VelocityUtils {
             InputStream inputStream = VelocityUtils.class.getClassLoader().getResourceAsStream(VELOCITY_TEMPLATE_PATH + templateName);
             try {
                 template = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            } catch (IOException e) {
+            } catch (IOException | NullPointerException e) {
                 LOG.error("Could not read in the template " + templateName + " Trace was " + e.getMessage());
             }
         }

@@ -7,8 +7,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -87,7 +91,9 @@ public class StudioUtils {
     private static int NAME_INDEX = 1;
     private static int PROPERTY_CONFIG_LABEL_INDEX = 2;
     private static int CLASS_INDEX = 3;
-    private static int HELP_INDEX = 4;
+    private static int DEFAULT_VALUE_INDEX = 4;
+    private static int HELP_INDEX = 5;
+    private static int NUMBER_OF_CONFIGS = 6;
     private static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
@@ -95,6 +101,7 @@ public class StudioUtils {
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + ".csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
+        Set<String> propertyConfigLabels = new HashSet<>();
         if (is != null) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line = null;
@@ -103,22 +110,43 @@ public class StudioUtils {
                         continue;
                     }
                     String[] split = line.split("\\|");
-                    if (split.length != 5) {
-                        log.error("An incorrect config has been supplied, please remove from " + propertiesFile + " or fix, line was " + line);
+                    if (split.length != NUMBER_OF_CONFIGS) {
+                        log.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was " + line);
                         continue;
                     }
+                    if (componentProperties.containsKey(split[NAME_INDEX])) {
+                        log.error("A property of this name already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        continue;
+                    }
+                    // Mandatory
                     boolean isMandatory = false;
                     if (split[MANDATORY_INDEX].equals("true")) {
                         isMandatory = true;
                     }
-                    Class clazz = null;
+                    // propertyConfigLabel
+                    final String propertyConfigLabel = split[PROPERTY_CONFIG_LABEL_INDEX];
+                    if (propertyConfigLabel != null && propertyConfigLabel.length() > 0) {
+                        if (propertyConfigLabels.contains(propertyConfigLabel)) {
+                            log.error("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                            continue;
+                        } else {
+                            propertyConfigLabels.add(propertyConfigLabel);
+                        }
+                    }
+
+                    // Data type
+                    Class dataTypeOfProperty = null;
                     try {
-                        clazz = Class.forName(split[CLASS_INDEX]);
+                        dataTypeOfProperty = Class.forName(split[CLASS_INDEX]);
                     } catch (ClassNotFoundException ex) {
                         log.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
-                        clazz = String.class;  // dont crash the IDE
+                        dataTypeOfProperty = String.class;  // dont crash the IDE
                     }
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, split[NAME_INDEX], split[PROPERTY_CONFIG_LABEL_INDEX], clazz, split[HELP_INDEX]);
+
+                    //  default value
+                    Object defaultValue = getDefaultValue(split, dataTypeOfProperty, line,  propertiesFile);
+
+                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, split[NAME_INDEX], propertyConfigLabel, dataTypeOfProperty, defaultValue, split[HELP_INDEX]);
                     componentProperties.put(split[NAME_INDEX], ikasanComponentPropertyMeta);
                 }
             } catch (IOException ioe) {
@@ -128,5 +156,25 @@ public class StudioUtils {
             log.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
         }
         return componentProperties;
+    }
+
+    private static Object getDefaultValue(final String[] split, final Class dataTypeOfProperty, final String line, final String propertiesFile) {
+        Object defaultValue = null;
+        String defaultValueAsString = split[DEFAULT_VALUE_INDEX];
+        if (dataTypeOfProperty != null && defaultValueAsString != null && defaultValueAsString.length() > 0) {
+            try {
+                if ("java.lang.String".equals(split[CLASS_INDEX])) {
+                    defaultValue = defaultValueAsString;
+                } else {
+                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
+                    if (methodToFind != null) {
+                        defaultValue = methodToFind.invoke(defaultValue, defaultValueAsString);
+                    }
+                }
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                log.error("An error has occurred while determining the default value for " + line + " please remove from " + propertiesFile + " or correct it. The default value will be set to null ", ex);
+            }
+        }
+        return defaultValue;
     }
 }
