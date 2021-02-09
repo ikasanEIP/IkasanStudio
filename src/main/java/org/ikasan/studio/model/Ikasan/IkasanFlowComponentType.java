@@ -30,7 +30,7 @@ public enum IkasanFlowComponentType {
     LOCAL_FILE_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "fileConsumer"),
     MONGO_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "mongoConsumer"),
 
-    CUSTOM_CONVERTER(IkasanFlowComponentCategory.CONVERTER, true, "new MyConverter()"),
+    CUSTOM_CONVERTER(IkasanFlowComponentCategory.CONVERTER, true, ""),
     JSON_XML_CONVERTER(IkasanFlowComponentCategory.CONVERTER, false, "JsonXmlConverter"),
     MAP_MESSAGE_TO_OBJECT_CONVERTER(IkasanFlowComponentCategory.CONVERTER, false, "MapMessageToObjectConverter"),
     MAP_MESSAGE_TO_PAYLOAD_CONVERTER(IkasanFlowComponentCategory.CONVERTER, false, "MapMessageToPayloadConverter"),

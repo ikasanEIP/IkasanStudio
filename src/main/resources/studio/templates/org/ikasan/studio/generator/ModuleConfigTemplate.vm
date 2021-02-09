@@ -16,7 +16,7 @@ public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}")
-#if ($module.Description)
+#if ( $module.Description )
 .withDescription("${module.Description}")
 #end
 ;
@@ -26,29 +26,27 @@ org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.
 
 // Add the created flow to the module builder and create the module
 org.ikasan.spec.module.Module module = moduleBuilder
-#foreach($flow in $module.flows)
+#foreach( $flow in $module.flows )
 .addFlow(get_${flow.JavaVariableName}(moduleBuilder, componentBuilder))
 #end
 .build();
 return module;
 }
 
-#foreach($flow in $flows)
+#foreach( $flow in $flows )
 private org.ikasan.spec.flow.Flow get_${flow.JavaVariableName}(org.ikasan.builder.ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
 org.ikasan.builder.FlowBuilder ${flow.JavaVariableName}FlowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
 org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = ${flow.JavaVariableName}FlowBuilder
-#if ($flow.Description)
+#if ( $flow.Description && $flow.getDescription.length > 0 )
 .withDescription("$flow.Description")
 #end
-#foreach($ikasanComponent in $flow.flowComponentList)
+#foreach( $ikasanComponent in $flow.flowComponentList )
     .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}",
-#if ($ikasanComponent.type.custom)
+#if ( $ikasanComponent.type.custom )
 new .${ikasanComponent.type.bespokeClassName}())
 #else
 componentBuilder.${ikasanComponent.type.associatedMethodName}())
 #end
-
-
 
 #end
 .build();
