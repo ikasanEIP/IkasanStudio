@@ -119,7 +119,7 @@ public enum IkasanFlowComponentType {
     public static IkasanFlowComponentType parseMethodName(String methodName) {
         if (methodName != null) {
             for (IkasanFlowComponentType name : IkasanFlowComponentType.values()) {
-                if (StringUtils.containsIgnoreCase(methodName, name.associatedMethodName)) {
+                if (name.associatedMethodName != null && name.associatedMethodName.length() > 0 &&  StringUtils.containsIgnoreCase(methodName, name.associatedMethodName)) {
                     return name;
                 }
             }
