@@ -42,3 +42,4 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 ## Known Issues
 - [ ] Sometimes the port for Ikasan is not free - Use  netstat -ano | findstr 8090 / taskkill /F /PID  pid
 - [ ] Sometimes we get the error "PSI and index do not match", workaround - File menu > Invalidate caches and restart
+
