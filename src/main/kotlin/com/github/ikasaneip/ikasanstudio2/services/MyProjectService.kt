@@ -1,6 +1,6 @@
-package com.github.davidhilton68.ikasanstudio2.services
+package com.github.ikasaneip.ikasanstudio2.services
 
-import com.github.davidhilton68.ikasanstudio2.MyBundle
+import com.github.ikasaneip.ikasanstudio2.MyBundle
 import com.intellij.openapi.project.Project
 
 class MyProjectService(project: Project) {

@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * This class will hold meta data for components driven by the Ikasan version number
  */
-public class IkasanVersionConfigurations {
+public class IkasanVersionConfigurationsShed {
     public static final String V_3_0_0 = "V_3_0_0";
     // A series of maps will be created reflecting the configuarions for each components type for all released versions.
     private static Map<String, Map<IkasanFlowComponentType, List<IkasanComponentPropertyMeta>>> configCache = new HashMap<>();

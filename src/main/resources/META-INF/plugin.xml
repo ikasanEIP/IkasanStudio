@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>com.github.davidhilton68.ikasanstudio2</id>
+    <id>com.github.ikasaneip.ikasanstudio2</id>
     <name>IkasanStudio2</name>
     <vendor email="davidhilton68@gmail.com" url="http://www.ikasan.org">Ikasan</vendor>
 
@@ -13,9 +13,9 @@
     <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.davidhilton68.ikasanstudio2.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.davidhilton68.ikasanstudio2.services.MyProjectService"/>
-        <toolWindow id="Ikasan Designer"
+        <applicationService serviceImplementation="com.github.ikasanEIP.ikasanstudio2.services.MyApplicationService"/>
+        <projectService serviceImplementation="com.github.ikasanEIP.ikasanstudio2.services.MyProjectService"/>
+        <toolWindow id="Ikasan Studio"
                     anchor="right"
                     factoryClass="org.ikasan.studio.ui.DesignerToolWindowFactory"
                     icon="/studio/icons/squid13x13.svg"
@@ -23,7 +23,7 @@
     </extensions>
 
 <!--    <applicationListeners>-->
-<!--        <listener class="com.github.davidhilton68.ikasanstudio2.listeners.MyProjectManagerListener"-->
+<!--        <listener class="com.github.ikasaneip.ikasanstudio2.listeners.MyProjectManagerListener"-->
 <!--                  topic="com.intellij.openapi.project.ProjectManagerListener"/>-->
 <!--    </applicationListeners>-->
 

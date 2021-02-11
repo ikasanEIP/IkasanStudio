@@ -1,4 +1,4 @@
-package com.github.davidhilton68.ikasanstudio2
+package com.github.ikasaneip.ikasanstudio2
 
 import com.intellij.AbstractBundle
 import org.jetbrains.annotations.NonNls
