@@ -1,5 +1,21 @@
 # IkasanStudio2
 
+The easiest way to view the plugin just now is to load it up into the IDE, Intellij 2019.3.5 was the last working 
+version (when I tried a refresh in September), subsequent versions seem to have 'known but not fixed' issues with
+the template / gradle.
+
+Its a Gradle/Kotlin build, JetBrains prefer it that way, I have learned the hard way over many months to just accept
+however JetBrains want to do it, otherwise its just a huge bundle or late nights with spurious issues.
+
+The run configuration is Gradle and :runIde
+
+As part of the template package that JebBrains put together, there is a full pipeline including compatibility tests
+with named versions of the Intellij IDE, I have only a few defined just now (didn't focus on that part for now).
+
+Ignore anything with shed in the title, or in the package its just stuff I want to keep since it might come in handy soon.
+
+Enjoy.
+
 ![Build](https://github.com/davidhilton68/IkasanStudio2/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/PLUGIN_ID.svg)](https://plugins.jetbrains.com/plugin/PLUGIN_ID)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/PLUGIN_ID.svg)](https://plugins.jetbrains.com/plugin/PLUGIN_ID)
