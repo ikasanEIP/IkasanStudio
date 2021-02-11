@@ -6,6 +6,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.impl.source.PsiJavaCodeReferenceElementImpl;
 import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
@@ -350,8 +351,20 @@ public class PIPSIIkasanModel {
                     if (flowComponentParam2 instanceof PsiNewExpression) {
                         PsiJavaCodeReferenceElement flowComponentConstructor = (PsiJavaCodeReferenceElement) Arrays.stream(flowComponentParam2.getChildren()).filter(x -> x instanceof PsiJavaCodeReferenceElement).findFirst().orElse(null);
                         if (flowComponentConstructor != null) {
-                            ikasanFlowComponent = new IkasanFlowComponent(IkasanFlowComponentType.parseMethodName(flowComponentConstructor.getText()), newFlow, flowElementName, flowElementDescription);
-//                            ikasanFlowComponent.setTypeAndViewHandler(IkasanFlowComponentType.parseMethodName(flowComponentConstructor.getText()));
+                            IkasanFlowComponentType ikasanFlowComponentType = IkasanFlowComponentType.parseMethodName(flowComponentConstructor.getText());
+                            if (IkasanFlowComponentType.UNKNOWN == ikasanFlowComponentType) {
+                                // This is probably a bespoke component, try to deduce the component from the type
+                                String classInterface = null;
+                                try {
+                                    // @todo maybe cycle through and try all interfaces for an Ikasan match in case clients play with multiple interfaces.
+                                    classInterface = ((PsiClass)((PsiJavaCodeReferenceElementImpl) flowComponentConstructor).resolve()).getImplementsList().getReferencedTypes()[0].getClassName();
+                                    ikasanFlowComponentType = IkasanFlowComponentType.parseMethodName(classInterface);
+                                } catch (NullPointerException npe) {
+                                    // Hate to catch NPE but until I can turn this into an element safe recursion, this will have to do.
+                                    log.warn("Attempt to get interface type for " + flowComponentConstructor.getText()+ " failed. Component type will be set as unknown");
+                                }
+                            }
+                            ikasanFlowComponent = new IkasanFlowComponent(ikasanFlowComponentType, newFlow, flowElementName, flowElementDescription);
                         }
                     } else {
                     // More complex scenario, we need to traverse down the call stack until we find a component.

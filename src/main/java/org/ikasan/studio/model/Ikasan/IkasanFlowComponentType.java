@@ -30,7 +30,8 @@ public enum IkasanFlowComponentType {
     LOCAL_FILE_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "fileConsumer"),
     MONGO_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "mongoConsumer"),
 
-    CUSTOM_CONVERTER(IkasanFlowComponentCategory.CONVERTER, true, ""),
+    // @todo, maybe introduce the base class into this list, might conflict though when matching custom components.
+    CUSTOM_CONVERTER(IkasanFlowComponentCategory.CONVERTER, true, "Converter"),  // This will really be the implemented interface
     JSON_XML_CONVERTER(IkasanFlowComponentCategory.CONVERTER, false, "JsonXmlConverter"),
     MAP_MESSAGE_TO_OBJECT_CONVERTER(IkasanFlowComponentCategory.CONVERTER, false, "MapMessageToObjectConverter"),
     MAP_MESSAGE_TO_PAYLOAD_CONVERTER(IkasanFlowComponentCategory.CONVERTER, false, "MapMessageToPayloadConverter"),
@@ -119,7 +120,10 @@ public enum IkasanFlowComponentType {
     public static IkasanFlowComponentType parseMethodName(String methodName) {
         if (methodName != null) {
             for (IkasanFlowComponentType name : IkasanFlowComponentType.values()) {
-                if (name.associatedMethodName != null && name.associatedMethodName.length() > 0 &&  StringUtils.containsIgnoreCase(methodName, name.associatedMethodName)) {
+                if (name.associatedMethodName != null &&
+                    name.associatedMethodName.length() > 0 &&
+//                    StringUtils.containsIgnoreCase(methodName, name.associatedMethodName)) {
+                    StringUtils.equalsIgnoreCase(methodName, name.associatedMethodName)) {
                     return name;
                 }
             }
