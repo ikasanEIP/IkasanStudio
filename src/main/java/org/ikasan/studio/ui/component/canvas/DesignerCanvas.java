@@ -355,7 +355,7 @@ public class DesignerCanvas extends JPanel {
             } else {
                 IkasanFlow newFlow = new IkasanFlow();
                 ikasanModule.addAnonymousFlow(newFlow);
-                newFlow.addFlowComponent(new IkasanFlowComponent(ikasanFlowComponentType, newFlow));
+                newFlow.addFlowComponent(IkasanFlowComponent.getInstance(ikasanFlowComponentType, newFlow));
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel();
@@ -382,10 +382,10 @@ public class DesignerCanvas extends JPanel {
         int numberOfComponents = components.size();
         for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
             if (components.get(ii).equals(surroundingComponents.getRight())) {
-                components.add(ii, new IkasanFlowComponent(ikasanFlowComponentType, containingFlow));
+                components.add(ii, IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow));
                 break;
             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                components.add(ii+1, new IkasanFlowComponent(ikasanFlowComponentType, containingFlow));
+                components.add(ii+1, IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow));
                 break;
             }
         }

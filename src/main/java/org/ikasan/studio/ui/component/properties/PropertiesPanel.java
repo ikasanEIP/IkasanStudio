@@ -11,17 +11,22 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
-    String projectKey;
-    transient IkasanComponent selectedComponent;
-    private JLabel propertiesHeaderLabel =  new JLabel(PROPERTIES_TAG);
-    transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
-    ScrollableGridbagPanel scrollableGridbagPanel;
+    private transient IkasanComponent selectedComponent;
+    private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
+
+    private String projectKey;
+    private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
+    private JCheckBox overrideCheckBox ;
+    JButton okButton = new JButton("Update Code");
+    private ScrollableGridbagPanel scrollableGridbagPanel;
 
     public PropertiesPanel(String projectKey) {
         super();
@@ -44,7 +49,6 @@ public class PropertiesPanel extends JPanel {
         scrollPane.setBackground(Color.WHITE);
         scrollPane.getViewport().setBackground(Color.WHITE);
 
-        JButton okButton = new JButton("Update Code");
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 boolean modelUpdated = false;
@@ -59,7 +63,6 @@ public class PropertiesPanel extends JPanel {
 
         JPanel footerPanel = new JPanel();
         footerPanel.add(okButton);
-        footerPanel.add(new JButton("Cancel"));
         footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         
         setLayout(new BorderLayout());
@@ -139,23 +142,52 @@ public class PropertiesPanel extends JPanel {
                         }
                     }
                 }
+                if (selectedFlowComponent.getType().isBespokeClass()) {
+                    addOverrideCheckBoxToPropertiesEditPanel(propertiesEditorPanel, gc, tabley++);
+                }
             }
+
             scrollableGridbagPanel.add(propertiesEditorPanel);
         }
 
         return propertiesEditorPanel;
     }
 
+    private ComponentPropertyEditBox addOverrideCheckBoxToPropertiesEditPanel(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley) {
+        JLabel overrideLabel = new JLabel("Override Existing Code");
+        overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this beskpoke implementation");
+        overrideCheckBox = new JCheckBox();
+        overrideCheckBox.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent ie) {
+                okButton.setEnabled(ie.getStateChange() == 1);
+            }
+        });
+        okButton.setEnabled(false);
+        addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, overrideLabel, overrideCheckBox);
+        return null;
+    }
+
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty);
+//        gc.weightx = 0;
+//        gc.gridx = 0;
+//        gc.gridy = tabley;
+//        propertiesEditorPanel.add(componentPropertyEditBox.getLabelField(), gc);
+//        gc.gridx = 1;
+//        gc.weightx = 1;
+//        propertiesEditorPanel.add(componentPropertyEditBox.getTextField(), gc);
+        addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getLabelField(), componentPropertyEditBox.getTextField());
+        return componentPropertyEditBox;
+    }
+
+    private void addLabelAndInputEditor(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel label, JComponent inputField) {
         gc.weightx = 0;
         gc.gridx = 0;
         gc.gridy = tabley;
-        propertiesEditorPanel.add(componentPropertyEditBox.getLabelField(), gc);
+        propertiesEditorPanel.add(label, gc);
         gc.gridx = 1;
         gc.weightx = 1;
-        propertiesEditorPanel.add(componentPropertyEditBox.getTextField(), gc);
-        return componentPropertyEditBox;
+        propertiesEditorPanel.add(inputField, gc);
     }
 
 
@@ -171,6 +203,9 @@ public class PropertiesPanel extends JPanel {
                 IkasanComponentProperty componentProperty = selectedComponent.getProperties().get(key);
                 if (propertyValueHasChanged(componentProperty, editPair)) {
                     modelUpdated = true;
+                    if (selectedComponent instanceof IkasanFlowBeskpokeComponent) {
+                        ((IkasanFlowBeskpokeComponent)selectedComponent).setOverrideEnabled(true);
+                    }
                     if (componentProperty == null) {
                         // New property added for the first time, for now only components will have new properties not flows
                         componentProperty = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key), editPair.getValue());
@@ -184,7 +219,6 @@ public class PropertiesPanel extends JPanel {
         }
         return modelUpdated;
     }
-
 
     /**
      *

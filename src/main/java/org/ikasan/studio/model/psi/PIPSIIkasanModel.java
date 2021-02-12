@@ -97,7 +97,6 @@ public class PIPSIIkasanModel {
         for(IkasanFlow flow : ikasanModule.getFlows()) {
             for (IkasanFlowComponent component : flow.getFlowComponentList()) {
                 if (component.getType().isBespokeClass()) {
-
                     PsiJavaFile bespokeClass = BespokeClassTemplate.createClass(project, component);
                 }
             }
@@ -364,7 +363,7 @@ public class PIPSIIkasanModel {
                                     log.warn("Attempt to get interface type for " + flowComponentConstructor.getText()+ " failed. Component type will be set as unknown");
                                 }
                             }
-                            ikasanFlowComponent = new IkasanFlowComponent(ikasanFlowComponentType, newFlow, flowElementName, flowElementDescription);
+                            ikasanFlowComponent = IkasanFlowComponent.getInstance(ikasanFlowComponentType, newFlow, flowElementName, flowElementDescription);
                         }
                     } else {
                     // More complex scenario, we need to traverse down the call stack until we find a component.
@@ -373,7 +372,7 @@ public class PIPSIIkasanModel {
                     }
                 }
                 if (ikasanFlowComponent == null) {
-                    ikasanFlowComponent = new IkasanFlowComponent(IkasanFlowComponentType.UNKNOWN, newFlow, flowElementName, flowElementDescription);
+                    ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.UNKNOWN, newFlow, flowElementName, flowElementDescription);
                 }
 
                 // This is not the right long term class but will do for now.
@@ -634,14 +633,14 @@ public class PIPSIIkasanModel {
                 flowElementProperties.put(methodName.replaceFirst("set", ""), componentBuilderMethod.getLiteralParameterAsString(0, true));
             } else {
                 // Must be the component type
-                ikasanFlowComponent = new IkasanFlowComponent(IkasanFlowComponentType.parseMethodName(methodName), parent, name, description);
+                ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.parseMethodName(methodName), parent, name, description);
 //                ikasanFlowComponent.setTypeAndViewHandler(IkasanFlowComponentType.parseMethodName(methodName));
             }
         }
 
         // In this case, the object was created before the setter chaining
         if (ikasanFlowComponent == null && componentBuilderMethodList.getBaseType() != null) {
-            ikasanFlowComponent = new IkasanFlowComponent(IkasanFlowComponentType.parseCategoryType(componentBuilderMethodList.getBaseType()), parent, name, description);
+            ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.parseCategoryType(componentBuilderMethodList.getBaseType()), parent, name, description);
         }
 
         if (ikasanFlowComponent != null && ! flowElementProperties.isEmpty()) {
