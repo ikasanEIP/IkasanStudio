@@ -11,6 +11,7 @@ public org.ikasan.spec.flow.Flow MyFlow1()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("New Module");
 org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlow1");
+org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.flow.Flow myflow1 = flowBuilder
 .build();

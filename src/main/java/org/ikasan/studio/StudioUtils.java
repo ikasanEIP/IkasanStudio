@@ -37,8 +37,16 @@ public class StudioUtils {
         return returnString;
     }
 
+    public static String toJavaClassName(final String input) {
+        String identifer = toJavaIdentifier(input);
+        if (identifer != null && identifer.length() > 0) {
+            char first = Character.toUpperCase(identifer.charAt(0));
+            identifer = first + identifer.substring(1);
+        }
+        return identifer;
+    }
     /**
-     * Pretty much what org.apache.commons.text.CaseUtils does, but we are limited by what libs Intellij
+     * Pretty much what org.apache.commons.text.CaseUtils does i.e. produce camelCase, but we are limited by what libs Intellij
      * pull into the plugin dependencies.
      * @param input a string potentially with spaces
      * @return

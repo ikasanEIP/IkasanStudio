@@ -48,7 +48,6 @@ public class IkasanFlow extends IkasanComponent {
         }
     }
 
-
     /**
      * If the component can be added to the flow, return an empty string otherwise state the reason why
      * @param newComponent to be added

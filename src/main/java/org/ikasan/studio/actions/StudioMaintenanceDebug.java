@@ -86,10 +86,10 @@ public class StudioMaintenanceDebug extends AnAction
               project,
               () -> ApplicationManager.getApplication().runWriteAction(
                       () -> {
-                         ApplicationTemplate.createApplication(project);
-                         ModuleConfigTemplate.createModule(project);
+                         ApplicationTemplate.create(project);
+                         ModuleConfigTemplate.create(project);
                          //@todo check the file produced, if non produced, bring up messeage in Intillij Error messging window.
-                         PropertiesTemplate.createProperties(project);
+                         PropertiesTemplate.create(project);
                       }),
               "Maintenance Debug Command",
               "Undo group ID");

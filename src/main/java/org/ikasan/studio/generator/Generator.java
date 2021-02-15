@@ -17,12 +17,14 @@ public class Generator {
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
     public static final String FLOWS_TAG = "flows";
+    public static final String FLOW_TAG = "flow";
     public static final String MODULE_TAG = "module";
     public static final String FLOW_NAME_TAG = "flowName";
+    public static final String STUDIO_BOOT_PACKAGE = "org.ikasan.studio.boot";
+    public static final String STUDIO_COMPONENT_PACKAGE = "org.ikasan.studio.component";
 
-
-    public static final String DEFAULT_STUDIO_PACKAGE = "org.ikasan.studio";
-    public static final GeneratorStrategy GENERATOR_STRATEGY = GeneratorStrategy.VELOCITY;
+    // Enforce Utility class.
+    protected Generator() {}
 
     public static PsiJavaFile createTemplateFile(final Project project, final String packageName, final  String clazzName, final String pakeagelessContent, boolean focus, boolean replaceExisting) {
         String fileName = clazzName + ".java";

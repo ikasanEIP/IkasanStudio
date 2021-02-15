@@ -11,10 +11,7 @@ import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.generator.ApplicationTemplate;
-import org.ikasan.studio.generator.BespokeClassTemplate;
-import org.ikasan.studio.generator.ModuleConfigTemplate;
-import org.ikasan.studio.generator.PropertiesTemplate;
+import org.ikasan.studio.generator.*;
 import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
 
@@ -75,10 +72,11 @@ public class PIPSIIkasanModel {
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
-                        applicationClazz = ApplicationTemplate.createApplication(project);
+                        ApplicationTemplate.create(project);
                         generateBespokeConponents(project);
-                        moduleConfigFile = ModuleConfigTemplate.createModule(project);
-                        resourceFile = PropertiesTemplate.createProperties(project);
+                        FlowTemplate.create(project);
+                        ModuleConfigTemplate.create(project);
+                        PropertiesTemplate.create(project);
                         // Basics done, now populate the source with the specifics of the model
 
 
@@ -88,7 +86,8 @@ public class PIPSIIkasanModel {
 
             // is the above asyn ??
             // @todo verify if above is asynch, if so maybe block or pass in this we we can update moduleConfigClazz.
-            moduleConfigClazz = moduleConfigFile.getClasses()[0];
+            IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+            moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
 //        }
     }
 
@@ -97,7 +96,7 @@ public class PIPSIIkasanModel {
         for(IkasanFlow flow : ikasanModule.getFlows()) {
             for (IkasanFlowComponent component : flow.getFlowComponentList()) {
                 if (component.getType().isBespokeClass()) {
-                    PsiJavaFile bespokeClass = BespokeClassTemplate.createClass(project, component);
+                    BespokeClassTemplate.create(project, component);
                 }
             }
         }

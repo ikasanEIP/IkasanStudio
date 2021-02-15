@@ -144,6 +144,8 @@ public class PropertiesPanel extends JPanel {
                 }
                 if (selectedFlowComponent.getType().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(propertiesEditorPanel, gc, tabley++);
+                } else {
+                    okButton.setEnabled(true);
                 }
             }
 
@@ -169,13 +171,6 @@ public class PropertiesPanel extends JPanel {
 
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty);
-//        gc.weightx = 0;
-//        gc.gridx = 0;
-//        gc.gridy = tabley;
-//        propertiesEditorPanel.add(componentPropertyEditBox.getLabelField(), gc);
-//        gc.gridx = 1;
-//        gc.weightx = 1;
-//        propertiesEditorPanel.add(componentPropertyEditBox.getTextField(), gc);
         addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getLabelField(), componentPropertyEditBox.getTextField());
         return componentPropertyEditBox;
     }

@@ -1,12 +1,14 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiJavaFile;
 
 import javax.swing.*;
 import java.awt.*;
 
 public abstract class ViewHandler {
     PsiClass classToNavigateTo;
+    PsiJavaFile psiJavaFile;
     int offsetInclassToNavigateTo;
     private int topY;
     private int leftX;
@@ -124,5 +126,20 @@ public abstract class ViewHandler {
 
     public void setOffsetInclassToNavigateTo(int offsetInclassToNavigateTo) {
         this.offsetInclassToNavigateTo = offsetInclassToNavigateTo;
+    }
+
+    public PsiJavaFile getPsiJavaFile() {
+        return psiJavaFile;
+    }
+
+    public void setPsiJavaFile(PsiJavaFile psiJavaFile) {
+        this.psiJavaFile = psiJavaFile;
+        if (psiJavaFile != null) {
+            PsiClass[] allClasses = psiJavaFile.getClasses();
+            if (allClasses != null && allClasses.length > 0) {
+                // for now, assume the main class is the first in the array
+                classToNavigateTo = allClasses[0];
+            }
+        }
     }
 }

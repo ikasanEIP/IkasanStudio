@@ -19,7 +19,7 @@ public class BespokeClassTemplateTest extends TestCase {
         IkasanModule ikasanModule = new IkasanModule();
         ikasanModule.addAnonymousFlow(new IkasanFlow());
         IkasanFlow newFlow = ikasanModule.getFlows().get(0);
-        IkasanFlowComponent ikasanFlowComponent = new IkasanFlowComponent(IkasanFlowComponentType.CUSTOM_CONVERTER, newFlow);
+        IkasanFlowComponent ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.CUSTOM_CONVERTER, newFlow);
         ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
         ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
         ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);

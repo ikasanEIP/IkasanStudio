@@ -14,18 +14,18 @@ import java.util.Map;
  */
 public class BespokeClassTemplate extends Generator {
 
-    public static PsiJavaFile createClass(final Project project, final IkasanFlowComponent component) {
+    public static void create(final Project project, final IkasanFlowComponent component) {
         boolean overwriteClassIsExists = false;
         String templateString = generateContents(component);
         String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
         if (component instanceof IkasanFlowBeskpokeComponent) {
             overwriteClassIsExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
         }
-        PsiJavaFile newFile = createTemplateFile(project, DEFAULT_STUDIO_PACKAGE, clazzName, templateString, true, overwriteClassIsExists);
+        PsiJavaFile newFile = createTemplateFile(project, STUDIO_BOOT_PACKAGE, clazzName, templateString, true, overwriteClassIsExists);
         if (component instanceof IkasanFlowBeskpokeComponent) {
             ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);
         }
-        return newFile;
+        component.getViewHandler().setPsiJavaFile(newFile);
     }
 
     public static String generateContents(IkasanFlowComponent ikasanFlowComponent) {

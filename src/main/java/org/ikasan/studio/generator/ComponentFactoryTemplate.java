@@ -11,23 +11,23 @@ import java.util.Map;
 /**
  * Currently both velocity and embedded strategy are being evaluated
  */
-public class ModuleConfigTemplate extends Generator {
-    public static String MODULE_CLASS_NAME = "ModuleConfig";
-    private static String MODULE_VM = "ModuleConfigTemplate.vm";
+public class ComponentFactoryTemplate extends Generator {
+    public static String COMPONENT_FACTORY_CLASS_NAME = "ComponentFactory";
+    private static String COMPONENT_FACTORY_VM = "ComponentFactory.vm";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
         String templateString = generateContents(ikasanModule);
-        PsiJavaFile newFile = createTemplateFile(project, STUDIO_BOOT_PACKAGE, MODULE_CLASS_NAME, templateString, true, true);
-        ikasanModule.getViewHandler().setPsiJavaFile(newFile);
+
+        PsiJavaFile newFile = createTemplateFile(project, STUDIO_BOOT_PACKAGE, COMPONENT_FACTORY_CLASS_NAME, templateString, true, true);
     }
 
     public static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = new HashMap<>();
-        configs.put(CLASS_NAME_TAG, MODULE_CLASS_NAME);
+        configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);
         configs.put(FLOWS_TAG, ikasanModule.getFlows());
         configs.put(MODULE_TAG, ikasanModule);
-        String templateString = VelocityUtils.generateFromTemplate(MODULE_VM, configs);
+        String templateString = VelocityUtils.generateFromTemplate(COMPONENT_FACTORY_VM, configs);
         return templateString;
     }
 }

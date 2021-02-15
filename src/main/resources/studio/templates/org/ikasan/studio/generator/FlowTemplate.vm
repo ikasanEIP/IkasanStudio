@@ -11,6 +11,7 @@ public org.ikasan.spec.flow.Flow ${flow.name}()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}");
 org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
+org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = flowBuilder
 #if ( $flow.Description && $flow.getDescription.length > 0 )
