@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.Ikasan;
 
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ public class IkasanFlow extends IkasanComponent {
     private IkasanFlowComponent input;
     private IkasanFlowComponent output;
     private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
+    private String javaClassName;
 
     public IkasanFlow () {
         super();
@@ -31,6 +33,17 @@ public class IkasanFlow extends IkasanComponent {
         if (ikasanFlowComponentToBeRemoved != null && flowComponentList.size() > 0) {
             getFlowComponentList().remove(ikasanFlowComponentToBeRemoved);
         }
+    }
+
+    public void setName(String name) {
+        super.setName(name);
+        if (name != null && name.length() > 0) {
+            javaClassName = StudioUtils.toJavaClassName(name);
+        }
+    }
+
+    public String getJavaClassName() {
+        return javaClassName;
     }
 
     /**

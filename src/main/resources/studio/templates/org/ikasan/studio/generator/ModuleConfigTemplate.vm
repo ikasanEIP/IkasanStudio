@@ -11,6 +11,11 @@ public class $className {
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+#foreach( $flow in $flows )
+@javax.annotation.Resource
+${flow.JavaClassName} ${flow.JavaVariableName};
+#end
+
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.module.Module myModule()
 {
@@ -27,30 +32,10 @@ org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.
 // Add the created flow to the module builder and create the module
 org.ikasan.spec.module.Module module = moduleBuilder
 #foreach( $flow in $module.flows )
-.addFlow(get_${flow.JavaVariableName}(moduleBuilder, componentBuilder))
+.addFlow(${flow.JavaVariableName}.get${flow.JavaClassName}())
 #end
 .build();
 return module;
 }
 
-#foreach( $flow in $flows )
-private org.ikasan.spec.flow.Flow get_${flow.JavaVariableName}(org.ikasan.builder.ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
-org.ikasan.builder.FlowBuilder ${flow.JavaVariableName}FlowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
-org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = ${flow.JavaVariableName}FlowBuilder
-#if ( $flow.Description && $flow.getDescription.length > 0 )
-.withDescription("$flow.Description")
-#end
-#foreach( $ikasanComponent in $flow.flowComponentList )
-    .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}",
-#if ( $ikasanComponent.type.bespokeClass )
-new ${ikasanComponent.properties.bespokeClassName.value}())
-#else
-componentBuilder.${ikasanComponent.type.associatedMethodName}())
-#end
-
-#end
-.build();
-return ${flow.JavaVariableName};
-}
-#end
 }
