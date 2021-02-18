@@ -238,7 +238,11 @@ public class PIPSIIkasanModel {
             } else {
                 ; //@todo
             }
-            // Trace flow param back to definition, could point to FlowBuilderVariable, Flow method or raw moduleBuilder.FlowBuilder
+            // Trace flow param back to definition,
+            //          .addFlow(sourceFlow) -> Flow sourceFlow = moduleBuilder.getFlowBuilder("dbToJMSFlow").with ...
+            //          .addFlow(jmsToFtpFlow) -> Flow ftpToJmsFlow = getFtpConsumerFlow(mb,builderFactory.getComponentBuilder())
+            //          .addFlow(get_NewFlow1(moduleBuilder, componentBuilder)) -> Flow get_NewFlow1(ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder) {
+            //          .addFlow(newflow1.getNewflow1()) -> @Resource  Newflow1 newflow1;  .. newFlow1.getFlow
 
             if (addFlowParameterResolved != null) {
                 PIPSIMethodList expressionRHS = extractMethodCallsFromChain(methodChainToCreateItem, new PIPSIMethodList());
@@ -256,9 +260,23 @@ public class PIPSIIkasanModel {
                     flowLocalVariable = (PsiLocalVariable) addFlowParameterResolved;
                     flowBuilderLocalVariable = (PsiLocalVariable) expressionStart.resolve();
                 } else if (expressionStartType.equals(IkasanClazz.LOCAL_METHOD)){
-                    flowLocalVariable = getFlowLocalVariableFromBespokeGetterMethod(expressionRHS.getMethodByIndex(0));
+                    flowLocalVariable = getFlowLocalVariableFromBespokeGetterMethod(expressionRHS.getMethodByIndex(0).getMethodDeclaration());
                     flowBuilderLocalVariable = getFlowBuilderLocalVariableFromFlowExpression(flowLocalVariable);
+                } else if (expressionStartType.equals(IkasanClazz.BESKPOKE_CLASS)) {
+                    // Assume its a bespoke class and try to look it up, assume there is a class get'ClassName'
+                    PsiElement bespokeClassVariable = expressionStart.resolve();
+                    if (bespokeClassVariable instanceof PsiVariable) {
+                        String beskpokeClazzName = StudioPsiUtils.getTypeOfVariable((PsiVariable) bespokeClassVariable);
+                        //final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleConfig", ProjectScope.getAllScope(myProject));
+                        // PsiMethod[] psiMethods = cache.getMethodsByName( methodNames, ProjectScope.getProjectScope(project));
+                        PsiClass bespokeClazz = StudioPsiUtils.findFirstClass(getProject(), beskpokeClazzName);
+                        PsiMethod getFlowMethod = StudioPsiUtils.findMethodFromClassByReturnType(bespokeClazz, "org.ikasan.spec.flow.Flow");
+                        flowLocalVariable = getFlowLocalVariableFromBespokeGetterMethod(getFlowMethod);
+                        flowBuilderLocalVariable = getFlowBuilderLocalVariableFromFlowExpression(flowLocalVariable);
+                    }
+
                 } else {
+
                     log.error("Unable to parse methodList [" + methodList + "]");
                 }
 
@@ -498,7 +516,6 @@ public class PIPSIIkasanModel {
             if (skip) {
                 continue;
             } else if (psiElement.getText().contains(setterSignature)) {
-                System.out.println(psiElement);
                 PIPSIMethodList  partialMethodList = extractMethodCallsFromChain(psiElement.getChildren(), new PIPSIMethodList());
                 pipsiMethodList.addAllPIPSIMethod(partialMethodList.getPipsiMethods());
             }
@@ -550,8 +567,7 @@ public class PIPSIIkasanModel {
         } else {
             PsiElement methodOrVariable = firstRHSToken.resolve();
             if (methodOrVariable instanceof PsiVariable) {
-                PsiVariable psiVariable = (PsiVariable) methodOrVariable;
-                ikasanClazz = IkasanClazz.parseClassType(psiVariable.getType().getCanonicalText());
+                ikasanClazz = IkasanClazz.parseClassType(StudioPsiUtils.getTypeOfVariable((PsiVariable) methodOrVariable));  // @todo mabe also inspec annotation for @Resource
             } else if (methodOrVariable instanceof PsiMethod) {
                 ikasanClazz = IkasanClazz.LOCAL_METHOD;
             }
@@ -559,11 +575,14 @@ public class PIPSIIkasanModel {
         return ikasanClazz;
     }
 
+
+
     enum IkasanClazz {
         MODULE_BUILDER("ModuleBuilder", "org.ikasan.builder.ModuleBuilder"),
         FLOW_BUILDER("FlowBuilder", "org.ikasan.builder.FlowBuilder"),
         COMPONENT_BUILDER("ComponentBuilder", "org.ikasan.builder.component.ComponentBuilder"),
         LOCAL_METHOD("", ""),
+        BESKPOKE_CLASS("", ""),
         UNKNOWN("", "");
 
         public final String clazzName;
@@ -580,7 +599,7 @@ public class PIPSIIkasanModel {
                     return ikasaClazz;
                 }
             }
-            return UNKNOWN;
+            return BESKPOKE_CLASS;
         }
     }
 
@@ -663,12 +682,12 @@ public class PIPSIIkasanModel {
      *
      * public Flow getFtpConsumerFlow(ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder)
      *
-     * @param flowGetterMethod
+     * @param myMethod
      * @return
      */
-    protected PsiLocalVariable getFlowLocalVariableFromBespokeGetterMethod(final PIPSIMethod flowGetterMethod) {
+    protected PsiLocalVariable getFlowLocalVariableFromBespokeGetterMethod(final PsiMethod myMethod) {
         PsiLocalVariable flowLocalVariable = null;
-        PsiReferenceExpression flowGetterReturnReference = getlocalVariableFromReturnReferenceForPSIMethod(flowGetterMethod.getMethodDeclaration());
+        PsiReferenceExpression flowGetterReturnReference = getlocalVariableFromReturnReferenceForPSIMethod(myMethod);
 
         if (flowGetterReturnReference != null && flowGetterReturnReference.resolve() != null) {
             flowLocalVariable = (PsiLocalVariable)flowGetterReturnReference.resolve();

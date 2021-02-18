@@ -241,6 +241,12 @@ public class StudioPsiUtils {
         }
     }
 
+    /**
+     * Given a PsiClass, get the first method that matches the method name
+     * @param clazz to examine
+     * @param methodName to look for
+     * @return method name within given class or null if not found.
+     */
     public static JvmMethod findFirstMethod (PsiClass clazz, String methodName) {
         JvmMethod[] methods = clazz.findMethodsByName(methodName);
         if (methods.length > 0) {
@@ -264,6 +270,10 @@ public class StudioPsiUtils {
         if (pipsiIkasanModel.getModuleConfigClazz() != null) {
             pipsiIkasanModel.updateIkasanModule();
         }
+    }
+
+    public static String getTypeOfVariable(PsiVariable psiVariable) {
+        return psiVariable.getType().getCanonicalText();
     }
 
     private static final PIPSIIkasanModel updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
