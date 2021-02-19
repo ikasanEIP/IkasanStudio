@@ -4,13 +4,16 @@
 */
 @org.springframework.stereotype.Component
 public class $flow.JavaClassName {
+@org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
+private String moduleName;
+
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.flow.Flow get${flow.JavaClassName}()
 {
-org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}");
+org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
 org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 

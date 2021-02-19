@@ -25,6 +25,7 @@ public class ModuleConfigTemplateTest extends TestCase {
     @Test
     public void testCreateModuleVelocityWith_oneFlow() throws IOException {
         IkasanModule ikasanModule = new IkasanModule();
+        ikasanModule.setName("myModuleName");
         ikasanModule.addAnonymousFlow(new IkasanFlow());
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);

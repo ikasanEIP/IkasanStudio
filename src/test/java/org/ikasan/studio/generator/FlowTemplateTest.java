@@ -15,14 +15,14 @@ public class FlowTemplateTest extends TestCase {
 
     @Test
     public void testCreateModuleVelocityWith_oneFlow() throws IOException {
+        String TEST_FLOW_NAME = "MyFlow1";
         IkasanModule ikasanModule = new IkasanModule();
         IkasanFlow ikasanFlow = new IkasanFlow();
-        ikasanFlow.setName("MyFlow1");
+        ikasanFlow.setName(TEST_FLOW_NAME);
         ikasanFlow.setDescription("MyFlowDescription");
-//        String className = FlowTemplate.getFlowClassName(ikasanFlow);
-//
-//        String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow, className);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(className + "_oneFlow.java")));
+
+        String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_oneFlow.java")));
     }
 }

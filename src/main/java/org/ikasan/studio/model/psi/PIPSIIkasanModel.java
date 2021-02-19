@@ -267,8 +267,6 @@ public class PIPSIIkasanModel {
                     PsiElement bespokeClassVariable = expressionStart.resolve();
                     if (bespokeClassVariable instanceof PsiVariable) {
                         String beskpokeClazzName = StudioPsiUtils.getTypeOfVariable((PsiVariable) bespokeClassVariable);
-                        //final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleConfig", ProjectScope.getAllScope(myProject));
-                        // PsiMethod[] psiMethods = cache.getMethodsByName( methodNames, ProjectScope.getProjectScope(project));
                         PsiClass bespokeClazz = StudioPsiUtils.findFirstClass(getProject(), beskpokeClazzName);
                         PsiMethod getFlowMethod = StudioPsiUtils.findMethodFromClassByReturnType(bespokeClazz, "org.ikasan.spec.flow.Flow");
                         flowLocalVariable = getFlowLocalVariableFromBespokeGetterMethod(getFlowMethod);

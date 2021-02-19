@@ -8,6 +8,9 @@
 "classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml"
 })
 public class $className {
+@org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
+private String moduleName;
+
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
@@ -20,7 +23,7 @@ ${flow.JavaClassName} ${flow.JavaVariableName};
 public org.ikasan.spec.module.Module myModule()
 {
 // Create a module builder from the builder factory
-org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("${module.name}")
+org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
 #if ( $module.Description )
 .withDescription("${module.Description}")
 #end
