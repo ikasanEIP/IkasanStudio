@@ -20,15 +20,12 @@ org.ikasan.studio.boot.newflow1.Newflow1 newflow1;
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.module.Module myModule()
 {
-// Create a module builder from the builder factory
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
 .withDescription("New Module, please provide description")
 ;
 
-// Create a component builder from the builder factory
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
-// Add the created flow to the module builder and create the module
 org.ikasan.spec.module.Module module = moduleBuilder
 .addFlow(newflow1.getNewflow1())
 .build();

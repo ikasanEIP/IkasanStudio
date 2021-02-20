@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
@@ -49,18 +49,21 @@ public class DesignerCanvas extends JPanel {
         setBorder(BorderFactory.createLineBorder(Color.GRAY));
         setBackground(Color.WHITE);
         addMouseListener(new MouseAdapter() {
+            @Override
             public void mousePressed(MouseEvent e) {
 //                log.trace("Mouse press x "+ e.getX() + " y " + e.getY());
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseReleased(MouseEvent e) {
 //                log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
                 mouseReleaseAction(e, e.getX(),e.getY());
             }
         });
         addMouseMotionListener(new MouseAdapter() {
+            @Override
             public void mouseDragged(MouseEvent e) {
 //                log.trace("DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
                 mouseDragAction(e, e.getX(),e.getY());
@@ -68,6 +71,7 @@ public class DesignerCanvas extends JPanel {
         });
         if (Context.getOption(projectKey).isHintsEnabled()) {
             addMouseMotionListener(new MouseAdapter() {
+                @Override
                 public void mouseMoved(MouseEvent e) {
 //                    log.trace("DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
                     mouseMoveAction(e, e.getX(),e.getY());
@@ -155,7 +159,7 @@ public class DesignerCanvas extends JPanel {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         log.info("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
-        if (mouseSelectedComponent != null && mouseSelectedComponent instanceof IkasanFlowComponent) {
+        if (mouseSelectedComponent instanceof IkasanFlowComponent) {
             screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
             log.info("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
@@ -378,7 +382,7 @@ public class DesignerCanvas extends JPanel {
     private void insertNewComponentBetweenSurroundingPair(IkasanFlow containingFlow, IkasanFlowComponentType ikasanFlowComponentType, int x, int y) {
         // insert new component between surrounding pari
         Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
-       List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
+        List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
         int numberOfComponents = components.size();
         for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
             if (components.get(ii).equals(surroundingComponents.getRight())) {
@@ -420,7 +424,7 @@ public class DesignerCanvas extends JPanel {
 
     public void saveAsImage(File file, String imageFormat, boolean transparentBackground) {
         int imageType = transparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
-        BufferedImage bufferedImage = UIUtil.createImage(getWidth(), getHeight(), imageType);
+        BufferedImage bufferedImage = ImageUtil.createImage(getWidth(), getHeight(), imageType);
         Graphics graphics = bufferedImage.getGraphics();
         if (!transparentBackground) {
             graphics.setColor(JBColor.WHITE);

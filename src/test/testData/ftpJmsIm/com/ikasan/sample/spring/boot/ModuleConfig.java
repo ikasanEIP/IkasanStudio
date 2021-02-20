@@ -26,14 +26,11 @@ public class ModuleConfig {
 
     @Bean
     public org.ikasan.spec.module.Module myModule() {
-// Create a module builder from the builder factory
         ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("My Integration Module")
                 .withDescription("My first integration module.");
 
-// Create a component builder from the builder factory
         ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
-// Add the created flow to the module builder and create the module
         Module module = moduleBuilder
                 .addFlow(get_NewFlow1(moduleBuilder, componentBuilder))
                 .build();

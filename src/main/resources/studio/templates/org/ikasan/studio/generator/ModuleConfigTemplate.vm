@@ -22,17 +22,14 @@ ${studioBasePackage}.${flow.JavaPackageName}.${flow.JavaClassName} ${flow.JavaVa
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.module.Module myModule()
 {
-// Create a module builder from the builder factory
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
 #if ( $module.Description )
 .withDescription("${module.Description}")
 #end
 ;
 
-// Create a component builder from the builder factory
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
-// Add the created flow to the module builder and create the module
 org.ikasan.spec.module.Module module = moduleBuilder
 #foreach( $flow in $module.flows )
 .addFlow(${flow.JavaVariableName}.get${flow.JavaClassName}())
