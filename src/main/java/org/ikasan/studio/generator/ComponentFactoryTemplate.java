@@ -23,7 +23,7 @@ public class ComponentFactoryTemplate extends Generator {
     }
 
     public static String generateContents(IkasanModule ikasanModule) {
-        Map<String, Object> configs = new HashMap<>();
+        Map<String, Object> configs = getVelocityConfigs();
         configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);
         configs.put(FLOWS_TAG, ikasanModule.getFlows());
         configs.put(MODULE_TAG, ikasanModule);

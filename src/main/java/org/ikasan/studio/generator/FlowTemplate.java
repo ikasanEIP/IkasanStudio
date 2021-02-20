@@ -21,13 +21,16 @@ public class FlowTemplate extends Generator {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
         for (IkasanFlow ikasanFlow : ikasanModule.getFlows()) {
             String templateString = generateContents(ikasanModule, ikasanFlow);
-            PsiJavaFile newFile = createTemplateFile(project, STUDIO_BOOT_PACKAGE, ikasanFlow.getJavaClassName(), templateString, true, true);
+            PsiJavaFile newFile = createTemplateFile(project,
+    STUDIO_BOOT_PACKAGE + "." + ikasanFlow.getJavaPackageName(),
+                ikasanFlow.getJavaClassName(),
+                templateString, true, true);
             ikasanFlow.getViewHandler().setPsiJavaFile(newFile);
         }
     }
 
     public static String generateContents(IkasanModule ikasanModule, IkasanFlow ikasanFow) {
-        Map<String, Object> configs = new HashMap<>();
+        Map<String, Object> configs = getVelocityConfigs();
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFow);
         String templateString = VelocityUtils.generateFromTemplate(FLOW_VM, configs);

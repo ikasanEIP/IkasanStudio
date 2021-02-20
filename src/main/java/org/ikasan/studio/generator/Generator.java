@@ -13,6 +13,9 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.PsiTestUtil;
 import org.ikasan.studio.model.StudioPsiUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Generator {
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
@@ -20,6 +23,7 @@ public class Generator {
     public static final String FLOW_TAG = "flow";
     public static final String MODULE_TAG = "module";
     public static final String FLOW_NAME_TAG = "flowName";
+    public static final String STUDIO_BASE_PACKAGE_TAG = "studioBasePackage";
     public static final String STUDIO_BOOT_PACKAGE = "org.ikasan.studio.boot";
     public static final String STUDIO_COMPONENT_PACKAGE = "org.ikasan.studio.component";
 
@@ -90,5 +94,15 @@ public class Generator {
         CodeStyleManager.getInstance(project).reformat(psiFile);
         // Technically this is a testing Util
         PsiTestUtil.checkFileStructure(psiFile);
+    }
+
+    /**
+     * Create the configs map used be volcity templates, pre-populate with configs used by all templates
+     * @return The String to Object map used to populate velocity templates.
+     */
+    protected static Map<String, Object> getVelocityConfigs() {
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(STUDIO_BASE_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
+        return configs;
     }
 }

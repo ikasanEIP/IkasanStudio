@@ -23,7 +23,7 @@ public class PropertiesTemplate extends Generator {
     }
 
     public static String createPropertiesVelocity(IkasanModule ikasanModule) {
-        Map<String, Object> configs = new HashMap<>();
+        Map<String, Object> configs = getVelocityConfigs();
         configs.put(MODULE_TAG, ikasanModule);
         String templateString = VelocityUtils.generateFromTemplate(MODULE_PROPERTIES_VM, configs);
         return templateString;

@@ -34,6 +34,20 @@ public class StudioUtilsTest extends TestCase {
     }
 
     @Test
+    public void testToJavaPackageName() {
+        Assert.assertThat(StudioUtils.toJavaPackageName(""), is(""));
+        Assert.assertThat(StudioUtils.toJavaPackageName("a"), is("a"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("A"), is("a"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("AS"), is("as"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("AS D"), is("asd"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("as d"), is("asd"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("as d    c"), is("asdc"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("Some 1 Text"), is("some1text"));
+        Assert.assertThat(StudioUtils.toJavaPackageName("1test"), is("_1test"));
+    }
+
+
+    @Test
     public void testConfigReader() throws IOException {
         Map<String, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
         Assert.assertThat(properties.size(), is(4));

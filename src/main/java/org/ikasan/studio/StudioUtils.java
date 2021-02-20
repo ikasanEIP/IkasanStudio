@@ -37,6 +37,11 @@ public class StudioUtils {
         return returnString;
     }
 
+    /**
+     * Convert the supplied string so that it confirms to the naming rules for java classnames
+     * @param input string to be converted
+     * @return the input string in the form of a java classname
+     */
     public static String toJavaClassName(final String input) {
         String identifer = toJavaIdentifier(input);
         if (identifer != null && identifer.length() > 0) {
@@ -45,6 +50,23 @@ public class StudioUtils {
         }
         return identifer;
     }
+
+    /**
+     * Convert the supplied string so that it confirms to the naming rules for java package names
+     * @param input string to be converted
+     * @return the input string in the form of a java package
+     */
+    public static String toJavaPackageName(String input) {
+        if (input != null && input.length() > 0) {
+            if (Character.isDigit(input.charAt(0))) {
+                input = "_" + input;
+            }
+            return  input.replaceAll("[^a-zA-Z0-9_]+", "").toLowerCase();
+        } else {
+            return input;
+        }
+    }
+
     /**
      * Pretty much what org.apache.commons.text.CaseUtils does i.e. produce camelCase, but we are limited by what libs Intellij
      * pull into the plugin dependencies.
@@ -69,7 +91,6 @@ public class StudioUtils {
                     if (outputStringLength == 0) {
                         current = Character.toLowerCase(inputString[inputStringIndex]);
                         if (! (Character.isJavaIdentifierStart(current))) {
-                            System.out.println("Noo");
                             continue;
                         }
                     } else {

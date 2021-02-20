@@ -16,7 +16,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 #foreach( $flow in $flows )
 @javax.annotation.Resource
-${flow.JavaClassName} ${flow.JavaVariableName};
+${studioBasePackage}.${flow.JavaPackageName}.${flow.JavaClassName} ${flow.JavaVariableName};
 #end
 
 @org.springframework.context.annotation.Bean

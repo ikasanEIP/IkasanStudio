@@ -109,7 +109,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     public void test_createFile1() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
         PsiFile myFile = StudioPsiUtils.createFile1("bob.java", "public class Bob {} ", myProject);
-        System.out.println("My file was " + myFile.getText());
+//        System.out.println("My file was " + myFile.getText());
 //        StudioPsiUtils.getAllSourceRootsForProject(myProject);
 //        PsiDirectory.
     }

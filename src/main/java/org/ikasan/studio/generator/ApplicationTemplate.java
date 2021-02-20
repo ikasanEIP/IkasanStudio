@@ -19,7 +19,7 @@ public class ApplicationTemplate extends Generator {
     }
 
     public static String generateContents() {
-        Map<String, Object> configs = new HashMap<>();
+        Map<String, Object> configs = getVelocityConfigs();
         configs.put(CLASS_NAME_TAG, APPLICATION_CLASS_NAME);
         return VelocityUtils.generateFromTemplate(APPLICATION_VM, configs);
     }
