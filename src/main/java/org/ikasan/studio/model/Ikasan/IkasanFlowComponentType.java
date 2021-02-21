@@ -20,7 +20,7 @@ public enum IkasanFlowComponentType {
     SCHEDULE_RULE_CHECK_BROKER(IkasanFlowComponentCategory.BROKER, false, "ScheduledRuleCheckBroker"),
 
     DB_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "DBConsumer"),
-    EVENT_DRIVEN_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "eventDrivenConsumer"),
+//    EVENT_DRIVEN_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "eventDrivenConsumer"),  cant seem to find this in Ikasan code base.
     EVENT_GENERATING_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "eventGeneratingConsumer"),
     SCHEDULED_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "scheduledConsumer"),
     FTP_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "ftpConsumer"),

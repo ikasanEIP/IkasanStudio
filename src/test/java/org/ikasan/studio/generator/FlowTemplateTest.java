@@ -40,12 +40,24 @@ public class FlowTemplateTest extends TestCase {
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
         List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.EVENT_GENERATING_CONSUMER, ikasanFlow);
-        component.setName("testEventGeneratinConsumer");
+        component.setName("testEventGeneratingConsumer");
         components.add(component);
 
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_eventGeneratingConsumer.java")));
+    }
+
+    @Test
+    public void testCreateFlowWith_ftpConsumer() throws IOException {
+        List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
+        component.setName("testFtpConsumer");
+        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
+        components.add(component);
+        String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_ftpConsumer.java")));
     }
 
 }

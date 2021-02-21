@@ -21,13 +21,24 @@ org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = flowBuilder
 #if ( $flow.Description && $flow.getDescription.length > 0 )
 .withDescription("$flow.Description")
 #end
+##
 #foreach( $ikasanComponent in $flow.flowComponentList )
 .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}",
 #if ( $ikasanComponent.type.bespokeClass )
 new ${ikasanComponent.properties.bespokeClassName.value}())
 #else
-componentBuilder.${ikasanComponent.type.associatedMethodName}())
+componentBuilder.${ikasanComponent.type.associatedMethodName}()
+#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
+#if( $!{propertyMapEntry.value.value} )
+#*    *##if ( "String" == ${propertyMapEntry.value.meta.dataType.simpleName} )
+#*    *#.set${propertyMapEntry.key}("${propertyMapEntry.value.value}")
+#*    *##else
+#*    *#.set${propertyMapEntry.key}(${propertyMapEntry.value.value})
+#*    *##end
+#* *##end
 #end
+#end
+.build())
 #end
 .build();
 return ${flow.JavaVariableName};

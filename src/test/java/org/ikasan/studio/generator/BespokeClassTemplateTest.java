@@ -20,11 +20,11 @@ public class BespokeClassTemplateTest extends TestCase {
         ikasanModule.addAnonymousFlow(new IkasanFlow());
         IkasanFlow newFlow = ikasanModule.getFlows().get(0);
         IkasanFlowComponent ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.CUSTOM_CONVERTER, newFlow);
-        ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
-        ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
-        ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
-        ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.FROM_TYPE, "java.lang.String");
-        ikasanFlowComponent.setPropertyValue(IkasanComponentPropertyMeta.TO_TYPE, "java.lang.Integer");
+        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
+        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
+        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
+        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.FROM_TYPE, "java.lang.String");
+        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.TO_TYPE, "java.lang.Integer");
 
         newFlow.addFlowComponent(ikasanFlowComponent);
         String templateString = BespokeClassTemplate.generateContents(ikasanFlowComponent);

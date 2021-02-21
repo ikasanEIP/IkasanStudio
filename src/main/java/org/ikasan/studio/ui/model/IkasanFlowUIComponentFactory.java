@@ -64,7 +64,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Channel", CHANNEL_HELP_TEXT, "Readme.md", IkasanFlowComponentType.CHANNEL, "channel"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Channel Adapter", CHANNEL_HELP_TEXT, "Readme.md", IkasanFlowComponentType.CHANNEL, "channel-adapter"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Driven Consumer", CONSUMER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.EVENT_DRIVEN_CONSUMER, "event-driven-consumer"));
+//        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Driven Consumer", CONSUMER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.EVENT_DRIVEN_CONSUMER, "event-driven-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Generating Consumer", CONSUMER_HELP_TEXT, "Readme.md", IkasanFlowComponentType.EVENT_GENERATING_CONSUMER, "event-driven-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Scheduled Consumer", SCHEDULED_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/Readme.md", IkasanFlowComponentType.SCHEDULED_CONSUMER, "scheduled-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Consumer", FTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/ftp/consumer.md", IkasanFlowComponentType.FTP_CONSUMER, "ftp-consumer"));

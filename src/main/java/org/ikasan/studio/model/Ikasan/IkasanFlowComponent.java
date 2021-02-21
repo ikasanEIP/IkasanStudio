@@ -20,8 +20,8 @@ public class IkasanFlowComponent extends IkasanComponent {
         this.type = type;
         this.parent = parent;
         this.properties = type.getMandatoryProperties();
-        setPropertyValue(IkasanComponentPropertyMeta.NAME, name);
-        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
+        updatePropertyValue(IkasanComponentPropertyMeta.NAME, name);
+        updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
         viewHandler = new IkasanFlowComponentViewHandler(this);
     }
 

@@ -18,8 +18,9 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.flow.Flow myflow1 = flowBuilder
-.consumer("testEventGeneratingConsumer",
-componentBuilder.eventGeneratingConsumer()
+.consumer("testFtpConsumer",
+componentBuilder.ftpConsumer()
+.setCronExpression("*/5 * * * * ?")
 .build())
 .build();
 return myflow1;
