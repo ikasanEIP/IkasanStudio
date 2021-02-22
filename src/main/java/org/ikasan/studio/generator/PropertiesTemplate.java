@@ -1,11 +1,9 @@
 package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,6 +20,7 @@ public class PropertiesTemplate extends Generator {
         createResourceFile(project, null, MODULE_PROPERTIES_FILENAME, templateString, false);
     }
 
+    //@todo it might be more effician to have 1 properties file per flow
     public static String createPropertiesVelocity(IkasanModule ikasanModule) {
         Map<String, Object> configs = getVelocityConfigs();
         configs.put(MODULE_TAG, ikasanModule);

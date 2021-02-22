@@ -5,12 +5,16 @@
 @org.springframework.stereotype.Component
 public class $flow.JavaClassName {
 @org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
-## peroperties for all components
+## properties for all components
 #foreach( $ikasanComponent in $flow.flowComponentList )
 #if ( ! $ikasanComponent.type.bespokeClass )
 #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
 #if( $!{propertyMapEntry.value.value} )
-@org.springframework.beans.factory.annotation.Value("${${propertyMapEntry.value.meta.propertyConfigFileLabel}}")
+@org.springframework.beans.factory.annotation.Value("${${flow.javaPackageName}.##
+## Supports scenario where flowname prefix alone is not unique
+#if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
+${propertyMapEntry.value.meta.propertyConfigFileLabel}}")
+##
 ${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable}
 #end
 #end

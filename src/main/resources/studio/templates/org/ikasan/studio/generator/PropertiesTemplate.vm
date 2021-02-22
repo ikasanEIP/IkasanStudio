@@ -43,3 +43,17 @@ ikasan.dashboard.extract.password=
 #foreach($property in $properties)
 ${property.name}=${property.value}
 #end
+##
+## properties for all components
+#foreach( $flow in $module.flows )
+#foreach( $ikasanComponent in $flow.getFlowComponentList() )
+#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
+#if( $!{propertyMapEntry.value.value} )
+${flow.javaPackageName}.##
+## Supports scenario where flowname prefix alone is not unique
+#if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
+${propertyMapEntry.value.meta.propertyConfigFileLabel}=${propertyMapEntry.value.value}
+#end
+#end
+#end
+#end

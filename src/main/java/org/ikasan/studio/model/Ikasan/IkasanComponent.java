@@ -86,6 +86,22 @@ public class IkasanComponent {
     }
 
     /**
+     * Return the name of this component in a format that would be appropriate to be used as a java class name
+     * @return the class name format of the component name.
+     */
+    public String getJavaClassName() {
+        return StudioUtils.toJavaClassName(getName());
+    }
+
+    /**
+     * Return the name of this component in a format that would be appropriate to be used as a component in a package name
+     * @return the package name format of the component name.
+     */
+    public String getJavaPackageName() {
+        return StudioUtils.toJavaPackageName(getName());
+    }
+
+    /**
      * Set the screen name (and indicate the java variable name) for this component
      * @param name for the instance of this component.
      */

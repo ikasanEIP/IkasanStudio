@@ -56,6 +56,7 @@ public class FlowTemplateTest extends TestCase {
         component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
         component.updatePropertyValue("FilenamePattern", "*Test.txt");
         components.add(component);
+
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_ftpConsumer.java")));

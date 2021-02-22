@@ -5,9 +5,9 @@
 @org.springframework.stereotype.Component
 public class Myflow1 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
-@org.springframework.beans.factory.annotation.Value("${ftp.consumer.cronExpression}")
+@org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.cronExpression}")
 java.lang.String  ftpConsumerCronexpression
-@org.springframework.beans.factory.annotation.Value("${ftp.consumer.FilenamePattern}")
+@org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.FilenamePattern}")
 java.lang.String  ftpConsumerFilenamepattern
 private String moduleName;
 
