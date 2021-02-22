@@ -82,7 +82,7 @@ public class StudioUtils {
             boolean toUpper = false;
             for (int inputStringIndex = 0; inputStringIndex < inputStringLength; inputStringIndex++)
             {
-                if (inputString[inputStringIndex] == ' ') {
+                if (inputString[inputStringIndex] == ' ' || inputString[inputStringIndex] == '.') {
                     toUpper = true;
                     continue;
                 }

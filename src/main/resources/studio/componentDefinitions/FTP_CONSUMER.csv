@@ -19,7 +19,7 @@ false|ClientID|ftp.consumer.ClientID|java.lang.String||file filter related optio
 false|Configuration|ftp.consumer.configuration|org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration||Encapsulates all the properties for the (s)ftp configuration into a single bean.
 false|ConnectionTimeout|ftp.consumer.ConnectionTimeout|java.lang.Integer||Default(60000) expressed in milliseconds. Internal (S)FTP connector connection timeout value.
 false|DataTimeout|ftp.consumer.DataTimeout|java.lang.Integer||Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.
-false|Cestructive|ftp.consumer.Destructive|java.lang.Boolean||Default(False) Flag indicating whether the processed file should be deleted after successful consumption
+false|Destructive|ftp.consumer.Destructive|java.lang.Boolean||Default(False) Flag indicating whether the processed file should be deleted after successful consumption
 false|FTPS|ftp.consumer.FTPS|java.lang.Boolean||Optional only available on FTP consumer. Default(false) used to determine if connection is using FTPs
 false|FilterDuplicates|ftp.consumer.FilterDuplicates|java.lang.Boolean||Default(True) Flag indicating whether to filter out duplicates files based on previously persisted meta information. When value set to false no meta data is persisted hence same file could be processed over and over again.
 false|FilterOnFilename|ftp.consumer.FilterOnFilename|java.lang.Boolean||Default(True) Flag indicating whether to include file name when persisting meta information about processed file.

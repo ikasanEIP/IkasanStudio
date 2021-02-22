@@ -31,6 +31,7 @@ public class StudioUtilsTest extends TestCase {
         Assert.assertThat(StudioUtils.toJavaIdentifier("as d"), is("asD"));
         Assert.assertThat(StudioUtils.toJavaIdentifier("as d    c"), is("asDC"));
         Assert.assertThat(StudioUtils.toJavaIdentifier("Some Text"), is("someText"));
+        Assert.assertThat(StudioUtils.toJavaIdentifier("my.package.name"), is("myPackageName"));
     }
 
     @Test

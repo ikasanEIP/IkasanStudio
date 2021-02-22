@@ -60,7 +60,7 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
 
         IkasanFlowComponent ftpConsumer = flow1.getFlowComponentList().get(0);
         Assert.assertThat(ftpConsumer.getName(), is("Ftp Consumer"));
-        Assert.assertThat(ftpConsumer.getProperties().size(), is(28));
+        Assert.assertThat(ftpConsumer.getProperties().size(), is(21));
 
         Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("Ftp Payload to Map Converter"));
         Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("Ftp Jms Producer"));

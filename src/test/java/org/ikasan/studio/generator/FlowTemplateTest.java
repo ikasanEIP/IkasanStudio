@@ -54,6 +54,7 @@ public class FlowTemplateTest extends TestCase {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
         component.setName("testFtpConsumer");
         component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
+        component.updatePropertyValue("FilenamePattern", "*Test.txt");
         components.add(component);
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));

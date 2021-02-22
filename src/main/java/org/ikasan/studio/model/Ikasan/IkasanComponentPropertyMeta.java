@@ -1,6 +1,7 @@
 package org.ikasan.studio.model.Ikasan;
 
 import com.sun.istack.NotNull;
+import org.ikasan.studio.StudioUtils;
 
 import java.util.Objects;
 
@@ -60,6 +61,9 @@ public class IkasanComponentPropertyMeta {
 
     public String getPropertyConfigFileLabel() {
         return propertyConfigFileLabel;
+    }
+    public String getPropertyConfigFileLabelAsVariable() {
+        return StudioUtils.toJavaIdentifier(propertyConfigFileLabel);
     }
     public Class getDataType() {
         return dataType;

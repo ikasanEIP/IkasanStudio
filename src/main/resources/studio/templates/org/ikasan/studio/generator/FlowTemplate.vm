@@ -5,6 +5,17 @@
 @org.springframework.stereotype.Component
 public class $flow.JavaClassName {
 @org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
+## peroperties for all components
+#foreach( $ikasanComponent in $flow.flowComponentList )
+#if ( ! $ikasanComponent.type.bespokeClass )
+#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
+#if( $!{propertyMapEntry.value.value} )
+@org.springframework.beans.factory.annotation.Value("${${propertyMapEntry.value.meta.propertyConfigFileLabel}}")
+${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable}
+#end
+#end
+#end
+#end
 private String moduleName;
 
 @javax.annotation.Resource
@@ -30,12 +41,8 @@ new ${ikasanComponent.properties.bespokeClassName.value}())
 componentBuilder.${ikasanComponent.type.associatedMethodName}()
 #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
 #if( $!{propertyMapEntry.value.value} )
-#*    *##if ( "String" == ${propertyMapEntry.value.meta.dataType.simpleName} )
-#*    *#.set${propertyMapEntry.key}("${propertyMapEntry.value.value}")
-#*    *##else
-#*    *#.set${propertyMapEntry.key}(${propertyMapEntry.value.value})
-#*    *##end
-#* *##end
+#*    *#.set${propertyMapEntry.key}(${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable})
+#end
 #end
 #end
 .build())

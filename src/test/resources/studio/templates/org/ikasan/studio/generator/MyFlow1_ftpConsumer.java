@@ -5,6 +5,10 @@
 @org.springframework.stereotype.Component
 public class Myflow1 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
+@org.springframework.beans.factory.annotation.Value("${ftp.consumer.cronExpression}")
+java.lang.String  ftpConsumerCronexpression
+@org.springframework.beans.factory.annotation.Value("${ftp.consumer.FilenamePattern}")
+java.lang.String  ftpConsumerFilenamepattern
 private String moduleName;
 
 @javax.annotation.Resource
@@ -20,7 +24,8 @@ org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.
 org.ikasan.spec.flow.Flow myflow1 = flowBuilder
 .consumer("testFtpConsumer",
 componentBuilder.ftpConsumer()
-.setCronExpression("*/5 * * * * ?")
+.setCronExpression(ftpConsumerCronexpression)
+.setFilenamePattern(ftpConsumerFilenamepattern)
 .build())
 .build();
 return myflow1;
