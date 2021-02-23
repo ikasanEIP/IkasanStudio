@@ -30,6 +30,7 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
         super.setUp();
     }
 
+
     @Test
     public void test_findFirstMethodByReturnType_finds_file() {
         // Note getTestDataPath() is overriding LightJavaCodeInsightFixtureTestCase

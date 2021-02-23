@@ -11,11 +11,9 @@ import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.psi.search.FilenameIndex;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.ProjectScope;
-import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.search.*;
 import com.intellij.util.IncorrectOperationException;
+import com.mchange.v2.codegen.bean.SimpleProperty;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
@@ -23,8 +21,9 @@ import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.StringTokenizer;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StudioPsiUtils {
@@ -51,6 +50,55 @@ public class StudioPsiUtils {
         }
         return message.toString();
     }
+
+    /**
+     * Attempt to load in all files ending in properties
+     * @todo we could scope this to the JAVA root to avoid catching test properties.
+     * @param project to load the files file
+     * @return a java Properties instance
+     */
+    public static Properties getApplicationProperties(Project project) {
+        Properties properties = new Properties();
+        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(StdFileTypes.PROPERTIES, GlobalSearchScope.projectScope(project));
+        for (VirtualFile virtualFile : virtualFiles) {
+            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+            try {
+                properties.load(new StringReader(psiFile.getText()));
+            } catch (IOException e) {
+                log.error("Problems loading in application properties " + e);
+            }
+        }
+        return properties;
+    }
+
+    public static void findPropertiesFiles(Project project) {
+        List<SimpleProperty> result = new ArrayList<>();
+        Collection<VirtualFile> virtualFiles =
+                FileTypeIndex.getFiles(StdFileTypes.PROPERTIES, GlobalSearchScope.projectScope(project));
+        for (VirtualFile virtualFile : virtualFiles) {
+            PsiFile psiFile = (PsiFile) PsiManager.getInstance(project).findFile(virtualFile);
+            log.warn("Found [" + psiFile.getName() +"] " + System.currentTimeMillis());
+            log.warn("Found [" + psiFile.getText() + "]");
+        }
+    }
+
+    public static String findFile(Project project, String filename) {
+        StringBuffer message = new StringBuffer();
+
+        PsiFile[] files2 = PsiShortNamesCache.getInstance(project).getFilesByName(filename);
+        message.append("method 1 "+ System.currentTimeMillis());
+        for (PsiFile myFile : files2) {
+            message.append("looking for file " + filename + ", found [" + myFile.getName() +"] " + System.currentTimeMillis());
+        }
+
+        message.append("method 2 " + System.currentTimeMillis());
+        PsiFile[] files = FilenameIndex.getFilesByName(project, filename, GlobalSearchScope.projectScope(project));
+        for (PsiFile myFile : files) {
+            message.append("looking for file " + filename + ", found [" + myFile.getName() +"] " + System.currentTimeMillis());
+        }
+        return message.toString();
+    }
+
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
@@ -156,6 +204,7 @@ public class StudioPsiUtils {
 
 
         // Very brute force, go through 52K classes, if its not in project scope ignore, otherwise inspect
+        //@todo maybe we can force this to be governed by convention i.e. agree must be ModuleConfig.java
         //@todo use getSourceRootContaining(JAVA)
         for (String className : cache.getAllClassNames()) {
             PsiClass[] psiClasses = cache.getClassesByName(className, ProjectScope.getProjectScope(project));
@@ -331,12 +380,6 @@ public class StudioPsiUtils {
         PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
         return newFile;
     }
-
-
-
-
-
-
 
 
 

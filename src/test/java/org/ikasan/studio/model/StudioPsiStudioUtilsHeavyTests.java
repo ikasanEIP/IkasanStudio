@@ -104,6 +104,13 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        Assert.assertThat(psiJavaDirectory[0].getName(), is("test"));
 //    }
 
+    @Test
+    public void test_findFile() {
+        StudioPsiUtils.getAllSourceRootsForProject(myProject);
+        String result = StudioPsiUtils.findFile(myProject, "application.properties") ;
+        System.out.println(result);
+    }
+
 
     @Test
     public void test_createFile1() {

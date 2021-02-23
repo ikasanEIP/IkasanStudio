@@ -5,6 +5,7 @@
 @org.springframework.stereotype.Component
 public class $flow.JavaClassName {
 @org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
+private String moduleName;
 ## properties for all components
 #foreach( $ikasanComponent in $flow.flowComponentList )
 #if ( ! $ikasanComponent.type.bespokeClass )
@@ -15,12 +16,11 @@ public class $flow.JavaClassName {
 #if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
 ${propertyMapEntry.value.meta.propertyConfigFileLabel}}")
 ##
-${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable}
+${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable};
 #end
 #end
 #end
 #end
-private String moduleName;
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
