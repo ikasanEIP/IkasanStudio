@@ -14,11 +14,17 @@ public class ComponentPropertyEditBox {
         this.label = componentProperty.getMeta().getPropertyName();
         this.labelField = new JLabel(label);
 
+        // @todo we can have all types of components with rich pattern matching validation
         if (componentProperty.getMeta().getDataType() == java.lang.Integer.class) {
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.textField = new JFormattedTextField(amountFormat);
-            if (componentProperty.getValue() != null) {
-                textField.setValue(componentProperty.getValue());
+            Object value = componentProperty.getValue();
+            if (value != null) {
+                // Coming from a property this may not be the correct type yet
+                if (value instanceof String) {
+                    value = new Integer((String)value);
+                }
+                textField.setValue(value);
             }
         } else {
             // Assume String

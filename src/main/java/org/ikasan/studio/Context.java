@@ -9,6 +9,7 @@ import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * The Context allows all the independent parts of the UI to collaborate with each other.
@@ -19,6 +20,7 @@ import java.util.Map;
 public class Context {
     private static final String CANVAS_PANEL = "canvasPanel";
     private static final String PROJECT = "project";
+    private static final String APPLICATION_PROPERTIES = "applicationProperties";
     private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
     private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
@@ -66,6 +68,15 @@ public class Context {
 
     public static void setProject(String projectKey, Project project) {
         putProjectCache(projectKey, PROJECT, project);
+    }
+
+
+    public static void setApplicationProperties(String projectKey, Properties properties) {
+        putProjectCache(projectKey, APPLICATION_PROPERTIES, properties);
+    }
+
+    public static Properties getApplicationProperties(String projectKey) {
+        return (Properties) getProjectCache(projectKey, APPLICATION_PROPERTIES);
     }
 
     public static void setDesignerCanvas(String projectKey, DesignerCanvas designerCanvas) {

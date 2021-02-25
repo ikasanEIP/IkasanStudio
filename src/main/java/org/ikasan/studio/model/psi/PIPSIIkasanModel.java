@@ -151,6 +151,10 @@ public class PIPSIIkasanModel {
                     PIPSIMethodList moduleMethodList = extractMethodCallsFromChain(getModuleMethodReturnStatement.getChildren(), new PIPSIMethodList());
                     parseModuleStatementRHS(moduleMethodList, moduleConfigClass);
                 } else {
+                    // Need to refresh the Application properties
+                    Properties properties = StudioPsiUtils.getApplicationProperties(getProject());
+                    Context.setApplicationProperties(projectKey, StudioPsiUtils.getApplicationProperties(getProject()));
+
                     PsiElement moduleLocalVariable = localVariableOfReturnStatement.resolve();
                     if (moduleLocalVariable != null) {
                         PIPSIMethodList moduleMethodList = extractMethodCallsFromChain(moduleLocalVariable.getChildren(), new PIPSIMethodList());
@@ -167,7 +171,6 @@ public class PIPSIIkasanModel {
                         log.error("Could not find moduleLocalVariable using moduleBeanMethod [" + getModuleMethod + "] and returnReference [" + localVariableOfReturnStatement + "]");
                     }
                 }
-
             } else {
                 log.error("Could not load moduleBeanMethod using moduleConfigClass [" + moduleConfigClass + "]");
             }
@@ -621,6 +624,36 @@ public class PIPSIIkasanModel {
     }
 
     /**
+     * Examine the provided componentBuilder parameter to determin if it is a Spring @Value, if so, return the
+     * ${key}, otherwise return null
+     * @param componentBuilderMethod to examone
+     * @return either a string representing the Spring @Value key, or null if not applicable
+     */
+    private String getSpringValueKey(PIPSIMethod componentBuilderMethod) {
+        String springValueKey = null;
+        PsiExpression psiExpression = componentBuilderMethod.getParameter(0);
+        if (psiExpression instanceof PsiReferenceExpression) {
+            PsiElement springVariable = ((PsiReferenceExpression)psiExpression).resolve();
+            if (springVariable instanceof  PsiField) {
+                PsiAnnotation[] annotations = ((PsiField)springVariable).getAnnotations();
+                if (annotations.length > 0) {
+                    List annotationAttributes = annotations[0].getAttributes();
+                    if (annotationAttributes != null && ! annotationAttributes.isEmpty()) {
+                        springValueKey = ((PsiNameValuePair)annotationAttributes.get(0)).getLiteralValue();
+                        if (springValueKey!=null && springValueKey.contains("${")) {
+                            springValueKey = springValueKey.replace("$", "")
+                                    .replace("{","")
+                                    .replace("}","");
+                        }
+                    }
+
+                }
+            }
+        }
+        return springValueKey;
+    }
+
+    /**
      * create a new IkasanFlowComponent including any properties that may have been set.
      * @param parent flow for this element
      * @param name of the element
@@ -643,10 +676,18 @@ public class PIPSIIkasanModel {
             else if (methodName.startsWith("set")) {
 //                String propertyName = methodName.replaceFirst("set", "");
 //                //@todo we should be able to get the type as well if we need to
-//                Object propertyValue = componentBuilderMethod.getLiteralParameterAsString(0, true);
+                String springValueKey = getSpringValueKey(componentBuilderMethod);
+                String parameter ;
+                if (springValueKey != null) {
+                    Properties properties = Context.getApplicationProperties(projectKey);
+                    parameter = properties.getProperty(springValueKey);
+                } else {
+                    // A standard literal have been provided.
+                    parameter = componentBuilderMethod.getLiteralParameterAsString(0, true);
+                }
 
                 // Only expect 1 param for the setter
-                flowElementProperties.put(methodName.replaceFirst("set", ""), componentBuilderMethod.getLiteralParameterAsString(0, true));
+                flowElementProperties.put(methodName.replaceFirst("set", ""), parameter);
             } else {
                 // Must be the component type
                 ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.parseMethodName(methodName), parent, name, description);
