@@ -5,24 +5,46 @@
 *
 * @author Ikasan Development Team
 */
-@Configuration
-@ImportResource( {
-"classpath:ikasan-transaction-pointcut-jms.xml",
-"classpath:h2-datasource-conf.xml"
-} )
+@org.springframework.context.annotation.Configuration
 public class ComponentFactory
 {
-@Resource
-private BuilderFactory builderFactory;
+@org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
+private String moduleName;
 
-@Value("${jms.provider.url}")
-private String jmsProviderUrl;
+@javax.annotation.Resource
+org.ikasan.builder.BuilderFactory builderFactory;
 
-Consumer getDBConsumer()
-{
-return builderFactory.getComponentBuilder().scheduledConsumer()
-.setCronExpression(cronExpression)
-.setConfiguredResourceId(dbConsumerConfiguredResourceId)
-.setMessageProvider(personMessageProvider)
-.build();
+## properties for all components
+#foreach( $ikasanComponent in $flow.flowComponentList )
+#if ( ! $ikasanComponent.type.bespokeClass )
+#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
+#if( $!{propertyMapEntry.value.value} )
+@org.springframework.beans.factory.annotation.Value("${${flow.javaPackageName}.##
+## Supports scenario where flowname prefix alone is not unique
+#if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
+${propertyMapEntry.value.meta.propertyConfigFileLabel}}")
+##
+${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable};
+#end
+#end
+#end
+#end
+
+
+##
+#foreach( $ikasanComponent in $flow.flowComponentList )
+public $ikasanComponent.type.elementCategory.baseClass get${ikasanComponent.type.associatedMethodName}() {
+return ##
+    #if ( $ikasanComponent.type.bespokeClass )
+    new ${ikasanComponent.properties.bespokeClassName.value}())
+    #else
+    builderFactory.getComponentBuilder().${ikasanComponent.type.associatedMethodName}()
+        #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
+            #if( $!{propertyMapEntry.value.value} )
+                #*    *#.set${propertyMapEntry.key}(${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable})
+            #end
+        #end
+    #end
+.build(); }
+#end
 }

@@ -63,4 +63,8 @@ public enum IkasanFlowComponentCategory {
     public Integer getDisplayOrder() {
         return displayOrder;
     }
+
+    public String getBaseClass() {
+        return baseClass;
+    }
 }

@@ -6,31 +6,18 @@
 public class $flow.JavaClassName {
 @org.springframework.beans.factory.annotation.Value(#[["${module.name}"]]#)
 private String moduleName;
-## properties for all components
-#foreach( $ikasanComponent in $flow.flowComponentList )
-#if ( ! $ikasanComponent.type.bespokeClass )
-#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
-#if( $!{propertyMapEntry.value.value} )
-@org.springframework.beans.factory.annotation.Value("${${flow.javaPackageName}.##
-## Supports scenario where flowname prefix alone is not unique
-#if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
-${propertyMapEntry.value.meta.propertyConfigFileLabel}}")
-##
-${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable};
-#end
-#end
-#end
-#end
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
+
+@javax.annotation.Resource
+ComponentFactory componentFactory;
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.flow.Flow get${flow.JavaClassName}()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
 org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
-org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = flowBuilder
 #if ( $flow.Description && $flow.getDescription.length > 0 )
@@ -38,18 +25,8 @@ org.ikasan.spec.flow.Flow ${flow.JavaVariableName} = flowBuilder
 #end
 ##
 #foreach( $ikasanComponent in $flow.flowComponentList )
-.${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}",
-#if ( $ikasanComponent.type.bespokeClass )
-new ${ikasanComponent.properties.bespokeClassName.value}())
-#else
-componentBuilder.${ikasanComponent.type.associatedMethodName}()
-#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
-#if( $!{propertyMapEntry.value.value} )
-#*    *#.set${propertyMapEntry.key}(${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable})
-#end
-#end
-#end
-.build())
+.${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}", ##
+componentFactory.get${ikasanComponent.type.associatedMethodName}())
 #end
 .build();
 return ${flow.JavaVariableName};

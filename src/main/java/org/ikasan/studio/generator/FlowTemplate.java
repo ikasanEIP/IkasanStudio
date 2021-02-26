@@ -3,11 +3,9 @@ package org.ikasan.studio.generator;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,10 +19,17 @@ public class FlowTemplate extends Generator {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
         for (IkasanFlow ikasanFlow : ikasanModule.getFlows()) {
             String templateString = generateContents(ikasanModule, ikasanFlow);
-            PsiJavaFile newFile = createTemplateFile(project,
-    STUDIO_BOOT_PACKAGE + "." + ikasanFlow.getJavaPackageName(),
+            String packageName = STUDIO_BOOT_PACKAGE + "." + ikasanFlow.getJavaPackageName();
+            if (!ikasanFlow.getFlowComponentList().isEmpty()) {
+                FlowsComponentFactoryTemplate.create(project, packageName, ikasanModule, ikasanFlow);
+            }
+            PsiJavaFile newFile = createTemplateFile(
+                project,
+                packageName,
                 ikasanFlow.getJavaClassName(),
-                templateString, true, true);
+                templateString,
+                true,
+                true);
             ikasanFlow.getViewHandler().setPsiJavaFile(newFile);
         }
     }
