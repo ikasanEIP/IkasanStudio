@@ -107,8 +107,8 @@ public class PropertiesPanel extends JPanel {
     private JPanel populatePropertiesEditorPanel() {
 
         JPanel propertiesEditorPanel = new JPanel(new GridBagLayout());
-        propertiesEditorPanel.setBackground(Color.WHITE);
         propertiesEditorPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        propertiesEditorPanel.setBackground(Color.WHITE);
 
         if (selectedComponent != null) {
             scrollableGridbagPanel.removeAll();
@@ -171,7 +171,7 @@ public class PropertiesPanel extends JPanel {
 
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty);
-        addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getLabelField(), componentPropertyEditBox.getTextField());
+        addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getLabelField(), componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }
 
