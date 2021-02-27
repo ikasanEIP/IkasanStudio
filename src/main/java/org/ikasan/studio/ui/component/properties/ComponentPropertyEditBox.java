@@ -38,7 +38,6 @@ public class ComponentPropertyEditBox {
 
                 if (value instanceof Boolean) {
                     booleanField.setSelected((Boolean)value);
-//                    booleanField.setSelected(true);
                 }
             }
         }

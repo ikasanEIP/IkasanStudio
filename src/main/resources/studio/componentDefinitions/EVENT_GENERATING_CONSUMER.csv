@@ -1,3 +1,4 @@
 # Event Generating Consumer -
 # NOTE - Every component is assumed to have name and description so they do not need to be included here
+# If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # isConfigMandatory|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or on object that support Object.value(String)|helpText

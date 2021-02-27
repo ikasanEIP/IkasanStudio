@@ -40,7 +40,7 @@ public class PIPSIMethod {
     }
 
     public PsiExpression getParameter(int argumentNumber) {
-        if (parameters != null && parameters.length >=  argumentNumber) {
+        if (parameters != null && parameters.length > argumentNumber) {
             return parameters[argumentNumber];
         } else {
             return null;

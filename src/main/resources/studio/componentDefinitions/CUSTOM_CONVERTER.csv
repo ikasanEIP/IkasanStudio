@@ -1,5 +1,6 @@
 # Custom Converter
 # NOTE - Every component is assumed to have name and description so they do not need to be included here
+# If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # isConfigMandatory|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or on object that support Object.value(String)|helpText
 true|bespokeClassName||java.lang.String|MyConverter|The name of the class that will contain the custom code.
 true|fromType||java.lang.String|java.lang.String|The fully qualified type the the converter will take as input, it can be any String or class that implements Object valueOf(String)

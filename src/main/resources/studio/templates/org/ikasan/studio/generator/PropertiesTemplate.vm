@@ -48,10 +48,12 @@ ${property.name}=${property.value}
 #foreach( $flow in $module.flows )
 #foreach( $ikasanComponent in $flow.getFlowComponentList() )
 #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
-#if( $!{propertyMapEntry.value.value} )
+#if( ${propertyMapEntry.value.meta.propertyConfigFileLabel} != "" && $!{propertyMapEntry.value.value} )
 ${flow.javaPackageName}.##
 ## Supports scenario where flowname prefix alone is not unique
-#if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
+#if ( $!{ikasanComponent.name} != "" )
+${ikasanComponent.javaPackageName}.##
+#end
 ${propertyMapEntry.value.meta.propertyConfigFileLabel}=${propertyMapEntry.value.value}
 #end
 #end

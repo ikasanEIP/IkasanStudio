@@ -18,7 +18,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 #foreach( $ikasanComponent in $flow.flowComponentList )
 #if ( ! $ikasanComponent.type.bespokeClass )
 #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
-#if( $!{propertyMapEntry.value.value} )
+#if( ${propertyMapEntry.value.meta.propertyConfigFileLabel} != "" && $!{propertyMapEntry.value.value} )
 @org.springframework.beans.factory.annotation.Value("${${flow.javaPackageName}.##
 ## Supports scenario where flowname prefix alone is not unique
 #if ( $!{ikasanComponent.name} != "" )${ikasanComponent.javaPackageName}.#end
@@ -30,21 +30,26 @@ ${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.
 #end
 #end
 
-
 ##
 #foreach( $ikasanComponent in $flow.flowComponentList )
 public $ikasanComponent.type.elementCategory.baseClass get${ikasanComponent.type.associatedMethodName}() {
 return ##
-    #if ( $ikasanComponent.type.bespokeClass )
-    new ${ikasanComponent.properties.bespokeClassName.value}())
-    #else
-    builderFactory.getComponentBuilder().${ikasanComponent.type.associatedMethodName}()
-        #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
-            #if( $!{propertyMapEntry.value.value} )
-                #*    *#.set${propertyMapEntry.key}(${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable})
-            #end
-        #end
-    #end
-.build(); }
+#if ( $ikasanComponent.type.bespokeClass )
+new ${ikasanComponent.properties.bespokeClassName.value}())
+#else
+builderFactory.getComponentBuilder().${ikasanComponent.type.associatedMethodName}()
+#foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
+#if( $!{propertyMapEntry.value.value} )
+.set${propertyMapEntry.key}##
+#if ( $!{propertyMapEntry.value.meta.propertyConfigFileLabel} != "" )
+(${propertyMapEntry.value.meta.PropertyConfigFileLabelAsVariable})
+#else
+(${propertyMapEntry.value.value})
+#end
+#end
+#end
+#end
+.build();
+}
 #end
 }

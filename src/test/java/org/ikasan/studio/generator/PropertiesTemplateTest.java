@@ -26,6 +26,7 @@ public class PropertiesTemplateTest extends TestCase {
         ftpConsumerComponent.setName("testFtpConsumer");
         ftpConsumerComponent.updatePropertyValue("CronExpression", "*/5 * * * * ?");
         ftpConsumerComponent.updatePropertyValue("FilenamePattern", "*Test.txt");
+        ftpConsumerComponent.setPropertyValue("Active", ftpConsumerComponent.getType().getProperties().get("Active"), true);
         List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
         components.add(ftpConsumerComponent);
 

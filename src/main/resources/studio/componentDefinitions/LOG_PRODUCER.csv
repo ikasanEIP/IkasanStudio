@@ -1,6 +1,7 @@
 # Log Producer -
 # NOTE - Every component is assumed to have name and description so they do not need to be included here
+# If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # isConfigMandatory|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or on object that support Object.value(String)|helpText
-true|replacementText|log.replacementText|java.lang.String||Replace the matching text with the following string
-true|regExpPattern|log.regExpPattern|java.lang.String||Only display logs matching this text
-true|logEveryNth|log.logEveryNth|java.lang.Long||Only display every 'nth' log message
+true|replacementText||java.lang.String||Replace the matching text with the following string
+true|regExpPattern||java.lang.String||Only display logs matching this text
+true|logEveryNth||java.lang.Long||Only display every 'nth' log message

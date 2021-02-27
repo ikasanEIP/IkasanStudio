@@ -10,12 +10,14 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@javax.annotation.Resource
+ComponentFactory componentFactory;
+
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.flow.Flow getMyflow1()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
 org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlow1");
-org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.flow.Flow myflow1 = flowBuilder
 .build();
