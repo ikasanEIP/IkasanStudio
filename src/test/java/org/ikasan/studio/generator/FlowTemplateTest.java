@@ -26,16 +26,23 @@ public class FlowTemplateTest extends TestCase {
         ikasanFlow = new IkasanFlow();
         ikasanFlow.setName(TEST_FLOW_NAME);
         ikasanFlow.setDescription("MyFlowDescription");
-
     }
 
+    /**
+     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1OneFlow.java
+     * @throws IOException if the template cant be generated
+     */
     @Test
     public void testCreateFlowWith_oneFlow() throws IOException {
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_oneFlow.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
     }
 
+    /**
+     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1_eventGeneratingConsumert.java
+     * @throws IOException if the template cant be generated
+     */
     @Test
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
         List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
@@ -45,21 +52,20 @@ public class FlowTemplateTest extends TestCase {
 
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_eventGeneratingConsumer.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "EventGeneratingConsumer.java")));
     }
 
+    /**
+     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpComponent.java
+     * @throws IOException if the template cant be generated
+     */
     @Test
     public void testCreateFlowWith_ftpConsumer() throws IOException {
-        List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
-        component.setName("testFtpConsumer");
-        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
-        component.updatePropertyValue("FilenamePattern", "*Test.txt");
-        components.add(component);
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
 
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "_ftpConsumer.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpComponent.java")));
     }
 
 }

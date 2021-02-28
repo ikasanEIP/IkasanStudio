@@ -35,27 +35,13 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-//import org.jetbrains.java.generate.element.*;
-//import org.jetbrains.java.generate.velocity.VelocityFactory;
-//
-//import java.io.StringWriter;
-//import java.util.*;
-//
-//public class VelocityUtils {
-//}
-//
 
-//final PsiClass aClass = JavaPsiFacade.getElementFactory(project).createClassFromText(text, null).getInnerClasses()[0];
-//        return JavaPsiFacade.getElementFactory(project).createType(aClass);
 
 /**
  * Try to avoid using the velocity templates / manager within Intellij to insulate from (frequent) internal Intellij (breaking) updates.
  */
 public final class VelocityUtils {
     public static final String VELOCITY_TEMPLATE_PATH = "studio/templates/org/ikasan/studio/generator/";
-//    public static final String VELOCITY_TEMPLATE_PATH = "/org/ikasan/studio/generator/";
-
-//    private static final Logger LOG = Logger.getInstance(org.jetbrains.java.generate.GenerationUtil.class);
     private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(StudioMaintenanceDebug.class);
 
     private static String APPLICATION_CLASS_IMP =
@@ -301,7 +287,7 @@ public final class VelocityUtils {
         }
 
         StringWriter writer = new StringWriter();
-        VelocityEngine ve = new VelocityEngine();
+        org.apache.velocity.app.VelocityEngine ve = new org.apache.velocity.app.VelocityEngine();
         ve.init();
         ve.evaluate(context,  writer, templateName, template );
         String output = writer.toString();

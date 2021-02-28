@@ -19,7 +19,7 @@ public class ModuleConfigTemplateTest extends TestCase {
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "_emptyIkasanModel.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java")));
     }
 
     @Test
@@ -30,6 +30,6 @@ public class ModuleConfigTemplateTest extends TestCase {
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "_oneFlow.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java")));
     }
 }

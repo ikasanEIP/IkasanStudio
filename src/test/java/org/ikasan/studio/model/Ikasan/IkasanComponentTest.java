@@ -21,7 +21,7 @@ public class IkasanComponentTest extends TestCase {
         ikasanComponent.setName("MyName");
         ikasanComponent.setDescription("MyDescription");
         ikasanComponent.setPropertyValue(newPropertyKey,
-                new IkasanComponentPropertyMeta(false, newPropertyKey, "configLabel", java.lang.String.class, null, ""),
+                new IkasanComponentPropertyMeta(false, false, newPropertyKey, "configLabel", java.lang.String.class, null, ""),
                 newPropertyValue);
 
         Map<String, IkasanComponentProperty> standardProperties = ikasanComponent.getStandardProperties();

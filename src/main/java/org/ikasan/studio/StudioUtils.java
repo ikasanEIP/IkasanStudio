@@ -117,12 +117,13 @@ public class StudioUtils {
     }
 
     private static int MANDATORY_INDEX = 0;
-    private static int NAME_INDEX = 1;
-    private static int PROPERTY_CONFIG_LABEL_INDEX = 2;
-    private static int CLASS_INDEX = 3;
-    private static int DEFAULT_VALUE_INDEX = 4;
-    private static int HELP_INDEX = 5;
-    private static int NUMBER_OF_CONFIGS = 6;
+    private static int USER_IMPLEMENTED_CLASS_INDEX = 1;
+    private static int NAME_INDEX = 2;
+    private static int PROPERTY_CONFIG_LABEL_INDEX = 3;
+    private static int CLASS_INDEX = 4;
+    private static int DEFAULT_VALUE_INDEX = 5;
+    private static int HELP_INDEX = 6;
+    private static int NUMBER_OF_CONFIGS = 7;
     private static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
@@ -152,6 +153,11 @@ public class StudioUtils {
                     if (split[MANDATORY_INDEX].equals("true")) {
                         isMandatory = true;
                     }
+                    // isUserImplementedClass
+                    boolean isUserImplementedClass = false;
+                    if (split[USER_IMPLEMENTED_CLASS_INDEX].equals("true")) {
+                        isUserImplementedClass = true;
+                    }
                     // propertyConfigLabel
                     final String propertyConfigLabel = split[PROPERTY_CONFIG_LABEL_INDEX];
                     if (propertyConfigLabel != null && propertyConfigLabel.length() > 0) {
@@ -175,7 +181,7 @@ public class StudioUtils {
                     //  default value
                     Object defaultValue = getDefaultValue(split, dataTypeOfProperty, line,  propertiesFile);
 
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, split[NAME_INDEX], propertyConfigLabel, dataTypeOfProperty, defaultValue, split[HELP_INDEX]);
+                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, isUserImplementedClass, split[NAME_INDEX], propertyConfigLabel, dataTypeOfProperty, defaultValue, split[HELP_INDEX]);
                     componentProperties.put(split[NAME_INDEX], ikasanComponentPropertyMeta);
                 }
             } catch (IOException ioe) {

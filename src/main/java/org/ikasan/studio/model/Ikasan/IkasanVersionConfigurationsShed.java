@@ -16,13 +16,13 @@ public class IkasanVersionConfigurationsShed {
 
     static {
         List<IkasanComponentPropertyMeta> commonProperties = new ArrayList<>();
-        commonProperties.add(new IkasanComponentPropertyMeta(true, IkasanComponentPropertyMeta.NAME, "", String.class, "", "Display Name"));
+        commonProperties.add(new IkasanComponentPropertyMeta(true, false, IkasanComponentPropertyMeta.NAME, "", String.class, "", "Display Name"));
 
         List<IkasanComponentPropertyMeta> scheduleConsumerProperties = new ArrayList<>();
-        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta("ignoreMisfire", "", Boolean.class, "true", "Default is false. When false the scheduler will try to fire any misfires as soon as possible. When true this will tell the scheduler to ignore misfires and wait for the next scheduled time."));
-        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta("eager", "", Boolean.class, "true", "Tells the consumer to immediately re-schedule itself to invoke again, regardless of the initial cron schedule. This is useful for consumers dealing with lots of data which can be continuously consumed until exhausted, at which point it returns to its initial cron schedule."));
-        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta("maxEagerCallbacks", "", Integer.class, 0, "        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta(\"maxEagerCallbacks\", Integer.class, \"Default is false. When false the scheduler will try to fire any misfires as soon as possible. When true this will tell the scheduler to ignore misfires and wait for the next scheduled time.\"));\n"));
-        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta("timezone", "", String.class, null, "Optional timezone used by Quartz scheduler."));
+        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta(false, false, "ignoreMisfire", "", Boolean.class, "true", "Default is false. When false the scheduler will try to fire any misfires as soon as possible. When true this will tell the scheduler to ignore misfires and wait for the next scheduled time."));
+        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta(false, false, "eager", "", Boolean.class, "true", "Tells the consumer to immediately re-schedule itself to invoke again, regardless of the initial cron schedule. This is useful for consumers dealing with lots of data which can be continuously consumed until exhausted, at which point it returns to its initial cron schedule."));
+        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta(false, false, "maxEagerCallbacks", "", Integer.class, 0, "        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta(\"maxEagerCallbacks\", Integer.class, \"Default is false. When false the scheduler will try to fire any misfires as soon as possible. When true this will tell the scheduler to ignore misfires and wait for the next scheduled time.\"));\n"));
+        scheduleConsumerProperties.add(new IkasanComponentPropertyMeta(false, false, "timezone", "", String.class, null, "Optional timezone used by Quartz scheduler."));
         Map<IkasanFlowComponentType, List<IkasanComponentPropertyMeta>> flowElementTypeMap = new HashMap<>();
 
         flowElementTypeMap.put(IkasanFlowComponentType.SCHEDULED_CONSUMER, scheduleConsumerProperties);

@@ -51,14 +51,21 @@ public class StudioUtilsTest extends TestCase {
     @Test
     public void testConfigReader() throws IOException {
         Map<String, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
-        Assert.assertThat(properties.size(), is(4));
+        Assert.assertThat(properties.size(), is(5));
         IkasanComponentPropertyMeta additionalName = properties.get("additionalName");
         IkasanComponentPropertyMeta name = properties.get("name");
         IkasanComponentPropertyMeta other = properties.get("other");
         IkasanComponentPropertyMeta total = properties.get("total");
-        Assert.assertThat(additionalName.toString(), is("IkasanComponentPropertyMeta{mandatory=true, propertyName='additionalName', propertyConfigFileLabel='', dataType=class java.lang.String, defaultValue=MyDefault, helpText='The name of the component'}"));
-        Assert.assertThat(name.toString(), is("IkasanComponentPropertyMeta{mandatory=true, propertyName='name', propertyConfigFileLabel='null', dataType=class java.lang.String, defaultValue=, helpText='The name of the component as displayed on diagrams, also used for the variable name in the generated code.'}"));
-        Assert.assertThat(other.toString(), is("IkasanComponentPropertyMeta{mandatory=false, propertyName='other', propertyConfigFileLabel='', dataType=class java.lang.Integer, defaultValue=null, helpText='Total description'}"));
-        Assert.assertThat(total.toString(), is("IkasanComponentPropertyMeta{mandatory=false, propertyName='total', propertyConfigFileLabel='my.test.total', dataType=class java.lang.Integer, defaultValue=2, helpText='Total description'}"));
+        IkasanComponentPropertyMeta userImplementedClass = properties.get("userImplementedClass");
+        Assert.assertThat(additionalName.toString(), is(
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='additionalName', propertyConfigFileLabel='', dataType=class java.lang.String, defaultValue=MyDefault, helpText='The name of the component'}"));
+        Assert.assertThat(name.toString(), is(
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='name', propertyConfigFileLabel='null', dataType=class java.lang.String, defaultValue=, helpText='The name of the component as displayed on diagrams, also used for the variable name in the generated code.'}"));
+        Assert.assertThat(other.toString(), is(
+            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='other', propertyConfigFileLabel='', dataType=class java.lang.Integer, defaultValue=null, helpText='Total description'}"));
+        Assert.assertThat(total.toString(), is(
+            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='total', propertyConfigFileLabel='my.test.total', dataType=class java.lang.Integer, defaultValue=2, helpText='Total description'}"));
+        Assert.assertThat(userImplementedClass.toString(), is(
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, propertyName='userImplementedClass', propertyConfigFileLabel='', dataType=class java.lang.Object, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
     }
 }

@@ -5,10 +5,19 @@
 
   <appender name="console" class="org.apache.log4j.ConsoleAppender">
     <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern"
-             value="%d [%7r] %6p - %30.30c - %m \n"/>
+      <param name="ConversionPattern" value="%d [%7r] %6p - %30.30c - %m \n"/>
     </layout>
   </appender>
+
+  <logger name="org.apache.velocity.runtime.RuntimeInstanc">
+    <level value="DEBUG" />
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="org.apache.velocity.runtime.RuntimeInstanc">
+    <level value="DEBUG" />
+    <appender-ref ref="file" />
+  </logger>
 
   <appender name="file" class="org.apache.log4j.FileAppender">
     <param name="File" value="./guitest.log" />
@@ -19,7 +28,7 @@
   </appender>
 
   <root>
-    <level value="INFO"/>
+    <level value="DEBUG"/>
     <appender-ref ref="console"/>
     <appender-ref ref="file"/>
   </root>

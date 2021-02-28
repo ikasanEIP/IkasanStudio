@@ -2,15 +2,12 @@ package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
 import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
 import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -29,18 +26,16 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
         ikasanFlow.setDescription("MyFlowDescription");
     }
 
+    /**
+     * @See resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedFtpComponent.java
+     * @throws IOException if the template cant be generated
+     */
     @Test
-    public void testCreateFlowWith_ftpConsumer() throws IOException {
-        List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
-        component.setName("testFtpConsumer");
-        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
-        component.updatePropertyValue("FilenamePattern", "*Test.txt");
-        component.setPropertyValue("Active", component.getType().getProperties().get("Active"), true);
-        components.add(component);
+    public void testCreateFlowWith_fullyPopulatedFtpComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
 
         String templateString = FlowsComponentFactoryTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_COMPONENT_FACTORY + ".java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpComponent.java")));
     }
 }

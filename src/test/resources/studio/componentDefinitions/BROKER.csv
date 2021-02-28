@@ -1,8 +1,16 @@
 # Broker
 # NOTE - Every component is assumed to have name and description so they do not need to be included here
-# isConfigMandatory|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or on object that support Object.value(String)|helpText
-true|additionalName||java.lang.String|MyDefault|The name of the component
-false|total|my.test.total|java.lang.Integer|2|Total description
-false|total||java.lang.Integer||This should be ignored as a duplicate
-false|xx|my.test.total|java.lang.Integer||This should be ignored as a duplicate propertyConfiLabel
-false|other||java.lang.Integer||Total description
+#
+# isConfigMandatory - Mandatory for the component to be deemed to be complete
+# isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+# configName - Name of the property, used on input screens and to generate variable names
+# propertyConfigFileLabel - Identifies the spring injected property name
+#
+# If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
+# isConfigMandatory|isUserImplementedClass|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+true|false|additionalName||java.lang.String|MyDefault|The name of the component
+false|false|total|my.test.total|java.lang.Integer|2|Total description
+false|false|total||java.lang.Integer||This should be ignored as a duplicate
+false|false|xx|my.test.total|java.lang.Integer||This should be ignored as a duplicate propertyConfiLabel
+false|false|other||java.lang.Integer||Total description
+true|true|userImplementedClass||java.lang.Object||This type of class will be implemented by the user, typically implementing an Ikasan interface

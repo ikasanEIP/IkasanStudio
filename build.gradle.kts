@@ -54,11 +54,18 @@ repositories {
 }
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.15.0")
+// For now, pause the use of V2.2, too many issues with Plugin clashes.
+//    api("org.apache.velocity:velocity-engine-core:2.2")
+//    implementation("org.apache.velocity:velocity-engine-core:2.2")
     implementation("org.ikasan:ikasan-eip-standalone:3.0.1")
     implementation("org.ikasan:ikasan-h2-standalone-persistence:3.0.1")
+//    testImplementation("org.apache.velocity:velocity-engine-core:2.2")
     testImplementation("org.ikasan:ikasan-eip-standalone:3.0.1")
     testImplementation("org.ikasan:ikasan-test-endpoint:3.0.1")
     testImplementation("org.ikasan:ikasan-test:3.0.1")
+    testImplementation("org.ikasan:ikasan-ftp-endpoint:3.0.1")
+    testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.0.1")
+    testImplementation("org.ikasan:ikasan-component-converter:3.0.1")
 }
 
 // Configure gradle-intellij-plugin plugin.
