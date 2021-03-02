@@ -9,16 +9,6 @@
     </layout>
   </appender>
 
-  <logger name="org.apache.velocity.runtime.RuntimeInstanc">
-    <level value="DEBUG" />
-    <appender-ref ref="console" />
-  </logger>
-
-  <logger name="org.apache.velocity.runtime.RuntimeInstanc">
-    <level value="DEBUG" />
-    <appender-ref ref="file" />
-  </logger>
-
   <appender name="file" class="org.apache.log4j.FileAppender">
     <param name="File" value="./guitest.log" />
     <param name="Append" value="true" />
