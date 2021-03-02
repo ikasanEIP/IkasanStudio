@@ -21,9 +21,9 @@ import java.util.TreeMap;
 public class StudioUtils {
     private static final Logger log = Logger.getLogger(StudioUtils.class);
     /**
-     * Given a string deleimited by tokens e.g. this.is.my.class.bob then get the last string, bob in thei case
+     * Given a string delimited by tokens e.g. this.is.my.class.bob then get the last string, bob in this case
      * @param delimeter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
-     * @param input strung to analyse
+     * @param input string to analyse
      * @return The last stoken of the string or an empty sp
      */
     public static String getLastToken(String delimeter, String input) {
@@ -32,6 +32,25 @@ public class StudioUtils {
             String [] tokens = input.split(delimeter, -1);
             if (tokens.length > 0) {
                 returnString = tokens[tokens.length-1];
+            }
+        }
+        return returnString;
+    }
+
+    /**
+     * Given a string delimited by tokens e.g. this.is.my.class.bob then get all but the last string, this.is.my.class in this case
+     * @param delimeter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
+     * @param input string to analyse
+     * @return All but the last stoken of the string or an empty sp
+     */
+    public static String getAllButLastToken(String delimeter, String input) {
+        String returnString = "";
+        if (input != null && delimeter != null) {
+            String [] tokens = input.split(delimeter, -1);
+            if (tokens.length > 1) {
+                returnString = tokens[0];
+                for(int ii = 1; ii < tokens.length-1 ; ii++)
+                returnString += "." + tokens[ii];
             }
         }
         return returnString;

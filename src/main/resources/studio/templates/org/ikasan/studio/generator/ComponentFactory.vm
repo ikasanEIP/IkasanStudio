@@ -35,7 +35,7 @@ ${propertyMapEntry.value.meta.dataType.CanonicalName}  ${propertyMapEntry.value.
 public $ikasanComponent.type.elementCategory.baseClass get${ikasanComponent.type.associatedMethodName}() {
 return ##
 #if ( $ikasanComponent.type.bespokeClass )
-new ${ikasanComponent.properties.bespokeClassName.value}())
+new ${ikasanComponent.properties.bespokeClassName.value}();
 #else
 builderFactory.getComponentBuilder().${ikasanComponent.type.associatedMethodName}()
 #foreach( $propertyMapEntry in $ikasanComponent.StandardProperties.entrySet() )
@@ -48,8 +48,8 @@ builderFactory.getComponentBuilder().${ikasanComponent.type.associatedMethodName
 #end
 #end
 #end
-#end
 .build();
+#end
 }
 #end
 }

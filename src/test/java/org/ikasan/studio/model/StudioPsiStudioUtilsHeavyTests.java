@@ -107,7 +107,8 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     @Test
     public void test_findFile() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
-        String result = StudioPsiUtils.findFile(myProject, "application.properties") ;
+//        String result = StudioPsiUtils.findFile(myProject, "application.properties") ;
+        String result = StudioPsiUtils.findFile(myProject, "pom.xml") ;
         System.out.println(result);
     }
 

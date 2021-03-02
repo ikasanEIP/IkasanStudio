@@ -8,6 +8,6 @@
 #
 # If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # isConfigMandatory|isUserImplementedClass|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
-true|false|bespokeClassName||java.lang.String|MyConverter|The name of the class that will contain the custom code.
+true|true|bespokeClassName||java.lang.String|org.user.MyConverter|The name of the class that will contain the custom code.
 true|false|fromType||java.lang.String|java.lang.String|The fully qualified type the the converter will take as input, it can be any String or class that implements Object valueOf(String)
 true|false|toType||java.lang.String|java.lang.String|The fully qualified type that the converter will create, it can be any String or class that implements Object valueOf(String)

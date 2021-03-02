@@ -22,6 +22,18 @@ public class StudioUtilsTest extends TestCase {
     }
 
     @Test
+    public void test_get_all_but_last_token_with_multiple_tokens() {
+        String actual = StudioUtils.getAllButLastToken("\\.", "this.is.dot.delim");
+        Assert.assertThat(actual, is("this.is.dot"));
+
+        String actual2 = StudioUtils.getAllButLastToken("\\.", "this.delim");
+        Assert.assertThat(actual2, is("this"));
+
+        String actual3 = StudioUtils.getAllButLastToken("\\.", "delim");
+        Assert.assertThat(actual3, is(""));
+    }
+
+    @Test
     public void testToJavaIdentifier() {
         Assert.assertThat(StudioUtils.toJavaIdentifier(""), is(""));
         Assert.assertThat(StudioUtils.toJavaIdentifier("a"), is("a"));

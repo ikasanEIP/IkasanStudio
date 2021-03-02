@@ -25,6 +25,7 @@ public class Generator {
     public static final String FLOW_NAME_TAG = "flowName";
     public static final String STUDIO_BASE_PACKAGE_TAG = "studioBasePackage";
     public static final String STUDIO_BOOT_PACKAGE = "org.ikasan.studio.boot";
+    public static final String STUDIO_BESPOKE_PACKAGE = "org.user";
     public static final String STUDIO_COMPONENT_PACKAGE = "org.ikasan.studio.component";
 
     // Enforce Utility class.

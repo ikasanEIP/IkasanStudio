@@ -73,7 +73,7 @@ public class PIPSIIkasanModel {
                 () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
                         ApplicationTemplate.create(project);
-                        generateBespokeConponents(project);
+//                        generateBespokeConponents(project);
                         FlowTemplate.create(project);
                         ModuleConfigTemplate.create(project);
                         PropertiesTemplate.create(project);

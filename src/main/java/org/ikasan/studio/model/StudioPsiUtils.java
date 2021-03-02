@@ -86,16 +86,20 @@ public class StudioPsiUtils {
         StringBuffer message = new StringBuffer();
 
         PsiFile[] files2 = PsiShortNamesCache.getInstance(project).getFilesByName(filename);
-        message.append("method 1 "+ System.currentTimeMillis());
+        long t1 = System.currentTimeMillis();
+        message.append("looking for file " + filename + " method 1 found [");
         for (PsiFile myFile : files2) {
-            message.append("looking for file " + filename + ", found [" + myFile.getName() +"] " + System.currentTimeMillis());
+            message.append("" + myFile.getName());
         }
+        long t2 = System.currentTimeMillis();
 
-        message.append("method 2 " + System.currentTimeMillis());
+        message.append("] method 2 found [");
         PsiFile[] files = FilenameIndex.getFilesByName(project, filename, GlobalSearchScope.projectScope(project));
         for (PsiFile myFile : files) {
-            message.append("looking for file " + filename + ", found [" + myFile.getName() +"] " + System.currentTimeMillis());
+            message.append("" + myFile.getName() +"] ");
         }
+        long t3 = System.currentTimeMillis();
+        message.append("] method 1 = " + (t2-t1) + " ms method 2 = " + (t3-t2));
         return message.toString();
     }
 

@@ -53,8 +53,6 @@ public final class VelocityUtils {
                     "public class Application { public static void main(String[] args) {" +
                     "org.springframework.boot.SpringApplication.run(Application.class, args);}}";
 
-
-
     /**
      * Handles any exception during the executing on this plugin.
      *
@@ -287,7 +285,7 @@ public final class VelocityUtils {
         }
 
         StringWriter writer = new StringWriter();
-        org.apache.velocity.app.VelocityEngine ve = new org.apache.velocity.app.VelocityEngine();
+        VelocityEngine ve = new VelocityEngine();
         ve.init();
         ve.evaluate(context,  writer, templateName, template );
         String output = writer.toString();

@@ -22,6 +22,7 @@ public class FlowTemplate extends Generator {
             String packageName = STUDIO_BOOT_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             if (!ikasanFlow.getFlowComponentList().isEmpty()) {
                 FlowsComponentFactoryTemplate.create(project, packageName, ikasanModule, ikasanFlow);
+                FlowsBespokeClassTemplate.create(project, packageName, ikasanModule, ikasanFlow);
             }
             PsiJavaFile newFile = createTemplateFile(
                 project,
