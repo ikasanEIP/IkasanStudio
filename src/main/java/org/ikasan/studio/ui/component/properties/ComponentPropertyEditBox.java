@@ -11,13 +11,16 @@ public class ComponentPropertyEditBox {
     private JLabel labelField;
     private JFormattedTextField textField;
     private JCheckBox booleanField;
+    private Class type;
 
     public ComponentPropertyEditBox(IkasanComponentProperty componentProperty) {
         this.label = componentProperty.getMeta().getPropertyName();
         this.labelField = new JLabel(label);
+        type = componentProperty.getMeta().getDataType();
         Object value = componentProperty.getValue();
+
         // @todo we can have all types of components with rich pattern matching validation
-        if (componentProperty.getMeta().getDataType() == java.lang.Integer.class) {
+        if (type == java.lang.Integer.class) {
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.textField = new JFormattedTextField(amountFormat);
             if (value != null) {
@@ -27,7 +30,7 @@ public class ComponentPropertyEditBox {
                 }
                 textField.setValue(value);
             }
-        } else if (componentProperty.getMeta().getDataType() == java.lang.Boolean.class) {
+        } else if (type == java.lang.Boolean.class) {
             this.booleanField = new JCheckBox();
             booleanField.setBackground(Color.WHITE);
             if (value != null) {
@@ -65,13 +68,27 @@ public class ComponentPropertyEditBox {
     }
 
     public Object getValue() {
-        // The formatter would be null if this was a standard text field.
-        if (booleanField != null) {
+        if (type == java.lang.Boolean.class) {
             return booleanField.isSelected();
-        } else if (textField.getFormatter() == null) {
+        } else if (type == java.lang.String.class) {
+            // The formatter would be null if this was a standard text field.
             return textField.getText();
         } else {
             return textField.getValue();
         }
+    }
+
+    /**
+     * For the given field type, determine if a valid value has been set.
+     * @return true if the field is empty or unset
+     */
+    public boolean isEmpty() {
+        // For boolean we don't current support unset @todo support unset if we need to
+        if (type == java.lang.String.class) {
+            return textField.getText() == null || textField.getText().isEmpty();
+        } else if (type == java.lang.Integer.class) {
+            return textField.getValue() == null || ((Integer)textField.getValue() != 0);
+        }
+        return false;
     }
 }

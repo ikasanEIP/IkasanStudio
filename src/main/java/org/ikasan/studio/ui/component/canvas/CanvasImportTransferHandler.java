@@ -52,7 +52,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         final Component targetComponent = support.getComponent();
         final DataFlavor destinationSupportedflavors[] = support.getDataFlavors();
 
-        log.info("Can import check " + targetComponent);
+        log.trace("Can import check " + targetComponent);
         // Only allow drop (not paste) and ignore unless on canvas
         if (! support.isDrop() ||
             !(targetComponent instanceof DesignerCanvas)) {

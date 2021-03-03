@@ -13,6 +13,8 @@ import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
+import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
@@ -340,7 +342,7 @@ public class DesignerCanvas extends JPanel {
     public boolean requestToAddComponent(int x, int y, IkasanFlowComponentType ikasanFlowComponentType) {
         if (x >= 0 && y >=0 && ikasanFlowComponentType != null) {
             IkasanComponent ikasanComponent = getComponentAtXY(x,y);
-
+            IkasanFlowComponent newComponent = null;
             // Add new component to existing flow
             if (ikasanComponent instanceof  IkasanFlowComponent || ikasanComponent instanceof  IkasanFlow) {
                 IkasanFlow containingFlow = null;
@@ -355,11 +357,21 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
 
-                insertNewComponentBetweenSurroundingPair(containingFlow, ikasanFlowComponentType, x, y);
+                newComponent = createViableComponent(ikasanFlowComponentType, containingFlow);
+                if (newComponent != null) {
+                    insertNewComponentBetweenSurroundingPair(containingFlow, ikasanFlowComponentType, x, y);
+                } else {
+                    return false;
+                }
             } else {
                 IkasanFlow newFlow = new IkasanFlow();
                 ikasanModule.addAnonymousFlow(newFlow);
-                newFlow.addFlowComponent(IkasanFlowComponent.getInstance(ikasanFlowComponentType, newFlow));
+                newComponent = createViableComponent(ikasanFlowComponentType, newFlow);
+                if (newComponent != null) {
+                    newFlow.addFlowComponent(newComponent);
+                } else {
+                    return false;
+                }
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel();
@@ -371,6 +383,26 @@ public class DesignerCanvas extends JPanel {
             return false;
         }
     }
+
+    private IkasanFlowComponent createViableComponent(IkasanFlowComponentType ikasanFlowComponentType, IkasanFlow containingFlow) {
+        IkasanFlowComponent newComponent = IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow);
+        if (newComponent.hasUnsetMandatoryProperties()) {
+
+            PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
+            propertiesPanel.updatePropertiesPanel(newComponent);
+
+
+            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(propertiesPanel);
+
+
+            if (! propertiesDialogue.showAndGet()) {
+                // i.e. cancel.
+                newComponent = null;
+            }
+        }
+        return newComponent;
+    }
+
 
     /**
      * Now we have validated it is OK to add the component, insert it at the drag point
@@ -390,6 +422,29 @@ public class DesignerCanvas extends JPanel {
                 break;
             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
                 components.add(ii+1, IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow));
+                break;
+            }
+        }
+    }
+
+    /**
+     * Now we have validated it is OK to add the component, insert it at the drag point
+     * @param containingFlow holding the new component
+     * @param ikasanFlowComponent to be added
+     * @param x location of the drop
+     * @param y location of the drop
+     */
+    private void insertNewComponentBetweenSurroundingPair(IkasanFlow containingFlow, IkasanFlowComponent ikasanFlowComponent, int x, int y) {
+        // insert new component between surrounding pari
+        Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
+        List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
+        int numberOfComponents = components.size();
+        for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
+            if (components.get(ii).equals(surroundingComponents.getRight())) {
+                components.add(ii, ikasanFlowComponent);
+                break;
+            } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
+                components.add(ii+1, ikasanFlowComponent);
                 break;
             }
         }

@@ -23,19 +23,26 @@ public class PropertiesPanel extends JPanel {
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
 
     private String projectKey;
+    private Boolean popupMode;
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private JCheckBox overrideCheckBox ;
     JButton okButton = new JButton("Update Code");
     private ScrollableGridbagPanel scrollableGridbagPanel;
 
-    public PropertiesPanel(String projectKey) {
+    public PropertiesPanel(String projectKey, Boolean popupMode) {
         super();
         this.projectKey = projectKey ;
+        this.popupMode = popupMode;
+        setLayout(new BorderLayout());
+        setBackground(Color.WHITE);
 
-        JPanel propertiesHeaderPanel = new JPanel();
-        propertiesHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
-        propertiesHeaderPanel.add(propertiesHeaderLabel);
-        propertiesHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        if (! popupMode) {
+            JPanel propertiesHeaderPanel = new JPanel();
+            propertiesHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
+            propertiesHeaderPanel.add(propertiesHeaderLabel);
+            propertiesHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            add(propertiesHeaderPanel, BorderLayout.NORTH);
+        }
 
         JPanel propertiesBodyPanel = new JPanel(new BorderLayout());
         propertiesBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -48,8 +55,19 @@ public class PropertiesPanel extends JPanel {
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);
         scrollPane.setBackground(Color.WHITE);
         scrollPane.getViewport().setBackground(Color.WHITE);
+        add(propertiesBodyPanel, BorderLayout.CENTER);
 
-        okButton.addActionListener(new ActionListener() {
+        if (! popupMode) {
+            okButton.addActionListener(getOkButtonListener());
+            JPanel footerPanel = new JPanel();
+            footerPanel.add(okButton);
+            footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            add(footerPanel, BorderLayout.SOUTH);
+        }
+    }
+
+    protected ActionListener getOkButtonListener() {
+        return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 boolean modelUpdated = false;
                 modelUpdated = processEditedFlowComponents();
@@ -59,21 +77,14 @@ public class PropertiesPanel extends JPanel {
                     Context.getDesignerCanvas(projectKey).repaint();
                 }
             }
-        });
-
-        JPanel footerPanel = new JPanel();
-        footerPanel.add(okButton);
-        footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        
-        setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
-        add(propertiesHeaderPanel, BorderLayout.NORTH);
-        add(propertiesBodyPanel, BorderLayout.CENTER);
-        add(footerPanel, BorderLayout.SOUTH);
-        Context.setPropertiesPanel(projectKey,this);
+        };
     }
 
-    private void updatePropertiesPanelTitle() {
+    /**
+     * Given the component within, generate an appropriate Panel title
+     * @return A String containing the panel title.
+     */
+    public String getPropertiesPanelTitle() {
         String propertyType = "";
         if (selectedComponent instanceof IkasanModule) {
             propertyType = "Module " + PROPERTIES_TAG;
@@ -89,12 +100,15 @@ public class PropertiesPanel extends JPanel {
                 propertyType = "Component " + PROPERTIES_TAG;
             }
         }
-        propertiesHeaderLabel.setText(propertyType);
+        return propertyType;
+
     }
 
     public void updatePropertiesPanel(IkasanComponent selectedComponent) {
         this.selectedComponent = selectedComponent;
-        updatePropertiesPanelTitle();
+        if (! popupMode) {
+            propertiesHeaderLabel.setText(getPropertiesPanelTitle());
+        }
         populatePropertiesEditorPanel();
         scrollableGridbagPanel.revalidate();
         scrollableGridbagPanel.repaint();
@@ -142,7 +156,7 @@ public class PropertiesPanel extends JPanel {
                         }
                     }
                 }
-                if (selectedFlowComponent.getType().isBespokeClass()) {
+                if (selectedFlowComponent.getType().isBespokeClass() && !popupMode) {
                     addOverrideCheckBoxToPropertiesEditPanel(propertiesEditorPanel, gc, tabley++);
                 } else {
                     okButton.setEnabled(true);
@@ -244,5 +258,13 @@ public class PropertiesPanel extends JPanel {
             }
         }
         return hasValue;
+    }
+
+    public List<ComponentPropertyEditBox> getComponentPropertyEditBoxList() {
+        return componentPropertyEditBoxList;
+    }
+
+    public IkasanComponent getSelectedComponent() {
+        return selectedComponent;
     }
 }

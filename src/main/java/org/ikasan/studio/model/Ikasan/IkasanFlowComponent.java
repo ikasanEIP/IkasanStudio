@@ -2,6 +2,8 @@ package org.ikasan.studio.model.Ikasan;
 
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
+import java.util.Map;
+
 public class IkasanFlowComponent extends IkasanComponent {
     private IkasanFlow parent;
     private IkasanFlowComponentType type;
@@ -32,6 +34,20 @@ public class IkasanFlowComponent extends IkasanComponent {
      */
     protected IkasanFlowComponent(IkasanFlowComponentType type, IkasanFlow parent) {
         this(type, parent, "", "");
+    }
+
+    /**
+     * Determine if there are some mandatory properties that have not yet been set.
+     * @return
+     */
+    public boolean hasUnsetMandatoryProperties() {
+        for (Map.Entry<String, IkasanComponentProperty> entry : properties.entrySet()) {
+            IkasanComponentProperty ikasanComponentProperty = entry.getValue();
+            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.getValue() == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

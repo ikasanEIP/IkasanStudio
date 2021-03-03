@@ -43,8 +43,10 @@ public class DesignerUI {
         if (Context.getPipsiIkasanModel(projectKey) == null) {
             Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
+        PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, false);
+        Context.setPropertiesPanel(projectKey,propertiesPanel);
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                new PropertiesPanel(projectKey),
+                propertiesPanel,
                 new CanvasPanel(projectKey));
         propertiesAndCanvasSplitPane.setDividerSize(3);
         propertiesAndCanvasSplitPane.setDividerLocation(0.4);
