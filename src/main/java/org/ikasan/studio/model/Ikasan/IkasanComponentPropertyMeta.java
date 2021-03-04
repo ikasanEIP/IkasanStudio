@@ -9,11 +9,11 @@ import java.util.Objects;
  * Represents all the possible properties an Ikasan component is allowed to have
  */
 public class IkasanComponentPropertyMeta {
-    public static final String NAME = "name";
-    public static final String DESCRIPTION = "description";
-    public static final String BESPOKE_CLASS_NAME = "bespokeClassName";
-    public static final String FROM_TYPE = "fromType";
-    public static final String TO_TYPE = "toType";
+    public static final String NAME = "Name";
+    public static final String DESCRIPTION = "Description";
+    public static final String BESPOKE_CLASS_NAME = "BespokeClassName";
+    public static final String FROM_TYPE = "FromType";
+    public static final String TO_TYPE = "ToType";
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(true, false,
             IkasanComponentPropertyMeta.NAME, null, String.class, "",

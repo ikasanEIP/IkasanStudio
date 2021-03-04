@@ -320,7 +320,7 @@ public class StudioPsiUtils {
         if (pipsiIkasanModel.getModuleConfigClazz() == null) {
             updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
         }
-        if (pipsiIkasanModel.getModuleConfigClazz() != null) {
+        if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {
             pipsiIkasanModel.updateIkasanModule();
         }
     }

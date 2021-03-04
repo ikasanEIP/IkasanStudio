@@ -390,11 +390,10 @@ public class DesignerCanvas extends JPanel {
 
             PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
             propertiesPanel.updatePropertiesPanel(newComponent);
-
-
-            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(propertiesPanel);
-
-
+            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                    Context.getProject(projectKey),
+                    Context.getDesignerCanvas(projectKey),
+                    propertiesPanel);
             if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;

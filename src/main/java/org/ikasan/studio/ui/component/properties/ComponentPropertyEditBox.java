@@ -20,7 +20,7 @@ public class ComponentPropertyEditBox {
         Object value = componentProperty.getValue();
 
         // @todo we can have all types of components with rich pattern matching validation
-        if (type == java.lang.Integer.class) {
+        if (type == java.lang.Integer.class || type == java.lang.Long.class) {
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.textField = new JFormattedTextField(amountFormat);
             if (value != null) {
@@ -86,8 +86,9 @@ public class ComponentPropertyEditBox {
         // For boolean we don't current support unset @todo support unset if we need to
         if (type == java.lang.String.class) {
             return textField.getText() == null || textField.getText().isEmpty();
-        } else if (type == java.lang.Integer.class) {
-            return textField.getValue() == null || ((Integer)textField.getValue() != 0);
+        } else if (type == java.lang.Integer.class || type == java.lang.Long.class) {
+            // NumberFormat.getNumberInstance() will always return long
+            return textField.getValue() == null || ((Long)textField.getValue() == 0);
         }
         return false;
     }

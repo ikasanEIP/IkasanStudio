@@ -8,6 +8,7 @@ import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -119,10 +120,13 @@ public class PropertiesPanel extends JPanel {
      * @return
      */
     private JPanel populatePropertiesEditorPanel() {
+        JPanel allPropertiesEditorPanel = new JPanel(new GridBagLayout());
+        allPropertiesEditorPanel.setBackground(Color.WHITE);
 
-        JPanel propertiesEditorPanel = new JPanel(new GridBagLayout());
-        propertiesEditorPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-        propertiesEditorPanel.setBackground(Color.WHITE);
+        JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
+
+        JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
+
 
         if (selectedComponent != null) {
             scrollableGridbagPanel.removeAll();
@@ -132,12 +136,13 @@ public class PropertiesPanel extends JPanel {
             gc.fill = GridBagConstraints.HORIZONTAL;
             gc.insets = new Insets(3, 4, 3, 4);
 
-            int tabley = 0;
+            int mandaoryTabley = 0;
+            int optionalTabley = 0;
             if (selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME) != null) {
-                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(propertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, tabley++));
+                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandaoryTabley++));
             }
             if (selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION) != null) {
-                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(propertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, tabley++));
+                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, mandaoryTabley++));
             }
 
             if (selectedComponent instanceof IkasanFlowComponent) {
@@ -151,22 +156,59 @@ public class PropertiesPanel extends JPanel {
                                 // This property has not yet been set for the component
                                 property = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key));
                             }
-                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(propertiesEditorPanel, property, gc, tabley++));
-                            tabley++;
+                            if (property.getMeta().isMandatory()) {
+                                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                                        mandatoryPropertiesEditorPanel,
+                                        property, gc, mandaoryTabley++));
+//                                mandaoryTabley++;
+                            } else {
+                                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                                        optionalPropertiesEditorPanel,
+                                        property, gc, optionalTabley++));
+//                                optionalTabley++;
+                            }
+
                         }
                     }
                 }
                 if (selectedFlowComponent.getType().isBespokeClass() && !popupMode) {
-                    addOverrideCheckBoxToPropertiesEditPanel(propertiesEditorPanel, gc, tabley++);
+                    addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandaoryTabley++);
                 } else {
                     okButton.setEnabled(true);
                 }
             }
 
-            scrollableGridbagPanel.add(propertiesEditorPanel);
+            GridBagConstraints gc1 = new GridBagConstraints();
+            gc1.fill = GridBagConstraints.HORIZONTAL;
+            gc1.insets = new Insets(3, 4, 3, 4);
+            gc1.gridx = 0;
+            gc1.weightx = 1;
+            gc1.gridy = 0;
+
+            if (mandaoryTabley > 0) {
+                mandatoryPropertiesEditorPanel.setBackground(Color.WHITE);
+                mandatoryPropertiesEditorPanel.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(Color.orange), "Mandatory Properties",
+                        TitledBorder.LEFT,
+                        TitledBorder.TOP));
+
+                allPropertiesEditorPanel.add(mandatoryPropertiesEditorPanel, gc1);
+                gc1.gridy = 1;
+            }
+
+            if (optionalTabley > 0) {
+                optionalPropertiesEditorPanel.setBackground(Color.WHITE);
+                optionalPropertiesEditorPanel.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(Color.black), "Optional Properties",
+                        TitledBorder.LEFT,
+                        TitledBorder.TOP));
+                allPropertiesEditorPanel.add(optionalPropertiesEditorPanel, gc1);
+            }
+
+            scrollableGridbagPanel.add(allPropertiesEditorPanel);
         }
 
-        return propertiesEditorPanel;
+        return allPropertiesEditorPanel;
     }
 
     private ComponentPropertyEditBox addOverrideCheckBoxToPropertiesEditPanel(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley) {
