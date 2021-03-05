@@ -2,7 +2,6 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
-import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.Ikasan.*;
 
 import java.util.Map;
@@ -18,16 +17,8 @@ public class FlowsBespokeClassTemplate extends Generator {
             if (component instanceof IkasanFlowBeskpokeComponent) {
                 boolean overwriteClassIsExists = false;
                 String templateString = generateContents(component);
-                String clazzAndPackageName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
-                String clazzName = null;
-                String newPackageName = null;
-                if (clazzAndPackageName.contains(".")) {
-                    clazzName = StudioUtils.getLastToken("\\.", clazzAndPackageName);
-                    newPackageName = StudioUtils.getAllButLastToken("\\.", clazzAndPackageName);
-                } else {
-                    clazzName = clazzAndPackageName;
-                    newPackageName = STUDIO_BESPOKE_PACKAGE;
-                }
+                String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
+                String newPackageName = (String)component.getProperty(IkasanComponentPropertyMeta.BASE_GROUP_NAME).getValue() + "." + ikasanFlow.getJavaPackageName();
                 overwriteClassIsExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
                 PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIsExists);
                 ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);

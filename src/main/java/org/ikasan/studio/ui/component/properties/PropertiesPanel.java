@@ -11,9 +11,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class PropertiesPanel extends JPanel {
     private Boolean popupMode;
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private JCheckBox overrideCheckBox ;
-    JButton okButton = new JButton("Update Code");
+    JButton okButton;
     private ScrollableGridbagPanel scrollableGridbagPanel;
 
     public PropertiesPanel(String projectKey, Boolean popupMode) {
@@ -59,7 +59,8 @@ public class PropertiesPanel extends JPanel {
         add(propertiesBodyPanel, BorderLayout.CENTER);
 
         if (! popupMode) {
-            okButton.addActionListener(getOkButtonListener());
+            okButton = new JButton(getUpdateAction());
+//            okButton.addActionListener(getOkButtonListener());
             JPanel footerPanel = new JPanel();
             footerPanel.add(okButton);
             footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -67,19 +68,50 @@ public class PropertiesPanel extends JPanel {
         }
     }
 
-    protected ActionListener getOkButtonListener() {
-        return new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                boolean modelUpdated = false;
-                modelUpdated = processEditedFlowComponents();
-                if (modelUpdated) {
-                    Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-                    Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-                    Context.getDesignerCanvas(projectKey).repaint();
-                }
-            }
-        };
+    public UpdateCodeAction getUpdateAction() {
+        return new UpdateCodeAction("Update code", "Update the code with properties settings", KeyEvent.VK_U);
     }
+    class UpdateCodeAction extends AbstractAction {
+        public UpdateCodeAction(String text,
+                          String desc, Integer mnemonic) {
+            super(text);
+            putValue(SHORT_DESCRIPTION, desc);
+            putValue(MNEMONIC_KEY, mnemonic);
+        }
+        public void actionPerformed(ActionEvent e) {
+            boolean modelUpdated = false;
+            modelUpdated = processEditedFlowComponents();
+            if (modelUpdated) {
+                Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+                Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+                Context.getDesignerCanvas(projectKey).repaint();
+            }
+        }
+    }
+
+    public void performUpdate() {
+        boolean modelUpdated = false;
+        modelUpdated = processEditedFlowComponents();
+        if (modelUpdated) {
+            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+            Context.getDesignerCanvas(projectKey).repaint();
+        }
+    }
+
+//    protected ActionListener getOkButtonListener() {
+//        return new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                boolean modelUpdated = false;
+//                modelUpdated = processEditedFlowComponents();
+//                if (modelUpdated) {
+//                    Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+//                    Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+//                    Context.getDesignerCanvas(projectKey).repaint();
+//                }
+//            }
+//        };
+//    }
 
     /**
      * Given the component within, generate an appropriate Panel title
@@ -117,7 +149,7 @@ public class PropertiesPanel extends JPanel {
 
     /**
      * For the given component, get all the editable properties and add them the to properties edit panel.
-     * @return
+     * @return the fully populated editor panel
      */
     private JPanel populatePropertiesEditorPanel() {
         JPanel allPropertiesEditorPanel = new JPanel(new GridBagLayout());
@@ -160,12 +192,10 @@ public class PropertiesPanel extends JPanel {
                                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                         mandatoryPropertiesEditorPanel,
                                         property, gc, mandaoryTabley++));
-//                                mandaoryTabley++;
                             } else {
                                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                         optionalPropertiesEditorPanel,
                                         property, gc, optionalTabley++));
-//                                optionalTabley++;
                             }
 
                         }
@@ -174,7 +204,9 @@ public class PropertiesPanel extends JPanel {
                 if (selectedFlowComponent.getType().isBespokeClass() && !popupMode) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandaoryTabley++);
                 } else {
-                    okButton.setEnabled(true);
+                    if (okButton != null) {
+                        okButton.setEnabled(true);
+                    }
                 }
             }
 
@@ -188,7 +220,7 @@ public class PropertiesPanel extends JPanel {
             if (mandaoryTabley > 0) {
                 mandatoryPropertiesEditorPanel.setBackground(Color.WHITE);
                 mandatoryPropertiesEditorPanel.setBorder(BorderFactory.createTitledBorder(
-                        BorderFactory.createLineBorder(Color.orange), "Mandatory Properties",
+                        BorderFactory.createLineBorder(Color.red), "Mandatory Properties",
                         TitledBorder.LEFT,
                         TitledBorder.TOP));
 
@@ -199,7 +231,7 @@ public class PropertiesPanel extends JPanel {
             if (optionalTabley > 0) {
                 optionalPropertiesEditorPanel.setBackground(Color.WHITE);
                 optionalPropertiesEditorPanel.setBorder(BorderFactory.createTitledBorder(
-                        BorderFactory.createLineBorder(Color.black), "Optional Properties",
+                        BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Optional Properties",
                         TitledBorder.LEFT,
                         TitledBorder.TOP));
                 allPropertiesEditorPanel.add(optionalPropertiesEditorPanel, gc1);
@@ -246,7 +278,7 @@ public class PropertiesPanel extends JPanel {
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      * @return true if the model has been updated with new values.
      */
-    private boolean processEditedFlowComponents() {
+    public boolean processEditedFlowComponents() {
         boolean modelUpdated = false;
         if (componentPropertyEditBoxList != null) {
             for (final ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {

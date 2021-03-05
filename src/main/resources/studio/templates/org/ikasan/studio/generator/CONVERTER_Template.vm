@@ -6,10 +6,10 @@
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
-public class ${component.getPropertyValue("bespokeClassName")} implements Converter<${component.getPropertyValue("fromType")},${component.getPropertyValue("toType")}>
+public class ${component.getPropertyValue("BespokeClassName")} implements Converter<${component.getPropertyValue("FromType")}, ${component.getPropertyValue("ToType")}>
 {
-public ${component.getPropertyValue("toType")} convert(${component.getPropertyValue("fromType")} payload) throws TransformationException
+public ${component.getPropertyValue("ToType")} convert(${component.getPropertyValue("FromType")} payload) throws TransformationException
 {
-return ${component.getPropertyValue("toType")}.valueOf(payload);
+return ${component.getPropertyValue("ToType")}.valueOf(payload);
 }
 }

@@ -12,6 +12,7 @@ public class IkasanComponentPropertyMeta {
     public static final String NAME = "Name";
     public static final String DESCRIPTION = "Description";
     public static final String BESPOKE_CLASS_NAME = "BespokeClassName";
+    public static final String BASE_GROUP_NAME = "BaseGroupName";
     public static final String FROM_TYPE = "FromType";
     public static final String TO_TYPE = "ToType";
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
@@ -19,7 +20,7 @@ public class IkasanComponentPropertyMeta {
             IkasanComponentPropertyMeta.NAME, null, String.class, "",
             "The name of the component as displayed on diagrams, also used for the variable name in the generated code.");
     public static final IkasanComponentPropertyMeta STD_DESCIPTION_META_COMPONENT =
-        new IkasanComponentPropertyMeta(true, false,
+        new IkasanComponentPropertyMeta(false, false,
             IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "",
             "A more detailed description of the component that may assist in support.");
 

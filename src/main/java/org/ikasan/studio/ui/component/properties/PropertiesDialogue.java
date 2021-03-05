@@ -30,9 +30,6 @@ public class PropertiesDialogue extends DialogWrapper {
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
-//        propertiesPanel.setMaximumSize(new Dimension(parentComponent.getWidth(), parentComponent.getHeight()));
-//        propertiesPanel.setSize(new Dimension(parentComponent.getWidth(), parentComponent.getHeight()));
-//        propertiesPanel.setSize(new Dimension(200, 200));
         int niceWidth = (int) (parentComponent.getWidth() * 0.6);
         propertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
         return propertiesPanel;
@@ -40,8 +37,24 @@ public class PropertiesDialogue extends DialogWrapper {
 
     @Override
     protected Action [] createActions() {
-        return new Action[]{getOKAction(), getCancelAction()};
+//        return new Action[]{ propertiesPanel.getUpdateAction(), getCancelAction()} ;
+        return new Action[]{ getOKAction(), getCancelAction()} ;
     }
+
+
+    /**
+     * This method is invoked by default implementation of "OK" action. It just closes dialog
+     * with {@code OK_EXIT_CODE}. This is convenient place to override functionality of "OK" action.
+     * Note that the method does nothing if "OK" action isn't enabled.
+     */
+    @Override
+    protected void doOKAction() {
+        if (getOKAction().isEnabled()) {
+            propertiesPanel.processEditedFlowComponents();
+            close(OK_EXIT_CODE);
+        }
+    }
+
 
     /**
      * Validates user input and returns {@code List<ValidationInfo>}.

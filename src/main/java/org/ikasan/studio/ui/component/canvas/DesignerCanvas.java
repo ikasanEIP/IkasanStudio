@@ -359,7 +359,7 @@ public class DesignerCanvas extends JPanel {
 
                 newComponent = createViableComponent(ikasanFlowComponentType, containingFlow);
                 if (newComponent != null) {
-                    insertNewComponentBetweenSurroundingPair(containingFlow, ikasanFlowComponentType, x, y);
+                    insertNewComponentBetweenSurroundingPair(containingFlow, newComponent, x, y);
                 } else {
                     return false;
                 }
