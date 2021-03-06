@@ -1,6 +1,6 @@
-package com.github.ikasaneip.ikasanstudio2.listeners
+package com.github.ikasaneip.ikasanstudio.listeners
 
-import com.github.ikasaneip.ikasanstudio2.services.MyProjectService
+import com.github.ikasaneip.ikasanstudio.services.MyProjectService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener

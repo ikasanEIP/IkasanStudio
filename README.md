@@ -1,4 +1,4 @@
-# IkasanStudio2
+# IkasanStudio
 
 The easiest way to view the plugin just now is to load it up into the IDE, Intellij 2019.3.5 was the last working 
 version (when I tried a refresh in September), subsequent versions seem to have 'known but not fixed' issues with
@@ -41,7 +41,7 @@ To keep everything working, do not remove `<!-- ... -->` sections.
 
 - Using IDE built-in plugin system:
   
-  <kbd>Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "IkasanStudio2"</kbd> >
+  <kbd>Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "IkasanStudio"</kbd> >
   <kbd>Install Plugin</kbd>
   
 - Manually:

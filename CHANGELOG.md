@@ -1,6 +1,6 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 
-# IkasanStudio2 Changelog
+# IkasanStudio Changelog
 
 ## [Unreleased]
 ### Added

@@ -1,6 +1,6 @@
-package com.github.ikasaneip.ikasanstudio2.services
+package com.github.ikasaneip.ikasanstudio.services
 
-import com.github.ikasaneip.ikasanstudio2.MyBundle
+import com.github.ikasaneip.ikasanstudio.MyBundle
 
 class MyApplicationService {
 
