@@ -3,8 +3,8 @@ package org.ikasan.studio.generator;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.Map;
 
@@ -14,6 +14,7 @@ import java.util.Map;
 public class FlowTemplate extends Generator {
     public static String FLOW_CLASS_NAME = "Flow";
     private static String FLOW_VM = "FlowTemplate.vm";
+    private static String FLOW_FTL = "FlowTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
@@ -36,10 +37,11 @@ public class FlowTemplate extends Generator {
     }
 
     public static String generateContents(IkasanModule ikasanModule, IkasanFlow ikasanFow) {
-        Map<String, Object> configs = getVelocityConfigs();
+        Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFow);
-        String templateString = VelocityUtils.generateFromTemplate(FLOW_VM, configs);
+//        String templateString = VelocityUtils.generateFromTemplate(FLOW_VM, configs);
+        String templateString = FreemarkerUtils.generateFromTemplate(FLOW_FTL, configs);
         return templateString;
     }
 

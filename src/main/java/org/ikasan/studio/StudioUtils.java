@@ -1,7 +1,7 @@
 package org.ikasan.studio;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.model.Ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -143,7 +143,7 @@ public class StudioUtils {
     private static int DEFAULT_VALUE_INDEX = 5;
     private static int HELP_INDEX = 6;
     private static int NUMBER_OF_CONFIGS = 7;
-    private static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
+    public static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
         componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);

@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.Map;
 
@@ -12,19 +12,21 @@ import java.util.Map;
 public class PropertiesTemplate extends Generator {
     public static String MODULE_PROPERTIES_FILENAME = "application";
     private static String MODULE_PROPERTIES_VM = "PropertiesTemplate.vm";
+    private static String MODULE_PROPERTIES_FTL = "PropertiesTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
-        String templateString = createPropertiesVelocity(ikasanModule);
+        String templateString = generateContents(ikasanModule);
 
         createResourceFile(project, null, MODULE_PROPERTIES_FILENAME, templateString, false);
     }
 
     //@todo it might be more effician to have 1 properties file per flow
-    public static String createPropertiesVelocity(IkasanModule ikasanModule) {
-        Map<String, Object> configs = getVelocityConfigs();
+    public static String generateContents(IkasanModule ikasanModule) {
+        Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
-        String templateString = VelocityUtils.generateFromTemplate(MODULE_PROPERTIES_VM, configs);
+//        String templateString = VelocityUtils.generateFromTemplate(MODULE_PROPERTIES_VM, configs);
+        String templateString = FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);
         return templateString;
     }
 }

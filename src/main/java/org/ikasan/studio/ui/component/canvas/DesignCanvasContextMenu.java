@@ -2,7 +2,7 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.actions.*;
-import org.ikasan.studio.model.Ikasan.IkasanComponent;
+import org.ikasan.studio.model.ikasan.IkasanComponent;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;

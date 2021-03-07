@@ -1,6 +1,4 @@
-package org.ikasan.studio.model.Ikasan;
-
-import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
+package org.ikasan.studio.model.ikasan;
 
 public class IkasanFlowBeskpokeComponent extends IkasanFlowComponent {
     private boolean overrideEnabled;

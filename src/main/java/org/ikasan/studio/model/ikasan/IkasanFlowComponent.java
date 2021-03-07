@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 

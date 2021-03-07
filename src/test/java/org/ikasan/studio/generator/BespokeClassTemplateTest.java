@@ -1,7 +1,7 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.Ikasan.*;
+import org.ikasan.studio.model.ikasan.*;
 import org.junit.Assert;
 import org.junit.Test;
 

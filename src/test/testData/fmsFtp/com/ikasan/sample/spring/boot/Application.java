@@ -3,7 +3,7 @@
  * $URL$
  *
  * ====================================================================
- * Ikasan Enterprise Integration Platform
+ * ikasan Enterprise Integration Platform
  *
  * Distributed under the Modified BSD License.
  * Copyright notice: The copyright for this software and a full listing

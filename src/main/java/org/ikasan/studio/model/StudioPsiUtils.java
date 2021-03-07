@@ -7,27 +7,31 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.*;
 import com.intellij.util.IncorrectOperationException;
-import com.mchange.v2.codegen.bean.SimpleProperty;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 public class StudioPsiUtils {
     private static final Logger log = Logger.getLogger(StudioPsiUtils.class);
+
+    // Enforce utility nature upon class
+    private StudioPsiUtils() {}
 
     public static String getSimpleFileData(PsiFile file) {
         StringBuilder message = new StringBuilder();
@@ -37,13 +41,12 @@ public class StudioPsiUtils {
             message.append("File was [" + file.toString() +"]\n");
             Language lang = file.getLanguage();
             message.append("Language was [" + lang.getDisplayName().toLowerCase() +"]");
-//         message.append("Content was [" + file.getText() + "-");
         }
         return message.toString();
     }
 
     public static String findClassFile(Project project, String className) {
-        StringBuffer message = new StringBuffer();
+        StringBuilder message = new StringBuilder();
         PsiFile[] files = FilenameIndex.getFilesByName(project, className, GlobalSearchScope.projectScope(project));
         for (PsiFile myFile : files) {
             message.append("looking for file " + className + ", found [" + myFile.getName() +"]");
@@ -72,18 +75,17 @@ public class StudioPsiUtils {
     }
 
     public static void findPropertiesFiles(Project project) {
-        List<SimpleProperty> result = new ArrayList<>();
         Collection<VirtualFile> virtualFiles =
                 FileTypeIndex.getFiles(StdFileTypes.PROPERTIES, GlobalSearchScope.projectScope(project));
         for (VirtualFile virtualFile : virtualFiles) {
-            PsiFile psiFile = (PsiFile) PsiManager.getInstance(project).findFile(virtualFile);
+            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
             log.warn("Found [" + psiFile.getName() +"] " + System.currentTimeMillis());
             log.warn("Found [" + psiFile.getText() + "]");
         }
     }
 
     public static String findFile(Project project, String filename) {
-        StringBuffer message = new StringBuffer();
+        StringBuilder message = new StringBuilder();
 
         PsiFile[] files2 = PsiShortNamesCache.getInstance(project).getFilesByName(filename);
         long t1 = System.currentTimeMillis();
@@ -107,7 +109,7 @@ public class StudioPsiUtils {
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateSourceFromModel();
-        StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
+        StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
@@ -211,13 +213,10 @@ public class StudioPsiUtils {
         //@todo maybe we can force this to be governed by convention i.e. agree must be ModuleConfig.java
         //@todo use getSourceRootContaining(JAVA)
         for (String className : cache.getAllClassNames()) {
-            PsiClass[] psiClasses = cache.getClassesByName(className, ProjectScope.getProjectScope(project));
-            if (psiClasses != null) {
-                for (PsiClass psiClass : psiClasses) {
-                    returnPsiMethod = findMethodFromClassByReturnType(psiClass, methodReturnType);
-                    if (returnPsiMethod != null) {
-                        break;
-                    }
+            for (PsiClass psiClass : cache.getClassesByName(className, ProjectScope.getProjectScope(project))) {
+                returnPsiMethod = findMethodFromClassByReturnType(psiClass, methodReturnType);
+                if (returnPsiMethod != null) {
+                    break;
                 }
             }
             if (returnPsiMethod != null) {
@@ -235,15 +234,12 @@ public class StudioPsiUtils {
      */
     public static PsiMethod findMethodFromClassByReturnType(PsiClass psiClass, String methodReturnType) {
         PsiMethod methodFound = null ;
-        PsiMethod[] psiMethods = psiClass.getAllMethods();
-        if (psiMethods != null) {
-            for (PsiMethod psiMethod : psiMethods) {
-                PsiType returnType = psiMethod.getReturnType();
-                //@todo determine if "<?>" needs to be here or elsewhere, maybe pass in
-                if (returnType != null && (returnType.equalsToText(methodReturnType) || returnType.equalsToText(methodReturnType+"<?>"))) {
-                    methodFound = psiMethod;
-                    break;
-                }
+        for (PsiMethod psiMethod : psiClass.getAllMethods()) {
+            PsiType returnType = psiMethod.getReturnType();
+            //@todo determine if "<?>" needs to be here or elsewhere, maybe pass in
+            if (returnType != null && (returnType.equalsToText(methodReturnType) || returnType.equalsToText(methodReturnType+"<?>"))) {
+                methodFound = psiMethod;
+                break;
             }
         }
         return methodFound;
@@ -261,9 +257,7 @@ public class StudioPsiUtils {
         if (className.contains(".")) {
             String baseClassName = StudioUtils.getLastToken( "\\.", className);
             files = PsiShortNamesCache.getInstance(project).getClassesByName(baseClassName, ProjectScope.getProjectScope(project));
-            if (null != files) {
-                files = Arrays.stream(files).filter(x -> className.equals(x.getQualifiedName())).toArray(PsiClass[]::new);
-            }
+            files = Arrays.stream(files).filter(x -> className.equals(x.getQualifiedName())).toArray(PsiClass[]::new);
         } else {
             files = PsiShortNamesCache.getInstance(project).getClassesByName(className, ProjectScope.getProjectScope(project));
         }
@@ -284,7 +278,7 @@ public class StudioPsiUtils {
      */
     public static PsiClass findFirstClass(Project project, String className) {
         PsiClass[] classes = findClass(project, className);
-        if (classes.length > 0) {
+        if (classes!= null && classes.length > 0) {
             if (classes.length > 1) {
                 log.warn("Found more than one class of name " + className+ " but only expected 1");
             }
@@ -312,8 +306,9 @@ public class StudioPsiUtils {
         }
     }
 
+
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static void resetIkasanModelFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
+    public static void generateModelFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
         ikasanModule.reset();
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
@@ -357,7 +352,7 @@ public class StudioPsiUtils {
         String projectName = project.getName();
         VirtualFile[] vFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
         String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
-        System.out.println("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
+        log.info("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
     }
 
     public static String JAVA_CODE = "main/java";
@@ -395,14 +390,14 @@ public class StudioPsiUtils {
 //    PsiClass containingClass = containingMethod.getContainingClass();
 // binary expression holds a PSI expression of the form x==y  whch we need to change to s.equals(y)
     public static void bob(Project project) {
-        ReadonlyStatusHandler.getInstance(project).ensureFilesWritable();
+//        ReadonlyStatusHandler.getInstance(project).ensureFilesWritable();
         // PsiBinaryExpression binaryExpression = (PsiBinaryExpression) descriptor.getPsiElement();
 //        IElementType opSign = binaryExpression.getOperationTokenType();
 //        PsiExpression lExpr = binaryExpression.getLOperand();
 //        PsiExpression rExpr = binaryExpression.getROperand();
         // 1 Create replacement fragment from test with 'a' and 'b' as placeholders
-        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
+//        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+//        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
         // 2 replace a and b
 //        equalsCall.getMethodExpression().getQualifierExpression().replace(lExpr);
 //        equalsCall.getArgumentList().getExpressions()[0].replace(rExpr);
@@ -416,16 +411,10 @@ public class StudioPsiUtils {
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
         @NotNull Module[] module = ModuleManager.getInstance(project).getModules();
-//        module[0].getR
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
         PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
         return newFile;
     }
-//    public static PsiFile createFile1(final String text) throws {
-//        return PsiFileFactory.getInstance(getProject())
-//                .createFileFromText("test.ognl", OgnlLanguage.INSTANCE, text);
-//    }
-
 
     /**
      * Create the supplied directory in the PSI file system if it does not already exists

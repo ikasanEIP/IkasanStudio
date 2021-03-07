@@ -12,16 +12,16 @@ import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.generator.*;
-import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
+import org.ikasan.studio.model.ikasan.*;
 
 import java.util.*;
 
 /**
- * Encapsulates the Intellij representation of the Ikasan Module
+ * Encapsulates the Intellij representation of the ikasan Module
  *
- * The idea is to keep the Ikasan Module clean of any Initellij specific details, this module will inpect the
- * code to generate the Ikasan Module and update the code to reflect changes to the Ikasan Module.
+ * The idea is to keep the ikasan Module clean of any Initellij specific details, this module will inpect the
+ * code to generate the ikasan Module and update the code to reflect changes to the ikasan Module.
  */
 public class PIPSIIkasanModel {
     public static final String OLD_MODULE_BEAN_CLASS = "org.ikasan.spec.module.Module";
@@ -132,8 +132,8 @@ public class PIPSIIkasanModel {
     }
 
     /**
-     * The public entry point, builds the Pseudo Ikasan Module used by the plugin.
-     * @return A populated Ikasan Module used by the plugin.
+     * The public entry point, builds the Pseudo ikasan Module used by the plugin.
+     * @return A populated ikasan Module used by the plugin.
      */
     // New Way
     public void updateIkasanModule() {
@@ -162,7 +162,7 @@ public class PIPSIIkasanModel {
                         // The base of the moduleMethodList is the moduleBulder e.g. mb.withDescription("Ftp Jms Sample Module")...
                         // So get get it and resolve it back to the moduleBuilderDefintion
                         PsiLocalVariable moduleBuilderLocalVariable = getModuleBuilderLocalVariable(moduleMethodList);
-                        // Ikasan module is a member variable and built rather passed around to accommodate partial population / best endeavours
+                        // ikasan module is a member variable and built rather passed around to accommodate partial population / best endeavours
                 // @todo - could try to add the getModuleBuilder to the methodList then parse as above then wont need updateIkasanModuleWithModuleBuilder, just parseModuleStatementRHS
                         updateIkasanModuleWithModuleBuilder(moduleBuilderLocalVariable);
 
@@ -373,7 +373,7 @@ public class PIPSIIkasanModel {
                                 // This is probably a bespoke component, try to deduce the component from the type
                                 String classInterface = null;
                                 try {
-                                    // @todo maybe cycle through and try all interfaces for an Ikasan match in case clients play with multiple interfaces.
+                                    // @todo maybe cycle through and try all interfaces for an ikasan match in case clients play with multiple interfaces.
                                     classInterface = ((PsiClass)((PsiJavaCodeReferenceElementImpl) flowComponentConstructor).resolve()).getImplementsList().getReferencedTypes()[0].getClassName();
                                     ikasanFlowComponentType = IkasanFlowComponentType.parseMethodName(classInterface);
                                 } catch (NullPointerException npe) {
@@ -409,7 +409,7 @@ public class PIPSIIkasanModel {
     // jmsProducer -> Producer jmsProducer = builderFactory.getComponentBuilder().jmsProducer()
 
     /**
-     * Get all the methods (settings) applied to a specific Ikasan component
+     * Get all the methods (settings) applied to a specific ikasan component
      * @param expressionToBeSearched, this is usually the second parameter of the flows Builder's consumer or converter methods
      *  e.g.
      *      .consumer("JMS Consumer", jmsConsumer)
@@ -458,7 +458,7 @@ public class PIPSIIkasanModel {
                     //// return statement
                     // The returnReference will contain our type of component .e.g Filter, Producer etc
                     PsiReferenceExpressionImpl returnReference = getLocalVariableFromReturnStatement(getterReturnStatement);
-
+// XXXX
                     String getterReturnType = ((PsiType)factoryClassGetterMethod.getReturnType()).getCanonicalText();
                     String ikasanComponentType = null;
                     if (IkasanFlowComponentCategory.isIkasanComponent(getterReturnType)) {
@@ -667,7 +667,7 @@ public class PIPSIIkasanModel {
      */
     protected IkasanFlowComponent createFlowElementWithProperties(final IkasanFlow parent, final String name, final String description, final PIPSIMethodList componentBuilderMethodList) {
         IkasanFlowComponent ikasanFlowComponent = null;
-        Map<String, Object> flowElementProperties = new HashMap<>();
+        Map<String, Object> flowElementProperties = new TreeMap<>();
         for (PIPSIMethod componentBuilderMethod: componentBuilderMethodList.getPipsiMethods()) {
             String methodName = componentBuilderMethod.getName();
             if  ("build".equals(methodName) || COMPONENT_BUILDER_NAME_METHOD.equals(methodName)) {
@@ -929,9 +929,9 @@ public class PIPSIIkasanModel {
         return  ikasanModule;
     }
 //    /**
-//     * The public entry point, builds the Pseudo Ikasan Module used by the plugin.
+//     * The public entry point, builds the Pseudo ikasan Module used by the plugin.
 //     * @param moduleConfigPsiFile the java file containing the module declaration.
-//     * @return A populated Ikasan Module used by the plugin.
+//     * @return A populated ikasan Module used by the plugin.
 //     */
 //    // OLD way
 //    public IkasanModule buildIkasanModulex(final PsiFile moduleConfigPsiFile) {

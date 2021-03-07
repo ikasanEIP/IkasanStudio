@@ -3,8 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
-import jdk.internal.jline.internal.Nullable;
-import org.ikasan.studio.model.Ikasan.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -17,6 +16,18 @@ public class PropertiesDialogue extends DialogWrapper {
     PropertiesPanel propertiesPanel;
     Component parentComponent;
 
+    /**
+     * Popup Modal window to support entry of properties.
+     *
+     * The main purpose is to force the developer to enter mandatory properties when a component is first dragged
+     * onto the canvas. This solves a number of issues and is much more efficient then drag and fix later.
+     *
+     * @todo maybe use this in non modal form for the in-canvas properties editing.
+     *
+     * @param project currently being worked upon
+     * @param parentComponent of this popup
+     * @param propertiesPanel to display and have entries taken on.
+     */
     public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
         super(project, parentComponent, true, IdeModalityType.IDE); // use current window as parent
         this.propertiesPanel = propertiesPanel;
@@ -24,23 +35,17 @@ public class PropertiesDialogue extends DialogWrapper {
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText("Update Code");
-
     }
 
-    @Nullable
+    /**
+     * Inject the payload i.e. the ikasan UI element we wish to expose / edit.
+     */
     @Override
     protected JComponent createCenterPanel() {
         int niceWidth = (int) (parentComponent.getWidth() * 0.6);
         propertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
         return propertiesPanel;
     }
-
-    @Override
-    protected Action [] createActions() {
-//        return new Action[]{ propertiesPanel.getUpdateAction(), getCancelAction()} ;
-        return new Action[]{ getOKAction(), getCancelAction()} ;
-    }
-
 
     /**
      * This method is invoked by default implementation of "OK" action. It just closes dialog
@@ -54,7 +59,6 @@ public class PropertiesDialogue extends DialogWrapper {
             close(OK_EXIT_CODE);
         }
     }
-
 
     /**
      * Validates user input and returns {@code List<ValidationInfo>}.
@@ -90,4 +94,3 @@ public class PropertiesDialogue extends DialogWrapper {
         }
     }
 }
-

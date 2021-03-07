@@ -1,8 +1,8 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
 public class IkasanComponentProperty {
-    Object value;
-    IkasanComponentPropertyMeta meta;
+    private Object value;
+    private IkasanComponentPropertyMeta meta;
 
     public IkasanComponentProperty(IkasanComponentPropertyMeta meta, Object value) {
         this.meta = meta;
@@ -19,6 +19,10 @@ public class IkasanComponentProperty {
 
     public Object getValue() {
         return value;
+    }
+
+    public String getValueString() {
+        return value.toString();
     }
 
     public void setValue(Object value) {

@@ -1,8 +1,8 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 

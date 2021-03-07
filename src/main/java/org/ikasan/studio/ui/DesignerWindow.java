@@ -50,7 +50,7 @@ public class DesignerWindow {
 
 //    public void getModel() {
 //        PsiUtils psiUtils = new PsiUtils();
-//        canvasTextArea.setText("Starting to initliase Ikasan design from XML ....");
+//        canvasTextArea.setText("Starting to initliase ikasan design from XML ....");
 ////        canvasTextArea.setText(psiUtils.getModelData());
 //    }
 

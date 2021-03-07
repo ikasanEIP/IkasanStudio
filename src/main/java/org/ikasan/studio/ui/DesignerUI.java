@@ -4,8 +4,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.StudioPsiUtils;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
@@ -72,7 +72,7 @@ public class DesignerUI {
             public void run() {
                 DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
                 if (canvasPanel != null) {
-                    StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
+                    StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
                 }
             }
         });

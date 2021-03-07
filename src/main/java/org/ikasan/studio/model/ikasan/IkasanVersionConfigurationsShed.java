@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class will hold meta data for components driven by the Ikasan version number
+ * This class will hold meta data for components driven by the ikasan version number
  */
 public class IkasanVersionConfigurationsShed {
     public static final String V_3_0_0 = "V_3_0_0";
@@ -35,7 +35,7 @@ public class IkasanVersionConfigurationsShed {
     }
 
     /**
-     * For the given Ikasan versions, read the (yet to b created) resources file and get all the
+     * For the given ikasan versions, read the (yet to b created) resources file and get all the
      * properties that could be defined for the component.
      * @return
      */

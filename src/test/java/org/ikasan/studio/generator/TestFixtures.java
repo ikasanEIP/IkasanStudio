@@ -1,8 +1,8 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
 
 import java.util.List;
 
@@ -116,8 +116,8 @@ public class TestFixtures {
 //    false|PasswordFilePath|ftp.consumer.PasswordFilePath|java.lang.String||Optional only available on FTP consumer. The path of the file that contains the password.
 //    false|RenameOnSuccessExtension||java.lang.String||Optional only applicable when renameOnSuccess=true, renameOnSuccessExtension is suffixed to the processed fileName
 //    false|RenameOnSuccess||java.lang.Boolean||Default(False) Flag indicating whether to rename the processed file after successful consumption
-//    false|ScheduledJobGroupName||java.lang.String||Group for scheduled jobs within the internal Ikasan scheduler
-//    false|ScheduledJobName||java.lang.String||Name to identify this job within the internal Ikasan scheduler
+//    false|ScheduledJobGroupName||java.lang.String||Group for scheduled jobs within the internal ikasan scheduler
+//    false|ScheduledJobName||java.lang.String||Name to identify this job within the internal ikasan scheduler
 //    false|SocketTimeout||java.lang.Integer||Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.
 
 //    #false|SourceDirectoryURLFactory|ftp.consumer.SourceDirectoryURLFactory|org.ikasan.framework.factory.DirectoryURLFactory||Classname for source directories URLs factory. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instance based on date

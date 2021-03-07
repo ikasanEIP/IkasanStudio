@@ -9,22 +9,33 @@
 "classpath:h2-datasource-conf.xml",
 "classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml"
 })
-public class ModuleConfig {
-@org.springframework.beans.factory.annotation.Value("${module.name}")
+public class ${className} {
+@org.springframework.beans.factory.annotation.Value("${r"${module.name}"}")
 private String moduleName;
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
+<#list module.flows![] as flow>
+@javax.annotation.Resource
+${studioBasePackage}.${flow.getJavaPackageName()}.${flow.getJavaClassName()} ${flow.getJavaVariableName()};
+</#list>
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.module.Module myModule()
 {
+<#if module.getDescription()??>
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
-.withDescription("New Module, please provide description");
+.withDescription("${module.getDescription()}");
+<#else>
+org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
+</#if>
 
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.module.Module module = moduleBuilder
+<#list module.flows![] as flow>
+.addFlow(${flow.getJavaVariableName()}.get${flow.getJavaClassName()}())
+</#list>
 .build();
 return module;
 }

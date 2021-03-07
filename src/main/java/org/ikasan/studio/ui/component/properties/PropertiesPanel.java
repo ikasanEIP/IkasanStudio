@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.*;
+import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
@@ -305,7 +305,7 @@ public class PropertiesPanel extends JPanel {
 
     /**
      *
-     * @param property of the existing Ikasan Component
+     * @param property of the existing ikasan Component
      * @param propertyEditBox should never be null when called.
      * @return
      */

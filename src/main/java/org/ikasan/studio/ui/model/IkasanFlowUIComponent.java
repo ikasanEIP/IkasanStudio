@@ -1,13 +1,13 @@
 package org.ikasan.studio.ui.model;
 
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
 
 import javax.swing.*;
 
 /**
- * Focuses on the presentation / UI specific features for the Ikasan component.
+ * Focuses on the presentation / UI specific features for the ikasan component.
  *
- * The technical details of a component are encapsulated in org.ikasan.studio.model.Ikasan.IkasanFlowComponentType
+ * The technical details of a component are encapsulated in org.ikasan.studio.model.ikasan.IkasanFlowComponentType
  */
 public class IkasanFlowUIComponent {
     String title;

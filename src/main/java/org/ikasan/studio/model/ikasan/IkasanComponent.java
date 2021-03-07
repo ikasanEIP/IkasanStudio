@@ -1,12 +1,12 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 public class IkasanComponent {
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
@@ -61,13 +61,20 @@ public class IkasanComponent {
      * @return
      */
     public Map<String, IkasanComponentProperty> getStandardProperties() {
+        Map<String, IkasanComponentProperty> standardProperties = new HashedMap();
         if (properties != null && properties.size() > 0) {
-            Map<String, IkasanComponentProperty> standardProperties = properties.entrySet().stream()
-                    .filter(x -> ! x.getKey().equals(IkasanComponentPropertyMeta.NAME) && !x.getKey().equals(IkasanComponentPropertyMeta.DESCRIPTION))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            return standardProperties;
+            for (Map.Entry<String, IkasanComponentProperty> entry : properties.entrySet()) {
+                if (! IkasanComponentPropertyMeta.NAME.equals(entry.getKey()) && !(IkasanComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
+                    standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
+                }
+            }
+//            Map<String, IkasanComponentProperty> standardProperties = properties.entrySet().stream()
+//                    .filter(x -> ! IkasanComponentPropertyMeta.NAME.equals(x.getKey()) && ! IkasanComponentPropertyMeta.DESCRIPTION.equals(x.getKey()))
+//                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         }
-        return properties;
+        return standardProperties;
+//        return properties;
     }
 
     public void addAllProperties(Map<String, IkasanComponentProperty> newProperties) {
@@ -126,6 +133,7 @@ public class IkasanComponent {
     private void setJavaVariableName(String javaVariableName) {
         this.javaVariableName = javaVariableName;
     }
+
     public String getJavaVariableName() {
         return javaVariableName;
     }

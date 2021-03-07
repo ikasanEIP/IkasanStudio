@@ -8,6 +8,6 @@
 #
 # If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # isConfigMandatory|isUserImplementedClass|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
-true|false|ReplacementText||java.lang.String||Replace the matching text with the following string
-true|false|RegExpPattern||java.lang.String||Only display logs matching this text
-true|false|LogEveryNth||java.lang.Long||Only display every 'nth' log message
+false|false|ReplacementText||java.lang.String||Replace the matching text with the following string
+false|false|RegExpPattern||java.lang.String||Only display logs matching this text
+false|false|LogEveryNth||java.lang.Long||Only display every 'nth' log message

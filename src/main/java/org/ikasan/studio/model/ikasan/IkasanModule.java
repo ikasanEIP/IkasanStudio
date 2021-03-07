@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
 import com.intellij.psi.PsiFile;
 import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
- * This class holds all the information about the Ikasan module flow.
+ * This class holds all the information about the ikasan module flow.
  *
- * Its a deliberate decision not to use components from within the Ikasan framework itself in an attempt to insulate
- * from any changes to Ikasan or dependencies on any particular Ikasan version.
+ * Its a deliberate decision not to use components from within the ikasan framework itself in an attempt to insulate
+ * from any changes to ikasan or dependencies on any particular ikasan version.
  */
 public class IkasanModule extends IkasanComponent {
     private PsiFile moduleConfig;
@@ -37,8 +37,8 @@ public class IkasanModule extends IkasanComponent {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-        setName("My Ikasan Integration Module");
-        setDescription("My Ikasan Integration Module");
+        setName("My ikasan Integration Module");
+        setDescription("My ikasan Integration Module");
     }
 
     /**

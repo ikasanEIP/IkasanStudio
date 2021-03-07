@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.model.Ikasan.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
 
 import javax.swing.*;
 import java.awt.*;

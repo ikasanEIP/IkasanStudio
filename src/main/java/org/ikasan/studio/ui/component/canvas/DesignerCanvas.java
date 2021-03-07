@@ -9,8 +9,8 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
-import org.ikasan.studio.model.Ikasan.*;
 import org.ikasan.studio.model.StudioPsiUtils;
+import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
@@ -226,13 +226,13 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the x and y coords, return the Ikasan elements that resides at that x,y.
+     * Given the x and y coords, return the ikasan elements that resides at that x,y.
      *
-     * This will either be an Ikasan flows component, an Ikasan flow or the whol module.
+     * This will either be an ikasan flows component, an ikasan flow or the whol module.
      *
      * @param xpos of the mouse click
      * @param ypos of the mouse click
-     * @return the Ikasan component (flows component, flow, module) currently selected.
+     * @return the ikasan component (flows component, flow, module) currently selected.
      */
     public IkasanComponent getComponentAtXY(int xpos, int ypos) {
         IkasanComponent ikasanComponent = null;
@@ -306,7 +306,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the x and y coords, return Ikasan elements to the left or right (or both) within reasonable bounds
+     * Given the x and y coords, return ikasan elements to the left or right (or both) within reasonable bounds
      * @param xpos
      * @param ypos
      * @return
@@ -375,7 +375,7 @@ public class DesignerCanvas extends JPanel {
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel();
-            StudioPsiUtils.resetIkasanModelFromSourceCode(projectKey, false);
+            StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();
             return true;

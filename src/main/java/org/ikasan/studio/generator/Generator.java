@@ -47,9 +47,9 @@ public class Generator {
         }
 
         PsiJavaFile newPsiFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.JAVA, content);
-        // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
-        newPsiFile = (PsiJavaFile)myPackage.add(newPsiFile);
+        // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         standardJavaFormatting(project, newPsiFile);
+        newPsiFile = (PsiJavaFile)myPackage.add(newPsiFile);
 
         if (focus) {
             newPsiFile.navigate(true); // Open the newly created file
@@ -98,10 +98,10 @@ public class Generator {
     }
 
     /**
-     * Create the configs map used be volcity templates, pre-populate with configs used by all templates
-     * @return The String to Object map used to populate velocity templates.
+     * Create the configs map used by the template language, pre-populate with configs used by all templates
+     * @return The String to Object map used to populate templates.
      */
-    protected static Map<String, Object> getVelocityConfigs() {
+    protected static Map<String, Object> getBasicTemplateConfigs() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(STUDIO_BASE_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         return configs;

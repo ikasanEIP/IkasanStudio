@@ -2,11 +2,10 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
-import org.ikasan.studio.model.Ikasan.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.Ikasan.IkasanFlowBeskpokeComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.IkasanFlowBeskpokeComponent;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,7 +29,7 @@ public class BespokeClassTemplate extends Generator {
 
     public static String generateContents(IkasanFlowComponent ikasanFlowComponent) {
         String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.vm";
-        Map<String, Object> configs = getVelocityConfigs();
+        Map<String, Object> configs = getBasicTemplateConfigs();
 
         configs.put(COMPONENT_TAG, ikasanFlowComponent);
         String templateString = VelocityUtils.generateFromTemplate(templateName, configs);

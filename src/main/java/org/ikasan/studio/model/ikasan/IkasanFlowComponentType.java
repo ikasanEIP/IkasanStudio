@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ikasan.studio.StudioUtils;
@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Focuses on the Ikasan technical details of a component i.e. type, properties etc
+ * Focuses on the ikasan technical details of a component i.e. type, properties etc
  *
  * No UI specific elements should be present in this class (@see org.ikasan.studio.ui.model.IkasanFlowUIComponent for that)
  */
@@ -20,7 +20,7 @@ public enum IkasanFlowComponentType {
     SCHEDULE_RULE_CHECK_BROKER(IkasanFlowComponentCategory.BROKER, false, "ScheduledRuleCheckBroker"),
 
     DB_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "DBConsumer"),
-//    EVENT_DRIVEN_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "eventDrivenConsumer"),  cant seem to find this in Ikasan code base.
+//    EVENT_DRIVEN_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "eventDrivenConsumer"),  cant seem to find this in ikasan code base.
     EVENT_GENERATING_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "eventGeneratingConsumer"),
     SCHEDULED_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "scheduledConsumer"),
     FTP_CONSUMER(IkasanFlowComponentCategory.CONSUMER, false, "ftpConsumer"),

@@ -1,7 +1,7 @@
 package org.ikasan.studio;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.Ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -78,6 +78,6 @@ public class StudioUtilsTest extends TestCase {
         Assert.assertThat(total.toString(), is(
             "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='total', propertyConfigFileLabel='my.test.total', dataType=class java.lang.Integer, defaultValue=2, helpText='Total description'}"));
         Assert.assertThat(userImplementedClass.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, propertyName='userImplementedClass', propertyConfigFileLabel='', dataType=class java.lang.Object, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, propertyName='userImplementedClass', propertyConfigFileLabel='', dataType=class java.lang.Object, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an ikasan interface'}"));
     }
 }

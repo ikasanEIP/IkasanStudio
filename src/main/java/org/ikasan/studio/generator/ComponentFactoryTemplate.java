@@ -3,7 +3,7 @@ package org.ikasan.studio.generator;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class ComponentFactoryTemplate extends Generator {
     }
 
     public static String generateContents(IkasanModule ikasanModule) {
-        Map<String, Object> configs = getVelocityConfigs();
+        Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);
         configs.put(FLOWS_TAG, ikasanModule.getFlows());
         configs.put(MODULE_TAG, ikasanModule);

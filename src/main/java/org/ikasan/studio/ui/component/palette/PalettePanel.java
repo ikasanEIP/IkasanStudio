@@ -101,8 +101,8 @@ public class PalettePanel extends JPanel {
     }
 
     /**
-     * Create a list of all known Ikasan components
-     * @return a list of all known Ikasan components
+     * Create a list of all known ikasan components
+     * @return a list of all known ikasan components
      */
     private java.util.List<PaletteItem> buildPalettItems() {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();

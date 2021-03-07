@@ -1,11 +1,11 @@
 package org.ikasan.studio.actions;
 
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
 import org.ikasan.studio.model.StudioPsiUtils;
+import org.ikasan.studio.model.ikasan.IkasanComponent;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

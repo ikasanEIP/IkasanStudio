@@ -3,8 +3,8 @@ package org.ikasan.studio.model;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Test;
 

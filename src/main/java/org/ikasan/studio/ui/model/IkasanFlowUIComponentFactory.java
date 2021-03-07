@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.model;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ public class IkasanFlowUIComponentFactory {
     private static List<IkasanFlowUIComponent> ikasanFlowUIComponents = new ArrayList<>();
     private IkasanFlowUIComponent UNKNOWN ;
     private static String BROKER_HELP_TEXT = "Brokers enrich the contents of the existing message with additional data or structure in a number of different ways. Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.";
-    private static String SPLITTER_HELP_TEXT = "Splitters break up the incoming event in to many outgoing events. Ikasan will operate on the returned list of events and pass each event in the list independently to the next component for processing. Read more about EIP Sequencer In order to create your own splitter you need to implement Splitter Interface.";
+    private static String SPLITTER_HELP_TEXT = "Splitters break up the incoming event in to many outgoing events. ikasan will operate on the returned list of events and pass each event in the list independently to the next component for processing. Read more about EIP Sequencer In order to create your own splitter you need to implement Splitter Interface.";
     private static String CHANNEL_HELP_TEXT = "";
     private static String CONSUMER_HELP_TEXT = "Consumers provide the \"glue\" between the entry into the flow and the underlying technology generating the event. In order to create your own consumer you need to implement Consumer Interface.";
     private static String SCHEDULED_CONSUMER_HELP_TEXT = "This is a \"time event\" based consumer configured to be either an absolute or relative time schedule.";
@@ -24,7 +24,7 @@ public class IkasanFlowUIComponentFactory {
     private static String GENERIC_MESSAGE_CONSUMER_HELP_TEXT = "The JMS consumer is a event driven consumer, used to connect to Legacy JBoss 4.3 and JBoss 5.1 Jboss Messaging.";
     private static String SPRING_MESSAGE_CONSUMER_HELP_TEXT = "The JMS consumer is Event Driven Consumer, used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.";
     private static String CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another.";
-    private static String JSON_XML_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. A converter acts as an adapter between components requiring different input types. The purpose of this converter is to take a JSON payload and convert it to an XML payload. It does this by delegating to a Marshaller. There are various Marshaller implementations available in Ikasan. See Marshallers for more details of the various implementations.";
+    private static String JSON_XML_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. A converter acts as an adapter between components requiring different input types. The purpose of this converter is to take a JSON payload and convert it to an XML payload. It does this by delegating to a Marshaller. There are various Marshaller implementations available in ikasan. See Marshallers for more details of the various implementations.";
     private static String MAP_MESSAGE_OBJECT_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The Map Message to Object Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JMS MapMessge into an Object, by retrieving the Object from the MapMessage using the attribute name provided on the configuration.";
     private static String MAP_MESSAGE_PAYLOAD_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The Map Message to Payload Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JMS MapMessge into an Payload, by retrieving the content Object from the MapMessage using the content attribute name provided on the configuration and converting it to a Payload.";
     private static String PAYLOAD_TO_MAP_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The Map Message to Payload Converter is an implementation of the Converter Interface. It provides a mechanism that translates a Payload into a Map of <String, String>.";
@@ -32,7 +32,7 @@ public class IkasanFlowUIComponentFactory {
     private static String OBJECT_MESSAGE_XML_STRING_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The Object Message to XML String Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JAXB Object into an XML representation of that Object as a String.";
     private static String XML_BYTE_ARRAY_OBJECT_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The XML Byte Array to Object Converter is an implementation of the Converter Interface. It provides a mechanism that translates a byte[] representation of an XML String and converts it to a JAXB Object which is a materialised Java POJO that has been initialised with the contents of the XML.";
     private static String XML_STRING_OBJECT_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The XML String to Object Converter is an implementation of the Converter Interface. It provides a mechanism that translates String representation of an XML Document and converts it to a JAXB Object which is a materialised Java POJO that has been initialised with the contents of the XML.";
-    private static String XML_JSON_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The purpose of this converter is to take an XML payload and convert it to a JSON payload. It does this by delegating to a Marshaller. There are various Marshaller implementations available in Ikasan. See Marshallers for more details of the various implementations.";
+    private static String XML_JSON_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The purpose of this converter is to take an XML payload and convert it to a JSON payload. It does this by delegating to a Marshaller. There are various Marshaller implementations available in ikasan. See Marshallers for more details of the various implementations.";
     private static String XSLT_CONFIGURATION_PARAMETER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The purpose of the XsltConverter is to convert configuration parameters into xslt parameters.";
     private static String XSLT_CONVERTER_HELP_TEXT = "The main responsibility of a converter is to convert from one POJO type to another. The XSLT Converter is an implementation of the Converter Interface. It provides a mechanism that applies an XSLT against an XML payload, subsequently transforming it to another XML format, or other formats that are supported by XSLT.";
     private static String FILTER_HELP_TEXT = "Filter will allow given event to be past to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.";
@@ -49,7 +49,7 @@ public class IkasanFlowUIComponentFactory {
 
     private IkasanFlowUIComponentFactory() {
         UNKNOWN = createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, "Readme.md", IkasanFlowComponentType.UNKNOWN, "unknown");
-        //@todo add in link to online Ikasan help
+        //@todo add in link to online ikasan help
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Aggregator","Aggregator is an ipsum", "Readme.md", IkasanFlowComponentType.UNKNOWN, "aggregator"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/ConcurrentSplitter.md", IkasanFlowComponentType.SPLITTER, "splitter"));

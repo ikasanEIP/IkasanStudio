@@ -1,10 +1,10 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,9 +33,9 @@ public class PropertiesTemplateTest extends TestCase {
      */
     @Test
     public void testCreatePropertiesVelocity_emptyFlow() throws IOException {
-        String templateString = PropertiesTemplate.createPropertiesVelocity(testModule);
+        String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties")));
     }
 
 
@@ -51,14 +51,14 @@ public class PropertiesTemplateTest extends TestCase {
         ftpConsumerComponent.setName("testFtpConsumer");
         ftpConsumerComponent.updatePropertyValue("FilenamePattern", "*Test.txt");
         components.add(ftpConsumerComponent);
-
+        ftpConsumerComponent.getStandardProperties().size();
         IkasanFlowComponent namelessFtpConsumerComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
         namelessFtpConsumerComponent.updatePropertyValue("FilenamePattern", "*SecondTest.txt");
         components.add(namelessFtpConsumerComponent);
 
-        String templateString = PropertiesTemplate.createPropertiesVelocity(testModule);
+        String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_namelessAndNamed" + ".properties")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_namelessAndNamed" + ".properties")));
     }
 
     /**
@@ -69,7 +69,7 @@ public class PropertiesTemplateTest extends TestCase {
     public void testCreatePropertiesVelocity_fullyPopulatedFtpComponent() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
 
-        String templateString = PropertiesTemplate.createPropertiesVelocity(testModule);
+        String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpComponent.properties")));
     }

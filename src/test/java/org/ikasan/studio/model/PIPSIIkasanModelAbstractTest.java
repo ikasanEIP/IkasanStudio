@@ -6,7 +6,7 @@ import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.junit.Test;
 

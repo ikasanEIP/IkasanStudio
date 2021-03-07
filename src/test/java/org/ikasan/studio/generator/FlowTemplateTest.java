@@ -1,10 +1,10 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.Ikasan.IkasanFlow;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.Ikasan.IkasanFlowComponentType;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

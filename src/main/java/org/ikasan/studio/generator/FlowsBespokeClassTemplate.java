@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
-import org.ikasan.studio.model.Ikasan.*;
+import org.ikasan.studio.model.ikasan.*;
 
 import java.util.Map;
 
@@ -28,11 +28,13 @@ public class FlowsBespokeClassTemplate extends Generator {
     }
 
     public static String generateContents(IkasanFlowComponent ikasanFlowComponent) {
-        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.vm";
-        Map<String, Object> configs = getVelocityConfigs();
+//        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.vm";
+        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.ftl";
+        Map<String, Object> configs = getBasicTemplateConfigs();
 
         configs.put(COMPONENT_TAG, ikasanFlowComponent);
-        String templateString = VelocityUtils.generateFromTemplate(templateName, configs);
+//        String templateString = VelocityUtils.generateFromTemplate(templateName, configs);
+        String templateString = FreemarkerUtils.generateFromTemplate(templateName, configs);
         return templateString;
     }
 }

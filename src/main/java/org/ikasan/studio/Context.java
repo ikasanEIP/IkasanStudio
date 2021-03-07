@@ -1,7 +1,7 @@
 package org.ikasan.studio;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.model.Ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.PropertiesPanel;
@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 
 /**
  * The Context allows all the independent parts of the UI to collaborate with each other.
@@ -27,6 +28,7 @@ public class Context {
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
+//    private static final Configuration ;
 
     // projectName -> region -> value
     // e.g. myProject -> IKASAN_MODULE -> actualModule

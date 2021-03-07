@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.Ikasan;
+package org.ikasan.studio.model.ikasan;
 
 import com.sun.istack.NotNull;
 import org.ikasan.studio.StudioUtils;
@@ -6,7 +6,7 @@ import org.ikasan.studio.StudioUtils;
 import java.util.Objects;
 
 /**
- * Represents all the possible properties an Ikasan component is allowed to have
+ * Represents all the possible properties an ikasan component is allowed to have
  */
 public class IkasanComponentPropertyMeta {
     public static final String NAME = "Name";
