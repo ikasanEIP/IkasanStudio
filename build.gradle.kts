@@ -65,7 +65,7 @@ dependencies {
     testImplementation("org.freemarker:freemarker:2.3.31")
 //    testImplementation("org.apache.velocity:velocity-engine-core:2.3.20")
     testImplementation("org.ikasan:ikasan-eip-standalone:3.0.1")
-    testImplementation("org.ikasan:ikasan-test-endpoint:3.0.1")
+    testImplementation("org.ikasan:ikasan-test-endpoint:3.1.0")
     testImplementation("org.ikasan:ikasan-test:3.0.1")
     testImplementation("org.ikasan:ikasan-ftp-endpoint:3.0.1")
     testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.0.1")
