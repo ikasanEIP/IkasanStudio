@@ -28,11 +28,13 @@ public class BespokeClassTemplate extends Generator {
     }
 
     public static String generateContents(IkasanFlowComponent ikasanFlowComponent) {
-        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.vm";
+//        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.vm";
+        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
 
         configs.put(COMPONENT_TAG, ikasanFlowComponent);
-        String templateString = VelocityUtils.generateFromTemplate(templateName, configs);
+//        String templateString = VelocityUtils.generateFromTemplate(templateName, configs);
+        String templateString = FreemarkerUtils.generateFromTemplate(templateName, configs);
         return templateString;
     }
 }

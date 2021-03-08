@@ -19,6 +19,6 @@ public class FreemarkerUtilsTest extends TestCase {
         configs.putIfAbsent("className","Application");
         String templateString = FreemarkerUtils.generateFromTemplate("BasicFreemarkerTest.ftl", configs);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is("Basic Test Application\r\n"));
+        Assert.assertThat(templateString, is("Basic Test Application\n"));
     }
 }

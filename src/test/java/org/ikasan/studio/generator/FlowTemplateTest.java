@@ -36,11 +36,11 @@ public class FlowTemplateTest extends TestCase {
     public void testCreateFlowWith_oneFlow() throws IOException {
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1_eventGeneratingConsumert.java
+     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1EventGeneratingConsumer.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -52,7 +52,7 @@ public class FlowTemplateTest extends TestCase {
 
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "EventGeneratingConsumer.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "EventGeneratingConsumer.java")));
     }
 
     /**
@@ -65,7 +65,7 @@ public class FlowTemplateTest extends TestCase {
 
         String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpComponent.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpComponent.java")));
     }
 
 }

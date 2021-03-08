@@ -36,6 +36,6 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 
         String templateString = FlowsComponentFactoryTemplate.generateContents(ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpComponent.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpComponent.java")));
     }
 }
