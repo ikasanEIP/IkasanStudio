@@ -13,30 +13,34 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
-<#list flow.flowComponentList![] as ikasanComponent>
-    <#if !ikasanComponent.type.bespokeClass>
-        <#list ikasanComponent.getStandardProperties()![] as propName, propValue>
+<#list flow.flowComponentList![] as ikasanFlowComponent>
+    <#if !ikasanFlowComponent.type.bespokeClass>
+        <#list ikasanFlowComponent.getStandardProperties()![] as propName, propValue>
             <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
-                <#if ikasanComponent.javaPackageName != "">
-                    @org.springframework.beans.factory.annotation.Value("${r"${"}${flow.javaPackageName}.${ikasanComponent.javaPackageName}.${propValue.meta.propertyConfigFileLabel}}")
+                <#if ikasanFlowComponent.getJavaPackageName() != "">
+                    @org.springframework.beans.factory.annotation.Value("${r"${"}${flow.getJavaPackageName()}.${ikasanFlowComponent.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}}")
                 <#else>
-                    @org.springframework.beans.factory.annotation.Value("${r"${"}${flow.javaPackageName}.${propValue.meta.propertyConfigFileLabel}}")
+                    @org.springframework.beans.factory.annotation.Value("${r"${"}${flow.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}}")
                 </#if>
                 ${propValue.meta.dataType.getCanonicalName()}  ${propValue.meta.getPropertyConfigFileLabelAsVariable()};
             </#if>
         </#list>
+        <#else>
+            @javax.annotation.Resource
+            ${ikasanFlowComponent.properties.BaseGroupName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
     </#if>
 </#list>
 </#compress>
-\n
+
+
 <#compress>
-<#list flow.flowComponentList![] as ikasanComponent>
-    public ${ikasanComponent.type.elementCategory.baseClass} get${ikasanComponent.type.associatedMethodName}() {
-    <#if ikasanComponent.type.bespokeClass>
-        return new ${ikasanComponent.properties.BaseGroupName.value}.${flow.JavaPackageName}.${ikasanComponent.properties.BespokeClassName.value}();
+<#list flow.flowComponentList![] as ikasanFlowComponent>
+    public ${ikasanFlowComponent.type.elementCategory.baseClass} get${ikasanFlowComponent.getJavaClassName()}() {
+    <#if ikasanFlowComponent.type.bespokeClass>
+        return ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
-        return builderFactory.getComponentBuilder().${ikasanComponent.type.associatedMethodName}()
-        <#list ikasanComponent.getStandardProperties() as propName, propValue>
+        return builderFactory.getComponentBuilder().${ikasanFlowComponent.type.associatedMethodName}()
+        <#list ikasanFlowComponent.getStandardProperties() as propName, propValue>
             <#if propValue.value??>
                 <#if propValue.meta.propertyConfigFileLabel != "">
                     .set${propName}(${propValue.meta.getPropertyConfigFileLabelAsVariable()})

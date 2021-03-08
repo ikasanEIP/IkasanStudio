@@ -59,25 +59,24 @@ public class StudioUtilsTest extends TestCase {
         Assert.assertThat(StudioUtils.toJavaPackageName("1test"), is("_1test"));
     }
 
-
     @Test
     public void testConfigReader() throws IOException {
         Map<String, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
         Assert.assertThat(properties.size(), is(5));
-        IkasanComponentPropertyMeta additionalName = properties.get("additionalName");
-        IkasanComponentPropertyMeta name = properties.get("name");
-        IkasanComponentPropertyMeta other = properties.get("other");
-        IkasanComponentPropertyMeta total = properties.get("total");
-        IkasanComponentPropertyMeta userImplementedClass = properties.get("userImplementedClass");
+        IkasanComponentPropertyMeta additionalName = properties.get("AdditionalName");
+        IkasanComponentPropertyMeta name = properties.get("Name");
+        IkasanComponentPropertyMeta other = properties.get("Other");
+        IkasanComponentPropertyMeta total = properties.get("Total");
+        IkasanComponentPropertyMeta userImplementedClass = properties.get("UserImplementedClass");
         Assert.assertThat(additionalName.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='additionalName', propertyConfigFileLabel='', dataType=class java.lang.String, defaultValue=MyDefault, helpText='The name of the component'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='AdditionalName', propertyConfigFileLabel='', dataType=class java.lang.String, defaultValue=MyDefault, helpText='The name of the component'}"));
         Assert.assertThat(name.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='name', propertyConfigFileLabel='null', dataType=class java.lang.String, defaultValue=, helpText='The name of the component as displayed on diagrams, also used for the variable name in the generated code.'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='Name', propertyConfigFileLabel='null', dataType=class java.lang.String, defaultValue=, helpText='The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.'}"));
         Assert.assertThat(other.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='other', propertyConfigFileLabel='', dataType=class java.lang.Integer, defaultValue=null, helpText='Total description'}"));
+            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='Other', propertyConfigFileLabel='', dataType=class java.lang.Integer, defaultValue=null, helpText='Total description'}"));
         Assert.assertThat(total.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='total', propertyConfigFileLabel='my.test.total', dataType=class java.lang.Integer, defaultValue=2, helpText='Total description'}"));
+            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='Total', propertyConfigFileLabel='my.test.total', dataType=class java.lang.Integer, defaultValue=2, helpText='Total description'}"));
         Assert.assertThat(userImplementedClass.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, propertyName='userImplementedClass', propertyConfigFileLabel='', dataType=class java.lang.Object, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an ikasan interface'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', dataType=class java.lang.Object, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
     }
 }

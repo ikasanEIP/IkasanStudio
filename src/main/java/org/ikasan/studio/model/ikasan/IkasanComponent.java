@@ -12,7 +12,6 @@ public class IkasanComponent {
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
     protected ViewHandler viewHandler;
     protected Map<String, IkasanComponentProperty> properties = new TreeMap<>();
-    private String javaVariableName;
 
     public IkasanComponentProperty getProperty(String key) {
         return properties.get(key);
@@ -108,15 +107,16 @@ public class IkasanComponent {
         return StudioUtils.toJavaPackageName(getName());
     }
 
+    public String getJavaVariableName() {
+        return StudioUtils.toJavaIdentifier(getName());
+    }
+
     /**
      * Set the screen name (and indicate the java variable name) for this component
      * @param name for the instance of this component.
      */
     public void setName(String name) {
         this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
-        if (name != null && name.length() > 0) {
-            javaVariableName = StudioUtils.toJavaIdentifier(name);
-        }
     }
 
     public String getDescription() {
@@ -126,15 +126,4 @@ public class IkasanComponent {
         this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT, description);
     }
 
-    /**
-     * The setter is deliberably private since the data should be set via setName
-     * @param javaVariableName for the instance of this component
-     */
-    private void setJavaVariableName(String javaVariableName) {
-        this.javaVariableName = javaVariableName;
-    }
-
-    public String getJavaVariableName() {
-        return javaVariableName;
-    }
 }

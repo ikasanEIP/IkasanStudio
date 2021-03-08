@@ -42,4 +42,22 @@ public class IkasanComponentProperty {
         return "IkasanComponentProperty{" +
                 "value=" + value  +'}';
     }
+
+    /**
+     * For the given field type, determine if a valid value has been set.
+     * @return true if the field is empty or unset
+     */
+    public boolean isEmpty() {
+        boolean empty = false;
+        if ((value == null) ||
+            (value instanceof java.lang.String && ((String)value).isEmpty()) ||
+            (value instanceof java.lang.Integer && ((Integer)value) ==0) ||
+            (value instanceof java.lang.Long && ((Long)value) == 0l) ||
+            (value instanceof java.lang.Double && ((Double)value) == 0.0) ||
+            (value instanceof java.lang.Float && ((Float)value) == 0.0)) {
+            empty = true;
+        }
+        return empty;
+    }
+
 }

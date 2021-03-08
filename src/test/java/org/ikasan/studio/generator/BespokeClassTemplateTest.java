@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 public class BespokeClassTemplateTest extends TestCase {
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1OneFlow.java
+     * @See resources/studio/templates/org/ikasan/studio/generator/MyConverter.java
      * @throws IOException if the template cant be generated
      */
     @Test

@@ -18,7 +18,7 @@ public class IkasanComponentPropertyMeta {
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(true, false,
             IkasanComponentPropertyMeta.NAME, null, String.class, "",
-            "The name of the component as displayed on diagrams, also used for the variable name in the generated code.");
+            "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
     public static final IkasanComponentPropertyMeta STD_DESCIPTION_META_COMPONENT =
         new IkasanComponentPropertyMeta(false, false,
             IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "",
@@ -51,10 +51,6 @@ public class IkasanComponentPropertyMeta {
         this.helpText = helpText;
         this.defaultValue = defaultValue;
     }
-
-//    public IkasanComponentPropertyMeta(@NotNull String propertyName, String propertyConfigFileLabel, @NotNull Class dataType, Object defaultValue, String helpText) {
-//        this(false, false, propertyName, propertyConfigFileLabel, dataType, defaultValue, helpText);
-//    }
 
     public Boolean isMandatory() {
         return mandatory;
