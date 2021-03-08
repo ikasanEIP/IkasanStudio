@@ -43,8 +43,9 @@ org.springframework.transaction.jta.JtaTransactionManager ftpConsumerTransaction
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.password-filepath}")
 java.lang.String ftpConsumerPasswordfilepath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.source-directory}")
-java.lang.String ftpConsumerSourcedirectory;\n
-public org.ikasan.spec.component.endpoint.Consumer getftpConsumer() {
+java.lang.String ftpConsumerSourcedirectory;
+
+public org.ikasan.spec.component.endpoint.Consumer getTestftpconsumer() {
 return builderFactory.getComponentBuilder().ftpConsumer()
 .setConnectionTimeout(600001)
 .setMaxRetryAttempts(ftpConsumerMaxretryattempts)

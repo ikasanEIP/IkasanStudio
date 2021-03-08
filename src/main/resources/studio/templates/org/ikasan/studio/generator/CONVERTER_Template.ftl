@@ -1,3 +1,4 @@
+
 /**
 * The main responsibility of a converter is to convert from one POJO type to another.
 *
@@ -8,6 +9,7 @@
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
+@org.springframework.stereotype.Component
 public class ${component.getPropertyValue("BespokeClassName")} implements Converter<${component.getPropertyValue("FromType")}, ${component.getPropertyValue("ToType")}>
 {
 public ${component.getPropertyValue("ToType")} convert(${component.getPropertyValue("FromType")} payload) throws TransformationException

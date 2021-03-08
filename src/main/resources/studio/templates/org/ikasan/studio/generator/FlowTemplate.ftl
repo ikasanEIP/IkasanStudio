@@ -28,9 +28,9 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 .withDescription("${flow.description}")
 </#if>
 <#compress>
-<#list flow.flowComponentList![] as ikasanComponent>
-    .${ikasanComponent.type.elementCategory.associatedMethodName}("${ikasanComponent.name}",
-    componentFactory.get${ikasanComponent.type.associatedMethodName}())
+<#list flow.flowComponentList![] as ikasanFlowComponent>
+    .${ikasanFlowComponent.type.elementCategory.associatedMethodName}("${ikasanFlowComponent.name}",
+    componentFactory.get${ikasanFlowComponent.getJavaClassName()}())
 </#list>
 </#compress>
 .build();

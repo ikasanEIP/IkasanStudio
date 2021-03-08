@@ -43,7 +43,7 @@ public class IkasanFlowComponent extends IkasanComponent {
     public boolean hasUnsetMandatoryProperties() {
         for (Map.Entry<String, IkasanComponentProperty> entry : properties.entrySet()) {
             IkasanComponentProperty ikasanComponentProperty = entry.getValue();
-            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.getValue() == null) {
+            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.isEmpty()) {
                 return true;
             }
         }
