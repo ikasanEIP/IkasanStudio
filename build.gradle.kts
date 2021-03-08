@@ -59,7 +59,7 @@ dependencies {
 //    implementation("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.freemarker:freemarker:2.3.20")
     implementation("org.freemarker:freemarker:2.3.31")
-    implementation("org.ikasan:ikasan-eip-standalone:3.0.1")
+    implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
     implementation("org.ikasan:ikasan-h2-standalone-persistence:3.1.0")
 //    testImplementation("org.freemarker:freemarker:2.3.20")
     testImplementation("org.freemarker:freemarker:2.3.31")
