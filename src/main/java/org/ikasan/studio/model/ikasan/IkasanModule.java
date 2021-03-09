@@ -86,8 +86,11 @@ public class IkasanModule extends IkasanComponent {
                 "moduleConfig=" + moduleConfig +
                 ", version='" + version + '\'' +
                 ", flows=" + flows +
+                ", properties=" + properties +
+                ", type=" + type +
                 '}';
     }
+
     public ViewHandler getViewHandler() {
         return viewHandler;
     }

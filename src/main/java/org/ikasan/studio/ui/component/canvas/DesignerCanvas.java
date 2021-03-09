@@ -497,26 +497,6 @@ public class DesignerCanvas extends JPanel {
                 enableStart();
             }
             ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
-//        }
-//        if (!initialiseAllDimensions && ikasanModule != null) {
-//            if (ikasanModule.hasUnsetMandatoryProperties()) {
-//                PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
-//                propertiesPanel.updatePropertiesPanel(ikasanModule);
-//                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-//                        Context.getProject(projectKey),
-//                        Context.getDesignerCanvas(projectKey),
-//                        propertiesPanel);
-//                propertiesDialogue.showAndGet();
-////                if (propertiesDialogue.showAndGet()) {
-////                    ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
-////                }
-////            } else {
-////                ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
-//            }
-//        }
-//
-//        if (ikasanModule != null) {
-//            ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
         } else {
             log.warn("Model not set");
         }

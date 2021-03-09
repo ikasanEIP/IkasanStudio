@@ -11,7 +11,7 @@ public abstract class IkasanComponent {
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
     protected ViewHandler viewHandler;
     protected Map<String, IkasanComponentProperty>properties;
-    private IkasanComponentType type;
+    protected IkasanComponentType type;
 
     private IkasanComponent() {}
 
@@ -154,5 +154,13 @@ public abstract class IkasanComponent {
 
     public void setType(IkasanComponentType type) {
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "IkasanComponent{" +
+                "properties=" + properties +
+                ", type=" + type +
+                '}';
     }
 }
