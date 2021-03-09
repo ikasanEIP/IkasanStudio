@@ -11,12 +11,14 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.PsiTestUtil;
+import org.apache.log4j.Logger;
 import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Generator {
+    private static final Logger log = Logger.getLogger(Generator.class);
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
     public static final String FLOWS_TAG = "flows";
@@ -58,29 +60,36 @@ public class Generator {
     }
 
     public static PsiFile createResourceFile(final Project project, final String subDir,final  String propertiesFileNme, final String content, boolean focus) {
+        PsiFile psiFile = null;
         String fileName = propertiesFileNme + ".properties";
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(project, StudioPsiUtils.JAVA_RESOURCES);
-        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
-        PsiDirectory directory = baseDir;
-        if (subDir != null) {
-            directory = StudioPsiUtils.createDirectory(baseDir, subDir);
-        }
+        if (sourceRoot != null) {
+            PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
+            PsiDirectory directory = baseDir;
+            if (subDir != null) {
+                directory = StudioPsiUtils.createDirectory(baseDir, subDir);
+            }
 
-        PsiFile psiFile = directory.findFile(fileName) ;
-        if (psiFile != null) {
-            psiFile.delete();
-        }
+            psiFile = directory.findFile(fileName) ;
+            if (psiFile != null) {
+                psiFile.delete();
+            }
 
-        psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.PROPERTIES, content);
-        // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
-        psiFile = (PsiFile)directory.add(psiFile);
-        standardPropertiesFormatting(project, psiFile);
+            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.PROPERTIES, content);
+            // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
+            psiFile = (PsiFile)directory.add(psiFile);
+            standardPropertiesFormatting(project, psiFile);
 //            // Required post edit steps
 //            PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
 //            documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
-        if (focus) {
-            psiFile.navigate(true); // Open the newly created file
+            if (focus) {
+                psiFile.navigate(true); // Open the newly created file
+            }
+        } else {
+            //@todo add this to system alerts in Intellij
+            log.error("The resources directory was missing, please add it and restart the project");
         }
+
         return psiFile;
     }
 
