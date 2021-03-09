@@ -127,8 +127,9 @@ public class PIPSIIkasanModel {
     protected void updateIkasanModuleWithModuleBuilder(PsiLocalVariable moduleBuilderLocalVariable) {
         PIPSIMethodList moduleBuilderMethodList = extractMethodCallsFromChain(moduleBuilderLocalVariable.getChildren(), new PIPSIMethodList());
         PIPSIMethod moduleBuilderMethod = moduleBuilderMethodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
-//        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
         ikasanModule.setName(getReferenceOrLiteral(moduleBuilderMethod,0));
+        Properties properties = Context.getApplicationProperties(projectKey);
+        ikasanModule.setApplicationPackageName((String)properties.get(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_KEY));
     }
 
     /**
@@ -230,13 +231,15 @@ public class PIPSIIkasanModel {
         // Set the module description
         PIPSIMethod withDescriptionMethod = methodList.getFirstMethodByName(WITH_DESCRIPTION_METHOD_NAME);
         ikasanModule.setDescription(withDescriptionMethod == null ? null :
-                withDescriptionMethod.getLiteralParameterAsString(0, true));
+                getReferenceOrLiteral(withDescriptionMethod, 0));
+//                withDescriptionMethod.getLiteralParameterAsString(0, true));
 
         // Just in case we have it here also
         //@todo what it parameter was a reference or spring reference- chase !
         PIPSIMethod moduleBuilderMethod = methodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
         if (moduleBuilderMethod != null) {
-            ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+//            ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+            ikasanModule.setName(getReferenceOrLiteral(moduleBuilderMethod, 0));
         }
 
         // Expose the flows
@@ -323,7 +326,8 @@ public class PIPSIIkasanModel {
         IkasanFlow newFlow = new IkasanFlow();
         PIPSIMethodList flowBuilderMethodCalls = extractMethodCallsFromChain(flowBuilderLocalVar.getChildren(), new PIPSIMethodList());
         PIPSIMethod getFlowBuilderCall = flowBuilderMethodCalls.getFirstMethodByName(FLOW_BUILDER_NAME_METHOD);
-        String flowName = getFlowBuilderCall.getLiteralParameterAsString(0, true);
+//        String flowName = getFlowBuilderCall.getLiteralParameterAsString(0, true);
+        String flowName = getReferenceOrLiteral(getFlowBuilderCall, 0);
         newFlow.setName(flowName);
         return newFlow;
     }
@@ -361,7 +365,8 @@ public class PIPSIIkasanModel {
         for(PIPSIMethod pipsiMethod : flowMethodCalls.getPipsiMethods()) {
 
             if (IkasanComponentCategory.DESCRIPTION.associatedMethodName.equals(pipsiMethod.getName())) {
-                newFlow.setDescription(pipsiMethod.getLiteralParameterAsString(0, true));
+//                newFlow.setDescription(pipsiMethod.getLiteralParameterAsString(0, true));
+                newFlow.setDescription(getReferenceOrLiteral(pipsiMethod, 0));
             }
 
             if (IkasanComponentCategory.BROKER.associatedMethodName.equals(pipsiMethod.getName()) ||
@@ -946,7 +951,8 @@ public class PIPSIIkasanModel {
      */
     protected IkasanModule extractModuleName(final PIPSIMethodList methodList) {
         PIPSIMethod moduleBuilderMethod = methodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
-        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+//        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+        ikasanModule.setName(getReferenceOrLiteral(moduleBuilderMethod, 0));
         return  ikasanModule;
     }
 //    /**

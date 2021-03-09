@@ -13,6 +13,7 @@ public class IkasanComponentPropertyMeta {
     public static final String DESCRIPTION = "Description";
     public static final String BESPOKE_CLASS_NAME = "BespokeClassName";
     public static final String APPLICATION_PACKAGE_NAME = "ApplicationPackageName";
+    public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final String FROM_TYPE = "FromType";
     public static final String TO_TYPE = "ToType";
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
