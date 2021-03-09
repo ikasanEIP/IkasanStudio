@@ -13,14 +13,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class FlowsComponentFactoryTemplateTest extends TestCase {
-    IkasanModule ikasanModule = new IkasanModule();
+    IkasanModule ikasanModule = TestFixtures.getIkasanModule();
     IkasanFlow ikasanFlow = new IkasanFlow();
     private static String TEST_FLOW_NAME = "MyFlow1";
     private static String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @Before
     public void setUp() {
-        ikasanModule = new IkasanModule();
+        ikasanModule = TestFixtures.getIkasanModule();
         ikasanFlow = new IkasanFlow();
         ikasanFlow.setName(TEST_FLOW_NAME);
         ikasanFlow.setDescription("MyFlowDescription");

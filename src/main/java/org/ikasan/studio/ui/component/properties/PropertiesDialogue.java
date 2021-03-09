@@ -29,7 +29,7 @@ public class PropertiesDialogue extends DialogWrapper {
      * @param propertiesPanel to display and have entries taken on.
      */
     public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
-        super(project, parentComponent, true, IdeModalityType.IDE); // use current window as parent
+        super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
         this.propertiesPanel = propertiesPanel;
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.

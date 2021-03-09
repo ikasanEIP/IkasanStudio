@@ -1,9 +1,9 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
+import org.ikasan.studio.model.ikasan.IkasanComponentType;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,7 +21,7 @@ public class PropertiesTemplateTest extends TestCase {
 
     @Before
     public void setUp() {
-        testModule = new IkasanModule();
+        testModule = TestFixtures.getIkasanModule();
         testModule.setName("myModule");
         ikasanFlow = new IkasanFlow();
         testModule.addAnonymousFlow(ikasanFlow);
@@ -47,12 +47,12 @@ public class PropertiesTemplateTest extends TestCase {
     public void testCreatePropertiesVelocity_namelessAndNamedComponents() throws IOException {
         List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
 
-        IkasanFlowComponent ftpConsumerComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
+        IkasanFlowComponent ftpConsumerComponent = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
         ftpConsumerComponent.setName("testFtpConsumer");
         ftpConsumerComponent.updatePropertyValue("FilenamePattern", "*Test.txt");
         components.add(ftpConsumerComponent);
         ftpConsumerComponent.getStandardProperties().size();
-        IkasanFlowComponent namelessFtpConsumerComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
+        IkasanFlowComponent namelessFtpConsumerComponent = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
         namelessFtpConsumerComponent.updatePropertyValue("FilenamePattern", "*SecondTest.txt");
         components.add(namelessFtpConsumerComponent);
 

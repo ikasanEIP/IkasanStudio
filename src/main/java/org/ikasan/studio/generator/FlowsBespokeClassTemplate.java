@@ -18,7 +18,7 @@ public class FlowsBespokeClassTemplate extends Generator {
                 boolean overwriteClassIsExists = false;
                 String templateString = generateContents(component);
                 String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
-                String newPackageName = (String)component.getProperty(IkasanComponentPropertyMeta.BASE_GROUP_NAME).getValue() + "." + ikasanFlow.getJavaPackageName();
+                String newPackageName = (String)component.getProperty(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME).getValue() + "." + ikasanFlow.getJavaPackageName();
                 overwriteClassIsExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
                 PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIsExists);
                 ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);

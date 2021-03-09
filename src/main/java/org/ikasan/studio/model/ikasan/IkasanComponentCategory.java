@@ -5,7 +5,9 @@ import org.ikasan.studio.StudioUtils;
 /**
  * The different elements (components) that might be in a flow
  */
-public enum IkasanFlowComponentCategory {
+public enum IkasanComponentCategory {
+    MODULE(0, "", "org.ikasan.spec.module.Module"),
+    FLOW(10, "", "org.ikasan.spec.flow.Flow"),
     BROKER(20, "broker", "org.ikasan.spec.component.endpoint.Broker"),
     CONSUMER(10,"consumer", "org.ikasan.spec.component.endpoint.Consumer"),
     CONVERTER(30, "converter", "org.ikasan.spec.component.transformation.Converter"),
@@ -23,14 +25,14 @@ public enum IkasanFlowComponentCategory {
     public final String associatedMethodName;
     public final String baseClass;
 
-    IkasanFlowComponentCategory(Integer displayOrder, String associatedMethodName, String associatedBaseClass) {
+    IkasanComponentCategory(Integer displayOrder, String associatedMethodName, String associatedBaseClass) {
         this.displayOrder = displayOrder;
         this.associatedMethodName = associatedMethodName;
         this.baseClass = associatedBaseClass;
     }
 
-    public static IkasanFlowComponentCategory parseMethodName(String methodName) {
-        for (IkasanFlowComponentCategory name : IkasanFlowComponentCategory.values()) {
+    public static IkasanComponentCategory parseMethodName(String methodName) {
+        for (IkasanComponentCategory name : IkasanComponentCategory.values()) {
             if (name.associatedMethodName.equals(methodName)) {
                 return name;
             }
@@ -38,18 +40,18 @@ public enum IkasanFlowComponentCategory {
         return UNKNOWN;
     }
 
-    public static IkasanFlowComponentCategory parseBaseClass(String baseClassString) {
-        for (IkasanFlowComponentCategory ikasanFlowComponentCategory : IkasanFlowComponentCategory.values()) {
-            if (ikasanFlowComponentCategory.baseClass.equals(baseClassString) || StudioUtils.getLastToken("\\.", ikasanFlowComponentCategory.baseClass).equals(baseClassString)) {
-                return ikasanFlowComponentCategory;
+    public static IkasanComponentCategory parseBaseClass(String baseClassString) {
+        for (IkasanComponentCategory ikasanComponentCategory : IkasanComponentCategory.values()) {
+            if (ikasanComponentCategory.baseClass.equals(baseClassString) || StudioUtils.getLastToken("\\.", ikasanComponentCategory.baseClass).equals(baseClassString)) {
+                return ikasanComponentCategory;
             }
         }
         return UNKNOWN;
     }
 
     public static boolean isIkasanComponent(String componentClassString) {
-        IkasanFlowComponentCategory ikasanFlowComponentCategory = parseBaseClass(componentClassString);
-        if (ikasanFlowComponentCategory != null && ikasanFlowComponentCategory != UNKNOWN) {
+        IkasanComponentCategory ikasanComponentCategory = parseBaseClass(componentClassString);
+        if (ikasanComponentCategory != null && ikasanComponentCategory != UNKNOWN) {
             return true;
         } else {
             return false;

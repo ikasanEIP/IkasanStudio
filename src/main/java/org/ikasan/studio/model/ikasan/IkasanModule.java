@@ -6,7 +6,6 @@ import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 /**
  * This class holds all the information about the ikasan module flow.
@@ -21,13 +20,14 @@ public class IkasanModule extends IkasanComponent {
     private List<IkasanFlow> flows = new ArrayList<>();
 
     public IkasanModule() {
-        super();
-        this.properties = new TreeMap<String, IkasanComponentProperty>();
-        this.properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
-        this.properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
+        super(IkasanComponentType.MODULE, IkasanComponentType.MODULE.getMandatoryProperties());
+//        this.properties = new TreeMap<String, IkasanComponentProperty>();
+//        this.properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
+//        this.properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
+//        this.properties.put(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
         this.viewHandler = new IkasanModuleViewHandler(this);
-        setName("New Module");
-        setDescription("New Module, please provide description");
+//        setName("New Module");
+//        setDescription("New Module, please provide description");
     }
 
     /**
@@ -37,8 +37,10 @@ public class IkasanModule extends IkasanComponent {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-        setName("My ikasan Integration Module");
-        setDescription("My ikasan Integration Module");
+//        setName("My ikasan Integration Module");
+//        setDescription("My ikasan Integration Module");
+        setName("");
+        setDescription("");
     }
 
     /**
@@ -77,29 +79,33 @@ public class IkasanModule extends IkasanComponent {
         return flows.add(ikasanFlow);
     }
 
-    public ViewHandler getViewHandler() {
-        return viewHandler;
-    }
-
-    public void setViewHandler(IkasanModuleViewHandler viewHandler) {
-        this.viewHandler = viewHandler;
-    }
 
     @Override
     public String toString() {
         return "IkasanModule{" +
-                "name='" + getName() + '\'' +
-                ", description='" + getDescription() + '\'' +
+                "moduleConfig=" + moduleConfig +
                 ", version='" + version + '\'' +
-                ", flowList=" + flows +
+                ", flows=" + flows +
                 '}';
     }
-
+    public ViewHandler getViewHandler() {
+        return viewHandler;
+    }
+    public void setViewHandler(IkasanModuleViewHandler viewHandler) {
+        this.viewHandler = viewHandler;
+    }
     public PsiFile getModuleConfig() {
         return moduleConfig;
     }
-
     public void setModuleConfig(PsiFile moduleConfig) {
         this.moduleConfig = moduleConfig;
+    }
+
+    public String getApplicationPackageName() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME);
+    }
+
+    public void setApplicationPackageName(String applicationPackageName) {
+        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
     }
 }

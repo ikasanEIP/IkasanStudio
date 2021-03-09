@@ -24,20 +24,27 @@ public class IkasanModuleViewHandler extends ViewHandler {
 
     @Override
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        log.debug("paintComponent invoked");
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
-
         int currentY = 0;
-        for (IkasanFlow ikasanFlow : model.getFlows()) {
-            // remember initialise has already set x,y but we may be dealing with component move
-            if (currentY == 0 ) {
-                currentY = ikasanFlow.getViewHandler().getTopY();
-            } else {
-                currentY += FLOW_VERTICAL_SPACING;
-            }
-            currentY = ikasanFlow.getViewHandler().paintComponent(canvas, g, -1, currentY);
+        log.debug("paintComponent invoked");
 
-        }
+//        if (model.hasUnsetMandatoryProperties()) {
+//            JButton start = new JButton("Click here to start");
+//            canvas.add(start);
+////            canvas.getWidth();
+////            StudioUIUtils.drawCenteredStringFromMiddleCentre(g, "Please drag the module from the pallette",10,10, StudioUIUtils.getBoldFont(g));
+//        } else {
+            StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
+
+            for (IkasanFlow ikasanFlow : model.getFlows()) {
+                // remember initialise has already set x,y but we may be dealing with component move
+                if (currentY == 0 ) {
+                    currentY = ikasanFlow.getViewHandler().getTopY();
+                } else {
+                    currentY += FLOW_VERTICAL_SPACING;
+                }
+                currentY = ikasanFlow.getViewHandler().paintComponent(canvas, g, -1, currentY);
+            }
+//        }
 
         return currentY;
     }

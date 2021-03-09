@@ -1,8 +1,9 @@
 package org.ikasan.studio.generator;
 
+import org.ikasan.studio.model.ikasan.IkasanComponentType;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class TestFixtures {
      * @return
      */
     public static IkasanFlowComponent getFullyPopulatedFtpComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.FTP_CONSUMER, ikasanFlow);
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
         component.setName("testFtpConsumer");
 
         // Mandatory properties
@@ -85,14 +86,21 @@ public class TestFixtures {
      * @return
      */
     public static IkasanFlowComponent getFullyPopulatedCustomConverter(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.CUSTOM_CONVERTER, ikasanFlow);
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.CUSTOM_CONVERTER, ikasanFlow);
         component.setName("testCustomConverter");
 
         // Mandatory properties
-        component.updatePropertyValue("BaseGroupName", "org.myApp");
+//        component.updatePropertyValue("ApplicationPackageName", "org.myApp");
         component.updatePropertyValue("BespokeClassName", "MyConverterClass");
         component.updatePropertyValue("FromType", java.lang.String.class);
         component.updatePropertyValue("ToType", java.lang.Integer.class);
         return component;
+    }
+
+    public static IkasanModule getIkasanModule() {
+        IkasanModule ikasanModule = new IkasanModule();
+        ikasanModule.setName("My Integration Module");
+        ikasanModule.setApplicationPackageName("org.myApp");
+        return ikasanModule;
     }
 }
