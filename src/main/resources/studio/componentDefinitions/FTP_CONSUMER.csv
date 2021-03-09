@@ -3,11 +3,11 @@
 #
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-# configName - Name of the property, used on input screens and to generate variable names
+# propertyName - Name of the property, used on input screens and to generate variable names
 # propertyConfigFileLabel - Identifies the spring injected property name
 #
 # If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
-# isConfigMandatory|isUserImplementedClass|configName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# isConfigMandatory|isUserImplementedClass|propertyName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 true|false|CronExpression|ftp.consumer.cron-expression|java.lang.String||Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
 true|false|FilenamePattern|ftp.consumer.filename-pattern|java.lang.String||Regular expression for matching file names to be transported
 true|false|Password|ftp.consumer.password|java.lang.String||password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.

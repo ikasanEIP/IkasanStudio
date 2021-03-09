@@ -127,8 +127,29 @@ public class PIPSIIkasanModel {
     protected void updateIkasanModuleWithModuleBuilder(PsiLocalVariable moduleBuilderLocalVariable) {
         PIPSIMethodList moduleBuilderMethodList = extractMethodCallsFromChain(moduleBuilderLocalVariable.getChildren(), new PIPSIMethodList());
         PIPSIMethod moduleBuilderMethod = moduleBuilderMethodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
-        //@todo what if parameter is a reference or Sprint variable - chase
-        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+//        ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
+        ikasanModule.setName(getReferenceOrLiteral(moduleBuilderMethod,0));
+    }
+
+    /**
+     * From the given pipsiMethod and attribute, determine if the attribute is a property, if so return the value
+     * otherwise assume the attribute was a literal and return that.
+     * @param pipsiMethod to interrogate
+     * @param attribute to interrogate
+     * @return a String containing the Spring injected value or literal value
+     */
+    private String getReferenceOrLiteral(PIPSIMethod pipsiMethod, int attribute) {
+        //                //@todo we should be able to get the type as well if we need to
+        String parameter = "";
+        String springValueKey = getSpringValueKey(pipsiMethod, attribute);
+        if (springValueKey != null) {
+            Properties properties = Context.getApplicationProperties(projectKey);
+            parameter = properties.getProperty(springValueKey);
+        } else {
+            // A standard literal have been provided.
+            parameter = pipsiMethod.getLiteralParameterAsString(attribute, true);
+        }
+        return parameter;
     }
 
     /**
@@ -152,7 +173,6 @@ public class PIPSIIkasanModel {
                     parseModuleStatementRHS(moduleMethodList, moduleConfigClass);
                 } else {
                     // Need to refresh the Application properties
-                    Properties properties = StudioPsiUtils.getApplicationProperties(getProject());
                     Context.setApplicationProperties(projectKey, StudioPsiUtils.getApplicationProperties(getProject()));
 
                     PsiElement moduleLocalVariable = localVariableOfReturnStatement.resolve();
@@ -624,14 +644,14 @@ public class PIPSIIkasanModel {
     }
 
     /**
-     * Examine the provided componentBuilder parameter to determin if it is a Spring @Value, if so, return the
+     * Examine the provided pipsiMethod parameter to determine if it is a Spring @Value, if so, return the
      * ${key}, otherwise return null
-     * @param componentBuilderMethod to examone
+     * @param pipsiMethod to examine
      * @return either a string representing the Spring @Value key, or null if not applicable
      */
-    private String getSpringValueKey(PIPSIMethod componentBuilderMethod) {
+    private String getSpringValueKey(PIPSIMethod pipsiMethod, int parameter) {
         String springValueKey = null;
-        PsiExpression psiExpression = componentBuilderMethod.getParameter(0);
+        PsiExpression psiExpression = pipsiMethod.getParameter(0);
         if (psiExpression instanceof PsiReferenceExpression) {
             PsiElement springVariable = ((PsiReferenceExpression)psiExpression).resolve();
             if (springVariable instanceof  PsiField) {
@@ -674,17 +694,18 @@ public class PIPSIIkasanModel {
                 // Ignore for now
             }
             else if (methodName.startsWith("set")) {
+                String parameter =  getReferenceOrLiteral(componentBuilderMethod,0);
 //                String propertyName = methodName.replaceFirst("set", "");
-//                //@todo we should be able to get the type as well if we need to
-                String springValueKey = getSpringValueKey(componentBuilderMethod);
-                String parameter ;
-                if (springValueKey != null) {
-                    Properties properties = Context.getApplicationProperties(projectKey);
-                    parameter = properties.getProperty(springValueKey);
-                } else {
-                    // A standard literal have been provided.
-                    parameter = componentBuilderMethod.getLiteralParameterAsString(0, true);
-                }
+////                //@todo we should be able to get the type as well if we need to
+//                String springValueKey = getSpringValueKey(componentBuilderMethod, 0);
+//                String parameter ;
+//                if (springValueKey != null) {
+//                    Properties properties = Context.getApplicationProperties(projectKey);
+//                    parameter = properties.getProperty(springValueKey);
+//                } else {
+//                    // A standard literal have been provided.
+//                    parameter = componentBuilderMethod.getLiteralParameterAsString(0, true);
+//                }
 
                 // Only expect 1 param for the setter
                 flowElementProperties.put(methodName.replaceFirst("set", ""), parameter);

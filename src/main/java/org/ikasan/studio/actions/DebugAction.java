@@ -27,5 +27,5 @@ public class DebugAction implements ActionListener {
 //      Context.getDesignerCanvas(projectKey).repaint(); // Tell swing the panel is dirty and needs re-painting.
 //      String message = StudioPsiUtils.getIkasanModuleFromSourceCode().toString();
 //      StudioUIUtils.displayMessage(message);
-   }
-}
+        }
+        }
