@@ -1,9 +1,9 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
+import org.ikasan.studio.model.ikasan.IkasanComponentType;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -16,13 +16,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class FlowTemplateTest extends TestCase {
-    IkasanModule ikasanModule = new IkasanModule();
+    IkasanModule ikasanModule = TestFixtures.getIkasanModule();
     IkasanFlow ikasanFlow = new IkasanFlow();
     private static String TEST_FLOW_NAME = "MyFlow1";
 
     @Before
     public void setUp() {
-        ikasanModule = new IkasanModule();
+        ikasanModule = TestFixtures.getIkasanModule();
         ikasanFlow = new IkasanFlow();
         ikasanFlow.setName(TEST_FLOW_NAME);
         ikasanFlow.setDescription("MyFlowDescription");
@@ -46,7 +46,7 @@ public class FlowTemplateTest extends TestCase {
     @Test
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
         List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanFlowComponentType.EVENT_GENERATING_CONSUMER, ikasanFlow);
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.EVENT_GENERATING_CONSUMER, ikasanFlow);
         component.setName("testEventGeneratingConsumer");
         components.add(component);
 

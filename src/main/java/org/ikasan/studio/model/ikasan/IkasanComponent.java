@@ -6,12 +6,19 @@ import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.Map;
-import java.util.TreeMap;
 
-public class IkasanComponent {
+public abstract class IkasanComponent {
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
     protected ViewHandler viewHandler;
-    protected Map<String, IkasanComponentProperty> properties = new TreeMap<>();
+    protected Map<String, IkasanComponentProperty>properties;
+    private IkasanComponentType type;
+
+    private IkasanComponent() {}
+
+    public IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
+        this.type = type;
+        this.properties = properties;
+    }
 
     public IkasanComponentProperty getProperty(String key) {
         return properties.get(key);
@@ -126,4 +133,26 @@ public class IkasanComponent {
         this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT, description);
     }
 
+
+    /**
+     * Determine if there are some mandatory properties that have not yet been set.
+     * @return
+     */
+    public boolean hasUnsetMandatoryProperties() {
+        for (Map.Entry<String, IkasanComponentProperty> entry : properties.entrySet()) {
+            IkasanComponentProperty ikasanComponentProperty = entry.getValue();
+            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public IkasanComponentType getType() {
+        return type;
+    }
+
+    public void setType(IkasanComponentType type) {
+        this.type = type;
+    }
 }

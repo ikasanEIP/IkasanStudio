@@ -19,7 +19,8 @@ public class ModuleConfigTemplateTest extends TestCase {
      */
     @Test
     public void testCreateModuleVelocityWith_emptyIkasanModel() throws IOException {
-        IkasanModule ikasanModule = new IkasanModule();
+        IkasanModule ikasanModule = TestFixtures.getIkasanModule();
+        ikasanModule.setDescription("New Module, please provide description");
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
         Assert.assertThat(templateString, is(notNullValue()));
@@ -32,8 +33,8 @@ public class ModuleConfigTemplateTest extends TestCase {
      */
     @Test
     public void testCreateModuleVelocityWith_oneFlow() throws IOException {
-        IkasanModule ikasanModule = new IkasanModule();
-        ikasanModule.setName("myModuleName");
+        IkasanModule ikasanModule = TestFixtures.getIkasanModule();
+        ikasanModule.setDescription("New Module, please provide description");
         ikasanModule.addAnonymousFlow(new IkasanFlow());
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);

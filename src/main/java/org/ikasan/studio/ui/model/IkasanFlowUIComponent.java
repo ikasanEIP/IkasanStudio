@@ -1,31 +1,31 @@
 package org.ikasan.studio.ui.model;
 
-import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanComponentType;
 
 import javax.swing.*;
 
 /**
  * Focuses on the presentation / UI specific features for the ikasan component.
  *
- * The technical details of a component are encapsulated in org.ikasan.studio.model.ikasan.IkasanFlowComponentType
+ * The technical details of a component are encapsulated in org.ikasan.studio.model.ikasan.IkasanComponentType
  */
 public class IkasanFlowUIComponent {
     String title;
     String helpText;
     String webHelpURL;
-    IkasanFlowComponentType ikasanFlowComponentType;
+    IkasanComponentType ikasanComponentType;
     ImageIcon smallIcon;
     ImageIcon canvasIcon;
 
     public IkasanFlowUIComponent(String title) {
         this.title = title;
     }
-    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanFlowComponentType ikasanFlowComponentType
+    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanComponentType ikasanComponentType
             , ImageIcon smallIcon, ImageIcon canvasIcon) {
         this.title = title;
         this.helpText = helpText;
         this.webHelpURL = webHelpURL;
-        this.ikasanFlowComponentType = ikasanFlowComponentType;
+        this.ikasanComponentType = ikasanComponentType;
         this.smallIcon = smallIcon;
         this.canvasIcon = canvasIcon;
     }
@@ -50,12 +50,12 @@ public class IkasanFlowUIComponent {
         return webHelpURL;
     }
 
-    public IkasanFlowComponentType getIkasanFlowComponentType() {
-        return ikasanFlowComponentType;
+    public IkasanComponentType getIkasanComponentType() {
+        return ikasanComponentType;
     }
 
-    public void setIkasanFlowComponentType(IkasanFlowComponentType ikasanFlowComponentType) {
-        this.ikasanFlowComponentType = ikasanFlowComponentType;
+    public void setIkasanComponentType(IkasanComponentType ikasanComponentType) {
+        this.ikasanComponentType = ikasanComponentType;
     }
 
     public ImageIcon getSmallIcon() {
@@ -79,7 +79,7 @@ public class IkasanFlowUIComponent {
         return "IkasanFlowUIComponent{" +
                 "text='" + title + '\'' +
                 ", helpText='" + helpText + '\'' +
-                ", ikasanFlowComponentType=" + ikasanFlowComponentType +
+                ", ikasanComponentType=" + ikasanComponentType +
                 ", smallIcon=" + smallIcon +
                 ", canvasIcon=" + canvasIcon +
                 '}';

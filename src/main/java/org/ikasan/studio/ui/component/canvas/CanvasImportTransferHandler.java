@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import org.apache.log4j.Logger;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponentType;
+import org.ikasan.studio.model.ikasan.IkasanComponentType;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 
@@ -105,8 +105,8 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         if (this.canImport(support)) {
             IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
             if (ikasanFlowUIComponent != null) {
-                IkasanFlowComponentType ikasanFlowComponentType = getDraggedComponent( support).getIkasanFlowComponentType();
-                return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanFlowComponentType);
+                IkasanComponentType ikasanComponentType = getDraggedComponent( support).getIkasanComponentType();
+                return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanComponentType);
             }
         }
         return false;

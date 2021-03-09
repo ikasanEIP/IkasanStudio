@@ -89,15 +89,15 @@ public class PropertiesPanel extends JPanel {
         }
     }
 
-    public void performUpdate() {
-        boolean modelUpdated = false;
-        modelUpdated = processEditedFlowComponents();
-        if (modelUpdated) {
-            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-            Context.getDesignerCanvas(projectKey).repaint();
-        }
-    }
+//    public void performUpdate() {
+//        boolean modelUpdated = false;
+//        modelUpdated = processEditedFlowComponents();
+//        if (modelUpdated) {
+//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+//            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+//            Context.getDesignerCanvas(projectKey).repaint();
+//        }
+//    }
 
 //    protected ActionListener getOkButtonListener() {
 //        return new ActionListener() {
@@ -127,7 +127,7 @@ public class PropertiesPanel extends JPanel {
             IkasanFlowUIComponent type = IkasanFlowUIComponentFactory
                     .getInstance()
                     .getIkasanFlowUIComponentFromType((((IkasanFlowComponent) selectedComponent).getType()));
-            if (type.getIkasanFlowComponentType() != IkasanFlowComponentType.UNKNOWN) {
+            if (type.getIkasanComponentType() != IkasanComponentType.UNKNOWN) {
                 propertyType = type.getTitle() + " " + PROPERTIES_TAG;
             } else {
                 propertyType = "Component " + PROPERTIES_TAG;
@@ -173,16 +173,19 @@ public class PropertiesPanel extends JPanel {
             if (selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME) != null) {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandaoryTabley++));
             }
-            if (selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION) != null) {
-                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, mandaoryTabley++));
-            }
+//            if (selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION) != null) {
+//                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel, selectedComponent.getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, mandaoryTabley++));
+//            }
 
-            if (selectedComponent instanceof IkasanFlowComponent) {
-                IkasanFlowComponent selectedFlowComponent = (IkasanFlowComponent) selectedComponent;
+            if (selectedComponent instanceof IkasanComponent) {
+//                IkasanFlowComponent selectedFlowComponent = (IkasanFlowComponent) selectedComponent;
+                IkasanComponent selectedFlowComponent = (IkasanComponent) selectedComponent;
                 if (selectedFlowComponent.getType().getProperties().size() > 0) {
                     for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getProperties().entrySet()) {
                         String key = entry.getKey();
-                        if (!key.equals(IkasanComponentPropertyMeta.NAME) && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)) {
+                        if (!key.equals(IkasanComponentPropertyMeta.NAME)
+//                                && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)
+                        ) {
                             IkasanComponentProperty property = selectedComponent.getProperty(key);
                             if (property == null) {
                                 // This property has not yet been set for the component

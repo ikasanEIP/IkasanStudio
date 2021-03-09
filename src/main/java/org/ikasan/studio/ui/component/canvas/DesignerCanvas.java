@@ -25,6 +25,8 @@ import org.w3c.dom.Document;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -44,6 +46,7 @@ public class DesignerCanvas extends JPanel {
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
     private String projectKey ;
+    private JButton startButton = new JButton("Click here to start");
 
     public DesignerCanvas(String projectKey) {
         this.projectKey = projectKey;
@@ -81,6 +84,34 @@ public class DesignerCanvas extends JPanel {
             });
         }
         setTransferHandler(new CanvasImportTransferHandler( this));
+
+        startButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
+                propertiesPanel.updatePropertiesPanel(ikasanModule);
+                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                        Context.getProject(projectKey),
+                        Context.getDesignerCanvas(projectKey),
+                        propertiesPanel);
+                if (propertiesDialogue.showAndGet()) {
+                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                    pipsiIkasanModel.generateSourceFromModel();
+                    disableStart();
+                }
+            }
+        });
+    }
+
+    public void enableStart() {
+        if (!(startButton.getParent() == this)) {
+            this.add(startButton);
+        }
+    }
+
+    public void disableStart() {
+        this.remove(startButton);
     }
 
     /**
@@ -275,7 +306,7 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                String issue = targetFlow.issueCausedByAdding(ikasanFlowUIComponent.getIkasanFlowComponentType());
+                String issue = targetFlow.issueCausedByAdding(ikasanFlowUIComponent.getIkasanComponentType());
                 if (issue.length() == 0) {
                     if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
                         ikasanFlowViewHandler.setFlowReceptiveMode();
@@ -336,11 +367,11 @@ public class DesignerCanvas extends JPanel {
      * We must be on a flow, with a flow component 'in hand', lets see if we can add it to the flow.
      * @param x location of the mouse
      * @param y location of the mouse
-     * @param ikasanFlowComponentType to be added
+     * @param ikasanComponentType to be added
      * @return true of we managed to add the component.
      */
-    public boolean requestToAddComponent(int x, int y, IkasanFlowComponentType ikasanFlowComponentType) {
-        if (x >= 0 && y >=0 && ikasanFlowComponentType != null) {
+    public boolean requestToAddComponent(int x, int y, IkasanComponentType ikasanComponentType) {
+        if (x >= 0 && y >=0 && ikasanComponentType != null) {
             IkasanComponent ikasanComponent = getComponentAtXY(x,y);
             IkasanFlowComponent newComponent = null;
             // Add new component to existing flow
@@ -352,12 +383,12 @@ public class DesignerCanvas extends JPanel {
                     containingFlow = ((IkasanFlowComponent)ikasanComponent).getParent();
                 }
 
-                if (!containingFlow.isValidToAdd(ikasanFlowComponentType)) {
+                if (!containingFlow.isValidToAdd(ikasanComponentType)) {
                     resetContextSensitiveHighlighting();
                     return false;
                 }
 
-                newComponent = createViableComponent(ikasanFlowComponentType, containingFlow);
+                newComponent = createViableComponent(ikasanComponentType, containingFlow);
                 if (newComponent != null) {
                     insertNewComponentBetweenSurroundingPair(containingFlow, newComponent, x, y);
                 } else {
@@ -366,7 +397,7 @@ public class DesignerCanvas extends JPanel {
             } else {
                 IkasanFlow newFlow = new IkasanFlow();
                 ikasanModule.addAnonymousFlow(newFlow);
-                newComponent = createViableComponent(ikasanFlowComponentType, newFlow);
+                newComponent = createViableComponent(ikasanComponentType, newFlow);
                 if (newComponent != null) {
                     newFlow.addFlowComponent(newComponent);
                 } else {
@@ -384,8 +415,8 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    private IkasanFlowComponent createViableComponent(IkasanFlowComponentType ikasanFlowComponentType, IkasanFlow containingFlow) {
-        IkasanFlowComponent newComponent = IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow);
+    private IkasanFlowComponent createViableComponent(IkasanComponentType ikasanComponentType, IkasanFlow containingFlow) {
+        IkasanFlowComponent newComponent = IkasanFlowComponent.getInstance(ikasanComponentType, containingFlow);
         if (newComponent.hasUnsetMandatoryProperties()) {
 
             PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
@@ -406,21 +437,21 @@ public class DesignerCanvas extends JPanel {
     /**
      * Now we have validated it is OK to add the component, insert it at the drag point
      * @param containingFlow holding the new component
-     * @param ikasanFlowComponentType to be added
+     * @param ikasanComponentType to be added
      * @param x location of the drop
      * @param y location of the drop
      */
-    private void insertNewComponentBetweenSurroundingPair(IkasanFlow containingFlow, IkasanFlowComponentType ikasanFlowComponentType, int x, int y) {
+    private void insertNewComponentBetweenSurroundingPair(IkasanFlow containingFlow, IkasanComponentType ikasanComponentType, int x, int y) {
         // insert new component between surrounding pari
         Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
         List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
         int numberOfComponents = components.size();
         for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
             if (components.get(ii).equals(surroundingComponents.getRight())) {
-                components.add(ii, IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow));
+                components.add(ii, IkasanFlowComponent.getInstance(ikasanComponentType, containingFlow));
                 break;
             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                components.add(ii+1, IkasanFlowComponent.getInstance(ikasanFlowComponentType, containingFlow));
+                components.add(ii+1, IkasanFlowComponent.getInstance(ikasanComponentType, containingFlow));
                 break;
             }
         }
@@ -460,9 +491,36 @@ public class DesignerCanvas extends JPanel {
                 ikasanModule.getViewHandler().initialiseDimensions(g, 0,0, this.getWidth(), this.getHeight());
                 initialiseAllDimensions = false;
         }
+
         if (ikasanModule != null) {
+            if (ikasanModule.hasUnsetMandatoryProperties()) {
+                enableStart();
+            }
             ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
+//        }
+//        if (!initialiseAllDimensions && ikasanModule != null) {
+//            if (ikasanModule.hasUnsetMandatoryProperties()) {
+//                PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
+//                propertiesPanel.updatePropertiesPanel(ikasanModule);
+//                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+//                        Context.getProject(projectKey),
+//                        Context.getDesignerCanvas(projectKey),
+//                        propertiesPanel);
+//                propertiesDialogue.showAndGet();
+////                if (propertiesDialogue.showAndGet()) {
+////                    ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
+////                }
+////            } else {
+////                ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
+//            }
+//        }
+//
+//        if (ikasanModule != null) {
+//            ikasanModule.getViewHandler().paintComponent(this, g, -1, -1);
+        } else {
+            log.warn("Model not set");
         }
+
         if (drawGrid) {
             StudioUIUtils.paintGrid(g, getWidth(), getHeight());
         }

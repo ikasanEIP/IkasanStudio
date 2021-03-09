@@ -20,10 +20,10 @@ public class BespokeClassTemplateTest extends TestCase {
     public void testCreateWith_Converter() throws IOException {
         String clazzName = "MyConverter";
 
-        IkasanModule ikasanModule = new IkasanModule();
+        IkasanModule ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.addAnonymousFlow(new IkasanFlow());
         IkasanFlow newFlow = ikasanModule.getFlows().get(0);
-        IkasanFlowComponent ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanFlowComponentType.CUSTOM_CONVERTER, newFlow);
+        IkasanFlowComponent ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.CUSTOM_CONVERTER, newFlow);
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
