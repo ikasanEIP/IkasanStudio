@@ -60,16 +60,17 @@ dependencies {
 //    implementation("org.freemarker:freemarker:2.3.20")
     implementation("org.freemarker:freemarker:2.3.31")
     implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
+    implementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
     implementation("org.ikasan:ikasan-h2-standalone-persistence:3.1.0")
 //    testImplementation("org.freemarker:freemarker:2.3.20")
     testImplementation("org.freemarker:freemarker:2.3.31")
 //    testImplementation("org.apache.velocity:velocity-engine-core:2.3.20")
     testImplementation("org.ikasan:ikasan-eip-standalone:3.0.1")
-    testImplementation("org.ikasan:ikasan-test-endpoint:3.1.0")
-    testImplementation("org.ikasan:ikasan-test:3.1.0")
     testImplementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
     testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.1.0")
     testImplementation("org.ikasan:ikasan-component-converter:3.1.0")
+    testImplementation("org.ikasan:ikasan-test-endpoint:3.1.0")
+    testImplementation("org.ikasan:ikasan-test:3.1.0")
 }
 
 // Configure gradle-intellij-plugin plugin.
@@ -103,15 +104,15 @@ detekt {
 tasks {
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
 
     withType<Detekt> {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     patchPluginXml {
