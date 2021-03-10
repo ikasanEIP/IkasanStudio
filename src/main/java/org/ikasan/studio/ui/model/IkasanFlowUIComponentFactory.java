@@ -12,6 +12,7 @@ public class IkasanFlowUIComponentFactory {
 
     private static List<IkasanFlowUIComponent> ikasanFlowUIComponents = new ArrayList<>();
     private IkasanFlowUIComponent UNKNOWN ;
+    private static String FLOW_HELP_TEXT = "The flow is the container for components and generally represents an atomic action";
     private static String BROKER_HELP_TEXT = "Brokers enrich the contents of the existing message with additional data or structure in a number of different ways. Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.";
     private static String SPLITTER_HELP_TEXT = "Splitters break up the incoming event in to many outgoing events. ikasan will operate on the returned list of events and pass each event in the list independently to the next component for processing. Read more about EIP Sequencer In order to create your own splitter you need to implement Splitter Interface.";
     private static String CHANNEL_HELP_TEXT = "";
@@ -50,6 +51,8 @@ public class IkasanFlowUIComponentFactory {
     private IkasanFlowUIComponentFactory() {
         UNKNOWN = createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, "Readme.md", IkasanComponentType.UNKNOWN, "unknown");
         //@todo add in link to online ikasan help
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Flow",FLOW_HELP_TEXT, "Readme.md", IkasanComponentType.FLOW, "flow"));
+
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Aggregator","Aggregator is an ipsum", "Readme.md", IkasanComponentType.UNKNOWN, "aggregator"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/ConcurrentSplitter.md", IkasanComponentType.SPLITTER, "splitter"));

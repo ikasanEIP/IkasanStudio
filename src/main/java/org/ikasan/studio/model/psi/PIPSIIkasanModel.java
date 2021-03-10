@@ -11,7 +11,10 @@ import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.generator.*;
+import org.ikasan.studio.generator.ApplicationTemplate;
+import org.ikasan.studio.generator.FlowTemplate;
+import org.ikasan.studio.generator.ModuleConfigTemplate;
+import org.ikasan.studio.generator.PropertiesTemplate;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.*;
 
@@ -91,16 +94,16 @@ public class PIPSIIkasanModel {
 //        }
     }
 
-    private void generateBespokeConponents(Project project) {
-        IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
-        for(IkasanFlow flow : ikasanModule.getFlows()) {
-            for (IkasanFlowComponent component : flow.getFlowComponentList()) {
-                if (component.getType().isBespokeClass()) {
-                    BespokeClassTemplate.create(project, component);
-                }
-            }
-        }
-    }
+//    private void generateBespokeConponents(Project project) {
+//        IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+//        for(IkasanFlow flow : ikasanModule.getFlows()) {
+//            for (IkasanFlowComponent component : flow.getFlowComponentList()) {
+//                if (component.getType().isBespokeClass()) {
+//                    BespokeClassTemplate.create(project, component);
+//                }
+//            }
+//        }
+//    }
 
     protected PsiLocalVariable getModuleBuilderLocalVariable(PIPSIMethodList moduleMethodList) {
         PsiLocalVariable moduleBuilderLocalVariable = null;

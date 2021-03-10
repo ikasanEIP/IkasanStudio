@@ -1,3 +1,4 @@
+package ${studioPackageTag};
 
 /**
 * The main responsibility of a converter is to convert from one POJO type to another.
