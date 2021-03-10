@@ -1,3 +1,5 @@
+package org.ikasan.studio.boot;
+
 /**
 * The module config class defines details of the modules and identifies the flows but should not contain details
 * of the components in each flow.

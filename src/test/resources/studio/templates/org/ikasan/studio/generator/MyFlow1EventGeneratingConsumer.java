@@ -1,3 +1,5 @@
+package org.ikasan;
+
 /**
 * The flow is the container for the components.
 *

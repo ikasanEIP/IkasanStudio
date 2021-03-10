@@ -11,7 +11,6 @@ import java.util.Map;
  */
 public class ApplicationTemplate extends Generator {
     public static final String APPLICATION_CLASS_NAME = "Application";
-    private static final String APPLICATION_VM = "ApplicationTemplate.vm";
     private static final String APPLICATION_FTL = "ApplicationTemplate.ftl";
 
     public static void create(final Project project) {
@@ -22,9 +21,9 @@ public class ApplicationTemplate extends Generator {
 
     public static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
+        configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(CLASS_NAME_TAG, APPLICATION_CLASS_NAME);
-//        return VelocityUtils.generateFromTemplate(APPLICATION_VM, configs);
         return FreemarkerUtils.generateFromTemplate(APPLICATION_FTL, configs);
     }
 }

@@ -8,4 +8,3 @@
 #
 # If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # isConfigMandatory|isUserImplementedClass|propertyName|propertyConfigFileLabel|dataType|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
-true|false|ApplicationPackageName||java.lang.String|org.myApp|The package ID for this applicaiton

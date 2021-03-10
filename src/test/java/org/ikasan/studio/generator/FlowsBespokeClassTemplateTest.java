@@ -10,7 +10,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class BespokeClassTemplateTest extends TestCase {
+public class FlowsBespokeClassTemplateTest extends TestCase {
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/MyConverter.java
@@ -21,7 +21,7 @@ public class BespokeClassTemplateTest extends TestCase {
         String clazzName = "MyConverter";
 
         IkasanModule ikasanModule = TestFixtures.getIkasanModule();
-        ikasanModule.addAnonymousFlow(new IkasanFlow());
+        ikasanModule.addFlow(new IkasanFlow());
         IkasanFlow newFlow = ikasanModule.getFlows().get(0);
         IkasanFlowComponent ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.CUSTOM_CONVERTER, newFlow);
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
@@ -31,8 +31,8 @@ public class BespokeClassTemplateTest extends TestCase {
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.TO_TYPE, "java.lang.Integer");
 
         newFlow.addFlowComponent(ikasanFlowComponent);
-        String templateString = BespokeClassTemplate.generateContents(ikasanFlowComponent);
+        String templateString = FlowsBespokeClassTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanFlowComponent);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedVelocityOutputFromTestFile(clazzName + ".java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
     }
 }

@@ -34,7 +34,7 @@ public class FlowTemplateTest extends TestCase {
      */
     @Test
     public void testCreateFlowWith_oneFlow() throws IOException {
-        String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
     }
@@ -50,7 +50,7 @@ public class FlowTemplateTest extends TestCase {
         component.setName("testEventGeneratingConsumer");
         components.add(component);
 
-        String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "EventGeneratingConsumer.java")));
     }
@@ -63,7 +63,7 @@ public class FlowTemplateTest extends TestCase {
     public void testCreateFlowWith_ftpConsumer() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
 
-        String templateString = FlowTemplate.generateContents(ikasanModule, ikasanFlow);
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpComponent.java")));
     }

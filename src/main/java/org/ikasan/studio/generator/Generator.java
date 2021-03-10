@@ -19,6 +19,7 @@ import java.util.Map;
 
 public class Generator {
     private static final Logger log = Logger.getLogger(Generator.class);
+    public static final String STUDIO_PACKAGE_TAG = "studioPackageTag";
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
     public static final String FLOWS_TAG = "flows";
@@ -33,9 +34,8 @@ public class Generator {
     // Enforce Utility class.
     protected Generator() {}
 
-    public static PsiJavaFile createTemplateFile(final Project project, final String packageName, final  String clazzName, final String pakeagelessContent, boolean focus, boolean replaceExisting) {
+    public static PsiJavaFile createTemplateFile(final Project project, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
         String fileName = clazzName + ".java";
-        String content = "package " + packageName + ";" + pakeagelessContent;
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(project, StudioPsiUtils.JAVA_CODE);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
         PsiDirectory myPackage = StudioPsiUtils.createPackage(baseDir, packageName);

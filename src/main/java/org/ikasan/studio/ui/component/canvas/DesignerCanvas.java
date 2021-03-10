@@ -373,7 +373,7 @@ public class DesignerCanvas extends JPanel {
     public boolean requestToAddComponent(int x, int y, IkasanComponentType ikasanComponentType) {
         if (x >= 0 && y >=0 && ikasanComponentType != null) {
             IkasanComponent ikasanComponent = getComponentAtXY(x,y);
-            IkasanFlowComponent newComponent = null;
+            IkasanComponent newComponent = null;
             // Add new component to existing flow
             if (ikasanComponent instanceof  IkasanFlowComponent || ikasanComponent instanceof  IkasanFlow) {
                 IkasanFlow containingFlow = null;
@@ -388,18 +388,28 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
 
-                newComponent = createViableComponent(ikasanComponentType, containingFlow);
+                newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
                 if (newComponent != null) {
-                    insertNewComponentBetweenSurroundingPair(containingFlow, newComponent, x, y);
+                    insertNewComponentBetweenSurroundingPair(containingFlow, (IkasanFlowComponent)newComponent, x, y);
                 } else {
                     return false;
                 }
             } else {
-                IkasanFlow newFlow = new IkasanFlow();
-                ikasanModule.addAnonymousFlow(newFlow);
-                newComponent = createViableComponent(ikasanComponentType, newFlow);
+//                // old way of create flow then create component
+////                IkasanFlow newFlow = new IkasanFlow();
+//                newComponent = createViableFlowComponent(ikasanComponentType, null);
+//                if (newComponent != null) {
+//                    newFlow.addFlowComponent(newComponent);
+//                    ikasanModule.addFlow(newFlow);
+//                } else {
+//                    return false;
+//                }
+//            }
+            // creating a new flow
+//                IkasanFlow newFlow = new IkasanFlow();
+                newComponent = createViableComponent(new IkasanFlow());
                 if (newComponent != null) {
-                    newFlow.addFlowComponent(newComponent);
+                    ikasanModule.addFlow((IkasanFlow) newComponent);
                 } else {
                     return false;
                 }
@@ -415,8 +425,12 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    private IkasanFlowComponent createViableComponent(IkasanComponentType ikasanComponentType, IkasanFlow containingFlow) {
+    private IkasanFlowComponent createViableFlowComponent(IkasanComponentType ikasanComponentType, IkasanFlow containingFlow) {
         IkasanFlowComponent newComponent = IkasanFlowComponent.getInstance(ikasanComponentType, containingFlow);
+        return (IkasanFlowComponent)createViableComponent(newComponent);
+    }
+
+    private IkasanComponent createViableComponent(IkasanComponent newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
             PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
@@ -469,13 +483,17 @@ public class DesignerCanvas extends JPanel {
         Pair<IkasanFlowComponent,IkasanFlowComponent> surroundingComponents = getSurroundingComponents(x, y);
         List<IkasanFlowComponent> components = containingFlow.getFlowComponentList() ;
         int numberOfComponents = components.size();
-        for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
-            if (components.get(ii).equals(surroundingComponents.getRight())) {
-                components.add(ii, ikasanFlowComponent);
-                break;
-            } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                components.add(ii+1, ikasanFlowComponent);
-                break;
+        if (numberOfComponents == 0) {
+            components.add(ikasanFlowComponent);
+        } else {
+            for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
+                if (components.get(ii).equals(surroundingComponents.getRight())) {
+                    components.add(ii, ikasanFlowComponent);
+                    break;
+                } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
+                    components.add(ii+1, ikasanFlowComponent);
+                    break;
+                }
             }
         }
     }

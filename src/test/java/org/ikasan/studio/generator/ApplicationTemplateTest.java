@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 public class ApplicationTemplateTest extends TestCase {
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1OneFlow.java
+     * @See resources/studio/templates/org/ikasan/studio/generator/Application.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -21,6 +21,7 @@ public class ApplicationTemplateTest extends TestCase {
         IkasanModule ikasanModule = TestFixtures.getIkasanModule();
 
         String templateString = ApplicationTemplate.generateContents(ikasanModule);
+
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ApplicationTemplate.APPLICATION_CLASS_NAME + ".java")));
     }

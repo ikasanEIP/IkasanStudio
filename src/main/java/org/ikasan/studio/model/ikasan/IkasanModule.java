@@ -43,14 +43,14 @@ public class IkasanModule extends IkasanComponent {
         setDescription("");
     }
 
-    /**
-     * This will be called when we have a new anonymous flows to add
-     * @param ikasanFlow
-     */
-    public boolean addAnonymousFlow(IkasanFlow ikasanFlow) {
-        ikasanFlow.setName("newFlow" + (getFlows().size() + 1));
-        return addFlow(ikasanFlow);
-    }
+//    /**
+//     * This will be called when we have a new anonymous flows to add
+//     * @param ikasanFlow
+//     */
+//    public boolean addAnonymousFlow(IkasanFlow ikasanFlow) {
+//        ikasanFlow.setName("newFlow" + (getFlows().size() + 1));
+//        return addFlow(ikasanFlow);
+//    }
 
     public String getVersion() {
         return version;

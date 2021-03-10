@@ -24,7 +24,8 @@ public class PropertiesTemplateTest extends TestCase {
         testModule = TestFixtures.getIkasanModule();
         testModule.setName("myModule");
         ikasanFlow = new IkasanFlow();
-        testModule.addAnonymousFlow(ikasanFlow);
+        ikasanFlow.setName("newFlow1");
+        testModule.addFlow(ikasanFlow);
     }
 
     /**
@@ -57,6 +58,7 @@ public class PropertiesTemplateTest extends TestCase {
         components.add(namelessFtpConsumerComponent);
 
         String templateString = PropertiesTemplate.generateContents(testModule);
+
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_namelessAndNamed" + ".properties")));
     }

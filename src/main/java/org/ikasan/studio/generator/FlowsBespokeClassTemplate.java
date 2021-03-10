@@ -14,11 +14,11 @@ public class FlowsBespokeClassTemplate extends Generator {
     public static void create(final Project project, final String packageName, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow) {
 
         for (IkasanFlowComponent component : ikasanFlow.getFlowComponentList()) {
-            if (component instanceof IkasanFlowBeskpokeComponent) {
+            if (component instanceof IkasanFlowBeskpokeComponent && ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled()) {
                 boolean overwriteClassIsExists = false;
-                String templateString = generateContents(component);
                 String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
                 String newPackageName = (String)component.getProperty(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME).getValue() + "." + ikasanFlow.getJavaPackageName();
+                String templateString = generateContents(newPackageName, component);
                 overwriteClassIsExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
                 PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIsExists);
                 ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);
@@ -27,13 +27,11 @@ public class FlowsBespokeClassTemplate extends Generator {
         }
     }
 
-    public static String generateContents(IkasanFlowComponent ikasanFlowComponent) {
-//        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.vm";
+    public static String generateContents(String packageName, IkasanFlowComponent ikasanFlowComponent) {
         String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
-
+        configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(COMPONENT_TAG, ikasanFlowComponent);
-//        String templateString = VelocityUtils.generateFromTemplate(templateName, configs);
         String templateString = FreemarkerUtils.generateFromTemplate(templateName, configs);
         return templateString;
     }

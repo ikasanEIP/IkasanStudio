@@ -1,3 +1,5 @@
+package org.ikasan;
+
 /**
 * The component factory defines the details of the components and their configuration.
 *

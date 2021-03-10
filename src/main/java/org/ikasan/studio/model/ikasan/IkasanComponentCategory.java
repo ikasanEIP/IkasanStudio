@@ -6,8 +6,8 @@ import org.ikasan.studio.StudioUtils;
  * The different elements (components) that might be in a flow
  */
 public enum IkasanComponentCategory {
-    MODULE(0, "", "org.ikasan.spec.module.Module"),
-    FLOW(10, "", "org.ikasan.spec.flow.Flow"),
+    MODULE(01, "", "org.ikasan.spec.module.Module"),
+    FLOW(02, "", "org.ikasan.spec.flow.Flow"),
     BROKER(20, "broker", "org.ikasan.spec.component.endpoint.Broker"),
     CONSUMER(10,"consumer", "org.ikasan.spec.component.endpoint.Consumer"),
     CONVERTER(30, "converter", "org.ikasan.spec.component.transformation.Converter"),

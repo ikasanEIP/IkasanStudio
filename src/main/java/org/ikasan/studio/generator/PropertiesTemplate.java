@@ -11,7 +11,6 @@ import java.util.Map;
  */
 public class PropertiesTemplate extends Generator {
     public static String MODULE_PROPERTIES_FILENAME = "application";
-    private static String MODULE_PROPERTIES_VM = "PropertiesTemplate.vm";
     private static String MODULE_PROPERTIES_FTL = "PropertiesTemplate.ftl";
 
     public static void create(final Project project) {
@@ -25,7 +24,6 @@ public class PropertiesTemplate extends Generator {
     public static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
-//        String templateString = VelocityUtils.generateFromTemplate(MODULE_PROPERTIES_VM, configs);
         String templateString = FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);
         return templateString;
     }

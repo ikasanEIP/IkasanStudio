@@ -34,7 +34,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     public void testCreateFlowWith_fullyPopulatedFtpComponent() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
 
-        String templateString = FlowsComponentFactoryTemplate.generateContents(ikasanModule, ikasanFlow);
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpComponent.java")));
     }
@@ -47,7 +47,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     public void testCreateFlowWith_bespokeComponent() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedCustomConverter(ikasanFlow));
 
-        String templateString = FlowsComponentFactoryTemplate.generateContents(ikasanModule, ikasanFlow);
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedCustomConverter.java")));
     }
