@@ -31,6 +31,11 @@ public enum IkasanComponentCategory {
         this.baseClass = associatedBaseClass;
     }
 
+    /**
+     * Given a method name (broker, consumer etc), try to match its against a component Category
+     * @param methodName to search
+     * @return the IkasanComponentCategory or found or UNKNOWN
+     */
     public static IkasanComponentCategory parseMethodName(String methodName) {
         for (IkasanComponentCategory name : IkasanComponentCategory.values()) {
             if (name.associatedMethodName.equals(methodName)) {
@@ -40,6 +45,11 @@ public enum IkasanComponentCategory {
         return UNKNOWN;
     }
 
+    /**
+     * Given a base class / interface, try to match it against a component Category
+     * @param baseClassString to search (cannonical for Ikasan methods)
+     * @return the IkasanComponentCategory or found or UNKNOWN
+     */
     public static IkasanComponentCategory parseBaseClass(String baseClassString) {
         for (IkasanComponentCategory ikasanComponentCategory : IkasanComponentCategory.values()) {
             if (ikasanComponentCategory.baseClass.equals(baseClassString) || StudioUtils.getLastToken("\\.", ikasanComponentCategory.baseClass).equals(baseClassString)) {
@@ -49,6 +59,11 @@ public enum IkasanComponentCategory {
         return UNKNOWN;
     }
 
+    /**
+     * Given a base class / interface, determine if it matches an IkasanComponentCategory
+     * @param componentClassString to check
+     * @return true if the componentClassString could be matched against an IkasanComponentCategory
+     */
     public static boolean isIkasanComponent(String componentClassString) {
         IkasanComponentCategory ikasanComponentCategory = parseBaseClass(componentClassString);
         if (ikasanComponentCategory != null && ikasanComponentCategory != UNKNOWN) {
