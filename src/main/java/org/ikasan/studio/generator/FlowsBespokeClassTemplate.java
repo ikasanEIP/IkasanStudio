@@ -11,13 +11,12 @@ import java.util.Map;
  */
 public class FlowsBespokeClassTemplate extends Generator {
 
-    public static void create(final Project project, final String packageName, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow) {
-
+    public static void create(final Project project, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow) {
         for (IkasanFlowComponent component : ikasanFlow.getFlowComponentList()) {
             if (component instanceof IkasanFlowBeskpokeComponent && ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled()) {
                 boolean overwriteClassIsExists = false;
                 String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
-                String newPackageName = (String)component.getProperty(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME).getValue() + "." + ikasanFlow.getJavaPackageName();
+                String newPackageName = ikasanModule.getApplicationPackageName() + "." + ikasanFlow.getJavaPackageName();
                 String templateString = generateContents(newPackageName, component);
                 overwriteClassIsExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
                 PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIsExists);

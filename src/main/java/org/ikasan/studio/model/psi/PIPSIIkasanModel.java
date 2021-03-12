@@ -36,6 +36,7 @@ public class PIPSIIkasanModel {
     private static final String FLOW_BUILDER_NAME_METHOD = "getFlowBuilder";
     private static final String COMPONENT_BUILDER_NAME_METHOD = "getComponentBuilder";
 
+    private PsiElementFactory javaPsiFactory;
     private String projectKey ;
     private IkasanModule ikasanModule;
     private PsiClass moduleConfigClazz;
@@ -52,6 +53,7 @@ public class PIPSIIkasanModel {
     public PIPSIIkasanModel(final String projectKey) {
         this.projectKey = projectKey;
         ikasanModule = Context.getIkasanModule(projectKey);
+        javaPsiFactory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
     }
 
     public void setModuleConfigClazz(PsiClass moduleConfigClazz) {
@@ -499,11 +501,21 @@ public class PIPSIIkasanModel {
                         if (componentVariable != null) {
                             PIPSIMethodList  pipsiMethodList = new PIPSIMethodList();
                             pipsiMethodList.setBaseType(ikasanComponentType);
-                            PsiCodeBlock containingBlock = getContainingCodeBlock(componentVariable);
-                            if (containingBlock != null && componentVariable instanceof PsiLocalVariable) {
-                                PIPSIMethodList  methodList = getAllMethodCallsForLocalVariableInCodeBlock(containingBlock, (PsiLocalVariable)componentVariable);
-                                pipsiMethodList.addAllPIPSIMethod(methodList.getPipsiMethods());
+                            if (componentVariable instanceof PsiField &&
+                                    ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource")) {
+                                // this is an injected bespoke class
+                                String beskpokeClassName = ((PsiField) componentVariable).getType().getCanonicalText();
+                                List<PIPSIMethod> additionalParameters = extractParametersFromBespokeIkasanComponent(beskpokeClassName);
+                                pipsiMethodList.addAllPIPSIMethod(additionalParameters);
+
+                            } else {
+                                PsiCodeBlock containingBlock = getContainingCodeBlock(componentVariable);
+                                if (containingBlock != null && componentVariable instanceof PsiLocalVariable) {
+                                    PIPSIMethodList additionalMethodList = getAllMethodCallsForLocalVariableInCodeBlock(containingBlock, (PsiLocalVariable)componentVariable);
+                                    pipsiMethodList.addAllPIPSIMethod(additionalMethodList.getPipsiMethods());
+                                }
                             }
+
                             returnPIPSIMethodList =  pipsiMethodList;
                         } else {
                             // TODO ... otherwise ?
@@ -519,6 +531,47 @@ public class PIPSIIkasanModel {
             }
         }
         return returnPIPSIMethodList;
+    }
+
+    /**
+     * We have resolved to a bespoke class that is implementing an Ikasan Component interface gete Converter<String, String>
+     * This method will extract the appropriate custom properties for this special class type.
+     * @param beskpokeClassName to be explored
+     * @return A list of fake IkasanMethods that emulate the fluid interface set methods.
+     */
+    private List<PIPSIMethod> extractParametersFromBespokeIkasanComponent(String beskpokeClassName) {
+        List<PIPSIMethod> additionalParameters = new ArrayList<>();
+        // The Bespoke Ikasan Class
+        PsiClass psiClass = StudioPsiUtils.findFirstClass(getProject(), beskpokeClassName);
+        PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], beskpokeClassName);
+        additionalParameters.add(bespokeClassParam);
+        PsiClassType[] psiClassTypes = psiClass.getImplementsList().getReferencedTypes();
+
+        if (psiClassTypes != null) {
+            for (PsiClassType type : psiClassTypes) {
+                PsiClass resolvedType = type.resolve();
+                if (resolvedType != null) {
+                    IkasanComponentCategory ikasanComponentCategory = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName());
+                    if (ikasanComponentCategory == IkasanComponentCategory.CONVERTER) {
+                        PsiType[] templateTypes = type.getParameters();
+                        if (templateTypes.length > 0) {
+                            PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
+                            additionalParameters.add(fromType);
+                        }
+                        if (templateTypes.length > 1) {
+                            PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
+                            additionalParameters.add(toType);
+                        }
+                    }
+                }
+            }
+        }
+        return additionalParameters;
+    }
+
+    private PIPSIMethod createFakePIPSIMethod(String methodName, PsiMethod jumpToMethod, String literalValue) {
+        PsiLiteralExpression stringLiteral = (PsiLiteralExpression) javaPsiFactory.createExpressionFromText("\""+literalValue+"\"", null);
+        return new PIPSIMethod(methodName, jumpToMethod, new PsiExpression[] {stringLiteral});
     }
 
     /**
@@ -696,13 +749,13 @@ public class PIPSIIkasanModel {
     protected IkasanFlowComponent createFlowElementWithProperties(final IkasanFlow parent, final String name, final String description, final PIPSIMethodList componentBuilderMethodList) {
         IkasanFlowComponent ikasanFlowComponent = null;
         Map<String, Object> flowElementProperties = new TreeMap<>();
-        for (PIPSIMethod componentBuilderMethod: componentBuilderMethodList.getPipsiMethods()) {
-            String methodName = componentBuilderMethod.getName();
+        for (PIPSIMethod pipsiMethod: componentBuilderMethodList.getPipsiMethods()) {
+            String methodName = pipsiMethod.getName();
             if  ("build".equals(methodName) || COMPONENT_BUILDER_NAME_METHOD.equals(methodName)) {
                 // Ignore for now
             }
             else if (methodName.startsWith("set")) {
-                String parameter =  getReferenceOrLiteral(componentBuilderMethod,0);
+                String parameter =  getReferenceOrLiteral(pipsiMethod,0);
 //                String propertyName = methodName.replaceFirst("set", "");
 ////                //@todo we should be able to get the type as well if we need to
 //                String springValueKey = getSpringValueKey(componentBuilderMethod, 0);

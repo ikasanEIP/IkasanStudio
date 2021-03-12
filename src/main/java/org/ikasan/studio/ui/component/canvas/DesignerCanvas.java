@@ -190,12 +190,12 @@ public class DesignerCanvas extends JPanel {
      */
     private void mouseDragAction(MouseEvent me, int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
-        log.info("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
+        log.trace("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
         if (mouseSelectedComponent instanceof IkasanFlowComponent) {
             screenChanged = true;
             ViewHandler vh = mouseSelectedComponent.getViewHandler();
-            log.info("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
+            log.trace("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
                     "] Generator selected [" + mouseSelectedComponent.getName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
 
             final int componentX = vh.getLeftX();
