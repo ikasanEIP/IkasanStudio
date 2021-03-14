@@ -11,6 +11,7 @@ import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
 import org.ikasan.studio.generator.FlowTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
@@ -543,7 +544,7 @@ public class PIPSIIkasanModel {
         List<PIPSIMethod> additionalParameters = new ArrayList<>();
         // The Bespoke Ikasan Class
         PsiClass psiClass = StudioPsiUtils.findFirstClass(getProject(), beskpokeClassName);
-        PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], beskpokeClassName);
+        PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], StudioUtils.getLastToken("\\.", beskpokeClassName));
         additionalParameters.add(bespokeClassParam);
         PsiClassType[] psiClassTypes = psiClass.getImplementsList().getReferencedTypes();
 

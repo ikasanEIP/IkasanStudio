@@ -29,6 +29,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
         </#list>
         <#else>
             @javax.annotation.Resource
+<#--            ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};-->
             ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
     </#if>
 </#list>

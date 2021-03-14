@@ -255,6 +255,7 @@ public class PropertiesPanel extends JPanel {
                 okButton.setEnabled(ie.getStateChange() == 1);
             }
         });
+        overrideCheckBox.setBackground(Color.WHITE);
         okButton.setEnabled(false);
         addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, overrideLabel, overrideCheckBox);
         return null;
