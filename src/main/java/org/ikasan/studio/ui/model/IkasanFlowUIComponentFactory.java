@@ -71,13 +71,13 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Generating Consumer", CONSUMER_HELP_TEXT, "Readme.md", IkasanComponentType.EVENT_GENERATING_CONSUMER, "event-driven-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Scheduled Consumer", SCHEDULED_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/Readme.md", IkasanComponentType.SCHEDULED_CONSUMER, "scheduled-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Consumer", FTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/ftp/consumer.md", IkasanComponentType.FTP_CONSUMER, "ftp-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Consumer", SFTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/sftp/consumer.md", IkasanComponentType.SFTP_CONSUMER, "ftp-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Consumer", SFTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/sftp/consumer.md", IkasanComponentType.SFTP_CONSUMER, "sftp-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Local File Consumer", LOCAL_FILE_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/localFileConsumer.md", IkasanComponentType.LOCAL_FILE_CONSUMER, "local-file-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Mongo Consumer", MONGO_CONSUMER_HELP_TEXT, "endpoint/mongo-endpoint/Readme.md", IkasanComponentType.MONGO_CONSUMER, "mongo-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Generic Message Consumer", GENERIC_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-client/consumer.md", IkasanComponentType.JMS_CONSUMER, "message-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentType.SPRING_JMS_CONSUMER, "message-consumer"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanComponentType.CUSTOM_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanComponentType.CUSTOM_CONVERTER, "custom-converter"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JSON XML Converter", JSON_XML_CONVERTER_HELP_TEXT, "converter/JsonToXmlConverter.md", IkasanComponentType.JSON_XML_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Object Converter", MAP_MESSAGE_OBJECT_CONVERTER_HELP_TEXT, "converter/MapMessageToObjectConverter.md", IkasanComponentType.MAP_MESSAGE_TO_OBJECT_CONVERTER, "message-translator"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Payload Converter", MAP_MESSAGE_PAYLOAD_CONVERTER_HELP_TEXT, "converter/MapMessageToPayloadConverter.md", IkasanComponentType.MAP_MESSAGE_TO_PAYLOAD_CONVERTER, "message-translator"));
@@ -96,7 +96,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Multi Recipient Router", ROUTER_HELP_TEXT, "Readme.md", IkasanComponentType.MULTI_RECIPIENT_ROUTER, "message-router"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Dev Null Producer", DEV_NULL_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.DEV_NULL_PRODUCER, "message-endpoint"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.LOG_PRODUCER, "message-endpoint"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.LOG_PRODUCER, "logging-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Email Producer", EMAIL_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.EMAIL_PRODUCER, "message-endpoint"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer", JMS_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.JMS_PRODUCER, "jms-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Producer", FTP_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.FTP_PRODUCER, "message-endpoint"));

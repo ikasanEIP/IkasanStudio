@@ -40,6 +40,19 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     }
 
     /**
+     * @See resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedSftpComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_fullyPopulatedSftpComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpComponent(ikasanFlow));
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSftpComponent.java")));
+    }
+
+    /**
      * @See resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedCustomConverter.java
      * @throws IOException if the template cant be generated
      */

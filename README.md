@@ -89,7 +89,8 @@ EventDrivenConsumer - cant see this in anu of the standard module
 ## Help with incomplete components
 EventGeneratingConsumer    EndpointEventProvider, ManagedEventIdentifierService
 ## Mick / Andrzej
-For some properties of a component, I can see we want to make environment specific (thus supported by a sprint injected property)
+* For some properties of a component, I can see we want to make environment specific (thus supported by a sprint injected property)
 and others will be fixed within the code. I may have guessed incorrectly for some items but thats easy to fix / alter. 
-
-Properties, should they be strict dash format, camel case or dash and camel - newflow1.testftpconsumer.ftp.consumer.filename-pattern=*Test.txt
+* Properties, should they be strict dash format, camel case or dash and camel - newflow1.testftpconsumer.ftp.consumer.filename-pattern=*Test.txt
+* As soon as a component declares that it needs bespoke configuration (https://github.com/ikasanEIP/ikasan/blob/3.2.x/ikasaneip/developer/docs/StandaloneDeveloperGuide.md#configuring-components), that component will need to be treated as a 'custom component' e.g. the custom converter
+* Some of the property configurations seem quite advanced e.g. ManagedEventIdentifierService, ManagedResourceRecoveryManager etc - Should we 'put' these in an 'advanced' options section in order to reduce screen clutter / scare factor?

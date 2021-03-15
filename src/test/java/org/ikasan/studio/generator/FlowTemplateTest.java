@@ -68,4 +68,17 @@ public class FlowTemplateTest extends TestCase {
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpComponent.java")));
     }
 
+    /**
+     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedSftpComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_sftpConsumer() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedSftpComponent.java")));
+    }
+
 }

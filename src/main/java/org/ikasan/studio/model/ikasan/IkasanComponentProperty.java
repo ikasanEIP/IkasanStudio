@@ -40,7 +40,9 @@ public class IkasanComponentProperty {
     @Override
     public String toString() {
         return "IkasanComponentProperty{" +
-                "value=" + value  +'}';
+                "value=" + value +
+                ", meta=" + meta +
+                '}';
     }
 
     /**

@@ -16,8 +16,6 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.max-retry-attempts}")
 java.lang.Integer ftpConsumerMaxretryattempts;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.configuration}")
-org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration ftpConsumerConfiguration;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.ftps-protocol}")
 java.lang.String ftpConsumerFtpsprotocol;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.cron-expression}")
@@ -40,8 +38,6 @@ java.lang.String ftpConsumerSystemkey;
 java.lang.String ftpConsumerRemotehost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.username}")
 java.lang.String ftpConsumerUsername;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.transactionManager}")
-org.springframework.transaction.jta.JtaTransactionManager ftpConsumerTransactionmanager;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.password-filepath}")
 java.lang.String ftpConsumerPasswordfilepath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testftpconsumer.ftp.consumer.source-directory}")
@@ -51,7 +47,7 @@ public org.ikasan.spec.component.endpoint.Consumer getTestftpconsumer() {
 return builderFactory.getComponentBuilder().ftpConsumer()
 .setConnectionTimeout(600001)
 .setMaxRetryAttempts(ftpConsumerMaxretryattempts)
-.setConfiguration(ftpConsumerConfiguration)
+.setIgnoreMisfire(true)
 .setFtpsProtocol(ftpConsumerFtpsprotocol)
 .setFtpsKeyStoreFilePassword(myFtpsKeyStoreFilePassword)
 .setMoveOnSuccess(true)
@@ -63,6 +59,8 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setCleanupJournalOnComplete(true)
 .setFilenamePattern(ftpConsumerFilenamepattern)
 .setPassword(ftpConsumerPassword)
+.setMaxEagerCallbacks(1)
+.setFilterOnFilename(true)
 .setFilterOnLastModifiedDate(true)
 .setFtpsKeyStoreFilePath(/test/ftps/keystore)
 .setFtpsIsImplicit(true)
@@ -83,7 +81,6 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setRemoteHost(ftpConsumerRemotehost)
 .setDestructive(true)
 .setUsername(ftpConsumerUsername)
-.setTransactionManager(ftpConsumerTransactionmanager)
 .setDataTimeout(300001)
 .setPasswordFilePath(ftpConsumerPasswordfilepath)
 .setClientID(myClientId)
