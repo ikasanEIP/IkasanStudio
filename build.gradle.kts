@@ -3,6 +3,8 @@ import org.jetbrains.changelog.closure
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+fun properties(key: String) = project.findProperty(key).toString()
+
 plugins {
     // Java support
     id("java")
@@ -13,7 +15,7 @@ plugins {
     // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
     id("org.jetbrains.changelog") version "1.1.2"
     // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
-    id("io.gitlab.arturbosch.detekt") version "1.16.0"
+    id("io.gitlab.arturbosch.detekt") version "1.15.0"
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 //    id("java")
@@ -44,16 +46,15 @@ val platformVersion: String by project
 val platformPlugins: String by project
 val platformDownloadSources: String by project
 
-group = pluginGroup
-version = pluginVersion
-
+group = properties("pluginGroup")
+version = properties("pluginVersion")
 // Configure project's dependencies
 repositories {
     mavenCentral()
     jcenter()
 }
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.15.0")
 // For now, pause the use of V2.2, too many issues with Plugin clashes.
 //    api("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.apache.velocity:velocity-engine-core:2.2")
@@ -77,15 +78,21 @@ dependencies {
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
 
-    pluginName = pluginName_
-    version = platformVersion
-    type = platformType
-//    downloadSources = platformDownloadSources.toBoolean()
-    downloadSources = true
+    pluginName = properties("pluginName")
+    version = properties("platformVersion")
+    type = properties("platformType")
+    downloadSources = properties("platformDownloadSources").toBoolean()
     updateSinceUntilBuild = true
 
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    setPlugins(*platformPlugins.split(',').map(String::trim).filter(String::isNotEmpty).toTypedArray())
+    setPlugins(*properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty).toTypedArray())
+}
+
+// Configure gradle-changelog-plugin plugin.
+// Read more: https://github.com/JetBrains/gradle-changelog-plugin
+changelog {
+    version = properties("pluginVersion")
+    groups = emptyList()
 }
 
 // Configure detekt plugin.
@@ -116,9 +123,9 @@ tasks {
     }
 
     patchPluginXml {
-        version(pluginVersion)
-        sinceBuild(pluginSinceBuild)
-        untilBuild(pluginUntilBuild)
+        version(properties("pluginVersion"))
+        sinceBuild(properties("pluginSinceBuild"))
+        untilBuild(properties("pluginUntilBuild"))
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         pluginDescription(
@@ -144,7 +151,7 @@ tasks {
     }
 
     runPluginVerifier {
-        ideVersions(pluginVerifierIdeVersions)
+        ideVersions(properties("pluginVerifierIdeVersions"))
     }
 
     publishPlugin {
@@ -153,7 +160,7 @@ tasks {
         // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://jetbrains.org/intellij/sdk/docs/tutorials/build_system/deployment.html#specifying-a-release-channel
-        channels(pluginVersion.split('-').getOrElse(1) { "default" }.split('.').first())
+        channels(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first())
     }
 
     // This seems quite brittle, to test, IJ requires to state the local path of where intellij community source code is installed.
