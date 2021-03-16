@@ -21,13 +21,7 @@ public class IkasanModule extends IkasanComponent {
 
     public IkasanModule() {
         super(IkasanComponentType.MODULE, IkasanComponentType.MODULE.getMandatoryProperties());
-//        this.properties = new TreeMap<String, IkasanComponentProperty>();
-//        this.properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
-//        this.properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
-//        this.properties.put(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
         this.viewHandler = new IkasanModuleViewHandler(this);
-//        setName("New Module");
-//        setDescription("New Module, please provide description");
     }
 
     /**
@@ -37,20 +31,9 @@ public class IkasanModule extends IkasanComponent {
         if (flows != null && flows.size() > 0) {
             flows = new ArrayList<>();
         }
-//        setName("My ikasan Integration Module");
-//        setDescription("My ikasan Integration Module");
         setName("");
         setDescription("");
     }
-
-//    /**
-//     * This will be called when we have a new anonymous flows to add
-//     * @param ikasanFlow
-//     */
-//    public boolean addAnonymousFlow(IkasanFlow ikasanFlow) {
-//        ikasanFlow.setName("newFlow" + (getFlows().size() + 1));
-//        return addFlow(ikasanFlow);
-//    }
 
     public String getVersion() {
         return version;

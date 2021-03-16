@@ -276,16 +276,42 @@ public class DesignerCanvas extends JPanel {
                     .orElse(null);
         }
         if (ikasanComponent == null) {
+            ikasanComponent =  getFlowAtXY(xpos, ypos);
+        }
+        if (ikasanComponent == null) {
+            ikasanComponent = ikasanModule;
+        }
+        return ikasanComponent;
+    }
+
+    /**
+     * Given the x and y coords, return the ikasan flow that resides at that x,y.
+     *
+     * @param xpos of the mouse click
+     * @param ypos of the mouse click
+     * @return the ikasan component (flows component, flow, module) currently selected.
+     */
+    public IkasanComponent getFlowAtXY(int xpos, int ypos) {
+        IkasanComponent ikasanComponent = null;
+        if (ikasanComponent == null) {
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
                     .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
         }
-        if (ikasanComponent == null) {
-            ikasanComponent = ikasanModule;
-        }
         return ikasanComponent;
+    }
+
+    /**
+     * Given the x and y coords, return true if there is an ikasan flow that resides at that x,y.
+     *
+     * @param xpos of the mouse click
+     * @param ypos of the mouse click
+     * @return true if an ikasan flow resides at the location, false otherwise
+     */
+    public boolean isFlowAtXY(int xpos, int ypos) {
+        return null != getFlowAtXY(xpos, ypos);
     }
 
     /**
@@ -395,18 +421,6 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             } else {
-//                // old way of create flow then create component
-////                IkasanFlow newFlow = new IkasanFlow();
-//                newComponent = createViableFlowComponent(ikasanComponentType, null);
-//                if (newComponent != null) {
-//                    newFlow.addFlowComponent(newComponent);
-//                    ikasanModule.addFlow(newFlow);
-//                } else {
-//                    return false;
-//                }
-//            }
-            // creating a new flow
-//                IkasanFlow newFlow = new IkasanFlow();
                 newComponent = createViableComponent(new IkasanFlow());
                 if (newComponent != null) {
                     ikasanModule.addFlow((IkasanFlow) newComponent);
@@ -574,6 +588,9 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    public IkasanModule getIkasanModule() {
+        return ikasanModule;
+    }
 //    private void navigateToSource(@NotNull PsiElement classToNavigateTo, int offset)
 //    {
 //        PsiFile containingFile = classToNavigateTo.getContainingFile ();
