@@ -55,6 +55,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         log.trace("Can import check " + targetComponent);
         // Only allow drop (not paste) and ignore unless on canvas
         if (! support.isDrop() ||
+            // and only on the canvas
             !(targetComponent instanceof DesignerCanvas)) {
             return false;
         }
@@ -62,12 +63,13 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         // Since the canvas is not a simple widget with built in drop handlers, we need to perform that ourselves.
 //        support.setShowDropLocation(true);
 //        TransferHandler.DropLocation dropLocation = support.getDropLocation();
-
-        for(DataFlavor flavor : destinationSupportedflavors) {
-            // Anywhere on the canvas
-            if (flavor.equals(ikasanFlowUIComponentFlavor)) {
-                flowInFocusActions(support);
-                return true;
+        if (!designerCanvas.getIkasanModule().hasUnsetMandatoryProperties()) {
+            for(DataFlavor flavor : destinationSupportedflavors) {
+                // Anywhere on the canvas
+                log.error("In drop loop");
+                if (flavor.equals(ikasanFlowUIComponentFlavor)) {
+                    return flowInFocusActions(support);
+                }
             }
         }
 
@@ -80,10 +82,21 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
 //        designerCanvas.unHighlightDropLocation(currentMouse.x, currentMouse.y);
 //    }
 
-    private void flowInFocusActions(final TransferHandler.TransferSupport support) {
+    /**
+     * Determine if there is a flow beneath the mouse and if so, cause appropriate highlighting
+     * @param support
+     * @return
+     */
+    private boolean flowInFocusActions(final TransferHandler.TransferSupport support) {
+        boolean mouseOverFlow = false;
         Point currentMouse = support.getDropLocation().getDropPoint();
-        final Component targetComponent = support.getComponent();
-        designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, getDraggedComponent(support));
+        IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
+        if (IkasanComponentType.FLOW.equals(ikasanFlowUIComponent.getIkasanComponentType()) || designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
+            mouseOverFlow = true;
+        }
+        designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanFlowUIComponent);
+        return mouseOverFlow;
+//        final Component targetComponent = support.getComponent();
     }
     /**
      * Causes a transfer to occur from a clipboard or a drag and drop operation. The <code>Transferable</code> to be
@@ -113,7 +126,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     }
 
     /**
-     * Extract the ikasan component being dragged from the Transfer support objecy
+     * Extract the ikasan component being dragged from the Transfer support object
      * @param support standard object containing information about the dragged component.
      * @return the instance of the IkasanFlowUIComponent currently being dragged.
      */
