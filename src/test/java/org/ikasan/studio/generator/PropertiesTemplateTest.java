@@ -33,7 +33,7 @@ public class PropertiesTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreatePropertiesVelocity_emptyFlow() throws IOException {
+    public void testCreateProperties_emptyFlow() throws IOException {
         String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties")));
@@ -45,7 +45,7 @@ public class PropertiesTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreatePropertiesVelocity_namelessAndNamedComponents() throws IOException {
+    public void testCreateProperties_namelessAndNamedComponents() throws IOException {
         List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
 
         IkasanFlowComponent ftpConsumerComponent = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
@@ -68,7 +68,7 @@ public class PropertiesTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreatePropertiesVelocity_fullyPopulatedFtpComponent() throws IOException {
+    public void testCreateProperties_fullyPopulatedFtpComponent() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
 
         String templateString = PropertiesTemplate.generateContents(testModule);
@@ -81,7 +81,7 @@ public class PropertiesTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreatePropertiesVelocity_fullyPopulatedSftpComponent() throws IOException {
+    public void testCreateProperties_fullyPopulatedSftpComponent() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpComponent(ikasanFlow));
 
         String templateString = PropertiesTemplate.generateContents(testModule);
