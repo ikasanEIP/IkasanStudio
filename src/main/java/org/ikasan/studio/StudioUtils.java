@@ -140,9 +140,10 @@ public class StudioUtils {
     private static int NAME_INDEX = 2;
     private static int PROPERTY_CONFIG_LABEL_INDEX = 3;
     private static int CLASS_INDEX = 4;
-    private static int DEFAULT_VALUE_INDEX = 5;
-    private static int HELP_INDEX = 6;
-    private static int NUMBER_OF_CONFIGS = 7;
+    private static int VALIDATION_INDEX = 5;
+    private static int DEFAULT_VALUE_INDEX = 6;
+    private static int HELP_INDEX = 7;
+    private static int NUMBER_OF_CONFIGS = 8;
     public static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
@@ -188,6 +189,8 @@ public class StudioUtils {
                         }
                     }
 
+                    String validation = split[VALIDATION_INDEX];
+
                     // Data type
                     Class dataTypeOfProperty = null;
                     try {
@@ -200,7 +203,7 @@ public class StudioUtils {
                     //  default value
                     Object defaultValue = getDefaultValue(split, dataTypeOfProperty, line,  propertiesFile);
 
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, isUserImplementedClass, split[NAME_INDEX], propertyConfigLabel, dataTypeOfProperty, defaultValue, split[HELP_INDEX]);
+                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, isUserImplementedClass, split[NAME_INDEX], propertyConfigLabel, dataTypeOfProperty, validation, defaultValue, split[HELP_INDEX]);
                     componentProperties.put(split[NAME_INDEX], ikasanComponentPropertyMeta);
                 }
             } catch (IOException ioe) {

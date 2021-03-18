@@ -18,15 +18,15 @@ public class IkasanComponentPropertyMeta {
     public static final String TO_TYPE = "ToType";
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(true, false,
-            IkasanComponentPropertyMeta.NAME, null, String.class, "",
+            IkasanComponentPropertyMeta.NAME, null, String.class, "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
     public static final IkasanComponentPropertyMeta STD_DESCIPTION_META_COMPONENT =
         new IkasanComponentPropertyMeta(false, false,
-            IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "",
+            IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "", "",
             "A more detailed description of the component that may assist in support.");
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(true, false,
-            IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, null, String.class, "",
+            IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, null, String.class, "", "",
             "The back java package for your application.");
 
     Boolean mandatory;
@@ -34,6 +34,7 @@ public class IkasanComponentPropertyMeta {
     String propertyName;
     String propertyConfigFileLabel;
     Class dataType;
+    String validation;
     Object defaultValue;
     String helpText;
 
@@ -44,16 +45,18 @@ public class IkasanComponentPropertyMeta {
      * @param propertyName of the property, used on input screens and to generate variable names
      * @param propertyConfigFileLabel Identifies the spring injected property name
      * @param dataType of the property
+     * @param validation validation string (used by the property editor to validate the format of the data)
      * @param defaultValue for the property
      * @param helpText for the property
      */
-    public IkasanComponentPropertyMeta(@NotNull boolean mandatory, @NotNull boolean userImplementedClass, @NotNull String propertyName, String propertyConfigFileLabel, @NotNull Class dataType, Object defaultValue, String helpText) {
+    public IkasanComponentPropertyMeta(@NotNull boolean mandatory, @NotNull boolean userImplementedClass, @NotNull String propertyName, String propertyConfigFileLabel, @NotNull Class dataType, String validation, Object defaultValue, String helpText) {
         this.mandatory = mandatory;
         this.userImplementedClass = userImplementedClass;
         this.propertyName = propertyName;
         this.propertyConfigFileLabel = propertyConfigFileLabel;
         this.dataType = dataType;
         this.helpText = helpText;
+        this.validation = validation;
         this.defaultValue = defaultValue;
     }
 
@@ -96,7 +99,7 @@ public class IkasanComponentPropertyMeta {
     }
 
     public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(false, false, name, null, String.class,"","");
+        return new IkasanComponentPropertyMeta(false, false, name, null, String.class,"", "","");
     }
 
     /**
@@ -131,6 +134,7 @@ public class IkasanComponentPropertyMeta {
                 ", propertyName='" + propertyName + '\'' +
                 ", propertyConfigFileLabel='" + propertyConfigFileLabel + '\'' +
                 ", dataType=" + dataType +
+                ", validation=" + validation +
                 ", defaultValue=" + defaultValue +
                 ", helpText='" + helpText + '\'' +
                 '}';
