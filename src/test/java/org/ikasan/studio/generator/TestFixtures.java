@@ -2,6 +2,7 @@ package org.ikasan.studio.generator;
 
 import org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService;
 import org.ikasan.component.endpoint.jms.consumer.MessageProvider;
+import org.ikasan.spec.event.EventFactory;
 import org.ikasan.spec.event.ManagedEventIdentifierService;
 import org.ikasan.spec.management.ManagedResourceRecoveryManager;
 import org.ikasan.studio.model.ikasan.IkasanComponentType;
@@ -16,8 +17,8 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * @See resources/studio/componentDefinitions/FTP_CONSUMER.csv
-     * @return
+     * See also resources/studio/componentDefinitions/FTP_CONSUMER.csv
+     * @return a FullyPopulatedFtpComponent
      */
     public static IkasanFlowComponent getFullyPopulatedFtpComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
@@ -118,8 +119,8 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * @See resources/studio/componentDefinitions/FTP_CONSUMER.csv
-     * @return
+     * See resources/studio/componentDefinitions/FTP_CONSUMER.csv
+     * @return a FullyPopulatedSftpComponent
      */
     public static IkasanFlowComponent getFullyPopulatedSftpComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SFTP_CONSUMER, ikasanFlow);
@@ -147,7 +148,7 @@ public class TestFixtures {
         // There are probably a number of configurations like this, need to review with Mick and Andrzej
 //        org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration consumerConfiguration = new org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration();
 //        component.setPropertyValue("Configuration", component.getType().getProperties().get("Configuration"), consumerConfiguration);
-//        component.setPropertyValue("ConfiguredResourceId", component.getType().getProperties().get("Configuration"), "myCondfigurationID");
+//        component.setPropertyValue("ConfiguredResourceId", component.getType().getProperties().get("ConfiguredResourceId"), "myConfiguredResourceId");
 
         component.setPropertyValue("ConnectionTimeout", component.getType().getProperties().get("ConnectionTimeout"), 600001);
         component.setPropertyValue("CriticalOnStartup", component.getType().getProperties().get("CriticalOnStartup"), true);
@@ -220,8 +221,8 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * @See resources/studio/componentDefinitions/CUSTOM_CONVERTER.csv
-     * @return
+     * See resources/studio/componentDefinitions/CUSTOM_CONVERTER.csv
+     * @return a FullyPopulatedCustomConverter
      */
     public static IkasanFlowComponent getFullyPopulatedCustomConverter(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.CUSTOM_CONVERTER, ikasanFlow);
@@ -232,6 +233,81 @@ public class TestFixtures {
         component.updatePropertyValue("BespokeClassName", "MyConverterClass");
         component.updatePropertyValue("FromType", java.lang.String.class);
         component.updatePropertyValue("ToType", java.lang.Integer.class);
+        return component;
+    }
+
+
+    /**
+     * Create a fully populated
+     * See resources/studio/componentDefinitions/LOCAL_FILE_CONSUMER.csv
+     * @return a FullyPopulatedLocalFileConverter
+     */
+    public static IkasanFlowComponent getFullyPopulatedLocalFileConverter(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.LOCAL_FILE_CONSUMER, ikasanFlow);
+        component.setName("testLocalFileConsumer");
+
+        // Mandatory properties
+        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
+        component.updatePropertyValue("FileNames", "*Test.txt");
+
+        // This is an advanced option that is best dealt with by special checkbox since it will mean the component becomes 'bespoke'
+        // There are probably a number of configurations like this, need to review with Mick and Andrzej
+//        org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration consumerConfiguration = new org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration();
+//        component.setPropertyValue("Configuration", component.getType().getProperties().get("Configuration"), consumerConfiguration);
+//        component.setPropertyValue("ConfiguredResourceId", component.getType().getProperties().get("ConfigurationId"), "myConfiguredResourceId");
+        component.setPropertyValue("CriticalOnStartup", component.getType().getProperties().get("CriticalOnStartup"), true);
+        component.setPropertyValue("DirectoryDepth", component.getType().getProperties().get("DirectoryDepth"), 1);
+        component.setPropertyValue("Eager", component.getType().getProperties().get("Eager"), true);
+        component.setPropertyValue("Encoding", component.getType().getProperties().get("Encoding"), "UTF-8");
+//        EventFactory myEventFactory = new EventFactory() {
+//            @Override
+//            public Object newEvent(Object o, Object o2) {return null;}
+//            @Override
+//            public Object newEvent(Object o, Object relatedIdentifier, Object o2) { return null; }
+//            @Override
+//            public Object newEvent(Object o, Object relatedIdentifier, long timestamp, Object o2) { return null; }
+//        };
+//        component.setPropertyValue("EventFactory", component.getType().getProperties().get("EventFactory"), "myEventFactory");
+
+        component.setPropertyValue("IgnoreFileRenameWhilstScanning", component.getType().getProperties().get("IgnoreFileRenameWhilstScanning"), true);
+        component.setPropertyValue("IgnoreMisfire", component.getType().getProperties().get("IgnoreMisfire"), true);
+        component.setPropertyValue("IsRecursive", component.getType().getProperties().get("IsRecursive"), true);
+
+        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
+//        ManagedEventIdentifierService managedEventIdentifierService = new ManagedEventIdentifierService()
+//        component.setPropertyValue("ManagedEventIdentifierService", component.getType().getProperties().get("ManagedEventIdentifierService"), true);
+
+//        ManagedResourceRecoveryManager managedResourceRecoveryManager = new ManagedResourceRecoveryManager() {
+//            @Override
+//            public void recover(Throwable throwable) {}
+//            @Override
+//            public boolean isRecovering() {return false;}
+//            @Override
+//            public void cancel() {}
+//        };
+//        component.setPropertyValue("ManagedResourceRecoveryManager", component.getType().getProperties().get("ManagedResourceRecoveryManager"), true);
+        component.setPropertyValue("MaxEagerCallbacks", component.getType().getProperties().get("MaxEagerCallbacks"), 1);
+
+        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
+//        MessageProvider messageProvider = new MessageProvider() {
+//            @Override
+//            public void stop() {            }
+//            @Override
+//            public void start() {            }
+//            @Override
+//            public boolean isRunning() {                return false;            }
+//        };
+//        component.setPropertyValue("MessageProvider", component.getType().getProperties().get("MessageProvider"), messageProvider);
+
+//        MessageProviderPostProcessor myMessageProviderPostProcessor = new MessageProviderPostProcessor() {
+//            @Override
+//            public void invoke(Object o) {                            }        };
+//        component.setPropertyValue("MessageProviderPostProcessor", component.getType().getProperties().get("MessageProviderPostProcessor"), myMessageProviderPostProcessor);
+        component.setPropertyValue("ScheduledJobGroupName", component.getType().getProperties().get("ScheduledJobGroupName"), "myScheduledJobGroupName");
+        component.setPropertyValue("ScheduledJobName", component.getType().getProperties().get("ScheduledJobName"), "myScheduledJobName");
+        component.setPropertyValue("SortAscending", component.getType().getProperties().get("SortAscending"), true);
+        component.setPropertyValue("SortByModifiedDateTime", component.getType().getProperties().get("SortByModifiedDateTime"), 12);
+        component.setPropertyValue("Timezone", component.getType().getProperties().get("Timezone"), "GMT");
         return component;
     }
 

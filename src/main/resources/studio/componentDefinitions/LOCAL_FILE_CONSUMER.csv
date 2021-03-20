@@ -1,4 +1,4 @@
-# FTP_CONSUMER -
+# LOCAL_FILE_CONSUMER -
 # NOTE - Every component is assumed to have name and description so they do not need to be included here
 #
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
