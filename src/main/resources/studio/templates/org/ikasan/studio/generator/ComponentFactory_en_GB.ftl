@@ -19,17 +19,29 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#if !ikasanFlowComponent.type.bespokeClass>
         <#list ikasanFlowComponent.getStandardProperties()![] as propName, propValue>
             <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
-                <#if ikasanFlowComponent.getJavaPackageName() != "">
-                    @org.springframework.beans.factory.annotation.Value("${r"${"}${flow.getJavaPackageName()}.${ikasanFlowComponent.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}}")
+                <#if propValue.meta.usageDataType?starts_with("java.util.List")>
+                    <#assign f_startTag = r'#{${' >
+                    <#assign f_endTag = r'}}' >
                 <#else>
-                    @org.springframework.beans.factory.annotation.Value("${r"${"}${flow.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}}")
+                    <#assign f_startTag = r'${'>
+                    <#assign f_endTag = r'}'>
                 </#if>
-                ${propValue.meta.dataType.getCanonicalName()}  ${propValue.meta.getPropertyConfigFileLabelAsVariable()};
+                <#if ikasanFlowComponent.getJavaPackageName() != "">
+                    <#assign f_propertyName = '${flow.getJavaPackageName()}.${ikasanFlowComponent.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}' >
+                <#else>
+                    <#assign f_propertyName = '${flow.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}' >
+                </#if>
+                @org.springframework.beans.factory.annotation.Value("${f_startTag}${f_propertyName}${f_endTag}")
+                <#if propValue.meta.usageDataType?starts_with("java.util.List")>
+                    <#assign f_dataType = propValue.meta.usageDataType >
+                <#else>
+                    <#assign f_dataType = propValue.meta.propertyDataType.getCanonicalName()>
+                </#if>
+                ${f_dataType} ${propValue.meta.getPropertyConfigFileLabelAsVariable()};
             </#if>
         </#list>
         <#else>
             @javax.annotation.Resource
-<#--            ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};-->
             ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
     </#if>
 </#list>

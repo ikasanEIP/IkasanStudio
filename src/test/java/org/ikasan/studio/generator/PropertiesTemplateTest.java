@@ -29,7 +29,7 @@ public class PropertiesTemplateTest extends TestCase {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/application_emptyFlow.properties
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_emptyFlow.properties
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -41,7 +41,7 @@ public class PropertiesTemplateTest extends TestCase {
 
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/application_namelessAndNamed.properties
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_namelessAndNamed.properties
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -64,28 +64,41 @@ public class PropertiesTemplateTest extends TestCase {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedFtpComponent.properties
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedFtpConsumerComponent.properties
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_fullyPopulatedFtpComponent() throws IOException {
-        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
+    public void testCreateProperties_fullyPopulatedFtpConsumerComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 
         String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpComponent.properties")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties")));
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedSftpComponent.properties
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedSftpConsumerComponent.properties
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_fullyPopulatedSftpComponent() throws IOException {
-        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpComponent(ikasanFlow));
+    public void testCreateProperties_fullyPopulatedSftpConsumerComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 
         String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpComponent.properties")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedLocalFileConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_fullyPopulatedLocalFileConsumerComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
+
+        String templateString = PropertiesTemplate.generateContents(testModule);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties")));
     }
 }

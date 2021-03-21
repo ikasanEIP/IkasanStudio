@@ -1,6 +1,7 @@
 package org.ikasan.studio.model.ikasan;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 
 import java.util.Map;
@@ -12,7 +13,6 @@ import java.util.TreeMap;
  * No UI specific elements should be present in this class (@see org.ikasan.studio.ui.model.IkasanFlowUIComponent for that)
  */
 public enum IkasanComponentType {
-
     MODULE(IkasanComponentCategory.MODULE, false, ""),
     FLOW(IkasanComponentCategory.FLOW, false, ""),
     BROKER(IkasanComponentCategory.BROKER, false, "broker"),
@@ -75,15 +75,16 @@ public enum IkasanComponentType {
     BESPOKE(IkasanComponentCategory.UNKNOWN, true, "bespoke"),
     UNKNOWN(IkasanComponentCategory.UNKNOWN, false, "unknown");
 
+    private static final Logger log = Logger.getLogger(IkasanComponentType.class);
     public final String associatedMethodName;
     public final boolean bespokeClass;
     public final IkasanComponentCategory elementCategory;
-    Map<String, IkasanComponentPropertyMeta>  properties;
+    Map<String, IkasanComponentPropertyMeta> metadataMap;
 
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
      * @param elementCategory e.g. CONSUMER, PRODUCER
-     * @param bespokeClass
+     * @param bespokeClass name
      * @param associatedMethodName in the source code that can be used to identify this element, typically used by ComponentBuilder.
      */
     IkasanComponentType(IkasanComponentCategory elementCategory, boolean bespokeClass, String associatedMethodName) {
@@ -93,16 +94,16 @@ public enum IkasanComponentType {
 
         // @todo having this in the constructor is too risky, and exception even if caught will prevent the plugin from working.
         // @todo may be more efficient to split into mandatory and optional properties
-        properties = StudioUtils.readIkasanComponentProperties(this.toString());
+        metadataMap = StudioUtils.readIkasanComponentProperties(this.toString());
     }
 
     /**
      * Get a list of the mandatory properties for this component.
-     * @return
+     * @return A map of the mandatory properties for this component
      */
     public Map<String, IkasanComponentProperty> getMandatoryProperties() {
         Map<String, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
-        for (Map.Entry<String, IkasanComponentPropertyMeta> entry : properties.entrySet()) {
+        for (Map.Entry<String, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
             if (entry.getValue().isMandatory()) {
                 IkasanComponentProperty newIkasanComponentProperty = new IkasanComponentProperty(entry.getValue());
                 mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
@@ -111,12 +112,15 @@ public enum IkasanComponentType {
         return mandatoryProperties;
     }
 
-    public Map<String, IkasanComponentPropertyMeta> getProperties() {
-        return properties;
+    public Map<String, IkasanComponentPropertyMeta> getMetadataMap() {
+        return metadataMap;
+    }
+    public IkasanComponentPropertyMeta getMetadata(String propertyName) {
+        return metadataMap.get(propertyName);
     }
 
     public IkasanComponentPropertyMeta getMetaDataForPropertyName(final String propertyName) {
-        return properties.get(propertyName);
+        return metadataMap.get(propertyName);
     }
 
 

@@ -20,6 +20,10 @@ import java.util.TreeMap;
  */
 public class StudioUtils {
     private static final Logger log = Logger.getLogger(StudioUtils.class);
+
+    // Enforce as a untility only class
+    private StudioUtils () {}
+
     /**
      * Given a string delimited by tokens e.g. this.is.my.class.bob then get the last string, bob in this case
      * @param delimeter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
@@ -44,16 +48,17 @@ public class StudioUtils {
      * @return All but the last stoken of the string or an empty sp
      */
     public static String getAllButLastToken(String delimeter, String input) {
-        String returnString = "";
+        StringBuilder returnString = new StringBuilder("");
         if (input != null && delimeter != null) {
             String [] tokens = input.split(delimeter, -1);
             if (tokens.length > 1) {
-                returnString = tokens[0];
-                for(int ii = 1; ii < tokens.length-1 ; ii++)
-                returnString += "." + tokens[ii];
+                returnString = returnString.append(tokens[0]);
+                for(int ii = 1; ii < tokens.length-1 ; ii++) {
+                    returnString.append(".").append(tokens[ii]);
+                }
             }
         }
-        return returnString;
+        return returnString.toString();
     }
 
     /**
@@ -63,7 +68,7 @@ public class StudioUtils {
      */
     public static String toJavaClassName(final String input) {
         String identifer = toJavaIdentifier(input);
-        if (identifer != null && identifer.length() > 0) {
+        if (identifer.length() > 0) {
             char first = Character.toUpperCase(identifer.charAt(0));
             identifer = first + identifer.substring(1);
         }
@@ -90,7 +95,7 @@ public class StudioUtils {
      * Pretty much what org.apache.commons.text.CaseUtils does i.e. produce camelCase, but we are limited by what libs Intellij
      * pull into the plugin dependencies.
      * @param input a string potentially with spaces
-     * @return
+     * @return a string that could be used as a java identifer
      */
     public static String toJavaIdentifier(final String input) {
         if (input != null && input.length() > 0) {
@@ -103,10 +108,9 @@ public class StudioUtils {
             {
                 if (inputString[inputStringIndex] == ' ' || inputString[inputStringIndex] == '.') {
                     toUpper = true;
-                    continue;
                 }
                 else {
-                    Character current = null;
+                    Character current;
                     if (outputStringLength == 0) {
                         current = Character.toLowerCase(inputString[inputStringIndex]);
                         if (! (Character.isJavaIdentifierStart(current))) {
@@ -135,26 +139,28 @@ public class StudioUtils {
         }
     }
 
-    private static int MANDATORY_INDEX = 0;
-    private static int USER_IMPLEMENTED_CLASS_INDEX = 1;
-    private static int NAME_INDEX = 2;
-    private static int PROPERTY_CONFIG_LABEL_INDEX = 3;
-    private static int CLASS_INDEX = 4;
-    private static int VALIDATION_INDEX = 5;
-    private static int DEFAULT_VALUE_INDEX = 6;
-    private static int HELP_INDEX = 7;
-    private static int NUMBER_OF_CONFIGS = 8;
-    public static String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
+    private static final int MANDATORY_INDEX = 0;
+    private static final int USER_IMPLEMENTED_CLASS_INDEX = 1;
+    private static final int PROPERTY_NAME_INDEX = 2;
+    private static final int PROPERTY_CONFIG_LABEL_INDEX = 3;
+    private static final int PROPERTY_DATA_TYPE_INDEX = 4;
+    private static final int USAGE_DATA_TYPE_INDEX = 5;
+    private static final int VALIDATION_INDEX = 6;
+    private static final int DEFAULT_VALUE_INDEX = 7;
+    private static final int HELP_INDEX = 8;
+    private static final int NUMBER_OF_CONFIGS = 9;
+    public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
+
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
         componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
-        String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + ".csv";
+        String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
         Set<String> propertyConfigLabels = new HashSet<>();
         if (is != null) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                String line = null;
+                String line;
                 while ((line = br.readLine()) != null) {
                     if (line.startsWith("#")) {
                         continue;
@@ -164,7 +170,7 @@ public class StudioUtils {
                         log.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was " + line);
                         continue;
                     }
-                    if (componentProperties.containsKey(split[NAME_INDEX])) {
+                    if (componentProperties.containsKey(split[PROPERTY_NAME_INDEX])) {
                         log.error("A property of this name already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
@@ -189,22 +195,23 @@ public class StudioUtils {
                         }
                     }
 
+                    String usageDataType = split[USAGE_DATA_TYPE_INDEX];
                     String validation = split[VALIDATION_INDEX];
 
                     // Data type
-                    Class dataTypeOfProperty = null;
+                    Class propertyDataType;
                     try {
-                        dataTypeOfProperty = Class.forName(split[CLASS_INDEX]);
+                        propertyDataType = Class.forName(split[PROPERTY_DATA_TYPE_INDEX]);
                     } catch (ClassNotFoundException ex) {
                         log.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
-                        dataTypeOfProperty = String.class;  // dont crash the IDE
+                        propertyDataType = String.class;  // dont crash the IDE
                     }
 
                     //  default value
-                    Object defaultValue = getDefaultValue(split, dataTypeOfProperty, line,  propertiesFile);
+                    Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
 
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, isUserImplementedClass, split[NAME_INDEX], propertyConfigLabel, dataTypeOfProperty, validation, defaultValue, split[HELP_INDEX]);
-                    componentProperties.put(split[NAME_INDEX], ikasanComponentPropertyMeta);
+                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, isUserImplementedClass, split[PROPERTY_NAME_INDEX], propertyConfigLabel, propertyDataType, usageDataType, validation, defaultValue, split[HELP_INDEX]);
+                    componentProperties.put(split[PROPERTY_NAME_INDEX], ikasanComponentPropertyMeta);
                 }
             } catch (IOException ioe) {
                 log.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
@@ -220,7 +227,7 @@ public class StudioUtils {
         String defaultValueAsString = split[DEFAULT_VALUE_INDEX];
         if (dataTypeOfProperty != null && defaultValueAsString != null && defaultValueAsString.length() > 0) {
             try {
-                if ("java.lang.String".equals(split[CLASS_INDEX])) {
+                if ("java.lang.String".equals(split[PROPERTY_DATA_TYPE_INDEX])) {
                     defaultValue = defaultValueAsString;
                 } else {
                     Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});

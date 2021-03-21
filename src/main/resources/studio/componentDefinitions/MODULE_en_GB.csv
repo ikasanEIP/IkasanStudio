@@ -1,0 +1,17 @@
+# Module
+# NOTE - Every component is assumed to have name and description so they do not need to be included here
+#
+# isConfigMandatory - Mandatory for the component to be deemed to be complete
+# isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+# propertyName - Name of the property, used on input screens and to generate variable names
+# propertyConfigFileLabel - Identifies the spring injected property name
+# propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
+# usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
+# validation - Used by the property editor to validate the property
+# defaultValue - As displayed in the properies editor.
+# helpTest - As shown in the toolTip on the properties editor and error text.
+# If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
+# 1                 2                      3            4                       5                6             7          8                                                                                     9
+# isConfigMandatory|isUserImplementedClass|propertyName|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+#true|false|Name|module.name|java.lang.String|MyModule||The package ID for this applicaiton
+true|false|ApplicationPackageName|module.package|java.lang.String|||org.myApp|The package ID for this applicaiton

@@ -79,39 +79,13 @@ public class PropertiesPanel extends JPanel {
             putValue(MNEMONIC_KEY, mnemonic);
         }
         public void actionPerformed(ActionEvent e) {
-            boolean modelUpdated = false;
-            modelUpdated = processEditedFlowComponents();
-            if (modelUpdated) {
+            if (processEditedFlowComponents()) {
                 Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
                 Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
                 Context.getDesignerCanvas(projectKey).repaint();
             }
         }
     }
-
-//    public void performUpdate() {
-//        boolean modelUpdated = false;
-//        modelUpdated = processEditedFlowComponents();
-//        if (modelUpdated) {
-//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-//            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-//            Context.getDesignerCanvas(projectKey).repaint();
-//        }
-//    }
-
-//    protected ActionListener getOkButtonListener() {
-//        return new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                boolean modelUpdated = false;
-//                modelUpdated = processEditedFlowComponents();
-//                if (modelUpdated) {
-//                    Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-//                    Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-//                    Context.getDesignerCanvas(projectKey).repaint();
-//                }
-//            }
-//        };
-//    }
 
     /**
      * Given the component within, generate an appropriate Panel title
@@ -180,8 +154,8 @@ public class PropertiesPanel extends JPanel {
             if (selectedComponent instanceof IkasanComponent) {
 //                IkasanFlowComponent selectedFlowComponent = (IkasanFlowComponent) selectedComponent;
                 IkasanComponent selectedFlowComponent = (IkasanComponent) selectedComponent;
-                if (selectedFlowComponent.getType().getProperties().size() > 0) {
-                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getProperties().entrySet()) {
+                if (selectedFlowComponent.getType().getMetadataMap().size() > 0) {
+                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getMetadataMap().entrySet()) {
                         String key = entry.getKey();
                         if (!key.equals(IkasanComponentPropertyMeta.NAME)
 //                                && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)
@@ -308,10 +282,10 @@ public class PropertiesPanel extends JPanel {
     }
 
     /**
-     *
+     * Determine if the property has been updated.
      * @param property of the existing ikasan Component
      * @param propertyEditBox should never be null when called.
-     * @return
+     * @return true if the property has been altered
      */
     private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
         return (((property == null || property.getValue() == null) && editBoxHasValue(propertyEditBox)) ||
