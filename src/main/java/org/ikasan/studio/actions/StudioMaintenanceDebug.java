@@ -12,6 +12,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.sun.istack.NotNull;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
@@ -33,7 +34,7 @@ public class StudioMaintenanceDebug extends AnAction
 
    /**
     * This constructor support test data injection.
-    * @param projectKey
+    * @param projectKey for the current project
     */
    public StudioMaintenanceDebug(String projectKey) {
       super();
@@ -53,11 +54,11 @@ public class StudioMaintenanceDebug extends AnAction
    }
 
    @Override
-   public void actionPerformed(AnActionEvent ae)
+   public void actionPerformed(@NotNull AnActionEvent ae)
    {
       System.out.println("actionPerformed test");
 //      try {
-         StudioUtils.readIkasanComponentProperties("/studio/componentDefinitions/BROKER.csv");
+         StudioUtils.readIkasanComponentProperties("/studio/componentDefinitions/BROKER_en_GB.csv");
 //      } catch (IOException e) {
 //         e.printStackTrace();
 //         log.error("XXXXXXXXXXXXXXXXXXXXXXXXXX can read configs");

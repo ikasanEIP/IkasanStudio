@@ -48,9 +48,10 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      * @return <code>true</code> if the import can happen, <code>false</code> otherwise
      * @throws NullPointerException if <code>support</code> is {@code null}
      */
+    @Override
     public boolean canImport(final TransferHandler.TransferSupport support) {
         final Component targetComponent = support.getComponent();
-        final DataFlavor destinationSupportedflavors[] = support.getDataFlavors();
+        final DataFlavor[] destinationSupportedflavors = support.getDataFlavors();
 
         log.trace("Can import check " + targetComponent);
         // Only allow drop (not paste) and ignore unless on canvas
@@ -66,7 +67,6 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         if (!designerCanvas.getIkasanModule().hasUnsetMandatoryProperties()) {
             for(DataFlavor flavor : destinationSupportedflavors) {
                 // Anywhere on the canvas
-                log.error("In drop loop");
                 if (flavor.equals(ikasanFlowUIComponentFlavor)) {
                     return flowInFocusActions(support);
                 }
@@ -84,14 +84,15 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
 
     /**
      * Determine if there is a flow beneath the mouse and if so, cause appropriate highlighting
-     * @param support
-     * @return
+     * @param support is the specialised class that encapsulates the clipboard.
+     * @return true if the mouse is currently over a flow.
      */
     private boolean flowInFocusActions(final TransferHandler.TransferSupport support) {
         boolean mouseOverFlow = false;
         Point currentMouse = support.getDropLocation().getDropPoint();
         IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
-        if (IkasanComponentType.FLOW.equals(ikasanFlowUIComponent.getIkasanComponentType()) || designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
+        if ((ikasanFlowUIComponent.getIkasanComponentType() != null && IkasanComponentType.FLOW.equals(ikasanFlowUIComponent.getIkasanComponentType())) ||
+                designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
             mouseOverFlow = true;
         }
         designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanFlowUIComponent);
@@ -113,6 +114,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      * @return true if the data was inserted into the component, false otherwise
      * @throws NullPointerException if <code>support</code> is {@code null}
      */
+    @Override
     public boolean importData(TransferSupport support) {
         log.info("import Data invoked " + support);
         if (this.canImport(support)) {

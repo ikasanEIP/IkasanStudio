@@ -16,7 +16,7 @@ public class ComponentPropertyEditBox {
     public ComponentPropertyEditBox(IkasanComponentProperty componentProperty) {
         this.label = componentProperty.getMeta().getPropertyName();
         this.labelField = new JLabel(label);
-        type = componentProperty.getMeta().getDataType();
+        type = componentProperty.getMeta().getPropertyDataType();
         Object value = componentProperty.getValue();
 
         // @todo we can have all types of components with rich pattern matching validation

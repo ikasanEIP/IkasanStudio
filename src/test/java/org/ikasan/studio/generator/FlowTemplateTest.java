@@ -29,7 +29,7 @@ public class FlowTemplateTest extends TestCase {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1OneFlow.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1OneFlow.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -40,7 +40,7 @@ public class FlowTemplateTest extends TestCase {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1EventGeneratingConsumer.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1EventGeneratingConsumer.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -56,12 +56,12 @@ public class FlowTemplateTest extends TestCase {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_ftpConsumer() throws IOException {
-        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
@@ -69,12 +69,12 @@ public class FlowTemplateTest extends TestCase {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedSftpComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedSftpComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_sftpConsumer() throws IOException {
-        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpComponent(ikasanFlow));
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));

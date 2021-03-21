@@ -15,10 +15,10 @@ public abstract class IkasanComponent {
 
     private IkasanComponent() {}
 
-    public IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
-        this.type = type;
-        this.properties = properties;
-    }
+//    public IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
+//        this.type = type;
+//        this.properties = properties;
+//    }
 
     public IkasanComponentProperty getProperty(String key) {
         return properties.get(key);
@@ -57,14 +57,34 @@ public abstract class IkasanComponent {
             properties.put(key, new IkasanComponentProperty(properyMeta, value));
         }
     }
+
+    /**
+     * This setter should be used if we think the property might not already be set but will require the correct meta data
+     * @param key of the property to be updated
+     * @param value for the property
+     */
+    public void setPropertyValue(String key, Object value) {
+        IkasanComponentProperty ikasanComponentProperty = properties.get(key);
+        if (ikasanComponentProperty != null) {
+            ikasanComponentProperty.setValue(value);
+        } else {
+            IkasanComponentPropertyMeta properyMeta = getType().getMetadata(key);
+            if (properyMeta == null) {
+                log.error("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but not such meta data exists for " + getType() + " this property will be ignored.");
+            } else {
+                properties.put(key, new IkasanComponentProperty(getType().getMetadata(key), value));
+            }
+        }
+    }
+
     public Map<String, IkasanComponentProperty> getProperties() {
         return properties;
     }
 
 
     /**
-     * Get all the standard properties i.e. exclude the special 'name and description' properties
-     * @return
+     * Get all the standard properties i.e. exclude the special 'name and description' properties.
+     * @return the Map of standard properties for this component.
      */
     public Map<String, IkasanComponentProperty> getStandardProperties() {
         Map<String, IkasanComponentProperty> standardProperties = new HashedMap();
@@ -136,7 +156,7 @@ public abstract class IkasanComponent {
 
     /**
      * Determine if there are some mandatory properties that have not yet been set.
-     * @return
+     * @return true if there are mandatory components that do not yet have a value.
      */
     public boolean hasUnsetMandatoryProperties() {
         for (Map.Entry<String, IkasanComponentProperty> entry : properties.entrySet()) {
