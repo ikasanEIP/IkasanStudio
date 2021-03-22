@@ -15,10 +15,10 @@ public abstract class IkasanComponent {
 
     private IkasanComponent() {}
 
-//    public IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
-//        this.type = type;
-//        this.properties = properties;
-//    }
+    public IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
+        this.type = type;
+        this.properties = properties;
+    }
 
     public IkasanComponentProperty getProperty(String key) {
         return properties.get(key);
