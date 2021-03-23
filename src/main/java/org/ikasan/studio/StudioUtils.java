@@ -139,9 +139,9 @@ public class StudioUtils {
         }
     }
 
-    private static final int MANDATORY_INDEX = 0;
-    private static final int USER_IMPLEMENTED_CLASS_INDEX = 1;
-    private static final int PROPERTY_NAME_INDEX = 2;
+    private static final int PROPERTY_NAME_INDEX = 0;
+    private static final int MANDATORY_INDEX = 1;
+    private static final int USER_IMPLEMENTED_CLASS_INDEX = 2;
     private static final int PROPERTY_CONFIG_LABEL_INDEX = 3;
     private static final int PROPERTY_DATA_TYPE_INDEX = 4;
     private static final int USAGE_DATA_TYPE_INDEX = 5;
