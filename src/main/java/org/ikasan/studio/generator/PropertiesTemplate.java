@@ -6,9 +6,6 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.Map;
 
-/**
- * Currently both velocity and embedded strategy are being evaluated
- */
 public class PropertiesTemplate extends Generator {
     public static String MODULE_PROPERTIES_FILENAME = "application";
     private static String MODULE_PROPERTIES_FTL = "PropertiesTemplate.ftl";

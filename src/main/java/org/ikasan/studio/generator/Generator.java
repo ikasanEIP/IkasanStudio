@@ -22,6 +22,8 @@ public class Generator {
     public static final String STUDIO_PACKAGE_TAG = "studioPackageTag";
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
+    public static final String INTERFACE_NAME_TAG = "interfaceName";
+    public static final String PROPERTIES_TAG = "properties";
     public static final String FLOWS_TAG = "flows";
     public static final String FLOW_TAG = "flow";
     public static final String MODULE_TAG = "module";

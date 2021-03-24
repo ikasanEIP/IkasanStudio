@@ -124,7 +124,8 @@ public class StudioUtils {
                             }
                             toUpper = false;
                         } else {
-                            current = Character.toLowerCase(inputString[inputStringIndex]);
+//                            current = Character.toLowerCase(inputString[inputStringIndex]);
+                            current = inputString[inputStringIndex];
                             if (!Character.isJavaIdentifierPart(current)) {
                                 continue;
                             }

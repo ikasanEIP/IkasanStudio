@@ -1,7 +1,7 @@
 package org.ikasan.studio.generator;
 
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
+import freemarker.ext.beans.BeansWrapper;
+import freemarker.template.*;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 
@@ -15,7 +15,7 @@ public class FreemarkerUtils {
     public static String generateFromTemplate(String templateName, Map<String, Object> configurations) {
         String output = "";
         try (StringWriter writer = new StringWriter()) {
-
+            addSupportForJavaUtilsClasses(configurations);
             Template template = Context.getFeemarkerConfig().getTemplate(templateName);
             template.process(configurations, writer);
             // Would have thought we remove \r in Freemarker but it does not look like it.
@@ -24,5 +24,11 @@ public class FreemarkerUtils {
             log.warn("Problems encountered trying to read template " + templateName + " exception message " + e.getMessage(), e);
         }
         return output;
+    }
+
+    private static void addSupportForJavaUtilsClasses(Map<String, Object> configurations) {
+        configurations.put("statics", new DefaultObjectWrapperBuilder(Configuration.getVersion())
+                .build()
+                .getStaticModels());
     }
 }

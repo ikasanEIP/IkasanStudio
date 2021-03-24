@@ -1,4 +1,4 @@
-package ${studioPackageTag};
+package org.ikasan;
 
 /**
 * This class implements the interface for
@@ -8,6 +8,6 @@ package ${studioPackageTag};
 */
 
 @org.springframework.stereotype.Component
-public class ${className} implements ${interfaceName}
+public class MyBespokeClassForProperty implements org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor
 {
 }

@@ -18,7 +18,7 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 @javax.annotation.Resource
-org.ikasan.studio.boot.newflow1.Newflow1 newflow1;
+org.ikasan.studio.boot.newflow1.NewFlow1 newFlow1;
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.module.Module myModule()
@@ -29,7 +29,7 @@ org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.module.Module module = moduleBuilder
-.addFlow(newflow1.getNewflow1())
+.addFlow(newFlow1.getNewFlow1())
 .build();
 return module;
 }

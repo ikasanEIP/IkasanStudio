@@ -7,9 +7,6 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.Map;
 
-/**
- * Currently both velocity and embedded strategy are being evaluated
- */
 public class FlowsComponentFactoryTemplate extends Generator {
     public static String COMPONENT_FACTORY_CLASS_NAME = "ComponentFactory";
     private static String COMPONENT_FACTORY_FTL = "ComponentFactory.ftl";

@@ -15,8 +15,9 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @javax.annotation.Resource
-org.myApp.myflow1.MyConverterClass testcustomconverter;
+org.myApp.myflow1.MyConverterClass testCustomConverter;
 
-public org.ikasan.spec.component.transformation.Converter getTestcustomconverter() {
-return testcustomconverter;
+
+public org.ikasan.spec.component.transformation.Converter getTestCustomConverter() {
+return testCustomConverter;
 }}

@@ -56,11 +56,11 @@ MessageProvider|false|false||org.ikasan.component.endpoint.quartz.consumer.Messa
 MoveOnSuccessNewPath|false|false|ftp.consumer.move-on-success-new-path|java.lang.String||||Optional only applicable when moveOnSuccess=true, it provides new directory path when the processed file is moved to.
 MoveOnSuccess|false|false||java.lang.Boolean||||Default(False) Flag indicating whether to move the processed file after successful consumption to different location defined by moveOnSuccessNewPath configuration.
 PasswordFilePath|false|false|ftp.consumer.password-filepath|java.lang.String||||Optional only available on FTP consumer. The path of the file that contains the password.
-RenameOnSuccessExtension||false|false|java.lang.String||||Optional only applicable when renameOnSuccess=true, renameOnSuccessExtension is suffixed to the processed fileName
+RenameOnSuccessExtension|false|false||java.lang.String||||Optional only applicable when renameOnSuccess=true, renameOnSuccessExtension is suffixed to the processed fileName
 RenameOnSuccess|false|false||java.lang.Boolean||||Default(False) Flag indicating whether to rename the processed file after successful consumption
 ScheduledJobGroupName|false|false||java.lang.String||||Group for scheduled jobs within the internal Ikasan scheduler
 ScheduledJobName|false|false||java.lang.String||||Name to identify this job within the internal Ikasan scheduler
 SocketTimeout|false|false||java.lang.Integer||||Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.
-false|true|SourceDirectoryURLFactory|false|true|ftp.consumer.source-directory-url-factory|org.ikasan.framework.factory.DirectoryURLFactory||||Please provide the classname for your implementation of DirectoryURLFactory. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instance based on date
+#false|true|SourceDirectoryURLFactory|false|true|ftp.consumer.source-directory-url-factory|org.ikasan.framework.factory.DirectoryURLFactory||||Please provide the classname for your implementation of DirectoryURLFactory. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instance based on date
 SystemKey|false|false|ftp.consumer.system-key|java.lang.String||||Optional only available on FTP consumer.
 #TransactionManager|false|true|ftp.consumer.transactionManager|org.springframework.transaction.jta.JtaTransactionManager||||Please provide the classname for your implementation of JtaTransactionManager. The Spring transaction manager, this may be needed to indetrage into thrid party containers.
