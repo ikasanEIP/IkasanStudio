@@ -71,6 +71,8 @@ public class PropertiesPanel extends JPanel {
     public UpdateCodeAction getUpdateAction() {
         return new UpdateCodeAction("Update code", "Update the code with properties settings", KeyEvent.VK_U);
     }
+
+    // @todo (optional) confirmation box if overriding, maybe include a list of classes (including appropriate properties that may be overriden).
     class UpdateCodeAction extends AbstractAction {
         public UpdateCodeAction(String text,
                           String desc, Integer mnemonic) {

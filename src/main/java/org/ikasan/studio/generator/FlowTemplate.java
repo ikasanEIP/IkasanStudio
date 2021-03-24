@@ -8,9 +8,6 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.util.Map;
 
-/**
- * Currently both velocity and embedded strategy are being evaluated
- */
 public class FlowTemplate extends Generator {
     private static String FLOW_FTL = "FlowTemplate.ftl";
 
@@ -21,7 +18,7 @@ public class FlowTemplate extends Generator {
             String templateString = generateContents(packageName, ikasanModule, ikasanFlow);
             if (!ikasanFlow.getFlowComponentList().isEmpty()) {
                 // Must do Beskpoke classes first otherwise resolution will not auto generate imports.
-                FlowsBespokeClassTemplate.create(project, ikasanModule, ikasanFlow);
+                FlowsBespokeComponentTemplate.create(project, ikasanModule, ikasanFlow);
                 FlowsComponentFactoryTemplate.create(project, packageName, ikasanModule, ikasanFlow);
             }
             PsiJavaFile newFile = createTemplateFile(

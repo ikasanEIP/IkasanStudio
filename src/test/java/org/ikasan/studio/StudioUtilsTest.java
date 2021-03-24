@@ -34,12 +34,25 @@ public class StudioUtilsTest {
     }
 
     @Test
+    public void toJavaClassName() {
+        Assert.assertThat(StudioUtils.toJavaClassName(""), is(""));
+        Assert.assertThat(StudioUtils.toJavaClassName("a"), is("A"));
+        Assert.assertThat(StudioUtils.toJavaClassName("A"), is("A"));
+        Assert.assertThat(StudioUtils.toJavaClassName("AS"), is("AS"));
+        Assert.assertThat(StudioUtils.toJavaClassName("AS D"), is("ASD"));
+        Assert.assertThat(StudioUtils.toJavaClassName("as d"), is("AsD"));
+        Assert.assertThat(StudioUtils.toJavaClassName("as d    c"), is("AsDC"));
+        Assert.assertThat(StudioUtils.toJavaClassName("Some Text"), is("SomeText"));
+        Assert.assertThat(StudioUtils.toJavaClassName("my.package.name"), is("MyPackageName"));
+    }
+
+    @Test
     public void testToJavaIdentifier() {
         Assert.assertThat(StudioUtils.toJavaIdentifier(""), is(""));
         Assert.assertThat(StudioUtils.toJavaIdentifier("a"), is("a"));
         Assert.assertThat(StudioUtils.toJavaIdentifier("A"), is("a"));
-        Assert.assertThat(StudioUtils.toJavaIdentifier("AS"), is("as"));
-        Assert.assertThat(StudioUtils.toJavaIdentifier("AS D"), is("asD"));
+        Assert.assertThat(StudioUtils.toJavaIdentifier("AS"), is("aS"));
+        Assert.assertThat(StudioUtils.toJavaIdentifier("AS D"), is("aSD"));
         Assert.assertThat(StudioUtils.toJavaIdentifier("as d"), is("asD"));
         Assert.assertThat(StudioUtils.toJavaIdentifier("as d    c"), is("asDC"));
         Assert.assertThat(StudioUtils.toJavaIdentifier("Some Text"), is("someText"));

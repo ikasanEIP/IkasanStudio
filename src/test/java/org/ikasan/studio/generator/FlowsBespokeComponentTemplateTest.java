@@ -10,7 +10,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class FlowsBespokeClassTemplateTest extends TestCase {
+public class FlowsBespokeComponentTemplateTest extends TestCase {
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/MyConverter.java
@@ -31,7 +31,7 @@ public class FlowsBespokeClassTemplateTest extends TestCase {
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.TO_TYPE, "java.lang.Integer");
 
         newFlow.addFlowComponent(ikasanFlowComponent);
-        String templateString = FlowsBespokeClassTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanFlowComponent);
+        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanFlowComponent);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
     }

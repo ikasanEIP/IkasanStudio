@@ -6,29 +6,26 @@ import org.ikasan.studio.model.ikasan.*;
 
 import java.util.Map;
 
-/**
- * Currently both velocity and embedded strategy are being evaluated
- */
-public class FlowsBespokeClassTemplate extends Generator {
+public class FlowsBespokeComponentTemplate extends Generator {
 
     public static void create(final Project project, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow) {
         for (IkasanFlowComponent component : ikasanFlow.getFlowComponentList()) {
+            if (component.hasUserImplementedClass()) {
+                FlowsBespokePropertyTemplate.create(project, ikasanModule, ikasanFlow, component);
+            }
+
             if (component instanceof IkasanFlowBeskpokeComponent && ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled()) {
-                PsiJavaFile newFile = createNewClassFile(project, ikasanModule, ikasanFlow, component);
+                String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
+                String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
+                String templateString = generateContents(newPackageName, component);
+                boolean overwriteClassIfExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
+                PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
+                ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);
+
                 component.getViewHandler().setPsiJavaFile(newFile);
             }
-        }
-    }
 
-    private static PsiJavaFile createNewClassFile(Project project, IkasanModule ikasanModule, IkasanFlow ikasanFlow, IkasanFlowComponent component) {
-        boolean overwriteClassIfExists = false;
-        String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
-        String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
-        String templateString = generateContents(newPackageName, component);
-        overwriteClassIfExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
-        PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
-        ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);
-        return newFile;
+        }
     }
 
     public static String generateContents(String packageName, IkasanFlowComponent ikasanFlowComponent) {

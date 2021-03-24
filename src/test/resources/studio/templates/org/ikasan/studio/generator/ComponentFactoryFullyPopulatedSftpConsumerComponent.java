@@ -28,8 +28,6 @@ java.lang.Integer sftpConsumerRemoteport;
 java.lang.String sftpConsumerPreferredkeyexchangealgorithm;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.move-on-success-new-path}")
 java.lang.String sftpConsumerMoveonsuccessnewpath;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.source-directory-url-factory}")
-org.ikasan.framework.factory.DirectoryURLFactory sftpConsumerSourcedirectoryurlfactory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.private-key-filename}")
 java.lang.String sftpConsumerPrivatekeyfilename;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.remote-host}")
@@ -41,17 +39,18 @@ java.lang.String sftpConsumerSourcedirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.known-hosts-filenam}")
 java.lang.String sftpConsumerKnownhostsfilenam;
 
-public org.ikasan.spec.component.endpoint.Consumer getTestsftpconsumer() {
+
+public org.ikasan.spec.component.endpoint.Consumer getTestSftpConsumer() {
 return builderFactory.getComponentBuilder().sftpConsumer()
-.setTimezone(GMT)
+.setTimezone("GMT")
 .setConnectionTimeout(600001)
 .setMaxRetryAttempts(sftpConsumerMaxretryattempts)
 .setIgnoreMisfire(true)
 .setMoveOnSuccess(true)
 .setChecksum(true)
-.setScheduledJobName(myScheduledJobName)
+.setScheduledJobName("myScheduledJobName")
 .setCronExpression(sftpConsumerCronexpression)
-.setRenameOnSuccessExtension(ok)
+.setRenameOnSuccessExtension("newExtension")
 .setCleanupJournalOnComplete(true)
 .setFilenamePattern(sftpConsumerFilenamepattern)
 .setPassword(sftpConsumerPassword)
@@ -67,7 +66,6 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setAgeOfFiles(10)
 .setIsRecursive(true)
 .setChunking(true)
-.setSourceDirectoryURLFactory(sftpConsumerSourcedirectoryurlfactory)
 .setChronological(true)
 .setPrivateKeyFilename(sftpConsumerPrivatekeyfilename)
 .setChunkSize(1048577)
@@ -75,8 +73,8 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setRemoteHost(sftpConsumerRemotehost)
 .setDestructive(true)
 .setUsername(sftpConsumerUsername)
-.setClientID(myClientId)
-.setScheduledJobGroupName(myScheduledJobGroupName)
+.setClientID("myClientId")
+.setScheduledJobGroupName("myScheduledJobGroupName")
 .setSourceDirectory(sftpConsumerSourcedirectory)
 .setMaxRows(11)
 .setFilterDuplicates(true)

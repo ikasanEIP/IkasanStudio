@@ -107,7 +107,7 @@ public class TestFixtures {
         component.setPropertyValue("MoveOnSuccessNewPath", "/test/move/on/success");
         component.setPropertyValue("MoveOnSuccess", true);
         component.setPropertyValue("PasswordFilePath", "/test/password/file/path");
-        component.setPropertyValue("RenameOnSuccessExtension", "ok");
+        component.setPropertyValue("RenameOnSuccessExtension", "newExtension");
         component.setPropertyValue("RenameOnSuccess", true);
         component.setPropertyValue("ScheduledJobGroupName",  "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
@@ -212,7 +212,7 @@ public class TestFixtures {
         component.setPropertyValue("PreferredKeyExchangeAlgorithm", "myPreferredKeyExchangeAlgorithm");
         component.setPropertyValue("PrivateKeyFilename", "myPrivateKeyFilename");
         component.setPropertyValue("RenameOnSuccess",  true);
-        component.setPropertyValue("RenameOnSuccessExtension", "ok");
+        component.setPropertyValue("RenameOnSuccessExtension", "newExtension");
         component.setPropertyValue("ScheduledJobGroupName", "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
 
@@ -302,7 +302,7 @@ public class TestFixtures {
 //        MessageProviderPostProcessor myMessageProviderPostProcessor = new MessageProviderPostProcessor() {
 //            @Override
 //            public void invoke(Object o) {                            }        };
-//        component.setPropertyValue("MessageProviderPostProcessor", component.getType().getProperties().get("MessageProviderPostProcessor"), myMessageProviderPostProcessor);
+        component.setPropertyValue("MessageProviderPostProcessor", "MyMessageProviderPostProcessor");
         component.setPropertyValue("ScheduledJobGroupName", "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
         component.setPropertyValue("SortAscending", true);

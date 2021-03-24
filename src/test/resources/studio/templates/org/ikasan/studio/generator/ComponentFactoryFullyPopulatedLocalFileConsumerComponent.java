@@ -18,20 +18,23 @@ org.ikasan.builder.BuilderFactory builderFactory;
 java.util.List<String> fileConsumerFilenames;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testlocalfileconsumer.file.consumer.cron-expression}")
 java.lang.String fileConsumerCronexpression;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor myMessageProviderPostProcessor;
 
-public org.ikasan.spec.component.endpoint.Consumer getTestlocalfileconsumer() {
+public org.ikasan.spec.component.endpoint.Consumer getTestLocalFileConsumer() {
 return builderFactory.getComponentBuilder().fileConsumer()
 .setCriticalOnStartup(true)
-.setTimezone(GMT)
+.setTimezone("GMT")
 .setDirectoryDepth(1)
 .setEager(true)
 .setFilenames(fileConsumerFilenames)
 .setSortByModifiedDateTime(12)
-.setEncoding(UTF-8)
+.setEncoding("UTF-8")
 .setIgnoreMisfire(true)
 .setIgnoreFileRenameWhilstScanning(true)
-.setScheduledJobName(myScheduledJobName)
-.setScheduledJobGroupName(myScheduledJobGroupName)
+.setScheduledJobName("myScheduledJobName")
+.setMessageProviderPostProcessor(myMessageProviderPostProcessor)
+.setScheduledJobGroupName("myScheduledJobGroupName")
 .setCronExpression(fileConsumerCronexpression)
 .setSortAscending(true)
 .setMaxEagerCallbacks(1)

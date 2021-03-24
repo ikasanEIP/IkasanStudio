@@ -5,7 +5,10 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class IkasanComponent {
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
@@ -81,6 +84,17 @@ public abstract class IkasanComponent {
         return properties;
     }
 
+    public List<IkasanComponentProperty> userImplementedClassProperties() {
+        return properties.values().stream()
+            .filter(x -> x.getMeta().userImplementedClass)
+            .collect(Collectors.toList());
+    }
+
+    public boolean hasUserImplementedClass() {
+        return properties.values()
+            .stream()
+            .anyMatch(x -> x.getMeta().userImplementedClass);
+    }
 
     /**
      * Get all the standard properties i.e. exclude the special 'name and description' properties.

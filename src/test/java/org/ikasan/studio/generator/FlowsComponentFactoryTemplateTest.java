@@ -41,7 +41,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 
 
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedFtpComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedFtpConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -54,7 +54,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     }
 
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedSftpComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedSftpConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test

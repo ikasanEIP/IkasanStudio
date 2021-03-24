@@ -1,3 +1,4 @@
+<#assign StudioUtils=statics['org.ikasan.studio.StudioUtils']>
 package ${studioPackageTag};
 
 /**
@@ -16,7 +17,10 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
-    <#if !ikasanFlowComponent.type.bespokeClass>
+    <#if ikasanFlowComponent.type.bespokeClass>
+        @javax.annotation.Resource
+        ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
+    <#else>
         <#list ikasanFlowComponent.getStandardProperties()![] as propName, propValue>
             <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
                 <#if propValue.meta.usageDataType?starts_with("java.util.List")>
@@ -40,11 +44,21 @@ org.ikasan.builder.BuilderFactory builderFactory;
                 ${f_dataType} ${propValue.meta.getPropertyConfigFileLabelAsVariable()};
             </#if>
         </#list>
-        <#else>
-            @javax.annotation.Resource
-            ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
     </#if>
 </#list>
+</#compress>
+
+<#compress>
+    <#list flow.flowComponentList![] as ikasanFlowComponent>
+        <#if ! ikasanFlowComponent.type.bespokeClass>
+            <#list ikasanFlowComponent.getStandardProperties() as propName, propValue>
+                <#if propValue.meta.userImplementedClass>
+                    @javax.annotation.Resource
+                    ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
+                </#if>
+            </#list>
+        </#if>
+    </#list>
 </#compress>
 
 
@@ -60,7 +74,15 @@ org.ikasan.builder.BuilderFactory builderFactory;
                 <#if propValue.meta.propertyConfigFileLabel != "">
                     .set${propName}(${propValue.meta.getPropertyConfigFileLabelAsVariable()})
                 <#else>
-                    .set${propName}(${propValue.getValueString()})
+                    <#if propValue.meta.userImplementedClass>
+                        .set${propName}(${StudioUtils.toJavaIdentifier(propValue.valueString)})
+                    <#else>
+                        <#if propValue.meta.usageDataType == "java.lang.String">
+                            .set${propName}("${propValue.valueString}")
+                        <#else>
+                            .set${propName}(${propValue.valueString})
+                        </#if>
+                    </#if>
                 </#if>
             </#if>
         </#list>
