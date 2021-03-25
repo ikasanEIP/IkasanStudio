@@ -94,6 +94,7 @@ public class PIPSIIkasanModel {
             // @todo verify if above is asynch, if so maybe block or pass in this we we can update moduleConfigClazz.
             IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
             moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+
 //        }
     }
 

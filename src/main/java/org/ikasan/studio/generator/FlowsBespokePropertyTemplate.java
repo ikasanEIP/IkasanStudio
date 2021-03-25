@@ -5,21 +5,17 @@ import com.intellij.psi.PsiJavaFile;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.*;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowsBespokePropertyTemplate extends Generator {
 
     public static void create(final Project project, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow, IkasanFlowComponent component) {
-        for (IkasanComponentProperty property : component.userImplementedClassProperties()) {
-            boolean overwriteClassIfExists = true;
-
+        for (IkasanComponentProperty property : component.getUserImplementedClassProperties()) {
             String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
             String templateString = generateContents(newPackageName, clazzName, property);
-
-            PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
+            PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, true);
+            property.setRegenerateAllowed(false);
         }
     }
 

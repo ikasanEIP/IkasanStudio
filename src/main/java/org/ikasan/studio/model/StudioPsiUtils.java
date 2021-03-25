@@ -318,6 +318,7 @@ public class StudioPsiUtils {
         if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {
             pipsiIkasanModel.updateIkasanModule();
         }
+        ikasanModule.resetRegenratePermissions();
     }
 
     public static String getTypeOfVariable(PsiVariable psiVariable) {

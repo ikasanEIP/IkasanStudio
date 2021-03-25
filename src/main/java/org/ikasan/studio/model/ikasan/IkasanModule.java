@@ -35,6 +35,17 @@ public class IkasanModule extends IkasanComponent {
         setDescription("");
     }
 
+    /**
+     * Ensure any permissions to regenerate source is reset to false
+     */
+    public void resetRegenratePermissions() {
+        for (IkasanFlow flow : flows) {
+            for (IkasanComponent component : flow.getFlowComponentList()) {
+                component.resetUserImplementedClassPropertiesRegenratePermission();
+            }
+        }
+    }
+
     public String getVersion() {
         return version;
     }
