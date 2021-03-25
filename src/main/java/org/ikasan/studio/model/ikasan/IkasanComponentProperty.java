@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan;
 
 public class IkasanComponentProperty {
     private Object value;
+    private Boolean regenerateAllowed = true;
     private IkasanComponentPropertyMeta meta;
 
     public IkasanComponentProperty(IkasanComponentPropertyMeta meta, Object value) {
@@ -35,6 +36,14 @@ public class IkasanComponentProperty {
 
     public void setMeta(IkasanComponentPropertyMeta meta) {
         this.meta = meta;
+    }
+
+    public Boolean isRegenerateAllowed() {
+        return regenerateAllowed;
+    }
+
+    public void setRegenerateAllowed(Boolean regenerateAllowed) {
+        this.regenerateAllowed = regenerateAllowed;
     }
 
     @Override

@@ -78,7 +78,7 @@ public class PropertiesDialogue extends DialogWrapper {
 
         List<ValidationInfo> result = new ArrayList<>();
         for (final ComponentPropertyEditBox editPair: propertiesPanel.getComponentPropertyEditBoxList()) {
-            final String key = editPair.getLabel();
+            final String key = editPair.getPropertyLabel();
             IkasanComponentProperty componentProperty = propertiesPanel.getSelectedComponent().getProperties().get(key);
             // Only mandatory properties are always populated.
             if (componentProperty != null &&

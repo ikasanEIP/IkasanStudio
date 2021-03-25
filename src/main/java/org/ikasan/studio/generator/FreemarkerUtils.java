@@ -27,7 +27,7 @@ public class FreemarkerUtils {
     }
 
     private static void addSupportForJavaUtilsClasses(Map<String, Object> configurations) {
-        configurations.put("statics", new DefaultObjectWrapperBuilder(Configuration.getVersion())
+        configurations.put("statics", new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_31)
                 .build()
                 .getStaticModels());
     }

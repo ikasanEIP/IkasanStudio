@@ -84,16 +84,22 @@ public abstract class IkasanComponent {
         return properties;
     }
 
-    public List<IkasanComponentProperty> userImplementedClassProperties() {
+    public List<IkasanComponentProperty> getUserImplementedClassProperties() {
         return properties.values().stream()
-            .filter(x -> x.getMeta().userImplementedClass)
+            .filter(x -> x.getMeta().userImplementedClass && x.isRegenerateAllowed())
             .collect(Collectors.toList());
     }
 
     public boolean hasUserImplementedClass() {
         return properties.values()
             .stream()
-            .anyMatch(x -> x.getMeta().userImplementedClass);
+            .anyMatch(x -> x.getMeta().userImplementedClass && x.isRegenerateAllowed());
+    }
+
+    public void resetUserImplementedClassPropertiesRegenratePermission() {
+        for (IkasanComponentProperty property : getUserImplementedClassProperties()) {
+            property.setRegenerateAllowed(false);
+        }
     }
 
     /**
