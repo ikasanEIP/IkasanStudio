@@ -119,32 +119,24 @@ public class TestFixtures {
         component.setPropertyValue("Chunking", true);
         component.setPropertyValue("CleanupJournalOnComplete", true);
         component.setPropertyValue("ClientID", "myClientId");
-
-//        component.setPropertyValue("Configuration", "MyConfigurationClass");
-//        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
-
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("ConnectionTimeout", 600001);
         component.setPropertyValue("CriticalOnStartup", true);
         component.setPropertyValue("Destructive", true);
         component.setPropertyValue("Eager", true);
         component.setPropertyValue("FilterDuplicates", true);
-
         component.setPropertyValue("FilterOnFilename", true);
         component.setPropertyValue("FilterOnLastModifiedDate", true);
         component.setPropertyValue("IgnoreMisfire", true);
         component.setPropertyValue("IsRecursive", true);
         component.setPropertyValue("KnownHostsFilename", "myKnownHostsFilename");
-//        component.setPropertyValue("ManagedEventIdentifierService", "myManagedEventIdentifierServiceClass");
-//        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
-
-
+        component.setPropertyValue("ManagedEventIdentifierService", "myManagedEventIdentifierServiceClass");
+        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         component.setPropertyValue("MaxEagerCallbacks", 1);
         component.setPropertyValue("MaxRetryAttempts", 10);
         component.setPropertyValue("MaxRows", 11);
-
-//        component.setPropertyValue("MessageProvider", "myMessageProviderClass");
-
-
+        component.setPropertyValue("MessageProvider", "myMessageProviderClass");
         component.setPropertyValue("MinAge", 12);
         component.setPropertyValue("MoveOnSuccessNewPath", "/test/move/on/success");
         component.setPropertyValue("MoveOnSuccess", true);
@@ -154,16 +146,11 @@ public class TestFixtures {
         component.setPropertyValue("RenameOnSuccessExtension", "newExtension");
         component.setPropertyValue("ScheduledJobGroupName", "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
-
-//        component.setPropertyValue("SourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
-
+        component.setPropertyValue("SourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
         component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
         component.setPropertyValue("Timezone", "GMT");
-
         return component;
     }
-
-
 
     /**
      * Create a fully populated
