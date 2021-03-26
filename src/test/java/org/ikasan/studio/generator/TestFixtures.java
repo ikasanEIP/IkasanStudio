@@ -55,11 +55,8 @@ public class TestFixtures {
         component.setPropertyValue("Chunking", true);
         component.setPropertyValue("CleanupJournalOnComplete", true);
         component.setPropertyValue("ClientID", "myClientId");
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration consumerConfiguration = new org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration();
-//        component.setPropertyValue("Configuration", component.getType().getProperties().get("Configuration"), consumerConfiguration);
-
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("ConnectionTimeout", 600001);
         component.setPropertyValue("DataTimeout", 300001);
         component.setPropertyValue("Destructive", true);
@@ -74,35 +71,12 @@ public class TestFixtures {
         component.setPropertyValue("FtpsProtocol", "SSL");
         component.setPropertyValue("IgnoreMisfire",  true);
         component.setPropertyValue("IsRecursive", true);
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        ManagedEventIdentifierService managedEventIdentifierService = new ManagedEventIdentifierService()
-//        component.setPropertyValue("ManagedEventIdentifierService", component.getType().getProperties().get("ManagedEventIdentifierService"), true);
-
-//        ManagedResourceRecoveryManager managedResourceRecoveryManager = new ManagedResourceRecoveryManager() {
-//            @Override
-//            public void recover(Throwable throwable) {}
-//            @Override
-//            public boolean isRecovering() {return false;}
-//            @Override
-//            public void cancel() {}
-//        };
-//        component.setPropertyValue("ManagedResourceRecoveryManager", component.getType().getProperties().get("ManagedResourceRecoveryManager"), true);
+        component.setPropertyValue("ManagedEventIdentifierService", "myManagedEventIdentifierServiceClass");
+        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         component.setPropertyValue("MaxEagerCallbacks", 1);
         component.setPropertyValue("MaxRetryAttempts", 10);
         component.setPropertyValue("MaxRows", 11);
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        MessageProvider messageProvider = new MessageProvider() {
-//            @Override
-//            public void stop() {            }
-//            @Override
-//            public void start() {            }
-//            @Override
-//            public boolean isRunning() {                return false;            }
-//        };
-//        component.setPropertyValue("MessageProvider", component.getType().getProperties().get("MessageProvider"), messageProvider);
-
+        component.setPropertyValue("MessageProvider", "myMessageProviderClass");
         component.setPropertyValue("MinAge", 12);
         component.setPropertyValue("MoveOnSuccessNewPath", "/test/move/on/success");
         component.setPropertyValue("MoveOnSuccess", true);
@@ -112,20 +86,9 @@ public class TestFixtures {
         component.setPropertyValue("ScheduledJobGroupName",  "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
         component.setPropertyValue("SocketTimeout", 22);
-
-        org.ikasan.framework.factory.DirectoryURLFactory directoryURLFactory = new org.ikasan.framework.factory.DirectoryURLFactory() {
-            @Override
-            public List<String> getDirectoriesURLs(String path) {
-                return null;
-            }
-        };
-        component.setPropertyValue("SourceDirectoryURLFactory", directoryURLFactory);
-
+        component.setPropertyValue("SourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
         component.setPropertyValue("SystemKey", "mySystemKey");
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        org.springframework.transaction.jta.JtaTransactionManager jtaTransactionManager = new org.springframework.transaction.jta.JtaTransactionManager();
-//        component.setPropertyValue("TransactionManager", component.getType().getProperties().get("TransactionManager"), jtaTransactionManager);
+        component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
 
         return component;
     }
@@ -157,11 +120,8 @@ public class TestFixtures {
         component.setPropertyValue("CleanupJournalOnComplete", true);
         component.setPropertyValue("ClientID", "myClientId");
 
-        // This is an advanced option that is best dealt with by special checkbox since it will mean the component becomes 'bespoke'
-        // There are probably a number of configurations like this, need to review with Mick and Andrzej
-//        org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration consumerConfiguration = new org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration();
-//        component.setPropertyValue("Configuration", component.getType().getProperties().get("Configuration"), consumerConfiguration);
-//        component.setPropertyValue("ConfiguredResourceId", component.getType().getProperties().get("ConfiguredResourceId"), "myConfiguredResourceId");
+//        component.setPropertyValue("Configuration", "MyConfigurationClass");
+//        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
 
         component.setPropertyValue("ConnectionTimeout", 600001);
         component.setPropertyValue("CriticalOnStartup", true);
@@ -174,36 +134,15 @@ public class TestFixtures {
         component.setPropertyValue("IgnoreMisfire", true);
         component.setPropertyValue("IsRecursive", true);
         component.setPropertyValue("KnownHostsFilename", "myKnownHostsFilename");
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        ManagedEventIdentifierService managedEventIdentifierService = new ManagedEventIdentifierService()
-//        component.setPropertyValue("ManagedEventIdentifierService", component.getType().getProperties().get("ManagedEventIdentifierService"), true);
-
-//        ManagedResourceRecoveryManager managedResourceRecoveryManager = new ManagedResourceRecoveryManager() {
-//            @Override
-//            public void recover(Throwable throwable) {}
-//            @Override
-//            public boolean isRecovering() {return false;}
-//            @Override
-//            public void cancel() {}
-//        };
-//        component.setPropertyValue("ManagedResourceRecoveryManager", true);
+//        component.setPropertyValue("ManagedEventIdentifierService", "myManagedEventIdentifierServiceClass");
+//        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
 
 
         component.setPropertyValue("MaxEagerCallbacks", 1);
         component.setPropertyValue("MaxRetryAttempts", 10);
         component.setPropertyValue("MaxRows", 11);
 
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        MessageProvider messageProvider = new MessageProvider() {
-//            @Override
-//            public void stop() {            }
-//            @Override
-//            public void start() {            }
-//            @Override
-//            public boolean isRunning() {                return false;            }
-//        };
-//        component.setPropertyValue("MessageProvider", component.getType().getProperties().get("MessageProvider"), messageProvider);
+//        component.setPropertyValue("MessageProvider", "myMessageProviderClass");
 
 
         component.setPropertyValue("MinAge", 12);
@@ -216,17 +155,9 @@ public class TestFixtures {
         component.setPropertyValue("ScheduledJobGroupName", "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
 
-        org.ikasan.framework.factory.DirectoryURLFactory directoryURLFactory = new org.ikasan.framework.factory.DirectoryURLFactory() {
-            @Override
-            public List<String> getDirectoriesURLs(String path) {
-                return null;
-            }
-        };
-        component.setPropertyValue("SourceDirectoryURLFactory", directoryURLFactory);
+//        component.setPropertyValue("SourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
 
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        org.springframework.transaction.jta.JtaTransactionManager jtaTransactionManager = new org.springframework.transaction.jta.JtaTransactionManager();
-//        component.setPropertyValue("TransactionManager", component.getType().getProperties().get("TransactionManager"), jtaTransactionManager);
+        component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
         component.setPropertyValue("Timezone", "GMT");
 
         return component;
