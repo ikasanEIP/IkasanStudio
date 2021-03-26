@@ -38,14 +38,23 @@ java.lang.String sftpConsumerUsername;
 java.lang.String sftpConsumerSourcedirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.known-hosts-filenam}")
 java.lang.String sftpConsumerKnownhostsfilenam;
-
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+@javax.annotation.Resource
+org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
+@javax.annotation.Resource
+org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
+@javax.annotation.Resource
+org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestSftpConsumer() {
 return builderFactory.getComponentBuilder().sftpConsumer()
 .setTimezone("GMT")
 .setConnectionTimeout(600001)
 .setMaxRetryAttempts(sftpConsumerMaxretryattempts)
+.setConfiguration(myConfigurationClass)
 .setIgnoreMisfire(true)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMoveOnSuccess(true)
 .setChecksum(true)
 .setScheduledJobName("myScheduledJobName")
@@ -66,13 +75,16 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setAgeOfFiles(10)
 .setIsRecursive(true)
 .setChunking(true)
+.setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
 .setChronological(true)
 .setPrivateKeyFilename(sftpConsumerPrivatekeyfilename)
 .setChunkSize(1048577)
 .setMinAge(12)
 .setRemoteHost(sftpConsumerRemotehost)
 .setDestructive(true)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setUsername(sftpConsumerUsername)
+.setTransactionManager(myTransactionManagerClass)
 .setClientID("myClientId")
 .setScheduledJobGroupName("myScheduledJobGroupName")
 .setSourceDirectory(sftpConsumerSourcedirectory)
