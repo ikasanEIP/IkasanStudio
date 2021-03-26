@@ -19,6 +19,14 @@ java.util.List<String> fileConsumerFilenames;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testlocalfileconsumer.file.consumer.cron-expression}")
 java.lang.String fileConsumerCronexpression;
 @javax.annotation.Resource
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+@javax.annotation.Resource
+org.ikasan.spec.event.EventFactory myEventFactoryClassName;
+@javax.annotation.Resource
+org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
+@javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor myMessageProviderPostProcessor;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestLocalFileConsumer() {
@@ -27,11 +35,16 @@ return builderFactory.getComponentBuilder().fileConsumer()
 .setTimezone("GMT")
 .setDirectoryDepth(1)
 .setEager(true)
+.setMessageProvider(myMessageProviderClass)
+.setConfiguration(myConfigurationClass)
 .setFilenames(fileConsumerFilenames)
 .setSortByModifiedDateTime(12)
+.setEventFactory(myEventFactoryClassName)
 .setEncoding("UTF-8")
 .setIgnoreMisfire(true)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setIgnoreFileRenameWhilstScanning(true)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setScheduledJobName("myScheduledJobName")
 .setMessageProviderPostProcessor(myMessageProviderPostProcessor)
 .setScheduledJobGroupName("myScheduledJobGroupName")

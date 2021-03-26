@@ -246,62 +246,18 @@ public class TestFixtures {
         // Mandatory properties
         component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
         component.updatePropertyValue("Filenames", "*Test.txt");
-
-        // This is an advanced option that is best dealt with by special checkbox since it will mean the component becomes 'bespoke'
-        // There are probably a number of configurations like this, need to review with Mick and Andrzej
-//        org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration consumerConfiguration = new org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration();
-//        component.setPropertyValue("Configuration", component.getType().getProperties().get("Configuration"), consumerConfiguration);
-//        component.setPropertyValue("ConfiguredResourceId", component.getType().getProperties().get("ConfigurationId"), "myConfiguredResourceId");
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("CriticalOnStartup", true);
         component.setPropertyValue("DirectoryDepth", 1);
         component.setPropertyValue("Eager", true);
         component.setPropertyValue("Encoding", "UTF-8");
-//        EventFactory myEventFactory = new EventFactory() {
-//            @Override
-//            public Object newEvent(Object o, Object o2) {return null;}
-//            @Override
-//            public Object newEvent(Object o, Object relatedIdentifier, Object o2) { return null; }
-//            @Override
-//            public Object newEvent(Object o, Object relatedIdentifier, long timestamp, Object o2) { return null; }
-//        };
-//        component.setPropertyValue("EventFactory", component.getType().getProperties().get("EventFactory"), "myEventFactory");
-
+        component.setPropertyValue("EventFactory", "myEventFactoryClassName");
         component.setPropertyValue("IgnoreFileRenameWhilstScanning", true);
         component.setPropertyValue("IgnoreMisfire", true);
-
-
-
-//        component.setPropertyValue("IsRecursive", component.getType().getProperties().get("IsRecursive"), true);
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        ManagedEventIdentifierService managedEventIdentifierService = new ManagedEventIdentifierService()
-//        component.setPropertyValue("ManagedEventIdentifierService", component.getType().getProperties().get("ManagedEventIdentifierService"), true);
-
-//        ManagedResourceRecoveryManager managedResourceRecoveryManager = new ManagedResourceRecoveryManager() {
-//            @Override
-//            public void recover(Throwable throwable) {}
-//            @Override
-//            public boolean isRecovering() {return false;}
-//            @Override
-//            public void cancel() {}
-//        };
-//        component.setPropertyValue("ManagedResourceRecoveryManager", component.getType().getProperties().get("ManagedResourceRecoveryManager"), true);
+        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         component.setPropertyValue("MaxEagerCallbacks", 1);
-
-        // Maybe specialist properties require 'advanced' options and make the component 'beskpoke'
-//        MessageProvider messageProvider = new MessageProvider() {
-//            @Override
-//            public void stop() {            }
-//            @Override
-//            public void start() {            }
-//            @Override
-//            public boolean isRunning() {                return false;            }
-//        };
-//        component.setPropertyValue("MessageProvider", component.getType().getProperties().get("MessageProvider"), messageProvider);
-
-//        MessageProviderPostProcessor myMessageProviderPostProcessor = new MessageProviderPostProcessor() {
-//            @Override
-//            public void invoke(Object o) {                            }        };
+        component.setPropertyValue("MessageProvider", "myMessageProviderClass");
         component.setPropertyValue("MessageProviderPostProcessor", "MyMessageProviderPostProcessor");
         component.setPropertyValue("ScheduledJobGroupName", "myScheduledJobGroupName");
         component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
