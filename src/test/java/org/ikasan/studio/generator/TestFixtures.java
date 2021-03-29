@@ -10,6 +10,12 @@ import java.util.List;
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
 
+    public static IkasanModule getIkasanModule() {
+        IkasanModule ikasanModule = new IkasanModule();
+        ikasanModule.setName("My Integration Module");
+        ikasanModule.setApplicationPackageName("org.myApp");
+        return ikasanModule;
+    }
 
     /**
      * Create a fully populated
@@ -185,10 +191,52 @@ public class TestFixtures {
         return component;
     }
 
-    public static IkasanModule getIkasanModule() {
-        IkasanModule ikasanModule = new IkasanModule();
-        ikasanModule.setName("My Integration Module");
-        ikasanModule.setApplicationPackageName("org.myApp");
-        return ikasanModule;
+    /**
+     * Create a fully populated
+     * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * @return a FullyPopulatedSftpComponent
+     */
+    public static IkasanFlowComponent getFullyPopulatedSpringJmsConsumerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.JMS_CONSUMER, ikasanFlow);
+        component.setName("testJmsConsumer");
+        component.setPropertyValue("AutoContentConversion", "true");
+        component.setPropertyValue("AutoSplitBatch", "true");
+        component.setPropertyValue("BatchMode", "true");
+        component.setPropertyValue("BatchSize", 10);
+        component.setPropertyValue("CacheLevel", 1);
+        component.setPropertyValue("ConcurrentConsumers", 10);
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("ConnectionFactory", "myConnectionFactory");
+        component.setPropertyValue("ConnectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
+        component.setPropertyValue("ConnectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
+        component.setPropertyValue("ConnectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
+        component.setPropertyValue("ConnectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
+        component.setPropertyValue("ConnectionFactoryJndiPropertySecurityPrincipal", "myConnectionFactoryJndiPropertySecurityPrincipal");
+        component.setPropertyValue("ConnectionFactoryJndiPropertyUrlPkgPrefixes", "myConnectionFactoryJndiPropertyUrlPkgPrefixes");
+        component.setPropertyValue("ConnectionFactoryName", "myConnectionFactoryName");
+        component.setPropertyValue("ConnectionFactoryPassword", "myConnectionFactoryPassword");
+        component.setPropertyValue("ConnectionFactoryUsername", "myConnectionFactoryUsername");
+        component.setPropertyValue("ConnectionPassword", "myConnectionPassword");
+        component.setPropertyValue("ConnectionUsername", "myConnectionUsername");
+        component.setPropertyValue("DestinationJndiName", "myDestinationJndiName");
+        component.setPropertyValue("DestinationJndiProperties", "myDestinationJndiProperties");
+        component.setPropertyValue("DestinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
+        component.setPropertyValue("DestinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
+        component.setPropertyValue("DestinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
+        component.setPropertyValue("DestinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        component.setPropertyValue("Durable", "true");
+        component.setPropertyValue("DurableSubscriptionName", "myDurableSubscriptionName");
+        component.setPropertyValue("EventFactory", "myEventFactoryClassName");
+        component.setPropertyValue("ManagedIdentifierService", "myManagedIdentifierService");
+        component.setPropertyValue("MaxConcurrentConsumers", 11);
+        component.setPropertyValue("MessageProvider", "myMessageProvider");
+        component.setPropertyValue("PubSubDomain", "myPubSubDomain");
+        component.setPropertyValue("ReceiveTimeout", 1000L);
+        component.setPropertyValue("SessionAcknowledgeMode", 1);
+        component.setPropertyValue("SessionTransacted", "true");
+        component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
+
+        return component;
     }
 }

@@ -18,7 +18,7 @@ public class ModuleConfigTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateModuleVelocityWith_emptyIkasanModel() throws IOException {
+    public void testCreateModuleWith_emptyIkasanModel() throws IOException {
         IkasanModule ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.setDescription("New Module, please provide description");
 
@@ -32,7 +32,7 @@ public class ModuleConfigTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateModuleVelocityWith_oneFlow() throws IOException {
+    public void testCreateModuleWith_oneFlow() throws IOException {
         IkasanModule ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.setDescription("New Module, please provide description");
         IkasanFlow ikasanFlow = new IkasanFlow();

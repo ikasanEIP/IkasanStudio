@@ -7,7 +7,7 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import java.util.Map;
 
 /**
- * Currently both velocity and embedded strategy are being evaluated
+ * Template to create Application.java
  */
 public class ApplicationTemplate extends Generator {
     public static final String APPLICATION_CLASS_NAME = "Application";
