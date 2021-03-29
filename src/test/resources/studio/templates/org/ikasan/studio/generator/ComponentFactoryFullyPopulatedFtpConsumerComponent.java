@@ -45,6 +45,8 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
 @javax.annotation.Resource
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+@javax.annotation.Resource
 org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;

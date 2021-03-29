@@ -67,7 +67,7 @@ public class StudioMaintenanceDebug extends AnAction
    }
 
    private void testModelUpdate(AnActionEvent ae) {
-      VelocityUtils.generateFromTemplate("ApplicationTemplate.vm", null);
+//      VelocityUtils.generateFromTemplate("ApplicationTemplate.vm", null);
 
       final PsiFile file = ae.getData(LangDataKeys.PSI_FILE);
       final Project project = ae.getProject();
