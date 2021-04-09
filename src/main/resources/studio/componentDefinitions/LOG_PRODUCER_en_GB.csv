@@ -1,4 +1,4 @@
-# propertyName|isConfigMandatory|isUserImplementedClass|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be th column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
@@ -15,7 +15,7 @@
 #
 # Log Producer -
 #
-ConfiguredResourceId|false|false||java.lang.String||||An ID used to uniquely identify this component, which is then used as a key for configuration
-ReplacementText|false|false||java.lang.String||||Replace the matching text with the following string
-RegExpPattern|false|false||java.lang.String||||Only display logs matching this text
-LogEveryNth|false|false||java.lang.Long||||Only display every 'nth' log message
+ConfiguredResourceId|false|false|||java.lang.String||||An ID used to uniquely identify this component, which is then used as a key for configuration
+ReplacementText|false|false|||java.lang.String||||Replace the matching text with the following string
+RegExpPattern|false|false|||java.lang.String||||Only display logs matching this text
+LogEveryNth|false|false|||java.lang.Long||||Only display every 'nth' log message

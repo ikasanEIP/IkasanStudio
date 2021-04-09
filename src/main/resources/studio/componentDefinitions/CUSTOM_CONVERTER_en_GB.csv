@@ -1,4 +1,4 @@
-# propertyName|isConfigMandatory|isUserImplementedClass|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be th column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
@@ -15,6 +15,6 @@
 #
 # Custom Converter
 #
-BespokeClassName|true|false||java.lang.String|||MyConverter|The name of the class that will contain the custom code.
-FromType|true|false||java.lang.String|||java.lang.String|The fully qualified type the the converter will take as input, it can be any String or class that implements Object valueOf(String)
-ToType|true|false||java.lang.String|||java.lang.String|The fully qualified type that the converter will create, it can be any String or class that implements Object valueOf(String)
+BespokeClassName|true|false|||java.lang.String|||MyConverter|The name of the class that will contain the custom code.
+FromType|true|false|||java.lang.String|||java.lang.String|The fully qualified type the the converter will take as input, it can be any String or class that implements Object valueOf(String)
+ToType|true|false|||java.lang.String|||java.lang.String|The fully qualified type that the converter will create, it can be any String or class that implements Object valueOf(String)

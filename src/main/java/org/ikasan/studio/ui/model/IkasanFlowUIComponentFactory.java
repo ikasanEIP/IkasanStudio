@@ -74,7 +74,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Consumer", SFTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/sftp/consumer.md", IkasanComponentType.SFTP_CONSUMER, "sftp-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Local File Consumer", LOCAL_FILE_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/localFileConsumer.md", IkasanComponentType.LOCAL_FILE_CONSUMER, "local-file-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Mongo Consumer", MONGO_CONSUMER_HELP_TEXT, "endpoint/mongo-endpoint/Readme.md", IkasanComponentType.MONGO_CONSUMER, "mongo-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Generic Message Consumer", GENERIC_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-client/consumer.md", IkasanComponentType.JMS_CONSUMER, "message-consumer"));
+//        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Generic Message Consumer", GENERIC_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-client/consumer.md", IkasanComponentType.JMS_CONSUMER, "message-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentType.SPRING_JMS_CONSUMER, "message-consumer"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanComponentType.CUSTOM_CONVERTER, "custom-converter"));

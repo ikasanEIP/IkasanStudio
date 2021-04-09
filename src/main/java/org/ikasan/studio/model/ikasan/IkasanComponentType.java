@@ -26,7 +26,7 @@ public enum IkasanComponentType {
     EVENT_GENERATING_CONSUMER(IkasanComponentCategory.CONSUMER, false, "eventGeneratingConsumer"),
     SCHEDULED_CONSUMER(IkasanComponentCategory.CONSUMER, false, "scheduledConsumer"),
     FTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "ftpConsumer"),
-    JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer"),
+//    JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer"),
     SPRING_JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer"),
     SFTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "sftpConsumer"),
     LOCAL_FILE_CONSUMER(IkasanComponentCategory.CONSUMER, false, "fileConsumer"),
@@ -168,7 +168,8 @@ public enum IkasanComponentType {
 //                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case JMS_PRODUCER :
-                case JMS_CONSUMER :
+//                case JMS_CONSUMER :
+                case SPRING_JMS_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(CHANNEL, ikasanFlow);
 //                    endpointFlowElement.setTypeAndViewHandler(CHANNEL);
                     description = ikasanFlowComponent.getProperties().get("DestinationJndiName");

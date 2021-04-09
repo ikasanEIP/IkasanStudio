@@ -36,8 +36,8 @@ java.lang.String sftpConsumerRemotehost;
 java.lang.String sftpConsumerUsername;
 @org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.source-directory}")
 java.lang.String sftpConsumerSourcedirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.known-hosts-filenam}")
-java.lang.String sftpConsumerKnownhostsfilenam;
+@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpconsumer.sftp.consumer.known-hosts-filename}")
+java.lang.String sftpConsumerKnownhostsfilename;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -96,6 +96,6 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setSourceDirectory(sftpConsumerSourcedirectory)
 .setMaxRows(11)
 .setFilterDuplicates(true)
-.setKnownHostsFilename(sftpConsumerKnownhostsfilenam)
+.setKnownHostsFilename(sftpConsumerKnownhostsfilename)
 .build();
 }}

@@ -1,4 +1,4 @@
-# propertyName|isConfigMandatory|isUserImplementedClass|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be th column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
@@ -15,5 +15,4 @@
 #
 # Module
 #
-#true|false|Name|module.name|java.lang.String|MyModule||The package ID for this applicaiton
-ApplicationPackageName|true|false|module.package|java.lang.String|||org.myApp|The package ID for this applicaiton
+ApplicationPackageName|true|false||module.package|java.lang.String|||org.myApp|The package ID for this applicaiton

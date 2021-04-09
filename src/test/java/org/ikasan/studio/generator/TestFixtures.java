@@ -197,7 +197,7 @@ public class TestFixtures {
      * @return a FullyPopulatedSftpComponent
      */
     public static IkasanFlowComponent getFullyPopulatedSpringJmsConsumerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.JMS_CONSUMER, ikasanFlow);
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SPRING_JMS_CONSUMER, ikasanFlow);
         component.setName("testJmsConsumer");
         component.setPropertyValue("AutoContentConversion", "true");
         component.setPropertyValue("AutoSplitBatch", "true");
