@@ -15,9 +15,57 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 
-
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+@javax.annotation.Resource
+org.ikasan.spec.event.ManagedRelatedEventIdentifierService myManagedIdentifierService;
+@javax.annotation.Resource
+javax.jms.ConnectionFactory myConnectionFactory;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProvider;
+@javax.annotation.Resource
+org.ikasan.spec.event.EventFactory myEventFactoryClassName;
+@javax.annotation.Resource
+org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestJmsConsumer() {
 return builderFactory.getComponentBuilder().jmsConsumer()
+.setConnectionFactoryName("myConnectionFactoryName")
+.setConfiguration(myConfigurationClass)
+.setDestinationJndiProperties("myDestinationJndiProperties")
+.setMaxConcurrentConsumers(11)
+.setManagedIdentifierService(myManagedIdentifierService)
+.setBatchMode(true)
+.setDestinationJndiName("myDestinationJndiName")
+.setDestinationJndiPropertySecurityPrincipal("myDestinationJndiPropertySecurityPrincipal")
+.setReceiveTimeout(1000)
+.setDestinationJndiPropertyFactoryInitial(myDestinationJndiPropertyFactoryInitial)
+.setSessionAcknowledgeMode(1)
+.setConnectionFactory(myConnectionFactory)
+.setConnectionFactoryPassword("myConnectionFactoryPassword")
+.setConnectionFactoryJndiPropertyFactoryInitial(myConnectionFactoryJndiPropertyFactoryInitial)
+.setDestinationJndiPropertyProviderUrl(myDestinationJndiPropertyProviderUrl)
+.setConnectionPassword("myConnectionPassword")
+.setAutoContentConversion(true)
+.setDestinationJndiPropertySecurityCredentials("myDestinationJndiPropertySecurityCredentials")
+.setConnectionFactoryJndiPropertySecurityPrincipal("myConnectionFactoryJndiPropertySecurityPrincipal")
+.setBatchSize(10)
+.setMessageProvider(myMessageProvider)
+.setDurableSubscriptionName("myDurableSubscriptionName")
+.setAutoSplitBatch(true)
+.setEventFactory(myEventFactoryClassName)
+.setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
+.setConnectionFactoryJndiPropertyProviderUrl(myConnectionFactoryJndiPropertyProviderUrl)
+.setConnectionFactoryJndiPropertyUrlPkgPrefixes("myConnectionFactoryJndiPropertyUrlPkgPrefixes")
+.setSessionTransacted(true)
+.setConnectionFactoryJNDIProperties({key1:'value1',key2:'value2'})
+.setConnectionUsername("myConnectionUsername")
+.setConnectionFactoryUsername("myConnectionFactoryUsername")
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setTransactionManager(myTransactionManagerClass)
+.setConcurrentConsumers(10)
+.setDurable(true)
+.setCacheLevel(1)
+.setPubSubDomain(myPubSubDomain)
 .build();
 }}

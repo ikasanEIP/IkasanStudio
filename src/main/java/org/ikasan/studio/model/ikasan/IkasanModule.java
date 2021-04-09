@@ -80,8 +80,8 @@ public class IkasanModule extends IkasanComponent {
                 "moduleConfig=" + moduleConfig +
                 ", version='" + version + '\'' +
                 ", flows=" + flows +
-                ", properties=" + properties +
-                ", type=" + type +
+                ", Module type=" + type +
+                ", Module properties=" + properties +
                 '}';
     }
 

@@ -82,14 +82,14 @@ public class StudioUtilsTest {
         IkasanComponentPropertyMeta total = properties.get("Total");
         IkasanComponentPropertyMeta userImplementedClass = properties.get("UserImplementedClass");
         Assert.assertThat(additionalName.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='AdditionalName', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=MyDefault, helpText='The name of the component'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='AdditionalName', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=MyDefault, helpText='The name of the component'}"));
         Assert.assertThat(name.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, propertyName='Name', propertyConfigFileLabel='null', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=, helpText='The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='Name', propertyConfigFileLabel='null', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=, helpText='The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.'}"));
         Assert.assertThat(other.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='Other', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=null, helpText='Total description'}"));
+            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='Other', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=null, helpText='Total description'}"));
         Assert.assertThat(total.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, propertyName='Total', propertyConfigFileLabel='my.test.total', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=2, helpText='Total description'}"));
+            "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='Total', propertyConfigFileLabel='my.test.total', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=2, helpText='Total description'}"));
         Assert.assertThat(userImplementedClass.toString(), is(
-            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', propertyDataType=class java.lang.Object, usageDataType=java.lang.Object, validation=, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
+            "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, userDefineResource=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', propertyDataType=class java.lang.Object, usageDataType=java.lang.Object, validation=, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
     }
 }

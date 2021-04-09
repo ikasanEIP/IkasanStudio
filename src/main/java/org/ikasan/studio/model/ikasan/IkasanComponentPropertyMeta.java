@@ -17,20 +17,21 @@ public class IkasanComponentPropertyMeta {
     public static final String FROM_TYPE = "FromType";
     public static final String TO_TYPE = "ToType";
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(true, false,
+        new IkasanComponentPropertyMeta(true, false, false,
             IkasanComponentPropertyMeta.NAME, null, String.class, "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
     public static final IkasanComponentPropertyMeta STD_DESCIPTION_META_COMPONENT =
-        new IkasanComponentPropertyMeta(false, false,
+        new IkasanComponentPropertyMeta(false, false,false,
             IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "", "", "",
             "A more detailed description of the component that may assist in support.");
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(true, false,
+        new IkasanComponentPropertyMeta(true, false,false,
             IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, null, String.class, "", "", "",
             "The back java package for your application.");
 
     Boolean mandatory;
     Boolean userImplementedClass;
+    Boolean userDefineResource;
     String propertyName;
     String propertyConfigFileLabel;
     Class propertyDataType;
@@ -43,6 +44,7 @@ public class IkasanComponentPropertyMeta {
      *
      * @param mandatory for the component to be deemed to be complete
      * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+     * @param userDefineResource The user will define a the details of the resource within the ResourceFactory.
      * @param propertyName of the property, used on input screens and to generate variable names
      * @param propertyConfigFileLabel Identifies the spring injected property name
      * @param propertyDataType of the property
@@ -50,9 +52,19 @@ public class IkasanComponentPropertyMeta {
      * @param defaultValue for the property
      * @param helpText for the property
      */
-    public IkasanComponentPropertyMeta(@NotNull boolean mandatory, @NotNull boolean userImplementedClass, @NotNull String propertyName, String propertyConfigFileLabel, @NotNull Class propertyDataType, String usageDataType, String validation, Object defaultValue, String helpText) {
+    public IkasanComponentPropertyMeta(@NotNull boolean mandatory,
+                                       @NotNull boolean userImplementedClass,
+                                       boolean userDefineResource,
+                                       @NotNull String propertyName,
+                                       String propertyConfigFileLabel,
+                                       @NotNull Class propertyDataType,
+                                       String usageDataType,
+                                       String validation,
+                                       Object defaultValue,
+                                       String helpText) {
         this.mandatory = mandatory;
         this.userImplementedClass = userImplementedClass;
+        this.userDefineResource = userDefineResource;
         this.propertyName = propertyName;
         this.propertyConfigFileLabel = propertyConfigFileLabel;
         this.propertyDataType = propertyDataType;
@@ -113,7 +125,7 @@ public class IkasanComponentPropertyMeta {
     }
 
     public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(false, false, name, null, String.class, "", "", "", "");
+        return new IkasanComponentPropertyMeta(false, false, false, name, null, String.class, "", "", "", "");
     }
 
     /**
@@ -145,6 +157,7 @@ public class IkasanComponentPropertyMeta {
         return "IkasanComponentPropertyMeta{" +
                 "mandatory=" + mandatory +
                 ", userImplementedClass=" + userImplementedClass +
+                ", userDefineResource=" + userDefineResource +
                 ", propertyName='" + propertyName + '\'' +
                 ", propertyConfigFileLabel='" + propertyConfigFileLabel + '\'' +
                 ", propertyDataType=" + propertyDataType +

@@ -68,7 +68,8 @@ public class IkasanFlowComponent extends IkasanComponent {
 
     @Override
     public String toString() {
-        return "IkasanFlowComponent{" +
+        return "IkasanFlowComponent {" +
+                ", flowComponent='" + getType() + '\'' +
                 ", name='" + getName() + '\'' +
                 ", properties=" + properties +
                 '}';
