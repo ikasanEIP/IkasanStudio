@@ -45,12 +45,25 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_fullyPopulatedFtpComponent() throws IOException {
+    public void testCreateFlowWith_fullyPopulatedFtpConsumerComponent() throws IOException {
         ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpConsumerComponent.java")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedFtpProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_fullyPopulatedFtpProducerComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpProducerComponent.java")));
     }
 
     /**

@@ -99,7 +99,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.LOG_PRODUCER, "logging-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Email Producer", EMAIL_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.EMAIL_PRODUCER, "message-endpoint"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer", JMS_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.JMS_PRODUCER, "jms-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Producer", FTP_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.FTP_PRODUCER, "message-endpoint"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Producer", FTP_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.FTP_PRODUCER, "ftp-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Producer", FTP_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.SFTP_PRODUCER, "message-endpoint"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Filter", FILTER_HELP_TEXT, "Readme.md", IkasanComponentType.MESSAGE_FILTER, "message-filter"));

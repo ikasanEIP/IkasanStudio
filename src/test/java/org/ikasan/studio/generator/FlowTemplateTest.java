@@ -56,7 +56,7 @@ public class FlowTemplateTest extends TestCase {
     }
 
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -65,20 +65,33 @@ public class FlowTemplateTest extends TestCase {
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpComponent.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpConsumerComponent.java")));
     }
 
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedSftpComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_ftpProducer() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpProducerComponent.java")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedSftpConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_sftpConsumer() throws IOException {
-        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedSftpComponent.java")));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedSftpConsumerComponent.java")));
     }
 
 }

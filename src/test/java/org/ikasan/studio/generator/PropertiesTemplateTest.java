@@ -77,6 +77,19 @@ public class PropertiesTemplateTest extends TestCase {
     }
 
     /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedFtpProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_fullyPopulatedFtpProducerComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
+
+        String templateString = PropertiesTemplate.generateContents(testModule);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties")));
+    }
+
+    /**
      * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedSftpConsumerComponent.properties
      * @throws IOException if the template cant be generated
      */
