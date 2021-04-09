@@ -64,6 +64,7 @@ public class TestFixtures {
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("ConnectionTimeout", 600001);
+        component.setPropertyValue("CriticalOnStartup", true);
         component.setPropertyValue("DataTimeout", 300001);
         component.setPropertyValue("Destructive", true);
         component.setPropertyValue("FTPS", true);
@@ -101,7 +102,52 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * See also resources/studio/componentDefinitions/FTP_PRODUCER_en_GB.csv
+     * @return a FullyPopulatedFtpComponent
+     */
+    public static IkasanFlowComponent getFullyPopulatedFtpProducerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_PRODUCER, ikasanFlow);
+        component.setName("testFtpProducer");
+
+        // Mandatory properties
+        component.updatePropertyValue("ClientID", "myClientID");
+        component.updatePropertyValue("OutputDirectory", "myOutputDirectory");
+        component.updatePropertyValue("Password", "secret");
+        component.updatePropertyValue("RemoteHost", "myRemortHost");
+        component.updatePropertyValue("RemotePort", "1024");
+        component.updatePropertyValue("Username", "myLoginName");
+
+        // Optional properties
+        component.setPropertyValue("Active", true);
+        component.setPropertyValue("ChecksumDelivered", true);
+        component.setPropertyValue("CleanupJournalOnComplete", true);
+        component.setPropertyValue("ClientID", "myClientId");
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("CreateParentDirectory", true);
+        component.setPropertyValue("CriticalOnStartup", true);
+        component.setPropertyValue("DataTimeout", 300001);
+        component.setPropertyValue("FTPS", true);
+        component.setPropertyValue("FtpsIsImplicit", true);
+        component.setPropertyValue("FtpsKeyStoreFilePassword", "myFtpsKeyStoreFilePassword");
+        component.setPropertyValue("FtpsKeyStoreFilePath", "/test/ftps/keystore");
+        component.setPropertyValue("FtpsPort", 987);
+        component.setPropertyValue("FtpsProtocol", "SSL");
+        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
+        component.setPropertyValue("MaxRetryAttempts", 10);
+        component.setPropertyValue("Overwrite", true);
+        component.setPropertyValue("RenameExtension", "newExtension");
+        component.setPropertyValue("SocketTimeout", 22);
+        component.setPropertyValue("SystemKey", "mySystemKey");
+        component.setPropertyValue("TempFileName", "myTempFileName");
+        component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
+        component.setPropertyValue("Unzip", true);
+        return component;
+    }
+
+    /**
+     * Create a fully populated
+     * See resources/studio/componentDefinitions/SFTP_CONSUMER_en_GB.csv
      * @return a FullyPopulatedSftpComponent
      */
     public static IkasanFlowComponent getFullyPopulatedSftpConsumerComponent(IkasanFlow ikasanFlow) {
