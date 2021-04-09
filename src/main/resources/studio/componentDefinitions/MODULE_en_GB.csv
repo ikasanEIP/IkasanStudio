@@ -15,4 +15,6 @@
 #
 # Module
 #
+# Mandatory Properties
 ApplicationPackageName|true|false||module.package|java.lang.String|||org.myApp|The package ID for this applicaiton
+# Optional Properties

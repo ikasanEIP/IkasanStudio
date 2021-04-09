@@ -15,8 +15,10 @@
 #
 # FTP_CONSUMER -
 #
+# Mandatory Properties
 CronExpression|true|false||ftp.consumer.cron-expression|java.lang.String||||Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
 FilenamePattern|true|false||ftp.consumer.filename-pattern|java.lang.String||||Regular expression for matching file names to be transported
+# Optional Properties
 Password|true|false||ftp.consumer.password|java.lang.String||||password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.
 RemoteHost|true|false||ftp.consumer.remote-host|java.lang.String||||Default(‘localhost’) host name of the remote (S)FTP server where consumer needs to connect.
 RemotePort|true|false||ftp.consumer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where consumer needs to connect.
