@@ -37,7 +37,7 @@ public class TestFixtures {
     /**
      * Create a fully populated
      * See also resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
-     * @return a FullyPopulatedFtpComponent
+     * @return a FullyPopulatedFtpConsumerComponent
      */
     public static IkasanFlowComponent getFullyPopulatedFtpConsumerComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
@@ -103,7 +103,7 @@ public class TestFixtures {
     /**
      * Create a fully populated
      * See also resources/studio/componentDefinitions/FTP_PRODUCER_en_GB.csv
-     * @return a FullyPopulatedFtpComponent
+     * @return a FullyPopulatedFtpProducerComponent
      */
     public static IkasanFlowComponent getFullyPopulatedFtpProducerComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_PRODUCER, ikasanFlow);
@@ -148,7 +148,7 @@ public class TestFixtures {
     /**
      * Create a fully populated
      * See resources/studio/componentDefinitions/SFTP_CONSUMER_en_GB.csv
-     * @return a FullyPopulatedSftpComponent
+     * @return a FullyPopulatedSftpConsumerComponent
      */
     public static IkasanFlowComponent getFullyPopulatedSftpConsumerComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SFTP_CONSUMER, ikasanFlow);
@@ -201,6 +201,43 @@ public class TestFixtures {
         component.setPropertyValue("SourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
         component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
         component.setPropertyValue("Timezone", "GMT");
+        return component;
+    }
+
+    /**
+     * Create a fully populated
+     * See also resources/studio/componentDefinitions/SFTP_PRODUCER_en_GB.csv
+     * @return a FullyPopulatedSftpProducerComponent
+     */
+    public static IkasanFlowComponent getFullyPopulatedSftpProducerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SFTP_PRODUCER, ikasanFlow);
+        component.setName("testSftpProducer");
+
+        // Mandatory properties
+        component.updatePropertyValue("ClientID", "myClientID");
+        component.updatePropertyValue("OutputDirectory", "myOutputDirectory");
+        component.updatePropertyValue("Password", "secret");
+        component.updatePropertyValue("RemoteHost", "myRemortHost");
+        component.updatePropertyValue("RemotePort", "1024");
+        component.updatePropertyValue("Username", "myLoginName");
+
+        // Optional properties
+        component.setPropertyValue("ChecksumDelivered", true);
+        component.setPropertyValue("CleanUpChunks", true);
+        component.setPropertyValue("CleanupJournalOnComplete", true);
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("ConnectionTimeout", 300001);
+        component.setPropertyValue("CreateParentDirectory", true);
+        component.setPropertyValue("CriticalOnStartup", true);
+        component.setPropertyValue("KnownHostsFilename", "myKnownHostsFilename");
+        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
+        component.setPropertyValue("MaxRetryAttempts", 10);
+        component.setPropertyValue("PreferredKeyExchangeAlgorithm", "myPreferredKeyExchangeAlgorithm");
+        component.setPropertyValue("PrivateKeyFilename", "myPrivateKeyFilename");
+        component.setPropertyValue("RenameExtension", "newExtension");
+        component.setPropertyValue("TempFileName", "myTempFileName");
+        component.setPropertyValue("Unzip", true);
         return component;
     }
 

@@ -15,6 +15,8 @@
 #
 # Log Producer -
 #
+# Mandatory Properties
+# Optional Properties
 ConfiguredResourceId|false|false|||java.lang.String||||An ID used to uniquely identify this component, which is then used as a key for configuration
 ReplacementText|false|false|||java.lang.String||||Replace the matching text with the following string
 RegExpPattern|false|false|||java.lang.String||||Only display logs matching this text

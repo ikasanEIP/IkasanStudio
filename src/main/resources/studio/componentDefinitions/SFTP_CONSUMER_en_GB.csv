@@ -15,6 +15,7 @@
 #
 # FTP_CONSUMER -
 #
+# Mandatory Properties
 CronExpression|true|false||sftp.consumer.cron-expression|java.lang.String||||Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
 FilenamePattern|true|false||sftp.consumer.filename-pattern|java.lang.String||||Regular expression for matching file names to be transported
 Password|true|false||sftp.consumer.password|java.lang.String||||password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.
@@ -22,6 +23,7 @@ RemoteHost|true|false||sftp.consumer.remote-host|java.lang.String||||Default(‘
 RemotePort|true|false||sftp.consumer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where consumer needs to connect.
 SourceDirectory|true|false||sftp.consumer.source-directory|java.lang.String||||Remote directory from which to discover files
 Username|true|false||sftp.consumer.username|java.lang.String||||User name used to login to (S)FTP server where consumer needs to connect.
+# Optional Properties
 AgeOfFiles|false|false|||java.lang.Integer||||Default(-1) file filter related option expressed in days. Given that meta data of processed files is being collected on every successful file consumptions, the ageOfFiles option relates to housekeeping of the meta information. On every successful file consumption as part of post commit process file (S)FTP consumer will attempt to delete records older than ageOfFiles records from file filter persistence table. The operation is skipped when ageOfFiles=-1
 Checksum|false|false|||java.lang.Boolean||||Default(False) Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.
 Chronological|false|false|||java.lang.Boolean||||Default(False) Flag indicating whether the file processing should be based on chronological order of file latest updates.

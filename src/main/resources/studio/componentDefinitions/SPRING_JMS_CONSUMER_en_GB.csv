@@ -15,6 +15,8 @@
 #
 # SPRING_JMS_CONSUMER (meybe we should make as JMS_CONSUMER)
 #
+# Mandatory Properties
+# Optional Properties
 AutoContentConversion|false|false|||java.lang.Boolean||||Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.
 AutoSplitBatch|false|false|||java.lang.Boolean||||When batchMode is true this option determines whether to automatically split the batch of messages into individual messages to fire downstream (true); or to simply pass them as a list of messages downstream (false).
 BatchMode|false|false|||java.lang.Boolean||||Use message batching.
