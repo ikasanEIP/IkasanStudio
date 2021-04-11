@@ -322,4 +322,15 @@ public class TestFixtures {
 
         return component;
     }
+
+    /**
+     * Create a fully populated dev null producer
+     * See resources/studio/componentDefinitions/DEV_NULL_PRODUCER_en_GB.csv
+     * @return a FullyPopulatedDevNullProducer
+     */
+    public static IkasanFlowComponent getFullyPopulatedDevNullProducerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.DEV_NULL_PRODUCER, ikasanFlow);
+        component.setName("testDevNullProducer");
+        return component;
+    }
 }

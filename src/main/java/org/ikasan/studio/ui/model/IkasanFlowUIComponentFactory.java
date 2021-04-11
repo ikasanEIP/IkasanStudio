@@ -95,7 +95,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Single Recipient Router", ROUTER_HELP_TEXT, "Readme.md", IkasanComponentType.SINGLE_RECIPIENT_ROUTER, "message-router"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Multi Recipient Router", ROUTER_HELP_TEXT, "Readme.md", IkasanComponentType.MULTI_RECIPIENT_ROUTER, "message-router"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Dev Null Producer", DEV_NULL_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.DEV_NULL_PRODUCER, "message-endpoint"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Dev Null Producer", DEV_NULL_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.DEV_NULL_PRODUCER, "dev-null-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.LOG_PRODUCER, "logging-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Email Producer", EMAIL_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.EMAIL_PRODUCER, "message-endpoint"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer", JMS_PRODUCER_HELP_TEXT, "Readme.md", IkasanComponentType.JMS_PRODUCER, "jms-producer"));
