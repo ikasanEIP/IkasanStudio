@@ -277,7 +277,7 @@ public class TestFixtures {
     /**
      * Create a fully populated
      * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
-     * @return a FullyPopulatedSftpComponent
+     * @return a FullyPopulatedJmsConsumer
      */
     public static IkasanFlowComponent getFullyPopulatedSpringJmsConsumerComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SPRING_JMS_CONSUMER, ikasanFlow);
@@ -308,6 +308,7 @@ public class TestFixtures {
         component.setPropertyValue("DestinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
         component.setPropertyValue("DestinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
         component.setPropertyValue("DestinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        component.setPropertyValue("DestinationJndiPropertyUrlPkgPrefixes", "org.myapp");
         component.setPropertyValue("Durable", "true");
         component.setPropertyValue("DurableSubscriptionName", "myDurableSubscriptionName");
         component.setPropertyValue("EventFactory", "myEventFactoryClassName");
@@ -318,6 +319,55 @@ public class TestFixtures {
         component.setPropertyValue("ReceiveTimeout", 1000L);
         component.setPropertyValue("SessionAcknowledgeMode", 1);
         component.setPropertyValue("SessionTransacted", "true");
+        component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
+
+        return component;
+    }
+
+    /**
+     * Create a fully populated
+     * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * @return a FullyPopulatedJmsProducer
+     */
+    public static IkasanFlowComponent getFullyPopulatedJmsProducerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.JMS_PRODUCER, ikasanFlow);
+        component.setName("testJmsConsumer");
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("ConnectionFactory", "myConnectionFactory");
+        component.setPropertyValue("ConnectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
+        component.setPropertyValue("ConnectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
+        component.setPropertyValue("ConnectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
+        component.setPropertyValue("ConnectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
+        component.setPropertyValue("ConnectionFactoryJndiPropertySecurityPrincipal", "myConnectionFactoryJndiPropertySecurityPrincipal");
+        component.setPropertyValue("ConnectionFactoryJndiPropertyUrlPkgPrefixes", "myConnectionFactoryJndiPropertyUrlPkgPrefixes");
+        component.setPropertyValue("ConnectionFactoryName", "myConnectionFactoryName");
+        component.setPropertyValue("ConnectionFactoryPassword", "myConnectionFactoryPassword");
+        component.setPropertyValue("ConnectionFactoryUsername", "myConnectionFactoryUsername");
+        component.setPropertyValue("ConnectionPassword", "myConnectionPassword");
+        component.setPropertyValue("ConnectionUsername", "myConnectionUsername");
+        component.setPropertyValue("DeliveryMode", 1);
+        component.setPropertyValue("DeliveryPersistent", true);
+        component.setPropertyValue("DestinationJndiName", "myDestinationJndiName");
+        component.setPropertyValue("DestinationJndiProperties", "myDestinationJndiProperties");
+        component.setPropertyValue("DestinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
+        component.setPropertyValue("DestinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
+        component.setPropertyValue("DestinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
+        component.setPropertyValue("DestinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        component.setPropertyValue("DestinationJndiPropertyUrlPkgPrefixes", "org.myapp");
+        component.setPropertyValue("ExplicitQosEnabled", true);
+        component.setPropertyValue("MessageConverter", "myMessageConverter");
+        component.setPropertyValue("MessageIdEnabled", true);
+        component.setPropertyValue("MessageTimestampEnabled", true);
+        component.setPropertyValue("PostProcessor", "myPostProcessor");
+        component.setPropertyValue("Priority", 1);
+        component.setPropertyValue("PubSubDomain", "myPubSubDomain");
+        component.setPropertyValue("PubSubNoLocal", true);
+        component.setPropertyValue("ReceiveTimeout", 1000L);
+        component.setPropertyValue("SessionAcknowledgeMode", 1);
+        component.setPropertyValue("SessionAcknowledgeMode", "AUTO_ACKNOWLEDGE");
+        component.setPropertyValue("SessionTransacted", true);
+        component.setPropertyValue("TimeToLive", 100L);
         component.setPropertyValue("TransactionManager", "myTransactionManagerClass");
 
         return component;

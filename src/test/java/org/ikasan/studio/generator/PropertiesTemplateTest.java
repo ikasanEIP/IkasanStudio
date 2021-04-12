@@ -141,6 +141,19 @@ public class PropertiesTemplateTest extends TestCase {
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSpringJmsConsumerComponent.properties")));
     }
 
+     /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedJmsProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_fullyPopulatedJmsProducerComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
+
+        String templateString = PropertiesTemplate.generateContents(testModule);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedJmsProducerComponent.properties")));
+    }
+
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedDevNullProducerComponent.properties
      * @throws IOException if the template cant be generated

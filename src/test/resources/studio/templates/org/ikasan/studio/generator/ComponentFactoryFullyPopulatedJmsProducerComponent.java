@@ -18,44 +18,42 @@ org.ikasan.builder.BuilderFactory builderFactory;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
-org.ikasan.spec.event.ManagedRelatedEventIdentifierService myManagedIdentifierService;
-@javax.annotation.Resource
 javax.jms.ConnectionFactory myConnectionFactory;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProvider;
+org.ikasan.component.endpoint.jms.producer.PostProcessor myPostProcessor;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory myEventFactoryClassName;
+org.springframework.jms.support.converter.MessageConverter myMessageConverter;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
-public org.ikasan.spec.component.endpoint.Consumer getTestJmsConsumer() {
-return builderFactory.getComponentBuilder().jmsConsumer()
+public org.ikasan.spec.component.endpoint.Producer getTestJmsConsumer() {
+return builderFactory.getComponentBuilder().jmsProducer()
+.setDeliveryPersistent(true)
 .setConnectionFactoryName("myConnectionFactoryName")
+.setMessageIdEnabled(true)
 .setConfiguration(myConfigurationClass)
 .setDestinationJndiProperties("myDestinationJndiProperties")
-.setMaxConcurrentConsumers(11)
-.setManagedIdentifierService(myManagedIdentifierService)
-.setBatchMode(true)
 .setDestinationJndiName("myDestinationJndiName")
 .setDestinationJndiPropertySecurityPrincipal("myDestinationJndiPropertySecurityPrincipal")
 .setReceiveTimeout(1000)
 .setDestinationJndiPropertyFactoryInitial(myDestinationJndiPropertyFactoryInitial)
-.setSessionAcknowledgeMode(1)
+.setSessionAcknowledgeMode(AUTO_ACKNOWLEDGE)
 .setConnectionFactory(myConnectionFactory)
 .setConnectionFactoryPassword("myConnectionFactoryPassword")
 .setConnectionFactoryJndiPropertyFactoryInitial(myConnectionFactoryJndiPropertyFactoryInitial)
 .setDestinationJndiPropertyProviderUrl(myDestinationJndiPropertyProviderUrl)
+.setMessageTimestampEnabled(true)
+.setPostProcessor(myPostProcessor)
 .setConnectionPassword("myConnectionPassword")
-.setAutoContentConversion(true)
 .setDestinationJndiPropertySecurityCredentials("myDestinationJndiPropertySecurityCredentials")
 .setConnectionFactoryJndiPropertySecurityPrincipal("myConnectionFactoryJndiPropertySecurityPrincipal")
-.setBatchSize(10)
-.setMessageProvider(myMessageProvider)
-.setDurableSubscriptionName("myDurableSubscriptionName")
-.setAutoSplitBatch(true)
+.setTimeToLive(100)
+.setPriority(1)
 .setDestinationJndiPropertyUrlPkgPrefixes("org.myapp")
-.setEventFactory(myEventFactoryClassName)
 .setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
+.setMessageConverter(myMessageConverter)
+.setPubSubNoLocal(true)
+.setExplicitQosEnabled(true)
 .setConnectionFactoryJndiPropertyProviderUrl(myConnectionFactoryJndiPropertyProviderUrl)
 .setConnectionFactoryJndiPropertyUrlPkgPrefixes("myConnectionFactoryJndiPropertyUrlPkgPrefixes")
 .setSessionTransacted(true)
@@ -64,9 +62,7 @@ return builderFactory.getComponentBuilder().jmsConsumer()
 .setConnectionFactoryUsername("myConnectionFactoryUsername")
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setTransactionManager(myTransactionManagerClass)
-.setConcurrentConsumers(10)
-.setDurable(true)
-.setCacheLevel(1)
+.setDeliveryMode(1)
 .setPubSubDomain(myPubSubDomain)
 .build();
 }}

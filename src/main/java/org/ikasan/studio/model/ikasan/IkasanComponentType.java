@@ -66,7 +66,7 @@ public enum IkasanComponentType {
     EMAIL_PRODUCER(IkasanComponentCategory.PRODUCER, false, "emailProducer"),
     FTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "ftpProducer"),
     SFTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "sftpProducer"),
-    JMS_PRODUCER(IkasanComponentCategory.PRODUCER, false, "JmsProducer"),
+    JMS_PRODUCER(IkasanComponentCategory.PRODUCER, false, "jmsProducer"),
     LOG_PRODUCER(IkasanComponentCategory.PRODUCER, false, "logProducer"),
 
     SINGLE_RECIPIENT_ROUTER(IkasanComponentCategory.ROUTER, false, "SingleRecipientRouter"),
