@@ -383,4 +383,45 @@ public class TestFixtures {
         component.setName("testDevNullProducer");
         return component;
     }
+
+    /**
+     * Create a fully populated email producer
+     * See resources/studio/componentDefinitions/EMAIL_PRODUCER_en_GB.csv
+     * @return a FullyPopulatedEmailProducer
+     */
+    public static IkasanFlowComponent getFullyPopulatedEmailProducerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.EMAIL_PRODUCER, ikasanFlow);
+        component.setName("testEmailProducer");
+        component.setPropertyValue("BccRecipient", "myBccRecipient");
+        component.setPropertyValue("BccRecipients", "{'bcc1','bcc2'}");
+        component.setPropertyValue("CcRecipient", "myCcRecipient");
+        component.setPropertyValue("CcRecipients", "{'cc1','cc2'}");
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("CriticalOnStartup", true);
+        component.setPropertyValue("EmailBody", "myEmailBody");
+        component.setPropertyValue("EmailFormat", "html");
+        component.setPropertyValue("ExtendedMailSessionProperties", "{key1:'value1',key2:'value2'}");
+        component.setPropertyValue("From", "FromAddress");
+        component.setPropertyValue("HasAttachments", true);
+        component.setPropertyValue("MailDebug", true);
+        component.setPropertyValue("Mailhost", "myMailhostAddress");
+        component.setPropertyValue("MailMimeAddressStrict", true);
+        component.setPropertyValue("MailPopClass", "myMailPopClass");
+        component.setPropertyValue("MailPopPort", 100);
+        component.setPropertyValue("MailPopUser", "myMailPopUser");
+        component.setPropertyValue("MailSmtpClass", "myMailSmtpClass");
+        component.setPropertyValue("MailSmtpHost", "myMailSmtpHost");
+        component.setPropertyValue("MailSmtpPort", 101);
+        component.setPropertyValue("MailSmtpUser", "myMailSmtpUser");
+        component.setPropertyValue("MailStoreProtocol", "myMailStoreProtocol");
+        component.setPropertyValue("MailSubject", "myMailSubject");
+        component.setPropertyValue("MailPassword", "myMailPassword");
+        component.setPropertyValue("MailRuntimeEnvironment", "myMailRuntimeEnvironment");
+        component.setPropertyValue("ToRecipient", "myToRecipient");
+        component.setPropertyValue("ToRecipients", "{'to1','to2'}");
+        component.setPropertyValue("TransportProtocol", "myTransportProtocol");
+        component.setPropertyValue("User", "myUser");
+        return component;
+    }
 }
