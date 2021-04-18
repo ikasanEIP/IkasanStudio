@@ -276,6 +276,36 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
+     * See also resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * @return a FullyPopulatedScheduledConsumerComponent
+     */
+    public static IkasanFlowComponent getFullyPopulatedScheduledConsumerComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SCHEDULED_CONSUMER, ikasanFlow);
+        component.setName("testScheduledConsumer");
+
+        // Mandatory properties
+        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
+
+        // Optional properties
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("CriticalOnStartup", true);
+        component.setPropertyValue("Eager", true);
+        component.setPropertyValue("EventFactory", "myEventFactory");
+        component.setPropertyValue("IgnoreMisfire",  true);
+        component.setPropertyValue("ManagedEventIdentifierService", "myManagedEventIdentifierServiceClass");
+        component.setPropertyValue("ManagedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
+        component.setPropertyValue("MaxEagerCallbacks", 1);
+        component.setPropertyValue("MessageProvider", "myMessageProviderClass");
+        component.setPropertyValue("ScheduledJobGroupName",  "myScheduledJobGroupName");
+        component.setPropertyValue("ScheduledJobName", "myScheduledJobName");
+        component.setPropertyValue("Timezone", "UTC");
+
+        return component;
+    }
+
+    /**
+     * Create a fully populated
      * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
      * @return a FullyPopulatedJmsConsumer
      */
