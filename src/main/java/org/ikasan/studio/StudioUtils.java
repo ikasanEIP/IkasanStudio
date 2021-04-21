@@ -169,7 +169,7 @@ public class StudioUtils {
                     }
                     String[] split = line.split("\\|");
                     if (split.length != NUMBER_OF_CONFIGS) {
-                        log.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was " + line);
+                        log.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
                         continue;
                     }
                     if (componentProperties.containsKey(split[PROPERTY_NAME_INDEX])) {
