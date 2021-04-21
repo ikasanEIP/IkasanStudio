@@ -454,4 +454,30 @@ public class TestFixtures {
         component.setPropertyValue("User", "myUser");
         return component;
     }
+
+    /**
+     * Create a fully populated email producer
+     * See resources/studio/componentDefinitions/EMAIL_PRODUCER_en_GB.csv
+     * @return a FullyPopulatedEmailProducer
+     */
+    public static IkasanFlowComponent getFullyPopulatedObjectMessageToXmlStringConverterComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("RootName", "myRootName");
+        component.setPropertyValue("RootClass", "java.lang.String");
+        component.setPropertyValue("FastFailOnConfigurationLoad", true);
+        component.setPropertyValue("NamespacePrefix", "myNamespacePrefix");
+        component.setPropertyValue("NamespaceURI", "myNamespaceURI");
+        component.setPropertyValue("NoNamespaceSchema", true);
+        component.setPropertyValue("ObjectClass", "String.class");
+        component.setPropertyValue("ObjectClasses", "{'String.class','String.class'}");
+        component.setPropertyValue("RouteOnValidationException", true);
+        component.setPropertyValue("Schema", "mySchema");
+        component.setPropertyValue("SchemaLocation", "http://foo.com/domain example.xsd");
+        component.setPropertyValue("UseNamespacePrefix", true);
+        component.setPropertyValue("Validate", true);
+        component.setPropertyValue("XmlAdapterMap", "myXmlAdapterMap");
+        return component;
+    }
 }

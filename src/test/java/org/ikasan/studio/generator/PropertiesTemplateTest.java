@@ -193,4 +193,17 @@ public class PropertiesTemplateTest extends TestCase {
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEmailProducerComponent.properties")));
     }
 
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_fullyPopulatedObjectMessageToXmlStringConverterComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
+
+        String templateString = PropertiesTemplate.generateContents(testModule);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties")));
+    }
+
 }

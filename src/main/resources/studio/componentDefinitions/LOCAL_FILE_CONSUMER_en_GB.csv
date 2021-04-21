@@ -10,7 +10,7 @@
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
-# defaultValue - As displayed in the properies editor.
+# defaultValue - As displayed in the properties editor.
 # helpTest - As shown in the toolTip on the properties editor and error text.
 #
 # LOCAL_FILE_CONSUMER -

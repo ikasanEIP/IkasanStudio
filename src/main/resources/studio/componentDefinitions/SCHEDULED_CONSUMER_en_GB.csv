@@ -10,14 +10,13 @@
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
-# defaultValue - As displayed in the properies editor.
+# defaultValue - As displayed in the properties editor.
 # helpTest - As shown in the toolTip on the properties editor and error text.
 #
 # SCHEDULED_CONSUMER -
 #
 # Mandatory Properties
 CronExpression|true|false||ftp.consumer.cron-expression|java.lang.String||||Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
-
 # Optional Properties
 Configuration|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
 ConfiguredResourceId|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
