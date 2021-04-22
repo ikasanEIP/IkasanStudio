@@ -276,7 +276,7 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * See also resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * See also resources/studio/componentDefinitions/SCHEDULED_CONSUMER_en_GB.csv
      * @return a FullyPopulatedScheduledConsumerComponent
      */
     public static IkasanFlowComponent getFullyPopulatedScheduledConsumerComponent(IkasanFlow ikasanFlow) {
@@ -306,7 +306,7 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * See resources/studio/componentDefinitions/SPRING_JMS_CONSUMER_en_GB.csv
      * @return a FullyPopulatedJmsConsumer
      */
     public static IkasanFlowComponent getFullyPopulatedSpringJmsConsumerComponent(IkasanFlow ikasanFlow) {
@@ -356,7 +356,7 @@ public class TestFixtures {
 
     /**
      * Create a fully populated
-     * See resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
+     * See resources/studio/componentDefinitions/JMS_PRODUCER_en_GB.csv
      * @return a FullyPopulatedJmsProducer
      */
     public static IkasanFlowComponent getFullyPopulatedJmsProducerComponent(IkasanFlow ikasanFlow) {
@@ -457,7 +457,7 @@ public class TestFixtures {
 
     /**
      * Create a fully populated email producer
-     * See resources/studio/componentDefinitions/EMAIL_PRODUCER_en_GB.csv
+     * See resources/studio/componentDefinitions/OBJECT_MESSAGE_TO_XML_STRING_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
     public static IkasanFlowComponent getFullyPopulatedObjectMessageToXmlStringConverterComponent(IkasanFlow ikasanFlow) {
@@ -478,6 +478,26 @@ public class TestFixtures {
         component.setPropertyValue("UseNamespacePrefix", true);
         component.setPropertyValue("Validate", true);
         component.setPropertyValue("XmlAdapterMap", "myXmlAdapterMap");
+        return component;
+    }
+
+    /**
+     * Create a fully populated email producer
+     * See resources/studio/componentDefinitions/XML_STRING_TO_OBJECT_CONVERTER_en_GB.csv
+     * @return a FullyPopulatedEmailProducer
+     */
+    public static IkasanFlowComponent getFullyPopulatedXmlStringObjectMessageConverterComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.XML_STRING_TO_OBJECT_CONVERTER, ikasanFlow);
+        component.setPropertyValue("AutoConvertElementToValue", true);
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
+        component.setPropertyValue("ClassToBeBound", "String.class");
+        component.setPropertyValue("ClassesToBeBound", "{'String.class','String.class'}");
+        component.setPropertyValue("ContextPath", "/bob");
+        component.setPropertyValue("ContextPaths", "{'/aa','/bb'}");
+        component.setPropertyValue("MarshallerProperties", "{key1:'value1',key2:'value2'}");
+        component.setPropertyValue("UnmarshallerProperties", "{key1:'value1',key2:'value2'}");
+        component.setPropertyValue("ValidationEventHandler", "myValidationEventHandler");
         return component;
     }
 }
