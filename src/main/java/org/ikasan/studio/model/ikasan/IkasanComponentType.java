@@ -44,7 +44,7 @@ public enum IkasanComponentType {
     TEXT_MESSAGE_TO_STRING_CONVERTER(IkasanComponentCategory.CONVERTER, false, "TextMessageToStringConverter"),
     THREAD_SAFE_XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ThreadSafeXsltConverter"),
     XML_BYTE_ARRAY_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlByteArrayToObjectConverter"),
-    XML_STRING_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlStringToObjectConverter"),
+    XML_STRING_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "xmlStringToObjectConverter"),
     XML_TO_JSON_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlJsonConverter"),
     XSLT_CONFIGURATION_PARAMETER_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConfigurationParameterConverter"),
     XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConverter"),
