@@ -42,38 +42,11 @@ public class DesignerUI {
         }
 
         PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, false);
-//        PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
         Context.setPropertiesPanel(projectKey,propertiesPanel);
-
-//        JPanel nonPopupPropertiesPanel = new JPanel();
-//        nonPopupPropertiesPanel.setLayout(new BorderLayout());
-//        nonPopupPropertiesPanel.add(propertiesPanel, BorderLayout.CENTER);
-
-//
-//        PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-//                Context.getProject(projectKey),
-//                nonPopupPropertiesPanel,
-//                propertiesPanel,
-//                false);
-//        propertiesDialogue.show();
-//        if (propertiesDialogue.showAndGet()) {
-//            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-//            pipsiIkasanModel.generateSourceFromModel();
-//            disableStart();
-//        }
-
-
-//        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-//                propertiesPanel,
-//                new CanvasPanel(projectKey));
-
 
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 propertiesPanel,
                 new CanvasPanel(projectKey));
-//        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-//                nonPopupPropertiesPanel,
-//                new CanvasPanel(projectKey));
         propertiesAndCanvasSplitPane.setDividerSize(3);
         propertiesAndCanvasSplitPane.setDividerLocation(0.4);
         Context.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);

@@ -35,11 +35,6 @@ public class DesignerWindow {
         Context.setCanvasTextArea(project.getName(), canvasTextArea);
         canvasTextArea.setLineWrap(true);
         paleteListItems = new ArrayList<>();
-//        ImageIcon icon = new ImageIcon(getClass().getResource("/studio/icons/palette/ftp-consumer.png"));
-//        JLabel label = new JLabel("ftp consumer", icon, JLabel.CENTER);
-//        paletteList.add(label);
-//        paletteList.setVisible(true);
-//        refreshButton.addActionListener(e -> getModel());
         paletteList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent listSelectionEvent) {
@@ -47,21 +42,6 @@ public class DesignerWindow {
             }
         });
     }
-
-//    public void getModel() {
-//        PsiUtils psiUtils = new PsiUtils();
-//        canvasTextArea.setText("Starting to initliase ikasan design from XML ....");
-////        canvasTextArea.setText(psiUtils.getModelData());
-//    }
-
-//    private void populatePalette(JList paletteList) {
-//        ImageIcon icon = new ImageIcon(getClass().getResource("/studio/icons/palette/ftp-consumer.png"));
-//        JLabel label = new JLabel("ftp consumer", icon, JLabel.CENTER);
-//        paletteList.add(label);
-//        paletteList.setVisible(true);
-
-
-//    }
 
     public JPanel getContent() {
         return mainJPanel;
@@ -76,38 +56,8 @@ public class DesignerWindow {
         paletteList = new JList();
         ImageIcon icon = new ImageIcon(getClass().getResource("/studio/icons/palette/ftp-consumer.png"));
         paleteListItems.add(icon);
-//        JLabel label = new JLabel("ftp consumer", icon, JLabel.CENTER);
         JLabel label = new JLabel("ftp consumer");
         paletteList.add(label);
-
-//        paletteList.setCellRenderer(new PaletteCellRenderer(paleteListItems));
-//        paletteList.setCellRenderer(new paleteListItems() {
-//                @Override
-//                public Generator getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-//                    // Get the renderer component from parent class
-//                    JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-//                    // Get icon to use for the list item value
-//                    Icon icon = icons.get(index);
-//                    // Set icon to display for value
-//                    label.setIcon(icon);
-//                    return label;
-//                }
-//            }
-//        );
-//        JLabel label = new JLabel("ftp consumer");
-//        paletteList.add(label);
-//        paletteList.setVisible(true);
-//        paletteList.setVisibleRowCount(1);
-//        pack();
-//        repaint();
-
-//        DefaultListModel listModel = new DefaultListModel();
-////        JLabel label = new JLabel("ftp consumer");
-////        label.setText("bob");
-//        listModel.add(0, new JLabel("ftp consumer"));
-//        listModel.add(1, new JLabel("sftp consumer"));
-//        paletteList.setModel(listModel);
-////        paletteList.setVisibleRowCount(1);
     }
 
 

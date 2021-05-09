@@ -22,10 +22,15 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 
 public org.ikasan.spec.component.transformation.Converter get() {
 return builderFactory.getComponentBuilder().xmlStringToObjectConverter()
+.setUnmarshallerProperties({key1:'value1',key2:'value2'})
 .setClassesToBeBound({'String.class','String.class'})
+.setMarshallerProperties({key1:'value1',key2:'value2'})
+.setContextPath("/bob")
 .setValidationEventHandler(myValidationEventHandler)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setConfiguration(myConfigurationClass)
+.setAutoConvertElementToValue(true)
 .setClassToBeBound(String.class)
+.setContextPaths({'/aa','/bb'})
 .build();
 }}
