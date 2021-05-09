@@ -82,12 +82,6 @@ public class PropertiesDialogue extends DialogWrapper {
         }
     }
 
-//    public List getValidateCallbacks() {
-//        System.out.println("getValidateCallbacks called");
-//
-//        return null;
-//    }
-
     /**
      * Validates user input and returns {@code List<ValidationInfo>}.
      * If everything is fine the returned list is empty otherwise
@@ -104,23 +98,5 @@ public class PropertiesDialogue extends DialogWrapper {
     @Override
     protected java.util.List<ValidationInfo> doValidateAll() {
         return propertiesPanel.doValidateAll();
-//        ValidationInfo vi = doValidate();
-//
-//        List<ValidationInfo> result = new ArrayList<>();
-//        for (final ComponentPropertyEditBox editPair: propertiesPanel.getComponentPropertyEditBoxList()) {
-//            final String key = editPair.getPropertyLabel();
-//            IkasanComponentProperty componentProperty = propertiesPanel.getSelectedComponent().getProperties().get(key);
-//            // Only mandatory properties are always populated.
-//            if (componentProperty != null &&
-//                    componentProperty.getMeta().isMandatory() &&
-//                    editPair.isEmpty()) {
-//                result.add(new ValidationInfo("This property must be set", editPair.getInputField()));
-//            }
-//        }
-//        if (! result.isEmpty()) {
-//            return result;
-//        } else {
-//            return vi != null ? Collections.singletonList(vi) : Collections.emptyList();
-//        }
     }
 }
