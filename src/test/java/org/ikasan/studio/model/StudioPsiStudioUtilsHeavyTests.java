@@ -16,6 +16,8 @@ import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.junit.Test;
 
+import java.util.Properties;
+
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
     private String TEST_PROJECT = "testproject";
@@ -104,12 +106,14 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        Assert.assertThat(psiJavaDirectory[0].getName(), is("test"));
 //    }
 
+
     @Test
     public void test_findFile() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
-//        String result = StudioPsiUtils.findFile(myProject, "application.properties") ;
-        String result = StudioPsiUtils.findFile(myProject, "pom.xml") ;
-        System.out.println(result);
+        String applicationProperties = StudioPsiUtils.findFile(myProject, "application.properties") ;
+        System.out.println(applicationProperties);
+        String pom = StudioPsiUtils.findFile(myProject, "pom.xml") ;
+        System.out.println(pom);
     }
 
 

@@ -73,6 +73,18 @@ public class StudioUtilsTest {
     }
 
     @Test
+    public void testToUrlString() {
+        Assert.assertThat(StudioUtils.toUrlString(""), is(""));
+        Assert.assertThat(StudioUtils.toUrlString("a"), is("a"));
+        Assert.assertThat(StudioUtils.toUrlString("A"), is("a"));
+        Assert.assertThat(StudioUtils.toUrlString("AS"), is("as"));
+        Assert.assertThat(StudioUtils.toUrlString("AS D"), is("as-d"));
+        Assert.assertThat(StudioUtils.toUrlString("as d"), is("as-d"));
+        Assert.assertThat(StudioUtils.toUrlString("as d    c"), is("as-d-c"));
+        Assert.assertThat(StudioUtils.toUrlString("Some 1 Text"), is("some-1-text"));
+    }
+
+    @Test
     public void testConfigReader() throws IOException {
         Map<String, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
         Assert.assertThat(properties.size(), is(5));

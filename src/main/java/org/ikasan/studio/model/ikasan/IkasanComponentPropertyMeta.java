@@ -12,8 +12,6 @@ public class IkasanComponentPropertyMeta {
     public static final String NAME = "Name";
     public static final String DESCRIPTION = "Description";
     public static final String BESPOKE_CLASS_NAME = "BespokeClassName";
-    public static final String APPLICATION_PACKAGE_NAME = "ApplicationPackageName";
-    public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final String FROM_TYPE = "FromType";
     public static final String TO_TYPE = "ToType";
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
@@ -24,10 +22,20 @@ public class IkasanComponentPropertyMeta {
         new IkasanComponentPropertyMeta(false, false,false,
             IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "", "", "",
             "A more detailed description of the component that may assist in support.");
+
+    public static final String APPLICATION_PACKAGE_NAME = "ApplicationPackageName";
+    public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(true, false,false,
             IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, null, String.class, "", "", "",
-            "The back java package for your application.");
+            "The base java package for your application.");
+
+    public static final String APPLICATION_PORT_NUMBER_NAME = "ApplicationPortNumber";
+    public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
+    public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
+            new IkasanComponentPropertyMeta(true, false,false,
+                    IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, null, String.class, "", "", "",
+                    "The port number that the running application will use locally.");
 
     Boolean mandatory;
     Boolean userImplementedClass;

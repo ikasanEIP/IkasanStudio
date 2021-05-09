@@ -76,7 +76,9 @@ public class StudioUtils {
     }
 
     /**
-     * Convert the supplied string so that it confirms to the naming rules for java package names
+     * Convert the supplied string so that it confirms to the naming rules for java package names i.e.
+     *    no spaces
+     *    if there is a leading digit, prepend with _
      * @param input string to be converted
      * @return the input string in the form of a java package
      */
@@ -86,6 +88,23 @@ public class StudioUtils {
                 input = "_" + input;
             }
             return  input.replaceAll("[^a-zA-Z0-9_]+", "").toLowerCase();
+        } else {
+            return input;
+        }
+    }
+
+    /**
+     * Convert the supplied string to url style string i.e.
+     *   space and undersocre replaced by -
+     *   all lower case
+     * @param input string to be converted
+     * @return the input string in kebab case
+     */
+    public static String toUrlString(final String input) {
+        if (input != null && input.length() > 0) {
+            return  input
+                    .replaceAll("  +", " ")
+                    .replaceAll("[ -]+", "-").toLowerCase();
         } else {
             return input;
         }

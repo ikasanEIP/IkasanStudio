@@ -135,9 +135,15 @@ public class PIPSIIkasanModel {
         PIPSIMethodList moduleBuilderMethodList = extractMethodCallsFromChain(moduleBuilderLocalVariable.getChildren(), new PIPSIMethodList());
         PIPSIMethod moduleBuilderMethod = moduleBuilderMethodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
         ikasanModule.setName(getReferenceOrLiteral(moduleBuilderMethod,0));
+        updateModuleWithProperties();
+    }
+
+    private void updateModuleWithProperties() {
         Properties properties = Context.getApplicationProperties(projectKey);
         ikasanModule.setApplicationPackageName((String)properties.get(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_KEY));
+        ikasanModule.setApplicationPortNumber((String)properties.get(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_KEY));
     }
+
 
     /**
      * From the given pipsiMethod and attribute, determine if the attribute is a property, if so return the value
@@ -182,6 +188,7 @@ public class PIPSIIkasanModel {
                 } else {
                     // Need to refresh the Application properties
                     Context.setApplicationProperties(projectKey, StudioPsiUtils.getApplicationProperties(getProject()));
+                    updateModuleWithProperties();
 
                     PsiElement moduleLocalVariable = localVariableOfReturnStatement.resolve();
                     if (moduleLocalVariable != null) {

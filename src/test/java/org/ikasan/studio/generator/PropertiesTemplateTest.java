@@ -33,7 +33,8 @@ public class PropertiesTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_emptyFlow() throws IOException {
+    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
+        testModule.setApplicationPortNumber("8090");
         String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties")));

@@ -17,4 +17,5 @@
 #
 # Mandatory Properties
 ApplicationPackageName|true|false||module.package|java.lang.String|||org.myApp|The package ID for this applicaiton
+ApplicationPortNumber|true|false||server.port|java.lang.String|||8080|The default port number for the application when used locally
 # Optional Properties

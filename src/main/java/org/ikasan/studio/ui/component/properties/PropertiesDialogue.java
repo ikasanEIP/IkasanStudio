@@ -28,6 +28,28 @@ public class PropertiesDialogue extends DialogWrapper {
      * @param parentComponent of this popup
      * @param propertiesPanel to display and have entries taken on.
      */
+    public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel, boolean modal) {
+        super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
+        this.propertiesPanel = propertiesPanel;
+        this.parentComponent = parentComponent;
+        init();  // which calls createCenterPanel() below so make sure any state is initialised first.
+        setTitle(propertiesPanel.getPropertiesPanelTitle());
+        setOKButtonText("Update Code");
+        setModal(modal);
+    }
+
+    /**
+     * Popup Modal window to support entry of properties.
+     *
+     * The main purpose is to force the developer to enter mandatory properties when a component is first dragged
+     * onto the canvas. This solves a number of issues and is much more efficient then drag and fix later.
+     *
+     * @todo maybe use this in non modal form for the in-canvas properties editing.
+     *
+     * @param project currently being worked upon
+     * @param parentComponent of this popup
+     * @param propertiesPanel to display and have entries taken on.
+     */
     public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
         this.propertiesPanel = propertiesPanel;
@@ -60,6 +82,12 @@ public class PropertiesDialogue extends DialogWrapper {
         }
     }
 
+//    public List getValidateCallbacks() {
+//        System.out.println("getValidateCallbacks called");
+//
+//        return null;
+//    }
+
     /**
      * Validates user input and returns {@code List<ValidationInfo>}.
      * If everything is fine the returned list is empty otherwise
@@ -73,24 +101,26 @@ public class PropertiesDialogue extends DialogWrapper {
      * @see <a href="https://jetbrains.design/intellij/principles/validation_errors/">Validation errors guidelines</a>
      */
     @NotNull
+    @Override
     protected java.util.List<ValidationInfo> doValidateAll() {
-        ValidationInfo vi = doValidate();
-
-        List<ValidationInfo> result = new ArrayList<>();
-        for (final ComponentPropertyEditBox editPair: propertiesPanel.getComponentPropertyEditBoxList()) {
-            final String key = editPair.getPropertyLabel();
-            IkasanComponentProperty componentProperty = propertiesPanel.getSelectedComponent().getProperties().get(key);
-            // Only mandatory properties are always populated.
-            if (componentProperty != null &&
-                    componentProperty.getMeta().isMandatory() &&
-                    editPair.isEmpty()) {
-                result.add(new ValidationInfo("This property must be set", editPair.getInputField()));
-            }
-        }
-        if (! result.isEmpty()) {
-            return result;
-        } else {
-            return vi != null ? Collections.singletonList(vi) : Collections.emptyList();
-        }
+        return propertiesPanel.doValidateAll();
+//        ValidationInfo vi = doValidate();
+//
+//        List<ValidationInfo> result = new ArrayList<>();
+//        for (final ComponentPropertyEditBox editPair: propertiesPanel.getComponentPropertyEditBoxList()) {
+//            final String key = editPair.getPropertyLabel();
+//            IkasanComponentProperty componentProperty = propertiesPanel.getSelectedComponent().getProperties().get(key);
+//            // Only mandatory properties are always populated.
+//            if (componentProperty != null &&
+//                    componentProperty.getMeta().isMandatory() &&
+//                    editPair.isEmpty()) {
+//                result.add(new ValidationInfo("This property must be set", editPair.getInputField()));
+//            }
+//        }
+//        if (! result.isEmpty()) {
+//            return result;
+//        } else {
+//            return vi != null ? Collections.singletonList(vi) : Collections.emptyList();
+//        }
     }
 }
