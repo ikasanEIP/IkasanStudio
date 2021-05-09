@@ -101,6 +101,7 @@ public class StudioPsiUtils {
             message.append("" + myFile.getName() +"] ");
         }
         long t3 = System.currentTimeMillis();
+
         message.append("] method 1 = " + (t2-t1) + " ms method 2 = " + (t3-t2));
         return message.toString();
     }

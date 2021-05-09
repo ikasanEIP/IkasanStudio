@@ -56,21 +56,21 @@ public class DesignerCanvas extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-//                log.trace("Mouse press x "+ e.getX() + " y " + e.getY());
+                log.trace("Mouse press x "+ e.getX() + " y " + e.getY());
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-//                log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
+                log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
                 mouseReleaseAction(e, e.getX(),e.getY());
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-//                log.trace("DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
+                log.trace("DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
                 mouseDragAction(e, e.getX(),e.getY());
             }
         });
@@ -78,13 +78,14 @@ public class DesignerCanvas extends JPanel {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-//                    log.trace("DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
-                    mouseMoveAction(e, e.getX(),e.getY());
+                log.trace("DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
+                mouseMoveAction(e, e.getX(),e.getY());
                 }
             });
         }
         setTransferHandler(new CanvasImportTransferHandler( this));
 
+        // Create the properties popup panel for a new Module
         startButton.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent e)
@@ -444,6 +445,11 @@ public class DesignerCanvas extends JPanel {
         return (IkasanFlowComponent)createViableComponent(newComponent);
     }
 
+    /**
+     * Create the popup properties panel for a new component
+     * @param newComponent
+     * @return
+     */
     private IkasanComponent createViableComponent(IkasanComponent newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
 

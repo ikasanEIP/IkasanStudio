@@ -10,12 +10,11 @@ import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
+import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 import javax.swing.*;
 import java.awt.*;
-
-//import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 /**
  * Create all onscreen components and register inter-thread communication components with Context
@@ -35,19 +34,46 @@ public class DesignerUI {
         this.project = project;
         this.projectKey = project.getName();
         Context.setProject(projectKey, project);
-//        String projectKey = project.getName();
-//        IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
         if (Context.getIkasanModule(projectKey) == null) {
             Context.setIkasanModule(projectKey, new IkasanModule());
         }
         if (Context.getPipsiIkasanModel(projectKey) == null) {
             Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
+
         PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, false);
+//        PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
         Context.setPropertiesPanel(projectKey,propertiesPanel);
+
+//        JPanel nonPopupPropertiesPanel = new JPanel();
+//        nonPopupPropertiesPanel.setLayout(new BorderLayout());
+//        nonPopupPropertiesPanel.add(propertiesPanel, BorderLayout.CENTER);
+
+//
+//        PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+//                Context.getProject(projectKey),
+//                nonPopupPropertiesPanel,
+//                propertiesPanel,
+//                false);
+//        propertiesDialogue.show();
+//        if (propertiesDialogue.showAndGet()) {
+//            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//            pipsiIkasanModel.generateSourceFromModel();
+//            disableStart();
+//        }
+
+
+//        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//                propertiesPanel,
+//                new CanvasPanel(projectKey));
+
+
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 propertiesPanel,
                 new CanvasPanel(projectKey));
+//        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//                nonPopupPropertiesPanel,
+//                new CanvasPanel(projectKey));
         propertiesAndCanvasSplitPane.setDividerSize(3);
         propertiesAndCanvasSplitPane.setDividerLocation(0.4);
         Context.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);

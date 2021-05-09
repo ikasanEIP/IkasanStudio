@@ -1,10 +1,14 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.ikasan.studio.actions.*;
 import org.ikasan.studio.model.ikasan.IkasanComponent;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class DesignCanvasContextMenu {
@@ -20,6 +24,8 @@ public class DesignCanvasContextMenu {
         menu.add(createWebHelpTextItem(projectKey, "Web help", component, mouseEvent));
         menu.add(createNavigateToCode(projectKey, "Jump to code", component, false));
         menu.add(createNavigateToCode(projectKey, "Jump to code line", component, true));
+        menu.add(createEnableDebug(projectKey, "Switch on debug"));
+        menu.add(createEnableTrace(projectKey, "Switch on trace"));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
@@ -70,6 +76,28 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createNavigateToCode(String projectKey, String label, IkasanComponent component, boolean jumpToLine) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new NavigateToCodeAction(projectKey, component, jumpToLine));
+        return item;
+    }
+
+    private static JMenuItem createEnableDebug(String projectKey, String label) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LogManager.getRootLogger().setLevel(Level.DEBUG);
+            }
+        });
+        return item;
+    }
+
+    private static JMenuItem createEnableTrace(String projectKey, String label) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LogManager.getRootLogger().setLevel(Level.TRACE);
+            }
+        });
         return item;
     }
 }

@@ -17,14 +17,13 @@
 #
 # Mandatory Properties
 # Optional Properties
-AutoConvertElementToValue|false|false|||java.lang.Boolean||||
+AutoConvertElementToValue|false|false|||java.lang.Boolean||||Add auto conversion
 Configuration|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
 ConfiguredResourceId|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
 ClassToBeBound|false|false|||java.lang.String|java.Lang.Object|||Class of the object to be serialised
 ClassesToBeBound|false|false|||java.lang.String|java.util.List<java.Lang.Object>|||Classes of the objects to be serialised
-ContextPath|false|false|||java.lang.String||||
-ContextPaths|false|false|||java.lang.String|List<java.Lang.Object>|||
-MarshallerProperties|false|false|||java.lang.String|java.util.Map<java.Lang.String, java.Lang.Object>|||
-UnmarshallerProperties|false|false|||java.lang.String|java.util.Map<java.Lang.String, java.Lang.Object>|||
+ContextPath|false|false|||java.lang.String||||Path to th context in the XML
+ContextPaths|false|false|||java.lang.String|List<java.Lang.Object>|||List of context paths
+MarshallerProperties|false|false|||java.lang.String|java.util.Map<java.Lang.String, java.Lang.Object>|||Map of properties to pass to the marshaller
+UnmarshallerProperties|false|false|||java.lang.String|java.util.Map<java.Lang.String, java.Lang.Object>|||Map of properties to pass to the unmarshaller
 ValidationEventHandler|false|true|true||java.lang.String|javax.xml.bind.ValidationEventHandler|||A basic event handler interface for validation errors.
-

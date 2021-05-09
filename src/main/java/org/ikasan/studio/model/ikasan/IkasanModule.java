@@ -105,4 +105,12 @@ public class IkasanModule extends IkasanComponent {
     public void setApplicationPackageName(String applicationPackageName) {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
     }
+
+    public String getApplicationPortNumber() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
+    }
+
+    public void setApplicationPortNumber(String applicationPortNumber) {
+        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    }
 }

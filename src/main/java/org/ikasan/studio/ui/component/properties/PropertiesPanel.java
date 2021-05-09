@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.ui.DialogEarthquakeShaker;
+import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.wm.IdeFocusManager;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
@@ -10,11 +13,9 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,47 @@ public class PropertiesPanel extends JPanel {
         propertiesBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         propertiesBodyPanel.setBackground(Color.WHITE);
 
+
+        if (! popupMode) {
+//            okButton = new JButton(new UpdateCodeAction("Update code", "Update the code with properties settings", KeyEvent.VK_U));
+            okButton = new JButton("Update code");
+            okButton.addActionListener(new ActionListener() {
+                   @Override
+                   public void actionPerformed(ActionEvent e) {
+                       List<ValidationInfo> infoList = doValidateAll();
+                       if (!infoList.isEmpty()) {
+                           ValidationInfo firstInfo = infoList.get(0);
+                            if (firstInfo.component != null && firstInfo.component.isVisible()) {
+                               IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
+                            }
+                            StringBuilder validationErrors = new StringBuilder();
+                            for (ValidationInfo info : infoList) {
+                                validationErrors.append(info.message).append('\n');
+                            }
+
+//                           JOptionPane.showMessageDialog((JFrame) SwingUtilities.getWindowAncestor(((JButton)e.getSource()).getParent()),
+                            JOptionPane.showMessageDialog(((JButton)e.getSource()).getParent().getParent(),
+                                    validationErrors.toString(),
+                                   "Validation Error",
+                                   JOptionPane.ERROR_MESSAGE);
+//                if (!isInplaceValidationToolTipEnabled()) {
+//                    DialogEarthquakeShaker.shake(getPeer().getWindow());
+//                }
+//
+//                startTrackingValidation();
+                           if(infoList.stream().anyMatch(info1 -> !info1.okEnabled)) return;
+                       }
+                       doOKAction();
+                       //@todo popup a temp message 'no changes detected'
+                   }
+               }
+            );
+            JPanel footerPanel = new JPanel();
+            footerPanel.add(okButton);
+            footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            add(footerPanel, BorderLayout.SOUTH);
+        }
+
         JPanel propertiesEditorPanel = populatePropertiesEditorPanel();
         scrollableGridbagPanel = new ScrollableGridbagPanel(propertiesEditorPanel);
         JScrollPane scrollPane = new JScrollPane(scrollableGridbagPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -58,33 +100,61 @@ public class PropertiesPanel extends JPanel {
         scrollPane.getViewport().setBackground(Color.WHITE);
         add(propertiesBodyPanel, BorderLayout.CENTER);
 
-        if (! popupMode) {
-            okButton = new JButton(new UpdateCodeAction("Update code", "Update the code with properties settings", KeyEvent.VK_U));
-            JPanel footerPanel = new JPanel();
-            footerPanel.add(okButton);
-            footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            add(footerPanel, BorderLayout.SOUTH);
+    }
+
+//    // @todo (optional) confirmation box if overriding, maybe include a list of classes (including appropriate properties that may be overriden).
+//    class UpdateCodeAction extends AbstractAction {
+//        public UpdateCodeAction(String text, String desc, Integer mnemonic) {
+//            super(text);
+//            putValue(SHORT_DESCRIPTION, desc);
+//            putValue(MNEMONIC_KEY, mnemonic);
+//        }
+//        public void actionPerformed(ActionEvent e) {
+//
+//            List<ValidationInfo> infoList = doValidateAll();
+//            if (!infoList.isEmpty()) {
+//                ValidationInfo info = infoList.get(0);
+//                if (info.component != null && info.component.isVisible()) {
+//                    IdeFocusManager.getInstance(null).requestFocus(info.component, true);
+//                }
+//
+//                JOptionPane.showMessageDialog((JFrame) SwingUtilities.getWindowAncestor(e.getSource()),
+//                        "Eggs are not supposed to be green.",
+//                        "Inane error",
+//                        JOptionPane.ERROR_MESSAGE);
+////                if (!isInplaceValidationToolTipEnabled()) {
+////                    DialogEarthquakeShaker.shake(getPeer().getWindow());
+////                }
+////
+////                startTrackingValidation();
+//                if(infoList.stream().anyMatch(info1 -> !info1.okEnabled)) return;
+//            }
+//            doOKAction();
+//            //@todo popup a temp message 'no changes detected'
+//        }
+//    }
+
+    /**
+     * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
+     */
+    protected void doOKAction() {
+        if (processEditedFlowComponents()) {
+            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+            Context.getDesignerCanvas(projectKey).repaint();
+            resetCheckboxes();
         }
     }
 
-    // @todo (optional) confirmation box if overriding, maybe include a list of classes (including appropriate properties that may be overriden).
-    class UpdateCodeAction extends AbstractAction {
-        public UpdateCodeAction(String text,
-                          String desc, Integer mnemonic) {
-            super(text);
-            putValue(SHORT_DESCRIPTION, desc);
-            putValue(MNEMONIC_KEY, mnemonic);
-        }
-        public void actionPerformed(ActionEvent e) {
-            if (processEditedFlowComponents()) {
-                Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
-                Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-                Context.getDesignerCanvas(projectKey).repaint();
-                resetCheckboxes();
-            }
-            //@todo popup a temp message 'no changes detected'
-        }
-    }
+//    @SuppressWarnings("SSBasedInspection")
+//    protected void startTrackingValidation() {
+//        SwingUtilities.invokeLater(() -> {
+//            if (!myValidationStarted && !myDisposed) {
+//                myValidationStarted = true;
+//                initValidation();
+//            }
+//        });
+//    }
 
     private void resetCheckboxes() {
         for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
@@ -142,6 +212,9 @@ public class PropertiesPanel extends JPanel {
         JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
         JPanel regeneratingPropertiesEditorPanel = new JPanel(new GridBagLayout());
 
+        if (!popupMode) {
+            okButton.setEnabled(false);
+        }
 
         if (selectedComponent != null) {
             scrollableGridbagPanel.removeAll();
@@ -159,13 +232,14 @@ public class PropertiesPanel extends JPanel {
                         selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
 
-            if (selectedComponent instanceof IkasanComponent) {
-                IkasanComponent selectedFlowComponent = (IkasanComponent) selectedComponent;
-                if (selectedFlowComponent.getType().getMetadataMap().size() > 0) {
-                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getMetadataMap().entrySet()) {
+//            if (selectedComponent instanceof IkasanComponent) {
+//                IkasanComponent selectedFlowComponent = (IkasanComponent) selectedComponent;
+//                if (selectedFlowComponent.getType().getMetadataMap().size() > 0) {
+                if (selectedComponent.getType().getMetadataMap().size() > 0) {
+//                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getMetadataMap().entrySet()) {
+                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
                         String key = entry.getKey();
-                        if (!key.equals(IkasanComponentPropertyMeta.NAME)
-                        ) {
+                        if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
                             IkasanComponentProperty property = selectedComponent.getProperty(key);
                             if (property == null) {
                                 // This property has not yet been set for the component
@@ -187,14 +261,22 @@ public class PropertiesPanel extends JPanel {
 
                         }
                     }
-                }
-                if (selectedFlowComponent.getType().isBespokeClass() && !popupMode) {
+//                }
+//                if (selectedFlowComponent.getType().isBespokeClass() && !popupMode) {
+                if (!popupMode && selectedComponent.getType().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
-                } else {
-                    if (okButton != null) {
-                        okButton.setEnabled(true);
-                    }
                 }
+//                else {
+//                    if (okButton != null) {
+//                        okButton.setEnabled(formValidToSave());
+//
+////                        List<ValidationInfo> infoList = doValidateAll();
+////                        // All fields OK
+////                        if(! infoList.stream().anyMatch(info1 -> !info1.okEnabled) ) {
+////                            okButton.setEnabled(true);
+////                        }
+//                    }
+//                }
             }
 
             GridBagConstraints gc1 = new GridBagConstraints();
@@ -216,11 +298,25 @@ public class PropertiesPanel extends JPanel {
                 setSubPanel(allPropertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
             }
             scrollableGridbagPanel.add(allPropertiesEditorPanel);
+
+            if (!popupMode && !selectedComponent.getType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
+                okButton.setEnabled(true);
+//                okButton.setEnabled(formValidToSave());
+            }
         }
 
         return allPropertiesEditorPanel;
     }
 
+    private boolean formValidToSave() {
+        List<ValidationInfo> infoList = doValidateAll();
+        // All fields OK
+        if(infoList.stream().anyMatch(info1 -> !info1.okEnabled) ) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
         subPanel.setBackground(Color.WHITE);
@@ -238,11 +334,12 @@ public class PropertiesPanel extends JPanel {
         beskpokeComponentOverrideCheckBox = new JCheckBox();
         beskpokeComponentOverrideCheckBox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent ie) {
+
                 okButton.setEnabled(ie.getStateChange() == 1);
             }
         });
         beskpokeComponentOverrideCheckBox.setBackground(Color.WHITE);
-        okButton.setEnabled(false);
+//        okButton.setEnabled(false);
         addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, overrideLabel, beskpokeComponentOverrideCheckBox);
     }
 
@@ -284,11 +381,7 @@ public class PropertiesPanel extends JPanel {
         propertiesEditorPanel.add(generateSourceLabel, gc);
         gc.gridx = 3;
         propertiesEditorPanel.add(generateSourceCheckbox, gc);
-
-
     }
-
-
 
     /**
      * Check to see if any new values have been entered, update the model and return true if that is the case.
@@ -368,5 +461,25 @@ public class PropertiesPanel extends JPanel {
 
     public IkasanComponent getSelectedComponent() {
         return selectedComponent;
+    }
+
+    protected java.util.List<ValidationInfo> doValidateAll() {
+        List<ValidationInfo> result = new ArrayList<>();
+        for (final ComponentPropertyEditBox editPair: getComponentPropertyEditBoxList()) {
+            final String key = editPair.getPropertyLabel();
+            IkasanComponentProperty componentProperty = getSelectedComponent().getProperties().get(key);
+            // Only mandatory properties are always populated.
+            if (componentProperty != null &&
+                    componentProperty.getMeta().isMandatory() &&
+                    editPair.isEmpty()) {
+
+                result.add(new ValidationInfo(editPair.getPropertyLabel() + " must be set to a valid value", editPair.getInputField()));
+            }
+        }
+        if (! result.isEmpty()) {
+            return result;
+        } else {
+            return Collections.emptyList();
+        }
     }
 }
