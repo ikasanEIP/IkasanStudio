@@ -141,6 +141,4 @@ public class ComponentPropertyEditBox {
     public JLabel getRegenerateLabel() {
         return regenerateLabel;
     }
-
-
 }
