@@ -63,6 +63,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
+        System.out.println(templateString);
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpProducerComponent.java")));
     }
 
