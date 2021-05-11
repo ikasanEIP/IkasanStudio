@@ -63,7 +63,7 @@ public class ComponentPropertyEditBox {
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if (componentProperty.getMeta().isUserImplementedClass() && !popupMode) {
+        if (Boolean.TRUE.equals(componentProperty.getMeta().isUserImplementedClass()) && !popupMode) {
             userMaintainedClass = true;
             regenerateLabel = new JLabel("Regenerate");
             regenerateSourceCheckBox = new JCheckBox();

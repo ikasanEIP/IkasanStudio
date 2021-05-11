@@ -165,7 +165,7 @@ tasks {
 
     // This seems quite brittle, to test, IJ requires to state the local path of where intellij community source code is installed.
 //    test {
-////        systemProperty("idea.home.path", "/dev/ws/intellij-community-193.7288")
+// //        systemProperty("idea.home.path", "/dev/ws/intellij-community-193.7288")
 //         systemProperty("idea.home.path", intellijRootDir().canonicalPath)
 //    }
 }
