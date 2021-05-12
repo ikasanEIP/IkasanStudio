@@ -3,14 +3,10 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class PropertiesDialogue extends DialogWrapper {
     PropertiesPanel propertiesPanel;

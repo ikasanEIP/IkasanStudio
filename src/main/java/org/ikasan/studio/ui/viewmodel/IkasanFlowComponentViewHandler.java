@@ -79,6 +79,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
      * @param width of container which may be ignored if it is set by the component
      * @param height of container which may be ignored if it is set by the component
      */
+    @Override
     public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {
         setLeftX(x);
         setTopY(y);

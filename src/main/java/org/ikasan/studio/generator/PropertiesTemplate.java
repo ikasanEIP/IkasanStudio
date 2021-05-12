@@ -7,8 +7,8 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import java.util.Map;
 
 public class PropertiesTemplate extends Generator {
-    public static String MODULE_PROPERTIES_FILENAME = "application";
-    private static String MODULE_PROPERTIES_FTL = "PropertiesTemplate.ftl";
+    public static final String MODULE_PROPERTIES_FILENAME = "application";
+    private static final String MODULE_PROPERTIES_FTL = "PropertiesTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
@@ -21,7 +21,6 @@ public class PropertiesTemplate extends Generator {
     public static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
-        String templateString = FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);
-        return templateString;
+        return FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);
     }
 }

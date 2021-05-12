@@ -1,8 +1,8 @@
 package org.ikasan.studio.model.ikasan;
 
-import com.sun.istack.NotNull;
 import org.ikasan.studio.StudioUtils;
 
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
@@ -37,9 +37,9 @@ public class IkasanComponentPropertyMeta {
                     IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, null, String.class, "", "", "",
                     "The port number that the running application will use locally.");
 
-    Boolean mandatory;
-    Boolean userImplementedClass;
-    Boolean userDefineResource;
+    boolean mandatory;
+    boolean userImplementedClass;
+    boolean userDefineResource;
     String propertyName;
     String propertyConfigFileLabel;
     Class propertyDataType;
@@ -86,19 +86,19 @@ public class IkasanComponentPropertyMeta {
         this.helpText = helpText;
     }
 
-    public Boolean isMandatory() {
+    public boolean isMandatory() {
         return mandatory;
     }
 
-    public Boolean getMandatory() {
+    public boolean getMandatory() {
         return mandatory;
     }
 
-    public Boolean getUserImplementedClass() {
+    public boolean getUserImplementedClass() {
         return userImplementedClass;
     }
 
-    public Boolean isUserImplementedClass() {
+    public boolean isUserImplementedClass() {
         return userImplementedClass;
     }
 
@@ -146,8 +146,8 @@ public class IkasanComponentPropertyMeta {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IkasanComponentPropertyMeta that = (IkasanComponentPropertyMeta) o;
-        return mandatory.equals(that.mandatory) &&
-                userImplementedClass.equals(that.userImplementedClass) &&
+        return mandatory == that.mandatory &&
+                userImplementedClass == that.userImplementedClass &&
                 propertyName.equals(that.propertyName) &&
                 propertyDataType.equals(that.propertyDataType);
     }

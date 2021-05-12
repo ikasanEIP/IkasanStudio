@@ -28,7 +28,7 @@ public class IkasanModule extends IkasanComponent {
      * This will be called if the module is reloaded or re-initialised.
      */
     public void reset() {
-        if (flows != null && flows.size() > 0) {
+        if (flows != null && !flows.isEmpty()) {
             flows = new ArrayList<>();
         }
         setName("");
@@ -59,7 +59,7 @@ public class IkasanModule extends IkasanComponent {
     }
 
     public IkasanFlow getFlow(IkasanFlow searchedFlow) {
-        if (searchedFlow != null && flows != null && flows.size() > 0) {
+        if (searchedFlow != null && flows != null && !flows.isEmpty()) {
             for (IkasanFlow currentFlow : getFlows()) {
                 if (searchedFlow.equals(currentFlow)) {
                     return currentFlow;
@@ -85,6 +85,7 @@ public class IkasanModule extends IkasanComponent {
                 '}';
     }
 
+    @Override
     public ViewHandler getViewHandler() {
         return viewHandler;
     }

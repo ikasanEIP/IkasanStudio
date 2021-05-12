@@ -12,8 +12,6 @@ public class IkasanFlow extends IkasanComponent {
 
     public IkasanFlow () {
         super (IkasanComponentType.FLOW, IkasanComponentType.FLOW.getMandatoryProperties());
-//        super();
-//        this.properties = new TreeMap<String, IkasanComponentProperty>();
         this.properties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
         this.properties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
 
@@ -28,7 +26,7 @@ public class IkasanFlow extends IkasanComponent {
     }
 
     public void removeFlowElement(IkasanFlowComponent ikasanFlowComponentToBeRemoved) {
-        if (ikasanFlowComponentToBeRemoved != null && flowComponentList.size() > 0) {
+        if (ikasanFlowComponentToBeRemoved != null && ! flowComponentList.isEmpty()) {
             getFlowComponentList().remove(ikasanFlowComponentToBeRemoved);
         }
     }
@@ -40,13 +38,13 @@ public class IkasanFlow extends IkasanComponent {
      * @return
      */
     public boolean isValidToAdd(IkasanComponentType newComponent) {
+        boolean isValid = true ;
         if (newComponent != null &&
-            hasConsumer() && IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
-            hasProducer() && IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
-            return false;
-        } else {
-            return true;
+            (hasConsumer() && IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
+            hasProducer() && IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory()))) {
+            isValid = false;
         }
+        return isValid;
     }
 
     /**
@@ -89,16 +87,12 @@ public class IkasanFlow extends IkasanComponent {
 
     public boolean hasConsumer() {
         return flowComponentList.stream()
-                .filter(e->e.getType().getElementCategory().equals(IkasanComponentCategory.CONSUMER))
-                .findFirst()
-                .isPresent();
+            .anyMatch(e->e.getType().getElementCategory().equals(IkasanComponentCategory.CONSUMER));
     }
 
     public boolean hasProducer() {
         return flowComponentList.stream()
-                .filter(e->e.getType().getElementCategory().equals(IkasanComponentCategory.PRODUCER))
-                .findFirst()
-                .isPresent();
+            .anyMatch(e->e.getType().getElementCategory().equals(IkasanComponentCategory.PRODUCER));
     }
 
     public IkasanFlowComponent getInput() {

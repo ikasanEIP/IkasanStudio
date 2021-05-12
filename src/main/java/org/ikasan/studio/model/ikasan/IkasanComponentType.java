@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -12,7 +13,7 @@ import java.util.TreeMap;
  *
  * No UI specific elements should be present in this class (@see org.ikasan.studio.ui.model.IkasanFlowUIComponent for that)
  */
-public enum IkasanComponentType {
+public enum IkasanComponentType implements Serializable {
     MODULE(IkasanComponentCategory.MODULE, false, ""),
     FLOW(IkasanComponentCategory.FLOW, false, ""),
     BROKER(IkasanComponentCategory.BROKER, false, "broker"),
@@ -105,7 +106,6 @@ public enum IkasanComponentType {
         Map<String, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
         for (Map.Entry<String, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
             if (entry.getValue().isMandatory()) {
-                IkasanComponentProperty newIkasanComponentProperty = new IkasanComponentProperty(entry.getValue());
                 mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
             }
         }

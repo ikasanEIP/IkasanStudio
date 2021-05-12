@@ -5,7 +5,6 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,7 +17,7 @@ public abstract class IkasanComponent {
 
     private IkasanComponent() {}
 
-    public IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
+    protected IkasanComponent(IkasanComponentType type, Map<String, IkasanComponentProperty> properties) {
         this.type = type;
         this.properties = properties;
     }
