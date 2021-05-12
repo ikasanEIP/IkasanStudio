@@ -64,14 +64,14 @@ public class DesignerCanvas extends JPanel {
             @Override
             public void mouseReleased(MouseEvent e) {
                 log.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
-                mouseReleaseAction(e, e.getX(),e.getY());
+                mouseReleaseAction();
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
                 log.trace("DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
-                mouseDragAction(e, e.getX(),e.getY());
+                mouseDragAction(e.getX(),e.getY());
             }
         });
         if (Context.getOption(projectKey).isHintsEnabled()) {
@@ -79,16 +79,14 @@ public class DesignerCanvas extends JPanel {
                 @Override
                 public void mouseMoved(MouseEvent e) {
                 log.trace("DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
-                mouseMoveAction(e, e.getX(),e.getY());
+                mouseMoveAction(e.getX(),e.getY());
                 }
             });
         }
         setTransferHandler(new CanvasImportTransferHandler( this));
 
         // Create the properties popup panel for a new Module
-        startButton.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent e)
+        startButton.addActionListener(e ->
             {
                 PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
                 propertiesPanel.updatePropertiesPanel(ikasanModule);
@@ -102,11 +100,11 @@ public class DesignerCanvas extends JPanel {
                     disableStart();
                 }
             }
-        });
+        );
     }
 
     public void enableStart() {
-        if (!(startButton.getParent() == this)) {
+        if (startButton.getParent() != this) {
             this.add(startButton);
         }
     }
@@ -156,11 +154,8 @@ public class DesignerCanvas extends JPanel {
      * This will be called to redraw the screen after the mouse movement is over, the mouse movement will allow the
      * component to move across the screen but not redraw the connectors, this will ensure all connectors and whole
      * screen is redrawn
-     * @param me mouse event
-     * @param mouseX of the current pointer
-     * @param mouseY of the current pointer
      */
-    private void mouseReleaseAction(MouseEvent me, int mouseX, int mouseY){
+    private void mouseReleaseAction(){
         if (screenChanged) {
             this.repaint();
             screenChanged = false;
@@ -170,11 +165,10 @@ public class DesignerCanvas extends JPanel {
     /**
      * This will be called for every mouse movement on the canvas so use sparingly
 
-     * @param me mouse event
      * @param mouseX of the current pointer
      * @param mouseY of the current pointer
      */
-    private void mouseMoveAction(MouseEvent me, int mouseX, int mouseY) {
+    private void mouseMoveAction(int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (mouseSelectedComponent instanceof IkasanFlow && ((IkasanFlow)mouseSelectedComponent).getFlowIntegrityStatus() != null) {
             this.setToolTipText(((IkasanFlow)mouseSelectedComponent).getFlowIntegrityStatus());
@@ -185,11 +179,10 @@ public class DesignerCanvas extends JPanel {
 
     /**
      * Called by the mouse drag listener
-     * @param me of the event
      * @param mouseX at the start of the drag
      * @param mouseY at the start of the drag
      */
-    private void mouseDragAction(MouseEvent me, int mouseX, int mouseY) {
+    private void mouseDragAction(int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         log.trace("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
@@ -294,13 +287,12 @@ public class DesignerCanvas extends JPanel {
      */
     public IkasanComponent getFlowAtXY(int xpos, int ypos) {
         IkasanComponent ikasanComponent = null;
-        if (ikasanComponent == null) {
-            ikasanComponent = ikasanModule.getFlows()
-                    .stream()
-                    .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
-                    .findFirst()
-                    .orElse(null);
-        }
+        ikasanComponent = ikasanModule.getFlows()
+                .stream()
+                .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
+                .findFirst()
+                .orElse(null);
+
         return ikasanComponent;
     }
 
@@ -354,9 +346,8 @@ public class DesignerCanvas extends JPanel {
     public void resetContextSensitiveHighlighting() {
         boolean redrawNeeded = ikasanModule.getFlows()
                 .stream()
-                .filter(x -> ((IkasanFlowViewHandler)x.getViewHandler()).isFlowNormalMode() != true)
-                .findAny()
-                .isPresent();
+                .anyMatch(x -> ! ((IkasanFlowViewHandler)x.getViewHandler()).isFlowNormalMode());
+
         ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)x.getViewHandler()).setFlowNormalMode());
         if (redrawNeeded) {
             this.repaint();
@@ -374,7 +365,6 @@ public class DesignerCanvas extends JPanel {
         Point dragged = new Point(xpos, ypos);
         Pair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
 
-        IkasanFlowComponent ikasanFlow = null;
         if (ikasanModule != null) {
             for (IkasanFlow flow : ikasanModule.getFlows()) {
                 for (IkasanFlowComponent ikasanFlowComponent : flow.getFlowComponentList()) {

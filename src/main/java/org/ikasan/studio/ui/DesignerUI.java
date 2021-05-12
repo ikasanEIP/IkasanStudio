@@ -10,7 +10,6 @@ import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
-import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.component.properties.PropertiesPanel;
 
 import javax.swing.*;
@@ -22,9 +21,8 @@ import java.awt.*;
 public class DesignerUI {
     private String projectKey;
     private Project project;
-    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     private JPanel mainJPanel = new JPanel();
-//    private PaletteExportTransferHandler ikasanFlowUIComponentSelection = new PaletteExportTransferHandler();
+
     /**
      * Create the main Designer window
      * @param toolWindow is the Intellij frame in which this resides
@@ -66,13 +64,10 @@ public class DesignerUI {
      */
     public void initialiseIkasanModel() {
         DumbService dumbService = DumbService.getInstance(project);
-        dumbService.runWhenSmart(new Runnable() {
-            @Override
-            public void run() {
-                DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
-                if (canvasPanel != null) {
-                    StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
-                }
+        dumbService.runWhenSmart(() -> {
+            DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
+            if (canvasPanel != null) {
+                StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
             }
         });
     }
