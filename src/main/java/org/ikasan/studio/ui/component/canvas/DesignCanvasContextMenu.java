@@ -12,11 +12,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class DesignCanvasContextMenu {
-    public static Logger log = Logger.getInstance(DesignCanvasContextMenu.class);
+    public static final Logger LOG = Logger.getInstance(DesignCanvasContextMenu.class);
+
+    // Enforce as utility clASS
+    private DesignCanvasContextMenu () {}
 
     public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, IkasanComponent component) {
         JPopupMenu menu = new JPopupMenu();
-        menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", component, mouseEvent));
+        menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", component));
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
         menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
@@ -24,8 +27,8 @@ public class DesignCanvasContextMenu {
         menu.add(createWebHelpTextItem(projectKey, "Web help", component, mouseEvent));
         menu.add(createNavigateToCode(projectKey, "Jump to code", component, false));
         menu.add(createNavigateToCode(projectKey, "Jump to code line", component, true));
-        menu.add(createEnableDebug(projectKey, "Switch on debug"));
-        menu.add(createEnableTrace(projectKey, "Switch on trace"));
+        menu.add(createEnableDebug("Switch on debug"));
+        menu.add(createEnableTrace("Switch on trace"));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
@@ -37,7 +40,7 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, event.getX(), event.getY());
     }
 
-    private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, IkasanComponent component, MouseEvent mouseEvent) {
+    private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, IkasanComponent component) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new DeleteComponentAction(projectKey, component));
         return item;
@@ -79,25 +82,15 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    private static JMenuItem createEnableDebug(String projectKey, String label) {
+    private static JMenuItem createEnableDebug(String label) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                LogManager.getRootLogger().setLevel(Level.DEBUG);
-            }
-        });
+        item.addActionListener(e -> LogManager.getRootLogger().setLevel(Level.DEBUG));
         return item;
     }
 
-    private static JMenuItem createEnableTrace(String projectKey, String label) {
+    private static JMenuItem createEnableTrace(String label) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                LogManager.getRootLogger().setLevel(Level.TRACE);
-            }
-        });
+        item.addActionListener(e -> LogManager.getRootLogger().setLevel(Level.TRACE));
         return item;
     }
 }

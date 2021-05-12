@@ -4,8 +4,6 @@ import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.text.NumberFormat;
 
 public class ComponentPropertyEditBox {
@@ -14,14 +12,12 @@ public class ComponentPropertyEditBox {
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanField;
     private boolean userMaintainedClass = false;
-    private boolean popupMode;
     private JCheckBox regenerateSourceCheckBox;
     private JLabel regenerateLabel;
     private Class type;
 
     public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean popupMode) {
         this.propertyTitle = componentProperty.getMeta().getPropertyName();
-        this.popupMode = popupMode;
         this.propertyTitleField = new JLabel(propertyTitle);
         this.type = componentProperty.getMeta().getPropertyDataType();
         Object value = componentProperty.getValue();
@@ -67,11 +63,9 @@ public class ComponentPropertyEditBox {
             userMaintainedClass = true;
             regenerateLabel = new JLabel("Regenerate");
             regenerateSourceCheckBox = new JCheckBox();
-            regenerateSourceCheckBox.addItemListener(new ItemListener() {
-                public void itemStateChanged(ItemEvent ie) {
+            regenerateSourceCheckBox.addItemListener( ie -> {
                     propertyValueField.setEditable(ie.getStateChange() == 1);
                     propertyValueField.setEnabled(ie.getStateChange() == 1);
-                }
             });
             regenerateSourceCheckBox.setBackground(Color.WHITE);
 
