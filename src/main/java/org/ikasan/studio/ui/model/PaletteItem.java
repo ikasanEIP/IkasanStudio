@@ -5,9 +5,6 @@ import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 public class PaletteItem {
     IkasanFlowUIComponent ikasanFlowUIComponent;
     IkasanPaletteElementViewHandler ikasanFlowElementViewHandler;
-
-    public PaletteItem() {}
-
     public IkasanPaletteElementViewHandler getIkasanFlowElementViewHandler() {
         return ikasanFlowElementViewHandler;
     }

@@ -5,9 +5,6 @@ import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 public class IkasanFlowComponent extends IkasanComponent {
     private IkasanFlow parent;
 
-
-//    private IkasanFlowComponent() {}
-
     /**
      * Any component that belongs in the flow
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
@@ -18,7 +15,6 @@ public class IkasanFlowComponent extends IkasanComponent {
     protected IkasanFlowComponent(IkasanComponentType type, IkasanFlow parent, String name, String description) {
         super (type, type.getMandatoryProperties());
         this.parent = parent;
-//        this.properties = type.getMandatoryProperties();
         updatePropertyValue(IkasanComponentPropertyMeta.NAME, name);
         updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
         viewHandler = new IkasanFlowComponentViewHandler(this);

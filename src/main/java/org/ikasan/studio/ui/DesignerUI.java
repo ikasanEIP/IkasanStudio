@@ -51,7 +51,7 @@ public class DesignerUI {
 
         mainJPanel.setLayout(new BorderLayout());
         mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
-        mainJPanel.add(new PalettePanel(projectKey), BorderLayout.EAST);
+        mainJPanel.add(new PalettePanel(), BorderLayout.EAST);
     }
 
     public JPanel getContent() {

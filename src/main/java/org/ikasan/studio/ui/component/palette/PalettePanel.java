@@ -1,12 +1,9 @@
 package org.ikasan.studio.ui.component.palette;
 
-import org.apache.log4j.Logger;
 import org.ikasan.studio.ui.model.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,14 +14,11 @@ import java.util.stream.Collectors;
 
 public class PalettePanel extends JPanel {
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
-    private static final Logger log = Logger.getLogger(PalettePanel.class);
-    private String projectKey;
 
     private PaletteExportTransferHandler paletteExportTransferHandler;
 
-    public PalettePanel(String projectKey) {
+    public PalettePanel() {
         super();
-        this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         this.paletteExportTransferHandler = new PaletteExportTransferHandler();
@@ -54,7 +48,6 @@ public class PalettePanel extends JPanel {
         // Footer
         JPanel paletteHelpHeaderPanel = new JPanel();
         paletteHelpHeaderPanel.add(new JLabel("Description"));
-//        paletteHelpHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         JPanel paletteHelpMainPanel = new JPanel(new BorderLayout());
         paletteHelpMainPanel.add(paletteHelpHeaderPanel, BorderLayout.NORTH);
         paletteHelpMainPanel.add(paletteHelpBodyPanel, BorderLayout.CENTER);
@@ -70,28 +63,25 @@ public class PalettePanel extends JPanel {
 
         JPanel paletteBodyPanel = new JPanel(new BorderLayout());
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
-//        paletteBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         paletteBodyPanel.setBackground(Color.WHITE);
 
         add(paletteHeaderPanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
         setBorder(new EmptyBorder(1,0,0,0));
 
-        paletteList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent listSelectionEvent) {
-                if (paletteList.getSelectedValue() instanceof PaletteItemIkasanComponent) {
-                    PaletteItemIkasanComponent paletteItemIkasanComponent = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
-                    // Only do this if its the first time, otherwise it might get annoying.
-                    if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
-                        paletteSplitPane.setDividerLocation(0.8);
-                    }
-                    paletteHelpTextArea.setText(paletteItemIkasanComponent.getIkasanFlowElementViewHandler().getHelpText());
+        paletteList.addListSelectionListener(listSelectionEvent -> {
+            if (paletteList.getSelectedValue() instanceof PaletteItemIkasanComponent) {
+                PaletteItemIkasanComponent paletteItemIkasanComponent = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
+                // Only do this if its the first time, otherwise it might get annoying.
+                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
+                    paletteSplitPane.setDividerLocation(0.8);
                 }
+                paletteHelpTextArea.setText(paletteItemIkasanComponent.getIkasanFlowElementViewHandler().getHelpText());
             }
         });
 
         paletteList.addMouseListener(new MouseAdapter() {
+            @Override
             public void mousePressed(MouseEvent me) {
                 JComponent comp = (JComponent) me.getSource();
                 TransferHandler handler = comp.getTransferHandler();

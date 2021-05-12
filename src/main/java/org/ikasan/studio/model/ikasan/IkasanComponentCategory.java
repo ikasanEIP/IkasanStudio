@@ -65,12 +65,12 @@ public enum IkasanComponentCategory {
      * @return true if the componentClassString could be matched against an IkasanComponentCategory
      */
     public static boolean isIkasanComponent(String componentClassString) {
+        boolean isIkasanComponent = false;
         IkasanComponentCategory ikasanComponentCategory = parseBaseClass(componentClassString);
-        if (ikasanComponentCategory != null && ikasanComponentCategory != UNKNOWN) {
-            return true;
-        } else {
-            return false;
+        if (ikasanComponentCategory != UNKNOWN) {
+            isIkasanComponent = true;
         }
+        return isIkasanComponent;
     }
 
     public String getAssociatedMethodName() {

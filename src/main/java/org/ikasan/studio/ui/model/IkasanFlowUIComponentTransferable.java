@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 public class IkasanFlowUIComponentTransferable implements Serializable, Transferable {
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
-    private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
+    private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
     private IkasanFlowUIComponent ikasanFlowUIComponent ;
 
     public IkasanFlowUIComponentTransferable(IkasanFlowUIComponent ikasanFlowUIComponent) {

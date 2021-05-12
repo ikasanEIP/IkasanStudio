@@ -2,7 +2,6 @@ package org.ikasan.studio.actions;
 
 import com.intellij.ide.BrowserUtil;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

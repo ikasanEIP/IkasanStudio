@@ -35,9 +35,6 @@ public class PIPSIMethod {
     public void setMethodDeclaration(PsiMethod methodDeclaration) {
         this.methodDeclaration = methodDeclaration;
     }
-    public PsiExpression[] getParameter() {
-        return parameters;
-    }
 
     public PsiExpression getParameter(int argumentNumber) {
         if (parameters != null && parameters.length > argumentNumber) {

@@ -33,7 +33,6 @@ public class FlowsBespokeComponentTemplate extends Generator {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(COMPONENT_TAG, ikasanFlowComponent);
-        String templateString = FreemarkerUtils.generateFromTemplate(templateName, configs);
-        return templateString;
+        return FreemarkerUtils.generateFromTemplate(templateName, configs);
     }
 }

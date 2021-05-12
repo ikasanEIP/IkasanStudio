@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import org.ikasan.studio.Context;
@@ -13,7 +12,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,13 +23,13 @@ public class PropertiesPanel extends JPanel {
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
 
     private String projectKey;
-    private Boolean popupMode;
+    private boolean popupMode;
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private JCheckBox beskpokeComponentOverrideCheckBox;
     JButton okButton;
     private ScrollableGridbagPanel scrollableGridbagPanel;
 
-    public PropertiesPanel(String projectKey, Boolean popupMode) {
+    public PropertiesPanel(String projectKey, boolean popupMode) {
         super();
         this.projectKey = projectKey ;
         this.popupMode = popupMode;
@@ -52,37 +50,28 @@ public class PropertiesPanel extends JPanel {
 
 
         if (! popupMode) {
-//            okButton = new JButton(new UpdateCodeAction("Update code", "Update the code with properties settings", KeyEvent.VK_U));
             okButton = new JButton("Update code");
-            okButton.addActionListener(new ActionListener() {
-                   @Override
-                   public void actionPerformed(ActionEvent e) {
-                       List<ValidationInfo> infoList = doValidateAll();
-                       if (!infoList.isEmpty()) {
-                           ValidationInfo firstInfo = infoList.get(0);
-                            if (firstInfo.component != null && firstInfo.component.isVisible()) {
-                               IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
-                            }
-                            StringBuilder validationErrors = new StringBuilder();
-                            for (ValidationInfo info : infoList) {
-                                validationErrors.append(info.message).append('\n');
-                            }
-
-//                           JOptionPane.showMessageDialog((JFrame) SwingUtilities.getWindowAncestor(((JButton)e.getSource()).getParent()),
-                            JOptionPane.showMessageDialog(((JButton)e.getSource()).getParent().getParent(),
-                                    validationErrors.toString(),
-                                   "Validation Error",
-                                   JOptionPane.ERROR_MESSAGE);
-//                if (!isInplaceValidationToolTipEnabled()) {
-//                    DialogEarthquakeShaker.shake(getPeer().getWindow());
-//                }
-//
-//                startTrackingValidation();
-                           if(infoList.stream().anyMatch(info1 -> !info1.okEnabled)) return;
+            okButton.addActionListener(e -> {
+                   List<ValidationInfo> infoList = doValidateAll();
+                   if (!infoList.isEmpty()) {
+                       ValidationInfo firstInfo = infoList.get(0);
+                        if (firstInfo.component != null && firstInfo.component.isVisible()) {
+                           IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
+                        }
+                        StringBuilder validationErrors = new StringBuilder();
+                        for (ValidationInfo info : infoList) {
+                            validationErrors.append(info.message).append('\n');
+                        }
+                        JOptionPane.showMessageDialog(((JButton)e.getSource()).getParent().getParent(),
+                                validationErrors.toString(),
+                               "Validation Error",
+                               JOptionPane.ERROR_MESSAGE);
+                       if (infoList.stream().anyMatch(info1 -> !info1.okEnabled)) {
+                           return;
                        }
-                       doOKAction();
-                       //@todo popup a temp message 'no changes detected'
                    }
+                   doOKAction();
+                   //@todo popup a temp message 'no changes detected'
                }
             );
             JPanel footerPanel = new JPanel();
@@ -102,38 +91,6 @@ public class PropertiesPanel extends JPanel {
 
     }
 
-//    // @todo (optional) confirmation box if overriding, maybe include a list of classes (including appropriate properties that may be overriden).
-//    class UpdateCodeAction extends AbstractAction {
-//        public UpdateCodeAction(String text, String desc, Integer mnemonic) {
-//            super(text);
-//            putValue(SHORT_DESCRIPTION, desc);
-//            putValue(MNEMONIC_KEY, mnemonic);
-//        }
-//        public void actionPerformed(ActionEvent e) {
-//
-//            List<ValidationInfo> infoList = doValidateAll();
-//            if (!infoList.isEmpty()) {
-//                ValidationInfo info = infoList.get(0);
-//                if (info.component != null && info.component.isVisible()) {
-//                    IdeFocusManager.getInstance(null).requestFocus(info.component, true);
-//                }
-//
-//                JOptionPane.showMessageDialog((JFrame) SwingUtilities.getWindowAncestor(e.getSource()),
-//                        "Eggs are not supposed to be green.",
-//                        "Inane error",
-//                        JOptionPane.ERROR_MESSAGE);
-////                if (!isInplaceValidationToolTipEnabled()) {
-////                    DialogEarthquakeShaker.shake(getPeer().getWindow());
-////                }
-////
-////                startTrackingValidation();
-//                if(infoList.stream().anyMatch(info1 -> !info1.okEnabled)) return;
-//            }
-//            doOKAction();
-//            //@todo popup a temp message 'no changes detected'
-//        }
-//    }
-
     /**
      * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
      */
@@ -146,16 +103,6 @@ public class PropertiesPanel extends JPanel {
         }
     }
 
-//    @SuppressWarnings("SSBasedInspection")
-//    protected void startTrackingValidation() {
-//        SwingUtilities.invokeLater(() -> {
-//            if (!myValidationStarted && !myDisposed) {
-//                myValidationStarted = true;
-//                initValidation();
-//            }
-//        });
-//    }
-
     private void resetCheckboxes() {
         for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
             componentPropertyEditBox.disableRegeneratingFeilds();
@@ -164,7 +111,6 @@ public class PropertiesPanel extends JPanel {
             beskpokeComponentOverrideCheckBox.setSelected(false);
         }
     }
-
 
     /**
      * Given the component within, generate an appropriate Panel title
@@ -232,11 +178,8 @@ public class PropertiesPanel extends JPanel {
                         selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
 
-//            if (selectedComponent instanceof IkasanComponent) {
-//                IkasanComponent selectedFlowComponent = (IkasanComponent) selectedComponent;
-//                if (selectedFlowComponent.getType().getMetadataMap().size() > 0) {
+
                 if (selectedComponent.getType().getMetadataMap().size() > 0) {
-//                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedFlowComponent.getType().getMetadataMap().entrySet()) {
                     for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
                         String key = entry.getKey();
                         if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
@@ -261,22 +204,9 @@ public class PropertiesPanel extends JPanel {
 
                         }
                     }
-//                }
-//                if (selectedFlowComponent.getType().isBespokeClass() && !popupMode) {
                 if (!popupMode && selectedComponent.getType().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
-//                else {
-//                    if (okButton != null) {
-//                        okButton.setEnabled(formValidToSave());
-//
-////                        List<ValidationInfo> infoList = doValidateAll();
-////                        // All fields OK
-////                        if(! infoList.stream().anyMatch(info1 -> !info1.okEnabled) ) {
-////                            okButton.setEnabled(true);
-////                        }
-//                    }
-//                }
             }
 
             GridBagConstraints gc1 = new GridBagConstraints();
@@ -301,21 +231,10 @@ public class PropertiesPanel extends JPanel {
 
             if (!popupMode && !selectedComponent.getType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
-//                okButton.setEnabled(formValidToSave());
             }
         }
 
         return allPropertiesEditorPanel;
-    }
-
-    private boolean formValidToSave() {
-        List<ValidationInfo> infoList = doValidateAll();
-        // All fields OK
-        if(infoList.stream().anyMatch(info1 -> !info1.okEnabled) ) {
-            return false;
-        } else {
-            return true;
-        }
     }
 
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
@@ -332,14 +251,10 @@ public class PropertiesPanel extends JPanel {
         JLabel overrideLabel = new JLabel("Regenerate Code");
         overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this beskpoke implementation");
         beskpokeComponentOverrideCheckBox = new JCheckBox();
-        beskpokeComponentOverrideCheckBox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent ie) {
-
-                okButton.setEnabled(ie.getStateChange() == 1);
-            }
+        beskpokeComponentOverrideCheckBox.addItemListener(ie -> {
+            okButton.setEnabled(ie.getStateChange() == 1);
         });
         beskpokeComponentOverrideCheckBox.setBackground(Color.WHITE);
-//        okButton.setEnabled(false);
         addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, overrideLabel, beskpokeComponentOverrideCheckBox);
     }
 
@@ -425,7 +340,7 @@ public class PropertiesPanel extends JPanel {
     private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
         return (((property == null || property.getValue() == null) && editBoxHasValue(propertyEditBox)) ||
                 (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())) ||
-                (propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(propertyEditBox)));
+                (propertyEditBox != null && propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(propertyEditBox)));
     }
 
     /**
@@ -437,19 +352,13 @@ public class PropertiesPanel extends JPanel {
     private boolean editBoxHasValue(ComponentPropertyEditBox propertyEditBox) {
         boolean hasValue = false;
         if (propertyEditBox != null) {
-//            boolean regeneratePermission = true;
             Object value = propertyEditBox.getValue();
-//            if (propertyEditBox.isUserMaintainedClass()) {
-//                regeneratePermission = propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate();
-//            }
             if (value instanceof String) {
                 if (((String) value).length() > 0) {
                     hasValue = true;
-//                    hasValue = true && regeneratePermission;
                 }
             } else {
                 hasValue = (value != null);
-//                hasValue = (value != null) && regeneratePermission;
             }
         }
         return hasValue;

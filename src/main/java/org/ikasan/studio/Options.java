@@ -6,19 +6,19 @@ import java.util.Map;
 public class Options {
     private static final String HINT_TIPS = "HINT_TIPS";
 
-    private Map<String, Object> options;
+    private Map<String, Object> applicationOptions;
 
     public Options() {
         // set defaults
-        options = new HashMap<>();
+        applicationOptions = new HashMap<>();
         setHintTipsEnabled(Boolean.TRUE);
     }
 
     public boolean isHintsEnabled() {
-        return (Boolean)options.get(HINT_TIPS);
+        return (Boolean) applicationOptions.get(HINT_TIPS);
     }
 
     public void setHintTipsEnabled(boolean hintTipsEnabled) {
-        options.put(HINT_TIPS, hintTipsEnabled);
+        applicationOptions.put(HINT_TIPS, hintTipsEnabled);
     }
 }

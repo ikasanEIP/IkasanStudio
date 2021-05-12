@@ -9,7 +9,7 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import java.util.Map;
 
 public class FlowTemplate extends Generator {
-    private static String FLOW_FTL = "FlowTemplate.ftl";
+    private static final String FLOW_FTL = "FlowTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
@@ -37,8 +37,6 @@ public class FlowTemplate extends Generator {
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFow);
-        String templateString = FreemarkerUtils.generateFromTemplate(FLOW_FTL, configs);
-        return templateString;
+        return  FreemarkerUtils.generateFromTemplate(FLOW_FTL, configs);
     }
-
 }
