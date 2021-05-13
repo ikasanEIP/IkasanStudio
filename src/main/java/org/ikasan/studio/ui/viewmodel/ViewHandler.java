@@ -136,7 +136,7 @@ public abstract class ViewHandler {
         this.psiJavaFile = psiJavaFile;
         if (psiJavaFile != null) {
             PsiClass[] allClasses = psiJavaFile.getClasses();
-            if (allClasses != null && allClasses.length > 0) {
+            if (allClasses.length > 0) {
                 // for now, assume the main class is the first in the array
                 classToNavigateTo = allClasses[0];
             }

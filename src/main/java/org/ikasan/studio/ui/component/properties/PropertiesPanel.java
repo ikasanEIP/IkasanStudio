@@ -251,9 +251,9 @@ public class PropertiesPanel extends JPanel {
         JLabel overrideLabel = new JLabel("Regenerate Code");
         overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this beskpoke implementation");
         beskpokeComponentOverrideCheckBox = new JCheckBox();
-        beskpokeComponentOverrideCheckBox.addItemListener(ie -> {
-            okButton.setEnabled(ie.getStateChange() == 1);
-        });
+        beskpokeComponentOverrideCheckBox.addItemListener(ie ->
+            okButton.setEnabled(ie.getStateChange() == 1)
+        );
         beskpokeComponentOverrideCheckBox.setBackground(Color.WHITE);
         addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, overrideLabel, beskpokeComponentOverrideCheckBox);
     }

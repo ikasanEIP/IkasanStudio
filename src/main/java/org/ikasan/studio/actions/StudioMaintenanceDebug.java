@@ -18,7 +18,6 @@ import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
 import org.ikasan.studio.generator.PropertiesTemplate;
-import org.ikasan.studio.generator.VelocityUtils;
 
 import java.util.Arrays;
 
@@ -67,7 +66,7 @@ public class StudioMaintenanceDebug extends AnAction
    }
 
    private void testModelUpdate(AnActionEvent ae) {
-//      VelocityUtils.generateFromTemplate("ApplicationTemplate.vm", null);
+//      VelocityUtilsShed.generateFromTemplate("ApplicationTemplate.vm", null);
 
       final PsiFile file = ae.getData(LangDataKeys.PSI_FILE);
       final Project project = ae.getProject();

@@ -22,6 +22,7 @@ public class ScrollableGridbagPanel extends JPanel implements Scrollable {
         this.add(panelContainingGridbag);
     }
 
+    @Override
     public Dimension getPreferredSize() {
         return getPreferredScrollableViewportSize();
     }
