@@ -106,8 +106,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                     log.warn("I can perhaps drop " + ikasanFlowUIComponent);
 
                     return true;
-                } catch (UnsupportedFlavorException ignored) {
-                } catch (IOException ignored) {
+                } catch (UnsupportedFlavorException | IOException ignored) {
                 }
             }
         }

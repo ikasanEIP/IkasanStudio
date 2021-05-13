@@ -144,21 +144,6 @@ public class StudioUIUtils {
         return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, intialY, maxWidth, font);
     }
 
-//    /**
-//     * Draw the text string, center the first line at centerX and CenterY
-//     * If the string is bigger then maxWidth, split it over multiple substrings
-//     * @param g
-//     * @param font
-//     * @return the bottom y value of the last string (se we know how far down we went)
-//     */
-//    public static int drawStringInCentreOfPanel(JPanel panel, Graphics g, Font font) {
-//        int ypos = panel.getY() + panel.
-//        int stringHeight = StudioUIUtils.getTextHeight(g);
-//        int intialY = centerY - (stringHeight / 2);
-//        return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, intialY, maxWidth, font);
-//    }
-
-
     public static List<String> splitStringIntoMultipleRows(String text, int numberOfRows) {
         List<String> returnList = new ArrayList<>() ;
         if (numberOfRows == 0 ) {

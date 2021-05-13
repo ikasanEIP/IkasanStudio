@@ -119,7 +119,7 @@ public class StudioUtils {
     public static String toJavaIdentifier(final String input) {
         if (input != null && input.length() > 0) {
             int inputStringLength = input.length();
-            char inputString[] = input.toCharArray();
+            char[] inputString = input.toCharArray();
             int outputStringLength = 0;
 
             boolean toUpper = false;
@@ -143,7 +143,6 @@ public class StudioUtils {
                             }
                             toUpper = false;
                         } else {
-//                            current = Character.toLowerCase(inputString[inputStringIndex]);
                             current = inputString[inputStringIndex];
                             if (!Character.isJavaIdentifierPart(current)) {
                                 continue;
@@ -245,7 +244,8 @@ public class StudioUtils {
                 if ("java.lang.String".equals(split[PROPERTY_DATA_TYPE_INDEX])) {
                     defaultValue = defaultValueAsString;
                 } else {
-                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
+                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", null);
+//                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
                     if (methodToFind != null) {
                         defaultValue = methodToFind.invoke(defaultValue, defaultValueAsString);
                     }
