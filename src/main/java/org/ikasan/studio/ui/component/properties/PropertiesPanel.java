@@ -88,7 +88,7 @@ public class PropertiesPanel extends JPanel {
         scrollPane.setBackground(Color.WHITE);
         scrollPane.getViewport().setBackground(Color.WHITE);
         add(propertiesBodyPanel, BorderLayout.CENTER);
-
+        setFocusOnFirstComponent();
     }
 
     /**
@@ -144,6 +144,7 @@ public class PropertiesPanel extends JPanel {
         populatePropertiesEditorPanel();
         scrollableGridbagPanel.revalidate();
         scrollableGridbagPanel.repaint();
+        setFocusOnFirstComponent();
     }
 
     /**
@@ -177,33 +178,30 @@ public class PropertiesPanel extends JPanel {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
                         selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
-
-
-                if (selectedComponent.getType().getMetadataMap().size() > 0) {
-                    for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
-                        String key = entry.getKey();
-                        if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
-                            IkasanComponentProperty property = selectedComponent.getProperty(key);
-                            if (property == null) {
-                                // This property has not yet been set for the component
-                                property = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key));
-                            }
-                            if (property.getMeta().isMandatory()) {
-                                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
-                                        mandatoryPropertiesEditorPanel,
-                                        property, gc, mandatoryTabley++));
-                            } else if (property.getMeta().isUserImplementedClass()) {
-                                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
-                                        regeneratingPropertiesEditorPanel,
-                                        property, gc, regenerateTabley++));
-                            } else {
-                                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
-                                        optionalPropertiesEditorPanel,
-                                        property, gc, optionalTabley++));
-                            }
-
+            if (selectedComponent.getType().getMetadataMap().size() > 0) {
+                for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
+                    String key = entry.getKey();
+                    if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
+                        IkasanComponentProperty property = selectedComponent.getProperty(key);
+                        if (property == null) {
+                            // This property has not yet been set for the component
+                            property = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key));
+                        }
+                        if (property.getMeta().isMandatory()) {
+                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                                    mandatoryPropertiesEditorPanel,
+                                    property, gc, mandatoryTabley++));
+                        } else if (property.getMeta().isUserImplementedClass()) {
+                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                                    regeneratingPropertiesEditorPanel,
+                                    property, gc, regenerateTabley++));
+                        } else {
+                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                                    optionalPropertiesEditorPanel,
+                                    property, gc, optionalTabley++));
                         }
                     }
+                }
                 if (!popupMode && selectedComponent.getType().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
@@ -235,6 +233,26 @@ public class PropertiesPanel extends JPanel {
         }
 
         return allPropertiesEditorPanel;
+    }
+
+    public void setFocusOnFirstComponent() {
+        JComponent firstComponent = getFirstFocusField();
+        if (firstComponent != null) {
+            Context.getProject(projectKey);
+            IdeFocusManager.getInstance(Context.getProject(projectKey)).requestFocus(firstComponent, true);
+        }
+    }
+
+    /**
+     * Get the field that should be given the focus in popup or inscreen form
+     * @return the component that should be given focus or null
+     */
+    public JComponent getFirstFocusField() {
+        JComponent firstComponent = null;
+        if (componentPropertyEditBoxList != null && !componentPropertyEditBoxList.isEmpty()) {
+            firstComponent = componentPropertyEditBoxList.get(0).getInputField();
+        }
+        return firstComponent;
     }
 
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {

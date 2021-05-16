@@ -3,7 +3,9 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -94,5 +96,18 @@ public class PropertiesDialogue extends DialogWrapper {
     @Override
     protected java.util.List<ValidationInfo> doValidateAll() {
         return propertiesPanel.doValidateAll();
+    }
+
+    /**
+     * Override parent version to set focus to properties component
+     * @return
+     */
+    @Nullable
+    @Override
+    public JComponent getPreferredFocusedComponent() {
+        if (propertiesPanel != null && propertiesPanel.getFirstFocusField() != null) {
+            return propertiesPanel.getFirstFocusField();
+        }
+        return SystemInfoRt.isMac ? myPreferredFocusedComponent : null;
     }
 }
