@@ -244,8 +244,8 @@ public class StudioUtils {
                 if ("java.lang.String".equals(split[PROPERTY_DATA_TYPE_INDEX])) {
                     defaultValue = defaultValueAsString;
                 } else {
-                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", null);
-//                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
+//                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", null);
+                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
                     if (methodToFind != null) {
                         defaultValue = methodToFind.invoke(defaultValue, defaultValueAsString);
                     }
