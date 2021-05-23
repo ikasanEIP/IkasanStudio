@@ -46,6 +46,10 @@ public class IkasanComponentProperty {
         this.regenerateAllowed = regenerateAllowed;
     }
 
+    public boolean isUserImplementedClass() {
+        return Boolean.TRUE.equals(getMeta().isUserImplementedClass());
+    }
+
     @Override
     public String toString() {
         return "IkasanComponentProperty{" +
