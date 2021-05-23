@@ -10,7 +10,8 @@ public class ComponentPropertyEditBox {
     private String propertyTitle;
     private JLabel propertyTitleField;
     private JFormattedTextField propertyValueField;
-    private JCheckBox propertyBooleanField;
+    private JCheckBox propertyBooleanFieldTrue;
+    private JCheckBox propertyBooleanFieldFalse;
     private boolean userMaintainedClass = false;
     private JCheckBox regenerateSourceCheckBox;
     private JLabel regenerateLabel;
@@ -36,16 +37,22 @@ public class ComponentPropertyEditBox {
             }
         } else if (type == java.lang.Boolean.class) {
             // BOOLEAN INPUT
-            propertyBooleanField = new JCheckBox();
-            propertyBooleanField.setBackground(Color.WHITE);
+            propertyBooleanFieldTrue = new JCheckBox();
+            propertyBooleanFieldFalse = new JCheckBox();
+            propertyBooleanFieldTrue.setBackground(Color.WHITE);
+            propertyBooleanFieldFalse.setBackground(Color.WHITE);
             if (value != null) {
-                // Coming from a property this may not be the correct type yet
+                // Defensive, just in case not set correctly
                 if (value instanceof String) {
                     value = Boolean.valueOf((String) value);
                 }
 
                 if (value instanceof Boolean) {
-                    propertyBooleanField.setSelected((Boolean)value);
+                    if ((Boolean)value) {
+                        propertyBooleanFieldTrue.setSelected(true);
+                    } else {
+                        propertyBooleanFieldFalse.setSelected(true);
+                    }
                 }
             }
         }
@@ -59,7 +66,7 @@ public class ComponentPropertyEditBox {
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if (Boolean.TRUE.equals(componentProperty.getMeta().isUserImplementedClass()) && !popupMode) {
+        if (componentProperty.isUserImplementedClass() && !popupMode) {
             userMaintainedClass = true;
             regenerateLabel = new JLabel("Regenerate");
             regenerateSourceCheckBox = new JCheckBox();
@@ -73,6 +80,7 @@ public class ComponentPropertyEditBox {
             disableRegeneratingFeilds();
         }
     }
+
 
     public void disableRegeneratingFeilds() {
         if (userMaintainedClass) {
@@ -90,26 +98,51 @@ public class ComponentPropertyEditBox {
         return propertyTitleField;
     }
 
-    public JComponent getInputField() {
-        return propertyBooleanField != null ? propertyBooleanField : propertyValueField;
+    public boolean isBooleanProperty() {
+        return propertyBooleanFieldTrue != null;
+    }
+
+    public ComponentInput getInputField() {
+        ComponentInput componentInput = null;
+        if (isBooleanProperty()) {
+            componentInput = new ComponentInput(propertyBooleanFieldTrue, propertyBooleanFieldFalse);
+        } else {
+            componentInput = new ComponentInput(propertyValueField);
+        }
+        return componentInput;
+    }
+
+    /**
+     * This is assumed to be an overriden field therefore never a boolean field
+     * @return
+     */
+    public JFormattedTextField getOverridingInputField() {
+        return propertyValueField;
     }
 
     public Object getValue() {
+        Object returnValue = null;
         if (type == java.lang.Boolean.class) {
-            return propertyBooleanField.isSelected();
+            // It is possible neither are current selected i.e. the property is unset
+            if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {
+                returnValue = true;
+            } else if (propertyBooleanFieldFalse != null && propertyBooleanFieldFalse.isSelected()) {
+                returnValue = false;
+            }
         } else if (type == java.lang.String.class) {
             // The formatter would be null if this was a standard text field.
-            return propertyValueField.getText();
+            returnValue = propertyValueField.getText();
         } else {
-            return propertyValueField.getValue();
+            returnValue = propertyValueField.getValue();
         }
+        return returnValue;
     }
 
     /**
      * For the given field type, determine if a valid value has been set.
      * @return true if the field is empty or unset
      */
-    public boolean isEmpty() {
+    public boolean inputfieldIsUnset() {
         // For boolean we don't current support unset @todo support unset if we need to
         if (type == java.lang.String.class) {
             return propertyValueField.getText() == null || propertyValueField.getText().isEmpty();

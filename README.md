@@ -85,7 +85,7 @@ This is a result of the JAXB APIS being removed from the JDB after version 8. Yo
 See also - https://stackoverflow.com/questions/43574426/java-how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexceptio
 
 ## Help with components
-EventDrivenConsumer - cant see this in anu of the standard module
+EventDrivenConsumer - cant see this in any of the standard module
 ## Help with incomplete components
 EventGeneratingConsumer    EndpointEventProvider, ManagedEventIdentifierService
 ## Mick / Andrzej
@@ -94,3 +94,9 @@ and others will be fixed within the code. I may have guessed incorrectly for som
 * Properties, should they be strict dash format, camel case or dash and camel - newflow1.testftpconsumer.ftp.consumer.filename-pattern=*Test.txt
 * As soon as a component declares that it needs bespoke configuration (https://github.com/ikasanEIP/ikasan/blob/3.2.x/ikasaneip/developer/docs/StandaloneDeveloperGuide.md#configuring-components), that component will need to be treated as a 'custom component' e.g. the custom converter
 * Some of the property configurations seem quite advanced e.g. ManagedEventIdentifierService, ManagedResourceRecoveryManager etc - Should we 'put' these in an 'advanced' options section in order to reduce screen clutter / scare factor?
+
+## Design ideas
+The local properties file should be geared totally to local running only
+A copy can be taken and substituted with environment and test values. This keeps seperate between local running and how the client does environment config.
+Wizards and meta compomnents.
+
