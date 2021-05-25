@@ -77,6 +77,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Mongo Consumer", MONGO_CONSUMER_HELP_TEXT, "endpoint/mongo-endpoint/Readme.md", IkasanComponentType.MONGO_CONSUMER, "mongo-consumer"));
 //        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Generic Message Consumer", GENERIC_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-client/consumer.md", IkasanComponentType.JMS_CONSUMER, "message-consumer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentType.SPRING_JMS_CONSUMER, "message-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer Basic AMQ", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentType.SPRING_JMS_CONSUMER_BASIC_AMQ, "message-consumer"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanComponentType.CUSTOM_CONVERTER, "custom-converter"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JSON XML Converter", JSON_XML_CONVERTER_HELP_TEXT, "converter/JsonToXmlConverter.md", IkasanComponentType.JSON_XML_CONVERTER, "message-translator"));
@@ -100,6 +101,7 @@ public class IkasanFlowUIComponentFactory {
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentType.LOG_PRODUCER, "logging-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Email Producer", EMAIL_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentType.EMAIL_PRODUCER, "email-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer", JMS_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentType.JMS_PRODUCER, "jms-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer - Basic AMQ", JMS_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentType.JMS_PRODUCER_BASIC_AMQ, "jms-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Producer", FTP_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentType.FTP_PRODUCER, "ftp-producer"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Producer", FTP_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentType.SFTP_PRODUCER, "sftp-producer"));
 

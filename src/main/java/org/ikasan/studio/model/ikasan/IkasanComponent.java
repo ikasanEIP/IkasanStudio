@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
@@ -10,7 +11,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class IkasanComponent {
+    @JsonIgnore
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
+    @JsonIgnore
     protected ViewHandler viewHandler;
     protected Map<String, IkasanComponentProperty>properties;
     protected IkasanComponentType type;

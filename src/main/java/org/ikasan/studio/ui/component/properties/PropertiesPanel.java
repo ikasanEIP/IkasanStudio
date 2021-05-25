@@ -384,10 +384,15 @@ public class PropertiesPanel extends JPanel {
      * @return true if the property has been altered
      */
     private boolean propertyValueHasChanged(IkasanComponentProperty property, ComponentPropertyEditBox propertyEditBox) {
-        return (((property == null || property.getValue() == null) && editBoxHasValue(propertyEditBox)) ||
+        Object propertyValue = null;
+        if (property != null) {
+            propertyValue = property.getValue();
+        }
+
+        return ((propertyValue == null && editBoxHasValue(propertyEditBox)) ||
 //                (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())) ||
-                (property != null && !property.getValue().equals(propertyEditBox.getValue())) ||
-                (propertyEditBox != null && propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(propertyEditBox)));
+                (propertyValue != null && !property.getValue().equals(propertyEditBox.getValue())) ||
+                (propertyEditBox != null && propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(propertyEditBox)) );
     }
 
     /**

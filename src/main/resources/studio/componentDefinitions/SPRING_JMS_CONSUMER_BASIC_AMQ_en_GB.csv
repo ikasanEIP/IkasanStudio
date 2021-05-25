@@ -1,0 +1,57 @@
+# propertyName|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+#
+# Note: 1. First row must be th column  headings so that edit as table works in intellij
+#       2. Every component is assumed to have name and description so they do not need to be included here
+#
+# isConfigMandatory - Mandatory for the component to be deemed to be complete
+# isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+# propertyName - Name of the property, used on input screens and to generate variable names
+# propertyConfigFileLabel - Identifies the spring injected property name. If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
+# propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
+# usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
+# validation - Used by the property editor to validate the property
+# defaultValue - As displayed in the properties editor.
+# helpTest - As shown in the toolTip on the properties editor and error text.
+#
+# SPRING_JMS_CONSUMER (maybe we should make as JMS_CONSUMER)
+#
+# Mandatory Properties
+ConfiguredResourceId|true|false|||java.lang.String|||__moduleName-__componentName|By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
+DestinationJndiName|true|false||jms.destination.__module.__flow.__componentName|java.lang.String||||Destination(Topic/Queue) name, which could refer as well to JNDI name
+PubSubDomain|true|false|||java.lang.Boolean||||Set to true to indicate that destination is a topic, otherwise destination is a queue
+SessionTransacted|true|false|||java.lang.Boolean|||true|Sets whether the session should be part of a transaction.
+ConnectionFactoryName|true|false||amq.__module.connectionFactory.name|java.lang.String|||ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor
+ConnectionFactoryUsername|true|false||amq.__module.connectionFactory.user|java.lang.String|||admin|Authentication principal
+ConnectionFactoryPassword|true|false||amq.__module.connectionFactory.password|java.lang.String|||admin|Id set on the JMS connection for durable subscribers
+DestinationJndiPropertyFactoryInitial|false|false||amq.__module.java.naming.factory.initial|java.lang.String|""||org.apache.activemq.jndi.ActiveMQInitialContextFactory|The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.
+DestinationJndiPropertyProviderUrl|false|false||amq.__module.provider.url|java.lang.String|""||vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false|The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.
+DestinationJndiPropertySecurityCredentials|false|false||amq.__module.connectionFactory.password|java.lang.String|||admin|The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.
+DestinationJndiPropertySecurityPrincipal|false|false||amq.__module.connectionFactory.user|java.lang.String|||admin|The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.
+#| Configuration|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+# Optional Properties
+#| AutoContentConversion|false|false|||java.lang.Boolean||||Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.
+#| AutoSplitBatch|false|false|||java.lang.Boolean||||When batchMode is true this option determines whether to automatically split the batch of messages into individual messages to fire downstream (true); or to simply pass them as a list of messages downstream (false).
+#| BatchMode|false|false|||java.lang.Boolean||||Use message batching.
+#| BatchSize|false|false|||java.lang.Integer||||Batching consumer maximum messages per batch limit.
+#| CacheLevel|false|false|||java.lang.Integer||||Caching level of the underlying message listener container (for XA transactions with AMQ, this must be set to 1). CACHE_NONE = 0, CACHE_CONNECTION = 1, CACHE_SESSION = 2, CACHE_CONSUMER = 3, CACHE_AUTO = 4
+#| ConcurrentConsumers|false|false|||java.lang.Integer||||Initial number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.
+#| ConnectionFactory|false|true|true||java.lang.String|javax.jms.ConnectionFactory|||Provide the classname that overrides and implements the default ConnectionFactory interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+#| ConnectionFactoryJNDIProperties|false|false|||java.lang.String|java.util.Map<String, String>|||Optional JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle
+#| ConnectionFactoryJndiPropertyFactoryInitial|false|false|||java.lang.String|""|||The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.
+#| ConnectionFactoryJndiPropertyProviderUrl|false|false|||java.lang.String|""|||The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.
+#| ConnectionFactoryJndiPropertySecurityCredentials|false|false|||java.lang.String||||The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.
+#| ConnectionFactoryJndiPropertySecurityPrincipal|false|false|||java.lang.String||||The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.
+#| ConnectionFactoryJndiPropertyUrlPkgPrefixes|false|false|||java.lang.String||||This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory
+#| ConnectionPassword|false|false|||java.lang.String||||Authentication credential.This value is masked on all GUI views.
+#| ConnectionUsername|false|false|||java.lang.String||||Authentication principal
+#| DestinationJndiProperties|false|false|||java.lang.String||||Optional JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle
+#| DestinationJndiPropertyUrlPkgPrefixes|false|false|||java.lang.String||||This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory
+#| Durable|false|false|||java.lang.Boolean||||Create a durable subscription (true) on the destination which will ensure messages aren't missed when the flow is stopped or paused.If not durable (false) messages on the destination will be missed when the flow is stopped or paused. This is only applicable to topics.
+#| DurableSubscriptionName|false|false|||java.lang.String||||Id set on the JMS session for durable subscribers
+#| EventFactory|false|true|||java.lang.String|org.ikasan.spec.event.EventFactory|||Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint
+#| ManagedIdentifierService|false|true|||java.lang.String|org.ikasan.spec.event.ManagedRelatedEventIdentifierService|||Provide the classname that overrides and implements the default ManagedRelatedEventIdentifierService interface. The Related Event Identifier is a business identifier immutable for the business life of the event, allowing it to be tied to a main business event. This is commonly used if the business event mutates during a flow, for example in a Splitter, and tracking of the related business events is required
+#| MaxConcurrentConsumers|false|false|||java.lang.Integer||||Maximum number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.
+#| MessageProvider|false|true|||java.lang.String|org.ikasan.component.endpoint.quartz.consumer.MessageProvider|||Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.
+#| ReceiveTimeout|false|false|||java.lang.Long||||Sets the receive timout (in milliseconds) for querying and download of content. Defaults to the JMS spring timeout.
+#| SessionAcknowledgeMode|false|false|||java.lang.Integer||||The JMS acknowledgement mode that is used when creating a JMS Session to send a message, valid values are: SESSION_TRANSACTED = 0, AUTO_ACKNOWLEDGE = 1, CLIENT_ACKNOWLEDGE = 2, DUPS_OK_ACKNOWLEDGE = 3
+#| TransactionManager|false|true|||java.lang.String|org.springframework.transaction.jta.JtaTransactionManager|||Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.

@@ -1,7 +1,8 @@
 package org.ikasan.studio;
 
-import junit.framework.TestCase;
+import org.ikasan.studio.generator.TestUtils;
 import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -103,5 +104,13 @@ public class StudioUtilsTest {
             "IkasanComponentPropertyMeta{mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='Total', propertyConfigFileLabel='my.test.total', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=2, helpText='Total description'}"));
         Assert.assertThat(userImplementedClass.toString(), is(
             "IkasanComponentPropertyMeta{mandatory=true, userImplementedClass=true, userDefineResource=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', propertyDataType=class java.lang.Object, usageDataType=java.lang.Object, validation=, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
+    }
+
+    @Test
+    public void toJsonTest() throws IOException {
+        IkasanModule module = new IkasanModule();
+        Assert.assertThat(StudioUtils.toJson("bob"), is("\"bob\""));
+        Assert.assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
+
     }
 }
