@@ -1,12 +1,15 @@
 package org.ikasan.studio.model.ikasan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class IkasanFlow extends IkasanComponent {
+    @JsonIgnore
     private IkasanFlowComponent input;
+    @JsonIgnore
     private IkasanFlowComponent output;
     private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
 

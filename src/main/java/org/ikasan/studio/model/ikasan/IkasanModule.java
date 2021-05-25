@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.intellij.psi.PsiFile;
 import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
@@ -14,6 +15,7 @@ import java.util.List;
  * from any changes to ikasan or dependencies on any particular ikasan version.
  */
 public class IkasanModule extends IkasanComponent {
+    @JsonIgnore
     private PsiFile moduleConfig;
 
     private String version;

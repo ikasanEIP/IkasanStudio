@@ -1,8 +1,10 @@
 package org.ikasan.studio.model.ikasan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
 public class IkasanFlowComponent extends IkasanComponent {
+    @JsonIgnore
     private IkasanFlow parent;
 
     /**

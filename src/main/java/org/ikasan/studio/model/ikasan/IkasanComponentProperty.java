@@ -1,8 +1,11 @@
 package org.ikasan.studio.model.ikasan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class IkasanComponentProperty {
     private Object value;
     private Boolean regenerateAllowed = true;
+    @JsonIgnore
     private IkasanComponentPropertyMeta meta;
 
     public IkasanComponentProperty(IkasanComponentPropertyMeta meta, Object value) {
@@ -22,6 +25,7 @@ public class IkasanComponentProperty {
         return value;
     }
 
+    @JsonIgnore
     public String getValueString() {
         return value.toString();
     }

@@ -1,5 +1,7 @@
 package org.ikasan.studio;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
 
@@ -19,7 +21,7 @@ import java.util.TreeMap;
  * Studio Utils
  */
 public class StudioUtils {
-    private static final Logger log = Logger.getLogger(StudioUtils.class);
+    private static final Logger LOG = Logger.getLogger(StudioUtils.class);
 
     // Enforce as a untility only class
     private StudioUtils () {}
@@ -187,11 +189,11 @@ public class StudioUtils {
                     }
                     String[] split = line.split("\\|");
                     if (split.length != NUMBER_OF_CONFIGS) {
-                        log.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
+                        LOG.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
                         continue;
                     }
                     if (componentProperties.containsKey(split[PROPERTY_NAME_INDEX])) {
-                        log.error("A property of this name already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        LOG.error("A property of this name already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
 
@@ -202,7 +204,7 @@ public class StudioUtils {
                     final String propertyConfigLabel = split[PROPERTY_CONFIG_LABEL_INDEX];
                     if (propertyConfigLabel != null && propertyConfigLabel.length() > 0) {
                         if (propertyConfigLabels.contains(propertyConfigLabel)) {
-                            log.error("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                            LOG.error("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                             continue;
                         } else {
                             propertyConfigLabels.add(propertyConfigLabel);
@@ -217,7 +219,7 @@ public class StudioUtils {
                     try {
                         propertyDataType = Class.forName(split[PROPERTY_DATA_TYPE_INDEX]);
                     } catch (ClassNotFoundException ex) {
-                        log.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
+                        LOG.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
                         propertyDataType = String.class;  // dont crash the IDE
                     }
 
@@ -228,10 +230,10 @@ public class StudioUtils {
                     componentProperties.put(split[PROPERTY_NAME_INDEX], ikasanComponentPropertyMeta);
                 }
             } catch (IOException ioe) {
-                log.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+                LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
             }
         } else {
-            log.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+            LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
         }
         return componentProperties;
     }
@@ -251,9 +253,22 @@ public class StudioUtils {
                     }
                 }
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                log.error("An error has occurred while determining the default value for " + line + " please remove from " + propertiesFile + " or correct it. The default value will be set to null ", ex);
+                LOG.error("An error has occurred while determining the default value for " + line + " please remove from " + propertiesFile + " or correct it. The default value will be set to null ", ex);
             }
         }
         return defaultValue;
+    }
+
+    public static String toJson(Object value) {
+        String moduleString = "CouldNotConvert";
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            moduleString = objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException jpe) {
+            value = "";
+            LOG.warn("Could not generate JSON from [" + value + "]");
+        }
+        return moduleString;
     }
 }

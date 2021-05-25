@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
@@ -29,6 +30,7 @@ public enum IkasanComponentType implements Serializable {
     FTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "ftpConsumer"),
 //    JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer"),
     SPRING_JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer"),
+    SPRING_JMS_CONSUMER_BASIC_AMQ(IkasanComponentCategory.CONSUMER, false, "jmsConsumer"),
     SFTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "sftpConsumer"),
     LOCAL_FILE_CONSUMER(IkasanComponentCategory.CONSUMER, false, "fileConsumer"),
     MONGO_CONSUMER(IkasanComponentCategory.CONSUMER, false, "mongoConsumer"),
@@ -68,6 +70,7 @@ public enum IkasanComponentType implements Serializable {
     FTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "ftpProducer"),
     SFTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "sftpProducer"),
     JMS_PRODUCER(IkasanComponentCategory.PRODUCER, false, "jmsProducer"),
+    JMS_PRODUCER_BASIC_AMQ(IkasanComponentCategory.PRODUCER, false, "jmsProducer"),
     LOG_PRODUCER(IkasanComponentCategory.PRODUCER, false, "logProducer"),
 
     SINGLE_RECIPIENT_ROUTER(IkasanComponentCategory.ROUTER, false, "SingleRecipientRouter"),
@@ -80,6 +83,7 @@ public enum IkasanComponentType implements Serializable {
     public final String associatedMethodName;
     public final boolean bespokeClass;
     public final IkasanComponentCategory elementCategory;
+    @JsonIgnore
     Map<String, IkasanComponentPropertyMeta> metadataMap;
 
     /**
