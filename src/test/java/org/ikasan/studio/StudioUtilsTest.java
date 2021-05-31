@@ -111,6 +111,5 @@ public class StudioUtilsTest {
         IkasanModule module = new IkasanModule();
         Assert.assertThat(StudioUtils.toJson("bob"), is("\"bob\""));
         Assert.assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
-
     }
 }
