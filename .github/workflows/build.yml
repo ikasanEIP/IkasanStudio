@@ -71,7 +71,7 @@ jobs:
 
       # Run detekt, ktlint and tests
       - name: Run Linters and Test
-        run: ./gradlew check
+        run: ./gradlew check -i
 
       # Run verifyPlugin Gradle task
       - name: Verify Plugin
