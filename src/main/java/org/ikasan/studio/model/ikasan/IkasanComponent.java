@@ -86,6 +86,11 @@ public abstract class IkasanComponent {
         return properties;
     }
 
+    /**
+     * Convenience getter to return User Implemented class properties
+     * @return User Implemented class properties
+     */
+    @JsonIgnore
     public List<IkasanComponentProperty> getUserImplementedClassProperties() {
         return properties.values().stream()
             .filter(x -> x.getMeta().userImplementedClass && x.isRegenerateAllowed())
@@ -144,6 +149,7 @@ public abstract class IkasanComponent {
      * Return the name of this component in a format that would be appropriate to be used as a java class name
      * @return the class name format of the component name.
      */
+    @JsonIgnore
     public String getJavaClassName() {
         return StudioUtils.toJavaClassName(getName());
     }
@@ -152,10 +158,12 @@ public abstract class IkasanComponent {
      * Return the name of this component in a format that would be appropriate to be used as a component in a package name
      * @return the package name format of the component name.
      */
+    @JsonIgnore
     public String getJavaPackageName() {
         return StudioUtils.toJavaPackageName(getName());
     }
 
+    @JsonIgnore
     public String getJavaVariableName() {
         return StudioUtils.toJavaIdentifier(getName());
     }

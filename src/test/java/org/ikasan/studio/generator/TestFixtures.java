@@ -5,8 +5,6 @@ import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 
-import java.util.List;
-
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
 
