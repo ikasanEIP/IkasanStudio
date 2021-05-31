@@ -1,6 +1,7 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
@@ -15,6 +16,7 @@ public abstract class IkasanComponent {
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
     @JsonIgnore
     protected ViewHandler viewHandler;
+    @JsonPropertyOrder(alphabetic = true)
     protected Map<String, IkasanComponentProperty>properties;
     protected IkasanComponentType type;
 
@@ -141,6 +143,11 @@ public abstract class IkasanComponent {
         return viewHandler;
     }
 
+    /**
+     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    @JsonIgnore
     public String getName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);
     }
@@ -176,6 +183,11 @@ public abstract class IkasanComponent {
         this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
     }
 
+    /**
+     * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    @JsonIgnore
     public String getDescription() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
     }
