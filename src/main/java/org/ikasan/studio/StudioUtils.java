@@ -259,6 +259,11 @@ public class StudioUtils {
         return defaultValue;
     }
 
+    /**
+     * Convert the supplied java Object into its JSON representation
+     * @param value to be turned to JSON
+     * @return the Object in JSON format.
+     */
     public static String toJson(Object value) {
         String moduleString = "CouldNotConvert";
 

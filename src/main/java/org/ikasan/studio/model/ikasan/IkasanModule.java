@@ -1,6 +1,7 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.psi.PsiFile;
 import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
@@ -15,6 +16,7 @@ import java.util.List;
  * from any changes to ikasan or dependencies on any particular ikasan version.
  */
 public class IkasanModule extends IkasanComponent {
+    @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     private PsiFile moduleConfig;
 
@@ -101,6 +103,7 @@ public class IkasanModule extends IkasanComponent {
         this.moduleConfig = moduleConfig;
     }
 
+    @JsonIgnore
     public String getApplicationPackageName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME);
     }
@@ -109,10 +112,12 @@ public class IkasanModule extends IkasanComponent {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
     }
 
+    @JsonIgnore
     public String getApplicationPortNumber() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
     }
 
+    @JsonIgnore
     public void setApplicationPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
     }
