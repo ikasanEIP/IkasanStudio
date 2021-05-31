@@ -66,6 +66,7 @@ public class IkasanComponentProperty {
      * For the given field type, determine if a valid value has been set.
      * @return true if the field is empty or unset
      */
+    @JsonIgnore
     public boolean isEmpty() {
         boolean empty = false;
         if ((value == null) ||
