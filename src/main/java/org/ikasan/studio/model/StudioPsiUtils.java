@@ -313,7 +313,7 @@ public class StudioPsiUtils {
         IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
         ikasanModule.reset();
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-        if (pipsiIkasanModel.getModuleConfigClazz() == null) {
+        if (pipsiIkasanModel.getModuleConfigClazz() == null || !pipsiIkasanModel.getModuleConfigClazz().isValid() ) {
             updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
         }
         if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {

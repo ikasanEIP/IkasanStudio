@@ -2,6 +2,7 @@ package org.ikasan.studio.actions;
 
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 
@@ -19,7 +20,7 @@ public class ModelRebuildAction implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
       StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
       IkasanModule module = Context.getIkasanModule(projectKey);
-      log.info("ikasan module was " + module.toString());
+      log.info("ikasan module was " + StudioUtils.toJson(module));
 
       Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
       Context.getDesignerCanvas(projectKey).repaint(); // Tell swing the panel is dirty and needs re-painting.
