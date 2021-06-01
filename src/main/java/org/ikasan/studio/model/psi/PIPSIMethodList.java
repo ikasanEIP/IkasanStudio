@@ -82,7 +82,7 @@ public class PIPSIMethodList {
 
     public void setBaseMethodinstanceVariable(PsiReferenceExpression baseMethodinstanceVariable) {
         this.baseMethodinstanceVariable = baseMethodinstanceVariable;
-        if (baseType == null) {
+        if (baseType == null && baseMethodinstanceVariable != null && baseMethodinstanceVariable.getType() != null) {
             baseType = baseMethodinstanceVariable.getType().getCanonicalText();
         }
     }

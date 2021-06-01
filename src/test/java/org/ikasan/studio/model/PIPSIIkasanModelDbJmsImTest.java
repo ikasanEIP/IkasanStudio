@@ -6,6 +6,7 @@ import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
     public String getTestDataDir() {
         return "/dbJmsIm/";
     }
+    @Ignore
     @Test
     public void test_parse_of_dbJmsIm_standard_module() {
 //        final PsiMethod moduleConfigPsiFile = StudioPsiUtils.findFirstMethodByReturnType(myProject, "Module");

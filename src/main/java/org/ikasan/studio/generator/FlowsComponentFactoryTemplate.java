@@ -12,7 +12,7 @@ public class FlowsComponentFactoryTemplate extends Generator {
 
     public static void create(final Project project, final String packageName, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow) {
         String templateString = generateContents(packageName, ikasanModule, ikasanFlow);
-        createTemplateFile(project, packageName, COMPONENT_FACTORY_CLASS_NAME, templateString, true, true);
+        createTemplateFile(project, packageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
     }
 
     public static String generateContents(String packageName, IkasanModule ikasanModule, IkasanFlow ikasanFlow) {

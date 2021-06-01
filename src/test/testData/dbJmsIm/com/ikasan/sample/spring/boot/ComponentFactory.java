@@ -80,7 +80,7 @@ import static org.springframework.jms.listener.DefaultMessageListenerContainer.C
         "classpath:personDB-conf.xml",
         "classpath:h2-datasource-conf.xml"
 } )
-public class ComponentFactory
+public class ComponentFactoryMyFlow1
 {
     @Resource
     private BuilderFactory builderFactory;
