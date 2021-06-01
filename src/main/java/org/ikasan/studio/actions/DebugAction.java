@@ -1,6 +1,5 @@
 package org.ikasan.studio.actions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
@@ -20,7 +19,6 @@ public class DebugAction implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         IkasanModule module = Context.getIkasanModule(projectKey);
-        ObjectMapper objectMapper = new ObjectMapper();
         log.info("ikasan module was " + StudioUtils.toJson(module));
     }
 }
