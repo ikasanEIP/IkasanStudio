@@ -94,7 +94,7 @@ and others will be fixed within the code. I may have guessed incorrectly for som
 * Properties, should they be strict dash format, camel case or dash and camel - newflow1.testftpconsumer.ftp.consumer.filename-pattern=*Test.txt
 * As soon as a component declares that it needs bespoke configuration (https://github.com/ikasanEIP/ikasan/blob/3.2.x/ikasaneip/developer/docs/StandaloneDeveloperGuide.md#configuring-components), that component will need to be treated as a 'custom component' e.g. the custom converter
 * Some of the property configurations seem quite advanced e.g. ManagedEventIdentifierService, ManagedResourceRecoveryManager etc - Should we 'put' these in an 'advanced' options section in order to reduce screen clutter / scare factor?
-
+* ComponentFactories are currently 1 per flow to try to partition bean definitions (which will make autogenration easier and the IDE overall quicker). If this is not desirable we could play with @Import to collate individual flow component factories, or make them @Components and use bean names.
 ## Design ideas
 The local properties file should be geared totally to local running only
 A copy can be taken and substituted with environment and test values. This keeps seperate between local running and how the client does environment config.

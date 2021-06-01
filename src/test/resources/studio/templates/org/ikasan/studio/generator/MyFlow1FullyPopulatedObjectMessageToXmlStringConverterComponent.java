@@ -17,7 +17,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @javax.annotation.Resource
-ComponentFactory componentFactory;
+ComponentFactoryMyFlow1 componentFactory;
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.flow.Flow getMyFlow1()

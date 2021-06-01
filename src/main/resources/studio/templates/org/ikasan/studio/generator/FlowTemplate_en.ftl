@@ -17,7 +17,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @javax.annotation.Resource
-ComponentFactory componentFactory;
+ComponentFactory${flow.getJavaClassName()} componentFactory;
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.flow.Flow get${flow.getJavaClassName()}()
