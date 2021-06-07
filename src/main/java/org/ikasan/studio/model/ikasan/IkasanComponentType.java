@@ -161,14 +161,14 @@ public enum IkasanComponentType implements Serializable {
                 case SFTP_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(SFTP_LOCATION, ikasanFlow);
 //                    endpointFlowElement.setTypeAndViewHandler(SFTP_LOCATION);
-                    description = ikasanFlowComponent.getProperties().get("SftpRemoteHost");
+                    description = ikasanFlowComponent.getConfiguredProperties().get("SftpRemoteHost");
 //                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case FTP_PRODUCER :
                 case FTP_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(FTP_LOCATION, ikasanFlow);
 //                    endpointFlowElement.setTypeAndViewHandler(FTP_LOCATION);
-                    description = ikasanFlowComponent.getProperties().get("RemoteHost");
+                    description = ikasanFlowComponent.getConfiguredProperties().get("RemoteHost");
 //                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case JMS_PRODUCER :
@@ -176,14 +176,14 @@ public enum IkasanComponentType implements Serializable {
                 case SPRING_JMS_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(CHANNEL, ikasanFlow);
 //                    endpointFlowElement.setTypeAndViewHandler(CHANNEL);
-                    description = ikasanFlowComponent.getProperties().get("DestinationJndiName");
+                    description = ikasanFlowComponent.getConfiguredProperties().get("DestinationJndiName");
 //                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case DB_PRODUCER :
                 case DB_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(DB, ikasanFlow);
 //                    endpointFlowElement.setTypeAndViewHandler(DB);
-                    description = ikasanFlowComponent.getProperties().get("setConfiguredResourceId");
+                    description = ikasanFlowComponent.getConfiguredProperties().get("setConfiguredResourceId");
 //                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
             }

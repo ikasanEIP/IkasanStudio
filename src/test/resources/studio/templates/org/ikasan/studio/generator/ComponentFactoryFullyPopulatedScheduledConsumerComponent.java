@@ -14,8 +14,8 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.testscheduledconsumer.ftp.consumer.cron-expression}")
-java.lang.String ftpConsumerCronexpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
+java.lang.String myFlow1FtpConsumerCronexpression;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
 @javax.annotation.Resource
@@ -41,7 +41,7 @@ return builderFactory.getComponentBuilder().scheduledConsumer()
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setScheduledJobName("myScheduledJobName")
 .setScheduledJobGroupName("myScheduledJobGroupName")
-.setCronExpression(ftpConsumerCronexpression)
+.setCronExpression(myFlow1FtpConsumerCronexpression)
 .setMaxEagerCallbacks(1)
 .build();
 }}

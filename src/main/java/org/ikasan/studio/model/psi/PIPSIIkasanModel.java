@@ -797,9 +797,9 @@ public class PIPSIIkasanModel {
             for (Map.Entry<String, Object> entry : flowElementProperties.entrySet()) {
                 IkasanComponentPropertyMeta metaData = componentType.getMetaDataForPropertyName(entry.getKey());
                 if (metaData != null) {
-                    ikasanFlowComponent.getProperties().put(entry.getKey(), new IkasanComponentProperty(metaData, entry.getValue()));
+                    ikasanFlowComponent.getConfiguredProperties().put(entry.getKey(), new IkasanComponentProperty(metaData, entry.getValue()));
                 } else {
-                    ikasanFlowComponent.getProperties().put(entry.getKey(),
+                    ikasanFlowComponent.getConfiguredProperties().put(entry.getKey(),
                         new IkasanComponentProperty(IkasanComponentPropertyMeta.getUnknownComponentMeta(entry.getKey()), entry.getValue()));
                 }
             }

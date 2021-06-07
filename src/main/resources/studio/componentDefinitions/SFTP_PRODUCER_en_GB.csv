@@ -16,12 +16,12 @@
 # SFTP_PRODUCER -
 #
 # Mandatory Properties
-ClientID|true|false||ftp.producer.clientID|java.lang.String|||fileGeneratorToFtpFlow|clientId is stored as part of the meta information persisted about the processed file. The clientId should be a unique value identifing producer or producer connecting to remote server.
-OutputDirectory|true||false|ftp.producer.outputDirectory|java.lang.String|||.|Remote directory where to deliver the file
-Password|true|false||ftp.producer.password|java.lang.String||||password used to login to (S)FTP server where producer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.
-RemoteHost|true|false||ftp.producer.remote-host|java.lang.String||||Default(‘localhost’) host name of the remote (S)FTP server where producer needs to connect.
-RemotePort|true|false||ftp.producer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where producer needs to connect.
-Username|true|false||ftp.producer.username|java.lang.String||||User name used to login to (S)FTP server where producer needs to connect.
+ClientID|true|false||__flow.sftp.producer.clientID|java.lang.String|||fileGeneratorToFtpFlow|clientId is stored as part of the meta information persisted about the processed file. The clientId should be a unique value identifing producer or producer connecting to remote server.
+OutputDirectory|true||false|__flow.sftp.producer.outputDirectory|java.lang.String|||.|Remote directory where to deliver the file
+Password|true|false||__flow.sftp.producer.password|java.lang.String||||password used to login to (S)FTP server where producer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.
+RemoteHost|true|false||__flow.sftp.producer.remote-host|java.lang.String||||Default(‘localhost’) host name of the remote (S)FTP server where producer needs to connect.
+RemotePort|true|false||__flow.sftp.producer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where producer needs to connect.
+Username|true|false||__flow.sftp.producer.username|java.lang.String||||User name used to login to (S)FTP server where producer needs to connect.
 # Optional Properties
 ChecksumDelivered|false|false|||java.lang.Boolean||||Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.
 CleanUpChunks|false|false|||java.lang.Boolean||||Default(true) Flag indicating whether chunk file information persisted in DB should be removed by producer after successful file delivery aka. successful file assembling from chunks.
@@ -33,7 +33,7 @@ CreateParentDirectory|false|false|||java.lang.Boolean||||Default(false) Flag ind
 CriticalOnStartup|false|false|||java.lang.Boolean||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
 KnownHostsFilename|false|false|||java.lang.String||||Works in combination with private/public key set.
 ManagedResourceRecoveryManager|false|true|||java.lang.String|org.ikasan.spec.management.ManagedResourceRecoveryManager|||Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager
-MaxRetryAttempts|false|false||ftp.producer.max-retry-attempts|java.lang.Integer||||Default(3) internal (S)FTP connector retry count.
+MaxRetryAttempts|false|false||__flow.sftp.producer.max-retry-attempts|java.lang.Integer||||Default(3) internal (S)FTP connector retry count.
 PreferredKeyExchangeAlgorithm|false|false|||java.lang.String||||Allowing to explicitly provide KeyExchange Algorithm used by the remote server.
 PrivateKeyFilename|false|false|||java.lang.String||||Allows authentication to remote server with private/public key set given the exchange of the keys and connectivity setup were performed upfront.
 RenameExtension|false|false|||java.lang.String||||Default(‘tmp’) file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.

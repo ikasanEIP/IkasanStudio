@@ -14,20 +14,20 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.max-retry-attempts}")
-java.lang.Integer ftpProducerMaxretryattempts;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.outputDirectory}")
-java.lang.String ftpProducerOutputDirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.remote-port}")
-java.lang.Integer ftpProducerRemoteport;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.remote-host}")
-java.lang.String ftpProducerRemotehost;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.username}")
-java.lang.String ftpProducerUsername;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.clientID}")
-java.lang.String ftpProducerClientID;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testsftpproducer.ftp.producer.password}")
-java.lang.String ftpProducerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.max-retry-attempts}")
+java.lang.Integer myFlow1SftpProducerMaxretryattempts;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.outputDirectory}")
+java.lang.String myFlow1SftpProducerOutputDirectory;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.remote-port}")
+java.lang.Integer myFlow1SftpProducerRemoteport;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.remote-host}")
+java.lang.String myFlow1SftpProducerRemotehost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.username}")
+java.lang.String myFlow1SftpProducerUsername;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.clientID}")
+java.lang.String myFlow1SftpProducerClientID;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.password}")
+java.lang.String myFlow1SftpProducerPassword;
 @javax.annotation.Resource
 org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -39,23 +39,23 @@ return builderFactory.getComponentBuilder().sftpProducer()
 .setTempFileName("myTempFileName")
 .setCreateParentDirectory(true)
 .setConnectionTimeout(300001)
-.setMaxRetryAttempts(ftpProducerMaxretryattempts)
+.setMaxRetryAttempts(myFlow1SftpProducerMaxretryattempts)
 .setConfiguration(myConfigurationClass)
-.setOutputDirectory(ftpProducerOutputDirectory)
-.setRemotePort(ftpProducerRemoteport)
+.setOutputDirectory(myFlow1SftpProducerOutputDirectory)
+.setRemotePort(myFlow1SftpProducerRemoteport)
 .setChecksumDelivered(true)
 .setPreferredKeyExchangeAlgorithm("myPreferredKeyExchangeAlgorithm")
 .setUnzip(true)
 .setRenameExtension("newExtension")
 .setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setPrivateKeyFilename("myPrivateKeyFilename")
-.setRemoteHost(ftpProducerRemotehost)
+.setRemoteHost(myFlow1SftpProducerRemotehost)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setUsername(ftpProducerUsername)
-.setClientID(ftpProducerClientID)
+.setUsername(myFlow1SftpProducerUsername)
+.setClientID(myFlow1SftpProducerClientID)
 .setKnownHostsFilename("myKnownHostsFilename")
 .setCleanupJournalOnComplete(true)
 .setCleanUpChunks(true)
-.setPassword(ftpProducerPassword)
+.setPassword(myFlow1SftpProducerPassword)
 .build();
 }}

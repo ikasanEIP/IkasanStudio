@@ -3,7 +3,10 @@ package org.ikasan.studio;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.ikasan.studio.model.ikasan.IkasanComponent;
 import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanModule;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -275,5 +278,41 @@ public class StudioUtils {
             LOG.warn("Could not generate JSON from [" + value + "]");
         }
         return moduleString;
+    }
+
+    private static final String SUBSTITUTION_PREFIX = "__";
+    private static final String SUBSTITUTION_PREFIX_FLOW = SUBSTITUTION_PREFIX + "flow";
+    private static final String SUBSTITUTION_PREFIX_COMPONENT = SUBSTITUTION_PREFIX + "component";
+    private static final String SUBSTITUTION_PREFIX_MODULE = SUBSTITUTION_PREFIX + "module";
+    public static String getPropertyLabelPackageStyle(IkasanModule module, IkasanFlow flow, IkasanComponent component, String template) {
+        String propertyLabel = template;
+        if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
+            if (module != null) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_MODULE, module.getJavaPackageName());
+            }
+            if (flow != null) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, flow.getJavaPackageName());
+            }
+            if (component != null ) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, component.getJavaPackageName());
+            }
+        }
+        return propertyLabel;
+    }
+
+    public static String getPropertyLabelVariableStyle(IkasanModule module, IkasanFlow flow, IkasanComponent component, String template) {
+        String propertyLabel = template;
+        if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
+            if (module != null) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_MODULE, module.getJavaVariableName());
+            }
+            if (flow != null) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, flow.getJavaVariableName());
+            }
+            if (component != null ) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, component.getJavaVariableName());
+            }
+        }
+        return StudioUtils.toJavaIdentifier(propertyLabel);
     }
 }
