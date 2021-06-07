@@ -19,9 +19,9 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     <#if ikasanFlowComponent.type.bespokeClass>
         @javax.annotation.Resource
-        ${module.properties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.properties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
+        ${module.configuredProperties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.configuredProperties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
-        <#list ikasanFlowComponent.getStandardProperties()![] as propName, propValue>
+        <#list ikasanFlowComponent.getStandardConfiguredProperties()![] as propName, propValue>
             <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
                 <#if propValue.meta.usageDataType?starts_with("java.util.List")>
                     <#assign f_startTag = r'#{${' >
@@ -30,18 +30,15 @@ org.ikasan.builder.BuilderFactory builderFactory;
                     <#assign f_startTag = r'${'>
                     <#assign f_endTag = r'}'>
                 </#if>
-                <#if ikasanFlowComponent.getJavaPackageName() != "">
-                    <#assign f_propertyName = '${flow.getJavaPackageName()}.${ikasanFlowComponent.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}' >
-                <#else>
-                    <#assign f_propertyName = '${flow.getJavaPackageName()}.${propValue.meta.propertyConfigFileLabel}' >
-                </#if>
+
+                <#assign f_propertyName = '${StudioUtils.getPropertyLabelPackageStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)}'>
                 @org.springframework.beans.factory.annotation.Value("${f_startTag}${f_propertyName}${f_endTag}")
                 <#if propValue.meta.usageDataType?starts_with("java.util.List")>
                     <#assign f_dataType = propValue.meta.usageDataType >
                 <#else>
                     <#assign f_dataType = propValue.meta.propertyDataType.getCanonicalName()>
                 </#if>
-                ${f_dataType} ${propValue.meta.getPropertyConfigFileLabelAsVariable()};
+                ${f_dataType} ${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)};
             </#if>
         </#list>
     </#if>
@@ -51,7 +48,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#compress>
     <#list flow.flowComponentList![] as ikasanFlowComponent>
         <#if ! ikasanFlowComponent.type.bespokeClass>
-            <#list ikasanFlowComponent.getStandardProperties() as propName, propValue>
+            <#list ikasanFlowComponent.getStandardConfiguredProperties() as propName, propValue>
                 <#if propValue.meta.userImplementedClass>
                     @javax.annotation.Resource
                     ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
@@ -69,10 +66,10 @@ org.ikasan.builder.BuilderFactory builderFactory;
         return ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
         return builderFactory.getComponentBuilder().${ikasanFlowComponent.type.associatedMethodName}()
-        <#list ikasanFlowComponent.getStandardProperties() as propName, propValue>
+        <#list ikasanFlowComponent.getStandardConfiguredProperties() as propName, propValue>
             <#if propValue.value??>
                 <#if propValue.meta.propertyConfigFileLabel != "">
-                    .set${propName}(${propValue.meta.getPropertyConfigFileLabelAsVariable()})
+                    .set${propName}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)})
                 <#else>
                     <#if propValue.meta.userImplementedClass>
                         .set${propName}(${StudioUtils.toJavaIdentifier(propValue.valueString)})

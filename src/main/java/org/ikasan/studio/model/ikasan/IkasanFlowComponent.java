@@ -69,7 +69,7 @@ public class IkasanFlowComponent extends IkasanComponent {
         return "IkasanFlowComponent {" +
                 ", flowComponent='" + getType() + '\'' +
                 ", name='" + getName() + '\'' +
-                ", properties=" + properties +
+                ", properties=" + configuredProperties +
                 '}';
     }
 }

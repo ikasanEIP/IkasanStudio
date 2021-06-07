@@ -58,7 +58,7 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 
         IkasanFlowComponent jmsConsumer = flow1.getFlowComponentList().get(0);
         Assert.assertThat(jmsConsumer.getName(), is("JMS Consumer"));
-        Assert.assertThat(jmsConsumer.getProperties().size(), is(5));
+        Assert.assertThat(jmsConsumer.getConfiguredProperties().size(), is(5));
 
         Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("Exception Generating Broker"));
         Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("JMS Producer"));

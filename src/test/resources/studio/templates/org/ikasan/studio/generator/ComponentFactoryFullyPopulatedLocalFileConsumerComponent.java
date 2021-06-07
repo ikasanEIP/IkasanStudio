@@ -14,10 +14,10 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("#{${myflow1.testlocalfileconsumer.file.consumer.filenames}}")
-java.util.List<String> fileConsumerFilenames;
-@org.springframework.beans.factory.annotation.Value("${myflow1.testlocalfileconsumer.file.consumer.cron-expression}")
-java.lang.String fileConsumerCronexpression;
+@org.springframework.beans.factory.annotation.Value("#{${myflow1.file.consumer.filenames}}")
+java.util.List<String> myFlow1FileConsumerFilenames;
+@org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
+java.lang.String myFlow1FileConsumerCronexpression;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
@@ -37,7 +37,7 @@ return builderFactory.getComponentBuilder().fileConsumer()
 .setEager(true)
 .setMessageProvider(myMessageProviderClass)
 .setConfiguration(myConfigurationClass)
-.setFilenames(fileConsumerFilenames)
+.setFilenames(myFlow1FileConsumerFilenames)
 .setSortByModifiedDateTime(12)
 .setEventFactory(myEventFactoryClassName)
 .setEncoding("UTF-8")
@@ -48,7 +48,7 @@ return builderFactory.getComponentBuilder().fileConsumer()
 .setScheduledJobName("myScheduledJobName")
 .setMessageProviderPostProcessor(myMessageProviderPostProcessor)
 .setScheduledJobGroupName("myScheduledJobGroupName")
-.setCronExpression(fileConsumerCronexpression)
+.setCronExpression(myFlow1FileConsumerCronexpression)
 .setSortAscending(true)
 .setMaxEagerCallbacks(1)
 .build();

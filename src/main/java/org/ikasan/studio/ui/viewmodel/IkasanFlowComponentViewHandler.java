@@ -40,7 +40,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     }
 
     public String getPropertiesAsString() {
-        return model.getProperties().toString();
+        return model.getConfiguredProperties().toString();
     }
 
     /**

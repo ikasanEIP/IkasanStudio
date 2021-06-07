@@ -40,7 +40,7 @@ public class IkasanFlowBeskpokeComponent extends IkasanFlowComponent {
         return "IkasanFlowBeskpokeComponent{" +
                 "overrideEnabled=" + overrideEnabled +
                 ", viewHandler=" + viewHandler +
-                ", properties=" + properties +
+                ", properties=" + configuredProperties +
                 '}';
     }
 }

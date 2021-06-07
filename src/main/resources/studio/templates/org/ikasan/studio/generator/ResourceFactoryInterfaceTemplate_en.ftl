@@ -12,7 +12,7 @@ public interface ResourceFactory
 {
 <#compress>
     <#list flow.flowComponentList![] as ikasanFlowComponent>
-        <#list ikasanFlowComponent.getStandardProperties() as propName, propValue>
+        <#list ikasanFlowComponent.getStandardConfiguredProperties() as propName, propValue>
             <#if propValue.meta.userDefineResource>
                 ${propValue.meta.usageDataType} get${StudioUtils.toJavaIdentifier(propValue.valueString)};
             </#if>
