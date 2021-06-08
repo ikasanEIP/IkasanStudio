@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Parent of all Ikasan Components e.g. flows, module, flowComponent
+ */
 public abstract class IkasanComponent {
     @JsonIgnore
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
