@@ -156,35 +156,24 @@ public enum IkasanComponentType implements Serializable {
     public static IkasanFlowComponent getEndpointForFlowElement(IkasanFlowComponent ikasanFlowComponent, IkasanFlow ikasanFlow) {
         IkasanFlowComponent endpointFlowElement = null ;
         if (ikasanFlowComponent.getType() != null) {
-            Object description;
             switch (ikasanFlowComponent.getType()) {
                 case SFTP_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(SFTP_LOCATION, ikasanFlow);
-//                    endpointFlowElement.setTypeAndViewHandler(SFTP_LOCATION);
-                    description = ikasanFlowComponent.getConfiguredProperties().get("SftpRemoteHost");
-//                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case FTP_PRODUCER :
                 case FTP_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(FTP_LOCATION, ikasanFlow);
-//                    endpointFlowElement.setTypeAndViewHandler(FTP_LOCATION);
-                    description = ikasanFlowComponent.getConfiguredProperties().get("RemoteHost");
-//                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
                 case JMS_PRODUCER :
-//                case JMS_CONSUMER :
+                case JMS_PRODUCER_BASIC_AMQ:
                 case SPRING_JMS_CONSUMER :
-                    endpointFlowElement = new IkasanFlowComponent(CHANNEL, ikasanFlow);
-//                    endpointFlowElement.setTypeAndViewHandler(CHANNEL);
-                    description = ikasanFlowComponent.getConfiguredProperties().get("DestinationJndiName");
-//                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
+                case SPRING_JMS_CONSUMER_BASIC_AMQ:
+                    String destinationName = ikasanFlowComponent.getDestinationName();
+                    endpointFlowElement = new IkasanFlowComponent(CHANNEL, ikasanFlow, destinationName, destinationName);
                     break;
                 case DB_PRODUCER :
                 case DB_CONSUMER :
                     endpointFlowElement = new IkasanFlowComponent(DB, ikasanFlow);
-//                    endpointFlowElement.setTypeAndViewHandler(DB);
-                    description = ikasanFlowComponent.getConfiguredProperties().get("setConfiguredResourceId");
-//                    endpointFlowElement.setDescription(description != null ? description.toString() : "");
                     break;
             }
         }
@@ -201,5 +190,20 @@ public enum IkasanComponentType implements Serializable {
 
     public String getAssociatedMethodName() {
         return associatedMethodName;
+    }
+
+    public boolean isJms() {
+        boolean isJms = false;
+        if (this != null) {
+            switch (this) {
+                case JMS_PRODUCER:
+                case JMS_PRODUCER_BASIC_AMQ:
+                case SPRING_JMS_CONSUMER:
+                case SPRING_JMS_CONSUMER_BASIC_AMQ:
+                    isJms = true;
+                    break;
+            }
+        }
+        return isJms;
     }
 }
