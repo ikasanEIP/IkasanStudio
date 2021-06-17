@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import freemarker.template.Configuration;
 import freemarker.template.Version;
 import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanPomModel;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.PropertiesPanel;
@@ -31,6 +32,7 @@ public enum Context {
     private final String CANVAS_TEXT_AREA = "canvasTextArea";
     private final String IKASAN_MODULE = "ikasanModule";
     private final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
+    private final String POM = "pom";
 
     Context() {
         freemarkerConfiguration = new Configuration();
@@ -76,6 +78,13 @@ public enum Context {
         return (Options)getProjectCache(projectKey, INSTANCE.OPTIONS);
     }
 
+    public static IkasanPomModel getPom(String projectKey) {
+        return (IkasanPomModel)getProjectCache(projectKey, INSTANCE.POM);
+    }
+
+    public static void setPom(String projectKey, IkasanPomModel pom) {
+        putProjectCache(projectKey, INSTANCE.POM, pom);
+    }
 
     public static Project getProject(String projectKey) {
         return (Project)getProjectCache(projectKey, INSTANCE.PROJECT);

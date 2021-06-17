@@ -93,6 +93,7 @@ public class DesignerCanvas extends JPanel {
                         Context.getDesignerCanvas(projectKey),
                         propertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
+                    StudioPsiUtils.addDependancies(projectKey, ikasanModule.getType().getComponentDependency().getDependencies());
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateSourceFromModel();
                     disableStart();
@@ -415,6 +416,11 @@ public class DesignerCanvas extends JPanel {
                 } else {
                     return false;
                 }
+            }
+            if (newComponent.getType().getComponentDependency() != null &&
+                newComponent.getType().getComponentDependency().getDependencies() != null &&
+                ! newComponent.getType().getComponentDependency().getDependencies().isEmpty()) {
+                StudioPsiUtils.addDependancies(projectKey, newComponent.getType().getComponentDependency().getDependencies());
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel();
