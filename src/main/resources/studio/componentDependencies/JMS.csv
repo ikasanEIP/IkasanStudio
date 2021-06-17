@@ -1,0 +1,3 @@
+activemq-client,org.apache.activemq,5.15.11
+activemq-broker,org.apache.activemq,5.15.11
+ikasan-jms-spring-arjuna,org.ikasan,3.1.0

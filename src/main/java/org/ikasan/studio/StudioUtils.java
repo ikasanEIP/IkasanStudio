@@ -3,6 +3,7 @@ package org.ikasan.studio;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.apache.maven.model.Dependency;
 import org.ikasan.studio.model.ikasan.IkasanComponent;
 import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
@@ -15,10 +16,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Studio Utils
@@ -117,7 +115,7 @@ public class StudioUtils {
 
     /**
      * Pretty much what org.apache.commons.text.CaseUtils does i.e. produce camelCase, but we are limited by what libs Intellij
-     * pull into the plugin dependencies.
+     * pull into the plugin componentDependencies.
      * @param input a string potentially with spaces
      * @return a string that could be used as a java identifer
      */
@@ -236,9 +234,62 @@ public class StudioUtils {
                 LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
             }
         } else {
-            LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+            LOG.warn("Could not load the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
         }
         return componentProperties;
+    }
+
+    private static final int ARTIFACT_ID_INDEX = 0;
+    private static final int GROUP_ID_INDEX = 1;
+    private static final int VERSION_INDEX = 2;
+    private static final int NUMBER_OF_DEPENDENCY_CONFIGS = 3;
+    public static final String COMPONENT_DEPENDENCIES_DIR = "/studio/componentDependencies/";
+
+    public static List<Dependency> readIkasanComponentDependencies(String propertiesFile) {
+        List<Dependency> dependencies = new ArrayList<>() ;
+
+        String propertiesFileName = COMPONENT_DEPENDENCIES_DIR + propertiesFile + ".csv";
+        InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
+
+        Set<String> artifactIds = new HashSet<>();
+        if (is != null) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.startsWith("#")) {
+                        continue;
+                    }
+                    String[] split = line.split(",");
+                    if (split.length != NUMBER_OF_DEPENDENCY_CONFIGS) {
+                        LOG.error("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
+                        continue;
+                    }
+
+                    final String artifactId = split[ARTIFACT_ID_INDEX];
+                    String groupId = split[GROUP_ID_INDEX];
+                    String version = split[VERSION_INDEX];
+
+                    if (artifactId.isEmpty() || groupId.isEmpty() || version.isEmpty()) {
+                        LOG.error("The dependency is not fully configured, artifactId=" + artifactId + ", groupId=" + groupId + ",version=" + version + " so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                    } else if (artifactIds.contains(artifactId)) {
+                        LOG.error("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                    } else {
+                        artifactIds.add(artifactId);
+                        Dependency dependency = new Dependency();
+                        dependency.setType("jar");
+                        dependency.setArtifactId(artifactId);
+                        dependency.setGroupId(groupId);
+                        dependency.setVersion(version);
+                        dependencies.add(dependency);
+                    }
+                }
+            } catch (IOException ioe) {
+                LOG.warn("Could not read the dependency properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+            }
+        } else {
+            LOG.warn("Could not open the dependency properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+        }
+        return dependencies;
     }
 
     private static Object getDefaultValue(final String[] split, final Class dataTypeOfProperty, final String line, final String propertiesFile) {

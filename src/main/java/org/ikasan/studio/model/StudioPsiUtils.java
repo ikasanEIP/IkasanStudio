@@ -6,29 +6,39 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.*;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.log4j.Logger;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.IkasanPomModel;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.io.StringWriter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StudioPsiUtils {
-    private static final Logger log = Logger.getLogger(StudioPsiUtils.class);
+    private static final Logger LOG = Logger.getLogger(StudioPsiUtils.class);
 
     // Enforce utility nature upon class
     private StudioPsiUtils() {}
@@ -68,19 +78,92 @@ public class StudioPsiUtils {
             try {
                 properties.load(new StringReader(psiFile.getText()));
             } catch (IOException e) {
-                log.error("Problems loading in application properties " + e);
+                LOG.error("Problems loading in application properties " + e);
             }
         }
         return properties;
     }
 
-    public static void findPropertiesFiles(Project project) {
-        Collection<VirtualFile> virtualFiles =
-                FileTypeIndex.getFiles(StdFileTypes.PROPERTIES, GlobalSearchScope.projectScope(project));
-        for (VirtualFile virtualFile : virtualFiles) {
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-            log.warn("Found [" + psiFile.getName() +"] " + System.currentTimeMillis());
-            log.warn("Found [" + psiFile.getText() + "]");
+    public static IkasanPomModel loadPom(Project project) { //throws IOException, XmlPullParserException {
+        IkasanPomModel pom = Context.getPom(project.getName());
+        if (pom == null || pom.getPomPsiFile() == null) {
+            Model model = null;
+            PsiFile pomPsiFile = getPom(project);
+
+            try (Reader reader = new StringReader(pomPsiFile.getText())) {
+                MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+                model = xpp3Reader.read(reader);
+                pom = new IkasanPomModel(model, pomPsiFile);
+                Context.setPom(project.getName(), pom);
+            } catch (IOException | XmlPullParserException ex) {
+                LOG.error("Unable to load project pom", ex);
+            }
+        }
+        return pom;
+    }
+
+    public static void addDependancies(String projectKey, List<Dependency> dependencies) {
+        Project project = Context.getProject(projectKey);
+        IkasanPomModel pom = loadPom(project);
+        boolean pomUpdated = false;
+
+        if (pom!= null && pom.getModel() != null && dependencies != null && !dependencies.isEmpty()) {
+            Set existingDependencies = new HashSet(pom.getModel().getDependencies());
+            for (Dependency dependency: dependencies) {
+                if (!existingDependencies.contains(dependency)) {
+                    pom.getModel().addDependency(dependency);
+                    existingDependencies.add(dependency);
+                    pomUpdated = true;
+                }
+            }
+        }
+
+        if (pomUpdated) {
+            savePom(project, pom);
+            ((ProjectManagerImpl) ProjectManager.getInstance()).reloadProject(project);
+        }
+    }
+
+    public static void savePom(Project project, IkasanPomModel pom) {
+        MavenXpp3Writer writer = new MavenXpp3Writer();
+        StringWriter sw = new StringWriter();
+        try {
+            writer.write(sw, pom.getModel());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
+        String fileName = pom.getPomPsiFile().getName();
+        if (pom.getPomPsiFile() != null) {
+            pom.getPomPsiFile().delete();
+        }
+
+        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.XML, sw.toString());
+        // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
+        newPomFile = (XmlFile)containtingDirectory.add(newPomFile);
+        CodeStyleManager.getInstance(project).reformat(newPomFile);
+        // Technically this is a testing Util
+        PsiTestUtil.checkFileStructure(newPomFile);
+
+    }
+
+    public static PsiFile createFile1(final String filename, final String text, Project project) {
+        //  ************************* PsiJavaParserFacadeImpl ********************************
+        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
+        @NotNull Module[] module = ModuleManager.getInstance(project).getModules();
+        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
+        PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
+        return newFile;
+    }
+
+
+    public static PsiFile getPom(Project project) {
+        PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
+        if (pomFiles.length > 0) {
+            return pomFiles[0];
+        } else {
+            return null;
         }
     }
 
@@ -265,7 +348,7 @@ public class StudioPsiUtils {
 
         if (files != null) {
             for (PsiClass myClass : files) {
-                log.debug("looking for class " + className + ", found [" + myClass.getName() +"]");
+                LOG.debug("looking for class " + className + ", found [" + myClass.getName() +"]");
             }
         }
         return files;
@@ -281,7 +364,7 @@ public class StudioPsiUtils {
         PsiClass[] classes = findClass(project, className);
         if (classes!= null && classes.length > 0) {
             if (classes.length > 1) {
-                log.warn("Found more than one class of name " + className+ " but only expected 1");
+                LOG.warn("Found more than one class of name " + className+ " but only expected 1");
             }
             return classes[0];
         } else {
@@ -299,7 +382,7 @@ public class StudioPsiUtils {
         JvmMethod[] methods = clazz.findMethodsByName(methodName);
         if (methods.length > 0) {
             if (methods.length > 1) {
-                log.warn("Found more than one class of name " + methodName + " but only expected 1");
+                LOG.warn("Found more than one class of name " + methodName + " but only expected 1");
             }
             return methods[0];
         } else {
@@ -354,7 +437,7 @@ public class StudioPsiUtils {
         String projectName = project.getName();
         VirtualFile[] vFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
         String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
-        log.info("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
+        LOG.info("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
     }
 
     public static String JAVA_CODE = "main/java";
@@ -407,16 +490,6 @@ public class StudioPsiUtils {
 //        PsiExpression result = (PsiExpression)binaryExpression.replace(equalsCall);
     }
 
-
-    public static PsiFile createFile1(final String filename, final String text, Project project) {
-        //  ************************* PsiJavaParserFacadeImpl ********************************
-        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
-        @NotNull Module[] module = ModuleManager.getInstance(project).getModules();
-        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
-        PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
-        return newFile;
-    }
 
     /**
      * Create the supplied directory in the PSI file system if it does not already exists

@@ -13,7 +13,7 @@ import java.util.List;
  * This class holds all the information about the ikasan module flow.
  *
  * Its a deliberate decision not to use components from within the ikasan framework itself in an attempt to insulate
- * from any changes to ikasan or dependencies on any particular ikasan version.
+ * from any changes to ikasan or componentDependencies on any particular ikasan version.
  */
 public class IkasanModule extends IkasanComponent {
     @JsonPropertyOrder(alphabetic = true)
