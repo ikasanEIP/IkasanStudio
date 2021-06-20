@@ -93,9 +93,9 @@ public class DesignerCanvas extends JPanel {
                         Context.getDesignerCanvas(projectKey),
                         propertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
-                    StudioPsiUtils.addDependancies(projectKey, ikasanModule.getType().getComponentDependency().getDependencies());
+//                    StudioPsiUtils.addDependancies(projectKey, ikasanModule.getType().getComponentDependency().getDependencies());
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-                    pipsiIkasanModel.generateSourceFromModel();
+                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getType().getComponentDependency().getDependencies());
                     disableStart();
                 }
             }
@@ -417,13 +417,13 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-            if (newComponent.getType().getComponentDependency() != null &&
-                newComponent.getType().getComponentDependency().getDependencies() != null &&
-                ! newComponent.getType().getComponentDependency().getDependencies().isEmpty()) {
-                StudioPsiUtils.addDependancies(projectKey, newComponent.getType().getComponentDependency().getDependencies());
-            }
+//            if (newComponent.getType().getComponentDependency() != null &&
+//                newComponent.getType().getComponentDependency().getDependencies() != null &&
+//                ! newComponent.getType().getComponentDependency().getDependencies().isEmpty()) {
+//                StudioPsiUtils.addDependancies(projectKey, newComponent.getType().getComponentDependency().getDependencies());
+//            }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.generateSourceFromModel();
+            pipsiIkasanModel.generateSourceFromModel(newComponent.getType().getComponentDependency().getDependencies());
             StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();

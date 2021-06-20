@@ -6,8 +6,6 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -120,7 +118,7 @@ public class StudioPsiUtils {
 
         if (pomUpdated) {
             savePom(project, pom);
-            ((ProjectManagerImpl) ProjectManager.getInstance()).reloadProject(project);
+//            ProjectManager.getInstance().reloadProject(project);
         }
     }
 
@@ -136,6 +134,7 @@ public class StudioPsiUtils {
         String fileName = pom.getPomPsiFile().getName();
         if (pom.getPomPsiFile() != null) {
             pom.getPomPsiFile().delete();
+            pom.setPomPsiFile(null);
         }
 
         XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.XML, sw.toString());
@@ -144,7 +143,7 @@ public class StudioPsiUtils {
         CodeStyleManager.getInstance(project).reformat(newPomFile);
         // Technically this is a testing Util
         PsiTestUtil.checkFileStructure(newPomFile);
-
+        pom.setPomPsiFile(newPomFile);
     }
 
     public static PsiFile createFile1(final String filename, final String text, Project project) {

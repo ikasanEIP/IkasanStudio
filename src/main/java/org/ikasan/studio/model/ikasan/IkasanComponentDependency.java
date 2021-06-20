@@ -7,7 +7,8 @@ import java.util.List;
 
 public enum IkasanComponentDependency {
     BASIC(),
-    JMS();
+    JMS(),
+    NONE();
 
     List<Dependency> dependencies;
 
