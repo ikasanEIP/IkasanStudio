@@ -60,7 +60,7 @@ public class DesignerUI {
 
     /**
      * This will populate the canvas as soon as the indexing service has completed
-     * Note, it may result in an IndexNotReadyException but seems tro retry successfully.
+     * Note, it may result in an IndexNotReadyException but seems to retry successfully.
      */
     public void initialiseIkasanModel() {
         DumbService dumbService = DumbService.getInstance(project);

@@ -4,12 +4,14 @@ import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.impl.source.PsiJavaCodeReferenceElementImpl;
 import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import org.apache.log4j.Logger;
+import org.apache.maven.model.Dependency;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
@@ -72,33 +74,47 @@ public class PIPSIIkasanModel {
      * An update has been made to the diagram so we need to reverse this into the code.
      */
     public void generateSourceFromModel() {
+        generateSourceFromModel(null);
+    }
+
+    public void generateSourceFromModel(List<Dependency> newDependencies) {
         Project project = Context.getProject(projectKey);
-//        if (moduleConfigClazz == null) {
             CommandProcessor.getInstance().executeCommand(
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
+                        if (newDependencies != null && !newDependencies.isEmpty()) {
+                            StudioPsiUtils.addDependancies(projectKey, newDependencies);
+                        }
+                        //@todo start making below conditional on state changed.
                         ApplicationTemplate.create(project);
-//                        generateBespokeConponents(project);
+//                        generateBespokeComponents(project);
                         FlowTemplate.create(project);
                         ModuleConfigTemplate.create(project);
                         PropertiesTemplate.create(project);
-                        // Basics done, now populate the source with the specifics of the model
-
-
                     }),
                 "Generate source from flow diagram",
                 "Undo group ID");
 
-            // is the above asyn ??
-            // @todo verify if above is asynch, if so maybe block or pass in this we we can update moduleConfigClazz.
-            IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
-            moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
-
-//        }
+            // Above is asynch, need to execute below as a second command in the same undo group,
+            // Above command is executed then when done, next command in command group is done.
+            CommandProcessor.getInstance().executeCommand(
+                    project,
+                    () -> ApplicationManager.getApplication().runWriteAction(
+                            () -> {
+                                IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+                                moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+                                // reloadProject needed to re-read POM, must not be done till addDependancies
+                                // fully complete, hence in next executeCommand block
+                                if (newDependencies != null && !newDependencies.isEmpty()) {
+                                    ProjectManager.getInstance().reloadProject(project);
+                                }
+                            }),
+                    "Refresh POM",
+                    "Undo group ID");
     }
 
-//    private void generateBespokeConponents(Project project) {
+//    private void generateBespokeComponents(Project project) {
 //        IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
 //        for(IkasanFlow flow : ikasanModule.getFlows()) {
 //            for (IkasanFlowComponent component : flow.getFlowComponentList()) {
