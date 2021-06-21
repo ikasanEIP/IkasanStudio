@@ -98,20 +98,32 @@ public class PIPSIIkasanModel {
 
             // Above is asynch, need to execute below as a second command in the same undo group,
             // Above command is executed then when done, next command in command group is done.
-            CommandProcessor.getInstance().executeCommand(
-                    project,
-                    () -> ApplicationManager.getApplication().runWriteAction(
-                            () -> {
-                                IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
-                                moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
-                                // reloadProject needed to re-read POM, must not be done till addDependancies
-                                // fully complete, hence in next executeCommand block
-                                if (newDependencies != null && !newDependencies.isEmpty()) {
-                                    ProjectManager.getInstance().reloadProject(project);
-                                }
-                            }),
-                    "Refresh POM",
-                    "Undo group ID");
+//            CommandProcessor.getInstance().executeCommand(
+//                    project,
+////                    () -> ApplicationManager.getApplication().runWriteAction(
+//                    () -> ApplicationManager.getApplication().runReadAction(
+//                            () -> {
+//                                IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+//                                moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+//                                // reloadProject needed to re-read POM, must not be done till addDependancies
+//                                // fully complete, hence in next executeCommand block
+//                                if (newDependencies != null && !newDependencies.isEmpty()) {
+//                                    ProjectManager.getInstance().reloadProject(project);
+//                                }
+//                            }),
+//                    "Refresh POM",
+//                    "Undo group ID");
+
+        ApplicationManager.getApplication().runReadAction(
+                () -> {
+                    IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+                    moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+                    // reloadProject needed to re-read POM, must not be done till addDependancies
+                    // fully complete, hence in next executeCommand block
+                    if (newDependencies != null && !newDependencies.isEmpty()) {
+                        ProjectManager.getInstance().reloadProject(project);
+                    }
+                });
     }
 
 //    private void generateBespokeComponents(Project project) {
