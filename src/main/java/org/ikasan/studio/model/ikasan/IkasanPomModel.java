@@ -7,6 +7,9 @@ public class IkasanPomModel {
     Model model;
     PsiFile pomPsiFile;
 
+    public IkasanPomModel() {
+    }
+
     public IkasanPomModel(Model model, PsiFile pomPsiFile) {
         this.model = model;
         this.pomPsiFile = pomPsiFile;

@@ -84,7 +84,7 @@ public class StudioPsiUtils {
 
     public static IkasanPomModel loadPom(Project project) { //throws IOException, XmlPullParserException {
         IkasanPomModel pom = Context.getPom(project.getName());
-        if (pom == null || pom.getPomPsiFile() == null) {
+        if (pom == null) {
             Model model = null;
             PsiFile pomPsiFile = getPom(project);
 
@@ -130,6 +130,10 @@ public class StudioPsiUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Always need to reget the PsiFile since a reload might have disposed previous handle.
+        pom.setPomPsiFile(getPom(project));
+
         PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
         String fileName = pom.getPomPsiFile().getName();
         if (pom.getPomPsiFile() != null) {
