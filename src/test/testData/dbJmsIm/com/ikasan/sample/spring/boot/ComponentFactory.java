@@ -54,7 +54,13 @@ import org.ikasan.spec.component.filter.Filter;
 import org.ikasan.spec.component.filter.FilterException;
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.splitting.Splitter;
+import org.ikasan.spec.component.endpoint.EndpointException;
+import org.ikasan.spec.component.routing.RouterException;
+import org.ikasan.spec.component.splitting.SplitterException;
 import org.ikasan.spec.component.transformation.TransformationException;
+import javax.jms.JMSException;
+import javax.resource.ResourceException;
+import java.util.concurrent.TimeoutException;
 import org.ikasan.spec.configuration.ConfiguredResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +86,7 @@ import static org.springframework.jms.listener.DefaultMessageListenerContainer.C
         "classpath:personDB-conf.xml",
         "classpath:h2-datasource-conf.xml"
 } )
-public class ComponentFactoryMyFlow1
+public class ComponentFactory
 {
     @Resource
     private BuilderFactory builderFactory;
@@ -147,6 +153,8 @@ public class ComponentFactoryMyFlow1
                 .build();
     }
 
+
+
     Converter getObjectToXmlStringConverter()
     {
         return builderFactory.getComponentBuilder().objectToXmlStringConverter()
@@ -190,7 +198,16 @@ public class ComponentFactoryMyFlow1
 
     ExceptionResolver getSourceFlowExceptionResolver()
     {
-        return builderFactory.getExceptionResolverBuilder().addExceptionToAction(TransformationException.class, OnException.excludeEvent()).build();
+        return builderFactory.getExceptionResolverBuilder()
+                .addExceptionToAction(TransformationException.class, OnException.ignoreException())
+                .addExceptionToAction(SplitterException.class, OnException.excludeEvent())
+                .addExceptionToAction(RouterException.class, OnException.retry(200, 10))
+                .addExceptionToAction(EndpointException.class, OnException.retryIndefinitely())
+                .addExceptionToAction(JMSException.class, OnException.retryIndefinitely(100))
+                .addExceptionToAction(ResourceException.class, OnException.scheduledCronRetry("* * * * *", 100))
+                .addExceptionToAction(TimeoutException.class, OnException.stop())
+                .addExceptionToAction(FilterException.class, OnException.stop())
+                .build();
     }
 
     Splitter getListSplitter()

@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class Options {
     private static final String HINT_TIPS = "HINT_TIPS";
+    private static final String AUTO_RELOAD_MAVEN = "AUTO_RELOAD_MAVEN";
 
     private Map<String, Object> applicationOptions;
 
@@ -12,6 +13,7 @@ public class Options {
         // set defaults
         applicationOptions = new HashMap<>();
         setHintTipsEnabled(Boolean.TRUE);
+        setAutoReloadMavenEnabled(Boolean.TRUE);
     }
 
     public boolean isHintsEnabled() {
@@ -20,5 +22,13 @@ public class Options {
 
     public void setHintTipsEnabled(boolean hintTipsEnabled) {
         applicationOptions.put(HINT_TIPS, hintTipsEnabled);
+    }
+
+    public boolean isAutoReloadMavenEnabled() {
+        return (Boolean) applicationOptions.get(AUTO_RELOAD_MAVEN);
+    }
+
+    public void setAutoReloadMavenEnabled(boolean hintTipsEnabled) {
+        applicationOptions.put(AUTO_RELOAD_MAVEN, hintTipsEnabled);
     }
 }

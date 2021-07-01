@@ -38,6 +38,8 @@ public class PIPSIIkasanModel {
     private static final String MODULE_BUILDER_SET_NAME_METHOD = "getModuleBuilder";
     private static final String FLOW_BUILDER_NAME_METHOD = "getFlowBuilder";
     private static final String COMPONENT_BUILDER_NAME_METHOD = "getComponentBuilder";
+    private static final String EXCEPTION_RESOLVER_NAME_METHOD = "getExceptionResolverBuilder";
+    private static final String ADD_EXCEPTION_TO_ACTION = "addExceptionToAction";
 
     private PsiElementFactory javaPsiFactory;
     private String projectKey ;
@@ -113,14 +115,22 @@ public class PIPSIIkasanModel {
 //                            }),
 //                    "Refresh POM",
 //                    "Undo group ID");
-
+//        ReadAction.nonBlocking(() -> {
+//            IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+//            moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+//            // reloadProject needed to re-read POM, must not be done till addDependancies
+//            // fully complete, hence in next executeCommand block
+//            if (newDependencies != null && !newDependencies.isEmpty()) {
+//                ProjectManager.getInstance().reloadProject(project);
+//            }
+//        }).inSmartMode(project);
         ApplicationManager.getApplication().runReadAction(
                 () -> {
                     IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
                     moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
                     // reloadProject needed to re-read POM, must not be done till addDependancies
                     // fully complete, hence in next executeCommand block
-                    if (newDependencies != null && !newDependencies.isEmpty()) {
+                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOption(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
                     }
                 });
@@ -525,7 +535,7 @@ public class PIPSIIkasanModel {
                     //// return statement
                     // The returnReference will contain our type of component .e.g Filter, Producer etc
                     PsiReferenceExpressionImpl returnReference = getLocalVariableFromReturnStatement(getterReturnStatement);
-// XXXX
+
                     String getterReturnType = ((PsiType)factoryClassGetterMethod.getReturnType()).getCanonicalText();
                     String ikasanComponentType = null;
                     if (IkasanComponentCategory.isIkasanComponent(getterReturnType)) {
@@ -785,30 +795,42 @@ public class PIPSIIkasanModel {
      */
     protected IkasanFlowComponent createFlowElementWithProperties(final IkasanFlow parent, final String name, final String description, final PIPSIMethodList componentBuilderMethodList) {
         IkasanFlowComponent ikasanFlowComponent = null;
-        Map<String, Object> flowElementProperties = new TreeMap<>();
+        Map<MetadataKey, Object> flowElementProperties = new TreeMap<>();
         for (PIPSIMethod pipsiMethod: componentBuilderMethodList.getPipsiMethods()) {
+            int addExceptionToActionLineNumber = 1;
             String methodName = pipsiMethod.getName();
             if  ("build".equals(methodName) || COMPONENT_BUILDER_NAME_METHOD.equals(methodName)) {
                 // Ignore for now
-            }
-            else if (methodName.startsWith("set")) {
-                String parameter =  getReferenceOrLiteral(pipsiMethod,0);
-//                String propertyName = methodName.replaceFirst("set", "");
-////                //@todo we should be able to get the type as well if we need to
-//                String springValueKey = getSpringValueKey(componentBuilderMethod, 0);
-//                String parameter ;
-//                if (springValueKey != null) {
-//                    Properties properties = Context.getApplicationProperties(projectKey);
-//                    parameter = properties.getProperty(springValueKey);
-//                } else {
-//                    // A standard literal have been provided.
-//                    parameter = componentBuilderMethod.getLiteralParameterAsString(0, true);
-//                }
+            } else if (EXCEPTION_RESOLVER_NAME_METHOD.equals(methodName)) {
+                ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.parseMethodName(methodName), parent, name, description);
+            } else if (ADD_EXCEPTION_TO_ACTION.equals(methodName)) {
+                // .addExceptionToAction(RouterException.class, OnException.retry(200, 10))
+                // Exception resolver is a special case, key name will be ExceptionResolver, group will increment from 1 for each addExceptionToAction method call.
+                //  parameter 1 = RouterException.class
+                //  parameter 2 = retry
+                //  parameter 3 = 200
+                //  parameter 4 = 10
 
+                String exception =  getReferenceOrLiteral(pipsiMethod, 0);
+                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 1), exception);
+
+                // here we should get mothod name
+                String onExceptionType =  getReferenceOrLiteral(pipsiMethod, 1);
+                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 2), onExceptionType);
+
+                // here we get params (upto 2)
+                // @TODO need to match to correct parameter group ?
+                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 3), onExceptionType);
+                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 4), onExceptionType);
+                addExceptionToActionLineNumber++;
+
+
+            } else if (methodName.startsWith("set")) {
+                String parameter =  getReferenceOrLiteral(pipsiMethod, 0);
                 // Only expect 1 param for the setter
-                flowElementProperties.put(methodName.replaceFirst("set", ""), parameter);
+                flowElementProperties.put(new MetadataKey(methodName.replaceFirst("set", ""), 1, 1), parameter);
             } else {
-                // Must be the component type
+                // Must be the component type e.g. jmsConsumer()
                 ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.parseMethodName(methodName), parent, name, description);
 //                ikasanFlowComponent.setTypeAndViewHandler(IkasanComponentType.parseMethodName(methodName));
             }
@@ -822,13 +844,13 @@ public class PIPSIIkasanModel {
         if (ikasanFlowComponent != null && ! flowElementProperties.isEmpty()) {
             // Now we know the component, we can match the properties to the known properties for that component
             IkasanComponentType componentType = ikasanFlowComponent.getType();
-            for (Map.Entry<String, Object> entry : flowElementProperties.entrySet()) {
+            for (Map.Entry<MetadataKey, Object> entry : flowElementProperties.entrySet()) {
                 IkasanComponentPropertyMeta metaData = componentType.getMetaDataForPropertyName(entry.getKey());
                 if (metaData != null) {
                     ikasanFlowComponent.getConfiguredProperties().put(entry.getKey(), new IkasanComponentProperty(metaData, entry.getValue()));
                 } else {
                     ikasanFlowComponent.getConfiguredProperties().put(entry.getKey(),
-                        new IkasanComponentProperty(IkasanComponentPropertyMeta.getUnknownComponentMeta(entry.getKey()), entry.getValue()));
+                        new IkasanComponentProperty(IkasanComponentPropertyMeta.getUnknownComponentMeta(entry.getKey().getPropertyName()), entry.getValue()));
                 }
             }
         }

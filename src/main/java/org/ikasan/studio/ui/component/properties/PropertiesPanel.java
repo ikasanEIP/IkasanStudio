@@ -181,8 +181,8 @@ public class PropertiesPanel extends JPanel {
                         selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
             if (selectedComponent.getType().getMetadataMap().size() > 0) {
-                for (Map.Entry<String, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
-                    String key = entry.getKey();
+                for (Map.Entry<MetadataKey, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
+                    MetadataKey key = entry.getKey();
                     if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
                         IkasanComponentProperty property = selectedComponent.getProperty(key);
                         if (property == null) {

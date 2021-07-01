@@ -68,7 +68,7 @@ public class ModuleFactory
 
         Flow sourceFlow = moduleBuilder.getFlowBuilder("dbToJMSFlow")
             .withDescription("Sample DB to JMS flow")
-//            .withExceptionResolver( componentFactory.getSourceFlowExceptionResolver() )
+            .withExceptionResolver( componentFactory.getSourceFlowExceptionResolver() )
             .consumer("DB Consumer", componentFactory.getDBConsumer())
             .filter("My Filter", componentFactory.getFilter(), new FilterInvokerConfiguration())
             .splitter("Split list", componentFactory.getListSplitter())

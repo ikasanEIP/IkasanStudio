@@ -83,7 +83,7 @@ public class IkasanFlowComponent extends IkasanComponent {
     public String getDestinationName() {
         String destinationName = "";
         if (type.isJms()) {
-            IkasanComponentProperty destination = this.getConfiguredProperties().get("DestinationJndiName");
+            IkasanComponentProperty destination = this.getProperty("DestinationJndiName");
             if (destination != null && destination.getValue() != null) {
                     destinationName = destination.getValueString();
             }

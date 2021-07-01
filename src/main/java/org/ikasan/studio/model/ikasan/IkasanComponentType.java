@@ -16,68 +16,70 @@ import java.util.TreeMap;
  */
 public enum IkasanComponentType implements Serializable {
     MODULE(IkasanComponentCategory.MODULE, false, "", IkasanComponentDependency.BASIC),
-    FLOW(IkasanComponentCategory.FLOW, false, "",IkasanComponentDependency.NONE),
-    BROKER(IkasanComponentCategory.BROKER, false, "broker",IkasanComponentDependency.NONE),
-    DB_BROKER(IkasanComponentCategory.BROKER, false, "DbBroker",IkasanComponentDependency.NONE),
-    DELAY_GENERATION_BROKER(IkasanComponentCategory.BROKER, false, "DelayGenerationBroker",IkasanComponentDependency.NONE),
-    EXCEPTION_GENERATING_BROKER(IkasanComponentCategory.BROKER, false, "ExceptionGenerationgBroker",IkasanComponentDependency.NONE),
-    SCHEDULE_RULE_CHECK_BROKER(IkasanComponentCategory.BROKER, false, "ScheduledRuleCheckBroker",IkasanComponentDependency.NONE),
+    FLOW(IkasanComponentCategory.FLOW, false, "", IkasanComponentDependency.NONE),
+    BROKER(IkasanComponentCategory.BROKER, false, "broker", IkasanComponentDependency.NONE),
+    DB_BROKER(IkasanComponentCategory.BROKER, false, "DbBroker", IkasanComponentDependency.NONE),
+    DELAY_GENERATION_BROKER(IkasanComponentCategory.BROKER, false, "DelayGenerationBroker", IkasanComponentDependency.NONE),
+    EXCEPTION_GENERATING_BROKER(IkasanComponentCategory.BROKER, false, "ExceptionGenerationgBroker", IkasanComponentDependency.NONE),
+    SCHEDULE_RULE_CHECK_BROKER(IkasanComponentCategory.BROKER, false, "ScheduledRuleCheckBroker", IkasanComponentDependency.NONE),
 
-    DB_CONSUMER(IkasanComponentCategory.CONSUMER, false, "DBConsumer",IkasanComponentDependency.NONE),
-//    EVENT_DRIVEN_CONSUMER(IkasanComponentCategory.CONSUMER, false, "eventDrivenConsumer",IkasanComponentDependency.NONE),  cant seem to find this in ikasan code base.
-    EVENT_GENERATING_CONSUMER(IkasanComponentCategory.CONSUMER, false, "eventGeneratingConsumer",IkasanComponentDependency.NONE),
-    SCHEDULED_CONSUMER(IkasanComponentCategory.CONSUMER, false, "scheduledConsumer",IkasanComponentDependency.NONE),
-    FTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "ftpConsumer",IkasanComponentDependency.NONE),
-//    JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer",IkasanComponentDependency.NONE),
+    DB_CONSUMER(IkasanComponentCategory.CONSUMER, false, "DBConsumer", IkasanComponentDependency.NONE),
+//    EVENT_DRIVEN_CONSUMER(IkasanComponentCategory.CONSUMER, false, "eventDrivenConsumer", IkasanComponentDependency.NONE),  cant seem to find this in ikasan code base.
+    EVENT_GENERATING_CONSUMER(IkasanComponentCategory.CONSUMER, false, "eventGeneratingConsumer", IkasanComponentDependency.NONE),
+    SCHEDULED_CONSUMER(IkasanComponentCategory.CONSUMER, false, "scheduledConsumer", IkasanComponentDependency.NONE),
+    FTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "ftpConsumer", IkasanComponentDependency.NONE),
+//    JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer", IkasanComponentDependency.NONE),
     SPRING_JMS_CONSUMER(IkasanComponentCategory.CONSUMER, false, "jmsConsumer", IkasanComponentDependency.JMS),
     SPRING_JMS_CONSUMER_BASIC_AMQ(IkasanComponentCategory.CONSUMER, false, "jmsConsumer", IkasanComponentDependency.JMS),
-    SFTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "sftpConsumer",IkasanComponentDependency.NONE),
-    LOCAL_FILE_CONSUMER(IkasanComponentCategory.CONSUMER, false, "fileConsumer",IkasanComponentDependency.NONE),
-    MONGO_CONSUMER(IkasanComponentCategory.CONSUMER, false, "mongoConsumer",IkasanComponentDependency.NONE),
+    SFTP_CONSUMER(IkasanComponentCategory.CONSUMER, false, "sftpConsumer", IkasanComponentDependency.NONE),
+    LOCAL_FILE_CONSUMER(IkasanComponentCategory.CONSUMER, false, "fileConsumer", IkasanComponentDependency.NONE),
+    MONGO_CONSUMER(IkasanComponentCategory.CONSUMER, false, "mongoConsumer", IkasanComponentDependency.NONE),
 
     // @todo, maybe introduce the base class into this list, might conflict though when matching custom components.
-    CUSTOM_CONVERTER(IkasanComponentCategory.CONVERTER, true, "Converter",IkasanComponentDependency.NONE),  // This will really be the implemented interface
-    JSON_XML_CONVERTER(IkasanComponentCategory.CONVERTER, false, "JsonXmlConverter",IkasanComponentDependency.NONE),
-    MAP_MESSAGE_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "MapMessageToObjectConverter",IkasanComponentDependency.NONE),
-    MAP_MESSAGE_TO_PAYLOAD_CONVERTER(IkasanComponentCategory.CONVERTER, false, "MapMessageToPayloadConverter",IkasanComponentDependency.NONE),
-    OBJECT_MESSAGE_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ObjectMessageToObjectConverter",IkasanComponentDependency.NONE),
-    OBJECT_MESSAGE_TO_XML_STRING_CONVERTER(IkasanComponentCategory.CONVERTER, false, "objectToXmlStringConverter",IkasanComponentDependency.NONE),
-//    OBJECT_TO_XML_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ObjectToXmlStringConverter",IkasanComponentDependency.NONE),
-    PAYLOAD_TO_MAP_CONVERTER(IkasanComponentCategory.CONVERTER, false, "PayloadToMapConverter",IkasanComponentDependency.NONE),
-    TEXT_MESSAGE_TO_STRING_CONVERTER(IkasanComponentCategory.CONVERTER, false, "TextMessageToStringConverter",IkasanComponentDependency.NONE),
-    THREAD_SAFE_XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ThreadSafeXsltConverter",IkasanComponentDependency.NONE),
-    XML_BYTE_ARRAY_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlByteArrayToObjectConverter",IkasanComponentDependency.NONE),
-    XML_STRING_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "xmlStringToObjectConverter",IkasanComponentDependency.NONE),
-    XML_TO_JSON_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlJsonConverter",IkasanComponentDependency.NONE),
-    XSLT_CONFIGURATION_PARAMETER_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConfigurationParameterConverter",IkasanComponentDependency.NONE),
-    XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConverter",IkasanComponentDependency.NONE),
+    CUSTOM_CONVERTER(IkasanComponentCategory.CONVERTER, true, "Converter", IkasanComponentDependency.NONE),  // This will really be the implemented interface
+    JSON_XML_CONVERTER(IkasanComponentCategory.CONVERTER, false, "JsonXmlConverter", IkasanComponentDependency.NONE),
+    MAP_MESSAGE_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "MapMessageToObjectConverter", IkasanComponentDependency.NONE),
+    MAP_MESSAGE_TO_PAYLOAD_CONVERTER(IkasanComponentCategory.CONVERTER, false, "MapMessageToPayloadConverter", IkasanComponentDependency.NONE),
+    OBJECT_MESSAGE_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ObjectMessageToObjectConverter", IkasanComponentDependency.NONE),
+    OBJECT_MESSAGE_TO_XML_STRING_CONVERTER(IkasanComponentCategory.CONVERTER, false, "objectToXmlStringConverter", IkasanComponentDependency.NONE),
+//    OBJECT_TO_XML_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ObjectToXmlStringConverter", IkasanComponentDependency.NONE),
+    PAYLOAD_TO_MAP_CONVERTER(IkasanComponentCategory.CONVERTER, false, "PayloadToMapConverter", IkasanComponentDependency.NONE),
+    TEXT_MESSAGE_TO_STRING_CONVERTER(IkasanComponentCategory.CONVERTER, false, "TextMessageToStringConverter", IkasanComponentDependency.NONE),
+    THREAD_SAFE_XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "ThreadSafeXsltConverter", IkasanComponentDependency.NONE),
+    XML_BYTE_ARRAY_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlByteArrayToObjectConverter", IkasanComponentDependency.NONE),
+    XML_STRING_TO_OBJECT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "xmlStringToObjectConverter", IkasanComponentDependency.NONE),
+    XML_TO_JSON_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XmlJsonConverter", IkasanComponentDependency.NONE),
+    XSLT_CONFIGURATION_PARAMETER_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConfigurationParameterConverter", IkasanComponentDependency.NONE),
+    XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConverter", IkasanComponentDependency.NONE),
 
-    MESSAGE_FILTER(IkasanComponentCategory.FILTER, false, "FilterInvokerConfiguration",IkasanComponentDependency.NONE),
+    MESSAGE_FILTER(IkasanComponentCategory.FILTER, false, "FilterInvokerConfiguration", IkasanComponentDependency.NONE),
 
-    CHANNEL(IkasanComponentCategory.ENDPOINT, false, "messageChannel",IkasanComponentDependency.NONE),
-    FTP_LOCATION(IkasanComponentCategory.ENDPOINT, false, "ftpLocation",IkasanComponentDependency.NONE),
-    SFTP_LOCATION(IkasanComponentCategory.ENDPOINT, false, "sftpLocation",IkasanComponentDependency.NONE),
-    DB(IkasanComponentCategory.ENDPOINT, false, "message-store",IkasanComponentDependency.NONE),
+    CHANNEL(IkasanComponentCategory.ENDPOINT, false, "messageChannel", IkasanComponentDependency.NONE),
+    FTP_LOCATION(IkasanComponentCategory.ENDPOINT, false, "ftpLocation", IkasanComponentDependency.NONE),
+    SFTP_LOCATION(IkasanComponentCategory.ENDPOINT, false, "sftpLocation", IkasanComponentDependency.NONE),
+    DB(IkasanComponentCategory.ENDPOINT, false, "message-store", IkasanComponentDependency.NONE),
 
-    LIST_SPLITTER(IkasanComponentCategory.SPLITTER, false, "listSplitter",IkasanComponentDependency.NONE),
-    SPLITTER(IkasanComponentCategory.SPLITTER, false, "splitter",IkasanComponentDependency.NONE),
+    EXCEPTION_RESOLVER(IkasanComponentCategory.EXCEPTION_RESOLVER, false, "getExceptionResolverBuilder", IkasanComponentDependency.NONE),
 
-    TRANSLATOR(IkasanComponentCategory.TRANSLATER, false, "Translator",IkasanComponentDependency.NONE),
+    LIST_SPLITTER(IkasanComponentCategory.SPLITTER, false, "listSplitter", IkasanComponentDependency.NONE),
+    SPLITTER(IkasanComponentCategory.SPLITTER, false, "splitter", IkasanComponentDependency.NONE),
 
-    DB_PRODUCER(IkasanComponentCategory.PRODUCER, false, "DBProducer",IkasanComponentDependency.NONE),
-    DEV_NULL_PRODUCER(IkasanComponentCategory.PRODUCER, false, "devNullProducer",IkasanComponentDependency.NONE),
-    EMAIL_PRODUCER(IkasanComponentCategory.PRODUCER, false, "emailProducer",IkasanComponentDependency.NONE),
-    FTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "ftpProducer",IkasanComponentDependency.NONE),
-    SFTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "sftpProducer",IkasanComponentDependency.NONE),
+    TRANSLATOR(IkasanComponentCategory.TRANSLATER, false, "Translator", IkasanComponentDependency.NONE),
+
+    DB_PRODUCER(IkasanComponentCategory.PRODUCER, false, "DBProducer", IkasanComponentDependency.NONE),
+    DEV_NULL_PRODUCER(IkasanComponentCategory.PRODUCER, false, "devNullProducer", IkasanComponentDependency.NONE),
+    EMAIL_PRODUCER(IkasanComponentCategory.PRODUCER, false, "emailProducer", IkasanComponentDependency.NONE),
+    FTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "ftpProducer", IkasanComponentDependency.NONE),
+    SFTP_PRODUCER(IkasanComponentCategory.PRODUCER, false, "sftpProducer", IkasanComponentDependency.NONE),
     JMS_PRODUCER(IkasanComponentCategory.PRODUCER, false, "jmsProducer", IkasanComponentDependency.JMS),
     JMS_PRODUCER_BASIC_AMQ(IkasanComponentCategory.PRODUCER, false, "jmsProducer", IkasanComponentDependency.JMS),
-    LOG_PRODUCER(IkasanComponentCategory.PRODUCER, false, "logProducer",IkasanComponentDependency.NONE),
+    LOG_PRODUCER(IkasanComponentCategory.PRODUCER, false, "logProducer", IkasanComponentDependency.NONE),
 
-    SINGLE_RECIPIENT_ROUTER(IkasanComponentCategory.ROUTER, false, "SingleRecipientRouter",IkasanComponentDependency.NONE),
-    MULTI_RECIPIENT_ROUTER(IkasanComponentCategory.ROUTER, false, "MultiRecipientRouter",IkasanComponentDependency.NONE),
+    SINGLE_RECIPIENT_ROUTER(IkasanComponentCategory.ROUTER, false, "SingleRecipientRouter", IkasanComponentDependency.NONE),
+    MULTI_RECIPIENT_ROUTER(IkasanComponentCategory.ROUTER, false, "MultiRecipientRouter", IkasanComponentDependency.NONE),
 
-    BESPOKE(IkasanComponentCategory.UNKNOWN, true, "bespoke",IkasanComponentDependency.NONE),
-    UNKNOWN(IkasanComponentCategory.UNKNOWN, false, "unknown",IkasanComponentDependency.NONE);
+    BESPOKE(IkasanComponentCategory.UNKNOWN, true, "bespoke", IkasanComponentDependency.NONE),
+    UNKNOWN(IkasanComponentCategory.UNKNOWN, false, "unknown", IkasanComponentDependency.NONE);
 
     private static final Logger LOG = Logger.getLogger(IkasanComponentType.class);
     public final String associatedMethodName;
@@ -86,7 +88,7 @@ public enum IkasanComponentType implements Serializable {
     @JsonIgnore
     public final IkasanComponentDependency componentDependency;
     @JsonIgnore
-    Map<String, IkasanComponentPropertyMeta> metadataMap;
+    Map<MetadataKey, IkasanComponentPropertyMeta> metadataMap;
 
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
@@ -110,9 +112,9 @@ public enum IkasanComponentType implements Serializable {
      * Get a list of the mandatory properties for this component.
      * @return A map of the mandatory properties for this component
      */
-    public Map<String, IkasanComponentProperty> getMandatoryProperties() {
-        Map<String, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
-        for (Map.Entry<String, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
+    public Map<MetadataKey, IkasanComponentProperty> getMandatoryProperties() {
+        Map<MetadataKey, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
+        for (Map.Entry<MetadataKey, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
             if (entry.getValue().isMandatory()) {
                 mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
             }
@@ -120,14 +122,23 @@ public enum IkasanComponentType implements Serializable {
         return mandatoryProperties;
     }
 
-    public Map<String, IkasanComponentPropertyMeta> getMetadataMap() {
+    public Map<MetadataKey, IkasanComponentPropertyMeta> getMetadataMap() {
         return metadataMap;
     }
     public IkasanComponentPropertyMeta getMetadata(String propertyName) {
+        // If we just supply the propertyName, assume it is the simple type i.e. 1 group, 1 constructor
+        return metadataMap.get(new MetadataKey(propertyName, 1, 1));
+    }
+    public IkasanComponentPropertyMeta getMetadata(MetadataKey propertyName) {
         return metadataMap.get(propertyName);
     }
 
     public IkasanComponentPropertyMeta getMetaDataForPropertyName(final String propertyName) {
+        // If we just supply the propertyName, assume it is the simple type i.e. 1 group, 1 constructor
+        return metadataMap.get(new MetadataKey(propertyName,1,1));
+    }
+
+    public IkasanComponentPropertyMeta getMetaDataForPropertyName(final MetadataKey propertyName) {
         return metadataMap.get(propertyName);
     }
 

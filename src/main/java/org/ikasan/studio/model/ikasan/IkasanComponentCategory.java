@@ -13,7 +13,7 @@ public enum IkasanComponentCategory {
     CONVERTER(30, "converter", "org.ikasan.spec.component.transformation.Converter"),
     DESCRIPTION(1001, "withDescription", "String"),
     ENDPOINT(1002, "endPoint", "String"),
-    EXCEPTION_RESOLVER(90,"exceptionResolver", "org.ikasan.exceptionResolver.ExceptionResolver"),
+    EXCEPTION_RESOLVER(90,"withExceptionResolver", "org.ikasan.exceptionResolver.ExceptionResolver"),
     FILTER(40, "filter", "org.ikasan.spec.component.filter.Filter"),
     PRODUCER(80, "producer", "org.ikasan.spec.component.endpoint.Producer"),
     ROUTER(50, "router", "router"),

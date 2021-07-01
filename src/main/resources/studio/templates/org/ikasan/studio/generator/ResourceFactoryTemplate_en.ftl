@@ -23,7 +23,7 @@ public class ResourceFactoryImpl implements ResourceFactory
 {
 <#compress>
     <#list flow.flowComponentList![] as ikasanFlowComponent>
-            <#list ikasanFlowComponent.getStandardConfiguredProperties() as propName, propValue>
+            <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
                 <#if propValue.meta.userDefineResource>
                     ${propValue.meta.usageDataType} get${StudioUtils.toJavaIdentifier(propValue.valueString)}();
                 </#if>

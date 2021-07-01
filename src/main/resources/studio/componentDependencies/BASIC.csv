@@ -1,9 +1,8 @@
-ikasan-eip-standalone,org.ikasan,3.1.0
-ikasan-h2-standalone-persistence,org.ikasan,3.1.0
 ikasan-connector-base,org.ikasan,3.1.0
-ikasan-test-endpoint,org.ikasan,3.1.0
+ikasan-eip-standalone,org.ikasan,3.1.0
 ikasan-ftp-endpoint,org.ikasan,3.1.0
+ikasan-h2-standalone-persistence,org.ikasan,3.1.0
+ikasan-test-endpoint,org.ikasan,3.1.0
 jackson-annotations,com.fasterxml.jackson.core,2.12.3
-jackson-databind,com.fasterxml.jackson.core,2.12.3
 jackson-core,com.fasterxml.jackson.core,2.12.3
-jackson-annotations,com.fasterxml.jackson.core,2.12.3
+jackson-databind,com.fasterxml.jackson.core,2.12.3

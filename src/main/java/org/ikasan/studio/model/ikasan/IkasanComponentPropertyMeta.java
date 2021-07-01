@@ -6,37 +6,45 @@ import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * Represents all the possible properties an ikasan component is allowed to have
+ * Represents all the possible properties an Ikasan component is allowed to have
  */
 public class IkasanComponentPropertyMeta {
-    public static final String NAME = "Name";
-    public static final String DESCRIPTION = "Description";
-    public static final String BESPOKE_CLASS_NAME = "BespokeClassName";
-    public static final String FROM_TYPE = "FromType";
-    public static final String TO_TYPE = "ToType";
+    public static final String BESPOKE_CLASS_NAME = "BespokeClassName"; // Special meta for a bespoke class used as a property
+    public static final String FROM_TYPE = "FromType";                  // Special meta for converter, the type of the inbound payload
+    public static final String TO_TYPE = "ToType";                      // Special meta for converter, the type of the outbound payload
+
+    // Special META for component NAME, this standard for each component.
+    public static final MetadataKey NAME = new MetadataKey("Name", 1, 1);
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(true, false, false,
-            IkasanComponentPropertyMeta.NAME, null, String.class, "", "", "",
+        new IkasanComponentPropertyMeta(1, 1, true, false, false,
+            NAME.getPropertyName(), null, String.class, "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
-    public static final IkasanComponentPropertyMeta STD_DESCIPTION_META_COMPONENT =
-        new IkasanComponentPropertyMeta(false, false,false,
-            IkasanComponentPropertyMeta.DESCRIPTION, null, String.class, "", "", "",
+
+    // Special META for component DESCRIPTION, this standard for each component.
+    public static final MetadataKey DESCRIPTION = new MetadataKey("Description", 1, 1);
+    public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
+        new IkasanComponentPropertyMeta(1, 1, false, false,false,
+            DESCRIPTION.getPropertyName(), null, String.class, "", "", "",
             "A more detailed description of the component that may assist in support.");
 
-    public static final String APPLICATION_PACKAGE_NAME = "ApplicationPackageName";
+    // Special META for package parent of the users bespoke packages, a little like a pom group
+    public static final MetadataKey APPLICATION_PACKAGE_NAME = new MetadataKey("ApplicationPackageName", 1, 1);
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(true, false,false,
-            IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, null, String.class, "", "", "",
+        new IkasanComponentPropertyMeta(1, 1, true, false,false,
+            APPLICATION_PACKAGE_NAME.getPropertyName(), null, String.class, "", "", "",
             "The base java package for your application.");
 
-    public static final String APPLICATION_PORT_NUMBER_NAME = "ApplicationPortNumber";
+    // Special META to model the port number to be used to launch the app and part of its user driven config.
+    public static final MetadataKey APPLICATION_PORT_NUMBER_NAME = new MetadataKey("ApplicationPortNumber", 1, 1);
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
-            new IkasanComponentPropertyMeta(true, false,false,
-                    IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, null, String.class, "", "", "",
+            new IkasanComponentPropertyMeta(1, 1, true, false,false,
+                    APPLICATION_PORT_NUMBER_NAME.getPropertyName(), null, String.class, "", "", "",
                     "The port number that the running application will use locally.");
 
+    Integer paramGroupNumber;
+    Integer paramNumber;
     boolean mandatory;
     boolean userImplementedClass;
     boolean userDefineResource;
@@ -50,6 +58,8 @@ public class IkasanComponentPropertyMeta {
 
     /**
      *
+     * @param paramGroupNumber Supports sets of params e.g. overloaded methods
+     * @param paramNumber The parameter number (where a component might be instantiated with multiple parameters)
      * @param mandatory for the component to be deemed to be complete
      * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
      * @param userDefineResource The user will define a the details of the resource within the ResourceFactory.
@@ -60,7 +70,9 @@ public class IkasanComponentPropertyMeta {
      * @param defaultValue for the property
      * @param helpText for the property
      */
-    public IkasanComponentPropertyMeta(@NotNull boolean mandatory,
+    public IkasanComponentPropertyMeta(@NotNull Integer paramGroupNumber,
+                                       @NotNull Integer paramNumber,
+                                       @NotNull boolean mandatory,
                                        @NotNull boolean userImplementedClass,
                                        boolean userDefineResource,
                                        @NotNull String propertyName,
@@ -70,6 +82,8 @@ public class IkasanComponentPropertyMeta {
                                        String validation,
                                        Object defaultValue,
                                        String helpText) {
+        this.paramGroupNumber = paramGroupNumber;
+        this.paramNumber = paramNumber;
         this.mandatory = mandatory;
         this.userImplementedClass = userImplementedClass;
         this.userDefineResource = userDefineResource;
@@ -133,7 +147,7 @@ public class IkasanComponentPropertyMeta {
     }
 
     public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(false, false, false, name, null, String.class, "", "", "", "");
+        return new IkasanComponentPropertyMeta(1, 1, false, false, false, name, null, String.class, "", "", "", "");
     }
 
     /**
@@ -146,7 +160,9 @@ public class IkasanComponentPropertyMeta {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IkasanComponentPropertyMeta that = (IkasanComponentPropertyMeta) o;
-        return mandatory == that.mandatory &&
+        return paramGroupNumber.equals(that.paramGroupNumber) &&
+                paramNumber.equals(that.paramNumber) &&
+                mandatory == that.mandatory &&
                 userImplementedClass == that.userImplementedClass &&
                 propertyName.equals(that.propertyName) &&
                 propertyDataType.equals(that.propertyDataType);
@@ -157,13 +173,15 @@ public class IkasanComponentPropertyMeta {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(mandatory, userImplementedClass, propertyName, propertyDataType);
+        return Objects.hash(paramGroupNumber, paramNumber, mandatory, userImplementedClass, propertyName, propertyDataType);
     }
 
     @Override
     public String toString() {
         return "IkasanComponentPropertyMeta{" +
-                "mandatory=" + mandatory +
+                "paramGroupNumber=" + paramGroupNumber +
+                ", paramNumber=" + paramNumber +
+                ", mandatory=" + mandatory +
                 ", userImplementedClass=" + userImplementedClass +
                 ", userDefineResource=" + userDefineResource +
                 ", propertyName='" + propertyName + '\'' +

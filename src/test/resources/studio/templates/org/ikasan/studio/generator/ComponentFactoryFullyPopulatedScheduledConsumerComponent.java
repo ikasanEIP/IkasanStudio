@@ -23,25 +23,25 @@ org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderC
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory myEventFactory;
-@javax.annotation.Resource
 org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
+@javax.annotation.Resource
+org.ikasan.spec.event.EventFactory myEventFactory;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestScheduledConsumer() {
 return builderFactory.getComponentBuilder().scheduledConsumer()
-.setCriticalOnStartup(true)
-.setTimezone("UTC")
-.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
-.setEager(true)
-.setMessageProvider(myMessageProviderClass)
-.setConfiguration(myConfigurationClass)
-.setEventFactory(myEventFactory)
-.setIgnoreMisfire(true)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setScheduledJobName("myScheduledJobName")
-.setScheduledJobGroupName("myScheduledJobGroupName")
 .setCronExpression(myFlow1FtpConsumerCronexpression)
+.setIgnoreMisfire(true)
+.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
+.setMessageProvider(myMessageProviderClass)
 .setMaxEagerCallbacks(1)
+.setTimezone("UTC")
+.setScheduledJobGroupName("myScheduledJobGroupName")
+.setConfiguration(myConfigurationClass)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
+.setEventFactory(myEventFactory)
+.setEager(true)
+.setScheduledJobName("myScheduledJobName")
+.setCriticalOnStartup(true)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .build();
 }}

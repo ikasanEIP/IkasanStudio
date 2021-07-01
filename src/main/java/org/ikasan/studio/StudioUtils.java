@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.model.ikasan.IkasanComponent;
-import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -160,22 +157,23 @@ public class StudioUtils {
             return "";
         }
     }
-
     private static final int PROPERTY_NAME_INDEX = 0;
-    private static final int MANDATORY_INDEX = 1;
-    private static final int USER_IMPLEMENTED_CLASS_INDEX = 2;
-    private static final int USER_DEFINED_RESOURCE_INDEX = 3;
-    private static final int PROPERTY_CONFIG_LABEL_INDEX = 4;
-    private static final int PROPERTY_DATA_TYPE_INDEX = 5;
-    private static final int USAGE_DATA_TYPE_INDEX = 6;
-    private static final int VALIDATION_INDEX = 7;
-    private static final int DEFAULT_VALUE_INDEX = 8;
-    private static final int HELP_INDEX = 9;
-    private static final int NUMBER_OF_CONFIGS = 10;
+    private static final int PARAM_GROUP_NUMBER = 1;
+    private static final int PARAM_NUMBER = 2;
+    private static final int MANDATORY_INDEX = 3;
+    private static final int USER_IMPLEMENTED_CLASS_INDEX = 4;
+    private static final int USER_DEFINED_RESOURCE_INDEX = 5;
+    private static final int PROPERTY_CONFIG_LABEL_INDEX = 6;
+    private static final int PROPERTY_DATA_TYPE_INDEX = 7;
+    private static final int USAGE_DATA_TYPE_INDEX = 8;
+    private static final int VALIDATION_INDEX = 9;
+    private static final int DEFAULT_VALUE_INDEX = 10;
+    private static final int HELP_INDEX = 11;
+    private static final int NUMBER_OF_CONFIGS = 12;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
 
-    public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
-        Map<String, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
+    public static Map<MetadataKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
+        Map<MetadataKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
         componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
@@ -190,17 +188,28 @@ public class StudioUtils {
                     }
                     String[] split = line.split("\\|");
                     if (split.length != NUMBER_OF_CONFIGS) {
-                        LOG.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
-                        continue;
-                    }
-                    if (componentProperties.containsKey(split[PROPERTY_NAME_INDEX])) {
-                        LOG.error("A property of this name already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        LOG.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS +
+                                "), please remove from properties file [" + propertiesFile + "] or fix, the line was [" + line+ "]");
                         continue;
                     }
 
-                    boolean isMandatory = Boolean.parseBoolean(split[MANDATORY_INDEX]);
-                    boolean isUserImplementedClass = Boolean.parseBoolean(split[USER_IMPLEMENTED_CLASS_INDEX]);
-                    boolean isUserDefinedResource = Boolean.parseBoolean(split[USER_DEFINED_RESOURCE_INDEX]);
+
+                    Integer paramGroupNumber = 1;
+                    Integer paramNumber = 1;
+                    try {
+                        paramGroupNumber = Integer.parseInt(split[PARAM_GROUP_NUMBER]);
+                        paramNumber = Integer.parseInt(split[PARAM_NUMBER]);
+
+                    } catch (NumberFormatException nfe) {
+                        LOG.error("Error trying to parse either paramGroupNumber=" + split[PARAM_GROUP_NUMBER] + " or paramNumber=" + split[PARAM_NUMBER] +
+                                " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
+                        continue;
+                    }
+                    MetadataKey newKey = new MetadataKey(split[PROPERTY_NAME_INDEX], paramGroupNumber, paramNumber);
+                    if (componentProperties.containsKey(newKey)) {
+                        LOG.error("A property of this key [" + newKey + "] already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        continue;
+                    }
 
                     final String propertyConfigLabel = split[PROPERTY_CONFIG_LABEL_INDEX];
                     if (propertyConfigLabel != null && propertyConfigLabel.length() > 0) {
@@ -211,6 +220,10 @@ public class StudioUtils {
                             propertyConfigLabels.add(propertyConfigLabel);
                         }
                     }
+
+                    boolean isMandatory = Boolean.parseBoolean(split[MANDATORY_INDEX]);
+                    boolean isUserImplementedClass = Boolean.parseBoolean(split[USER_IMPLEMENTED_CLASS_INDEX]);
+                    boolean isUserDefinedResource = Boolean.parseBoolean(split[USER_DEFINED_RESOURCE_INDEX]);
 
                     String usageDataType = split[USAGE_DATA_TYPE_INDEX];
                     String validation = split[VALIDATION_INDEX];
@@ -226,9 +239,10 @@ public class StudioUtils {
 
                     //  default value
                     Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
-
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(isMandatory, isUserImplementedClass, isUserDefinedResource, split[PROPERTY_NAME_INDEX], propertyConfigLabel, propertyDataType, usageDataType, validation, defaultValue, split[HELP_INDEX]);
-                    componentProperties.put(split[PROPERTY_NAME_INDEX], ikasanComponentPropertyMeta);
+                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
+                            paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isUserDefinedResource, split[PROPERTY_NAME_INDEX], propertyConfigLabel,
+                            propertyDataType, usageDataType, validation, defaultValue, split[HELP_INDEX]);
+                    componentProperties.put(newKey , ikasanComponentPropertyMeta);
                 }
             } catch (IOException ioe) {
                 LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");

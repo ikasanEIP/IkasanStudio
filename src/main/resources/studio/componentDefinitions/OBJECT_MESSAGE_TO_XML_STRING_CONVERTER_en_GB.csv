@@ -1,6 +1,6 @@
-# propertyName|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
-# Note: 1. First row must be th column  headings so that edit as table works in intellij
+# Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
@@ -17,19 +17,19 @@
 #
 # Mandatory Properties
 # Optional Properties
-Configuration|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
-ConfiguredResourceId|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
-FastFailOnConfigurationLoad|false|false|||java.lang.Boolean||||Determines whether we let the component fail if the initial setting and loading of configuration fails.
-NamespacePrefix|false|false|||java.lang.String||||Optionally set namespace prefix (see https://docs.oracle.com/javase/8/docs/api/javax/xml/namespace/QName.html)
-NamespaceURI|false|false|||java.lang.String||||Optionally set namespace URI (see https://docs.oracle.com/javase/8/docs/api/javax/xml/namespace/QName.html)
-NoNamespaceSchema|false|false|||java.lang.Boolean||||Set to true if this is a no namespace schema
-ObjectClass|false|false|||java.lang.String|java.Lang.Object|||Class of the object to be serialised
-ObjectClasses|false|false|||java.lang.String|List<java.Lang.Object>|||Classes of the objects to be serialised
-RootClassName|false|false|||java.lang.String||||optionally set root class name (QNAME)
-RootName|false|false|||java.lang.String||||optionally set root name (QNAME)
-RouteOnValidationException|false|false|||java.lang.Boolean||||Whether to route an XML validation failure to the next component (true) or throw an exception and rollback (false)
-Schema|false|false|||java.lang.String||||actual schema against which validation will occur
-SchemaLocation|false|false|||java.lang.String||||Schema location as put in the root attribute of the generated XML
-UseNamespacePrefix|false|false|||java.lang.Boolean||||Should we use namespace prefixes?
-Validate|false|false|||java.lang.Boolean||||Whether to validate the generated XML against the schema
-XmlAdapterMap|false|true|true||java.lang.String|java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter>|||Map of Class to XmlAdapter instance to override the XmlAdapter on the underlying marshaller
+Configuration|1|1|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+ConfiguredResourceId|1|1|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
+FastFailOnConfigurationLoad|1|1|false|false|||java.lang.Boolean||||Determines whether we let the component fail if the initial setting and loading of configuration fails.
+NamespacePrefix|1|1|false|false|||java.lang.String||||Optionally set namespace prefix (see https://docs.oracle.com/javase/8/docs/api/javax/xml/namespace/QName.html)
+NamespaceURI|1|1|false|false|||java.lang.String||||Optionally set namespace URI (see https://docs.oracle.com/javase/8/docs/api/javax/xml/namespace/QName.html)
+NoNamespaceSchema|1|1|false|false|||java.lang.Boolean||||Set to true if this is a no namespace schema
+ObjectClass|1|1|false|false|||java.lang.String|java.Lang.Object|||Class of the object to be serialised
+ObjectClasses|1|1|false|false|||java.lang.String|List<java.Lang.Object>|||Classes of the objects to be serialised
+RootClassName|1|1|false|false|||java.lang.String||||optionally set root class name (QNAME)
+RootName|1|1|false|false|||java.lang.String||||optionally set root name (QNAME)
+RouteOnValidationException|1|1|false|false|||java.lang.Boolean||||Whether to route an XML validation failure to the next component (true) or throw an exception and rollback (false)
+Schema|1|1|false|false|||java.lang.String||||actual schema against which validation will occur
+SchemaLocation|1|1|false|false|||java.lang.String||||Schema location as put in the root attribute of the generated XML
+UseNamespacePrefix|1|1|false|false|||java.lang.Boolean||||Should we use namespace prefixes?
+Validate|1|1|false|false|||java.lang.Boolean||||Whether to validate the generated XML against the schema
+XmlAdapterMap|1|1|false|true|true||java.lang.String|java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter>|||Map of Class to XmlAdapter instance to override the XmlAdapter on the underlying marshaller

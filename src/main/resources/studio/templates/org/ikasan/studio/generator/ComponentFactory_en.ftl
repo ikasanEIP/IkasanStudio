@@ -19,9 +19,9 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     <#if ikasanFlowComponent.type.bespokeClass>
         @javax.annotation.Resource
-        ${module.configuredProperties.ApplicationPackageName.value}.${flow.getJavaPackageName()}.${ikasanFlowComponent.configuredProperties.BespokeClassName.value} ${ikasanFlowComponent.getJavaVariableName()};
+        ${module.getPropertyValue('ApplicationPackageName')}.${flow.getJavaPackageName()}.${ikasanFlowComponent.getPropertyValue('BespokeClassName')} ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
-        <#list ikasanFlowComponent.getStandardConfiguredProperties()![] as propName, propValue>
+        <#list ikasanFlowComponent.getStandardConfiguredProperties()![] as propKey, propValue>
             <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
                 <#if propValue.meta.usageDataType?starts_with("java.util.List")>
                     <#assign f_startTag = r'#{${' >
@@ -48,7 +48,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#compress>
     <#list flow.flowComponentList![] as ikasanFlowComponent>
         <#if ! ikasanFlowComponent.type.bespokeClass>
-            <#list ikasanFlowComponent.getStandardConfiguredProperties() as propName, propValue>
+            <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
                 <#if propValue.meta.userImplementedClass>
                     @javax.annotation.Resource
                     ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
@@ -66,18 +66,18 @@ org.ikasan.builder.BuilderFactory builderFactory;
         return ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
         return builderFactory.getComponentBuilder().${ikasanFlowComponent.type.associatedMethodName}()
-        <#list ikasanFlowComponent.getStandardConfiguredProperties() as propName, propValue>
+        <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
             <#if propValue.value??>
                 <#if propValue.meta.propertyConfigFileLabel != "">
-                    .set${propName}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)})
+                    .set${propKey.getPropertyName()}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)})
                 <#else>
                     <#if propValue.meta.userImplementedClass>
-                        .set${propName}(${StudioUtils.toJavaIdentifier(propValue.valueString)})
+                        .set${propKey.getPropertyName()}(${StudioUtils.toJavaIdentifier(propValue.valueString)})
                     <#else>
                         <#if propValue.meta.usageDataType == "java.lang.String">
-                            .set${propName}("${propValue.valueString}")
+                            .set${propKey.getPropertyName()}("${propValue.valueString}")
                         <#else>
-                            .set${propName}(${propValue.valueString})
+                            .set${propKey.getPropertyName()}(${propValue.valueString})
                         </#if>
                     </#if>
                 </#if>
