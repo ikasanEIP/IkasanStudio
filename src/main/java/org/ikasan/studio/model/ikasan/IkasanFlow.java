@@ -16,7 +16,7 @@ public class IkasanFlow extends IkasanComponent {
     public IkasanFlow () {
         super (IkasanComponentType.FLOW, IkasanComponentType.FLOW.getMandatoryProperties());
         this.configuredProperties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
-        this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCIPTION_META_COMPONENT));
+        this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT));
 
         this.viewHandler = new IkasanFlowViewHandler(this);
     }

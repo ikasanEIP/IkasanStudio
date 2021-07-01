@@ -19,7 +19,7 @@ public class FlowsBespokePropertyTemplateTest extends TestCase{
     @Test
     public void testCreateWith_Converter() throws IOException {
         String clazzName = "MyBespokeClassForProperty";
-        IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(false,true,false,
+        IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(1, 1, false,true,false,
                 "MessageProviderPostProcessor",null,String.class, "org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor",null,null,null);
         IkasanComponentProperty ikasanComponentProperty = new IkasanComponentProperty(ikasanComponentPropertyMeta, clazzName);
 

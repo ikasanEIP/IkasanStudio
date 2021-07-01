@@ -16,6 +16,7 @@ public class IkasanFlowUIComponentFactory {
     private static final String FLOW_HELP_TEXT = "The flow is the container for components and generally represents an atomic action";
     private static final String BROKER_HELP_TEXT = "Brokers enrich the contents of the existing message with additional data or structure in a number of different ways. Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.";
     private static final String SPLITTER_HELP_TEXT = "Splitters break up the incoming event in to many outgoing events. ikasan will operate on the returned list of events and pass each event in the list independently to the next component for processing. Read more about EIP Sequencer In order to create your own splitter you need to implement Splitter Interface.";
+    private static final String EXCEPTION_RESOLVER_HELP_TEXT = "Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.";
     private static final String CHANNEL_HELP_TEXT = "";
     private static final String CONSUMER_HELP_TEXT = "Consumers provide the \"glue\" between the entry into the flow and the underlying technology generating the event. In order to create your own consumer you need to implement Consumer Interface.";
     private static final String SCHEDULED_CONSUMER_HELP_TEXT = "This is a \"time event\" based consumer configured to be either an absolute or relative time schedule.";
@@ -58,6 +59,8 @@ public class IkasanFlowUIComponentFactory {
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/ConcurrentSplitter.md", IkasanComponentType.SPLITTER, "splitter"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("List Splitter", SPLITTER_HELP_TEXT, "splitter/DefaultSplitter.md", IkasanComponentType.LIST_SPLITTER, "splitter"));
+
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Resolver", EXCEPTION_RESOLVER_HELP_TEXT, "hospital/Readme.md", IkasanComponentType.EXCEPTION_RESOLVER, "exception-resolver"));
 
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentType.BROKER, "broker"));
         ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Generating Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentType.EXCEPTION_GENERATING_BROKER, "broker"));
