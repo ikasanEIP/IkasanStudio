@@ -348,7 +348,7 @@ public class PropertiesPanel extends JPanel {
         if (componentPropertyEditBoxList != null) {
             for (final ComponentPropertyEditBox editPair: componentPropertyEditBoxList) {
                 final String key = editPair.getPropertyLabel();
-                IkasanComponentProperty componentProperty = selectedComponent.getConfiguredProperties().get(key);
+                IkasanComponentProperty componentProperty = selectedComponent.getProperty(key);
                 if (propertyValueHasChanged(componentProperty, editPair)) {
                     modelUpdated = true;
                     if (selectedComponent instanceof IkasanFlowBeskpokeComponent) {
@@ -363,7 +363,7 @@ public class PropertiesPanel extends JPanel {
                     } else {
                         // Property has been unset e.g. a boolean
                         if (editPair.getValue() == null) {
-                            selectedComponent.getConfiguredProperties().remove(key);
+                            selectedComponent.removeProperty(key);
                         } else { // update existing
                             componentProperty.setValue(editPair.getValue());
                             if (editPair.isUserMaintainedClassWithPermissionToRegenerate()) {
@@ -428,7 +428,7 @@ public class PropertiesPanel extends JPanel {
         List<ValidationInfo> result = new ArrayList<>();
         for (final ComponentPropertyEditBox editPair: getComponentPropertyEditBoxList()) {
             final String key = editPair.getPropertyLabel();
-            IkasanComponentProperty componentProperty = getSelectedComponent().getConfiguredProperties().get(key);
+            IkasanComponentProperty componentProperty = getSelectedComponent().getProperty(key);
             // Only mandatory properties are always populated.
             if (componentProperty != null &&
                     componentProperty.getMeta().isMandatory() &&

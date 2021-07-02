@@ -135,7 +135,7 @@ public enum IkasanComponentType implements Serializable {
 
     public IkasanComponentPropertyMeta getMetaDataForPropertyName(final String propertyName) {
         // If we just supply the propertyName, assume it is the simple type i.e. 1 group, 1 constructor
-        return metadataMap.get(new MetadataKey(propertyName,1,1));
+        return metadataMap.get(new MetadataKey(propertyName));
     }
 
     public IkasanComponentPropertyMeta getMetaDataForPropertyName(final MetadataKey propertyName) {

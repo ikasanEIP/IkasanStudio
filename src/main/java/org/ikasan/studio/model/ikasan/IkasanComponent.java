@@ -96,7 +96,15 @@ public abstract class IkasanComponent {
      */
     public void setPropertyValue(String key, Object value) {
         // If we are stating a string key on its own, assume its the simple version.
-        setPropertyValue(new MetadataKey(key, 1, 1), value);
+        setPropertyValue(new MetadataKey(key), value);
+    }
+
+    /**
+     * remove a property for the given key
+     * @param key of the property to be updated
+     */
+    public void removeProperty(String key) {
+        configuredProperties.remove(new MetadataKey(key));
     }
 
     /**
