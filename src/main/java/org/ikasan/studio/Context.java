@@ -7,7 +7,7 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-import org.ikasan.studio.ui.component.properties.PropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -119,11 +119,11 @@ public enum Context {
         return (JSplitPane) getProjectCache(projectKey, INSTANCE.PROPERTIES_AND_CANVAS_SPLITPANE);
     }
 
-    public static void setPropertiesPanel(String projectKey, PropertiesPanel propertiesPanel) {
-        putProjectCache(projectKey, INSTANCE.PROPERTIES_PANEL, propertiesPanel);
+    public static void setPropertiesPanel(String projectKey, ComponentPropertiesPanel componentPropertiesPanel) {
+        putProjectCache(projectKey, INSTANCE.PROPERTIES_PANEL, componentPropertiesPanel);
     }
-    public static PropertiesPanel getPropertiesPanel(String projectKey) {
-        return (PropertiesPanel) getProjectCache(projectKey, INSTANCE.PROPERTIES_PANEL);
+    public static ComponentPropertiesPanel getPropertiesPanel(String projectKey) {
+        return (ComponentPropertiesPanel) getProjectCache(projectKey, INSTANCE.PROPERTIES_PANEL);
     }
 
     public static void setCanvasTextArea(String projectKey, JTextArea canvasTextArea) {

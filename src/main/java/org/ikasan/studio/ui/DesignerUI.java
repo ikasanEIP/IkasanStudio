@@ -10,7 +10,7 @@ import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
-import org.ikasan.studio.ui.component.properties.PropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,11 +39,11 @@ public class DesignerUI {
             Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
 
-        PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, false);
-        Context.setPropertiesPanel(projectKey,propertiesPanel);
+        ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
+        Context.setPropertiesPanel(projectKey, componentPropertiesPanel);
 
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                propertiesPanel,
+                componentPropertiesPanel,
                 new CanvasPanel(projectKey));
         propertiesAndCanvasSplitPane.setDividerSize(3);
         propertiesAndCanvasSplitPane.setDividerLocation(0.4);

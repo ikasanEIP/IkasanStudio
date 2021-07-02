@@ -9,7 +9,7 @@ import java.text.NumberFormat;
 /**
  * Encapsulates the Label and appropriate editor box for a property, including validation and subsequent value access.
  */
-public class ComponentPropertyEditBox {
+public class PropertyEditBox {
     private String propertyTitle;
     private JLabel propertyTitleField;
     private JFormattedTextField propertyValueField;
@@ -20,14 +20,14 @@ public class ComponentPropertyEditBox {
     private JLabel regenerateLabel;
     private Class type;
 
-    public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean popupMode) {
+    public PropertyEditBox(IkasanComponentProperty componentProperty, boolean popupMode) {
         this.propertyTitle = componentProperty.getMeta().getPropertyName();
         this.propertyTitleField = new JLabel(propertyTitle);
         this.type = componentProperty.getMeta().getPropertyDataType();
         Object value = componentProperty.getValue();
 
         // @todo we can have all types of components with rich pattern matching validation
-        if (type == java.lang.Integer.class || type == java.lang.Long.class) {
+        if (type == Integer.class || type == Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.propertyValueField = new JFormattedTextField(amountFormat);
@@ -38,7 +38,7 @@ public class ComponentPropertyEditBox {
                 }
                 propertyValueField.setValue(value);
             }
-        } else if (type == java.lang.Boolean.class) {
+        } else if (type == Boolean.class) {
             // BOOLEAN INPUT
             propertyBooleanFieldTrue = new JCheckBox();
             propertyBooleanFieldFalse = new JCheckBox();
@@ -125,14 +125,14 @@ public class ComponentPropertyEditBox {
 
     public Object getValue() {
         Object returnValue = null;
-        if (type == java.lang.Boolean.class) {
+        if (type == Boolean.class) {
             // It is possible neither are current selected i.e. the property is unset
             if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {
                 returnValue = true;
             } else if (propertyBooleanFieldFalse != null && propertyBooleanFieldFalse.isSelected()) {
                 returnValue = false;
             }
-        } else if (type == java.lang.String.class) {
+        } else if (type == String.class) {
             // The formatter would be null if this was a standard text field.
             returnValue = propertyValueField.getText();
         } else {
@@ -147,9 +147,9 @@ public class ComponentPropertyEditBox {
      */
     public boolean inputfieldIsUnset() {
         // For boolean we don't current support unset @todo support unset if we need to
-        if (type == java.lang.String.class) {
+        if (type == String.class) {
             return propertyValueField.getText() == null || propertyValueField.getText().isEmpty();
-        } else if (type == java.lang.Integer.class || type == java.lang.Long.class) {
+        } else if (type == Integer.class || type == Long.class) {
             // NumberFormat.getNumberInstance() will always return long
             return propertyValueField.getValue() == null || ((Long) propertyValueField.getValue() == 0);
         }
