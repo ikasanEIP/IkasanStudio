@@ -61,7 +61,7 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
             Assert.assertThat(flow1.getFlowComponentList().get(0).getName(), is("DB Consumer"));
             Assert.assertThat(flow1.getFlowComponentList().get(0).getConfiguredProperties().size(), is(4));
             Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("My Filter"));
-            Assert.assertThat(flow1.getFlowComponentList().get(1).getConfiguredProperties().size(), is(3));
+            Assert.assertThat(flow1.getFlowComponentList().get(1).getConfiguredProperties().size(), is(1));
             Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("Split list"));
             Assert.assertThat(flow1.getFlowComponentList().get(2).getConfiguredProperties().size(), is(1));
             Assert.assertThat(flow1.getFlowComponentList().get(3).getName(), is("Person to XML"));
