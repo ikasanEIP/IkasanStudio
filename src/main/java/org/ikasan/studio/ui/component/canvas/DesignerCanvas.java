@@ -13,8 +13,8 @@ import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
-import org.ikasan.studio.ui.component.properties.PropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesDialogue;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
@@ -31,6 +31,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static org.ikasan.studio.model.ikasan.IkasanComponentType.EXCEPTION_RESOLVER;
 
 /**
  * The main painting / design panel
@@ -86,13 +88,13 @@ public class DesignerCanvas extends JPanel {
         // Create the properties popup panel for a new Module
         startButton.addActionListener(e ->
             {
-                PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
-                propertiesPanel.updatePropertiesPanel(ikasanModule);
-                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
+                componentPropertiesPanel.updatePropertiesPanel(ikasanModule);
+                ComponentPropertiesDialogue componentPropertiesDialogue = new ComponentPropertiesDialogue(
                         Context.getProject(projectKey),
                         Context.getDesignerCanvas(projectKey),
-                        propertiesPanel);
-                if (propertiesDialogue.showAndGet()) {
+                        componentPropertiesPanel);
+                if (componentPropertiesDialogue.showAndGet()) {
 //                    StudioPsiUtils.addDependancies(projectKey, ikasanModule.getType().getComponentDependency().getDependencies());
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateSourceFromModel(ikasanModule.getType().getComponentDependency().getDependencies());
@@ -417,11 +419,6 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-//            if (newComponent.getType().getComponentDependency() != null &&
-//                newComponent.getType().getComponentDependency().getDependencies() != null &&
-//                ! newComponent.getType().getComponentDependency().getDependencies().isEmpty()) {
-//                StudioPsiUtils.addDependancies(projectKey, newComponent.getType().getComponentDependency().getDependencies());
-//            }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel(newComponent.getType().getComponentDependency().getDependencies());
             StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
@@ -433,26 +430,58 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    /**
+     * Creation for a flow component
+     * @param ikasanComponentType to create
+     * @param containingFlow that will hold this component
+     * @return the fully populated component or null if the action was cancelled.
+     */
     private IkasanFlowComponent createViableFlowComponent(IkasanComponentType ikasanComponentType, IkasanFlow containingFlow) {
         IkasanFlowComponent newComponent = IkasanFlowComponent.getInstance(ikasanComponentType, containingFlow);
-        return (IkasanFlowComponent)createViableComponent(newComponent);
+        if (EXCEPTION_RESOLVER.equals(ikasanComponentType)) {
+            return (IkasanFlowComponent)createExceptionResolver(newComponent);
+        } else {
+            return (IkasanFlowComponent)createViableComponent(newComponent);
+        }
     }
 
     /**
      * Create the popup properties panel for a new component
      * @param newComponent
-     * @return
+     * @return the populated component or null if the action was cancelled.
      */
     private IkasanComponent createViableComponent(IkasanComponent newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
-            PropertiesPanel propertiesPanel = new PropertiesPanel(projectKey, true);
-            propertiesPanel.updatePropertiesPanel(newComponent);
-            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+            ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
+            componentPropertiesPanel.updatePropertiesPanel(newComponent);
+            ComponentPropertiesDialogue componentPropertiesDialogue = new ComponentPropertiesDialogue(
                     Context.getProject(projectKey),
                     Context.getDesignerCanvas(projectKey),
-                    propertiesPanel);
-            if (! propertiesDialogue.showAndGet()) {
+                    componentPropertiesPanel);
+            if (! componentPropertiesDialogue.showAndGet()) {
+                // i.e. cancel.
+                newComponent = null;
+            }
+        }
+        return newComponent;
+    }
+
+    /**
+     * Create the popup properties panel for a new component
+     * @param newComponent
+     * @return the populated component or null if the action was cancelled.
+     */
+    private IkasanComponent createExceptionResolver(IkasanComponent newComponent) {
+        if (newComponent.hasUnsetMandatoryProperties()) {
+
+            ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
+            componentPropertiesPanel.updatePropertiesPanel(newComponent);
+            ComponentPropertiesDialogue componentPropertiesDialogue = new ComponentPropertiesDialogue(
+                    Context.getProject(projectKey),
+                    Context.getDesignerCanvas(projectKey),
+                    componentPropertiesPanel);
+            if (! componentPropertiesDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;
             }
