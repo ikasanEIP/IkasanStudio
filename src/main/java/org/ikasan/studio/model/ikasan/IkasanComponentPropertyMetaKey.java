@@ -2,7 +2,7 @@ package org.ikasan.studio.model.ikasan;
 
 import org.jetbrains.annotations.NotNull;
 
-public class MetadataKey implements Comparable<MetadataKey> {
+public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponentPropertyMetaKey> {
     private String propertyName;
     private Integer parameterGroupNumber;
     private Integer parameterNumber;
@@ -11,7 +11,7 @@ public class MetadataKey implements Comparable<MetadataKey> {
      * Construct the Metadata key
      * @param propertyName which often maps to a setter method name
      */
-    public MetadataKey(String propertyName) {
+    public IkasanComponentPropertyMetaKey(String propertyName) {
         this(propertyName, 1, 1);
         this.propertyName = propertyName;
     }
@@ -22,7 +22,7 @@ public class MetadataKey implements Comparable<MetadataKey> {
      * @param parameterGroupNumber supports scenario where we have more than 1 group of parameters e.g. when we are overloading
      * @param parameterNumber used to construct the property, most properties have 1 parameter to set them.
      */
-    public MetadataKey(String propertyName, Integer parameterGroupNumber, Integer parameterNumber) {
+    public IkasanComponentPropertyMetaKey(String propertyName, Integer parameterGroupNumber, Integer parameterNumber) {
         this.propertyName = propertyName;
         this.parameterGroupNumber = parameterGroupNumber;
         this.parameterNumber = parameterNumber;
@@ -57,7 +57,7 @@ public class MetadataKey implements Comparable<MetadataKey> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        MetadataKey that = (MetadataKey) o;
+        IkasanComponentPropertyMetaKey that = (IkasanComponentPropertyMetaKey) o;
 
         if (!propertyName.equals(that.propertyName)) return false;
         if (!parameterGroupNumber.equals(that.parameterGroupNumber)) return false;
@@ -86,7 +86,7 @@ public class MetadataKey implements Comparable<MetadataKey> {
     }
 
     @Override
-    public int compareTo(@NotNull MetadataKey o) {
+    public int compareTo(@NotNull IkasanComponentPropertyMetaKey o) {
         if (o == null) {
             return this.getCompareKey().compareTo("null");
         } else {

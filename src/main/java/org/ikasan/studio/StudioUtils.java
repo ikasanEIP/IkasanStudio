@@ -172,8 +172,9 @@ public class StudioUtils {
     private static final int NUMBER_OF_CONFIGS = 12;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
 
-    public static Map<MetadataKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
-        Map<MetadataKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
+    //@todo should be in IkasanComponentType
+    public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
+        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
         componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
@@ -182,6 +183,7 @@ public class StudioUtils {
         if (is != null) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
+                boolean hasSubProperties = false;  // does this property have sub properties
                 while ((line = br.readLine()) != null) {
                     if (line.startsWith("#")) {
                         continue;
@@ -192,7 +194,6 @@ public class StudioUtils {
                                 "), please remove from properties file [" + propertiesFile + "] or fix, the line was [" + line+ "]");
                         continue;
                     }
-
 
                     Integer paramGroupNumber = 1;
                     Integer paramNumber = 1;
@@ -205,7 +206,16 @@ public class StudioUtils {
                                 " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
-                    MetadataKey newKey = new MetadataKey(split[PROPERTY_NAME_INDEX], paramGroupNumber, paramNumber);
+                    String propertyName = split[PROPERTY_NAME_INDEX];
+                    String parentPropertyName = null;
+                    // Check to see if this property has sub properties
+                    if (propertyName.contains(".")) {
+                        String[] parentChildPropertyNames = line.split(".");
+                        parentPropertyName = parentChildPropertyNames[0];
+                        propertyName = parentChildPropertyNames[1];
+                    }
+
+                    IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber, paramNumber);
                     if (componentProperties.containsKey(newKey)) {
                         LOG.error("A property of this key [" + newKey + "] already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                         continue;
@@ -240,9 +250,22 @@ public class StudioUtils {
                     //  default value
                     Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
                     IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
-                            paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isUserDefinedResource, split[PROPERTY_NAME_INDEX], propertyConfigLabel,
+                            paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isUserDefinedResource, propertyName, propertyConfigLabel,
                             propertyDataType, usageDataType, validation, defaultValue, split[HELP_INDEX]);
-                    componentProperties.put(newKey , ikasanComponentPropertyMeta);
+                    if (parentPropertyName != null) {
+                        // Parent child relationship
+                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber, paramNumber);
+                        IkasanComponentPropertyMeta parent = componentProperties.get(parentKey);
+                        if (parent == null) {
+                            componentProperties.put(parentKey, new IkasanComponentPropertyMeta(newKey, ikasanComponentPropertyMeta));
+                        }
+                        else {
+                            parent.addSubProperty(newKey, ikasanComponentPropertyMeta);
+                        }
+                    } else {
+                        // Simple scenario
+                        componentProperties.put(newKey, ikasanComponentPropertyMeta);
+                    }
                 }
             } catch (IOException ioe) {
                 LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
