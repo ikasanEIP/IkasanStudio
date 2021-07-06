@@ -6,8 +6,7 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 
 import java.io.Serializable;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Focuses on the ikasan technical details of a component i.e. type, properties etc
@@ -60,6 +59,7 @@ public enum IkasanComponentType implements Serializable {
     DB(IkasanComponentCategory.ENDPOINT, false, "message-store", IkasanComponentDependency.NONE),
 
     EXCEPTION_RESOLVER(IkasanComponentCategory.EXCEPTION_RESOLVER, false, "getExceptionResolverBuilder", IkasanComponentDependency.NONE),
+    ON_EXCEPTION(IkasanComponentCategory.EXCEPTION_RESOLVER, false, "getExceptionResolverBuilder", IkasanComponentDependency.NONE),
 
     LIST_SPLITTER(IkasanComponentCategory.SPLITTER, false, "listSplitter", IkasanComponentDependency.NONE),
     SPLITTER(IkasanComponentCategory.SPLITTER, false, "splitter", IkasanComponentDependency.NONE),
@@ -88,7 +88,7 @@ public enum IkasanComponentType implements Serializable {
     @JsonIgnore
     public final IkasanComponentDependency componentDependency;
     @JsonIgnore
-    Map<MetadataKey, IkasanComponentPropertyMeta> metadataMap;
+    Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
 
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
@@ -112,36 +112,62 @@ public enum IkasanComponentType implements Serializable {
      * Get a list of the mandatory properties for this component.
      * @return A map of the mandatory properties for this component
      */
-    public Map<MetadataKey, IkasanComponentProperty> getMandatoryProperties() {
-        Map<MetadataKey, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
-        for (Map.Entry<MetadataKey, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
-            if (entry.getValue().isMandatory()) {
+    public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getMandatoryProperties() {
+        Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
+        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
+            if (!entry.getValue().subProperties && entry.getValue().isMandatory()) {
                 mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
             }
         }
         return mandatoryProperties;
     }
 
-    public Map<MetadataKey, IkasanComponentPropertyMeta> getMetadataMap() {
+    public Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> getMetadataMap() {
         return metadataMap;
     }
+
     public IkasanComponentPropertyMeta getMetadata(String propertyName) {
         // If we just supply the propertyName, assume it is the simple type i.e. 1 group, 1 constructor
-        return metadataMap.get(new MetadataKey(propertyName, 1, 1));
+        return metadataMap.get(new IkasanComponentPropertyMetaKey(propertyName, 1, 1));
     }
-    public IkasanComponentPropertyMeta getMetadata(MetadataKey propertyName) {
+
+    public IkasanComponentPropertyMeta getMetadata(IkasanComponentPropertyMetaKey propertyName) {
         return metadataMap.get(propertyName);
     }
 
     public IkasanComponentPropertyMeta getMetaDataForPropertyName(final String propertyName) {
         // If we just supply the propertyName, assume it is the simple type i.e. 1 group, 1 constructor
-        return metadataMap.get(new MetadataKey(propertyName));
+        return metadataMap.get(new IkasanComponentPropertyMetaKey(propertyName));
     }
 
-    public IkasanComponentPropertyMeta getMetaDataForPropertyName(final MetadataKey propertyName) {
+    /**
+     * Return the list of properties for the given component
+     * @return the list of properties
+     */
+    public List<String> getPropertyNames() {
+        Set<String> uniqueProperties = new HashSet<>();
+        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
+            uniqueProperties.add(key.getPropertyName());
+        }
+        return new ArrayList<>(uniqueProperties);
+    }
+
+    /**
+     * Determine if the given property name already exists for this component type
+     * @return true if there exists a property with the same name as the supplied property
+     */
+    public boolean hasProperty(String propertyName) {
+        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
+            if (key.getPropertyName().equals(propertyName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public IkasanComponentPropertyMeta getMetaDataForPropertyName(final IkasanComponentPropertyMetaKey propertyName) {
         return metadataMap.get(propertyName);
     }
-
 
     public static IkasanComponentType parseMethodName(String methodName) {
         if (methodName != null) {

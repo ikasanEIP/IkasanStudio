@@ -2,8 +2,8 @@ package org.ikasan.studio;
 
 import org.ikasan.studio.generator.TestUtils;
 import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMetaKey;
 import org.ikasan.studio.model.ikasan.IkasanModule;
-import org.ikasan.studio.model.ikasan.MetadataKey;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -88,13 +88,13 @@ public class StudioUtilsTest {
 
     @Test
     public void testConfigReader() throws IOException {
-        Map<MetadataKey, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
+        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
         Assert.assertThat(properties.size(), is(5));
-        IkasanComponentPropertyMeta additionalName = properties.get(new MetadataKey("AdditionalName"));
-        IkasanComponentPropertyMeta name = properties.get(new MetadataKey("Name"));
-        IkasanComponentPropertyMeta other = properties.get(new MetadataKey("Other"));
-        IkasanComponentPropertyMeta total = properties.get(new MetadataKey("Total"));
-        IkasanComponentPropertyMeta userImplementedClass = properties.get(new MetadataKey("UserImplementedClass"));
+        IkasanComponentPropertyMeta additionalName = properties.get(new IkasanComponentPropertyMetaKey("AdditionalName"));
+        IkasanComponentPropertyMeta name = properties.get(new IkasanComponentPropertyMetaKey("Name"));
+        IkasanComponentPropertyMeta other = properties.get(new IkasanComponentPropertyMetaKey("Other"));
+        IkasanComponentPropertyMeta total = properties.get(new IkasanComponentPropertyMetaKey("Total"));
+        IkasanComponentPropertyMeta userImplementedClass = properties.get(new IkasanComponentPropertyMetaKey("UserImplementedClass"));
         Assert.assertThat(additionalName.toString(), is(
             "IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='AdditionalName', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=MyDefault, helpText='The name of the component'}"));
         Assert.assertThat(name.toString(), is(

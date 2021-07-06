@@ -3,6 +3,8 @@ package org.ikasan.studio.model.ikasan;
 import org.ikasan.studio.StudioUtils;
 
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -14,21 +16,21 @@ public class IkasanComponentPropertyMeta {
     public static final String TO_TYPE = "ToType";                      // Special meta for converter, the type of the outbound payload
 
     // Special META for component NAME, this standard for each component.
-    public static final MetadataKey NAME = new MetadataKey("Name", 1, 1);
+    public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name", 1, 1);
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, true, false, false,
             NAME.getPropertyName(), null, String.class, "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
 
     // Special META for component DESCRIPTION, this standard for each component.
-    public static final MetadataKey DESCRIPTION = new MetadataKey("Description", 1, 1);
+    public static final IkasanComponentPropertyMetaKey DESCRIPTION = new IkasanComponentPropertyMetaKey("Description", 1, 1);
     public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, false, false,false,
             DESCRIPTION.getPropertyName(), null, String.class, "", "", "",
             "A more detailed description of the component that may assist in support.");
 
     // Special META for package parent of the users bespoke packages, a little like a pom group
-    public static final MetadataKey APPLICATION_PACKAGE_NAME = new MetadataKey("ApplicationPackageName", 1, 1);
+    public static final IkasanComponentPropertyMetaKey APPLICATION_PACKAGE_NAME = new IkasanComponentPropertyMetaKey("ApplicationPackageName", 1, 1);
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, true, false,false,
@@ -36,7 +38,7 @@ public class IkasanComponentPropertyMeta {
             "The base java package for your application.");
 
     // Special META to model the port number to be used to launch the app and part of its user driven config.
-    public static final MetadataKey APPLICATION_PORT_NUMBER_NAME = new MetadataKey("ApplicationPortNumber", 1, 1);
+    public static final IkasanComponentPropertyMetaKey APPLICATION_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("ApplicationPortNumber", 1, 1);
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
             new IkasanComponentPropertyMeta(1, 1, true, false,false,
@@ -56,20 +58,37 @@ public class IkasanComponentPropertyMeta {
     Object defaultValue;
     String helpText;
 
+    Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
+    boolean subProperties = false;
+
     /**
+     * A IkasanComponentPropertyMeta could be a leaf i.e. hold a single set of metadata or could nest another set of metadata
      *
-     * @param paramGroupNumber Supports sets of params e.g. overloaded methods
-     * @param paramNumber The parameter number (where a component might be instantiated with multiple parameters)
-     * @param mandatory for the component to be deemed to be complete
-     * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-     * @param userDefineResource The user will define a the details of the resource within the ResourceFactory.
-     * @param propertyName of the property, used on input screens and to generate variable names
-     * @param propertyConfigFileLabel Identifies the spring injected property name
-     * @param propertyDataType of the property
-     * @param validation validation string (used by the property editor to validate the format of the data)
-     * @param defaultValue for the property
-     * @param helpText for the property
+     * @param key the nested key for this property
+     * @param value the nested value for this property
      */
+    public IkasanComponentPropertyMeta(@NotNull IkasanComponentPropertyMetaKey key,
+                                       @NotNull IkasanComponentPropertyMeta value) {
+        this.metadataMap = new HashMap<>();
+        metadataMap.put(key, value);
+        this.subProperties = true;
+    }
+
+   /**
+    * A IkasanComponentPropertyMeta could be a leaf i.e. hold a single set of metadata or could nest another set of metadata
+    *
+    * @param paramGroupNumber Supports sets of params e.g. overloaded methods
+    * @param paramNumber The parameter number (where a component might be instantiated with multiple parameters)
+    * @param mandatory for the component to be deemed to be complete
+    * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+    * @param userDefineResource The user will define a the details of the resource within the ResourceFactory.
+    * @param propertyName of the property, used on input screens and to generate variable names
+    * @param propertyConfigFileLabel Identifies the spring injected property name
+    * @param propertyDataType of the property
+    * @param validation validation string (used by the property editor to validate the format of the data)
+    * @param defaultValue for the property
+    * @param helpText for the property
+    */
     public IkasanComponentPropertyMeta(@NotNull Integer paramGroupNumber,
                                        @NotNull Integer paramNumber,
                                        @NotNull boolean mandatory,
@@ -98,6 +117,17 @@ public class IkasanComponentPropertyMeta {
         this.validation = validation;
         this.defaultValue = defaultValue;
         this.helpText = helpText;
+    }
+
+    public boolean hasSubProperties() { return subProperties; }
+
+    public void addSubProperty(@NotNull IkasanComponentPropertyMetaKey key,
+                               @NotNull IkasanComponentPropertyMeta value) {
+        if (metadataMap == null) {
+            this.metadataMap = new HashMap<>();
+        }
+        metadataMap.put(key, value);
+        this.subProperties = true;
     }
 
     public boolean isMandatory() {
