@@ -795,7 +795,7 @@ public class PIPSIIkasanModel {
      */
     protected IkasanFlowComponent createFlowElementWithProperties(final IkasanFlow parent, final String name, final String description, final PIPSIMethodList componentBuilderMethodList) {
         IkasanFlowComponent ikasanFlowComponent = null;
-        Map<MetadataKey, Object> flowElementProperties = new TreeMap<>();
+        Map<IkasanComponentPropertyMetaKey, Object> flowElementProperties = new TreeMap<>();
         for (PIPSIMethod pipsiMethod: componentBuilderMethodList.getPipsiMethods()) {
             int addExceptionToActionLineNumber = 1;
             String methodName = pipsiMethod.getName();
@@ -812,23 +812,23 @@ public class PIPSIIkasanModel {
                 //  parameter 4 = 10
 
                 String exception =  getReferenceOrLiteral(pipsiMethod, 0);
-                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 1), exception);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 1), exception);
 
                 // here we should get mothod name
                 String onExceptionType =  getReferenceOrLiteral(pipsiMethod, 1);
-                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 2), onExceptionType);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 2), onExceptionType);
 
                 // here we get params (upto 2)
                 // @TODO need to match to correct parameter group ?
-                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 3), onExceptionType);
-                flowElementProperties.put(new MetadataKey("ExceptionResolver", addExceptionToActionLineNumber, 4), onExceptionType);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 3), onExceptionType);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 4), onExceptionType);
                 addExceptionToActionLineNumber++;
 
 
             } else if (methodName.startsWith("set")) {
                 String parameter =  getReferenceOrLiteral(pipsiMethod, 0);
                 // Only expect 1 param for the setter
-                flowElementProperties.put(new MetadataKey(methodName.replaceFirst("set", ""), 1, 1), parameter);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("set", ""), 1, 1), parameter);
             } else {
                 // Must be the component type e.g. jmsConsumer()
                 ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.parseMethodName(methodName), parent, name, description);
@@ -844,7 +844,7 @@ public class PIPSIIkasanModel {
         if (ikasanFlowComponent != null && ! flowElementProperties.isEmpty()) {
             // Now we know the component, we can match the properties to the known properties for that component
             IkasanComponentType componentType = ikasanFlowComponent.getType();
-            for (Map.Entry<MetadataKey, Object> entry : flowElementProperties.entrySet()) {
+            for (Map.Entry<IkasanComponentPropertyMetaKey, Object> entry : flowElementProperties.entrySet()) {
                 IkasanComponentPropertyMeta metaData = componentType.getMetaDataForPropertyName(entry.getKey());
                 if (metaData != null) {
 //                    ikasanFlowComponent.getConfiguredProperties().put(entry.getKey(), new IkasanComponentProperty(metaData, entry.getValue()));

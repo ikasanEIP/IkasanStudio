@@ -14,7 +14,7 @@ import java.awt.*;
  * The popup wrapper for the Properties panel.
  */
 public class PropertiesDialogue extends DialogWrapper {
-    PropertiesPanel propertiesPanel;
+    ComponentPropertiesPanel componentPropertiesPanel;
     Component parentComponent;
 
     /**
@@ -27,14 +27,14 @@ public class PropertiesDialogue extends DialogWrapper {
      *
      * @param project currently being worked upon
      * @param parentComponent of this popup
-     * @param propertiesPanel to display and have entries taken on.
+     * @param componentPropertiesPanel to display and have entries taken on.
      */
-    public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel, boolean modal) {
+    public PropertiesDialogue(Project project, Component parentComponent, ComponentPropertiesPanel componentPropertiesPanel, boolean modal) {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
-        this.propertiesPanel = propertiesPanel;
+        this.componentPropertiesPanel = componentPropertiesPanel;
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
-        setTitle(propertiesPanel.getPropertiesPanelTitle());
+        setTitle(componentPropertiesPanel.getPropertiesPanelTitle());
         setOKButtonText("Update Code");
         setModal(modal);
     }
@@ -49,14 +49,14 @@ public class PropertiesDialogue extends DialogWrapper {
      *
      * @param project currently being worked upon
      * @param parentComponent of this popup
-     * @param propertiesPanel to display and have entries taken on.
+     * @param componentPropertiesPanel to display and have entries taken on.
      */
-    public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
+    public PropertiesDialogue(Project project, Component parentComponent, ComponentPropertiesPanel componentPropertiesPanel) {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
-        this.propertiesPanel = propertiesPanel;
+        this.componentPropertiesPanel = componentPropertiesPanel;
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
-        setTitle(propertiesPanel.getPropertiesPanelTitle());
+        setTitle(componentPropertiesPanel.getPropertiesPanelTitle());
         setOKButtonText("Update Code");
     }
 
@@ -66,8 +66,8 @@ public class PropertiesDialogue extends DialogWrapper {
     @Override
     protected JComponent createCenterPanel() {
         int niceWidth = (int) (parentComponent.getWidth() * 0.6);
-        propertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
-        return propertiesPanel;
+        componentPropertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
+        return componentPropertiesPanel;
     }
 
     /**
@@ -78,7 +78,7 @@ public class PropertiesDialogue extends DialogWrapper {
     @Override
     protected void doOKAction() {
         if (getOKAction().isEnabled()) {
-            propertiesPanel.processEditedFlowComponents();
+            componentPropertiesPanel.processEditedFlowComponents();
             close(OK_EXIT_CODE);
         }
     }
@@ -98,7 +98,7 @@ public class PropertiesDialogue extends DialogWrapper {
     @NotNull
     @Override
     protected java.util.List<ValidationInfo> doValidateAll() {
-        return propertiesPanel.doValidateAll();
+        return componentPropertiesPanel.doValidateAll();
     }
 
     /**
@@ -108,8 +108,8 @@ public class PropertiesDialogue extends DialogWrapper {
     @Nullable
     @Override
     public JComponent getPreferredFocusedComponent() {
-        if (propertiesPanel != null && propertiesPanel.getFirstFocusField() != null) {
-            return propertiesPanel.getFirstFocusField();
+        if (componentPropertiesPanel != null && componentPropertiesPanel.getFirstFocusField() != null) {
+            return componentPropertiesPanel.getFirstFocusField();
         }
         return SystemInfoRt.isMac ? myPreferredFocusedComponent : null;
     }

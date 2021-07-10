@@ -130,6 +130,10 @@ public class IkasanComponentPropertyMeta {
         this.subProperties = true;
     }
 
+    public Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> getSubProperties() {
+        return this.metadataMap;
+    }
+
     public boolean isMandatory() {
         return mandatory;
     }
