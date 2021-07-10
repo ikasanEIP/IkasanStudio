@@ -8,14 +8,16 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Encapsulate the properties entry from a UI and validity perspective.
+ */
 public class ComponentPropertiesPanel extends PropertiesPanel {
-    private static final String PROPERTIES_TAG = "Properties";
-//    private transient IkasanComponent selectedComponent;
-//    private transient List<PropertyEditBox> propertyEditBoxList;
+//    private static final String PROPERTIES_TAG = "Properties";
+//    private transient IkasanComponent getSelectedComponent();
+    private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
 
 //    private String projectKey;
 //    private boolean popupMode;
@@ -23,9 +25,18 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JCheckBox beskpokeComponentOverrideCheckBox;
 //    JButton okButton;
 //    private ScrollableGridbagPanel scrollableGridbagPanel;
-    private JLabel trueLabel = new JLabel("true");
-    private JLabel falseLabel = new JLabel("false");
+//    private JLabel trueLabel = new JLabel("true");
+//    private JLabel falseLabel = new JLabel("false");
 
+    /**
+     * Create the ComponentPropertiesPanel
+     *
+     * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
+     * that will set the property to be exposed / edited.
+     *
+     * @param projectKey for this project
+     * @param popupMode true if this is for the popup version, false if this is for the canvas sidebar.
+     */
     public ComponentPropertiesPanel(String projectKey, boolean popupMode) {
         super(projectKey, popupMode);
 //        super();
@@ -97,7 +108,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
      */
     protected void doOKAction() {
-        if (processEditedFlowComponents()) {
+        if (dataHasChanged()) {
+            processEditedFlowComponents();
             Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
@@ -106,7 +118,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     private void resetCheckboxes() {
-        for (PropertyEditBox componentPropertyEditBox : propertyEditBoxList) {
+        for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
             componentPropertyEditBox.disableRegeneratingFeilds();
         }
         if (beskpokeComponentOverrideCheckBox != null) {
@@ -120,14 +132,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 //     */
 //    public String getPropertiesPanelTitle() {
 //        String propertyType = "";
-//        if (selectedComponent instanceof IkasanModule) {
+//        if (getSelectedComponent() instanceof IkasanModule) {
 //            propertyType = "Module " + PROPERTIES_TAG;
-//        } else if (selectedComponent instanceof IkasanFlow) {
+//        } else if (getSelectedComponent() instanceof IkasanFlow) {
 //            propertyType = "Flow " + PROPERTIES_TAG;
-//        } else if (selectedComponent instanceof IkasanFlowComponent) {
+//        } else if (getSelectedComponent() instanceof IkasanFlowComponent) {
 //            IkasanFlowUIComponent type = IkasanFlowUIComponentFactory
 //                    .getInstance()
-//                    .getIkasanFlowUIComponentFromType((((IkasanFlowComponent) selectedComponent).getType()));
+//                    .getIkasanFlowUIComponentFromType((((IkasanFlowComponent) getSelectedComponent()).getType()));
 //            if (type.getIkasanComponentType() != IkasanComponentType.UNKNOWN) {
 //                propertyType = type.getTitle() + " " + PROPERTIES_TAG;
 //            } else {
@@ -138,8 +150,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 //
 //    }
 //
-//    public void updatePropertiesPanel(IkasanComponent selectedComponent) {
-//        this.selectedComponent = selectedComponent;
+//    public void updatePropertiesPanel(IkasanComponent getSelectedComponent()) {
+//        this.getSelectedComponent() = getSelectedComponent();
 //        if (! popupMode) {
 //            propertiesHeaderLabel.setText(getPropertiesPanelTitle());
 //        }
@@ -150,12 +162,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 //    }
 
     /**
+     * When updateTargetComponent is called, it will set the component to be exposed / edited, it will then
+     * delegate update of the editor pane to this component so that we can specialise for different components.
+     *
      * For the given component, get all the editable properties and add them the to properties edit panel.
      * @return the fully populated editor panel
      */
     protected JPanel populatePropertiesEditorPanel() {
-        JPanel allPropertiesEditorPanel = new JPanel(new GridBagLayout());
-        allPropertiesEditorPanel.setBackground(Color.WHITE);
+        JPanel containerPanel = new JPanel(new GridBagLayout());
+        containerPanel.setBackground(Color.WHITE);
 
         JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
         JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
@@ -165,9 +180,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             okButton.setEnabled(false);
         }
 
-        if (selectedComponent != null) {
+        if (getSelectedComponent() != null) {
             scrollableGridbagPanel.removeAll();
-            propertyEditBoxList = new ArrayList<>();
+            componentPropertyEditBoxList = new ArrayList<>();
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
@@ -176,35 +191,35 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             int mandatoryTabley = 0;
             int regenerateTabley = 0;
             int optionalTabley = 0;
-            if (selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME) != null) {
-                propertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
-                        selectedComponent.getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
+            if (getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME) != null) {
+                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
+                        getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
-            if (selectedComponent.getType().getMetadataMap().size() > 0) {
-                for (Map.Entry<MetadataKey, IkasanComponentPropertyMeta> entry : selectedComponent.getType().getMetadataMap().entrySet()) {
-                    MetadataKey key = entry.getKey();
+            if (getSelectedComponent().getType().getMetadataMap().size() > 0) {
+                for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : getSelectedComponent().getType().getMetadataMap().entrySet()) {
+                    IkasanComponentPropertyMetaKey key = entry.getKey();
                     if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
-                        IkasanComponentProperty property = selectedComponent.getProperty(key);
+                        IkasanComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component
-                            property = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key));
+                            property = new IkasanComponentProperty(((IkasanFlowComponent) getSelectedComponent()).getType().getMetaDataForPropertyName(key));
                         }
                         if (property.getMeta().isMandatory()) {
-                            propertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     mandatoryPropertiesEditorPanel,
                                     property, gc, mandatoryTabley++));
                         } else if (property.getMeta().isUserImplementedClass()) {
-                            propertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     regeneratingPropertiesEditorPanel,
                                     property, gc, regenerateTabley++));
                         } else {
-                            propertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     optionalPropertiesEditorPanel,
                                     property, gc, optionalTabley++));
                         }
                     }
                 }
-                if (!popupMode && selectedComponent.getType().isBespokeClass()) {
+                if (!popupMode && getSelectedComponent().getType().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
             }
@@ -217,24 +232,24 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             if (mandatoryTabley > 0) {
-                setSubPanel(allPropertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, gc1);
+                setSubPanel(containerPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, gc1);
             }
 
             if (regenerateTabley > 0) {
-                setSubPanel(allPropertiesEditorPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", Color.orange, gc1);
+                setSubPanel(containerPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", Color.orange, gc1);
             }
 
             if (optionalTabley > 0) {
-                setSubPanel(allPropertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
+                setSubPanel(containerPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
             }
-            scrollableGridbagPanel.add(allPropertiesEditorPanel);
+            scrollableGridbagPanel.add(containerPanel);
 
-            if (!popupMode && !selectedComponent.getType().isBespokeClass() && ! getPropertyEditBoxList().isEmpty()) {
+            if (!popupMode && !getSelectedComponent().getType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
             }
         }
 
-        return allPropertiesEditorPanel;
+        return containerPanel;
     }
 
 //    public void setFocusOnFirstComponent() {
@@ -251,8 +266,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     public JComponent getFirstFocusField() {
         JComponent firstComponent = null;
-        if (propertyEditBoxList != null && !propertyEditBoxList.isEmpty()) {
-            firstComponent = propertyEditBoxList.get(0).getInputField().getFirstFocusComponent();
+        if (componentPropertyEditBoxList != null && !componentPropertyEditBoxList.isEmpty()) {
+            firstComponent = componentPropertyEditBoxList.get(0).getInputField().getFirstFocusComponent();
         }
         return firstComponent;
     }
@@ -289,7 +304,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             okButton.setEnabled(ie.getStateChange() == 1)
         );
         beskpokeComponentOverrideCheckBox.setBackground(Color.WHITE);
-        addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, overrideLabel, beskpokeComponentOverrideCheckBox);
+        addLabelAndSimpleInput(propertiesEditorPanel, gc, tabley, overrideLabel, beskpokeComponentOverrideCheckBox);
     }
 
     /**
@@ -300,20 +315,20 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param tabley is used to convey the row number
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
-    private PropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        PropertyEditBox componentPropertyEditBox = new PropertyEditBox(componentProperty, popupMode);
+    private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
+        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty, popupMode);
 
         if (componentProperty.isUserImplementedClass() && !popupMode) {
             addLabelInputEditorAndGenerateSource(propertiesEditorPanel, gc, tabley,
                     componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getOverridingInputField(),
                     componentPropertyEditBox.getRegenerateLabel(), componentPropertyEditBox.getRegenerateSourceCheckBox());
         } else {
-            addLabelAndInputEditor(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
+            addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
         }
         return componentPropertyEditBox;
     }
 
-    private void addLabelAndInputEditor(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
+    private void addLabelAndSimpleInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -323,7 +338,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndInputEditor(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
+    private void addLabelAndParamInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -361,38 +376,18 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(generateSourceCheckbox, gc);
     }
 
-    /**
-     * Check to see if any new values have been entered, update the model and return true if that is the case.
-     * @return true if the model has been updated with new values.
-     */
-    public boolean processEditedFlowComponents() {
+    protected IkasanComponent getSelectedComponent() {
+        return (IkasanComponent)super.getSelectedComponent();
+    }
+
+    @Override
+    public boolean dataHasChanged() {
         boolean modelUpdated = false;
-        if (propertyEditBoxList != null) {
-            for (final PropertyEditBox editPair: propertyEditBoxList) {
-                final String key = editPair.getPropertyLabel();
-                IkasanComponentProperty componentProperty = selectedComponent.getProperty(key);
-                if (propertyValueHasChanged(componentProperty, editPair)) {
+        if (componentPropertyEditBoxList != null) {
+            for (final ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
+                if (componentPropertyEditBox.propertyValueHasChanged()) {
                     modelUpdated = true;
-                    if (selectedComponent instanceof IkasanFlowBeskpokeComponent) {
-                        ((IkasanFlowBeskpokeComponent)selectedComponent).setOverrideEnabled(true);
-                    }
-                    if (componentProperty == null) {
-                        // New property added for the first time, for now only components will have new properties not flows
-                        if (editPair.getValue() != null) {
-                            componentProperty = new IkasanComponentProperty(((IkasanFlowComponent) selectedComponent).getType().getMetaDataForPropertyName(key), editPair.getValue());
-                            selectedComponent.addComponentProperty(key, componentProperty);
-                        }
-                    } else {
-                        // Property has been unset e.g. a boolean
-                        if (editPair.getValue() == null) {
-                            selectedComponent.removeProperty(key);
-                        } else { // update existing
-                            componentProperty.setValue(editPair.getValue());
-                            if (editPair.isUserMaintainedClassWithPermissionToRegenerate()) {
-                                componentProperty.setRegenerateAllowed(true);
-                            }
-                        }
-                    }
+                    break;
                 }
             }
         }
@@ -400,70 +395,109 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
-     * Determine if the property has been updated.
-     * @param property of the existing ikasan Component
-     * @param propertyEditBox should never be null when called.
-     * @return true if the property has been altered
+     * Check to see if any new values have been entered, update the model and return true if that is the case.
+     * @return true if the model has been updated with new values.
      */
-    private boolean propertyValueHasChanged(IkasanComponentProperty property, PropertyEditBox propertyEditBox) {
-        Object propertyValue = null;
-        if (property != null) {
-            propertyValue = property.getValue();
-        }
+    public void processEditedFlowComponents() {
+        if (componentPropertyEditBoxList != null) {
+            for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
+//                IkasanComponentProperty componentProperty = componentPropertyEditBox.getComponentProperty();
+                if (componentPropertyEditBox.propertyValueHasChanged()) {
+                    if (getSelectedComponent() instanceof IkasanFlowBeskpokeComponent) {
+                        ((IkasanFlowBeskpokeComponent)getSelectedComponent()).setOverrideEnabled(true);
+                    }
 
-        return ((propertyValue == null && editBoxHasValue(propertyEditBox)) ||
-//                (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())) ||
-                (propertyValue != null && !property.getValue().equals(propertyEditBox.getValue())) ||
-                (propertyEditBox != null && propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(propertyEditBox)) );
-    }
-
-    /**
-     * Determine if the edit box has a valid value that would warrant the source code to be updated
-     * If the property generates source code, also check if 'regenerate' is selected (note this is assumed true in popup mode).
-     * @param propertyEditBox to examine.
-     * @return true if the editbox has a non-whitespace / real value.
-     */
-    private boolean editBoxHasValue(PropertyEditBox propertyEditBox) {
-        boolean hasValue = false;
-        if (propertyEditBox != null) {
-            Object value = propertyEditBox.getValue();
-            if (value instanceof String) {
-                if (((String) value).length() > 0) {
-                    hasValue = true;
+//                    // Not sure its ever null ??
+//                    if (componentProperty == null) {
+//                        // New property added for the first time, for now only components will have new properties not flows
+//                        if (editPair.getValue() != null) {
+//                            componentProperty = new IkasanComponentProperty(((IkasanFlowComponent) getSelectedComponent()).getType().getMetaDataForPropertyName(key), editPair.getValue());
+//                            getSelectedComponent().addComponentProperty(key, componentProperty);
+//                        }
+//                    } else {
+                        // Property has been unset e.g. a boolean
+                        if (!componentPropertyEditBox.editBoxHasValue()) {
+                            getSelectedComponent().removeProperty(componentPropertyEditBox.getPropertyKey());
+                        } else { // update existing
+                            componentPropertyEditBox.updateValueObjectWithEnteredValues();
+//                            componentProperty.setValue(editPair.getValue());
+//                            if (editPair.isUserMaintainedClassWithPermissionToRegenerate()) {
+//                                componentProperty.setRegenerateAllowed(true);
+//                            }
+                        }
+//                    }
                 }
-            } else {
-                hasValue = (value != null);
             }
         }
-        return hasValue;
     }
 
-    public List<PropertyEditBox> getPropertyEditBoxList() {
-        return propertyEditBoxList;
+//    /**
+//     * Determine if the property has been updated.
+//     * @param property of the existing ikasan Component
+//     * @param componentPropertyEditBox should never be null when called.
+//     * @return true if the property has been altered
+//     */
+//    private boolean propertyValueHasChanged(IkasanComponentProperty property, @NotNull ComponentPropertyEditBox componentPropertyEditBox) {
+//        Object propertyValue = null;
+//        if (property != null) {
+//            propertyValue = property.getValue();
+//        }
+//
+//        return ((propertyValue == null && componentPropertyEditBox.editBoxHasValue()) ||
+////                (property != null && editBoxHasValue(componentPropertyEditBox) && !property.getValue().equals(componentPropertyEditBox.getValue())) ||
+//                (propertyValue != null && !property.getValue().equals(componentPropertyEditBox.getValue())) ||
+//                (componentPropertyEditBox != null && componentPropertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(componentPropertyEditBox)) );
+//    }
+
+//    /**
+//     * Determine if the edit box has a valid value that would warrant the source code to be updated
+//     * If the property generates source code, also check if 'regenerate' is selected (note this is assumed true in popup mode).
+//     * @param componentPropertyEditBox to examine.
+//     * @return true if the editbox has a non-whitespace / real value.
+//     */
+//    private boolean editBoxHasValue(ComponentPropertyEditBox componentPropertyEditBox) {
+//        boolean hasValue = false;
+//        if (componentPropertyEditBox != null) {
+//            Object value = componentPropertyEditBox.getValue();
+//            if (value instanceof String) {
+//                if (((String) value).length() > 0) {
+//                    hasValue = true;
+//                }
+//            } else {
+//                hasValue = (value != null);
+//            }
+//        }
+//        return hasValue;
+//    }
+
+    public List<ComponentPropertyEditBox> getComponentPropertyEditBoxList() {
+        return componentPropertyEditBoxList;
     }
 
 //    public IkasanComponent getSelectedComponent() {
-//        return selectedComponent;
+//        return getSelectedComponent();
 //    }
 
+    /**
+     * Validates the values populated
+     * @return a populated ValidationInfo array if htere are any validation issues.
+     */
     protected java.util.List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
-        for (final PropertyEditBox editPair: getPropertyEditBoxList()) {
-            final String key = editPair.getPropertyLabel();
-            IkasanComponentProperty componentProperty = getSelectedComponent().getProperty(key);
-            // Only mandatory properties are always populated.
-            if (componentProperty != null &&
-                    componentProperty.getMeta().isMandatory() &&
-                    !editPair.isBooleanProperty() &&
-                    editPair.inputfieldIsUnset()) {
+        for (final ComponentPropertyEditBox editPair: getComponentPropertyEditBoxList()) {
+            result.addAll(editPair.doValidateAll());
 
-                result.add(new ValidationInfo(editPair.getPropertyLabel() + " must be set to a valid value", editPair.getOverridingInputField()));
-            }
+//            final String key = editPair.getPropertyKey();
+//            IkasanComponentProperty componentProperty = getSelectedComponent().getProperty(key);
+//            // Only mandatory properties are always populated.
+//            if (componentProperty != null &&
+//                    componentProperty.getMeta().isMandatory() &&
+//                    !editPair.isBooleanProperty() &&
+//                    editPair.inputfieldIsUnset()) {
+//
+//                result.add(new ValidationInfo(editPair.getPropertyKey() + " must be set to a valid value", editPair.getOverridingInputField()));
+//            }
         }
-        if (! result.isEmpty()) {
-            return result;
-        } else {
-            return Collections.emptyList();
-        }
+        return result;
     }
 }

@@ -185,13 +185,13 @@ public class StudioUtils {
                 String line;
                 boolean hasSubProperties = false;  // does this property have sub properties
                 while ((line = br.readLine()) != null) {
-                    if (line.startsWith("#")) {
+                    if (line.startsWith("#") || line.length() == 0 || line.isEmpty()) {
                         continue;
                     }
                     String[] split = line.split("\\|");
                     if (split.length != NUMBER_OF_CONFIGS) {
                         LOG.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS +
-                                "), please remove from properties file [" + propertiesFile + "] or fix, the line was [" + line+ "]");
+                                ", was " + split.length + "), please remove from properties file [" + propertiesFile + "] or fix, the line was [" + line+ "]");
                         continue;
                     }
 
@@ -210,10 +210,10 @@ public class StudioUtils {
                     String parentPropertyName = null;
                     // Check to see if this property has sub properties
                     if (propertyName.contains(".")) {
-                        String[] parentChildPropertyNames = line.split(".");
+                        String[] parentChildPropertyNames = propertyName.split("\\.");
                         parentPropertyName = parentChildPropertyNames[0];
                         propertyName = parentChildPropertyNames[1];
-                    }
+                    } /// need to check size here and throw log error
 
                     IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber, paramNumber);
                     if (componentProperties.containsKey(newKey)) {
@@ -239,12 +239,14 @@ public class StudioUtils {
                     String validation = split[VALIDATION_INDEX];
 
                     // Data type
-                    Class propertyDataType;
-                    try {
-                        propertyDataType = Class.forName(split[PROPERTY_DATA_TYPE_INDEX]);
-                    } catch (ClassNotFoundException ex) {
-                        LOG.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
-                        propertyDataType = String.class;  // dont crash the IDE
+                    Class propertyDataType = null;
+                    if (split[PROPERTY_DATA_TYPE_INDEX] != null && !split[PROPERTY_DATA_TYPE_INDEX].isEmpty()) {
+                        try {
+                            propertyDataType = Class.forName(split[PROPERTY_DATA_TYPE_INDEX]);
+                        } catch (ClassNotFoundException ex) {
+                            LOG.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
+                            propertyDataType = String.class;  // dont crash the IDE
+                        }
                     }
 
                     //  default value
@@ -293,12 +295,13 @@ public class StudioUtils {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    if (line.startsWith("#")) {
+                    if (line.startsWith("#") || line.length() == 0 || line.isEmpty()) {
                         continue;
                     }
                     String[] split = line.split(",");
                     if (split.length != NUMBER_OF_DEPENDENCY_CONFIGS) {
-                        LOG.error("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
+                        LOG.error("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS +
+                                ", was " + split.length + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
                         continue;
                     }
 

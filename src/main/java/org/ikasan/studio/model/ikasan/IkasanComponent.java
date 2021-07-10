@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -14,39 +13,38 @@ import java.util.stream.Collectors;
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  */
-public abstract class IkasanComponent {
+public abstract class IkasanComponent extends IkasanBaseComponent {
     @JsonIgnore
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
-    @JsonIgnore
-    protected ViewHandler viewHandler;
+//    @JsonIgnore
+//    protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
-    protected Map<MetadataKey, IkasanComponentProperty> configuredProperties;
-    protected IkasanComponentType type;
+    protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
+//    protected IkasanComponentType type;
 
-    private IkasanComponent() {}
-
-    protected IkasanComponent(IkasanComponentType type, Map<MetadataKey, IkasanComponentProperty> configuredProperties) {
-        this.type = type;
+    protected IkasanComponent(IkasanComponentType type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
+        super(type);
+//        this.type = type;
         this.configuredProperties = configuredProperties;
     }
 
     public IkasanComponentProperty getProperty(String key) {
-        return configuredProperties.get(new MetadataKey(key, 1, 1));
+        return configuredProperties.get(new IkasanComponentPropertyMetaKey(key, 1, 1));
     }
 
-    public IkasanComponentProperty getProperty(MetadataKey key) {
+    public IkasanComponentProperty getProperty(IkasanComponentPropertyMetaKey key) {
         return configuredProperties.get(key);
     }
 
     public Object getPropertyValue(String key) {
-        return getPropertyValue(new MetadataKey(key));
+        return getPropertyValue(new IkasanComponentPropertyMetaKey(key));
     }
 
     public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
-        return getPropertyValue(new MetadataKey(key, parameterGroup, parameterNumber));
+        return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
     }
 
-    public Object getPropertyValue(MetadataKey key) {
+    public Object getPropertyValue(IkasanComponentPropertyMetaKey key) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
     }
@@ -57,7 +55,7 @@ public abstract class IkasanComponent {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        updatePropertyValue(new MetadataKey(key, 1, 1), value);
+        updatePropertyValue(new IkasanComponentPropertyMetaKey(key, 1, 1), value);
     }
 
     /**
@@ -65,7 +63,7 @@ public abstract class IkasanComponent {
      * @param key of the data to be updated
      * @param value for the updated property
      */
-    public void updatePropertyValue(MetadataKey key, Object value) {
+    public void updatePropertyValue(IkasanComponentPropertyMetaKey key, Object value) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
@@ -80,7 +78,7 @@ public abstract class IkasanComponent {
      * @param properyMeta for the property
      * @param value for the property
      */
-    public void setPropertyValue(MetadataKey key, IkasanComponentPropertyMeta properyMeta, Object value) {
+    public void setPropertyValue(IkasanComponentPropertyMetaKey key, IkasanComponentPropertyMeta properyMeta, Object value) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
@@ -96,7 +94,7 @@ public abstract class IkasanComponent {
      */
     public void setPropertyValue(String key, Object value) {
         // If we are stating a string key on its own, assume its the simple version.
-        setPropertyValue(new MetadataKey(key), value);
+        setPropertyValue(new IkasanComponentPropertyMetaKey(key), value);
     }
 
     /**
@@ -104,7 +102,7 @@ public abstract class IkasanComponent {
      * @param key of the property to be updated
      */
     public void removeProperty(String key) {
-        configuredProperties.remove(new MetadataKey(key));
+        configuredProperties.remove(new IkasanComponentPropertyMetaKey(key));
     }
 
     /**
@@ -112,7 +110,7 @@ public abstract class IkasanComponent {
      * @param key of the property to be updated
      * @param value for the property
      */
-    public void setPropertyValue(MetadataKey key, Object value) {
+    public void setPropertyValue(IkasanComponentPropertyMetaKey key, Object value) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
@@ -126,7 +124,7 @@ public abstract class IkasanComponent {
         }
     }
 
-    public Map<MetadataKey, IkasanComponentProperty> getConfiguredProperties() {
+    public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getConfiguredProperties() {
         return configuredProperties;
     }
 
@@ -157,10 +155,10 @@ public abstract class IkasanComponent {
      * Get all the standard properties i.e. exclude the special 'name and description' properties.
      * @return the Map of standard properties for this component.
      */
-    public Map<MetadataKey, IkasanComponentProperty> getStandardConfiguredProperties() {
-        Map<MetadataKey, IkasanComponentProperty> standardProperties = new HashedMap();
+    public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getStandardConfiguredProperties() {
+        Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> standardProperties = new HashedMap();
         if (configuredProperties != null && configuredProperties.size() > 0) {
-            for (Map.Entry<MetadataKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
+            for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
                 if (! IkasanComponentPropertyMeta.NAME.equals(entry.getKey()) && !(IkasanComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
                 }
@@ -173,16 +171,16 @@ public abstract class IkasanComponent {
         return standardProperties;
     }
 
-    public void addAllProperties(Map<MetadataKey, IkasanComponentProperty> newProperties) {
+    public void addAllProperties(Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> newProperties) {
         configuredProperties.putAll(newProperties);
     }
     public void addComponentProperty(String key, IkasanComponentProperty value) {
-        configuredProperties.put(new MetadataKey(key, 1, 1), value);
+        configuredProperties.put(new IkasanComponentPropertyMetaKey(key, 1, 1), value);
     }
 
-    public ViewHandler getViewHandler() {
-        return viewHandler;
-    }
+//    public ViewHandler getViewHandler() {
+//        return viewHandler;
+//    }
 
     /**
      * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
@@ -242,7 +240,7 @@ public abstract class IkasanComponent {
      * @return true if there are mandatory components that do not yet have a value.
      */
     public boolean hasUnsetMandatoryProperties() {
-        for (Map.Entry<MetadataKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
+        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
             IkasanComponentProperty ikasanComponentProperty = entry.getValue();
             if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.isEmpty()) {
                 return true;
@@ -251,13 +249,13 @@ public abstract class IkasanComponent {
         return false;
     }
 
-    public IkasanComponentType getType() {
-        return type;
-    }
+//    public IkasanComponentType getType() {
+//        return type;
+//    }
 
-    public void setType(IkasanComponentType type) {
-        this.type = type;
-    }
+//    public void setType(IkasanComponentType type) {
+//        this.type = type;
+//    }
 
     @Override
     public String toString() {

@@ -29,6 +29,18 @@ public class ComponentInput {
         return firstComponent;
     }
 
+    public void setEnabled(boolean enabled) {
+        if (trueBox != null) {
+            trueBox.setEnabled(enabled);
+        }
+        if (falseBox != null) {
+            falseBox.setEnabled(enabled);
+        }
+        if (propertyValueField != null) {
+            propertyValueField.setEnabled(enabled);
+        }
+    }
+
     public boolean isBooleanInput() {
         return isBooleanInput;
     }

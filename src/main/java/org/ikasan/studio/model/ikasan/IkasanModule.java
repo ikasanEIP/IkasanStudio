@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.psi.PsiFile;
 import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
-import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,13 +88,13 @@ public class IkasanModule extends IkasanComponent {
                 '}';
     }
 
-    @Override
-    public ViewHandler getViewHandler() {
-        return viewHandler;
-    }
-    public void setViewHandler(IkasanModuleViewHandler viewHandler) {
-        this.viewHandler = viewHandler;
-    }
+//    @Override
+//    public ViewHandler getViewHandler() {
+//        return viewHandler;
+//    }
+//    public void setViewHandler(IkasanModuleViewHandler viewHandler) {
+//        this.viewHandler = viewHandler;
+//    }
     public PsiFile getModuleConfig() {
         return moduleConfig;
     }

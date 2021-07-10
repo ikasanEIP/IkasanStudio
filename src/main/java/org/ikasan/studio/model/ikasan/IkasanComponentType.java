@@ -59,7 +59,7 @@ public enum IkasanComponentType implements Serializable {
     DB(IkasanComponentCategory.ENDPOINT, false, "message-store", IkasanComponentDependency.NONE),
 
     EXCEPTION_RESOLVER(IkasanComponentCategory.EXCEPTION_RESOLVER, false, "getExceptionResolverBuilder", IkasanComponentDependency.NONE),
-    ON_EXCEPTION(IkasanComponentCategory.EXCEPTION_RESOLVER, false, "getExceptionResolverBuilder", IkasanComponentDependency.NONE),
+    ON_EXCEPTION(IkasanComponentCategory.EXCEPTION_RESOLVER, false, "addExceptionToAction", IkasanComponentDependency.NONE),
 
     LIST_SPLITTER(IkasanComponentCategory.SPLITTER, false, "listSplitter", IkasanComponentDependency.NONE),
     SPLITTER(IkasanComponentCategory.SPLITTER, false, "splitter", IkasanComponentDependency.NONE),
@@ -81,7 +81,9 @@ public enum IkasanComponentType implements Serializable {
     BESPOKE(IkasanComponentCategory.UNKNOWN, true, "bespoke", IkasanComponentDependency.NONE),
     UNKNOWN(IkasanComponentCategory.UNKNOWN, false, "unknown", IkasanComponentDependency.NONE);
 
-    private static final Logger LOG = Logger.getLogger(IkasanComponentType.class);
+    // --- Population ----
+    // Remember, to make the below available to constructor, they must be instance and not static
+    private final Logger LOG = Logger.getLogger(IkasanComponentType.class);
     public final String associatedMethodName;
     public final boolean bespokeClass;
     public final IkasanComponentCategory elementCategory;
@@ -129,6 +131,17 @@ public enum IkasanComponentType implements Serializable {
     public IkasanComponentPropertyMeta getMetadata(String propertyName) {
         // If we just supply the propertyName, assume it is the simple type i.e. 1 group, 1 constructor
         return metadataMap.get(new IkasanComponentPropertyMetaKey(propertyName, 1, 1));
+    }
+
+    public List<IkasanComponentPropertyMeta> getMetadataList(String propertyName) {
+        List<IkasanComponentPropertyMeta> metadataList = new ArrayList<>();
+        IkasanComponentPropertyMeta meta = metadataMap.get(new IkasanComponentPropertyMetaKey(propertyName, 1, 1));
+        if (meta.hasSubProperties()) {
+            metadataList = new ArrayList<>(meta.getSubProperties().values());
+        } else {
+            metadataList.add(meta);
+        }
+        return metadataList;
     }
 
     public IkasanComponentPropertyMeta getMetadata(IkasanComponentPropertyMetaKey propertyName) {

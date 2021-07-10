@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
 
@@ -26,22 +27,23 @@ public abstract class ViewHandler {
      */
     public abstract int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY);
 
+    @JsonIgnore
     public Point getLeftConnectorPoint() {
         return new Point(getLeftX(), getTopY() + (getHeight()/2));
     }
-
+    @JsonIgnore
     public Point getRightConnectorPoint() {
         return new Point(getRightX(), getTopY() + (getHeight()/2));
     }
-
+    @JsonIgnore
     public Point getTopConnectorPoint() {
         return new Point(getLeftX() + (getWidth()/2), getTopY());
     }
-
+    @JsonIgnore
     public Point getBottomConnectorPoint() {
         return new Point(getLeftX() + (getWidth()/2), getTopY() + getHeight());
     }
-
+    @JsonIgnore
     public Point getCentrePoint()  {
         return new Point(getLeftX() + (getWidth()/2), getTopY() + (getHeight()/2));
     }
@@ -60,6 +62,7 @@ public abstract class ViewHandler {
      * Get the y position for the bottom of the component
      * @return
      */
+    @JsonIgnore
     public int getBottomY() {
         return getTopY() + getHeight();
     }
@@ -68,6 +71,7 @@ public abstract class ViewHandler {
      * Get the x position of the right hand side of the component
      * @return
      */
+    @JsonIgnore
     public int getRightX() {
         return leftX + width;
     }

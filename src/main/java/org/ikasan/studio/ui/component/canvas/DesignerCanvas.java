@@ -13,8 +13,8 @@ import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.component.properties.ComponentPropertiesDialogue;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
@@ -89,12 +89,12 @@ public class DesignerCanvas extends JPanel {
         startButton.addActionListener(e ->
             {
                 ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
-                componentPropertiesPanel.updatePropertiesPanel(ikasanModule);
-                ComponentPropertiesDialogue componentPropertiesDialogue = new ComponentPropertiesDialogue(
+                componentPropertiesPanel.updateTargetComponent(ikasanModule);
+                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                         Context.getProject(projectKey),
                         Context.getDesignerCanvas(projectKey),
                         componentPropertiesPanel);
-                if (componentPropertiesDialogue.showAndGet()) {
+                if (propertiesDialogue.showAndGet()) {
 //                    StudioPsiUtils.addDependancies(projectKey, ikasanModule.getType().getComponentDependency().getDependencies());
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateSourceFromModel(ikasanModule.getType().getComponentDependency().getDependencies());
@@ -146,7 +146,7 @@ public class DesignerCanvas extends JPanel {
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
                  (mouseSelectedComponent != null && !mouseSelectedComponent.getViewHandler().isAlreadySelected())) {
                 setSelectedComponent(mouseSelectedComponent);
-                Context.getPropertiesPanel(projectKey).updatePropertiesPanel(mouseSelectedComponent);
+                Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
         }
     }
 
@@ -454,12 +454,12 @@ public class DesignerCanvas extends JPanel {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
-            componentPropertiesPanel.updatePropertiesPanel(newComponent);
-            ComponentPropertiesDialogue componentPropertiesDialogue = new ComponentPropertiesDialogue(
+            componentPropertiesPanel.updateTargetComponent(newComponent);
+            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                     Context.getProject(projectKey),
                     Context.getDesignerCanvas(projectKey),
                     componentPropertiesPanel);
-            if (! componentPropertiesDialogue.showAndGet()) {
+            if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;
             }
@@ -476,12 +476,12 @@ public class DesignerCanvas extends JPanel {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
-            componentPropertiesPanel.updatePropertiesPanel(newComponent);
-            ComponentPropertiesDialogue componentPropertiesDialogue = new ComponentPropertiesDialogue(
+            componentPropertiesPanel.updateTargetComponent(newComponent);
+            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                     Context.getProject(projectKey),
                     Context.getDesignerCanvas(projectKey),
                     componentPropertiesPanel);
-            if (! componentPropertiesDialogue.showAndGet()) {
+            if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;
             }
