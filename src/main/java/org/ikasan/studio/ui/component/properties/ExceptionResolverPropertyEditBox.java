@@ -32,8 +32,10 @@ public class ExceptionResolverPropertyEditBox {
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
 
-        for(IkasanExceptionResolution exceptionResolution :  ikasanExceptionResolver.getIkasanExceptionResolutionMap().values()) {
-            exceptionResolutionPropertyDisplayBoxList.add(new ExceptionResolutionPropertyDisplayBox(exceptionResolution, popupMode));
+        if (ikasanExceptionResolver.getIkasanExceptionResolutionMap() != null) {
+            for (IkasanExceptionResolution exceptionResolution : ikasanExceptionResolver.getIkasanExceptionResolutionMap().values()) {
+                exceptionResolutionPropertyDisplayBoxList.add(new ExceptionResolutionPropertyDisplayBox(exceptionResolution, popupMode));
+            }
         }
         addButton = new JButton("+");
         addButton.addActionListener(e -> {

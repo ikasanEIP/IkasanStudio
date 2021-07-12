@@ -41,10 +41,13 @@ public class IkasanFlowComponent extends IkasanComponent {
      * @param parent flow that contains this element
      * @param name of the element
      * @param description of the element
+     * @todo maybe this should be in a factory, not in this class
      */
     public static IkasanFlowComponent getInstance(IkasanComponentType type, IkasanFlow parent, String name, String description) {
         if (type.isBespokeClass()) {
             return new IkasanFlowBeskpokeComponent(type, parent, name, description, false);
+        } else if (IkasanComponentType.EXCEPTION_RESOLVER.equals(type)) {
+            return new IkasanExceptionResolver(parent);
         } else {
             return new IkasanFlowComponent(type, parent, name, description);
         }
@@ -58,6 +61,8 @@ public class IkasanFlowComponent extends IkasanComponent {
     public static IkasanFlowComponent getInstance(IkasanComponentType type, IkasanFlow parent) {
         if (type.isBespokeClass()) {
             return new IkasanFlowBeskpokeComponent(type, parent, false);
+        } else if (IkasanComponentType.EXCEPTION_RESOLVER.equals(type)) {
+            return new IkasanExceptionResolver(parent);
         } else {
             return new IkasanFlowComponent(type, parent);
         }
