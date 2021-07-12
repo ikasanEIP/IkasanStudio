@@ -108,7 +108,8 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
                     exceptionResolverPropertyEditBox.getParamsTitleField());
 
             // Populate the list of params to be displayed and add to respective panels
-            if (!getSelectedComponent().getIkasanExceptionResolutionMap().isEmpty()) {
+            if (getSelectedComponent().getIkasanExceptionResolutionMap() != null &&
+                    !getSelectedComponent().getIkasanExceptionResolutionMap().isEmpty()) {
                 for (ExceptionResolutionPropertyDisplayBox exceptionResolutionPropertyDisplayBox : exceptionResolverPropertyEditBox.getExceptionResolutionPropertyDisplayBoxList()) {
                     JPanel paramsSubPanel = new JPanel(new GridBagLayout());
                     int subPanelY = 0;
@@ -136,7 +137,9 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
             // Add the params to the display panels.
             setSubPanel(containerPanel, exceptionResolutionTablePanel, "", Color.LIGHT_GRAY, gc1);
             scrollableGridbagPanel.add(containerPanel);
-            okButton.setEnabled(true);
+            if (okButton != null) {
+                    okButton.setEnabled(true);
+            }
         }
 
         return containerPanel;
@@ -155,7 +158,11 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
      * @return the component that should be given focus or null
      */
     public JComponent getFirstFocusField() {
-        return exceptionResolverPropertyEditBox.getAddButton();
+        JComponent firstField = null;
+        if (exceptionResolverPropertyEditBox != null) {
+            firstField = exceptionResolverPropertyEditBox.getAddButton();
+        }
+        return firstField;
     }
 
     /**

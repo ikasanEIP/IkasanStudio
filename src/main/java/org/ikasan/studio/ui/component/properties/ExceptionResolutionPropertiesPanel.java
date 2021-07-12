@@ -182,7 +182,11 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
      * @return the component that should be given focus or null
      */
     public JComponent getFirstFocusField() {
-        return exceptionResolutionPropertyEditBox.getExceptionJComboBox();
+        JComponent firstFocus = null;
+        if (exceptionResolutionPropertyEditBox != null) {
+            firstFocus = exceptionResolutionPropertyEditBox.getExceptionJComboBox();
+        }
+        return firstFocus;
     }
 
     /**

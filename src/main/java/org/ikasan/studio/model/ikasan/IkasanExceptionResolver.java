@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Encapsulate the IkasanExceptionResolver.
  */
-public class IkasanExceptionResolver extends IkasanBaseComponent {
+public class IkasanExceptionResolver extends IkasanFlowComponent {
     //@todo need to split IkasanComponent to nest IkasanExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
     private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap;
 
@@ -15,9 +15,18 @@ public class IkasanExceptionResolver extends IkasanBaseComponent {
      * Create an IkasanExceptionResolver
      * @param ikasanExceptionResolutionMap, the exception name is the key
      */
-    public IkasanExceptionResolver(Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap) {
-        super(IkasanComponentType.EXCEPTION_RESOLVER);
-        this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
+//    public IkasanExceptionResolver() {
+//        super(IkasanComponentType.EXCEPTION_RESOLVER);
+//        this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
+//    }
+
+    /**
+     * Create an IkasanExceptionResolver
+     * @param parent flow that contains this exceptions resolver
+     */
+    public IkasanExceptionResolver(IkasanFlow parent) {
+        super(IkasanComponentType.EXCEPTION_RESOLVER, parent);
+//        this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
     }
 
     public boolean hasExceptionResolution(String key) {
