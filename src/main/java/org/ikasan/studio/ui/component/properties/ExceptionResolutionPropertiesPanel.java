@@ -93,7 +93,7 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
 
         if (getSelectedComponent() != null) {
             scrollableGridbagPanel.removeAll();
-            exceptionResolutionPropertyEditBox = new ExceptionResolutionPropertyEditBox(getSelectedComponent(), popupMode);
+            exceptionResolutionPropertyEditBox = new ExceptionResolutionPropertyEditBox(this, getSelectedComponent(), popupMode);
             int exceptionActionTabley = 0;
             int mandatoryParamsTabley = 0;
             int optionalParamsTabley = 0;
@@ -112,7 +112,7 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
             addLabelAndSimpleInput(exceptionActionEditorPanel, gc, exceptionActionTabley++, exceptionResolutionPropertyEditBox.getActionTitleField(), exceptionResolutionPropertyEditBox.getActionJComboBox());
 
             // Populate the list of params to be displayed and add to respective panels
-            if (!getSelectedComponent().getParams().isEmpty()) {
+            if (getSelectedComponent().getParams() != null && !getSelectedComponent().getParams().isEmpty()) {
 //                propertyEditBox.set
                 for (ComponentPropertyEditBox actionParamEditBox : exceptionResolutionPropertyEditBox.getActionParamsEditBoxList()) {
 //                    IkasanComponentPropertyMetaKey key = entry.getKey();
@@ -162,8 +162,9 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
             scrollableGridbagPanel.add(containerPanel);
 
 //            if (!popupMode && !getSelectedComponent().getType().isBespokeClass() && ! getExceptionHandlerPropertyEditBoxList().isEmpty()) {
+            if (okButton != null) {
                 okButton.setEnabled(true);
-//            }
+            }
         }
 
         return containerPanel;

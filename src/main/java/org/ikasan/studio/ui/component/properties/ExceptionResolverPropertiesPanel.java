@@ -88,7 +88,7 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
 
         if (getSelectedComponent() != null) {
             scrollableGridbagPanel.removeAll();
-            exceptionResolverPropertyEditBox = new ExceptionResolverPropertyEditBox(getSelectedComponent(), popupMode);
+            exceptionResolverPropertyEditBox = new ExceptionResolverPropertyEditBox(projectKey, getSelectedComponent(), popupMode);
             int exceptionResolutionTabley = 0;
 //
 //            if (getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME) != null) {
@@ -102,10 +102,10 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
             gc.insets = new Insets(3, 4, 3, 4);
 
             addLabelAndSimpleInput(exceptionResolutionTablePanel, gc, exceptionResolutionTabley++,
-                    exceptionResolverPropertyEditBox.getAddButton(),
-                    exceptionResolverPropertyEditBox.getExceptionTitleField(),
-                    exceptionResolverPropertyEditBox.getActionTitleField(),
-                    exceptionResolverPropertyEditBox.getParamsTitleField());
+                exceptionResolverPropertyEditBox.getAddButton(),
+                exceptionResolverPropertyEditBox.getExceptionTitleField(),
+                exceptionResolverPropertyEditBox.getActionTitleField(),
+                exceptionResolverPropertyEditBox.getParamsTitleField());
 
             // Populate the list of params to be displayed and add to respective panels
             if (getSelectedComponent().getIkasanExceptionResolutionMap() != null &&
@@ -120,10 +120,10 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
                         addLabelAndParamInput(paramsSubPanel, subPanelgc, subPanelY, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
                     }
                     addLabelAndSimpleInput(exceptionResolutionTablePanel, gc, exceptionResolutionTabley++,
-                            exceptionResolutionPropertyDisplayBox.getDeleteButton(),
-                            exceptionResolutionPropertyDisplayBox.getExceptionField(),
-                            exceptionResolutionPropertyDisplayBox.getActionField(),
-                            paramsSubPanel);
+                        exceptionResolutionPropertyDisplayBox.getDeleteButton(),
+                        exceptionResolutionPropertyDisplayBox.getExceptionField(),
+                        exceptionResolutionPropertyDisplayBox.getActionField(),
+                        paramsSubPanel);
                 }
             }
 
@@ -190,12 +190,12 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
         gc.gridx = 0;
         gc.gridy = tabley;
         jPanel.add(actionButton, gc);
-        gc.gridx = 1;
+        gc.gridx += 1;
         jPanel.add(theException, gc);
-        gc.gridx = 1;
+        gc.gridx += 1;
         jPanel.add(action, gc);
         gc.weightx = 1.0;
-        gc.gridx = 1;
+        gc.gridx += 1;
         jPanel.add(params, gc);
     }
 

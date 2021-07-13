@@ -14,6 +14,7 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolutionPropertyEditBox {
+    private PropertiesPanel parent;
 //    private static IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     private JLabel exceptionTitleField;
     private JComboBox<String> exceptionJComboBox;
@@ -27,7 +28,8 @@ public class ExceptionResolutionPropertyEditBox {
 //    private IkasanExceptionResolver ikasanExceptionResolver;
     private boolean dirty = false;
 
-    public ExceptionResolutionPropertyEditBox(IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+    public ExceptionResolutionPropertyEditBox(PropertiesPanel parent, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+        this.parent = parent;
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
         this.popupMode = popupMode;
 
@@ -35,6 +37,7 @@ public class ExceptionResolutionPropertyEditBox {
         this.paramsTitleField = new JLabel("Params");
         List<String> currentExceptions = IkasanExceptionResolution.getMeta().getStandardExceptionsList();
         this.exceptionJComboBox = new JComboBox(currentExceptions.toArray());
+        this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
         this.actionJComboBox = new JComboBox(IkasanExceptionResolution.getMeta().getActionList().toArray());
         if (ikasanExceptionResolution.getTheException() != null) {
@@ -76,6 +79,7 @@ public class ExceptionResolutionPropertyEditBox {
             }
             dirty = true;
             currentAction = (String)actionJComboBox.getSelectedItem();
+            parent.redrawPanel();
         }
     }
 

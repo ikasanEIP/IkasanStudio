@@ -129,6 +129,10 @@ public abstract class PropertiesPanel extends JPanel {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
         }
         populatePropertiesEditorPanel();
+        redrawPanel();
+    }
+
+    protected void redrawPanel() {
         scrollableGridbagPanel.revalidate();
         scrollableGridbagPanel.repaint();
         setFocusOnFirstComponent();
