@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolution;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolver;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolverPropertyEditBox {
+    private String projectKey;
     private JLabel exceptionTitleField;
     private JLabel actionTitleField;
     private JLabel paramsTitleField;
@@ -24,7 +26,8 @@ public class ExceptionResolverPropertyEditBox {
     private IkasanExceptionResolver ikasanExceptionResolver;
     private boolean dirty = false;
 
-    public ExceptionResolverPropertyEditBox(IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
+    public ExceptionResolverPropertyEditBox(String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
+        this.projectKey = projectKey;
         this.ikasanExceptionResolver = ikasanExceptionResolver ;
         this.popupMode = popupMode;
 
@@ -45,7 +48,19 @@ public class ExceptionResolverPropertyEditBox {
     }
 
     private void doAdd(ActionEvent ae) {
-
+        ExceptionResolutionPropertiesPanel exceptionResolutionPropertiesPanel = new ExceptionResolutionPropertiesPanel(projectKey, true);
+        IkasanExceptionResolution newResolution = new IkasanExceptionResolution(ikasanExceptionResolver);
+        exceptionResolutionPropertiesPanel.updateTargetComponent(newResolution);
+        PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                Context.getProject(projectKey),
+                Context.getDesignerCanvas(projectKey),
+                exceptionResolutionPropertiesPanel);
+        if (! propertiesDialogue.showAndGet()) {
+            // i.e. cancel.
+            newResolution = null;
+        } else {
+            ikasanExceptionResolver.addExceptionResolution(newResolution);
+        }
     }
 //    /**
 //     * Once the action has been chosen, need to determine if there are new params for the action, if so add them and redraw.
