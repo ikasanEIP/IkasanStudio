@@ -35,7 +35,7 @@ public class PropertiesDialogue extends DialogWrapper {
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
-        setOKButtonText("Update Code");
+        setOKButtonText(propertiesPanel.getOKButtonText());
         setModal(modal);
     }
 
@@ -57,7 +57,7 @@ public class PropertiesDialogue extends DialogWrapper {
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
-        setOKButtonText("Update Code");
+        setOKButtonText(propertiesPanel.getOKButtonText());
     }
 
     /**

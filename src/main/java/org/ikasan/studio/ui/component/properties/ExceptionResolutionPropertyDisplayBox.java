@@ -15,12 +15,12 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolutionPropertyDisplayBox {
-    private JLabel exceptionField;
-    private JLabel actionField;
+    private JLabel exceptionField = new JLabel();
+    private JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
     private boolean popupMode;
     private IkasanExceptionResolution ikasanExceptionResolution;
-    private JButton deleteButton;
+    private JButton deleteButton = new JButton("X");
 
     public ExceptionResolutionPropertyDisplayBox(IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
@@ -31,7 +31,6 @@ public class ExceptionResolutionPropertyDisplayBox {
 
         if (theException != null && !theException.isEmpty()) {
             exceptionField.setText(ikasanExceptionResolution.getTheException());
-            deleteButton = new JButton("X");
             deleteButton.addActionListener(e -> {
                 doDelete(e);
                 }
@@ -41,7 +40,7 @@ public class ExceptionResolutionPropertyDisplayBox {
             actionField.setText(ikasanExceptionResolution.getTheAction());
         }
         if (ikasanExceptionResolution.getTheAction() != null) {
-            if (!ikasanExceptionResolution.getParams().isEmpty()) {
+            if (ikasanExceptionResolution.getParams() != null && !ikasanExceptionResolution.getParams().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
                 for (IkasanComponentProperty property : ikasanExceptionResolution.getParams()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.popupMode);
@@ -55,108 +54,6 @@ public class ExceptionResolutionPropertyDisplayBox {
 
     }
 
-//    /**
-//     * Once the action has been chosen, need to determine if there are new params for the action, if so add them and redraw.
-//     */
-//    private void setNewActionParams() {
-//        String actionSelected = (String)actionJComboBox.getSelectedItem();
-//        if (actionSelected != null && ! actionSelected.equals(currentAction)) {
-////            Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> actionProperties = getPropertiesForAction(actionSelected);
-//            actionParamEditBoxList = new ArrayList<>();
-//            for (IkasanComponentPropertyMeta propertyMeta : IkasanExceptionResolution.getMetaForActionParams(actionSelected)) {
-//                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.popupMode);
-//                actionParamEditBoxList.add(actionParam);
-//            }
-//            dirty = true;
-//            currentAction = (String)actionJComboBox.getSelectedItem();
-//        }
-//    }
-
-//    /**
-//     * Usually the final step of edit, update the original value object with the entered data
-//     */
-//    public IkasanExceptionResolution updateValueObjectWithEnteredValues() {
-//        ikasanExceptionResolution.setTheException((String)exceptionJComboBox.getSelectedItem());
-//        ikasanExceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
-//        if (!actionParamEditBoxList.isEmpty()) {
-//            List newActionParams = new ArrayList<>();
-//            ikasanExceptionResolution.setParams(newActionParams);
-//            for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
-//                newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());
-//            }
-//        }
-//
-////        ikasanExceptionResolver.getIkasanExceptionResolutionList().put(getPropertyKey(), ikasanExceptionResolution);
-//        return ikasanExceptionResolution;
-//    }
-
-
-//    /**
-//     * Determine if the edit box has values in all mandatory fields.
-//     * @return true if the editbox has a non-whitespace / real value.
-//     */
-//    public boolean editBoxHasValue() {
-//        boolean hasValue = false;
-//
-//        String selectedException = (String)exceptionJComboBox.getSelectedItem();
-//        String selectedAction = (String)actionJComboBox.getSelectedItem();
-//        if (selectedException != null && ! selectedException.isEmpty() &&
-//            selectedAction != null && ! selectedAction.isEmpty()) {
-//            if (actionParamEditBoxList.isEmpty()) {
-//                hasValue = true;
-//            } else {
-//
-//                // Either all mandatory fields have value, or at least 1 non mandatory field has value
-//                boolean nonMandatoryHasValue = false;
-//                boolean hasNonMandatory = false;
-//                boolean mandatoryHasValue = true;
-//                for(ComponentPropertyEditBox editBox : actionParamEditBoxList) {
-//                    if (!editBox.isMandatory()) {
-//                        hasNonMandatory = true ;
-//                    }
-//                    if (editBox.isMandatory() && !editBox.editBoxHasValue()) {
-//                        mandatoryHasValue = false;
-//                        break;
-//                    } else if (editBox.editBoxHasValue() && !editBox.isMandatory()) {
-//                        nonMandatoryHasValue = true;
-//                    }
-//                }
-//                if (mandatoryHasValue || (hasNonMandatory && nonMandatoryHasValue)) {
-//                    hasValue = true;
-//                }
-//            }
-//        }
-//        return hasValue;
-//    }
-
-//    /**
-//     * Determine if the data entered differs from the value object (ikasanExceptionResoluition)
-//     * @return true if the property has been altered
-//     */
-//    public boolean propertyValueHasChanged() {
-//        boolean hasChanged = false;
-//
-//        String selectedException = (String) exceptionJComboBox.getSelectedItem();
-//        String selectedAction = (String) actionJComboBox.getSelectedItem();
-//
-//        if (editBoxHasValue()) {
-//            if (!selectedException.equals(ikasanExceptionResolution.getTheException()) ||
-//                    !selectedAction.equals(ikasanExceptionResolution.getTheAction())) {
-//                hasChanged = true;
-//            } else if (selectedAction.equals(ikasanExceptionResolution.getTheAction())) {
-//                // Check to see if the values of any action params has changed
-//                for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
-//                    if (componentPropertyEditBox.propertyValueHasChanged()) {
-//                        hasChanged = true;
-//                        break;
-//                    }
-//                }
-//            }
-//        } else if (ikasanExceptionResolution.getTheException() != null || ikasanExceptionResolution.getTheAction() != null){
-//            hasChanged = true;
-//        }
-//        return hasChanged;
-//    }
 
     /**
      * get the key for the exception resolution
@@ -173,9 +70,6 @@ public class ExceptionResolutionPropertyDisplayBox {
     public boolean actionHasParams() {
         return !actionParamEditBoxList.isEmpty();
     }
-//    public String getAction() {
-//        return (String)actionJComboBox.getSelectedItem();
-//    }
 
     public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
         return actionParamEditBoxList;

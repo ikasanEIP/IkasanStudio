@@ -75,27 +75,20 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
      * delegate update of the editor pane to this component so that we can specialise for different components.
      *
      * For the given component, get all the editable properties and add them the to properties edit panel.
-     * @return the fully populated editor panel
      */
-    protected JPanel populatePropertiesEditorPanel() {
-        JPanel containerPanel = new JPanel(new GridBagLayout());
-        JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());
-        containerPanel.setBackground(Color.WHITE);
+    protected void populatePropertiesEditorPanel() {
 
         if (!popupMode) {
             okButton.setEnabled(false);
         }
 
         if (getSelectedComponent() != null) {
-            scrollableGridbagPanel.removeAll();
-            exceptionResolverPropertyEditBox = new ExceptionResolverPropertyEditBox(projectKey, getSelectedComponent(), popupMode);
+            propertiesEditorPanel = new JPanel(new GridBagLayout());
+            JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());
+            propertiesEditorPanel.setBackground(Color.WHITE);
+            propertiesEditorScrollingContainer.removeAll();
+            exceptionResolverPropertyEditBox = new ExceptionResolverPropertyEditBox(this, projectKey, getSelectedComponent(), popupMode);
             int exceptionResolutionTabley = 0;
-//
-//            if (getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME) != null) {
-//                propertyEditBox.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
-//                        getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
-//            }
-//            if (  getSelectedComponent().getType().getMetadataMap().size() > 0) {
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
@@ -112,12 +105,13 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
                     !getSelectedComponent().getIkasanExceptionResolutionMap().isEmpty()) {
                 for (ExceptionResolutionPropertyDisplayBox exceptionResolutionPropertyDisplayBox : exceptionResolverPropertyEditBox.getExceptionResolutionPropertyDisplayBoxList()) {
                     JPanel paramsSubPanel = new JPanel(new GridBagLayout());
+                    paramsSubPanel.setBackground(Color.WHITE);
                     int subPanelY = 0;
                     GridBagConstraints subPanelgc = new GridBagConstraints();
                     subPanelgc.fill = GridBagConstraints.HORIZONTAL;
                     subPanelgc.insets = new Insets(3, 4, 3, 4);
                     for (ComponentPropertyEditBox componentPropertyEditBox : exceptionResolutionPropertyDisplayBox.getActionParamsEditBoxList()) {
-                        addLabelAndParamInput(paramsSubPanel, subPanelgc, subPanelY, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
+                        addLabelAndParamInput(paramsSubPanel, subPanelgc, subPanelY++, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
                     }
                     addLabelAndSimpleInput(exceptionResolutionTablePanel, gc, exceptionResolutionTabley++,
                         exceptionResolutionPropertyDisplayBox.getDeleteButton(),
@@ -135,23 +129,13 @@ public class ExceptionResolverPropertiesPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             // Add the params to the display panels.
-            setSubPanel(containerPanel, exceptionResolutionTablePanel, "", Color.LIGHT_GRAY, gc1);
-            scrollableGridbagPanel.add(containerPanel);
+            setSubPanel(propertiesEditorPanel, exceptionResolutionTablePanel, "", Color.LIGHT_GRAY, gc1);
+            propertiesEditorScrollingContainer.add(propertiesEditorPanel);
             if (okButton != null) {
                     okButton.setEnabled(true);
             }
         }
-
-        return containerPanel;
     }
-
-//    public void setFocusOnFirstComponent() {
-//        JComponent firstComponent = getFirstFocusField();
-//        if (firstComponent != null) {
-//            Context.getProject(projectKey);
-//            IdeFocusManager.getInstance(Context.getProject(projectKey)).requestFocus(firstComponent, true);
-//        }
-//    }
 
     /**
      * Get the field that should be given the focus in popup or inscreen form

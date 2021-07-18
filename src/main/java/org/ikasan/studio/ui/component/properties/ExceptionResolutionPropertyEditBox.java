@@ -26,7 +26,6 @@ public class ExceptionResolutionPropertyEditBox {
     private boolean popupMode;
     private IkasanExceptionResolution ikasanExceptionResolution;
 //    private IkasanExceptionResolver ikasanExceptionResolver;
-    private boolean dirty = false;
 
     public ExceptionResolutionPropertyEditBox(PropertiesPanel parent, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
         this.parent = parent;
@@ -71,14 +70,16 @@ public class ExceptionResolutionPropertyEditBox {
     private void setNewActionParams() {
         String actionSelected = (String)actionJComboBox.getSelectedItem();
         if (actionSelected != null && ! actionSelected.equals(currentAction)) {
-//            Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> actionProperties = getPropertiesForAction(actionSelected);
             actionParamEditBoxList = new ArrayList<>();
             for (IkasanComponentPropertyMeta propertyMeta : IkasanExceptionResolution.getMetaForActionParams(actionSelected)) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.popupMode);
-                actionParamEditBoxList.add(actionParam);
+                if (!propertyMeta.isVoid()) {
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.popupMode);
+                    actionParamEditBoxList.add(actionParam);
+                }
             }
-            dirty = true;
+
             currentAction = (String)actionJComboBox.getSelectedItem();
+            parent.populatePropertiesEditorPanel();
             parent.redrawPanel();
         }
     }
