@@ -16,8 +16,10 @@ import java.util.List;
  */
 public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
     private transient ExceptionResolutionPropertyEditBox exceptionResolutionPropertyEditBox;
-//    private IkasanExceptionResolver ikasanExceptionResolver;
-//    private IkasanExceptionResolution ikasanExceptionResolution;
+    private JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
+    private JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
+    private JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());   // contains the Optional properties for the action
+    private boolean updateActionPropertiesOnly = false;
 
     /**
      * Create the ExceptionResolutionPropertiesPanel
@@ -32,13 +34,6 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
         super(projectKey, popupMode);
     }
 
-//    public void ExceptionResolutionPropertiesPanel(IkasanExceptionResolver ikasanExceptionResolver, IkasanExceptionResolution ikasanExceptionResolution) {
-//    public void ExceptionResolutionPropertiesPanel(String projectKey, boolean popupMode) {
-//        super(projectKey, popupMode);
-//        super(projectKey, popupMode);
-////        this.ikasanExceptionResolution = ikasanExceptionResolution;
-//        this.propertyEditBox = new ExceptionResolutionPropertyEditBox(ikasanExceptionResolver, ikasanExceptionResolution, popupMode);
-//    }
     /**
      * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
      */
@@ -78,105 +73,73 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
      * delegate update of the editor pane to this component so that we can specialise for different components.
      * @See PropertiesPanel.updateTargetComponent
      * For the given component, get all the editable properties and add them the to properties edit panel.
-     * @return the fully populated editor panel
      */
-    protected JPanel populatePropertiesEditorPanel() {
-        JPanel containerPanel = new JPanel(new GridBagLayout());
-        JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());
-        JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
-        JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
-        containerPanel.setBackground(Color.WHITE);
-
+    protected void populatePropertiesEditorPanel() {
         if (!popupMode) {
             okButton.setEnabled(false);
         }
 
         if (getSelectedComponent() != null) {
-            scrollableGridbagPanel.removeAll();
-            exceptionResolutionPropertyEditBox = new ExceptionResolutionPropertyEditBox(this, getSelectedComponent(), popupMode);
-            int exceptionActionTabley = 0;
-            int mandatoryParamsTabley = 0;
-            int optionalParamsTabley = 0;
-//
-//            if (getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME) != null) {
-//                propertyEditBox.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
-//                        getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
-//            }
-//            if (  getSelectedComponent().getType().getMetadataMap().size() > 0) {
+            // For this properties panel, the reset will only be for the action.
+            if (! updateActionPropertiesOnly) {
+                propertiesEditorScrollingContainer.removeAll();
+                propertiesEditorPanel = new JPanel(new GridBagLayout());
+                propertiesEditorPanel.setBackground(Color.WHITE);
+                propertiesEditorScrollingContainer.add(propertiesEditorPanel);
+                updateExceptionAndAction();
 
-            GridBagConstraints gc = new GridBagConstraints();
-            gc.fill = GridBagConstraints.HORIZONTAL;
-            gc.insets = new Insets(3, 4, 3, 4);
-
-            addLabelAndSimpleInput(exceptionActionEditorPanel, gc, exceptionActionTabley++, exceptionResolutionPropertyEditBox.getExceptionTitleField(), exceptionResolutionPropertyEditBox.getExceptionJComboBox());
-            addLabelAndSimpleInput(exceptionActionEditorPanel, gc, exceptionActionTabley++, exceptionResolutionPropertyEditBox.getActionTitleField(), exceptionResolutionPropertyEditBox.getActionJComboBox());
-
-            // Populate the list of params to be displayed and add to respective panels
-            if (getSelectedComponent().getParams() != null && !getSelectedComponent().getParams().isEmpty()) {
-//                propertyEditBox.set
-                for (ComponentPropertyEditBox actionParamEditBox : exceptionResolutionPropertyEditBox.getActionParamsEditBoxList()) {
-//                    IkasanComponentPropertyMetaKey key = entry.getKey();
-//                    if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
-//                        IkasanComponentProperty property = getSelectedComponent().getProperty(key);
-//                        if (property == null) {
-//                            // This property has not yet been set for the component
-//                            property = new IkasanComponentProperty(((IkasanFlowComponent) getSelectedComponent()).getType().getMetaDataForPropertyName(key));
-//                        }
-                        if (actionParamEditBox.isMandatory()) {
-                            addLabelAndParamInput(mandatoryPropertiesEditorPanel, gc, mandatoryParamsTabley++, actionParamEditBox.getPropertyTitleField(), actionParamEditBox.getInputField());
-
-//                        } else if (property.getMeta().isUserImplementedClass()) {
-//                            propertyEditBox.add(addNameValueToPropertiesEditPanel(
-//                                    regeneratingPropertiesEditorPanel,
-//                                    property, gc, regenerateTabley++));
-                        } else {
-                            addLabelAndParamInput(optionalPropertiesEditorPanel, gc, optionalParamsTabley++, actionParamEditBox.getPropertyTitleField(), actionParamEditBox.getInputField());
-//                            exceptionResolutionPropertyEditBox.add(addNameValueToPropertiesEditPanel(
-//                                    optionalPropertiesEditorPanel,
-//                                    property, gc, optionalTabley++));
-                        }
-//                    }
-                }
-//                if (!popupMode && getSelectedComponent().getType().isBespokeClass()) {
-//                    addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
-//                }
+                updateActionPropertiesOnly = true;
             }
-
-            GridBagConstraints gc1 = new GridBagConstraints();
-            gc1.fill = GridBagConstraints.HORIZONTAL;
-            gc1.insets = new Insets(3, 4, 3, 4);
-            gc1.gridx = 0;
-            gc1.weightx = 1;
-            gc1.gridy = 0;
-
-            // Add the params to the display panels.
-            setSubPanel(containerPanel, exceptionActionEditorPanel, "", Color.LIGHT_GRAY, gc1);
-
-            if (mandatoryParamsTabley > 0) {
-                setSubPanel(containerPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, gc1);
-            }
-
-            if (optionalParamsTabley > 0) {
-                setSubPanel(containerPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
-            }
-            scrollableGridbagPanel.add(containerPanel);
-
-//            if (!popupMode && !getSelectedComponent().getType().isBespokeClass() && ! getExceptionHandlerPropertyEditBoxList().isEmpty()) {
+            updatePropertiesForAction();
             if (okButton != null) {
                 okButton.setEnabled(true);
             }
         }
-
-        return containerPanel;
     }
 
-//    public void setFocusOnFirstComponent() {
-//        JComponent firstComponent = getFirstFocusField();
-//        if (firstComponent != null) {
-//            Context.getProject(projectKey);
-//            IdeFocusManager.getInstance(Context.getProject(projectKey)).requestFocus(firstComponent, true);
-//        }
-//    }
+    private void updateExceptionAndAction() {
+        exceptionActionEditorPanel.removeAll();
+        exceptionResolutionPropertyEditBox = new ExceptionResolutionPropertyEditBox(this, getSelectedComponent(), popupMode);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(3, 4, 3, 4);
+
+        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionPropertyEditBox.getExceptionTitleField(), exceptionResolutionPropertyEditBox.getExceptionJComboBox());
+        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionPropertyEditBox.getActionTitleField(), exceptionResolutionPropertyEditBox.getActionJComboBox());
+        addToScrollPanelContent(exceptionActionEditorPanel, "", Color.LIGHT_GRAY, 0);
+    }
+
+    public void updatePropertiesForAction() {
+        mandatoryPropertiesEditorPanel.removeAll();
+        optionalPropertiesEditorPanel.removeAll();
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(3, 4, 3, 4);
+
+        // Populate the list of params to be displayed and add to respective panels
+        int mandatoryParamsTabley = 0;
+        int optionalParamsTabley = 0;
+        List<ComponentPropertyEditBox> actionParams = exceptionResolutionPropertyEditBox.getActionParamsEditBoxList();
+        if (actionParams != null && !actionParams.isEmpty()) {
+            for (ComponentPropertyEditBox actionParamEditBox : actionParams) {
+                if (actionParamEditBox.isMandatory()) {
+                    addLabelAndParamInput(mandatoryPropertiesEditorPanel, gc, mandatoryParamsTabley++, actionParamEditBox.getPropertyTitleField(), actionParamEditBox.getInputField());
+                } else {
+                    addLabelAndParamInput(optionalPropertiesEditorPanel, gc, optionalParamsTabley++, actionParamEditBox.getPropertyTitleField(), actionParamEditBox.getInputField());
+                }
+            }
+        }
+
+        // Add the params to the display panels.
+        // The the panels even if empty so we can update subsequently.
+        addToScrollPanelContent(mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, 1);
+        addToScrollPanelContent(optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, 2);
+    }
+
+    protected String getOKButtonText() {
+        return "Add";
+    }
 
     /**
      * Get the field that should be given the focus in popup or inscreen form
@@ -191,21 +154,25 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
     }
 
     /**
-     * The properties panel has a series of subsections for mandatory, options and code regenerating components
-     * @param allPropertiesEditorPanel is the parent
-     * @param subPanel is the subsection (e.g. mandatory, optional, code regenerating)
+     * The scrollPanelContent panel has a series of subsections for Exceptions, actions and properties
+     * @param subPanel is the subsection (e.g. Exception/Action, properties)
      * @param title to place on the subsection
      * @param borderColor of the subsection
-     * @param gc1 is used to dictate layout and relay layout to the next subsection.
+     * @param rowNumber for this label/inpur pair
      */
-    private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
+    private void addToScrollPanelContent(JPanel subPanel, String title, Color borderColor, int rowNumber) {
+        GridBagConstraints subPanelgc = new GridBagConstraints();
+        subPanelgc.fill = GridBagConstraints.HORIZONTAL;
+        subPanelgc.insets = new Insets(3, 4, 3, 4);
+        subPanelgc.gridx = 0;
+        subPanelgc.weightx = 1;
+        subPanelgc.gridy = rowNumber;
         subPanel.setBackground(Color.WHITE);
         subPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(borderColor), title,
                 TitledBorder.LEFT,
                 TitledBorder.TOP));
-        allPropertiesEditorPanel.add(subPanel, gc1);
-        gc1.gridy += 1;
+        propertiesEditorPanel.add(subPanel, subPanelgc);
     }
 
 
@@ -238,66 +205,6 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
             propertiesEditorPanel.add(booleanPanel, gc);
         }
     }
-
-//    private void addLabelInputEditorAndGenerateSource(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley,
-//                                                      JLabel propertyLabel, JComponent propertyInputField) {
-//        gc.weightx = 0.0;
-//        gc.gridx = 0;
-//        gc.gridy = tabley;
-//        propertiesEditorPanel.add(propertyLabel, gc);
-//        gc.weightx = 1.0;
-//        gc.gridx = 1;
-//        propertiesEditorPanel.add(propertyInputField, gc);
-//    }
-
-
-
-//    /**
-//     * Determine if the property has been updated.
-//     * @param property of the existing ikasan Component
-//     * @param propertyEditBox should never be null when called.
-//     * @return true if the property has been altered
-//     */
-//    private boolean propertyValueHasChanged(IkasanComponentProperty property, ExceptionResolutionPropertyEditBox propertyEditBox) {
-//        Object propertyValue = null;
-//        if (property != null) {
-//            propertyValue = property.getValue();
-//        }
-//
-//        return ((propertyValue == null && propertyEditBox.editBoxHasValue()) ||
-////                (property != null && editBoxHasValue(propertyEditBox) && !property.getValue().equals(propertyEditBox.getValue())) ||
-//                (propertyValue != null && !property.getValue().equals(propertyEditBox.getValue())) ||
-//                (propertyEditBox != null && propertyEditBox.isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue(propertyEditBox)) );
-//    }
-
-//    /**
-//     * Determine if the edit box has a valid value that would warrant the source code to be updated
-//     * If the property generates source code, also check if 'regenerate' is selected (note this is assumed true in popup mode).
-//     * @param propertyEditBox to examine.
-//     * @return true if the editbox has a non-whitespace / real value.
-//     */
-//    private boolean editBoxHasValue(ExceptionResolutionPropertyEditBox propertyEditBox) {
-//        boolean hasValue = false;
-//        if (propertyEditBox != null) {
-//            Object value = propertyEditBox.getValue();
-//            if (value instanceof String) {
-//                if (((String) value).length() > 0) {
-//                    hasValue = true;
-//                }
-//            } else {
-//                hasValue = (value != null);
-//            }
-//        }
-//        return hasValue;
-//    }
-
-//    public List<ExceptionResolutionPropertyEditBox> getExceptionHandlerPropertyEditBoxList() {
-//        return propertyEditBox;
-//    }
-
-//    public IkasanComponent getSelectedComponent() {
-//        return getSelectedComponent();
-//    }
 
     /**
      * Ensure the fields are valid and the exception / action combo does not already exist.

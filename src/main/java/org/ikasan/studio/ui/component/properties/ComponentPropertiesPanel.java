@@ -166,22 +166,22 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * delegate update of the editor pane to this component so that we can specialise for different components.
      *
      * For the given component, get all the editable properties and add them the to properties edit panel.
-     * @return the fully populated editor panel
      */
-    protected JPanel populatePropertiesEditorPanel() {
-        JPanel containerPanel = new JPanel(new GridBagLayout());
-        containerPanel.setBackground(Color.WHITE);
-
-        JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
-        JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
-        JPanel regeneratingPropertiesEditorPanel = new JPanel(new GridBagLayout());
-
+    protected void populatePropertiesEditorPanel() {
         if (!popupMode) {
             okButton.setEnabled(false);
         }
 
         if (getSelectedComponent() != null) {
-            scrollableGridbagPanel.removeAll();
+            propertiesEditorScrollingContainer.removeAll();
+
+            propertiesEditorPanel = new JPanel(new GridBagLayout());
+            propertiesEditorPanel.setBackground(Color.WHITE);
+
+            JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            JPanel regeneratingPropertiesEditorPanel = new JPanel(new GridBagLayout());
+
             componentPropertyEditBoxList = new ArrayList<>();
 
             GridBagConstraints gc = new GridBagConstraints();
@@ -232,24 +232,22 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             if (mandatoryTabley > 0) {
-                setSubPanel(containerPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, gc1);
+                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, gc1);
             }
 
             if (regenerateTabley > 0) {
-                setSubPanel(containerPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", Color.orange, gc1);
+                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", Color.orange, gc1);
             }
 
             if (optionalTabley > 0) {
-                setSubPanel(containerPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
+                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
             }
-            scrollableGridbagPanel.add(containerPanel);
+            propertiesEditorScrollingContainer.add(propertiesEditorPanel);
 
             if (!popupMode && !getSelectedComponent().getType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
             }
         }
-
-        return containerPanel;
     }
 
 //    public void setFocusOnFirstComponent() {

@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class IkasanExceptionResolver extends IkasanFlowComponent {
     //@todo need to split IkasanComponent to nest IkasanExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
-    private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap;
+    private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();
 
     /**
      * Create an IkasanExceptionResolver

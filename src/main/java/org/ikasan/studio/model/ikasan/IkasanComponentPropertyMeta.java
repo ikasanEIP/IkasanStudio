@@ -121,6 +121,15 @@ public class IkasanComponentPropertyMeta {
 
     public boolean hasSubProperties() { return subProperties; }
 
+    /**
+     * For the meta that represents certain types of properties e.g. Exception Resolutions actions, some of the properties
+     * represent marker properties i.e. on/off e.g. stop()
+     * @return
+     */
+    public boolean isVoid() {
+        return propertyDataType == null;
+    }
+
     public void addSubProperty(@NotNull IkasanComponentPropertyMetaKey key,
                                @NotNull IkasanComponentPropertyMeta value) {
         if (metadataMap == null) {

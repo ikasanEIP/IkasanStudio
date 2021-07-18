@@ -22,7 +22,8 @@ public abstract class PropertiesPanel extends JPanel {
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
 
     protected JButton okButton;
-    protected ScrollableGridbagPanel scrollableGridbagPanel;
+    protected ScrollableGridbagPanel propertiesEditorScrollingContainer;
+    protected JPanel propertiesEditorPanel = new JPanel();
 
     public PropertiesPanel(String projectKey, boolean popupMode) {
         super();
@@ -45,7 +46,7 @@ public abstract class PropertiesPanel extends JPanel {
 
 
         if (! popupMode) {
-            okButton = new JButton("Update code");
+            okButton = new JButton(getOKButtonText());
             okButton.addActionListener(e -> {
                     OkActionListener(e);
                     doOKAction();
@@ -58,9 +59,9 @@ public abstract class PropertiesPanel extends JPanel {
             add(footerPanel, BorderLayout.SOUTH);
         }
 
-        JPanel propertiesEditorPanel = populatePropertiesEditorPanel();
-        scrollableGridbagPanel = new ScrollableGridbagPanel(propertiesEditorPanel);
-        JScrollPane scrollPane = new JScrollPane(scrollableGridbagPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        populatePropertiesEditorPanel();
+        propertiesEditorScrollingContainer = new ScrollableGridbagPanel(propertiesEditorPanel);
+        JScrollPane scrollPane = new JScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);
         scrollPane.setBackground(Color.WHITE);
@@ -133,16 +134,19 @@ public abstract class PropertiesPanel extends JPanel {
     }
 
     protected void redrawPanel() {
-        scrollableGridbagPanel.revalidate();
-        scrollableGridbagPanel.repaint();
+        propertiesEditorScrollingContainer.revalidate();
+        propertiesEditorScrollingContainer.repaint();
         setFocusOnFirstComponent();
+    }
+
+    protected String getOKButtonText() {
+        return "Update Code";
     }
 
     /**
      * For the given component, get all the editable properties and add them the to properties edit panel.
-     * @return the fully populated editor panel
      */
-    protected abstract JPanel populatePropertiesEditorPanel();
+    protected abstract void populatePropertiesEditorPanel();
 
     public void setFocusOnFirstComponent() {
         JComponent firstComponent = getFirstFocusField();

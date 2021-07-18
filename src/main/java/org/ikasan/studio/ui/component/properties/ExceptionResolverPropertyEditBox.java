@@ -16,6 +16,7 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolverPropertyEditBox {
+    private PropertiesPanel parent;
     private String projectKey;
     private JLabel exceptionTitleField;
     private JLabel actionTitleField;
@@ -26,7 +27,8 @@ public class ExceptionResolverPropertyEditBox {
     private IkasanExceptionResolver ikasanExceptionResolver;
     private boolean dirty = false;
 
-    public ExceptionResolverPropertyEditBox(String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
+    public ExceptionResolverPropertyEditBox(PropertiesPanel parent, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
+        this.parent = parent;
         this.projectKey = projectKey;
         this.ikasanExceptionResolver = ikasanExceptionResolver ;
         this.popupMode = popupMode;
@@ -60,24 +62,10 @@ public class ExceptionResolverPropertyEditBox {
             newResolution = null;
         } else {
             ikasanExceptionResolver.addExceptionResolution(newResolution);
+            parent.populatePropertiesEditorPanel();
+            parent.redrawPanel();
         }
     }
-//    /**
-//     * Once the action has been chosen, need to determine if there are new params for the action, if so add them and redraw.
-//     */
-//    private void setNewActionParams() {
-//        String actionSelected = (String)actionJComboBox.getSelectedItem();
-//        if (actionSelected != null && ! actionSelected.equals(currentAction)) {
-////            Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> actionProperties = getPropertiesForAction(actionSelected);
-//            actionParamEditBoxList = new ArrayList<>();
-//            for (IkasanComponentPropertyMeta propertyMeta : IkasanExceptionResolution.getMetaForActionParams(actionSelected)) {
-//                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.popupMode);
-//                actionParamEditBoxList.add(actionParam);
-//            }
-//            dirty = true;
-//            currentAction = (String)actionJComboBox.getSelectedItem();
-//        }
-//    }
 
     /**
      * Usually the final step of edit, update the original value object with the entered data
@@ -106,29 +94,6 @@ public class ExceptionResolverPropertyEditBox {
     public boolean propertyValueHasChanged() {
         return dirty;
     }
-
-//    /**
-//     * get the key for the exception resolution
-//     * @return the key for this exception resolution
-//     */
-//    public String getPropertyKey() {
-//        return (String)exceptionJComboBox.getSelectedItem();
-//    }
-
-    /**
-//     * actionParams will only have elements if an action has been chosen the requires params.
-//     * @return
-//     */
-//    public boolean actionHasParams() {
-//        return !actionParamEditBoxList.isEmpty();
-//    }
-//    public String getAction() {
-//        return (String)actionJComboBox.getSelectedItem();
-//    }
-//
-//    public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
-//        return actionParamEditBoxList;
-//    }
 
     /**
      * Validate the selected values
