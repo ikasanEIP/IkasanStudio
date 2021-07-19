@@ -12,6 +12,7 @@ public class IkasanFlow extends IkasanComponent {
     @JsonIgnore
     private IkasanFlowComponent output;
     private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
+    private IkasanExceptionResolver ikasanExceptionResolver;
 
     public IkasanFlow () {
         super (IkasanComponentType.FLOW, IkasanComponentType.FLOW.getMandatoryProperties());
@@ -33,7 +34,6 @@ public class IkasanFlow extends IkasanComponent {
             getFlowComponentList().remove(ikasanFlowComponentToBeRemoved);
         }
     }
-
 
     /**
      * Return true if it is valid to add the supplied component
@@ -112,6 +112,14 @@ public class IkasanFlow extends IkasanComponent {
 
     public void setOutput(IkasanFlowComponent output) {
         this.output = output;
+    }
+
+    public IkasanExceptionResolver getIkasanExceptionResolver() {
+        return ikasanExceptionResolver;
+    }
+
+    public void setIkasanExceptionResolver(IkasanExceptionResolver ikasanExceptionResolver) {
+        this.ikasanExceptionResolver = ikasanExceptionResolver;
     }
 
     @Override
