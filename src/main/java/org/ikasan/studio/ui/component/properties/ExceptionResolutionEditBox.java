@@ -13,8 +13,8 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ExceptionResolutionPropertyEditBox {
-    private PropertiesPanel parent;
+public class ExceptionResolutionEditBox {
+    private ExceptionResolutionPanel resolutionPanel;
 //    private static IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     private JLabel exceptionTitleField;
     private JComboBox<String> exceptionJComboBox;
@@ -27,8 +27,8 @@ public class ExceptionResolutionPropertyEditBox {
     private IkasanExceptionResolution ikasanExceptionResolution;
 //    private IkasanExceptionResolver ikasanExceptionResolver;
 
-    public ExceptionResolutionPropertyEditBox(PropertiesPanel parent, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
-        this.parent = parent;
+    public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+        this.resolutionPanel = resolutionPanel;
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
         this.popupMode = popupMode;
 
@@ -79,8 +79,8 @@ public class ExceptionResolutionPropertyEditBox {
             }
 
             currentAction = (String)actionJComboBox.getSelectedItem();
-            parent.populatePropertiesEditorPanel();
-            parent.redrawPanel();
+            resolutionPanel.populatePropertiesEditorPanel();
+            resolutionPanel.redrawPanel();
         }
     }
 
@@ -201,7 +201,8 @@ public class ExceptionResolutionPropertyEditBox {
         List<ValidationInfo> result = new ArrayList<>();
         if (exceptionJComboBox.getSelectedItem() == null) {
             result.add(new ValidationInfo("A valid exception must be set"));
-        } else if (ikasanExceptionResolution.getParent().hasExceptionResolution((String)exceptionJComboBox.getSelectedItem())) {
+        } else if (ikasanExceptionResolution.getParent().hasExceptionResolution((String)exceptionJComboBox.getSelectedItem()) ||
+                    resolutionPanel.hasExceptionResolution((String)exceptionJComboBox.getSelectedItem())) {
             result.add(new ValidationInfo("The exception " + exceptionJComboBox.getSelectedItem() + " already has an assigned action, change the exception or cancel"));
         } else if (actionJComboBox.getSelectedItem() == null) {
             result.add(new ValidationInfo("An action must be chosen"));

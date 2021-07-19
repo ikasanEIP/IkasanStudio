@@ -44,7 +44,7 @@ public abstract class PropertiesPanel extends JPanel {
         propertiesBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         propertiesBodyPanel.setBackground(Color.WHITE);
 
-
+        // Palette editor mode, add an OK button at the bottom.
         if (! popupMode) {
             okButton = new JButton(getOKButtonText());
             okButton.addActionListener(e -> {
@@ -117,7 +117,6 @@ public abstract class PropertiesPanel extends JPanel {
             }
         }
         return propertyType;
-
     }
 
     /**

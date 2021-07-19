@@ -5,7 +5,6 @@ import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolution;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,15 +13,17 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ExceptionResolutionPropertyDisplayBox {
+public class ExceptionResolution {
+    ExceptionResolverEditBox parent;
     private JLabel exceptionField = new JLabel();
     private JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
     private boolean popupMode;
     private IkasanExceptionResolution ikasanExceptionResolution;
-    private JButton deleteButton = new JButton("X");
+    private JButton deleteButton = new JButton("DEL");
 
-    public ExceptionResolutionPropertyDisplayBox(IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+    public ExceptionResolution(ExceptionResolverEditBox parent, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+        this.parent = parent;
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
         this.popupMode = popupMode;
 
@@ -32,7 +33,7 @@ public class ExceptionResolutionPropertyDisplayBox {
         if (theException != null && !theException.isEmpty()) {
             exceptionField.setText(ikasanExceptionResolution.getTheException());
             deleteButton.addActionListener(e -> {
-                doDelete(e);
+                parent.doDelete(ikasanExceptionResolution);
                 }
             );
         }
@@ -49,11 +50,6 @@ public class ExceptionResolutionPropertyDisplayBox {
             }
         }
     }
-
-    private void doDelete(ActionEvent ae) {
-
-    }
-
 
     /**
      * get the key for the exception resolution

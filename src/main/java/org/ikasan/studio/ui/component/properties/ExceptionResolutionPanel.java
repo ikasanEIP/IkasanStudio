@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import org.apache.log4j.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolution;
 
@@ -14,15 +15,18 @@ import java.util.List;
  *
  * This panel contains the data entry for the exception and action
  */
-public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
-    private transient ExceptionResolutionPropertyEditBox exceptionResolutionPropertyEditBox;
+public class ExceptionResolutionPanel extends PropertiesPanel {
+    private static final Logger log = Logger.getLogger(PropertiesPanel.class);
+    private ExceptionResolverPanel resolverPanel;
+    private List<ExceptionResolution> exceptionResolutionList;
+    private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     private JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
     private JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
     private JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());   // contains the Optional properties for the action
     private boolean updateActionPropertiesOnly = false;
 
     /**
-     * Create the ExceptionResolutionPropertiesPanel
+     * Create the ExceptionResolutionPanel
      *
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
@@ -30,8 +34,10 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
      * @param projectKey for this project
      * @param popupMode true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPropertiesPanel(String projectKey, boolean popupMode) {
+    public ExceptionResolutionPanel(List<ExceptionResolution> exceptionResolutionList, ExceptionResolverPanel resolverPanel, String projectKey, boolean popupMode) {
         super(projectKey, popupMode);
+        this.exceptionResolutionList = exceptionResolutionList;
+        this.resolverPanel = resolverPanel;
     }
 
     /**
@@ -44,6 +50,8 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
             Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
+        } else {
+            log.info("Data has not changed in Exception Resolution, code will not be updated");
         }
     }
 
@@ -53,7 +61,7 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
 
     @Override
     public boolean dataHasChanged() {
-        return exceptionResolutionPropertyEditBox != null && exceptionResolutionPropertyEditBox.propertyValueHasChanged();
+        return exceptionResolutionEditBox != null && exceptionResolutionEditBox.propertyValueHasChanged();
     }
 
     /**
@@ -64,7 +72,7 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
     @Override
     public void processEditedFlowComponents() {
         if (dataHasChanged()) {
-                exceptionResolutionPropertyEditBox.updateValueObjectWithEnteredValues();
+                exceptionResolutionEditBox.updateValueObjectWithEnteredValues();
         }
     }
 
@@ -99,13 +107,13 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
 
     private void updateExceptionAndAction() {
         exceptionActionEditorPanel.removeAll();
-        exceptionResolutionPropertyEditBox = new ExceptionResolutionPropertyEditBox(this, getSelectedComponent(), popupMode);
+        exceptionResolutionEditBox = new ExceptionResolutionEditBox(this, getSelectedComponent(), popupMode);
         GridBagConstraints gc = new GridBagConstraints();
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(3, 4, 3, 4);
 
-        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionPropertyEditBox.getExceptionTitleField(), exceptionResolutionPropertyEditBox.getExceptionJComboBox());
-        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionPropertyEditBox.getActionTitleField(), exceptionResolutionPropertyEditBox.getActionJComboBox());
+        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
+        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
         addToScrollPanelContent(exceptionActionEditorPanel, "", Color.LIGHT_GRAY, 0);
     }
 
@@ -120,7 +128,7 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
         // Populate the list of params to be displayed and add to respective panels
         int mandatoryParamsTabley = 0;
         int optionalParamsTabley = 0;
-        List<ComponentPropertyEditBox> actionParams = exceptionResolutionPropertyEditBox.getActionParamsEditBoxList();
+        List<ComponentPropertyEditBox> actionParams = exceptionResolutionEditBox.getActionParamsEditBoxList();
         if (actionParams != null && !actionParams.isEmpty()) {
             for (ComponentPropertyEditBox actionParamEditBox : actionParams) {
                 if (actionParamEditBox.isMandatory()) {
@@ -147,8 +155,8 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
      */
     public JComponent getFirstFocusField() {
         JComponent firstFocus = null;
-        if (exceptionResolutionPropertyEditBox != null) {
-            firstFocus = exceptionResolutionPropertyEditBox.getExceptionJComboBox();
+        if (exceptionResolutionEditBox != null) {
+            firstFocus = exceptionResolutionEditBox.getExceptionJComboBox();
         }
         return firstFocus;
     }
@@ -214,7 +222,11 @@ public class ExceptionResolutionPropertiesPanel extends PropertiesPanel {
      * @return a list of ValidationInfo that will only be populated if there are validation errors on the form.
      */
     protected List<ValidationInfo> doValidateAll() {
-        List<ValidationInfo> result = exceptionResolutionPropertyEditBox.doValidateAll();
+        List<ValidationInfo> result = exceptionResolutionEditBox.doValidateAll();
         return result;
+    }
+
+    public boolean hasExceptionResolution(String exception) {
+        return exceptionResolutionList.stream().anyMatch(res -> res.getIkasanExceptionResolution().getTheException().equals(exception));
     }
 }
