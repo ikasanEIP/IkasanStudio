@@ -407,9 +407,12 @@ public class DesignerCanvas extends JPanel {
                 }
 
                 newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
-                //XXXX
                 if (newComponent != null) {
-                    insertNewComponentBetweenSurroundingPair(containingFlow, (IkasanFlowComponent)newComponent, x, y);
+                    if (newComponent instanceof IkasanExceptionResolver) {
+                        containingFlow.setIkasanExceptionResolver((IkasanExceptionResolver)newComponent);
+                    } else {
+                        insertNewComponentBetweenSurroundingPair(containingFlow, (IkasanFlowComponent) newComponent, x, y);
+                    }
                 } else {
                     return false;
                 }
@@ -421,6 +424,7 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
+            //XXXX no we need to generate the code from the model for exception resolver.
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel(newComponent.getType().getComponentDependency().getDependencies());
             StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
