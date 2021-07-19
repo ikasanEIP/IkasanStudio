@@ -150,14 +150,23 @@ public class ComponentPropertyEditBox {
      * @return true if the field is empty or unset
      */
     public boolean inputfieldIsUnset() {
+        boolean fieldNotSet = false;
         // For boolean we don't current support unset @todo support unset if we need to
+
+
         if (meta.getPropertyDataType() == java.lang.String.class) {
-            return propertyValueField.getText() == null || propertyValueField.getText().isEmpty();
-        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
-            // NumberFormat.getNumberInstance() will always return long
-            return propertyValueField.getValue() == null || ((Long) propertyValueField.getValue() == 0);
+            fieldNotSet = propertyValueField.getText() == null || propertyValueField.getText().isEmpty();
+        } else if (meta.getPropertyDataType() == java.lang.Long.class || meta.getPropertyDataType() == java.lang.Integer.class) {
+            Object value = propertyValueField.getValue();
+            if (value == null) {
+                fieldNotSet = true;
+            } else if (value instanceof Long) {
+                fieldNotSet = ((Long)value == 0);
+            } else if (value instanceof Integer) {
+                fieldNotSet = ((Integer)value == 0);
+            }
         }
-        return false;
+        return fieldNotSet;
     }
 
     /**

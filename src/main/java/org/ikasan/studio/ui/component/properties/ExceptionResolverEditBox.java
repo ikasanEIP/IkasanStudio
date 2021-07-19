@@ -15,20 +15,19 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ExceptionResolverPropertyEditBox {
-    private PropertiesPanel parent;
+public class ExceptionResolverEditBox {
+    private ExceptionResolverPanel resolverPanel;
     private String projectKey;
     private JLabel exceptionTitleField;
     private JLabel actionTitleField;
     private JLabel paramsTitleField;
     private JButton addButton;
-    private List<ExceptionResolutionPropertyDisplayBox> exceptionResolutionPropertyDisplayBoxList = new ArrayList<>();
+    private List<ExceptionResolution> exceptionResolutionList = new ArrayList<>();
     private boolean popupMode;
     private IkasanExceptionResolver ikasanExceptionResolver;
-    private boolean dirty = false;
 
-    public ExceptionResolverPropertyEditBox(PropertiesPanel parent, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
-        this.parent = parent;
+    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
+        this.resolverPanel = resolverPanel;
         this.projectKey = projectKey;
         this.ikasanExceptionResolver = ikasanExceptionResolver ;
         this.popupMode = popupMode;
@@ -39,31 +38,36 @@ public class ExceptionResolverPropertyEditBox {
 
         if (ikasanExceptionResolver.getIkasanExceptionResolutionMap() != null) {
             for (IkasanExceptionResolution exceptionResolution : ikasanExceptionResolver.getIkasanExceptionResolutionMap().values()) {
-                exceptionResolutionPropertyDisplayBoxList.add(new ExceptionResolutionPropertyDisplayBox(exceptionResolution, popupMode));
+                exceptionResolutionList.add(new ExceptionResolution(this, exceptionResolution, popupMode));
             }
         }
-        addButton = new JButton("+");
+        addButton = new JButton("ADD");
         addButton.addActionListener(e -> {
                     doAdd(e);
                 }
         );
     }
 
+    public void doDelete(IkasanExceptionResolution ikasanExceptionResolution) {
+        if (exceptionResolutionList != null) {
+            exceptionResolutionList.removeIf(item -> ikasanExceptionResolution.equals(item.getIkasanExceptionResolution()));
+            resolverPanel.populatePropertiesEditorPanel();
+            resolverPanel.redrawPanel();
+        }
+    }
+
     private void doAdd(ActionEvent ae) {
-        ExceptionResolutionPropertiesPanel exceptionResolutionPropertiesPanel = new ExceptionResolutionPropertiesPanel(projectKey, true);
+        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, resolverPanel, projectKey, true);
         IkasanExceptionResolution newResolution = new IkasanExceptionResolution(ikasanExceptionResolver);
-        exceptionResolutionPropertiesPanel.updateTargetComponent(newResolution);
+        exceptionResolutionPanel.updateTargetComponent(newResolution);
         PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                 Context.getProject(projectKey),
                 Context.getDesignerCanvas(projectKey),
-                exceptionResolutionPropertiesPanel);
-        if (! propertiesDialogue.showAndGet()) {
-            // i.e. cancel.
-            newResolution = null;
-        } else {
-            ikasanExceptionResolver.addExceptionResolution(newResolution);
-            parent.populatePropertiesEditorPanel();
-            parent.redrawPanel();
+                exceptionResolutionPanel);
+        if (propertiesDialogue.showAndGet()) {
+            exceptionResolutionList.add(new ExceptionResolution(this, newResolution, popupMode));
+            resolverPanel.populatePropertiesEditorPanel();
+            resolverPanel.redrawPanel();
         }
     }
 
@@ -72,8 +76,8 @@ public class ExceptionResolverPropertyEditBox {
      */
     public IkasanExceptionResolver updateValueObjectWithEnteredValues() {
         ikasanExceptionResolver.resetIkasanExceptionResolutionList();
-        for (ExceptionResolutionPropertyDisplayBox exceptionResolutionPropertyDisplayBox : exceptionResolutionPropertyDisplayBoxList) {
-            ikasanExceptionResolver.addExceptionResolution(exceptionResolutionPropertyDisplayBox.getIkasanExceptionResolution());
+        for (ExceptionResolution exceptionResolution : exceptionResolutionList) {
+            ikasanExceptionResolver.addExceptionResolution(exceptionResolution.getIkasanExceptionResolution());
         }
         return ikasanExceptionResolver;
     }
@@ -84,7 +88,7 @@ public class ExceptionResolverPropertyEditBox {
      * @return true if the editbox has a non-whitespace / real value.
      */
     public boolean editBoxHasValue() {
-        return exceptionResolutionPropertyDisplayBoxList != null && !exceptionResolutionPropertyDisplayBoxList.isEmpty();
+        return exceptionResolutionList != null && !exceptionResolutionList.isEmpty();
     }
 
     /**
@@ -92,7 +96,12 @@ public class ExceptionResolverPropertyEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-        return dirty;
+        boolean hasChanged = true ;
+        if (ikasanExceptionResolver.getIkasanExceptionResolutionMap().isEmpty() && exceptionResolutionList.isEmpty()) {
+            hasChanged = false;
+        }
+        //@todo we could check ikasanExceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
+        return hasChanged;
     }
 
     /**
@@ -100,7 +109,7 @@ public class ExceptionResolverPropertyEditBox {
      * @return a non-empty ValidationInfo list if there are validation errors
      */
     protected List<ValidationInfo> doValidateAll() {
-        if (exceptionResolutionPropertyDisplayBoxList == null || exceptionResolutionPropertyDisplayBoxList.isEmpty()) {
+        if (exceptionResolutionList == null || exceptionResolutionList.isEmpty()) {
             List<ValidationInfo> result = new ArrayList<>();
             result.add(new ValidationInfo("At least one exception should be added, or cancel so that exception resolver is not defined"));
             return result;
@@ -125,7 +134,7 @@ public class ExceptionResolverPropertyEditBox {
         return paramsTitleField;
     }
 
-    public List<ExceptionResolutionPropertyDisplayBox> getExceptionResolutionPropertyDisplayBoxList() {
-        return exceptionResolutionPropertyDisplayBoxList;
+    public List<ExceptionResolution> getExceptionResolutionList() {
+        return exceptionResolutionList;
     }
 }

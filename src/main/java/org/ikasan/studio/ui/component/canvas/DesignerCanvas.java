@@ -14,7 +14,7 @@ import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
-import org.ikasan.studio.ui.component.properties.ExceptionResolverPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
@@ -407,6 +407,7 @@ public class DesignerCanvas extends JPanel {
                 }
 
                 newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
+                //XXXX
                 if (newComponent != null) {
                     insertNewComponentBetweenSurroundingPair(containingFlow, (IkasanFlowComponent)newComponent, x, y);
                 } else {
@@ -476,7 +477,7 @@ public class DesignerCanvas extends JPanel {
     private IkasanComponent createExceptionResolver(IkasanComponent newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
-            ExceptionResolverPropertiesPanel componentPropertiesPanel = new ExceptionResolverPropertiesPanel(projectKey, true);
+            ExceptionResolverPanel componentPropertiesPanel = new ExceptionResolverPanel(projectKey, true);
             componentPropertiesPanel.updateTargetComponent(newComponent);
             PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                     Context.getProject(projectKey),
