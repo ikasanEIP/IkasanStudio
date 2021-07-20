@@ -29,4 +29,12 @@ public class IkasanExceptionResolutionMeta {
         return ON_EXCEPTION.getPropertyNames();
     }
 
+    public static String parseAction(String onExceptionMethod) {
+        if (onExceptionMethod != null) {
+            return ON_EXCEPTION.getPropertyNames().stream().filter(action -> onExceptionMethod.contains(action)).findFirst().orElse("");
+        } else {
+            return "";
+        }
+    }
+
 }

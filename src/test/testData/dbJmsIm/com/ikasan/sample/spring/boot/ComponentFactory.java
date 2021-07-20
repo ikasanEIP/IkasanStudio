@@ -199,9 +199,9 @@ public class ComponentFactory
     ExceptionResolver getSourceFlowExceptionResolver()
     {
         return builderFactory.getExceptionResolverBuilder()
+                .addExceptionToAction(RouterException.class, OnException.retry(200, 10))
                 .addExceptionToAction(TransformationException.class, OnException.ignoreException())
                 .addExceptionToAction(SplitterException.class, OnException.excludeEvent())
-                .addExceptionToAction(RouterException.class, OnException.retry(200, 10))
                 .addExceptionToAction(EndpointException.class, OnException.retryIndefinitely())
                 .addExceptionToAction(JMSException.class, OnException.retryIndefinitely(100))
                 .addExceptionToAction(ResourceException.class, OnException.scheduledCronRetry("* * * * *", 100))

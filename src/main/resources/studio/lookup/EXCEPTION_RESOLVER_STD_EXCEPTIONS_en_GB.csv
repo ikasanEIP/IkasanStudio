@@ -1,10 +1,10 @@
 # propertyName|value
 # propertyName - Display text for the property
 # value - Value
-org.ikasan.spec.component.transformation.TransformationException.class|org.ikasan.spec.component.transformation.TransformationException.class
-org.ikasan.spec.component.splittingSplitterException.class|org.ikasan.spec.component.splittingSplitterException.class
-org.ikasan.spec.component.routing.RouterException.class|org.ikasan.spec.component.routing.RouterException.class
-org.ikasan.spec.component.endpoint.EndpointException.class|org.ikasan.spec.component.endpoint.EndpointException.class
-javax.jms.JMSException.class|javax.jms.JMSException.class
-javax.resource.ResourceException.class|javax.resource.ResourceException.class
-org.ikasan.spec.component.filter.FilterException.class|org.ikasan.spec.component.filter.FilterException.class
+TransformationException|org.ikasan.spec.component.transformation.TransformationException.class
+SplitterException|org.ikasan.spec.component.splitting.SplitterException.class
+RouterException|org.ikasan.spec.component.routing.RouterException.class
+EndpointException|org.ikasan.spec.component.endpoint.EndpointException.class
+JMSException|javax.jms.JMSException.class
+ResourceException|javax.resource.ResourceException.class
+FilterException|org.ikasan.spec.component.filter.FilterException.class

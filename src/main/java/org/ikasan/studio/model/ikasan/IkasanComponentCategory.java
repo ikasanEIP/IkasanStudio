@@ -37,9 +37,11 @@ public enum IkasanComponentCategory {
      * @return the IkasanComponentCategory or found or UNKNOWN
      */
     public static IkasanComponentCategory parseMethodName(String methodName) {
-        for (IkasanComponentCategory name : IkasanComponentCategory.values()) {
-            if (name.associatedMethodName.equals(methodName)) {
-                return name;
+        if (methodName != null) {
+            for (IkasanComponentCategory name : IkasanComponentCategory.values()) {
+                if (name.associatedMethodName.equals(methodName)) {
+                    return name;
+                }
             }
         }
         return UNKNOWN;
