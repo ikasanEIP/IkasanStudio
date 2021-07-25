@@ -11,7 +11,8 @@ import org.ikasan.studio.ui.viewmodel.ViewHandler;
 public abstract class IkasanBaseComponent {
     @JsonIgnore
     private static final Logger log = Logger.getLogger(IkasanBaseComponent.class);
-//    @JsonIgnore
+    // The view handler has a number of circular dependencies to be avoided.
+    @JsonIgnore
     protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
     protected IkasanComponentType type;
@@ -21,7 +22,7 @@ public abstract class IkasanBaseComponent {
     protected IkasanBaseComponent(IkasanComponentType type) {
         this.type = type;
     }
-
+    @JsonIgnore
     public ViewHandler getViewHandler() {
         return viewHandler;
     }

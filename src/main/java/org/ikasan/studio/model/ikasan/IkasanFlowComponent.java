@@ -68,6 +68,7 @@ public class IkasanFlowComponent extends IkasanComponent {
         }
     }
 
+    @JsonIgnore
     public IkasanFlow getParent() {
         return parent;
     }

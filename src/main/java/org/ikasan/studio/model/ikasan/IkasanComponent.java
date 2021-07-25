@@ -16,34 +16,31 @@ import java.util.stream.Collectors;
 public abstract class IkasanComponent extends IkasanBaseComponent {
     @JsonIgnore
     private static final Logger log = Logger.getLogger(IkasanComponent.class);
-//    @JsonIgnore
-//    protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
     protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
-//    protected IkasanComponentType type;
+
 
     protected IkasanComponent(IkasanComponentType type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
         super(type);
-//        this.type = type;
         this.configuredProperties = configuredProperties;
     }
-
+    @JsonIgnore
     public IkasanComponentProperty getProperty(String key) {
         return configuredProperties.get(new IkasanComponentPropertyMetaKey(key, 1, 1));
     }
-
+    @JsonIgnore
     public IkasanComponentProperty getProperty(IkasanComponentPropertyMetaKey key) {
         return configuredProperties.get(key);
     }
-
+    @JsonIgnore
     public Object getPropertyValue(String key) {
         return getPropertyValue(new IkasanComponentPropertyMetaKey(key));
     }
-
+    @JsonIgnore
     public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
         return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
     }
-
+    @JsonIgnore
     public Object getPropertyValue(IkasanComponentPropertyMetaKey key) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
@@ -123,7 +120,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
             }
         }
     }
-
+    @JsonIgnore
     public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getConfiguredProperties() {
         return configuredProperties;
     }
@@ -155,6 +152,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
      * Get all the standard properties i.e. exclude the special 'name and description' properties.
      * @return the Map of standard properties for this component.
      */
+    @JsonIgnore
     public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getStandardConfiguredProperties() {
         Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> standardProperties = new HashedMap();
         if (configuredProperties != null && configuredProperties.size() > 0) {
@@ -226,7 +224,6 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
      * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
      * @return the component description
      */
-    @JsonIgnore
     public String getDescription() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
     }
@@ -248,14 +245,6 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         }
         return false;
     }
-
-//    public IkasanComponentType getType() {
-//        return type;
-//    }
-
-//    public void setType(IkasanComponentType type) {
-//        this.type = type;
-//    }
 
     @Override
     public String toString() {

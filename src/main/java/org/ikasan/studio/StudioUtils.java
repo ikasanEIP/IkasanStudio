@@ -366,7 +366,7 @@ public class StudioUtils {
             moduleString = objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException jpe) {
             value = "";
-            LOG.warn("Could not generate JSON from [" + value + "]");
+            LOG.warn("Could not generate JSON from [" + value + "] message [" + jpe.getMessage() + "]", jpe);
         }
         return moduleString;
     }
