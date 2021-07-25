@@ -1,8 +1,13 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class IkasanComponentProperty {
+    private final Logger LOG = Logger.getLogger(IkasanComponentProperty.class);
     private Object value;
     private Boolean regenerateAllowed = true;
     @JsonIgnore
@@ -34,6 +39,33 @@ public class IkasanComponentProperty {
         this.value = value;
     }
 
+    /**
+     * Using the supplied string and meta data, attempt to set the value to an object of the appropriate class in accordance
+     * with the metaData
+     * @param newValue
+     */
+    public void setValueFromString(String newValue) {
+        if (meta != null) {
+            if (meta.getPropertyDataType() == String.class) {
+                value = newValue;
+            } else {
+                try {
+                    if (meta.getPropertyDataType() == Long.class) {
+                        value = Long.parseLong(newValue);
+                    } else if (meta.getPropertyDataType() == Integer.class) {
+                        value = Integer.parseInt(newValue);
+                    } else if (meta.getPropertyDataType() == Double.class) {
+                        value = Double.parseDouble(newValue);
+                    } else if (meta.getPropertyDataType() == Float.class) {
+                        value = Float.parseFloat(newValue);
+                    }
+                } catch (NumberFormatException nfe) {
+                    LOG.warn("Failed to set value of type " + meta.getPropertyDataType() + " to value " + newValue);
+                }
+            }
+        }
+    }
+
     public IkasanComponentPropertyMeta getMeta() {
         return meta;
     }
@@ -54,6 +86,16 @@ public class IkasanComponentProperty {
         return Boolean.TRUE.equals(getMeta().isUserImplementedClass());
     }
 
+    public static List<IkasanComponentProperty> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {
+        List<IkasanComponentProperty> propertyList = new ArrayList();
+        if (metaList != null && !metaList.isEmpty()) {
+            for(IkasanComponentPropertyMeta meta : metaList) {
+                propertyList.add(new IkasanComponentProperty(meta));
+            }
+        }
+        return propertyList;
+    }
+
     @Override
     public String toString() {
         return "IkasanComponentProperty{" +
@@ -72,7 +114,7 @@ public class IkasanComponentProperty {
         if ((value == null) ||
             (value instanceof java.lang.String && ((String)value).isEmpty()) ||
             (value instanceof java.lang.Integer && ((Integer)value) ==0) ||
-            (value instanceof java.lang.Long && ((Long)value) == 0l) ||
+            (value instanceof Long && ((Long)value) == 0l) ||
             (value instanceof java.lang.Double && ((Double)value) == 0.0) ||
             (value instanceof java.lang.Float && ((Float)value) == 0.0)) {
             empty = true;
