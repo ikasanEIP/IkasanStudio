@@ -17,6 +17,17 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+//    id("java")
+//    // Kotlin support
+//    id("org.jetbrains.kotlin.jvm") version "1.5.10"
+//    // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
+//    id("org.jetbrains.intellij") version "1.0"
+//    // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
+//    id("org.jetbrains.changelog") version "0.6.2"
+//    // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
+//    id("io.gitlab.arturbosch.detekt") version "1.17.1"
+//    // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
+//    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
 
 // Import variables from gradle.properties file
@@ -36,7 +47,6 @@ val platformDownloadSources: String by project
 
 group = properties("pluginGroup")
 version = properties("pluginVersion")
-
 // Configure project's dependencies
 repositories {
     mavenCentral()
@@ -48,7 +58,6 @@ dependencies {
 //    api("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.freemarker:freemarker:2.3.20")
-//    implementation(platform("org.jetbrains.kotlin:kotlin-reflect:1.5.0-RC"))
     implementation("org.freemarker:freemarker:2.3.31")
     implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
     implementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
@@ -76,13 +85,6 @@ intellij {
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
 }
-
-
-//tasks.compileJava {
-//    sourceCompatibility = "11"
-//    targetCompatibility = "11"
-//}
-
 
 // Configure gradle-changelog-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
@@ -152,4 +154,10 @@ tasks {
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
     }
+
+    // This seems quite brittle, to test, IJ requires to state the local path of where intellij community source code is installed.
+//    test {
+// //        systemProperty("idea.home.path", "/dev/ws/intellij-community-193.7288")
+//         systemProperty("idea.home.path", intellijRootDir().canonicalPath)
+//    }
 }
