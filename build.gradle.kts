@@ -28,12 +28,12 @@ repositories {
     jcenter()
 }
 dependencies {
-    implementation(platform("org.jetbrains.kotlin:kotlin-reflect:1.5.0-RC"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
 // For now, pause the use of V2.2, too many issues with Plugin clashes.
 //    api("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.freemarker:freemarker:2.3.20")
+    implementation(platform("org.jetbrains.kotlin:kotlin-reflect:1.5.0-RC"))
     implementation("org.freemarker:freemarker:2.3.31")
     implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
     implementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
@@ -61,6 +61,15 @@ intellij {
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
 }
+
+
+
+tasks.compileJava {
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
+}
+
+
 
 // Configure gradle-changelog-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
