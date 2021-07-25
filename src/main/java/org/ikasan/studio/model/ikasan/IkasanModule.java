@@ -18,7 +18,6 @@ public class IkasanModule extends IkasanComponent {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     private PsiFile moduleConfig;
-
     private String version;
     private List<IkasanFlow> flows = new ArrayList<>();
 
@@ -76,7 +75,6 @@ public class IkasanModule extends IkasanComponent {
         return flows.add(ikasanFlow);
     }
 
-
     @Override
     public String toString() {
         return "IkasanModule{" +
@@ -88,13 +86,7 @@ public class IkasanModule extends IkasanComponent {
                 '}';
     }
 
-//    @Override
-//    public ViewHandler getViewHandler() {
-//        return viewHandler;
-//    }
-//    public void setViewHandler(IkasanModuleViewHandler viewHandler) {
-//        this.viewHandler = viewHandler;
-//    }
+    @JsonIgnore
     public PsiFile getModuleConfig() {
         return moduleConfig;
     }
@@ -102,7 +94,6 @@ public class IkasanModule extends IkasanComponent {
         this.moduleConfig = moduleConfig;
     }
 
-    @JsonIgnore
     public String getApplicationPackageName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME);
     }
@@ -111,12 +102,10 @@ public class IkasanModule extends IkasanComponent {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
     }
 
-    @JsonIgnore
     public String getApplicationPortNumber() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
     }
 
-    @JsonIgnore
     public void setApplicationPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
     }

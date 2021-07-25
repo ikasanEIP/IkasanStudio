@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IkasanFlow extends IkasanComponent {
-    @JsonIgnore
+
     private IkasanFlowComponent input;
-    @JsonIgnore
+
     private IkasanFlowComponent output;
+
     private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
+
     private IkasanExceptionResolver ikasanExceptionResolver;
 
     public IkasanFlow () {
@@ -21,6 +23,7 @@ public class IkasanFlow extends IkasanComponent {
 
         this.viewHandler = new IkasanFlowViewHandler(this);
     }
+
     public List<IkasanFlowComponent> getFlowComponentList() {
         return flowComponentList;
     }
@@ -69,6 +72,7 @@ public class IkasanFlow extends IkasanComponent {
      * Determine the current state of the flow for completeness
      * @return A status string
      */
+    @JsonIgnore
     public String getFlowIntegrityStatus() {
         String status = "";
         if (! hasConsumer()) {
@@ -86,7 +90,6 @@ public class IkasanFlow extends IkasanComponent {
         }
         return status;
     }
-
 
     public boolean hasConsumer() {
         return flowComponentList.stream()
