@@ -33,7 +33,7 @@ dependencies {
 //    api("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.apache.velocity:velocity-engine-core:2.2")
 //    implementation("org.freemarker:freemarker:2.3.20")
-    implementation(platform("org.jetbrains.kotlin:kotlin-reflect:1.5.0-RC"))
+//    implementation(platform("org.jetbrains.kotlin:kotlin-reflect:1.5.0-RC"))
     implementation("org.freemarker:freemarker:2.3.31")
     implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
     implementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
@@ -65,8 +65,8 @@ intellij {
 
 
 tasks.compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
 }
 
 
