@@ -63,12 +63,10 @@ intellij {
 }
 
 
-
-tasks.compileJava {
-    sourceCompatibility = "11"
-    targetCompatibility = "11"
-}
-
+//tasks.compileJava {
+//    sourceCompatibility = "11"
+//    targetCompatibility = "11"
+//}
 
 
 // Configure gradle-changelog-plugin plugin.
