@@ -28,6 +28,7 @@ repositories {
     jcenter()
 }
 dependencies {
+    implementation(platform("org.jetbrains.kotlin:kotlin-reflect:1.5.0-RC"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
 // For now, pause the use of V2.2, too many issues with Plugin clashes.
 //    api("org.apache.velocity:velocity-engine-core:2.2")
