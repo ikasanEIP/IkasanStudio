@@ -520,7 +520,7 @@ public class PIPSIIkasanModel {
                 PsiElement resolvedReference = ((PsiReferenceExpression) expressionToBeSearched).resolve();
                 if (resolvedReference != null) {
                     PIPSIMethodList expressionRHS = extractMethodCallsFromChain(resolvedReference.getChildren(), new PIPSIMethodList());
-                    if (containsConponentBuilder(expressionRHS)) {
+                    if (containsComponentBuilder(expressionRHS)) {
                         returnPIPSIMethodList = expressionRHS;
                         // TODO, maybe need to continue, case style
                     } else {
@@ -534,7 +534,7 @@ public class PIPSIIkasanModel {
                 // componentFactory.getXmlToObjectConverter()
                 PIPSIMethodList expressionRHS =  extractMethodCallsFromChain(expressionToBeSearched, new PIPSIMethodList());
                 // The method chain directly calls componentBuilder
-                if (containsConponentBuilder(expressionRHS)) {
+                if (containsComponentBuilder(expressionRHS)) {
                     returnPIPSIMethodList = expressionRHS;
                 } else {
                     // The method chain calls a factory method e.g. componentFactory.getDBConsumer()
@@ -542,52 +542,54 @@ public class PIPSIIkasanModel {
                     String factoryType = expressionRHS.baseMethodinstanceVariable.getType().getCanonicalText(true);
                     PsiClass factoryClass = StudioPsiUtils.findFirstClass(getProject(), factoryType);
                     String factoryClassGetterMethodName = expressionRHS.getMethodByIndex(0).getName();
-                    PsiMethod[] factoryClassGetterMethods = factoryClass.findMethodsByName(factoryClassGetterMethodName, false);
-                    // Assume its the first, a bit knackered if override, if ever get, need to use signature match.
-                    JvmMethod factoryClassGetterMethod = factoryClassGetterMethods[0];
-                   // Hopefully the method that creates the component
-                    PsiStatement getterReturnStatement = getReturnStatementFromMethod((PsiMethod)factoryClassGetterMethod);
-                    //// return statement
-                    // The returnReference will contain our type of component .e.g Filter, Producer etc
-                    PsiReferenceExpressionImpl returnReference = getLocalVariableFromReturnStatement(getterReturnStatement);
+                    if (factoryClass != null) {
+                        PsiMethod[] factoryClassGetterMethods = factoryClass.findMethodsByName(factoryClassGetterMethodName, false);
+                        // Assume its the first, a bit knackered if override, if ever get, need to use signature match.
+                        JvmMethod factoryClassGetterMethod = factoryClassGetterMethods[0];
+                        // Hopefully the method that creates the component
+                        PsiStatement getterReturnStatement = getReturnStatementFromMethod((PsiMethod)factoryClassGetterMethod);
+                        //// return statement
+                        // The returnReference will contain our type of component .e.g Filter, Producer etc
+                        PsiReferenceExpressionImpl returnReference = getLocalVariableFromReturnStatement(getterReturnStatement);
 
-                    String getterReturnType = ((PsiType)factoryClassGetterMethod.getReturnType()).getCanonicalText();
-                    String ikasanComponentType = null;
-                    if (IkasanComponentCategory.isIkasanComponent(getterReturnType)) {
-                        ikasanComponentType = getterReturnType;
-                    }
-
-                    if (returnReference != null) {
-                        // the method returns a variable, that local variable is the component
-                        PsiElement componentVariable = returnReference.resolve();
-                        if (componentVariable != null) {
-                            PIPSIMethodList  pipsiMethodList = new PIPSIMethodList();
-                            pipsiMethodList.setBaseType(ikasanComponentType);
-                            if (componentVariable instanceof PsiField &&
-                                    ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource")) {
-                                // this is an injected bespoke class
-                                String beskpokeClassName = ((PsiField) componentVariable).getType().getCanonicalText();
-                                List<PIPSIMethod> additionalParameters = extractParametersFromBespokeIkasanComponent(beskpokeClassName);
-                                pipsiMethodList.addAllPIPSIMethod(additionalParameters);
-
-                            } else {
-                                PsiCodeBlock containingBlock = getContainingCodeBlock(componentVariable);
-                                if (containingBlock != null && componentVariable instanceof PsiLocalVariable) {
-                                    PIPSIMethodList additionalMethodList = getAllMethodCallsForLocalVariableInCodeBlock(containingBlock, (PsiLocalVariable)componentVariable);
-                                    pipsiMethodList.addAllPIPSIMethod(additionalMethodList.getPipsiMethods());
-                                }
-                            }
-
-                            returnPIPSIMethodList =  pipsiMethodList;
-                        } else {
-                            // TODO ... otherwise ?
-                            log.error("getComponentBuilderMethods(3) failed for " + expressionToBeSearched.getText());
+                        String getterReturnType = ((PsiType)factoryClassGetterMethod.getReturnType()).getCanonicalText();
+                        String ikasanComponentType = null;
+                        if (IkasanComponentCategory.isIkasanComponent(getterReturnType)) {
+                            ikasanComponentType = getterReturnType;
                         }
-                    } else {
-                        // the return statement itself created the component e.g.
-                        // return builderFactory.getComponentBuilder().scheduledConsumer().build()
-                        PIPSIMethodList moduleMethodList = extractMethodCallsFromChain(getterReturnStatement.getChildren(), new PIPSIMethodList());
-                        returnPIPSIMethodList =  moduleMethodList;
+
+                        if (returnReference != null) {
+                            // the method returns a variable, that local variable is the component
+                            PsiElement componentVariable = returnReference.resolve();
+                            if (componentVariable != null) {
+                                PIPSIMethodList  pipsiMethodList = new PIPSIMethodList();
+                                pipsiMethodList.setBaseType(ikasanComponentType);
+                                if (componentVariable instanceof PsiField &&
+                                        ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource")) {
+                                    // this is an injected bespoke class
+                                    String beskpokeClassName = ((PsiField) componentVariable).getType().getCanonicalText();
+                                    List<PIPSIMethod> additionalParameters = extractParametersFromBespokeIkasanComponent(beskpokeClassName);
+                                    pipsiMethodList.addAllPIPSIMethod(additionalParameters);
+
+                                } else {
+                                    PsiCodeBlock containingBlock = getContainingCodeBlock(componentVariable);
+                                    if (containingBlock != null && componentVariable instanceof PsiLocalVariable) {
+                                        PIPSIMethodList additionalMethodList = getAllMethodCallsForLocalVariableInCodeBlock(containingBlock, (PsiLocalVariable)componentVariable);
+                                        pipsiMethodList.addAllPIPSIMethod(additionalMethodList.getPipsiMethods());
+                                    }
+                                }
+
+                                returnPIPSIMethodList =  pipsiMethodList;
+                            } else {
+                                // TODO ... otherwise ?
+                                log.error("getComponentBuilderMethods(3) failed for " + expressionToBeSearched.getText());
+                            }
+                        } else {
+                            // the return statement itself created the component e.g.
+                            // return builderFactory.getComponentBuilder().scheduledConsumer().build()
+                            PIPSIMethodList moduleMethodList = extractMethodCallsFromChain(getterReturnStatement.getChildren(), new PIPSIMethodList());
+                            returnPIPSIMethodList =  moduleMethodList;
+                        }
                     }
                 }
             }
@@ -686,17 +688,17 @@ public class PIPSIIkasanModel {
      * @param expressionRHS to be searched
      * @return true if 'getComponentBuilder' is anywhere in the chained method calls.
      */
-    protected boolean containsConponentBuilder(PIPSIMethodList expressionRHS) {
+    protected boolean containsComponentBuilder(PIPSIMethodList expressionRHS) {
         boolean contains = false;
 
         PsiReferenceExpression expressionStart = expressionRHS.baseMethodinstanceVariable;
         IkasanClazz expressionStartType = getTypeOfReferenceExpression(expressionStart);
-        if (IkasanClazz.COMPONENT_BUILDER.equals(expressionStartType)) {
+        if (IkasanClazz.COMPONENT_BUILDER.equals(expressionStartType) || IkasanClazz.EXCEPTION_RESOLVER_BUILDER.equals(expressionStartType)) {
             contains = true;
         }
         for (PIPSIMethod componentBuilderMethod: expressionRHS.getPipsiMethods()) {
             String methodName = componentBuilderMethod.getName();
-            if (methodName.equals("getComponentBuilder")) {
+            if (methodName.equals("getComponentBuilder") || methodName.equals("getExceptionResolverBuilder")) {
                 contains = true ;
                 break;
             }
@@ -725,6 +727,8 @@ public class PIPSIIkasanModel {
         MODULE_BUILDER("ModuleBuilder", "org.ikasan.builder.ModuleBuilder"),
         FLOW_BUILDER("FlowBuilder", "org.ikasan.builder.FlowBuilder"),
         COMPONENT_BUILDER("ComponentBuilder", "org.ikasan.builder.component.ComponentBuilder"),
+        EXCEPTION_RESOLVER_BUILDER("ExceptionResolverBuilder", "org.ikasan.builder.ExceptionResolverBuilder"),
+        BUILDER_FACTORY("BuilderFactory", "org.ikasan.builder.BuilderFactory"),
         LOCAL_METHOD("", ""),
         BESKPOKE_CLASS("", ""),
         UNKNOWN("", "");
@@ -809,6 +813,9 @@ public class PIPSIIkasanModel {
      * @return new new IkasanFlowComponent
      */
     protected IkasanFlowComponent createFlowElementWithProperties(final IkasanFlow parent, final String name, final String description, final PIPSIMethodList componentBuilderMethodList) {
+        if (componentBuilderMethodList == null) {
+            return null;
+        }
         IkasanFlowComponent ikasanFlowComponent = null;
         Map<IkasanComponentPropertyMetaKey, Object> flowElementProperties = new TreeMap<>();
         for (PIPSIMethod pipsiMethod: componentBuilderMethodList.getPipsiMethods()) {
@@ -834,28 +841,19 @@ public class PIPSIIkasanModel {
 
                 String actionType = IkasanExceptionResolutionMeta.parseAction(
                         getReferenceOrLiteralFromParameter(pipsiMethod, 1));
-
                 List<IkasanComponentPropertyMeta> actionParams = IkasanExceptionResolutionMeta.getPropertyMetaListForAction(actionType);
-
-                List<IkasanComponentPropertyMeta>  propertyMeta = IkasanComponentType.ON_EXCEPTION.getMetadataList(actionType);
-
+                List<IkasanComponentProperty> propertyList = IkasanComponentProperty.generateIkasanComponentPropertyList(actionParams);
                 PsiExpression onExceptionMethodCall = pipsiMethod.getParameter(1);
                 if (onExceptionMethodCall != null && onExceptionMethodCall instanceof PsiMethodCallExpression) {
                     int paramCount = ((PsiMethodCallExpression)onExceptionMethodCall).getArgumentList().getExpressionCount();
-                    if (paramCount > 0 && actionParams.size() > 0) {
-//                        actionParams.get(0)
 
+                    for (int index = 0; index < paramCount; index++) {
+                        if (actionParams.size() > index) {
+                            propertyList.get(index).setValueFromString(((PsiMethodCallExpression)onExceptionMethodCall).getArgumentList().getExpressions()[index].getText());
+                        }
                     }
                 }
-//                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 2), onExceptionType);
-
-                // here we get params (upto 2)
-                // @TODO need to match to correct parameter group ?
-//                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 3), onExceptionType);
-//                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 4), onExceptionType);
-//                addExceptionToActionLineNumber++;
-
-                IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(exceptionClass, actionType);
+                IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(exceptionClass, actionType, propertyList);
                 if (ikasanFlowComponent instanceof IkasanExceptionResolver) {
                     ((IkasanExceptionResolver)ikasanFlowComponent).addExceptionResolution(ikasanExceptionResolution);
                 } else {

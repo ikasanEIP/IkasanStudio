@@ -9,7 +9,10 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -62,5 +65,8 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 
         Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("Exception Generating Broker"));
         Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("JMS Producer"));
+        Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).size(), is(2));
+        Set actions = new TreeSet(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).keySet());
+        Assert.assertThat(actions.toString(), is("[com.ikasan.sample.spring.boot.SampleGeneratedException, org.ikasan.spec.component.endpoint.EndpointException.class]"));
     }
 }

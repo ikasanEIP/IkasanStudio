@@ -107,6 +107,7 @@ public class ModuleConfig
                         .addExceptionToAction(EndpointException.class, OnException.retryIndefinitely(10000)))
                 .withErrorReportingServiceFactory(errorReportingServiceFactory)
                 .consumer("JMS Consumer", jmsConsumer)
+                // Not really sure what this Broker is for
                 .broker( "Exception Generating Broker", new ExceptionGenerationgBroker())
                 .producer("JMS Producer", jmsProducer)
                 .build();
