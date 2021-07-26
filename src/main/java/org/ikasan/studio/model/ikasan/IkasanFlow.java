@@ -101,6 +101,14 @@ public class IkasanFlow extends IkasanComponent {
             .anyMatch(e->e.getType().getElementCategory().equals(IkasanComponentCategory.PRODUCER));
     }
 
+    /**
+     * Does the Flow have a valid exception resolver
+     * @return if the flow has a valid exception resolver.
+     */
+    public boolean hasExceptionResolver() {
+        return (ikasanExceptionResolver != null && ikasanExceptionResolver.isValid());
+    }
+
     public IkasanFlowComponent getInput() {
         return input;
     }
@@ -119,6 +127,9 @@ public class IkasanFlow extends IkasanComponent {
 
     public IkasanExceptionResolver getIkasanExceptionResolver() {
         return ikasanExceptionResolver;
+    }
+    public List<IkasanExceptionResolver> getIkasanExceptionResolverList() {
+        return new ArrayList(ikasanExceptionResolver.getIkasanExceptionResolutionMap().values());
     }
 
     public void setIkasanExceptionResolver(IkasanExceptionResolver ikasanExceptionResolver) {

@@ -39,4 +39,12 @@ public class IkasanExceptionResolver extends IkasanFlowComponent {
     public void resetIkasanExceptionResolutionList() {
         ikasanExceptionResolutionMap = new HashMap<>();
     }
+
+    /**
+     * Determine if the Resolver is valid i.e. has more than one resolution.
+     * @return true if the Resolver is valid.
+     */
+    public boolean isValid() {
+        return (ikasanExceptionResolutionMap != null && !ikasanExceptionResolutionMap.isEmpty());
+    }
 }

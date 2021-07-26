@@ -120,7 +120,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
             }
         }
     }
-    @JsonIgnore
+
     public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getConfiguredProperties() {
         return configuredProperties;
     }

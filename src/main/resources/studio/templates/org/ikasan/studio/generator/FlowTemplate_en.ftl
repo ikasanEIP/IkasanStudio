@@ -29,6 +29,17 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 <#if flow.description?has_content >
 .withDescription("${flow.description}")
 </#if>
+<#if flow.hasExceptionResolver() >
+.withExceptionResolver(builderFactory.getExceptionResolverBuilder().
+    <#list flow.ikasanExceptionResolver.ikasanExceptionResolverList![] as ikasanExceptionResolution>
+        .addExceptionToAction(${ikasanExceptionResolution.theException}, OnException.${ikasanExceptionResolution.theAction}(
+        <#list ikasanExceptionResolution.params![] as param>
+            .${param.value}
+        </#list>
+        ))
+    </#list>
+)
+</#if>
 <#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     .${ikasanFlowComponent.type.elementCategory.associatedMethodName}("${ikasanFlowComponent.name}",
