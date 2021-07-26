@@ -109,8 +109,11 @@ public class StudioUtilsTest {
 
     @Test
     public void toJsonTest() throws IOException {
-        IkasanModule module = new IkasanModule();
         Assert.assertThat(StudioUtils.toJson("bob"), is("\"bob\""));
+
+        IkasanModule module = new IkasanModule();
+        module.setVersion("1.3");
+        module.setDescription("The Description");
         Assert.assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
     }
 }
