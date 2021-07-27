@@ -30,16 +30,16 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 .withDescription("${flow.description}")
 </#if>
 <#if flow.hasExceptionResolver() >
-.withExceptionResolver(builderFactory.getExceptionResolverBuilder().
+.withExceptionResolver(builderFactory.getExceptionResolverBuilder()
     <#list flow.ikasanExceptionResolverList![] as ikasanExceptionResolution>
-.addExceptionToAction(${ikasanExceptionResolution.theException}, OnException.${ikasanExceptionResolution.theAction}(<#list ikasanExceptionResolution.params![] as param><#if param.meta.usageDataType == "java.lang.String">"${param.value}"<#sep>,<#else>${param.value}<#sep>,</#if></#list>))<#sep>,
-    </#list>
-)
+.addExceptionToAction(${ikasanExceptionResolution.theException}, org.ikasan.builder.OnException.${ikasanExceptionResolution.theAction}(<#list ikasanExceptionResolution.params![] as param><#if param.meta.usageDataType == "java.lang.String">"${param.value}"<#sep>,<#else>${param.value}<#sep>,</#if></#list>))<#sep>,
+    </#list>)
 </#if>
 <#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     .${ikasanFlowComponent.type.elementCategory.associatedMethodName}("${ikasanFlowComponent.name}",
     componentFactory.get${ikasanFlowComponent.getJavaClassName()}())
+
 </#list>
 </#compress>
 .build();
