@@ -1,9 +1,8 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.ikasan.IkasanComponentType;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.*;
+
+import java.util.List;
 
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
@@ -498,5 +497,42 @@ public class TestFixtures {
         component.setPropertyValue("UnmarshallerProperties", "{key1:'value1',key2:'value2'}");
         component.setPropertyValue("ValidationEventHandler", "myValidationEventHandler");
         return component;
+    }
+
+    public static List<IkasanComponentProperty> getPropertiesForAction(String actionName) {
+        List<IkasanComponentPropertyMeta> actionParams = IkasanExceptionResolutionMeta.getPropertyMetaListForAction(actionName);
+        return IkasanComponentProperty.generateIkasanComponentPropertyList(actionParams);
+    }
+
+    /**
+     * Create a fully populated email producer
+     * See resources/studio/componentDefinitions/XML_STRING_TO_OBJECT_CONVERTER_en_GB.csv
+     * @return a FullyPopulatedEmailProducer
+     */
+    public static IkasanFlow populateFlowExceptionResolver(IkasanFlow ikasanFlow) {
+        IkasanExceptionResolver ikasanExceptionResolver = (IkasanExceptionResolver)IkasanFlowComponent.getInstance(IkasanComponentType.EXCEPTION_RESOLVER, ikasanFlow);
+        ikasanFlow.setIkasanExceptionResolver(ikasanExceptionResolver);
+
+        List<IkasanComponentProperty> retryProperties = getPropertiesForAction("retry");
+        retryProperties.get(0).setValue(200);
+        retryProperties.get(1).setValue(10);
+        IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(
+                "org.ikasan.spec.component.routing.RouterException.class", "retry", retryProperties);
+        ikasanExceptionResolver.addExceptionResolution(ikasanExceptionResolution);
+        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+                "org.ikasan.spec.component.transformation.TransformationException.class", "ignore"));
+        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+                "org.ikasan.spec.component.splitting.SplitterException.class", "exclude"));
+        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+                "org.ikasan.spec.component.endpoint.EndpointException.class", "retryIndefinitely"));
+        List<IkasanComponentProperty> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
+        scheduledCronProperties.get(0).setValue("* * * * *");
+        scheduledCronProperties.get(1).setValue(100);
+        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+                "java.util.concurrent.TimeoutException.class", "retryIndefinitely", scheduledCronProperties));
+        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+                "org.ikasan.spec.component.filter.FilterException.class", "retryIndefinitely"));
+
+        return ikasanFlow;
     }
 }
