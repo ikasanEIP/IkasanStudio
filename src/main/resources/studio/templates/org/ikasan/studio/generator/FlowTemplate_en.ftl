@@ -25,6 +25,7 @@ public org.ikasan.spec.flow.Flow get${flow.getJavaClassName()}()
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
 org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
 
+<#compress>
 org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 <#if flow.description?has_content >
 .withDescription("${flow.description}")
@@ -35,13 +36,12 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 .addExceptionToAction(${ikasanExceptionResolution.theException}, org.ikasan.builder.OnException.${ikasanExceptionResolution.theAction}(<#list ikasanExceptionResolution.params![] as param><#if param.meta.usageDataType == "java.lang.String">"${param.value}"<#sep>,<#else>${param.value}<#sep>,</#if></#list>))<#sep>,
     </#list>)
 </#if>
-<#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     .${ikasanFlowComponent.type.elementCategory.associatedMethodName}("${ikasanFlowComponent.name}",
     componentFactory.get${ikasanFlowComponent.getJavaClassName()}())
-
 </#list>
 </#compress>
+
 .build();
 return ${flow.getJavaVariableName()};
 }

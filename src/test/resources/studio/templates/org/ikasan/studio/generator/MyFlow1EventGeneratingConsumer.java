@@ -28,7 +28,8 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
 .consumer("testEventGeneratingConsumer",
-componentFactory.getTestEventGeneratingConsumer()).build();
+componentFactory.getTestEventGeneratingConsumer())
+.build();
 return myFlow1;
 }
 }

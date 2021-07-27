@@ -28,7 +28,8 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
 .producer("testEmailProducer",
-componentFactory.getTestEmailProducer()).build();
+componentFactory.getTestEmailProducer())
+.build();
 return myFlow1;
 }
 }
