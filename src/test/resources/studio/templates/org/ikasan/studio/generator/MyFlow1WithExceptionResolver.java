@@ -27,13 +27,13 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
-.withExceptionResolver(builderFactory.getExceptionResolverBuilder().
-.addExceptionToAction(org.ikasan.spec.component.endpoint.EndpointException.class, OnException.retryIndefinitely()),
-.addExceptionToAction(org.ikasan.spec.component.splitting.SplitterException.class, OnException.exclude()),
-.addExceptionToAction(org.ikasan.spec.component.filter.FilterException.class, OnException.retryIndefinitely()),
-.addExceptionToAction(org.ikasan.spec.component.transformation.TransformationException.class, OnException.ignore()),
-.addExceptionToAction(org.ikasan.spec.component.routing.RouterException.class, OnException.retry(200,10)),
-.addExceptionToAction(java.util.concurrent.TimeoutException.class, OnException.retryIndefinitely("* * * * *",100)))
+.withExceptionResolver(builderFactory.getExceptionResolverBuilder()
+.addExceptionToAction(org.ikasan.spec.component.endpoint.EndpointException.class, org.ikasan.builder.OnException.retryIndefinitely()),
+.addExceptionToAction(org.ikasan.spec.component.splitting.SplitterException.class, org.ikasan.builder.OnException.exclude()),
+.addExceptionToAction(org.ikasan.spec.component.filter.FilterException.class, org.ikasan.builder.OnException.retryIndefinitely()),
+.addExceptionToAction(org.ikasan.spec.component.transformation.TransformationException.class, org.ikasan.builder.OnException.ignore()),
+.addExceptionToAction(org.ikasan.spec.component.routing.RouterException.class, org.ikasan.builder.OnException.retry(200,10)),
+.addExceptionToAction(java.util.concurrent.TimeoutException.class, org.ikasan.builder.OnException.retryIndefinitely("* * * * *",100)))
 .build();
 return myFlow1;
 }
