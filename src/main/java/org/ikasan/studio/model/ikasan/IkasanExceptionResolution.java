@@ -52,14 +52,6 @@ public class IkasanExceptionResolution extends IkasanBaseComponent {
         return parent;
     }
 
-//    /**
-//     * Expose the property meta for the action component of this class.
-//     * @return a list if the properties meta data for this action, or an empty list if none exist.
-//     */
-//    public List<IkasanComponentPropertyMeta> getMetaForActionParams() {
-//        return IKASAN_EXCEPTION_RESOLUTION_META.getPropertyMetaListForAction(theAction);
-//    }
-
     /**
      * Expose the property meta for a given action.
      * @param action to search for
