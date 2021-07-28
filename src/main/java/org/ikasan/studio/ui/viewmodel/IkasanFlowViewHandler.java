@@ -41,6 +41,13 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return model.getName() != null ? model.getName() : model.getDescription();
     }
 
+    public String getExceptionResolverIcon() {
+        if (model.hasExceptionResolver()) {
+
+        }
+        return model.getName() != null ? model.getName() : model.getDescription();
+    }
+
     private int getFlowTitleWidth(Graphics g) {
         return StudioUIUtils.getTextWidth(g, getText());
     }
@@ -68,8 +75,10 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private int paintFlowTitle(Graphics g, PaintMode paintMode) {
-        return StudioUIUtils.drawCenteredStringFromTopCentre
+        int bottomY = StudioUIUtils.drawCenteredStringFromTopCentre
                 (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
+        // XXXXXXX
+        return bottomY;
     }
 
     /**
@@ -103,6 +112,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
             initialiseDimensionsNotChildren(g, newLeftX, newTopY);
         }
         paintFlowBox(g);
+        model.getIkasanExceptionResolver().getViewHandler().paintComponent(canvas, g, -1, -1);
         List<IkasanFlowComponent> flowElementList = model.getFlowComponentList();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
@@ -181,6 +191,10 @@ public class IkasanFlowViewHandler extends ViewHandler {
             }
         }
         setWidthHeights(graphics, newTopY);
+        model.getIkasanExceptionResolver().getViewHandler().initialiseDimensions(graphics,
+                IkasanFlowExceptionResolverViewHandler.getXOffsetFromRight(getRightX()),
+                IkasanFlowExceptionResolverViewHandler.getYOffsetFromTop(getTopY()),
+                -1, -1);
     }
 
     public void initialiseDimensionsNotChildren(Graphics graphics, int newLeftx, int newTopY) {
