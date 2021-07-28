@@ -1,7 +1,7 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +20,7 @@ public class IkasanFlow extends IkasanComponent {
         super (IkasanComponentType.FLOW, IkasanComponentType.FLOW.getMandatoryProperties());
         this.configuredProperties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
         this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT));
-
-        this.viewHandler = new IkasanFlowViewHandler(this);
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     public List<IkasanFlowComponent> getFlowComponentList() {

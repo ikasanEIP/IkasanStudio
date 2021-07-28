@@ -1,7 +1,7 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
@@ -22,7 +22,7 @@ public class IkasanFlowComponent extends IkasanComponent {
         this.parent = parent;
         updatePropertyValue(IkasanComponentPropertyMeta.NAME, name);
         updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
-        viewHandler = new IkasanFlowComponentViewHandler(this);
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     /**

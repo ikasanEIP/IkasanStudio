@@ -271,11 +271,35 @@ public class DesignerCanvas extends JPanel {
                     .orElse(null);
         }
         if (ikasanComponent == null) {
+            ikasanComponent =  getFlowExceptionResolverAtXY(xpos, ypos);
+        }
+        if (ikasanComponent == null) {
             ikasanComponent =  getFlowAtXY(xpos, ypos);
         }
         if (ikasanComponent == null) {
             ikasanComponent = ikasanModule;
         }
+        return ikasanComponent;
+    }
+
+    /**
+     * Given the x and y coords, return the ikasan flow exception resolver that resides at that x,y.
+     *
+     * @param xpos of the mouse click
+     * @param ypos of the mouse click
+     * @return the ikasan component (flows component, flow, module) currently selected.
+     */
+    public IkasanComponent getFlowExceptionResolverAtXY(int xpos, int ypos) {
+        IkasanComponent ikasanComponent = null;
+        ikasanComponent = ikasanModule.getFlows()
+                .stream()
+                .filter(x -> x.getIkasanExceptionResolver().getViewHandler().getLeftX() <= xpos &&
+                        x.getIkasanExceptionResolver().getViewHandler().getRightX() >= xpos &&
+                        x.getIkasanExceptionResolver().getViewHandler().getTopY() <= ypos &&
+                        x.getIkasanExceptionResolver().getViewHandler().getBottomY() >= ypos)
+                .findFirst()
+                .orElse(null);
+
         return ikasanComponent;
     }
 

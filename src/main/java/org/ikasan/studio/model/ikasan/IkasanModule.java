@@ -3,7 +3,7 @@ package org.ikasan.studio.model.ikasan;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.psi.PsiFile;
-import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class IkasanModule extends IkasanComponent {
 
     public IkasanModule() {
         super(IkasanComponentType.MODULE, IkasanComponentType.MODULE.getMandatoryProperties());
-        this.viewHandler = new IkasanModuleViewHandler(this);
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     /**
