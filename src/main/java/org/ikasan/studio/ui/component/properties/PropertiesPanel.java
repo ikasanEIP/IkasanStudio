@@ -20,6 +20,7 @@ public abstract class PropertiesPanel extends JPanel {
     protected String projectKey;
     protected boolean popupMode;
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
+    private PropertiesDialogue propertiesDialogue;
 
     protected JButton okButton;
     protected ScrollableGridbagPanel propertiesEditorScrollingContainer;
@@ -134,7 +135,10 @@ public abstract class PropertiesPanel extends JPanel {
 
     protected void redrawPanel() {
         propertiesEditorScrollingContainer.revalidate();
-        propertiesEditorScrollingContainer.repaint();
+        if (propertiesDialogue != null) {
+            propertiesDialogue.pack();
+            propertiesDialogue.repaint();
+        }
         setFocusOnFirstComponent();
     }
 
@@ -167,4 +171,12 @@ public abstract class PropertiesPanel extends JPanel {
     protected abstract List<ValidationInfo> doValidateAll();
     public abstract void processEditedFlowComponents();
     public abstract boolean dataHasChanged();
+
+    public PropertiesDialogue getPropertiesDialogue() {
+        return propertiesDialogue;
+    }
+
+    public void setPropertiesDialogue(PropertiesDialogue propertiesDialogue) {
+        this.propertiesDialogue = propertiesDialogue;
+    }
 }

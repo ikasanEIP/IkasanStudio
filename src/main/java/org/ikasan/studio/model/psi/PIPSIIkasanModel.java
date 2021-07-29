@@ -422,7 +422,7 @@ public class PIPSIIkasanModel {
 //                newFlow.setDescription(pipsiMethod.getLiteralParameterAsString(0, true));
                 newFlow.setDescription(getReferenceOrLiteralFromParameter(pipsiMethod, 0));
             }
-//XXXXXXXX
+
             IkasanComponentCategory componentCategory = IkasanComponentCategory.parseMethodName(pipsiMethod.getName());
             if (componentCategory == EXCEPTION_RESOLVER ||
                 componentCategory == BROKER ||

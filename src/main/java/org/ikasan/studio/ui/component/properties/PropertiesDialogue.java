@@ -31,6 +31,7 @@ public class PropertiesDialogue extends DialogWrapper {
      */
     public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel, boolean modal) {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
+        propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
@@ -53,6 +54,7 @@ public class PropertiesDialogue extends DialogWrapper {
      */
     public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
+        propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
         this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
@@ -65,8 +67,8 @@ public class PropertiesDialogue extends DialogWrapper {
      */
     @Override
     protected JComponent createCenterPanel() {
-        int niceWidth = (int) (parentComponent.getWidth() * 0.6);
-        propertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
+//        int niceWidth = (int) (parentComponent.getWidth() * 0.6);
+//        propertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
         return propertiesPanel;
     }
 

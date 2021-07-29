@@ -146,8 +146,22 @@ public class DesignerCanvas extends JPanel {
         } // Single click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
                  (mouseSelectedComponent != null && !mouseSelectedComponent.getViewHandler().isAlreadySelected())) {
-                setSelectedComponent(mouseSelectedComponent);
+            setSelectedComponent(mouseSelectedComponent);
+            if (mouseSelectedComponent instanceof IkasanExceptionResolver) {
+                // XXXXXX
+                ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
+                exceptionResolverPanel.updateTargetComponent(mouseSelectedComponent);
+                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                        Context.getProject(projectKey),
+                        Context.getDesignerCanvas(projectKey),
+                        exceptionResolverPanel);
+                if (propertiesDialogue.showAndGet()) {
+                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getType().getComponentDependency().getDependencies());
+                }
+            } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
+            }
         }
     }
 
@@ -293,12 +307,17 @@ public class DesignerCanvas extends JPanel {
         IkasanComponent ikasanComponent = null;
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
+                .filter(x -> x.hasExceptionResolver())
                 .filter(x -> x.getIkasanExceptionResolver().getViewHandler().getLeftX() <= xpos &&
                         x.getIkasanExceptionResolver().getViewHandler().getRightX() >= xpos &&
                         x.getIkasanExceptionResolver().getViewHandler().getTopY() <= ypos &&
                         x.getIkasanExceptionResolver().getViewHandler().getBottomY() >= ypos)
                 .findFirst()
                 .orElse(null);
+
+        if (ikasanComponent != null) {
+            ikasanComponent = ((IkasanFlow)ikasanComponent).getIkasanExceptionResolver();
+        }
 
         return ikasanComponent;
     }
@@ -448,7 +467,7 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-            //XXXX no we need to generate the code from the model for exception resolver.
+
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateSourceFromModel(newComponent.getType().getComponentDependency().getDependencies());
             StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
@@ -505,12 +524,12 @@ public class DesignerCanvas extends JPanel {
     private IkasanComponent createExceptionResolver(IkasanComponent newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
-            ExceptionResolverPanel componentPropertiesPanel = new ExceptionResolverPanel(projectKey, true);
-            componentPropertiesPanel.updateTargetComponent(newComponent);
+            ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
+            exceptionResolverPanel.updateTargetComponent(newComponent);
             PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                     Context.getProject(projectKey),
                     Context.getDesignerCanvas(projectKey),
-                    componentPropertiesPanel);
+                    exceptionResolverPanel);
             if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;
