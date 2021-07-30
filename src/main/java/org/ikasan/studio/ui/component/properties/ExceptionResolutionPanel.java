@@ -16,9 +16,9 @@ import java.util.List;
  * This panel contains the data entry for the exception and action
  */
 public class ExceptionResolutionPanel extends PropertiesPanel {
-    private static final Logger log = Logger.getLogger(PropertiesPanel.class);
+    private static final Logger log = Logger.getLogger(ExceptionResolutionPanel.class);
     private ExceptionResolverPanel resolverPanel;
-    private List<ExceptionResolution> exceptionResolutionList;
+    private transient List<ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     private JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
     private JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
@@ -55,6 +55,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         }
     }
 
+    @Override
     protected IkasanExceptionResolution getSelectedComponent() {
         return (IkasanExceptionResolution)super.getSelectedComponent();
     }
@@ -145,6 +146,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         addToScrollPanelContent(optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, 2);
     }
 
+    @Override
     protected String getOKButtonText() {
         return "Add";
     }

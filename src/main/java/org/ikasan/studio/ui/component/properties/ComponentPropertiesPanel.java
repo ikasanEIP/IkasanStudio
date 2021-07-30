@@ -259,6 +259,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(generateSourceCheckbox, gc);
     }
 
+    @Override
     protected IkasanComponent getSelectedComponent() {
         return (IkasanComponent)super.getSelectedComponent();
     }

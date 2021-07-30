@@ -56,7 +56,7 @@ public class ExceptionResolution {
      * @return the key for this exception resolution
      */
     public String getPropertyKey() {
-        return (String)ikasanExceptionResolution.getTheException();
+        return ikasanExceptionResolution.getTheException();
     }
 
     /**
@@ -89,10 +89,6 @@ public class ExceptionResolution {
 
     public JLabel getActionField() {
         return actionField;
-    }
-
-    public List<ComponentPropertyEditBox> getActionParamEditBoxList() {
-        return actionParamEditBoxList;
     }
 
     public JButton getDeleteButton() {

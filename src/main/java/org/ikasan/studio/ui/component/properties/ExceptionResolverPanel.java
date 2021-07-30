@@ -48,6 +48,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         }
     }
 
+    @Override
     protected IkasanExceptionResolver getSelectedComponent() {
         return (IkasanExceptionResolver)super.getSelectedComponent();
     }

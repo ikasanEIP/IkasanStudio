@@ -161,10 +161,6 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
                 }
             }
-//            Map<String, IkasanComponentProperty> standardProperties = properties.entrySet().stream()
-//                    .filter(x -> ! IkasanComponentPropertyMeta.NAME.equals(x.getKey()) && ! IkasanComponentPropertyMeta.DESCRIPTION.equals(x.getKey()))
-//                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
         }
         return standardProperties;
     }
@@ -175,10 +171,6 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
     public void addComponentProperty(String key, IkasanComponentProperty value) {
         configuredProperties.put(new IkasanComponentPropertyMetaKey(key, 1, 1), value);
     }
-
-//    public ViewHandler getViewHandler() {
-//        return viewHandler;
-//    }
 
     /**
      * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore

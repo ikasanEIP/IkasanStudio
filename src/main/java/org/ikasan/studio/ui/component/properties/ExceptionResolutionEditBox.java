@@ -15,7 +15,6 @@ import java.util.List;
  */
 public class ExceptionResolutionEditBox {
     private ExceptionResolutionPanel resolutionPanel;
-//    private static IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     private JLabel exceptionTitleField;
     private JComboBox<String> exceptionJComboBox;
     private JLabel actionTitleField;
@@ -25,7 +24,6 @@ public class ExceptionResolutionEditBox {
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
     private boolean popupMode;
     private IkasanExceptionResolution ikasanExceptionResolution;
-//    private IkasanExceptionResolver ikasanExceptionResolver;
 
     public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
         this.resolutionPanel = resolutionPanel;
@@ -98,7 +96,6 @@ public class ExceptionResolutionEditBox {
             }
         }
 
-//        ikasanExceptionResolver.getIkasanExceptionResolutionList().put(getPropertyKey(), ikasanExceptionResolution);
         return ikasanExceptionResolution;
     }
 
