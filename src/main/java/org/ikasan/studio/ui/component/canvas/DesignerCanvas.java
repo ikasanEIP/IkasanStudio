@@ -96,7 +96,6 @@ public class DesignerCanvas extends JPanel {
                         Context.getDesignerCanvas(projectKey),
                         componentPropertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
-//                    StudioPsiUtils.addDependancies(projectKey, ikasanModule.getType().getComponentDependency().getDependencies());
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateSourceFromModel(ikasanModule.getType().getComponentDependency().getDependencies());
                     disableStart();

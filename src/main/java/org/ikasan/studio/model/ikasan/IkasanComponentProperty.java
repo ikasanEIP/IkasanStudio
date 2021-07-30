@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IkasanComponentProperty {
-    private final Logger LOG = Logger.getLogger(IkasanComponentProperty.class);
+    private static final Logger LOG = Logger.getLogger(IkasanComponentProperty.class);
     private Object value;
     private Boolean regenerateAllowed = true;
     @JsonIgnore
@@ -87,7 +87,7 @@ public class IkasanComponentProperty {
     }
 
     public static List<IkasanComponentProperty> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {
-        List<IkasanComponentProperty> propertyList = new ArrayList();
+        List<IkasanComponentProperty> propertyList = new ArrayList<>();
         if (metaList != null && !metaList.isEmpty()) {
             for(IkasanComponentPropertyMeta meta : metaList) {
                 propertyList.add(new IkasanComponentProperty(meta));

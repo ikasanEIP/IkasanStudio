@@ -83,7 +83,7 @@ public enum IkasanComponentType implements Serializable {
 
     // --- Population ----
     // Remember, to make the below available to constructor, they must be instance and not static
-    private final Logger LOG = Logger.getLogger(IkasanComponentType.class);
+    private static final Logger LOG = Logger.getLogger(IkasanComponentType.class);
     public final String associatedMethodName;
     public final boolean bespokeClass;
     public final IkasanComponentCategory elementCategory;

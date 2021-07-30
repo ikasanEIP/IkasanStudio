@@ -16,7 +16,6 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ComponentPropertyEditBox {
-//    private String propertyTitle;
     private JLabel propertyTitleField;
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
@@ -29,7 +28,6 @@ public class ComponentPropertyEditBox {
 
     public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean popupMode) {
         this.componentProperty = componentProperty;
-//        this.propertyTitle = componentProperty.getMeta().getPropertyName();
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
         Object value = componentProperty.getValue();

@@ -54,7 +54,6 @@ import org.ikasan.spec.component.filter.Filter;
 import org.ikasan.spec.component.filter.FilterException;
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.splitting.Splitter;
-import org.ikasan.spec.component.endpoint.EndpointException;
 import org.ikasan.spec.component.routing.RouterException;
 import org.ikasan.spec.component.splitting.SplitterException;
 import org.ikasan.spec.component.transformation.TransformationException;
