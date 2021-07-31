@@ -24,8 +24,8 @@ public class SaveAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       boolean transparentBackground = false ; // cant get this to work for now.
-      boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
       String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
+      boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
       FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as image", "Choose the destination to save the image", extensions);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
 

@@ -25,11 +25,11 @@ public enum IkasanLookup {
 
     // --- Population ----
     // Remember, to make the below available to constructor, they must be instance and not static
-    private final Logger LOG = Logger.getLogger(IkasanLookup.class);
-    private final int LOOKUP_NAME = 0;
-    private final int LOOKUP_VALUE = 1;
-    private final int NUMBER_OF_CONFIGS = 2;
-    public final String COMPONENT_DEFINTIONS_DIR = "/studio/lookup/";
+    private static final Logger LOG = Logger.getLogger(IkasanLookup.class);
+    private static final int LOOKUP_NAME = 0;
+    private static final int LOOKUP_VALUE = 1;
+    private static final int NUMBER_OF_CONFIGS = 2;
+    public static final String COMPONENT_DEFINTIONS_DIR = "/studio/lookup/";
 
     public Map<String, String> readIkasanLookups(String propertiesFile) {
         Map<String, String> lookup = new TreeMap<>();
@@ -67,12 +67,12 @@ public enum IkasanLookup {
      */
     public String parseClass(String className) {
         String fullyQualifiedClass = className;
-        if (className != null) {
-            if (className.chars().filter(c -> c == '.').count() <2 && className.contains(".class")) {
-                String lookup = this.getDisplayAndValuePairs().get(className.replace(".class", ""));
-                if (lookup != null) {
-                    fullyQualifiedClass = lookup;
-                }
+        if (className != null &&
+            className.chars().filter(c -> c == '.').count() <2 &&
+            className.contains(".class")) {
+            String lookup = this.getDisplayAndValuePairs().get(className.replace(".class", ""));
+            if (lookup != null) {
+                fullyQualifiedClass = lookup;
             }
         }
         return fullyQualifiedClass;

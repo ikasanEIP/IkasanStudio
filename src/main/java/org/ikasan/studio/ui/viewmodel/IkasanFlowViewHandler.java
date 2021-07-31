@@ -41,12 +41,11 @@ public class IkasanFlowViewHandler extends ViewHandler {
         return model.getName() != null ? model.getName() : model.getDescription();
     }
 
-    public String getExceptionResolverIcon() {
-        if (model.hasExceptionResolver()) {
-
-        }
-        return model.getName() != null ? model.getName() : model.getDescription();
-    }
+//    public String getExceptionResolverIcon() {
+//        if (model.hasExceptionResolver()) {
+//        }
+//        return model.getName() != null ? model.getName() : model.getDescription();
+//    }
 
     private int getFlowTitleWidth(Graphics g) {
         return StudioUIUtils.getTextWidth(g, getText());

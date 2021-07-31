@@ -23,16 +23,16 @@ import java.util.Properties;
 public enum Context {
     INSTANCE;
 
-    private final String CANVAS_PANEL = "canvasPanel";
-    private final String PROJECT = "project";
-    private final String APPLICATION_PROPERTIES = "applicationProperties";
-    private final String OPTIONS = "options";
-    private final String PROPERTIES_PANEL = "propertiesPanel";
-    private final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
-    private final String CANVAS_TEXT_AREA = "canvasTextArea";
-    private final String IKASAN_MODULE = "ikasanModule";
-    private final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
-    private final String POM = "pom";
+    private static final String CANVAS_PANEL = "canvasPanel";
+    private static final String PROJECT = "project";
+    private static final String APPLICATION_PROPERTIES = "applicationProperties";
+    private static final String OPTIONS = "options";
+    private static final String PROPERTIES_PANEL = "propertiesPanel";
+    private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
+    private static final String CANVAS_TEXT_AREA = "canvasTextArea";
+    private static final String IKASAN_MODULE = "ikasanModule";
+    private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
+    private static final String POM = "pom";
 
     Context() {
         freemarkerConfiguration = new Configuration();

@@ -13,7 +13,6 @@ import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.sun.istack.NotNull;
-import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
@@ -23,8 +22,6 @@ import java.util.Arrays;
 
 public class StudioMaintenanceDebug extends AnAction
 {
-   private static final Logger log = Logger.getLogger(StudioMaintenanceDebug.class);
-
    private String projectKey;
 
    public StudioMaintenanceDebug() {

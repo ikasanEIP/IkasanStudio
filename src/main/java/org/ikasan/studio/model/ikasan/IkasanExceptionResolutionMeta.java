@@ -10,11 +10,14 @@ import static org.ikasan.studio.model.ikasan.IkasanLookup.EXCEPTION_RESOLVER_STD
  * Capture the meta information for an action resolution. The meta will never change per class, so this is static.
  */
 public class IkasanExceptionResolutionMeta {
-    private static Map<String, String> standardExceptions = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
+    private static final Map<String, String> STANDARD_EXCEPTIONS = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
     private static final IkasanComponentType ON_EXCEPTION = IkasanComponentType.ON_EXCEPTION;
 
+    // Currently static class
+    private IkasanExceptionResolutionMeta() {}
+
     public static List<String> getStandardExceptionsList() {
-        return new ArrayList<>(standardExceptions.keySet());
+        return new ArrayList<>(STANDARD_EXCEPTIONS.keySet());
     }
 
     public static boolean isValidAction(String action) {

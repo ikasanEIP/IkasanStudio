@@ -32,21 +32,20 @@ public class ExceptionResolution {
 
         if (theException != null && !theException.isEmpty()) {
             exceptionField.setText(ikasanExceptionResolution.getTheException());
-            deleteButton.addActionListener(e -> {
-                parent.doDelete(ikasanExceptionResolution);
-                }
+            deleteButton.addActionListener(e ->
+                parent.doDelete(ikasanExceptionResolution)
             );
         }
         if (theAction != null && !theAction.isEmpty()) {
             actionField.setText(ikasanExceptionResolution.getTheAction());
         }
-        if (ikasanExceptionResolution.getTheAction() != null) {
-            if (ikasanExceptionResolution.getParams() != null && !ikasanExceptionResolution.getParams().isEmpty()) {
-                actionParamEditBoxList = new ArrayList<>();
-                for (IkasanComponentProperty property : ikasanExceptionResolution.getParams()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.popupMode);
-                    actionParamEditBoxList.add(actionParam);
-                }
+        if (ikasanExceptionResolution.getTheAction() != null &&
+                ikasanExceptionResolution.getParams() != null &&
+                !ikasanExceptionResolution.getParams().isEmpty()) {
+            actionParamEditBoxList = new ArrayList<>();
+            for (IkasanComponentProperty property : ikasanExceptionResolution.getParams()) {
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.popupMode);
+                actionParamEditBoxList.add(actionParam);
             }
         }
     }

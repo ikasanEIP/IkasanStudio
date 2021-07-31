@@ -25,18 +25,16 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
      * @param sourceComponent the sourceComponent
      * @return
      */
+    @Override
     public int getSourceActions(JComponent sourceComponent) {
         return TransferHandler.COPY;
     }
 
+    @Override
     public Transferable createTransferable(JComponent sourceComponent) {
-        // Clear
-        IkasanFlowUIComponentTransferable ikasanFlowUIComponent = null;
-
         if (sourceComponent instanceof JList && ((JList)sourceComponent).getSelectedValue() instanceof PaletteItemIkasanComponent) {
             JList paletteList = (JList)sourceComponent;
             PaletteItemIkasanComponent item = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
-//            ikasanFlowUIComponent = item.getIkasanFlowUIComponent();
             IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getIkasanFlowUIComponent());
             Image dragImage = item.getIkasanFlowUIComponent().getSmallIcon().getImage();
             if (dragImage != null) {
@@ -58,6 +56,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
      * @param destinationSupportedflavors
      * @return
      */
+    @Override
     public boolean canImport(JComponent targetComponent, DataFlavor destinationSupportedflavors[]) {
 //        log.trace("can Import check " + targetComponent);
 //        if (!(targetComponent instanceof DesignerCanvas)) {
@@ -80,11 +79,9 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 //    return support.getComponent() instanceof JComponent ? this.canImport((JComponent)support.getComponent(), support.getDataFlavors()) : false;
 //}
 
+    @Override
     public boolean importData(TransferHandler.TransferSupport support) {
-        System.out.println("Got " + support);
-
-
-//return support.getComponent() instanceof JComponent ? this.importData((JComponent)support.getComponent(), support.getTransferable()) : false;
+        log.info("Got " + support);
         return super.importData(support);
 
     }
@@ -96,6 +93,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
      * @param t the data object being dragged.
      * @return
      */
+    @Override
     public boolean importData(JComponent targetComponent, Transferable t) {
 
         if (targetComponent instanceof JPanel) {

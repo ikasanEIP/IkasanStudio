@@ -698,7 +698,7 @@ public class PIPSIIkasanModel {
         }
         for (PIPSIMethod componentBuilderMethod: expressionRHS.getPipsiMethods()) {
             String methodName = componentBuilderMethod.getName();
-            if (methodName.equals("getComponentBuilder") || methodName.equals("getExceptionResolverBuilder")) {
+            if (methodName.equals(COMPONENT_BUILDER_NAME_METHOD) || methodName.equals(EXCEPTION_RESOLVER_NAME_METHOD)) {
                 contains = true ;
                 break;
             }

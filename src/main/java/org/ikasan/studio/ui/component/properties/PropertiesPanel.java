@@ -16,17 +16,18 @@ import java.util.List;
 
 public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
+    private static final String OK_BUTTON_TEXT = "Update Code";
     private transient IkasanBaseComponent selectedComponent;
     protected String projectKey;
     protected boolean popupMode;
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
-    private PropertiesDialogue propertiesDialogue;
+    private transient PropertiesDialogue propertiesDialogue;
 
     protected JButton okButton;
     protected ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JPanel propertiesEditorPanel = new JPanel();
 
-    public PropertiesPanel(String projectKey, boolean popupMode) {
+    protected PropertiesPanel(String projectKey, boolean popupMode) {
         super();
         this.projectKey = projectKey ;
         this.popupMode = popupMode;
@@ -47,9 +48,9 @@ public abstract class PropertiesPanel extends JPanel {
 
         // Palette editor mode, add an OK button at the bottom.
         if (! popupMode) {
-            okButton = new JButton(getOKButtonText());
+            okButton = new JButton(OK_BUTTON_TEXT);
             okButton.addActionListener(e -> {
-                    OkActionListener(e);
+                    okActionListener(e);
                     doOKAction();
                    //@todo popup a temp message 'no changes detected'
                }
@@ -71,8 +72,7 @@ public abstract class PropertiesPanel extends JPanel {
         setFocusOnFirstComponent();
     }
 
-//    protected abstract void OkActionListener(ActionEvent ae);
-    protected void OkActionListener(ActionEvent ae) {
+    protected void okActionListener(ActionEvent ae) {
         List<ValidationInfo> infoList = doValidateAll();
         if (!infoList.isEmpty()) {
             ValidationInfo firstInfo = infoList.get(0);
@@ -87,9 +87,9 @@ public abstract class PropertiesPanel extends JPanel {
                     validationErrors.toString(),
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
-            if (infoList.stream().anyMatch(info1 -> !info1.okEnabled)) {
-                return;
-            }
+//            if (infoList.stream().anyMatch(info1 -> !info1.okEnabled)) {
+//                return;
+//            }
         }
     }
     /**
@@ -143,7 +143,7 @@ public abstract class PropertiesPanel extends JPanel {
     }
 
     protected String getOKButtonText() {
-        return "Update Code";
+        return OK_BUTTON_TEXT;
     }
 
     /**

@@ -67,8 +67,6 @@ public class PropertiesDialogue extends DialogWrapper {
      */
     @Override
     protected JComponent createCenterPanel() {
-//        int niceWidth = (int) (parentComponent.getWidth() * 0.6);
-//        propertiesPanel.setPreferredSize(new Dimension(niceWidth, parentComponent.getHeight()));
         return propertiesPanel;
     }
 

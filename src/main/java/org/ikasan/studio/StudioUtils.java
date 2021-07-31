@@ -183,7 +183,6 @@ public class StudioUtils {
         if (is != null) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
-                boolean hasSubProperties = false;  // does this property have sub properties
                 while ((line = br.readLine()) != null) {
                     if (line.startsWith("#") || line.length() == 0 || line.isEmpty()) {
                         continue;

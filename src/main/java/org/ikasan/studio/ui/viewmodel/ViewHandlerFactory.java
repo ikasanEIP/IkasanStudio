@@ -7,6 +7,10 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 
 public class ViewHandlerFactory {
+
+    // Static class
+    private ViewHandlerFactory() {}
+
     public static ViewHandler getInstance(Object component) {
         if (component == null) {
             return null;

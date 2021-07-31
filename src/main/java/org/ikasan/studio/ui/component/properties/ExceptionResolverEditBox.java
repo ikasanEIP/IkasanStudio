@@ -6,7 +6,6 @@ import org.ikasan.studio.model.ikasan.IkasanExceptionResolution;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolver;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,9 +41,8 @@ public class ExceptionResolverEditBox {
             }
         }
         addButton = new JButton("ADD");
-        addButton.addActionListener(e -> {
-                    doAdd(e);
-                }
+        addButton.addActionListener(e ->
+            doAdd()
         );
     }
 
@@ -56,8 +54,8 @@ public class ExceptionResolverEditBox {
         }
     }
 
-    private void doAdd(ActionEvent ae) {
-        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, resolverPanel, projectKey, true);
+    private void doAdd() {
+        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
         IkasanExceptionResolution newResolution = new IkasanExceptionResolution(ikasanExceptionResolver);
         exceptionResolutionPanel.updateTargetComponent(newResolution);
         PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
