@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class ExceptionResolutionPanel extends PropertiesPanel {
     private static final Logger log = Logger.getLogger(ExceptionResolutionPanel.class);
-    private ExceptionResolverPanel resolverPanel;
+    private static final String OK_BUTTON_TEST = "Add";
     private transient List<ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     private JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
@@ -34,10 +34,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * @param projectKey for this project
      * @param popupMode true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPanel(List<ExceptionResolution> exceptionResolutionList, ExceptionResolverPanel resolverPanel, String projectKey, boolean popupMode) {
+    public ExceptionResolutionPanel(List<ExceptionResolution> exceptionResolutionList, String projectKey, boolean popupMode) {
         super(projectKey, popupMode);
         this.exceptionResolutionList = exceptionResolutionList;
-        this.resolverPanel = resolverPanel;
     }
 
     /**
@@ -148,7 +147,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
     @Override
     protected String getOKButtonText() {
-        return "Add";
+        return OK_BUTTON_TEST;
     }
 
     /**

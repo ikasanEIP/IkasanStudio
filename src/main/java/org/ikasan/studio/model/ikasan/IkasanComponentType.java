@@ -252,15 +252,13 @@ public enum IkasanComponentType implements Serializable {
 
     public boolean isJms() {
         boolean isJms = false;
-        if (this != null) {
-            switch (this) {
-                case JMS_PRODUCER:
-                case JMS_PRODUCER_BASIC_AMQ:
-                case SPRING_JMS_CONSUMER:
-                case SPRING_JMS_CONSUMER_BASIC_AMQ:
-                    isJms = true;
-                    break;
-            }
+        switch (this) {
+            case JMS_PRODUCER:
+            case JMS_PRODUCER_BASIC_AMQ:
+            case SPRING_JMS_CONSUMER:
+            case SPRING_JMS_CONSUMER_BASIC_AMQ:
+                isJms = true;
+                break;
         }
         return isJms;
     }

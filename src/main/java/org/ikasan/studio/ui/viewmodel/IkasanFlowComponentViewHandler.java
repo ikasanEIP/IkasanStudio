@@ -38,10 +38,6 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
             ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
         }
     }
-//
-//    public String getPropertiesAsString() {
-//        return model.getConfiguredProperties().toString();
-//    }
 
     /**
      * Paint the flow icon and the text underneath it

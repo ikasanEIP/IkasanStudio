@@ -82,19 +82,20 @@ public class StudioPsiUtils {
         return properties;
     }
 
-    public static IkasanPomModel loadPom(Project project) { //throws IOException, XmlPullParserException {
+    public static IkasanPomModel loadPom(Project project) {
         IkasanPomModel pom = Context.getPom(project.getName());
         if (pom == null) {
             Model model = null;
             PsiFile pomPsiFile = getPom(project);
-
-            try (Reader reader = new StringReader(pomPsiFile.getText())) {
-                MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
-                model = xpp3Reader.read(reader);
-                pom = new IkasanPomModel(model, pomPsiFile);
-                Context.setPom(project.getName(), pom);
-            } catch (IOException | XmlPullParserException ex) {
-                LOG.error("Unable to load project pom", ex);
+            if (pomPsiFile != null) {
+                try (Reader reader = new StringReader(pomPsiFile.getText())) {
+                    MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+                    model = xpp3Reader.read(reader);
+                    pom = new IkasanPomModel(model, pomPsiFile);
+                    Context.setPom(project.getName(), pom);
+                } catch (IOException | XmlPullParserException ex) {
+                    LOG.error("Unable to load project pom", ex);
+                }
             }
         }
         return pom;
@@ -106,7 +107,7 @@ public class StudioPsiUtils {
         boolean pomUpdated = false;
 
         if (pom!= null && pom.getModel() != null && dependencies != null && !dependencies.isEmpty()) {
-            Set existingDependencies = new HashSet(pom.getModel().getDependencies());
+            Set<Dependency>  existingDependencies = new HashSet<>(pom.getModel().getDependencies());
             for (Dependency dependency: dependencies) {
                 if (!existingDependencies.contains(dependency)) {
                     pom.getModel().addDependency(dependency);

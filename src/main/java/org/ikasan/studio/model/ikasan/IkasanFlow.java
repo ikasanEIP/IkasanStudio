@@ -127,9 +127,6 @@ public class IkasanFlow extends IkasanComponent {
     public IkasanExceptionResolver getIkasanExceptionResolver() {
         return ikasanExceptionResolver;
     }
-    public List<IkasanExceptionResolver> getIkasanExceptionResolverList() {
-        return new ArrayList(ikasanExceptionResolver.getIkasanExceptionResolutionMap().values());
-    }
 
     public void setIkasanExceptionResolver(IkasanExceptionResolver ikasanExceptionResolver) {
         this.ikasanExceptionResolver = ikasanExceptionResolver;

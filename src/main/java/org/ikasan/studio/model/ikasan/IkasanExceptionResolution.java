@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class IkasanExceptionResolution extends IkasanBaseComponent {
-    private static IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
+    private static final IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     @JsonIgnore
     IkasanExceptionResolver parent;
     String theException;
@@ -19,7 +19,7 @@ public class IkasanExceptionResolution extends IkasanBaseComponent {
     }
 
     public IkasanExceptionResolution(String theException, String theAction) {
-        this(theException, theAction, Collections.EMPTY_LIST);
+        this(theException, theAction, Collections.emptyList());
     }
 
     public IkasanExceptionResolution(String theException, String theAction, List<IkasanComponentProperty> params) {
