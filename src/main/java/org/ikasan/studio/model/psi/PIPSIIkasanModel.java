@@ -943,13 +943,15 @@ public class PIPSIIkasanModel {
      */
     protected PsiReferenceExpressionImpl getLocalVariableFromReturnStatement(final PsiStatement psiReturnStatement) {
         PsiReferenceExpressionImpl returnReference = null;
-        try {
-            returnReference = (PsiReferenceExpressionImpl) Arrays.stream(psiReturnStatement.getChildren())
-                    .filter(item -> item instanceof PsiReferenceExpressionImpl)
-                    .findFirst()
-                    .orElse(null);
-        } catch (NoSuchElementException nsee) {
-            log.warn("Could not find return statement reference from " + psiReturnStatement + ". Exception: " + nsee.getMessage(), nsee);
+        if (psiReturnStatement!= null) {
+            try {
+                returnReference = (PsiReferenceExpressionImpl) Arrays.stream(psiReturnStatement.getChildren())
+                        .filter(item -> item instanceof PsiReferenceExpressionImpl)
+                        .findFirst()
+                        .orElse(null);
+            } catch (NoSuchElementException nsee) {
+                log.warn("Could not find return statement reference from " + psiReturnStatement + ". Exception: " + nsee.getMessage(), nsee);
+            }
         }
         return returnReference;
     }

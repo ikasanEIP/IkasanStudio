@@ -30,12 +30,14 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 <#if flow.description?has_content >
 .withDescription("${flow.description}")
 </#if>
-<#if flow.hasExceptionResolver() >
+
+<#if flow.hasExceptionResolver()>
 .withExceptionResolver(builderFactory.getExceptionResolverBuilder()
-    <#list flow.ikasanExceptionResolver.ikasanExceptionResolutionList![] as ikasanExceptionResolution>
-.addExceptionToAction(${ikasanExceptionResolution.theException}, org.ikasan.builder.OnException.${ikasanExceptionResolution.theAction}(<#list ikasanExceptionResolution.params![] as param><#if "java.lang.String" == param.meta.usageDataType>"${param.value}"<#sep>,<#else>${param.value}<#sep>,</#if></#list>))<#sep>,
-    </#list>)
+<#list flow.ikasanExceptionResolver.ikasanExceptionResolutionList![] as ikasanExceptionResolution>
+.addExceptionToAction(${ikasanExceptionResolution.theException}, org.ikasan.builder.OnException.${ikasanExceptionResolution.theAction}(<#list ikasanExceptionResolution.params![] as param><#if param.meta.usageDataType??><#if "java.lang.String" == param.meta.usageDataType!''>"${param.value}"<#sep>,<#else>${param.value}<#sep>,</#if></#if></#list>))<#sep>,
+</#list>)
 </#if>
+
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     .${ikasanFlowComponent.type.elementCategory.associatedMethodName}("${ikasanFlowComponent.name}",
     componentFactory.get${ikasanFlowComponent.getJavaClassName()}())

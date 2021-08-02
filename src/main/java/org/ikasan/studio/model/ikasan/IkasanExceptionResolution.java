@@ -63,7 +63,11 @@ public class IkasanExceptionResolution extends IkasanBaseComponent {
     }
     @JsonIgnore
     public List<IkasanComponentProperty> getParams() {
-        return params;
+        if (params == null) {
+            return Collections.emptyList();
+        } else {
+            return params;
+        }
     }
 
     public void setParams(List<IkasanComponentProperty> params) {

@@ -322,12 +322,14 @@ public class StudioPsiUtils {
      */
     public static PsiMethod findMethodFromClassByReturnType(PsiClass psiClass, String methodReturnType) {
         PsiMethod methodFound = null ;
-        for (PsiMethod psiMethod : psiClass.getAllMethods()) {
-            PsiType returnType = psiMethod.getReturnType();
-            //@todo determine if "<?>" needs to be here or elsewhere, maybe pass in
-            if (returnType != null && (returnType.equalsToText(methodReturnType) || returnType.equalsToText(methodReturnType+"<?>"))) {
-                methodFound = psiMethod;
-                break;
+        if (psiClass != null) {
+            for (PsiMethod psiMethod : psiClass.getAllMethods()) {
+                PsiType returnType = psiMethod.getReturnType();
+                //@todo determine if "<?>" needs to be here or elsewhere, maybe pass in
+                if (returnType != null && (returnType.equalsToText(methodReturnType) || returnType.equalsToText(methodReturnType+"<?>"))) {
+                    methodFound = psiMethod;
+                    break;
+                }
             }
         }
         return methodFound;
