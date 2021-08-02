@@ -59,7 +59,7 @@ public class IkasanExceptionResolution extends IkasanBaseComponent {
      */
     @JsonIgnore
     public static List<IkasanComponentPropertyMeta> getMetaForActionParams(String action) {
-        return IKASAN_EXCEPTION_RESOLUTION_META.getPropertyMetaListForAction(action);
+        return IkasanExceptionResolutionMeta.getPropertyMetaListForAction(action);
     }
     @JsonIgnore
     public List<IkasanComponentProperty> getParams() {
