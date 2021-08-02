@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan;
 
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,9 @@ public class IkasanExceptionResolver extends IkasanFlowComponent {
     }
     public void addExceptionResolution(IkasanExceptionResolution ikasanExceptionResolution) {
         ikasanExceptionResolutionMap.put(ikasanExceptionResolution.getTheException(), ikasanExceptionResolution);
+    }
+    public List<IkasanExceptionResolution> getIkasanExceptionResolutionList() {
+        return new ArrayList<>(ikasanExceptionResolutionMap.values());
     }
     public void resetIkasanExceptionResolutionList(List<IkasanExceptionResolution> ikasanExceptionResolutionList) {
         resetIkasanExceptionResolutionList();
