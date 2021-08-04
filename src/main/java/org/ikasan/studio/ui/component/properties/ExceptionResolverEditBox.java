@@ -7,7 +7,6 @@ import org.ikasan.studio.model.ikasan.IkasanExceptionResolver;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,6 +23,7 @@ public class ExceptionResolverEditBox {
     private List<ExceptionResolution> exceptionResolutionList = new ArrayList<>();
     private boolean popupMode;
     private IkasanExceptionResolver ikasanExceptionResolver;
+    private boolean hasChanged = false;
 
     public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
         this.resolverPanel = resolverPanel;
@@ -48,9 +48,11 @@ public class ExceptionResolverEditBox {
 
     public void doDelete(IkasanExceptionResolution ikasanExceptionResolution) {
         if (exceptionResolutionList != null) {
-            exceptionResolutionList.removeIf(item -> ikasanExceptionResolution.equals(item.getIkasanExceptionResolution()));
-            resolverPanel.populatePropertiesEditorPanel();
-            resolverPanel.redrawPanel();
+            if (exceptionResolutionList.removeIf(item -> ikasanExceptionResolution.equals(item.getIkasanExceptionResolution()))) {
+                hasChanged = true;
+                resolverPanel.populatePropertiesEditorPanel();
+                resolverPanel.redrawPanel();
+            }
         }
     }
 
@@ -64,6 +66,7 @@ public class ExceptionResolverEditBox {
                 exceptionResolutionPanel);
         if (propertiesDialogue.showAndGet()) {
             exceptionResolutionList.add(new ExceptionResolution(this, newResolution, popupMode));
+            hasChanged = true;
             resolverPanel.populatePropertiesEditorPanel();
             resolverPanel.redrawPanel();
         }
@@ -94,26 +97,27 @@ public class ExceptionResolverEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-        boolean hasChanged = true ;
-        if (ikasanExceptionResolver.getIkasanExceptionResolutionMap().isEmpty() && exceptionResolutionList.isEmpty()) {
-            hasChanged = false;
-        }
-        //@todo we could check ikasanExceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
+//        boolean hasChanged = true ;
+//        if (ikasanExceptionResolver.getIkasanExceptionResolutionMap().isEmpty() && exceptionResolutionList.isEmpty()) {
+//            hasChanged = false;
+//        }
+//        //@todo we could check ikasanExceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
         return hasChanged;
     }
+
 
     /**
      * Validate the selected values
      * @return a non-empty ValidationInfo list if there are validation errors
      */
     protected List<ValidationInfo> doValidateAll() {
+        List<ValidationInfo> result = new ArrayList<>();
         if (exceptionResolutionList == null || exceptionResolutionList.isEmpty()) {
-            List<ValidationInfo> result = new ArrayList<>();
             result.add(new ValidationInfo("At least one exception should be added, or cancel so that exception resolver is not defined"));
-            return result;
-        } else {
-            return Collections.emptyList();
+        } else if (!hasChanged) {
+            result.add(new ValidationInfo("No change has been made yet, change the configuration or cancel the action"));
         }
+        return result;
     }
 
     public JButton getAddButton() {
@@ -134,5 +138,9 @@ public class ExceptionResolverEditBox {
 
     public List<ExceptionResolution> getExceptionResolutionList() {
         return exceptionResolutionList;
+    }
+
+    public void setHasChanged(boolean hasChanged) {
+        this.hasChanged = hasChanged;
     }
 }
