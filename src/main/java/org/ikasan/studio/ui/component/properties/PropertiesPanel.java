@@ -142,6 +142,10 @@ public abstract class PropertiesPanel extends JPanel {
         setFocusOnFirstComponent();
     }
 
+    /**
+     * Called by the Properties Dialogue, then passed upto the Intellij DialogueWrapper which creates the button.
+     * @return the text to be used in the OK Button.
+     */
     protected String getOKButtonText() {
         return OK_BUTTON_TEXT;
     }

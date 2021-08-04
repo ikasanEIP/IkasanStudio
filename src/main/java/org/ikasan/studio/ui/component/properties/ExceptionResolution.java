@@ -1,12 +1,10 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolution;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -70,13 +68,13 @@ public class ExceptionResolution {
         return actionParamEditBoxList;
     }
 
-    /**
-     * Validate the selected values
-     * @return a non-empty ValidationInfo list if there are validation errors
-     */
-    protected List<ValidationInfo> doValidateAll() {
-        return  Collections.emptyList();
-    }
+//    /**
+//     * Validate the selected values
+//     * @return a non-empty ValidationInfo list if there are validation errors
+//     */
+//    protected List<ValidationInfo> doValidateAll() {
+//        return  Collections.emptyList();
+//    }
 
     public IkasanExceptionResolution getIkasanExceptionResolution() {
         return ikasanExceptionResolution;
