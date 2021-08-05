@@ -73,6 +73,8 @@ public enum IkasanLookup {
             String lookup = this.getDisplayAndValuePairs().get(className.replace(".class", ""));
             if (lookup != null) {
                 fullyQualifiedClass = lookup;
+            } else {
+                fullyQualifiedClass = this.getDisplayAndValuePairs().values().stream().filter(x -> x.endsWith(className)).findFirst().orElse(fullyQualifiedClass);
             }
         }
         return fullyQualifiedClass;
