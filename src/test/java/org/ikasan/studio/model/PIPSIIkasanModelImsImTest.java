@@ -67,6 +67,6 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
         Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("JMS Producer"));
         Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).size(), is(2));
         Set actions = new TreeSet(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).keySet());
-        Assert.assertThat(actions.toString(), is("[com.ikasan.sample.spring.boot.SampleGeneratedException, org.ikasan.spec.component.endpoint.EndpointException.class]"));
+        Assert.assertThat(actions.toString(), is("[com.ikasan.sample.spring.boot.SampleGeneratedException.class, org.ikasan.spec.component.endpoint.EndpointException.class]"));
     }
 }
