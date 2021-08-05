@@ -833,10 +833,11 @@ public class PIPSIIkasanModel {
                 //  parameter 3 = 200
                 //  parameter 4 = 10
 
-
                 String exceptionClassRaw =  getFullQualifiedClassName(getReferenceOrLiteralFromParameter(pipsiMethod, 0));
-//                flowElementProperties.put(new IkasanComponentPropertyMetaKey("ExceptionResolver", addExceptionToActionLineNumber, 1), getFullQualifiedClassName(exceptionClass));
                 // here we should get method name
+                if (exceptionClassRaw != null && !exceptionClassRaw.endsWith(".class")) {
+                    exceptionClassRaw += ".class";
+                }
                 String exceptionClass = IkasanLookup.EXCEPTION_RESOLVER_STD_EXCEPTIONS.parseClass(exceptionClassRaw);
 
                 String actionType = IkasanExceptionResolutionMeta.parseAction(
@@ -897,7 +898,7 @@ public class PIPSIIkasanModel {
     protected String getFullQualifiedClassName(String className) {
         String bestGuess = className;
         if (className != null) {
-            PsiClass fullyQualifiedExceptionClass = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), className);
+            PsiClass fullyQualifiedExceptionClass = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), className);   // For user defined exceptions
             if (fullyQualifiedExceptionClass == null) {
                 fullyQualifiedExceptionClass = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), className.replace(".class", ""));
             }
