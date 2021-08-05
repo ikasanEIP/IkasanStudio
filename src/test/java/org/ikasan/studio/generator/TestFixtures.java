@@ -520,9 +520,9 @@ public class TestFixtures {
                 "org.ikasan.spec.component.routing.RouterException.class", "retry", retryProperties);
         ikasanExceptionResolver.addExceptionResolution(ikasanExceptionResolution);
         ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "org.ikasan.spec.component.transformation.TransformationException.class", "ignore"));
+                "org.ikasan.spec.component.transformation.TransformationException.class", "ignoreException"));
         ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "org.ikasan.spec.component.splitting.SplitterException.class", "exclude"));
+                "org.ikasan.spec.component.splitting.SplitterException.class", "excludeEvent"));
         ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
                 "org.ikasan.spec.component.endpoint.EndpointException.class", "retryIndefinitely"));
         List<IkasanComponentProperty> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
