@@ -208,26 +208,28 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     }
 
     private void addParamsToTable(JPanel jPanel, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.fill = GridBagConstraints.BOTH;
-        gc.weightx = 0.0;
-        gc.gridx = 0;
-        gc.gridy = tabley;
-        jPanel.add(propertyLabel, gc);
-        ++gc.gridx;
-        if (!componentInput.isBooleanInput()) {
-            gc.weightx = 1.0;
-            jPanel.add(componentInput.getFirstFocusComponent(), gc);
-        } else {
-            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            booleanPanel.setBackground(Color.WHITE);
-            booleanPanel.add(new JLabel("true"));
-            booleanPanel.add(componentInput.getTrueBox());
-            booleanPanel.add(new JLabel("false"));
-            booleanPanel.add(componentInput.getFalseBox());
-            jPanel.add(booleanPanel, gc);
+        if (componentInput != null) {
+            GridBagConstraints gc = new GridBagConstraints();
+            gc.fill = GridBagConstraints.BOTH;
+            gc.weightx = 0.0;
+            gc.gridx = 0;
+            gc.gridy = tabley;
+            jPanel.add(propertyLabel, gc);
+            ++gc.gridx;
+            if (!componentInput.isBooleanInput()) {
+                gc.weightx = 1.0;
+                jPanel.add(componentInput.getFirstFocusComponent(), gc);
+            } else {
+                JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                booleanPanel.setBackground(Color.WHITE);
+                booleanPanel.add(new JLabel("true"));
+                booleanPanel.add(componentInput.getTrueBox());
+                booleanPanel.add(new JLabel("false"));
+                booleanPanel.add(componentInput.getFalseBox());
+                jPanel.add(booleanPanel, gc);
+            }
+            componentInput.setEnabled(false);
         }
-        componentInput.setEnabled(false);
     }
 
     /**
