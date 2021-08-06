@@ -113,7 +113,9 @@ public class ComponentPropertyEditBox {
 
     public ComponentInput getInputField() {
         ComponentInput componentInput = null;
-        if (isBooleanProperty()) {
+        if (meta.getPropertyDataType() == null && meta.getUsageDataType() == null) {
+            ; // there is no value to enter, just a label to display
+        } else if (isBooleanProperty()) {
             componentInput = new ComponentInput(propertyBooleanFieldTrue, propertyBooleanFieldFalse);
         } else {
             componentInput = new ComponentInput(propertyValueField);
