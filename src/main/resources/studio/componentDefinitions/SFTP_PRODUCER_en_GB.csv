@@ -22,7 +22,9 @@ Password|1|1|true|false||__flow.sftp.producer.password|java.lang.String||||passw
 RemoteHost|1|1|true|false||__flow.sftp.producer.remote-host|java.lang.String||||Default(‘localhost’) host name of the remote (S)FTP server where producer needs to connect.
 RemotePort|1|1|true|false||__flow.sftp.producer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where producer needs to connect.
 Username|1|1|true|false||__flow.sftp.producer.username|java.lang.String||||User name used to login to (S)FTP server where producer needs to connect.
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 ChecksumDelivered|1|1|false|false|||java.lang.Boolean||||Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.
 CleanUpChunks|1|1|false|false|||java.lang.Boolean||||Default(true) Flag indicating whether chunk file information persisted in DB should be removed by producer after successful file delivery aka. successful file assembling from chunks.
 CleanupJournalOnComplete|1|1|false|false|||java.lang.Boolean||||Default(true) Existing (S)FTP producer is using DB persistence tables to establish different operations it is performing as part of the command pattern (FileDiscovery, FileRename, FileDelivery). That persistent information is be default cleaned up when cleanupJournalOnComplete=true. It can be occasionally useful to cleanupJournalOnComplete=false when performing some debugging.

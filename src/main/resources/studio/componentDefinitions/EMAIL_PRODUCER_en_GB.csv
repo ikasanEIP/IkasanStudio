@@ -46,3 +46,6 @@ ToRecipient|1|1|false|false|||java.lang.String||||The To recipient
 ToRecipients|1|1|false|false|||java.lang.String|java.util.List<String>|||The list of To recipients
 TransportProtocol|1|1|false|false|||java.lang.String||||Optional. Specifies the default message transport protocol.
 User|1|1|false|false|||java.lang.String||||Optional. The default user name to use when connecting to the mail server. Used if the mail.protocol.user property isn't set.
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
+# Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.

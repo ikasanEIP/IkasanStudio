@@ -16,4 +16,6 @@
 # Flow
 #
 # Mandatory Properties
+Name|1|1|true|false|||java.lang.String||||The name of the flow as displayed on diagrams, spaces are acceptable, succinct is best. The name should be unique for the flow.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the flows purpose that may assist in support.

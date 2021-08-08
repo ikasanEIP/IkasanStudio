@@ -378,11 +378,13 @@ public class PIPSIIkasanModel {
 
     protected IkasanFlow updateIkasanFlowWithFlowBuilder(final PsiLocalVariable flowBuilderLocalVar) {
         IkasanFlow newFlow = new IkasanFlow();
-        PIPSIMethodList flowBuilderMethodCalls = extractMethodCallsFromChain(flowBuilderLocalVar.getChildren(), new PIPSIMethodList());
-        PIPSIMethod getFlowBuilderCall = flowBuilderMethodCalls.getFirstMethodByName(FLOW_BUILDER_NAME_METHOD);
+        if (flowBuilderLocalVar != null) {
+            PIPSIMethodList flowBuilderMethodCalls = extractMethodCallsFromChain(flowBuilderLocalVar.getChildren(), new PIPSIMethodList());
+            PIPSIMethod getFlowBuilderCall = flowBuilderMethodCalls.getFirstMethodByName(FLOW_BUILDER_NAME_METHOD);
 //        String flowName = getFlowBuilderCall.getLiteralParameterAsString(0, true);
-        String flowName = getReferenceOrLiteralFromParameter(getFlowBuilderCall, 0);
-        newFlow.setName(flowName);
+            String flowName = getReferenceOrLiteralFromParameter(getFlowBuilderCall, 0);
+            newFlow.setName(flowName);
+        }
         return newFlow;
     }
 

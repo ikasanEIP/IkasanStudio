@@ -23,7 +23,9 @@ RemoteHost|1|1|true|false||__flow.sftp.consumer.remote-host|java.lang.String||||
 RemotePort|1|1|true|false||__flow.sftp.consumer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where consumer needs to connect.
 SourceDirectory|1|1|true|false||__flow.sftp.consumer.source-directory|java.lang.String||||Remote directory from which to discover files
 Username|1|1|true|false||__flow.sftp.consumer.username|java.lang.String||||User name used to login to (S)FTP server where consumer needs to connect.
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 AgeOfFiles|1|1|false|false|||java.lang.Integer||||Default(-1) file filter related option expressed in days. Given that meta data of processed files is being collected on every successful file consumptions, the ageOfFiles option relates to housekeeping of the meta information. On every successful file consumption as part of post commit process file (S)FTP consumer will attempt to delete records older than ageOfFiles records from file filter persistence table. The operation is skipped when ageOfFiles=-1
 Checksum|1|1|false|false|||java.lang.Boolean||||Default(False) Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.
 Chronological|1|1|false|false|||java.lang.Boolean||||Default(False) Flag indicating whether the file processing should be based on chronological order of file latest updates.
