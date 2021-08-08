@@ -88,18 +88,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
                         getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
-            if (getSelectedComponent().getProperty(IkasanComponentPropertyMeta.DESCRIPTION) != null) {
-                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
-                        getSelectedComponent().getProperty(IkasanComponentPropertyMeta.DESCRIPTION), gc, mandatoryTabley++));
-            }
             if (getSelectedComponent().getType().getMetadataMap().size() > 0) {
                 for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : getSelectedComponent().getType().getMetadataMap().entrySet()) {
                     IkasanComponentPropertyMetaKey key = entry.getKey();
-                    if (!key.equals(IkasanComponentPropertyMeta.NAME) && !key.equals(IkasanComponentPropertyMeta.DESCRIPTION)) {
+                    if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
                         IkasanComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component
-                            property = new IkasanComponentProperty(((IkasanFlowComponent) getSelectedComponent()).getType().getMetaDataForPropertyName(key));
+                            property = new IkasanComponentProperty(((IkasanComponent) getSelectedComponent()).getType().getMetaDataForPropertyName(key));
                         }
                         if (property.getMeta().isMandatory()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
