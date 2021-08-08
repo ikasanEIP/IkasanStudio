@@ -16,6 +16,7 @@
 # FTP_CONSUMER -
 #
 # Mandatory Properties
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 CronExpression|1|1|true|false||__flow.ftp.consumer.cron-expression|java.lang.String||||Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
 FilenamePattern|1|1|true|false||__flow.ftp.consumer.filename-pattern|java.lang.String||||Regular expression for matching file names to be transported
 # Optional Properties
@@ -66,3 +67,5 @@ SocketTimeout|1|1|false|false|||java.lang.Integer||||Optional only available on 
 SourceDirectoryURLFactory|1|1|false|true|||java.lang.String|org.ikasan.framework.factory.DirectoryURLFactory|||Provide the classname that overrides and implements the DirectoryURLFactory interface. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instance based on date
 SystemKey|1|1|false|false||__flow.ftp.consumer.system-key|java.lang.String||||Optional only available on FTP consumer.
 TransactionManager|1|1|false|true|||java.lang.String|org.springframework.transaction.jta.JtaTransactionManager|||Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.
+# Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.

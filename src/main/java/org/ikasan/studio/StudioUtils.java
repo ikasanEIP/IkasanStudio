@@ -175,7 +175,7 @@ public class StudioUtils {
     //@todo should be in IkasanComponentType
     public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
         Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
-        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
+//        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);

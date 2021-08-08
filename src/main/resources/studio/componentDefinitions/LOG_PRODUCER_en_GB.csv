@@ -16,7 +16,9 @@
 # Log Producer -
 #
 # Mandatory Properties
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 ConfiguredResourceId|1|1|false|false|||java.lang.String||||An ID used to uniquely identify this component, which is then used as a key for configuration
 ReplacementText|1|1|false|false|||java.lang.String||||Replace the matching text with the following string
 RegExpPattern|1|1|false|false|||java.lang.String||||Only display logs matching this text

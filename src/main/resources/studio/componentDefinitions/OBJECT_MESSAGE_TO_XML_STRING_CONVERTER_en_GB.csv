@@ -16,7 +16,9 @@
 # OBJECT_TO_XML_STRING_CONVERTER
 #
 # Mandatory Properties
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 Configuration|1|1|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
 ConfiguredResourceId|1|1|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
 FastFailOnConfigurationLoad|1|1|false|false|||java.lang.Boolean||||Determines whether we let the component fail if the initial setting and loading of configuration fails.

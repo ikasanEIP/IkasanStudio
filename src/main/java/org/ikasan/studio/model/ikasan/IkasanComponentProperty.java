@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.log4j.Logger;
+import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,25 @@ public class IkasanComponentProperty {
         return value;
     }
 
+    /**
+     * Get the value and present it in such a way as to be appropriate for display in the template language
+     * @return a string that contains the value display in such a way as to be appropriate for inclusion in a template
+     */
+    public String getTemplateRepresentationOfValue() {
+        String displayValue = "";
+        if (value == null) {
+            displayValue = null;
+        } else if (meta != null) {
+            if ("java.lang.String".equals(meta.getUsageDataType())) {
+                displayValue = StudioPsiUtils.stripStartAndEndQuotes((String)value);
+                displayValue = "\"" + displayValue + "\"";
+            } else {
+                displayValue = value.toString();
+            }
+        }
+        return displayValue;
+    }
+
     @JsonIgnore
     public String getValueString() {
         return value.toString();
@@ -47,7 +67,7 @@ public class IkasanComponentProperty {
     public void setValueFromString(String newValue) {
         if (meta != null) {
             if (meta.getPropertyDataType() == String.class) {
-                value = newValue;
+                value = StudioPsiUtils.stripStartAndEndQuotes(newValue);
             } else {
                 try {
                     if (meta.getPropertyDataType() == Long.class) {

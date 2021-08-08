@@ -205,6 +205,16 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
     }
 
     /**
+     * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    @JsonIgnore
+    public String getDescription() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
+    }
+
+
+    /**
      * Set the screen name (and indicate the java variable name) for this component
      * @param name for the instance of this component.
      */
@@ -213,16 +223,12 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
     }
 
     /**
-     * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
-     * @return the component description
+     * Set the description for this component
+     * @param description
      */
-    public String getDescription() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
-    }
     public void setDescription(String description) {
         this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
     }
-
 
     /**
      * Determine if there are some mandatory properties that have not yet been set.

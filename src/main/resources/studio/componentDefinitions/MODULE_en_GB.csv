@@ -18,4 +18,6 @@
 # Mandatory Properties
 ApplicationPackageName|1|1|true|false||module.package|java.lang.String|||org.myApp|The package ID for this applicaiton
 ApplicationPortNumber|1|1|true|false||server.port|java.lang.String|||8080|The default port number for the application when used locally
+Name|1|1|true|false|||java.lang.String||||The name of the module as displayed on diagrams, space are encouraged, succinct is best.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the modules purpose that may assist in support.

@@ -17,7 +17,9 @@
 #
 # Mandatory Properties
 CronExpression|1|1|true|false||__flow.file.consumer.cron-expression|java.lang.String|||0/5 * * * * ? *|Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
+Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 Filenames|1|1|true|false||__flow.file.consumer.filenames|java.lang.String|java.util.List<String>||{'myFile','anotherFile'}|The list of filenames to consume, the files are assumed to be in the same directory as the running ikasan application or one of its subdirectories.
 Configuration|1|1|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
 ConfiguredResourceId|1|1|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
