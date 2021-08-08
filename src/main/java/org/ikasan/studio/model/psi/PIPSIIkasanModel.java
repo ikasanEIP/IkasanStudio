@@ -286,13 +286,11 @@ public class PIPSIIkasanModel {
         PIPSIMethod withDescriptionMethod = methodList.getFirstMethodByName(WITH_DESCRIPTION_METHOD_NAME);
         ikasanModule.setDescription(withDescriptionMethod == null ? null :
                 getReferenceOrLiteralFromParameter(withDescriptionMethod, 0));
-//                withDescriptionMethod.getLiteralParameterAsString(0, true));
 
         // Just in case we have it here also
         //@todo what it parameter was a reference or spring reference- chase !
         PIPSIMethod moduleBuilderMethod = methodList.getFirstMethodByName(MODULE_BUILDER_SET_NAME_METHOD);
         if (moduleBuilderMethod != null) {
-//            ikasanModule.setName(moduleBuilderMethod.getLiteralParameterAsString(0, true));
             ikasanModule.setName(getReferenceOrLiteralFromParameter(moduleBuilderMethod, 0));
         }
 
@@ -302,17 +300,13 @@ public class PIPSIIkasanModel {
             PsiLocalVariable flowLocalVariable = null;
             PsiLocalVariable flowBuilderLocalVariable = null;
             // addFlow(param)
-//            PsiReferenceExpression addFlowParameter = (PsiReferenceExpression)pipsiMethod.getParameter(0);
-
             PsiExpression addFlowParameter = pipsiMethod.getParameter(0);
             PsiElement addFlowParameterResolved = null ;
             PsiElement[] methodChainToCreateItem = null;
             if (addFlowParameter instanceof  PsiReferenceExpression) {
                 addFlowParameterResolved = ((PsiReferenceExpression) addFlowParameter).resolve();  // e.g. local var ftpToJmsFlow   (pointing to Flow ftpToJmsFlow = getFtpConsumerFlow(mb,builderFactory.getComponentBuilder());
                 methodChainToCreateItem = addFlowParameterResolved.getChildren();
-//                String parameterType = getParameterType((PsiReferenceExpression) addFlowParameter);
             } else if (addFlowParameter instanceof  PsiMethodCallExpression) {
-//                addFlowParameterResolved = ((PsiMethodCallExpressionImpl) addFlowParameter).resolveMethod();
                 addFlowParameterResolved = addFlowParameter;
                 methodChainToCreateItem = new PsiElement[] { addFlowParameter } ;
             } else {
@@ -326,7 +320,6 @@ public class PIPSIIkasanModel {
 
             if (addFlowParameterResolved != null) {
                 PIPSIMethodList expressionRHS = extractMethodCallsFromChain(methodChainToCreateItem, new PIPSIMethodList());
-//                PIPSIMethodList expressionRHS = extractMethodCallsFromChain(addFlowParameterResolved.getChildren(), new PIPSIMethodList());
                 // this could be another local method call, or it could be the flow definition.
                 PsiReferenceExpression expressionStart = expressionRHS.baseMethodinstanceVariable;
                 IkasanClazz expressionStartType = getTypeOfReferenceExpression(expressionStart);
@@ -421,7 +414,6 @@ public class PIPSIIkasanModel {
         for(PIPSIMethod pipsiMethod : flowMethodCalls.getPipsiMethods()) {
 
             if (IkasanComponentCategory.DESCRIPTION.associatedMethodName.equals(pipsiMethod.getName())) {
-//                newFlow.setDescription(pipsiMethod.getLiteralParameterAsString(0, true));
                 newFlow.setDescription(getReferenceOrLiteralFromParameter(pipsiMethod, 0));
             }
 
@@ -439,11 +431,6 @@ public class PIPSIIkasanModel {
                 String flowElementName = pipsiMethod.getLiteralParameterAsString(0, true);
                 String flowElementDescription = pipsiMethod.getLiteralParameterAsString(0, true);
                 IkasanFlowComponent ikasanFlowComponent = null;
-
-//                        new IkasanFlowComponent(
-//                        newFlow,
-//                        pipsiMethod.getLiteralParameterAsString(0, true),
-//                        pipsiMethod.getLiteralParameterAsString(0, true));
 
                 // componentCreator : usually the component, or componentFactory.getXX(), or new PayloadToMapConverter()
                 PsiExpression componentCreator = null;
@@ -876,7 +863,8 @@ public class PIPSIIkasanModel {
 
         // In this case, the object was created before the setter chaining
         if (ikasanFlowComponent == null && componentBuilderMethodList.getBaseType() != null) {
-            ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.parseCategoryType(componentBuilderMethodList.getBaseType()), parent, name, description);
+            IkasanComponentType componentType = IkasanComponentType.parseCategoryType(componentBuilderMethodList.getBaseType());
+            ikasanFlowComponent = IkasanFlowComponent.getInstance(componentType, parent, name, description);
         }
 
         if (ikasanFlowComponent != null && ! flowElementProperties.isEmpty()) {

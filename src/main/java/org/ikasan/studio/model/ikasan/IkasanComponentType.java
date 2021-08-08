@@ -195,6 +195,11 @@ public enum IkasanComponentType implements Serializable {
         return UNKNOWN;
     }
 
+    /**
+     * Given the methodname e.g. Filter, identify and return the corresponding Component Type
+     * @param methodName from the code that created the component
+     * @return the Component Type associated with that creator method name.
+     */
     public static IkasanComponentType parseCategoryType(String methodName) {
         if (methodName != null) {
             for (IkasanComponentType name : IkasanComponentType.values()) {

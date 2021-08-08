@@ -98,7 +98,7 @@ public class StudioUtilsTest {
         Assert.assertThat(additionalName.toString(), is(
             "IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='AdditionalName', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=MyDefault, helpText='The name of the component'}"));
         Assert.assertThat(name.toString(), is(
-            "IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='Name', propertyConfigFileLabel='null', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=, helpText='The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.'}"));
+            "IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='Name', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=null, helpText='The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.'}"));
         Assert.assertThat(other.toString(), is(
             "IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='Other', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=null, helpText='Total description'}"));
         Assert.assertThat(total.toString(), is(
@@ -113,6 +113,7 @@ public class StudioUtilsTest {
 
         IkasanModule module = new IkasanModule();
         module.setVersion("1.3");
+        module.setName("");
         module.setDescription("The Description");
         Assert.assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
     }
