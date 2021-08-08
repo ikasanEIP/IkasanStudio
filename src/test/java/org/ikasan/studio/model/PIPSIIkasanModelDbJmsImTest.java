@@ -60,15 +60,15 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
 
             Assert.assertThat(flow1.getFlowComponentList().size(), is(5));
             Assert.assertThat(flow1.getFlowComponentList().get(0).getName(), is("DB Consumer"));
-            Assert.assertThat(flow1.getFlowComponentList().get(0).getConfiguredProperties().size(), is(4));
+            Assert.assertThat(flow1.getFlowComponentList().get(0).getConfiguredProperties().size(), is(5));
             Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("My Filter"));
-            Assert.assertThat(flow1.getFlowComponentList().get(1).getConfiguredProperties().size(), is(1));
+            Assert.assertThat(flow1.getFlowComponentList().get(1).getConfiguredProperties().size(), is(2));
             Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("Split list"));
-            Assert.assertThat(flow1.getFlowComponentList().get(2).getConfiguredProperties().size(), is(1));
+            Assert.assertThat(flow1.getFlowComponentList().get(2).getConfiguredProperties().size(), is(2));
             Assert.assertThat(flow1.getFlowComponentList().get(3).getName(), is("Person to XML"));
-            Assert.assertThat(flow1.getFlowComponentList().get(3).getConfiguredProperties().size(), is(2));
+            Assert.assertThat(flow1.getFlowComponentList().get(3).getConfiguredProperties().size(), is(3));
             Assert.assertThat(flow1.getFlowComponentList().get(4).getName(), is("JMS Producer"));
-            Assert.assertThat(flow1.getFlowComponentList().get(4).getConfiguredProperties().size(), is(16));
+            Assert.assertThat(flow1.getFlowComponentList().get(4).getConfiguredProperties().size(), is(17));
 
 
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.endpoint.EndpointException.class").toString(),
@@ -82,7 +82,7 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='excludeEvent', " +
                             "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, defaultValue=null, helpText='Rollback any actions resulting from this inflight event and exclude it.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("javax.resource.ResourceException.class").toString(),
-                    is("IkasanExceptionResoluation{theException=javax.resource.ResourceException.class, theAction='scheduledCronRetry', params=[IkasanComponentProperty{value=\"* * * * *\", " +
+                    is("IkasanExceptionResoluation{theException=javax.resource.ResourceException.class, theAction='scheduledCronRetry', params=[IkasanComponentProperty{value=* * * * *, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='cronExpression', " +
                             "propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=* * * * * *, helpText='The cron expression.'}}, " +
                             "IkasanComponentProperty{value=100, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, " +
@@ -123,11 +123,11 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
 //            Assert.assertThat(flow2.getInput().getDescription(), is("jms.topic.test"));
             Assert.assertThat(flow2.getFlowComponentList().size(), is(3));
             Assert.assertThat(flow2.getFlowComponentList().get(0).getName(), is("JMS Consumer"));
-            Assert.assertThat(flow2.getFlowComponentList().get(0).getConfiguredProperties().size(), is(15));
+            Assert.assertThat(flow2.getFlowComponentList().get(0).getConfiguredProperties().size(), is(16));
             Assert.assertThat(flow2.getFlowComponentList().get(1).getName(), is("XML to Person"));
-            Assert.assertThat(flow2.getFlowComponentList().get(1).getConfiguredProperties().size(), is(2));
+            Assert.assertThat(flow2.getFlowComponentList().get(1).getConfiguredProperties().size(), is(3));
             Assert.assertThat(flow2.getFlowComponentList().get(2).getName(), is("DB Producer"));
-            Assert.assertThat(flow2.getFlowComponentList().get(2).getConfiguredProperties().size(), is(1));
+            Assert.assertThat(flow2.getFlowComponentList().get(2).getConfiguredProperties().size(), is(2));
         }
     }
 

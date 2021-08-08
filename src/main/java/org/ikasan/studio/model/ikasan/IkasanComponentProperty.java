@@ -35,6 +35,7 @@ public class IkasanComponentProperty {
      * Get the value and present it in such a way as to be appropriate for display in the template language
      * @return a string that contains the value display in such a way as to be appropriate for inclusion in a template
      */
+    @JsonIgnore
     public String getTemplateRepresentationOfValue() {
         String displayValue = "";
         if (value == null) {

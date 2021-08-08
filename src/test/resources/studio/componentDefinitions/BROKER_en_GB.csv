@@ -15,6 +15,7 @@
 #
 # Broker
 #
+Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 AdditionalName|1|1|true|false|||java.lang.String|||MyDefault|The name of the component
 Total|1|1|false|false||my.test.total|java.lang.Integer|||2|Total description
 Total|1|1|false|false|||java.lang.Integer||||This should be ignored as a duplicate
