@@ -36,6 +36,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
     public Object getPropertyValue(String key) {
         return getPropertyValue(new IkasanComponentPropertyMetaKey(key));
     }
+
     @JsonIgnore
     public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
         return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
@@ -114,7 +115,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         } else {
             IkasanComponentPropertyMeta properyMeta = getType().getMetadata(key);
             if (properyMeta == null) {
-                log.error("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but not such meta data exists for " + getType() + " this property will be ignored.");
+                log.error("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getType() + " this property will be ignored.");
             } else {
                 configuredProperties.put(key, new IkasanComponentProperty(getType().getMetadata(key), value));
             }

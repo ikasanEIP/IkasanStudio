@@ -97,10 +97,6 @@ public class ExceptionResolverEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-//        boolean hasChanged = true ;
-//        if (ikasanExceptionResolver.getIkasanExceptionResolutionMap().isEmpty() && exceptionResolutionList.isEmpty()) {
-//            hasChanged = false;
-//        }
 //        //@todo we could check ikasanExceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
         return hasChanged;
     }
