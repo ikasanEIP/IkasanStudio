@@ -87,9 +87,6 @@ public abstract class PropertiesPanel extends JPanel {
                     validationErrors.toString(),
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
-//            if (infoList.stream().anyMatch(info1 -> !info1.okEnabled)) {
-//                return;
-//            }
         }
     }
     /**

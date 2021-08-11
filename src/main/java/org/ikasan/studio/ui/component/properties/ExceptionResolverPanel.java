@@ -62,7 +62,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      * @return true if the model has been updated with new values.
      */
-    public void processEditedFlowComponents() {  //XXXXXXXXX
+    public void processEditedFlowComponents() {
         if (dataHasChanged()) {
             exceptionResolverEditBox.updateValueObjectWithEnteredValues();
         }
@@ -82,9 +82,6 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                 okButton.setEnabled(false);
             }
         }
-//        if (!popupMode) {
-//            okButton.setEnabled(false);
-//        }
 
         if (getSelectedComponent() != null) {
             propertiesEditorPanel = new JPanel(new GridBagLayout());
@@ -95,7 +92,6 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             if (exceptionResolverEditBox == null) {
                 exceptionResolverEditBox = new ExceptionResolverEditBox(this, projectKey, getSelectedComponent(), popupMode);
             }
-//            exceptionResolverEditBox.setHasChanged(false);
 
             JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());
             int exceptionResolutionTabley = 0;
@@ -134,9 +130,6 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             // Add the params to the display panels.
             setSubPanel(propertiesEditorPanel, exceptionResolutionTablePanel, "", Color.LIGHT_GRAY, gc1);
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
-//            if (okButton != null) {
-//                    okButton.setEnabled(true);
-//            }
         }
     }
 
@@ -241,11 +234,6 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      */
     protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = exceptionResolverEditBox.doValidateAll();
-
-//        if (!dataHasChanged()) {
-//            result.add(new ValidationInfo("No change has been made yet, change the configuration or cancel the action"));
-//        }
-
         return result;
     }
 }
