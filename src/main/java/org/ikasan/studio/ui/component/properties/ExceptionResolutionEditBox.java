@@ -87,7 +87,11 @@ public class ExceptionResolutionEditBox {
      * Usually the final step of edit, update the original value object with the entered data
      */
     public IkasanExceptionResolution updateValueObjectWithEnteredValues() {
-        ikasanExceptionResolution.setTheException((String)exceptionJComboBox.getSelectedItem());
+        String theException = (String)exceptionJComboBox.getSelectedItem();
+        if (theException != null && ! theException.endsWith(".class")) {
+            theException += ".class";
+        }
+        ikasanExceptionResolution.setTheException(theException);
         ikasanExceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
             List<IkasanComponentProperty> newActionParams = new ArrayList<>();
