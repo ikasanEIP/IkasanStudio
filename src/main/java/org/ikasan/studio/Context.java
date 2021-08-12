@@ -74,7 +74,7 @@ public enum Context {
         return null;
     }
 
-    public static Options getOption(String projectKey) {
+    public static Options getOptions(String projectKey) {
         return (Options)getProjectCache(projectKey, INSTANCE.OPTIONS);
     }
 
@@ -93,7 +93,6 @@ public enum Context {
     public static void setProject(String projectKey, Project project) {
         putProjectCache(projectKey, INSTANCE.PROJECT, project);
     }
-
 
     public static void setApplicationProperties(String projectKey, Properties properties) {
         putProjectCache(projectKey, INSTANCE.APPLICATION_PROPERTIES, properties);

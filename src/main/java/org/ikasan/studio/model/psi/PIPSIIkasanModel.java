@@ -81,15 +81,13 @@ public class PIPSIIkasanModel {
         generateSourceFromModel(null);
     }
 
-    public void generateSourceFromModel(List<Dependency> newDependencies) {
+    public void generateSourceFromModel(Map<String, Dependency> newDependencies) {
         Project project = Context.getProject(projectKey);
             CommandProcessor.getInstance().executeCommand(
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
-                        if (newDependencies != null && !newDependencies.isEmpty()) {
-                            StudioPsiUtils.addDependancies(projectKey, newDependencies);
-                        }
+                        StudioPsiUtils.addDependancies(projectKey, newDependencies);
                         //@todo start making below conditional on state changed.
                         ApplicationTemplate.create(project);
 //                        generateBespokeComponents(project);
@@ -132,7 +130,7 @@ public class PIPSIIkasanModel {
                     moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
                     // reloadProject needed to re-read POM, must not be done till addDependancies
                     // fully complete, hence in next executeCommand block
-                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOption(projectKey).isAutoReloadMavenEnabled()) {
+                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
                     }
                 });

@@ -13,7 +13,10 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Studio Utils
@@ -283,8 +286,8 @@ public class StudioUtils {
     private static final int NUMBER_OF_DEPENDENCY_CONFIGS = 3;
     public static final String COMPONENT_DEPENDENCIES_DIR = "/studio/componentDependencies/";
 
-    public static List<Dependency> readIkasanComponentDependencies(String propertiesFile) {
-        List<Dependency> dependencies = new ArrayList<>() ;
+    public static Map<String, Dependency> readIkasanComponentDependencies(String propertiesFile) {
+        Map<String, Dependency> dependencies = new TreeMap<>() ;
 
         String propertiesFileName = COMPONENT_DEPENDENCIES_DIR + propertiesFile + ".csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
@@ -319,7 +322,8 @@ public class StudioUtils {
                         dependency.setArtifactId(artifactId);
                         dependency.setGroupId(groupId);
                         dependency.setVersion(version);
-                        dependencies.add(dependency);
+
+                        dependencies.put(dependency.getManagementKey(), dependency);
                     }
                 }
             } catch (IOException ioe) {
