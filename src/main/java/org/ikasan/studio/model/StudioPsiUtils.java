@@ -99,6 +99,11 @@ public class StudioPsiUtils {
         return properties;
     }
 
+    /**
+     * Load the content of the major pom
+     * @param project currently being worked on
+     * @return the studio representation of the POM
+     */
     public static IkasanPomModel loadPom(Project project) {
         IkasanPomModel pom = Context.getPom(project.getName());
         if (pom == null) {
@@ -118,25 +123,33 @@ public class StudioPsiUtils {
         return pom;
     }
 
-    public static void addDependancies(String projectKey, List<Dependency> dependencies) {
-        Project project = Context.getProject(projectKey);
-        IkasanPomModel pom = loadPom(project);
-        boolean pomUpdated = false;
+    /**
+     * Add the new dependencies IF they are not already in the pom
+     * @param projectKey for the project being worked on
+     * @param newDependencies to be added.
+     */
+    public static void addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
+        if (newDependencies != null && !newDependencies.isEmpty()) {
+            IkasanPomModel pom = Context.getPom(projectKey);
+            Project project = Context.getProject(projectKey);
+            pom = loadPom(project); // Have to load each time because might have been independantly updated.
+            boolean pomUpdated = false;
 
-        if (pom!= null && pom.getModel() != null && dependencies != null && !dependencies.isEmpty()) {
-            Set<Dependency>  existingDependencies = new HashSet<>(pom.getModel().getDependencies());
-            for (Dependency dependency: dependencies) {
-                if (!existingDependencies.contains(dependency)) {
-                    pom.getModel().addDependency(dependency);
-                    existingDependencies.add(dependency);
-                    pomUpdated = true;
+            if (pom != null) {
+                Set<String> existingDependencyKeys = pom.getDependencyKeys();
+
+                for (Dependency newDependency : newDependencies.values()) {
+                    if (!existingDependencyKeys.contains(newDependency.getManagementKey())) {
+                        pom.addDependency(newDependency);
+                        pomUpdated = true;
+                    }
                 }
             }
-        }
 
-        if (pomUpdated) {
-            savePom(project, pom);
+            if (pomUpdated) {
+                savePom(project, pom);
 //            ProjectManager.getInstance().reloadProject(project);
+            }
         }
     }
 

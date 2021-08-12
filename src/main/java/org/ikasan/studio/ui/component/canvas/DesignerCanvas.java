@@ -75,7 +75,7 @@ public class DesignerCanvas extends JPanel {
                 mouseDragAction(e.getX(),e.getY());
             }
         });
-        if (Context.getOption(projectKey).isHintsEnabled()) {
+        if (Context.getOptions(projectKey).isHintsEnabled()) {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
