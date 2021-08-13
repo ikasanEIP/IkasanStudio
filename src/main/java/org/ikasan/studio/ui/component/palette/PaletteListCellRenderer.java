@@ -7,6 +7,8 @@ import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
 import org.ikasan.studio.ui.model.PaletteItemSeparator;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<Object> {
@@ -35,7 +37,11 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             setEnabled(list.isEnabled());
             setFont(list.getFont());
             setOpaque(true);
+            setBorder(new EmptyBorder(0, 0, 2, 0));
         } else {
+            if (index > 0) {
+                setBorder(new MatteBorder(1, 0, 0, 0, StudioUIUtils.IKASAN_GREY));
+            }
             PaletteItemSeparator paletteItemSeparator = (PaletteItemSeparator) value;
             setText(paletteItemSeparator.getIkasanFlowUIComponent().getTitle());
             Font labelFont = getFont();
