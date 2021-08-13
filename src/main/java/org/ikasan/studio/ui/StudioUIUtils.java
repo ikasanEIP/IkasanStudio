@@ -17,6 +17,7 @@ public class StudioUIUtils {
     private StudioUIUtils() {}
 
     public static final Color IKASAN_GREY = new Color(231, 231, 231);
+    public static final Color IKASAN_ORANGE = new Color(241, 90, 35);
     private static final Logger log = Logger.getLogger(StudioUIUtils.class);
 
     public static void setLine(Graphics g, float width) {
