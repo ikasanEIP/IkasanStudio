@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.palette;
 
 // Display an icon and a string for each object in the list.
 
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
 import org.ikasan.studio.ui.model.PaletteItemSeparator;
 
@@ -37,6 +38,11 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
         } else {
             PaletteItemSeparator paletteItemSeparator = (PaletteItemSeparator) value;
             setText(paletteItemSeparator.getIkasanFlowUIComponent().getTitle());
+            Font labelFont = getFont();
+            Font boldLabelFond = new Font(labelFont.getFontName(), Font.BOLD, labelFont.getSize());
+            setFont(boldLabelFond);
+            setForeground(StudioUIUtils.IKASAN_ORANGE);
+
             setIcon(null);
             this.setFocusable(false);
         }
