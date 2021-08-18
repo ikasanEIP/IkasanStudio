@@ -25,10 +25,24 @@ public class TestFixtures {
         component.setName("testCustomConverter");
 
         // Mandatory properties
-//        component.updatePropertyValue("ApplicationPackageName", "org.myApp");
         component.updatePropertyValue("BespokeClassName", "MyConverterClass");
         component.updatePropertyValue("FromType", java.lang.String.class);
         component.updatePropertyValue("ToType", java.lang.Integer.class);
+        return component;
+    }
+
+    /**
+     * Create a fully populated FILTER
+     * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
+     * @return a FullyPopulatedCustomConverter
+     */
+    public static IkasanFlowComponent getFullyPopulatedFilterComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
+        component.setName("testCustomConverter");
+
+        // Mandatory properties
+        component.updatePropertyValue("BespokeClassName", "MyMessageConverterClass");
+        component.updatePropertyValue("FromType", java.lang.String.class);
         return component;
     }
 

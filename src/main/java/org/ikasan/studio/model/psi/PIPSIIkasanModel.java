@@ -603,7 +603,7 @@ public class PIPSIIkasanModel {
                 PsiClass resolvedType = type.resolve();
                 if (resolvedType != null) {
                     IkasanComponentCategory ikasanComponentCategory = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName());
-                    if (ikasanComponentCategory == IkasanComponentCategory.CONVERTER) {
+                    if (ikasanComponentCategory == CONVERTER) {
                         PsiType[] templateTypes = type.getParameters();
                         if (templateTypes.length > 0) {
                             PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
@@ -612,6 +612,12 @@ public class PIPSIIkasanModel {
                         if (templateTypes.length > 1) {
                             PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
                             additionalParameters.add(toType);
+                        }
+                    } else if (ikasanComponentCategory == FILTER) {
+                        PsiType[] templateTypes = type.getParameters();
+                        if (templateTypes.length > 0) {
+                            PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
+                            additionalParameters.add(fromType);
                         }
                     }
                 }
