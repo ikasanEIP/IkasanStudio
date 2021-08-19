@@ -8,7 +8,7 @@ package org.ikasan;
 */
 
 import org.ikasan.spec.component.filter.Filter;
-import org.ikasan.spec.component.filter.FilterException
+import org.ikasan.spec.component.filter.FilterException;
 
 @org.springframework.stereotype.Component
 
@@ -27,10 +27,12 @@ public class MyMessageFilter implements Filter<java.lang.String>
 public java.lang.String filter(java.lang.String message) throws FilterException
 {
 if (true) {
+//@TODO implement your filter logic, return the message if it is allowed by your filter
 return message;
 }
 else {
-return null
+//@TODO return null if your filter has filtered this message
+return null;
 }
 }
 }

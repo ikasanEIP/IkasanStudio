@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class ModuleConfigTemplate extends Generator {
     public static final String MODULE_CLASS_NAME = "ModuleConfig";
-    private static final String MODULE_FTL = "ModuleConfigTemplate.ftl";
+    private static final String MODULE_FTL = "moduleConfigTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());

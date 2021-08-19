@@ -9,7 +9,7 @@ import org.ikasan.studio.model.ikasan.IkasanModule;
 import java.util.Map;
 
 public class FlowTemplate extends Generator {
-    private static final String FLOW_FTL = "FlowTemplate.ftl";
+    private static final String FLOW_FTL = "flowTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());

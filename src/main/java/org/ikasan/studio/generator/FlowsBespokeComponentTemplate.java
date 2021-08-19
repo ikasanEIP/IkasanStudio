@@ -29,7 +29,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
     }
 
     public static String generateContents(String packageName, IkasanFlowComponent ikasanFlowComponent) {
-        String templateName = ikasanFlowComponent.getType().getElementCategory().toString() + "_Template.ftl";
+        String templateName = ikasanFlowComponent.getType().getElementCategory().toString().toLowerCase() + "Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(COMPONENT_TAG, ikasanFlowComponent);

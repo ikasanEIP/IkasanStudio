@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class FlowsComponentFactoryTemplate extends Generator {
     public static final String COMPONENT_FACTORY_CLASS_NAME = "ComponentFactory";
-    private static final String COMPONENT_FACTORY_FTL = "ComponentFactory.ftl";
+    private static final String COMPONENT_FACTORY_FTL = "componentFactory.ftl";
 
     public static void create(final Project project, final String packageName, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow) {
         String templateString = generateContents(packageName, ikasanModule, ikasanFlow);

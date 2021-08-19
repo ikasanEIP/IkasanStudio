@@ -594,30 +594,34 @@ public class PIPSIIkasanModel {
         List<PIPSIMethod> additionalParameters = new ArrayList<>();
         // The Bespoke Ikasan Class
         PsiClass psiClass = StudioPsiUtils.findFirstClass(getProject(), beskpokeClassName);
-        PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], StudioUtils.getLastToken("\\.", beskpokeClassName));
-        additionalParameters.add(bespokeClassParam);
-        PsiClassType[] psiClassTypes = psiClass.getImplementsList().getReferencedTypes();
+        if (psiClass == null) {
+            log.error("Expected to find class " + beskpokeClassName + " but could not be found, skipping");
+        } else {
+            PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], StudioUtils.getLastToken("\\.", beskpokeClassName));
+            additionalParameters.add(bespokeClassParam);
+            PsiClassType[] psiClassTypes = psiClass.getImplementsList().getReferencedTypes();
 
-        if (psiClassTypes != null) {
-            for (PsiClassType type : psiClassTypes) {
-                PsiClass resolvedType = type.resolve();
-                if (resolvedType != null) {
-                    IkasanComponentCategory ikasanComponentCategory = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName());
-                    if (ikasanComponentCategory == CONVERTER) {
-                        PsiType[] templateTypes = type.getParameters();
-                        if (templateTypes.length > 0) {
-                            PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
-                            additionalParameters.add(fromType);
-                        }
-                        if (templateTypes.length > 1) {
-                            PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
-                            additionalParameters.add(toType);
-                        }
-                    } else if (ikasanComponentCategory == FILTER) {
-                        PsiType[] templateTypes = type.getParameters();
-                        if (templateTypes.length > 0) {
-                            PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
-                            additionalParameters.add(fromType);
+            if (psiClassTypes != null) {
+                for (PsiClassType type : psiClassTypes) {
+                    PsiClass resolvedType = type.resolve();
+                    if (resolvedType != null) {
+                        IkasanComponentCategory ikasanComponentCategory = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName());
+                        if (ikasanComponentCategory == CONVERTER) {
+                            PsiType[] templateTypes = type.getParameters();
+                            if (templateTypes.length > 0) {
+                                PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
+                                additionalParameters.add(fromType);
+                            }
+                            if (templateTypes.length > 1) {
+                                PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
+                                additionalParameters.add(toType);
+                            }
+                        } else if (ikasanComponentCategory == FILTER) {
+                            PsiType[] templateTypes = type.getParameters();
+                            if (templateTypes.length > 0) {
+                                PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
+                                additionalParameters.add(fromType);
+                            }
                         }
                     }
                 }
