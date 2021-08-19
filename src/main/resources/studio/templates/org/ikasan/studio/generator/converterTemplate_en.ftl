@@ -11,7 +11,6 @@ import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
 @org.springframework.stereotype.Component
-<#--public class ${component.getPropertyValue("BespokeClassName")} implements Converter<${component.getPropertyValue("FromType")}, ${component.getPropertyValue("ToType")}>-->
 public class ${component.getPropertyValue("BespokeClassName")} implements Converter<${component.getPropertyValue("FromType")}, ${component.getPropertyValue("ToType")}>
 {
 public ${component.getPropertyValue("ToType")} convert(${component.getPropertyValue("FromType")} payload) throws TransformationException

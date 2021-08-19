@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.*;
@@ -15,6 +16,7 @@ import java.util.Map;
  * Encapsulate the properties entry from a UI and validity perspective.
  */
 public class ComponentPropertiesPanel extends PropertiesPanel {
+    public static final Logger LOG = Logger.getInstance(ComponentPropertiesPanel.class);
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     private JCheckBox beskpokeComponentOverrideCheckBox;
 
@@ -35,12 +37,21 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
      */
     protected void doOKAction() {
-        if (dataHasChanged()) {
+        // If the user has selected the checkbox, that indicates they wish to force a re-write
+        if (beskpokeComponentOverrideCheckBox.isSelected() || dataHasChanged()) {
             processEditedFlowComponents();
+            // This will force a regeneration of the component
+            if (beskpokeComponentOverrideCheckBox.isSelected()) {
+                if (getSelectedComponent() instanceof IkasanFlowBeskpokeComponent) {
+                    ((IkasanFlowBeskpokeComponent)getSelectedComponent()).setOverrideEnabled(true);
+                }
+            }
             Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
             resetCheckboxes();
+        } else {
+            LOG.info("Data hasn't changed, ignoring OK action");
         }
     }
 

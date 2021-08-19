@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class ApplicationTemplate extends Generator {
     public static final String APPLICATION_CLASS_NAME = "Application";
-    private static final String APPLICATION_FTL = "ApplicationTemplate.ftl";
+    private static final String APPLICATION_FTL = "applicationTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());

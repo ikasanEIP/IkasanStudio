@@ -51,7 +51,7 @@ public enum IkasanComponentType implements Serializable {
     XSLT_CONFIGURATION_PARAMETER_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConfigurationParameterConverter", IkasanComponentDependency.NONE),
     XSLT_CONVERTER(IkasanComponentCategory.CONVERTER, false, "XsltConverter", IkasanComponentDependency.NONE),
 
-    MESSAGE_FILTER(IkasanComponentCategory.FILTER, false, "FilterInvokerConfiguration", IkasanComponentDependency.NONE),
+    MESSAGE_FILTER(IkasanComponentCategory.FILTER, true, "FilterInvokerConfiguration", IkasanComponentDependency.NONE),
 
     CHANNEL(IkasanComponentCategory.ENDPOINT, false, "messageChannel", IkasanComponentDependency.NONE),
     FTP_LOCATION(IkasanComponentCategory.ENDPOINT, false, "ftpLocation", IkasanComponentDependency.NONE),

@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class PropertiesTemplate extends Generator {
     public static final String MODULE_PROPERTIES_FILENAME = "application";
-    private static final String MODULE_PROPERTIES_FTL = "PropertiesTemplate.ftl";
+    private static final String MODULE_PROPERTIES_FTL = "propertiesTemplate.ftl";
 
     public static void create(final Project project) {
         IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
