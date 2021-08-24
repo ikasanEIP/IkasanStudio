@@ -304,7 +304,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     if (!componentPropertyEditBox.editBoxHasValue()) {
                         getSelectedComponent().removeProperty(componentPropertyEditBox.getPropertyKey());
                     } else { // update existing
-                        componentPropertyEditBox.updateValueObjectWithEnteredValues();
+                        IkasanComponentProperty ikasanComponentProperty = componentPropertyEditBox.updateValueObjectWithEnteredValues();
+                        // If its new this will insert, existing will just overwrite.
+                        getSelectedComponent().addComponentProperty(componentPropertyEditBox.getPropertyKey(), ikasanComponentProperty);
                     }
                 }
             }
