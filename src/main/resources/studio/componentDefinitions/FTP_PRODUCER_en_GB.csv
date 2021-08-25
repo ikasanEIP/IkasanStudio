@@ -1,51 +1,55 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
+# propertyName - Name of the property, used on input screens and to generate variable names
+# paramGroup - Aggregates parameters
+# paramNumber - Within the group
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-# propertyName - Name of the property, used on input screens and to generate variable names
+# isSetterProperty - This property is for use in the component factory setter
+# isUserDefineResource - The user will define the details of the resource within the ResourceFactory.
 # propertyConfigFileLabel - Identifies the spring injected property name. If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
 # defaultValue - As displayed in the properties editor.
-# helpTest - As shown in the toolTip on the properties editor and error text.
+# helpText - As shown in the toolTip on the properties editor and error text.
 #
 # FTP_PRODUCER -
 #
 # Mandatory Properties
-ClientID|1|1|true|false||__flow.ftp.producer.clientID|java.lang.String|||fileGeneratorToFtpFlow|clientId is stored as part of the meta information persisted about the processed file. The clientId should be a unique value identifing producer or producer connecting to remote server.
-OutputDirectory|1|1|true||false|__flow.ftp.producer.outputDirectory|java.lang.String|||.|Remote directory where to deliver the file
-Password|1|1|true|false||__flow.ftp.producer.password|java.lang.String||||password used to login to (S)FTP server where producer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.
-RemoteHost|1|1|true|false||__flow.ftp.producer.remote-host|java.lang.String||||Default(‘localhost’) host name of the remote (S)FTP server where producer needs to connect.
-RemotePort|1|1|true|false||__flow.ftp.producer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where producer needs to connect.
-Username|1|1|true|false||__flow.ftp.producer.username|java.lang.String||||User name used to login to (S)FTP server where producer needs to connect.
-Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
-# Optional Properties
-Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
-Active|1|1|false|false|||java.lang.Boolean||||Default(False) Flag indicating whether the FTP connection is active or passive.
-ChecksumDelivered|1|1|false|false|||java.lang.Boolean||||Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.
-CleanupJournalOnComplete|1|1|false|false|||java.lang.Boolean||||Default(true) Existing (S)FTP producer is using DB persistence tables to establish different operations it is performing as part of the command pattern (FileDiscovery, FileRename, FileDelivery). That persistent information is be default cleaned up when cleanupJournalOnComplete=true. It can be occasionally useful to cleanupJournalOnComplete=false when performing some debugging.
-Configuration|1|1|false|true|||java.lang.String|org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration|||Provide the classname that overrides and implements the default FtpProducerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
-ConfiguredResourceId|1|1|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
-ConnectionTimeout|1|1|false|false|||java.lang.Integer||||Default(60000) expressed in milliseconds. Internal (S)FTP connector connection timeout value.
-CreateParentDirectory|1|1|false|false|||java.lang.Boolean||||Default(false) Flag indicating whether outputDirectory should be created if it does not exist.
-CriticalOnStartup|1|1|false|false|||java.lang.Boolean||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
-DataTimeout|1|1|false|false|||java.lang.Integer||||Optional only available on FTP producer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.
-FTPS|1|1|false|false|||java.lang.Boolean||||Optional only available on FTP producer. Default(false) used to determine if connection is using FTPs
-FtpsIsImplicit|1|1|false|false|||java.lang.Boolean||||Optional only available on FTP producer. Default(false) only applicable when FTPS=true.
-FtpsKeyStoreFilePassword|1|1|false|false|||java.lang.String||||Optional only available on FTP producer. Only applicable when FTPS=true.
-FtpsKeyStoreFilePath|1|1|false|false|||java.lang.String||||Optional only available on FTP producer. Only applicable when FTPS=true.
-FtpsPort|1|1|false|false||__flow.ftp.producer.ftps-port|java.lang.Integer||||Optional only available on FTP producer. Default(21) only applicable when FTPS=true. The remote port of FTPs server where producer needs to connect.
-FtpsProtocol|1|1|false|false||__flow.ftp.producer.ftps-protocol|java.lang.String||||Optional only available on FTP producer. Default(‘SSL’) only applicable when FTPS=true. The protocol used for remote FTPs connection.
-ManagedResourceRecoveryManager|1|1|false|true|||java.lang.String|org.ikasan.spec.management.ManagedResourceRecoveryManager|||Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager
-MaxRetryAttempts|1|1|false|false||__flow.ftp.producer.max-retry-attempts|java.lang.Integer||||Default(3) internal (S)FTP connector retry count.
-Overwrite|1|1|false|false|||java.lang.Boolean||||Default(false) Flag indicating whether the remote file can be overwritten on remote server.
-RenameExtension|1|1|false|false|||java.lang.String||||Default(‘tmp’) file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.
-SocketTimeout|1|1|false|false|||java.lang.Integer||||Optional only available on FTP producer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.
-SystemKey|1|1|false|false||__flow.ftp.producer.system-key|java.lang.String||||Optional only available on FTP producer.
-TempFileName|1|1|false|false|||java.lang.String||||Temporary filename to use for incomplete transfer.
-TransactionManager|1|1|false|true|||java.lang.String|org.springframework.transaction.jta.JtaTransactionManager|||Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.
-Unzip|1|1|false|false|||java.lang.Boolean||||Default(false) Flag indicating whether the file should be unzipped on remote server as post delivery task. This makes an assumption that delivered stream is zipped.
+ClientID|1|1|true|false|true||__flow.ftp.producer.clientID|java.lang.String|||fileGeneratorToFtpFlow|clientId is stored as part of the meta information persisted about the processed file. The clientId should be a unique value identifing producer or producer connecting to remote server.
+OutputDirectory|1|1|true||true|false|__flow.ftp.producer.outputDirectory|java.lang.String|||.|Remote directory where to deliver the file
+Password|1|1|true|false|true||__flow.ftp.producer.password|java.lang.String||||password used to login to (S)FTP server where producer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.
+RemoteHost|1|1|true|false|true||__flow.ftp.producer.remote-host|java.lang.String||||Default(localhost) host name of the remote (S)FTP server where producer needs to connect.
+RemotePort|1|1|true|false|true||__flow.ftp.producer.remote-port|java.lang.Integer||||Default(22) port of the remote (S)FTP server where producer needs to connect.
+Username|1|1|true|false|true||__flow.ftp.producer.username|java.lang.String||||User name used to login to (S)FTP server where producer needs to connect.
+Name|1|1|true|false|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
+# Optional Properties||||||||||||
+Description|1|1|false|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
+Active|1|1|false|false|true|||java.lang.Boolean||||Default(False) Flag indicating whether the FTP connection is active or passive.
+ChecksumDelivered|1|1|false|false|true|||java.lang.Boolean||||Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.
+CleanupJournalOnComplete|1|1|false|false|true|||java.lang.Boolean||||Default(true) Existing (S)FTP producer is using DB persistence tables to establish different operations it is performing as part of the command pattern (FileDiscovery, FileRename, FileDelivery). That persistent information is be default cleaned up when cleanupJournalOnComplete=true. It can be occasionally useful to cleanupJournalOnComplete=false when performing some debugging.
+Configuration|1|1|false|true|true|||java.lang.String|org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration|||Provide the classname that overrides and implements the default FtpProducerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+ConfiguredResourceId|1|1|false|false|true|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
+ConnectionTimeout|1|1|false|false|true|||java.lang.Integer||||Default(60000) expressed in milliseconds. Internal (S)FTP connector connection timeout value.
+CreateParentDirectory|1|1|false|false|true|||java.lang.Boolean||||Default(false) Flag indicating whether outputDirectory should be created if it does not exist.
+CriticalOnStartup|1|1|false|false|true|||java.lang.Boolean||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
+DataTimeout|1|1|false|false|true|||java.lang.Integer||||Optional only available on FTP producer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.
+FTPS|1|1|false|false|true|||java.lang.Boolean||||Optional only available on FTP producer. Default(false) used to determine if connection is using FTPs
+FtpsIsImplicit|1|1|false|false|true|||java.lang.Boolean||||Optional only available on FTP producer. Default(false) only applicable when FTPS=true.
+FtpsKeyStoreFilePassword|1|1|false|false|true|||java.lang.String||||Optional only available on FTP producer. Only applicable when FTPS=true.
+FtpsKeyStoreFilePath|1|1|false|false|true|||java.lang.String||||Optional only available on FTP producer. Only applicable when FTPS=true.
+FtpsPort|1|1|false|false|true||__flow.ftp.producer.ftps-port|java.lang.Integer||||Optional only available on FTP producer. Default(21) only applicable when FTPS=true. The remote port of FTPs server where producer needs to connect.
+FtpsProtocol|1|1|false|false|true||__flow.ftp.producer.ftps-protocol|java.lang.String||||Optional only available on FTP producer. Default('SSL') only applicable when FTPS=true. The protocol used for remote FTPs connection.
+ManagedResourceRecoveryManager|1|1|false|true|true|||java.lang.String|org.ikasan.spec.management.ManagedResourceRecoveryManager|||Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager
+MaxRetryAttempts|1|1|false|false|true||__flow.ftp.producer.max-retry-attempts|java.lang.Integer||||Default(3) internal (S)FTP connector retry count.
+Overwrite|1|1|false|false|true|||java.lang.Boolean||||Default(false) Flag indicating whether the remote file can be overwritten on remote server.
+RenameExtension|1|1|false|false|true|||java.lang.String||||Default('tmp') file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.
+SocketTimeout|1|1|false|false|true|||java.lang.Integer||||Optional only available on FTP producer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.
+SystemKey|1|1|false|false|true||__flow.ftp.producer.system-key|java.lang.String||||Optional only available on FTP producer.
+TempFileName|1|1|false|false|true|||java.lang.String||||Temporary filename to use for incomplete transfer.
+TransactionManager|1|1|false|true|true|||java.lang.String|org.springframework.transaction.jta.JtaTransactionManager|||Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.
+Unzip|1|1|false|false|true|||java.lang.Boolean||||Default(false) Flag indicating whether the file should be unzipped on remote server as post delivery task. This makes an assumption that delivered stream is zipped.

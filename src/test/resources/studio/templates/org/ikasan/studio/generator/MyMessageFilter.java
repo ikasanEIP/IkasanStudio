@@ -7,13 +7,12 @@ package org.ikasan;
 *
 */
 
-import org.ikasan.spec.component.filter.Filter;
-import org.ikasan.spec.component.filter.FilterException;
-
 @org.springframework.stereotype.Component
 
-public class MyMessageFilter implements Filter<java.lang.String>
+public class MyFilter implements org.ikasan.spec.component.filter.Filter<class java.lang.String>, org.ikasan.spec.configuration.ConfiguredResource<MyConfigurationClass>
 {
+MyConfigurationClass configuration;
+String MyConfiguredResourceId;
 /**
 * If the message matches the criteria specified by the MessageFilter implementation,
 * the message is returned (passed through) and in turn routed to next part of the flow.
@@ -24,7 +23,7 @@ public class MyMessageFilter implements Filter<java.lang.String>
 * @return Message or null.
 * @throws FilterException
 */
-public java.lang.String filter(java.lang.String message) throws FilterException
+public class java.lang.String filter(class java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
 {
 if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter
@@ -34,5 +33,25 @@ else {
 //@TODO return null if your filter has filtered this message
 return null;
 }
+}
+
+@Override
+public String getConfiguredResourceId() {
+return MyConfiguredResourceId;
+}
+
+@Override
+public void setConfiguredResourceId(String id) {
+this.MyConfiguredResourceId = id;
+}
+
+@Override
+public Config1 getConfiguration() {
+return configuration;
+}
+
+@Override
+public void setConfiguration(Config1 configuration) {
+this.configuration = configuration;
 }
 }

@@ -32,6 +32,7 @@ import static org.ikasan.studio.model.ikasan.IkasanComponentCategory.*;
  * code to generate the ikasan Module and update the code to reflect changes to the ikasan Module.
  */
 public class PIPSIIkasanModel {
+    private static final Logger LOG = Logger.getLogger(PIPSIIkasanModel.class);
     public static final String OLD_MODULE_BEAN_CLASS = "org.ikasan.spec.module.Module";
 
     private static final Logger log = Logger.getLogger(PIPSIIkasanModel.class);
@@ -550,6 +551,8 @@ public class PIPSIIkasanModel {
                             PsiElement componentVariable = returnReference.resolve();
                             if (componentVariable != null) {
                                 PIPSIMethodList  pipsiMethodList = new PIPSIMethodList();
+                                List<String> implementedInterfaces = safeGetInterfacesFromReturnVariable(componentVariable);
+                                pipsiMethodList.setInterfaces(implementedInterfaces);
                                 pipsiMethodList.setBaseType(ikasanComponentType);
                                 if (componentVariable instanceof PsiField &&
                                         ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource")) {
@@ -582,6 +585,39 @@ public class PIPSIIkasanModel {
             }
         }
         return returnPIPSIMethodList;
+    }
+
+
+    /**
+     * traversing the pointers to get to the Interfaces would result in a lot of null checks, or just a try catch
+     */
+    private List<String> safeGetInterfacesFromReturnVariable(PsiElement componentVariable) {
+        List implementedInterfaces = null;
+        if (componentVariable != null && componentVariable instanceof PsiLocalVariable) {
+            try {
+                PsiClassType[] interfaces = ((PsiReferenceList)
+                        ((PsiClass)
+                                ((PsiJavaCodeReferenceElement)
+                                        ((PsiClassReferenceType)
+                                                ((PsiTypeElement)
+                                                        ((PsiLocalVariable) componentVariable)
+                                                                .getTypeElement())
+                                                        .getType())
+                                                .getReference())
+                                        .resolve())
+                                .getImplementsList())
+                        .getReferencedTypes();
+                if (interfaces != null && interfaces.length > 0) {
+                    implementedInterfaces = new ArrayList();
+                    for (PsiClassType psiClassType : interfaces) {
+                        implementedInterfaces.add(psiClassType.getCanonicalText());
+                    }
+                }
+            } catch (NullPointerException npe) {
+                LOG.info("Atttmp to get resolved interfaces for " + componentVariable.toString() + " failed");
+            }
+        }
+        return implementedInterfaces;
     }
 
     /**
@@ -858,6 +894,11 @@ public class PIPSIIkasanModel {
                     log.error("Expecting an IkasanExceptionResolver but got a " + ikasanFlowComponent);
                 }
 
+            } else if (methodName.startsWith("setConfiguration")) {
+                // Configuration is a special case.
+                String parameter =  componentBuilderMethodList.getConfiguredResource();
+                // Only expect 1 param for the setter
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("Configuration", ""), 1, 1), parameter);
             } else if (methodName.startsWith("set")) {
                 String parameter =  getReferenceOrLiteralFromParameter(pipsiMethod, 0);
                 // Only expect 1 param for the setter

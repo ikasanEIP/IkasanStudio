@@ -19,12 +19,11 @@ public class FlowsBespokePropertyTemplateTest extends TestCase{
     @Test
     public void testCreateWith_Converter() throws IOException {
         String clazzName = "MyBespokeClassForProperty";
-        IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(1, 1, false,true,false,
-                "MessageProviderPostProcessor",null,String.class, "org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor",null,null,null);
+        IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(1, 1, false, true, true, false,
+                "MessageProviderPostProcessor", null, String.class, "org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor", null, null, null);
         IkasanComponentProperty ikasanComponentProperty = new IkasanComponentProperty(ikasanComponentPropertyMeta, clazzName);
 
-
-        String templateString = FlowsBespokePropertyTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, clazzName, ikasanComponentProperty);
+        String templateString = FlowsBespokePropertyTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, clazzName, ikasanComponentProperty, "");
 
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
