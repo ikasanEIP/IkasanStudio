@@ -15,7 +15,7 @@ public class ${component.getPropertyValue("BespokeClassName")} implements org.ik
 ${component.getPropertyValue("Configuration")} configuration;
 </#if>
 <#if component.getPropertyValue("ConfiguredResourceId")??>
-String ${component.getPropertyValue("ConfiguredResourceId")};
+String configurationId;
 </#if>
 /**
 * If the message matches the criteria specified by the MessageFilter implementation,
@@ -42,23 +42,23 @@ return null;
 <#if component.getPropertyValue("ConfiguredResourceId")??>
 @Override
 public String getConfiguredResourceId() {
-return ${component.getPropertyValue("ConfiguredResourceId")};
+return configurationId;
 }
 
 @Override
 public void setConfiguredResourceId(String id) {
-this.${component.getPropertyValue("ConfiguredResourceId")} = id;
+this.configurationId = id;
 }
 </#if>
 
 <#if component.getPropertyValue("Configuration")??>
 @Override
-public Config1 getConfiguration() {
+public ${component.getPropertyValue("Configuration")} getConfiguration() {
 return configuration;
 }
 
 @Override
-public void setConfiguration(Config1 configuration) {
+public void setConfiguration(${component.getPropertyValue("Configuration")} configuration) {
 this.configuration = configuration;
 }
 </#if>
