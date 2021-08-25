@@ -165,14 +165,15 @@ public class StudioUtils {
     private static final int PARAM_NUMBER = 2;
     private static final int MANDATORY_INDEX = 3;
     private static final int USER_IMPLEMENTED_CLASS_INDEX = 4;
-    private static final int USER_DEFINED_RESOURCE_INDEX = 5;
-    private static final int PROPERTY_CONFIG_LABEL_INDEX = 6;
-    private static final int PROPERTY_DATA_TYPE_INDEX = 7;
-    private static final int USAGE_DATA_TYPE_INDEX = 8;
-    private static final int VALIDATION_INDEX = 9;
-    private static final int DEFAULT_VALUE_INDEX = 10;
-    private static final int HELP_INDEX = 11;
-    private static final int NUMBER_OF_CONFIGS = 12;
+    private static final int SETTER_PROPERTY_INDEX = 5;
+    private static final int USER_DEFINED_RESOURCE_INDEX = 6;
+    private static final int PROPERTY_CONFIG_LABEL_INDEX = 7;
+    private static final int PROPERTY_DATA_TYPE_INDEX = 8;
+    private static final int USAGE_DATA_TYPE_INDEX = 9;
+    private static final int VALIDATION_INDEX = 10;
+    private static final int DEFAULT_VALUE_INDEX = 11;
+    private static final int HELP_INDEX = 12;
+    private static final int NUMBER_OF_CONFIGS = 13;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
 
     //@todo should be in IkasanComponentType
@@ -235,6 +236,7 @@ public class StudioUtils {
 
                     boolean isMandatory = Boolean.parseBoolean(split[MANDATORY_INDEX]);
                     boolean isUserImplementedClass = Boolean.parseBoolean(split[USER_IMPLEMENTED_CLASS_INDEX]);
+                    boolean isSetterProperty = Boolean.parseBoolean(split[SETTER_PROPERTY_INDEX]);
                     boolean isUserDefinedResource = Boolean.parseBoolean(split[USER_DEFINED_RESOURCE_INDEX]);
 
                     String usageDataType = split[USAGE_DATA_TYPE_INDEX];
@@ -254,7 +256,7 @@ public class StudioUtils {
                     //  default value
                     Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
                     IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
-                            paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isUserDefinedResource, propertyName, propertyConfigLabel,
+                            paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
                             propertyDataType, usageDataType, validation, defaultValue, split[HELP_INDEX]);
                     if (parentPropertyName != null) {
                         // Parent child relationship

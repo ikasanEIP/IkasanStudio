@@ -25,9 +25,9 @@ public class TestFixtures {
         component.setName("testCustomConverter");
 
         // Mandatory properties
-        component.updatePropertyValue("BespokeClassName", "MyConverterClass");
-        component.updatePropertyValue("FromType", java.lang.String.class);
-        component.updatePropertyValue("ToType", java.lang.Integer.class);
+        component.setPropertyValue("BespokeClassName", "MyConverterClass");
+        component.setPropertyValue("FromType", java.lang.String.class);
+        component.setPropertyValue("ToType", java.lang.Integer.class);
         return component;
     }
 
@@ -38,11 +38,14 @@ public class TestFixtures {
      */
     public static IkasanFlowComponent getFullyPopulatedFilterComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
-        component.setName("testCustomConverter");
+        component.setName("testFilterComponent");
 
         // Mandatory properties
-        component.updatePropertyValue("BespokeClassName", "MyMessageConverterClass");
-        component.updatePropertyValue("FromType", java.lang.String.class);
+        component.setPropertyValue("BespokeClassName", "MyFilter");
+        component.setPropertyValue("FromType", java.lang.String.class);
+        component.setPropertyValue("Configuration", "MyConfigurationClass");
+        component.setPropertyValue("ConfiguredResourceId", "MyConfiguredResourceId");
+        component.setPropertyValue("Description", "Test description");
         return component;
     }
 
@@ -56,13 +59,13 @@ public class TestFixtures {
         component.setName("testFtpConsumer");
 
         // Mandatory properties
-        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
-        component.updatePropertyValue("FilenamePattern", "*Test.txt");
-        component.updatePropertyValue("Password", "secret");
-        component.updatePropertyValue("RemoteHost", "myRemortHost");
-        component.updatePropertyValue("RemotePort", "1024");
-        component.updatePropertyValue("SourceDirectory", "/test/source/directory/");
-        component.updatePropertyValue("Username", "myLoginName");
+        component.setPropertyValue("CronExpression", "*/5 * * * * ?");
+        component.setPropertyValue("FilenamePattern", "*Test.txt");
+        component.setPropertyValue("Password", "secret");
+        component.setPropertyValue("RemoteHost", "myRemortHost");
+        component.setPropertyValue("RemotePort", "1024");
+        component.setPropertyValue("SourceDirectory", "/test/source/directory/");
+        component.setPropertyValue("Username", "myLoginName");
 
         // Optional properties
         component.setPropertyValue("Active", true);
@@ -122,12 +125,12 @@ public class TestFixtures {
         component.setName("testFtpProducer");
 
         // Mandatory properties
-        component.updatePropertyValue("ClientID", "myClientID");
-        component.updatePropertyValue("OutputDirectory", "myOutputDirectory");
-        component.updatePropertyValue("Password", "secret");
-        component.updatePropertyValue("RemoteHost", "myRemortHost");
-        component.updatePropertyValue("RemotePort", "1024");
-        component.updatePropertyValue("Username", "myLoginName");
+        component.setPropertyValue("ClientID", "myClientID");
+        component.setPropertyValue("OutputDirectory", "myOutputDirectory");
+        component.setPropertyValue("Password", "secret");
+        component.setPropertyValue("RemoteHost", "myRemortHost");
+        component.setPropertyValue("RemotePort", "1024");
+        component.setPropertyValue("Username", "myLoginName");
 
         // Optional properties
         component.setPropertyValue("Active", true);
@@ -167,13 +170,13 @@ public class TestFixtures {
         component.setName("testSftpConsumer");
 
         // Mandatory properties
-        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
-        component.updatePropertyValue("FilenamePattern", "*Test.txt");
-        component.updatePropertyValue("Password", "secret");
-        component.updatePropertyValue("RemoteHost", "myRemortHost");
-        component.updatePropertyValue("RemotePort", "1024");
-        component.updatePropertyValue("SourceDirectory", "/test/source/directory/");
-        component.updatePropertyValue("Username", "myLoginName");
+        component.setPropertyValue("CronExpression", "*/5 * * * * ?");
+        component.setPropertyValue("FilenamePattern", "*Test.txt");
+        component.setPropertyValue("Password", "secret");
+        component.setPropertyValue("RemoteHost", "myRemortHost");
+        component.setPropertyValue("RemotePort", "1024");
+        component.setPropertyValue("SourceDirectory", "/test/source/directory/");
+        component.setPropertyValue("Username", "myLoginName");
 
         // Optional properties
         component.setPropertyValue("AgeOfFiles", 10);
@@ -226,12 +229,12 @@ public class TestFixtures {
         component.setName("testSftpProducer");
 
         // Mandatory properties
-        component.updatePropertyValue("ClientID", "myClientID");
-        component.updatePropertyValue("OutputDirectory", "myOutputDirectory");
-        component.updatePropertyValue("Password", "secret");
-        component.updatePropertyValue("RemoteHost", "myRemortHost");
-        component.updatePropertyValue("RemotePort", "1024");
-        component.updatePropertyValue("Username", "myLoginName");
+        component.setPropertyValue("ClientID", "myClientID");
+        component.setPropertyValue("OutputDirectory", "myOutputDirectory");
+        component.setPropertyValue("Password", "secret");
+        component.setPropertyValue("RemoteHost", "myRemortHost");
+        component.setPropertyValue("RemotePort", "1024");
+        component.setPropertyValue("Username", "myLoginName");
 
         // Optional properties
         component.setPropertyValue("ChecksumDelivered", true);
@@ -263,8 +266,8 @@ public class TestFixtures {
         component.setName("testLocalFileConsumer");
 
         // Mandatory properties
-        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
-        component.updatePropertyValue("Filenames", "*Test.txt");
+        component.setPropertyValue("CronExpression", "*/5 * * * * ?");
+        component.setPropertyValue("Filenames", "*Test.txt");
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("CriticalOnStartup", true);
@@ -296,7 +299,7 @@ public class TestFixtures {
         component.setName("testScheduledConsumer");
 
         // Mandatory properties
-        component.updatePropertyValue("CronExpression", "*/5 * * * * ?");
+        component.setPropertyValue("CronExpression", "*/5 * * * * ?");
 
         // Optional properties
         component.setPropertyValue("Configuration", "MyConfigurationClass");

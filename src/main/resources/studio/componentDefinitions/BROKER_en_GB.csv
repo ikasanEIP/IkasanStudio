@@ -1,22 +1,26 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
+# propertyName - Name of the property, used on input screens and to generate variable names
+# paramGroup - Aggregates parameters
+# paramNumber - Within the group
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-# propertyName - Name of the property, used on input screens and to generate variable names
+# isSetterProperty - This property is for use in the component factory setter
+# isUserDefineResource - The user will define the details of the resource within the ResourceFactory.
 # propertyConfigFileLabel - Identifies the spring injected property name. If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
 # defaultValue - As displayed in the properties editor.
-# helpTest - As shown in the toolTip on the properties editor and error text.
+# helpText - As shown in the toolTip on the properties editor and error text.
 #
 # Broker
 #
 # Mandatory Properties
-Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
+Name|1|1|true|false|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
-Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
+Description|1|1|false|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 

@@ -21,40 +21,50 @@ org.ikasan.builder.BuilderFactory builderFactory;
         @javax.annotation.Resource
         ${module.getPropertyValue('ApplicationPackageName')}.${flow.getJavaPackageName()}.${ikasanFlowComponent.getPropertyValue('BespokeClassName')} ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
-        <#list ikasanFlowComponent.getStandardConfiguredProperties()![] as propKey, propValue>
-            <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
-                <#if propValue.meta.usageDataType?starts_with("java.util.List")>
-                    <#assign f_startTag = r'#{${' >
-                    <#assign f_endTag = r'}}' >
-                <#else>
-                    <#assign f_startTag = r'${'>
-                    <#assign f_endTag = r'}'>
-                </#if>
-
-                <#assign f_propertyName = '${StudioUtils.getPropertyLabelPackageStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)}'>
-                @org.springframework.beans.factory.annotation.Value("${f_startTag}${f_propertyName}${f_endTag}")
-                <#if propValue.meta.usageDataType?starts_with("java.util.List")>
-                    <#assign f_dataType = propValue.meta.usageDataType >
-                <#else>
-                    <#assign f_dataType = propValue.meta.propertyDataType.getCanonicalName()>
-                </#if>
-                ${f_dataType} ${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)};
-            </#if>
-        </#list>
     </#if>
+<#--    <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>-->
+<#--        <#if propValue.meta.userImplementedClass>-->
+<#--            @javax.annotation.Resource-->
+<#--            ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};-->
+<#--        </#if>-->
+<#--    </#list>-->
+    <#-- Properties defined within the properties file-->
+    <#list ikasanFlowComponent.getStandardConfiguredProperties()![] as propKey, propValue>
+        <#if propValue.meta.propertyConfigFileLabel != "" && propValue.value??>
+            <#if propValue.meta.usageDataType?starts_with("java.util.List")>
+                <#assign f_startTag = r'#{${' >
+                <#assign f_endTag = r'}}' >
+            <#else>
+                <#assign f_startTag = r'${'>
+                <#assign f_endTag = r'}'>
+            </#if>
+
+            <#assign f_propertyName = '${StudioUtils.getPropertyLabelPackageStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)}'>
+            @org.springframework.beans.factory.annotation.Value("${f_startTag}${f_propertyName}${f_endTag}")
+            <#if propValue.meta.usageDataType?starts_with("java.util.List")>
+                <#assign f_dataType = propValue.meta.usageDataType >
+            <#else>
+                <#assign f_dataType = propValue.meta.propertyDataType.getCanonicalName()>
+            </#if>
+            ${f_dataType} ${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)};
+        </#if>
+    </#list>
 </#list>
 </#compress>
 
 <#compress>
     <#list flow.flowComponentList![] as ikasanFlowComponent>
-        <#if ! ikasanFlowComponent.type.bespokeClass>
-            <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
-                <#if propValue.meta.userImplementedClass>
-                    @javax.annotation.Resource
-                    ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
-                </#if>
-            </#list>
+    <#-- todo - move this to above section -->
+    <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
+        <#if propValue.meta.isUserImplementedClass()>
+            @javax.annotation.Resource
+            <#if propValue.meta.usageDataType == "configurationDefined">
+                ${module.getPropertyValue('ApplicationPackageName')}.${flow.getJavaPackageName()}.${propValue.valueString} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
+            <#else>
+                ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
+            </#if>
         </#if>
+    </#list>
     </#list>
 </#compress>
 
@@ -62,27 +72,29 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     public ${ikasanFlowComponent.type.elementCategory.baseClass} get${ikasanFlowComponent.getJavaClassName()}() {
-    <#if ikasanFlowComponent.type.bespokeClass>
-        return ${ikasanFlowComponent.getJavaVariableName()};
-    <#else>
+    <#if ! ikasanFlowComponent.type.bespokeClass>
         return builderFactory.getComponentBuilder().${ikasanFlowComponent.type.associatedMethodName}()
-        <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
-            <#if propValue.value??>
-                <#if propValue.meta.propertyConfigFileLabel != "">
-                    .set${propKey.getPropertyName()}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)})
+    </#if>
+    <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
+        <#if propValue.value?? && propValue.meta.isSetterProperty() >
+            <#if propValue.meta.propertyConfigFileLabel != "">
+                <#if ikasanFlowComponent.type.bespokeClass>${ikasanFlowComponent.getJavaVariableName()}</#if>.set${propKey.getPropertyName()}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, ikasanFlowComponent, propValue.meta.propertyConfigFileLabel)})<#if ikasanFlowComponent.type.bespokeClass>;</#if>
+            <#else>
+                <#if propValue.meta.userImplementedClass>
+                    <#if ikasanFlowComponent.type.bespokeClass>${ikasanFlowComponent.getJavaVariableName()}</#if>.set${propKey.getPropertyName()}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if ikasanFlowComponent.type.bespokeClass>;</#if>
                 <#else>
-                    <#if propValue.meta.userImplementedClass>
-                        .set${propKey.getPropertyName()}(${StudioUtils.toJavaIdentifier(propValue.valueString)})
+                    <#if propValue.meta.usageDataType == "java.lang.String">
+                        <#if ikasanFlowComponent.type.bespokeClass>${ikasanFlowComponent.getJavaVariableName()}</#if>.set${propKey.getPropertyName()}("${propValue.valueString}")<#if ikasanFlowComponent.type.bespokeClass>;</#if>
                     <#else>
-                        <#if propValue.meta.usageDataType == "java.lang.String">
-                            .set${propKey.getPropertyName()}("${propValue.valueString}")
-                        <#else>
-                            .set${propKey.getPropertyName()}(${propValue.valueString})
-                        </#if>
+                        <#if ikasanFlowComponent.type.bespokeClass>${ikasanFlowComponent.getJavaVariableName()}</#if>.set${propKey.getPropertyName()}(${propValue.valueString})<#if ikasanFlowComponent.type.bespokeClass>;</#if>
                     </#if>
                 </#if>
             </#if>
-        </#list>
+        </#if>
+    </#list>
+    <#if ikasanFlowComponent.type.bespokeClass>
+        return ${ikasanFlowComponent.getJavaVariableName()};
+    <#else>
         .build();
     </#if>
     }

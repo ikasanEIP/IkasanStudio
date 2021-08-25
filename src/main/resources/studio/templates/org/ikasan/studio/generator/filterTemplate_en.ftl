@@ -7,13 +7,16 @@ package ${studioPackageTag};
 *
 */
 
-import org.ikasan.spec.component.filter.Filter;
-import org.ikasan.spec.component.filter.FilterException;
-
 @org.springframework.stereotype.Component
 
-public class ${component.getPropertyValue("BespokeClassName")} implements Filter<${component.getPropertyValue("FromType")}>
+public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("Configuration")??>, org.ikasan.spec.configuration.ConfiguredResource<${component.getPropertyValue("Configuration")}></#if>
 {
+<#if component.getPropertyValue("Configuration")??>
+${component.getPropertyValue("Configuration")} configuration;
+</#if>
+<#if component.getPropertyValue("ConfiguredResourceId")??>
+String ${component.getPropertyValue("ConfiguredResourceId")};
+</#if>
 /**
 * If the message matches the criteria specified by the MessageFilter implementation,
 * the message is returned (passed through) and in turn routed to next part of the flow.
@@ -24,7 +27,7 @@ public class ${component.getPropertyValue("BespokeClassName")} implements Filter
 * @return Message or null.
 * @throws FilterException
 */
-public ${component.getPropertyValue("FromType")} filter(${component.getPropertyValue("FromType")} message) throws FilterException
+public ${component.getPropertyValue("FromType")} filter(${component.getPropertyValue("FromType")} message) throws org.ikasan.spec.component.filter.FilterException
 {
 if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter
@@ -35,4 +38,28 @@ else {
 return null;
 }
 }
+
+<#if component.getPropertyValue("ConfiguredResourceId")??>
+@Override
+public String getConfiguredResourceId() {
+return ${component.getPropertyValue("ConfiguredResourceId")};
+}
+
+@Override
+public void setConfiguredResourceId(String id) {
+this.${component.getPropertyValue("ConfiguredResourceId")} = id;
+}
+</#if>
+
+<#if component.getPropertyValue("Configuration")??>
+@Override
+public Config1 getConfiguration() {
+return configuration;
+}
+
+@Override
+public void setConfiguration(Config1 configuration) {
+this.configuration = configuration;
+}
+</#if>
 }

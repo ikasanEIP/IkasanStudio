@@ -1,35 +1,39 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isUserDefinedResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
+# propertyName - Name of the property, used on input screens and to generate variable names
+# paramGroup - Aggregates parameters
+# paramNumber - Within the group
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-# propertyName - Name of the property, used on input screens and to generate variable names
+# isSetterProperty - This property is for use in the component factory setter
+# isUserDefineResource - The user will define the details of the resource within the ResourceFactory.
 # propertyConfigFileLabel - Identifies the spring injected property name. If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
 # defaultValue - As displayed in the properties editor.
-# helpTest - As shown in the toolTip on the properties editor and error text.
+# helpText - As shown in the toolTip on the properties editor and error text.
 #
 # SCHEDULED_CONSUMER -
 #
 # Mandatory Properties
-CronExpression|1|1|true|false||__flow.ftp.consumer.cron-expression|java.lang.String||||Cron based expression dictating the invocation schedule for this component. Example, "*/5 * * * * ?" will fire every 5 seconds.
-Name|1|1|true|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
+CronExpression|1|1|true|false|true||__flow.ftp.consumer.cron-expression|java.lang.String||||"Cron based expression dictating the invocation schedule for this component. Example, ""*/5 * * * * ?"" will fire every 5 seconds."
+Name|1|1|true|false|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
-Description|1|1|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
-Configuration|1|1|false|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
-ConfiguredResourceId|1|1|false|false|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
-CriticalOnStartup|1|1|false|false|||java.lang.Boolean||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
-Eager|1|1|false|false|||java.lang.Boolean||||When true the scheduled consumer is immediately called back on completion of flow execution i.e. attempts to consume all messages available. If false the scheduled consumers cron expression determines the callback.
-EventFactory|1|1|false|true|||java.lang.String|org.ikasan.spec.event.EventFactory|||Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint
-IgnoreMisfire|1|1|false|false|||java.lang.Boolean||||Default(True). Whether to ignore call back failures.
-ManagedEventIdentifierService|1|1|false|true|||java.lang.String|org.ikasan.spec.event.ManagedEventIdentifierService|||Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer
-ManagedResourceRecoveryManager|1|1|false|true|||java.lang.String|org.ikasan.spec.management.ManagedResourceRecoveryManager|||Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager
-MaxEagerCallbacks|1|1|false|false|||java.lang.Integer||||The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.
-MessageProvider|1|1|false|true|||java.lang.String|org.ikasan.component.endpoint.quartz.consumer.MessageProvider|||Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.
-ScheduledJobGroupName|1|1|false|false|||java.lang.String||||Group for scheduled jobs within the internal Ikasan scheduler
-ScheduledJobName|1|1|false|false|||java.lang.String||||Name to identify this job within the internal Ikasan scheduler
-Timezone|1|1|false|false|||java.lang.String||||Support for overriding the default timezone
+Description|1|1|false|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
+Configuration|1|1|false|true|true|||java.lang.String|org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration|||Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+ConfiguredResourceId|1|1|false|false|true|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
+CriticalOnStartup|1|1|false|false|true|||java.lang.Boolean||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
+Eager|1|1|false|false|true|||java.lang.Boolean||||When true the scheduled consumer is immediately called back on completion of flow execution i.e. attempts to consume all messages available. If false the scheduled consumers cron expression determines the callback.
+EventFactory|1|1|false|true|true|||java.lang.String|org.ikasan.spec.event.EventFactory|||Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint
+IgnoreMisfire|1|1|false|false|true|||java.lang.Boolean||||Default(True). Whether to ignore call back failures.
+ManagedEventIdentifierService|1|1|false|true|true|||java.lang.String|org.ikasan.spec.event.ManagedEventIdentifierService|||Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer
+ManagedResourceRecoveryManager|1|1|false|true|true|||java.lang.String|org.ikasan.spec.management.ManagedResourceRecoveryManager|||Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager
+MaxEagerCallbacks|1|1|false|false|true|||java.lang.Integer||||The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.
+MessageProvider|1|1|false|true|true|||java.lang.String|org.ikasan.component.endpoint.quartz.consumer.MessageProvider|||Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.
+ScheduledJobGroupName|1|1|false|false|true|||java.lang.String||||Group for scheduled jobs within the internal Ikasan scheduler
+ScheduledJobName|1|1|false|false|true|||java.lang.String||||Name to identify this job within the internal Ikasan scheduler
+Timezone|1|1|false|false|true|||java.lang.String||||Support for overriding the default timezone

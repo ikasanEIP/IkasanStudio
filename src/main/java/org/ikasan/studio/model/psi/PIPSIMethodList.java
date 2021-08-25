@@ -17,8 +17,9 @@ public class PIPSIMethodList {
     public static final String SPRING_BEAN = "springBean";
     private static final Logger log = Logger.getLogger(PIPSIMethodList.class);
     PsiReferenceExpression baseMethodinstanceVariable;  // something like jmsProducer()
-    String baseType;
-    List<PIPSIMethod> pipsiMethods;
+    String baseType;                                        // e.g. Filter, Splitter etc
+    List<PIPSIMethod> pipsiMethods;                         // The fluent method chain used to enrich the basic type
+    List<String>interfaces;                                 // Interfaces implemented by the baseType e.g. ConfiguredResource
 
     public PIPSIMethodList() {
         pipsiMethods = new ArrayList<>();
@@ -49,6 +50,23 @@ public class PIPSIMethodList {
         } else {
             return null;
         }
+    }
+
+    public String getConfiguredResource() {
+        String configuredResource = null;
+        if (interfaces != null && !interfaces.isEmpty()) {
+            configuredResource = interfaces
+                    .stream()
+                    .filter(x -> x.contains("ConfiguredResource"))
+                    .findFirst()
+                    .orElse(null);
+            if (configuredResource != null) {
+                configuredResource = configuredResource
+                        .replace("org.ikasan.spec.configuration.ConfiguredResource<", "")
+                        .replace(">","");
+            }
+        }
+        return configuredResource;
     }
 
     public void setPipsiMethods(List<PIPSIMethod> pipsiMethods) {
@@ -93,5 +111,13 @@ public class PIPSIMethodList {
 
     public void setBaseType(String baseType) {
         this.baseType = baseType;
+    }
+
+    public List<String> getInterfaces() {
+        return interfaces;
+    }
+
+    public void setInterfaces(List<String> interfaces) {
+        this.interfaces = interfaces;
     }
 }

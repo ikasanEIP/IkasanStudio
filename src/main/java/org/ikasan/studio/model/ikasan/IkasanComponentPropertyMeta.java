@@ -12,20 +12,21 @@ import java.util.Objects;
  */
 public class IkasanComponentPropertyMeta {
     public static final String BESPOKE_CLASS_NAME = "BespokeClassName"; // Special meta for a bespoke class used as a property
+    public static final String CONFIGURATION = "Configuration";         // Bean containing user defined, Ikasan maintained properties
     public static final String FROM_TYPE = "FromType";                  // Special meta for converter, the type of the inbound payload
     public static final String TO_TYPE = "ToType";                      // Special meta for converter, the type of the outbound payload
 
     // Special META for component NAME, this standard for each component.
     public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name", 1, 1);
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(1, 1, true, false, false,
+        new IkasanComponentPropertyMeta(1, 1, true, false, false, true,
             NAME.getPropertyName(), null, String.class, "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
 
     // Special META for component DESCRIPTION, this standard for each component.
     public static final IkasanComponentPropertyMetaKey DESCRIPTION = new IkasanComponentPropertyMetaKey("Description", 1, 1);
     public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
-        new IkasanComponentPropertyMeta(1, 1, false, false,false,
+        new IkasanComponentPropertyMeta(1, 1, false, false, false, true,
             DESCRIPTION.getPropertyName(), null, String.class, "", "", "",
             "A more detailed description of the component that may assist in support.");
 
@@ -33,7 +34,7 @@ public class IkasanComponentPropertyMeta {
     public static final IkasanComponentPropertyMetaKey APPLICATION_PACKAGE_NAME = new IkasanComponentPropertyMetaKey("ApplicationPackageName", 1, 1);
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(1, 1, true, false,false,
+        new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
             APPLICATION_PACKAGE_NAME.getPropertyName(), null, String.class, "", "", "",
             "The base java package for your application.");
 
@@ -41,7 +42,7 @@ public class IkasanComponentPropertyMeta {
     public static final IkasanComponentPropertyMetaKey APPLICATION_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("ApplicationPortNumber", 1, 1);
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
-            new IkasanComponentPropertyMeta(1, 1, true, false,false,
+            new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
                     APPLICATION_PORT_NUMBER_NAME.getPropertyName(), null, String.class, "", "", "",
                     "The port number that the running application will use locally.");
 
@@ -49,6 +50,7 @@ public class IkasanComponentPropertyMeta {
     Integer paramNumber;
     boolean mandatory;
     boolean userImplementedClass;
+    boolean setterProperty;
     boolean userDefineResource;
     String propertyName;
     String propertyConfigFileLabel;
@@ -81,7 +83,8 @@ public class IkasanComponentPropertyMeta {
     * @param paramNumber The parameter number (where a component might be instantiated with multiple parameters)
     * @param mandatory for the component to be deemed to be complete
     * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-    * @param userDefineResource The user will define a the details of the resource within the ResourceFactory.
+    * @param setterProperty The property should feature in the component factory setter.
+    * @param userDefineResource The user will define the details of the resource within the ResourceFactory.
     * @param propertyName of the property, used on input screens and to generate variable names
     * @param propertyConfigFileLabel Identifies the spring injected property name
     * @param propertyDataType of the property
@@ -93,6 +96,7 @@ public class IkasanComponentPropertyMeta {
                                        @NotNull Integer paramNumber,
                                        @NotNull boolean mandatory,
                                        @NotNull boolean userImplementedClass,
+                                       boolean setterProperty,
                                        boolean userDefineResource,
                                        @NotNull String propertyName,
                                        String propertyConfigFileLabel,
@@ -105,6 +109,7 @@ public class IkasanComponentPropertyMeta {
         this.paramNumber = paramNumber;
         this.mandatory = mandatory;
         this.userImplementedClass = userImplementedClass;
+        this.setterProperty = setterProperty;
         this.userDefineResource = userDefineResource;
         this.propertyName = propertyName;
         this.propertyConfigFileLabel = propertyConfigFileLabel;
@@ -159,6 +164,10 @@ public class IkasanComponentPropertyMeta {
         return userImplementedClass;
     }
 
+    public boolean isSetterProperty() {
+        return setterProperty;
+    }
+
     public Object getDefaultValue() {
         return defaultValue;
     }
@@ -190,7 +199,7 @@ public class IkasanComponentPropertyMeta {
     }
 
     public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(1, 1, false, false, false, name, null, String.class, "", "", "", "");
+        return new IkasanComponentPropertyMeta(1, 1, false, false, false, false, name, null, String.class, "", "", "", "");
     }
 
     /**
