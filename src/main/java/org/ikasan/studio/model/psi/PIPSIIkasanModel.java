@@ -630,7 +630,7 @@ public class PIPSIIkasanModel {
         List<PIPSIMethod> additionalParameters = new ArrayList<>();
         // The Bespoke Ikasan Class
         PsiClass psiClass = StudioPsiUtils.findFirstClass(getProject(), beskpokeClassName);
-        if (psiClass == null) {
+        if (psiClass == null || psiClass.getMethods().length == 0) {
             log.error("Expected to find class " + beskpokeClassName + " but could not be found, skipping");
         } else {
             PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], StudioUtils.getLastToken("\\.", beskpokeClassName));

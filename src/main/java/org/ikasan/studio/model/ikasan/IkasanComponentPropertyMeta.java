@@ -6,6 +6,7 @@ import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * Represents all the possible properties an Ikasan component is allowed to have
@@ -57,6 +58,7 @@ public class IkasanComponentPropertyMeta {
     Class propertyDataType;
     String usageDataType;
     String validation;
+    Pattern validationPattern;
     Object defaultValue;
     String helpText;
 
@@ -120,6 +122,9 @@ public class IkasanComponentPropertyMeta {
             this.usageDataType = propertyDataType.getCanonicalName();
         }
         this.validation = validation;
+        if (validation != null && !validation.isEmpty()) {
+            this.validationPattern = Pattern.compile(validation);
+        }
         this.defaultValue = defaultValue;
         this.helpText = helpText;
     }
@@ -192,6 +197,10 @@ public class IkasanComponentPropertyMeta {
 
     public String getValidation() {
         return validation;
+    }
+
+    public Pattern getValidationPattern() {
+        return validationPattern;
     }
 
     public String getHelpText() {

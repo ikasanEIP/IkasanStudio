@@ -174,12 +174,18 @@ public class ComponentPropertyEditBox {
      * @return a populated ValidationInfo array if htere are any validation issues.
      */
     protected java.util.List<ValidationInfo> doValidateAll() {
-        List<ValidationInfo> result = null;
+        //@todo setup once in class and clear down
+        List<ValidationInfo> result = new ArrayList<>();
         if (meta.isMandatory() &&
             !isBooleanProperty() &&
             inputfieldIsUnset()) {
-            result = new ArrayList<>();
+//            result = new ArrayList<>();
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
+        }
+        if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null) {
+            if (! meta.getValidationPattern().matcher((String)getValue()).matches()) {
+                result.add(new ValidationInfo("Validation Failed", getOverridingInputField()));
+            }
         }
         if (result == null) {
             return Collections.emptyList();
@@ -187,6 +193,7 @@ public class ComponentPropertyEditBox {
             return result;
         }
     }
+
 
     /**
      * Determine if the edit box has a valid value

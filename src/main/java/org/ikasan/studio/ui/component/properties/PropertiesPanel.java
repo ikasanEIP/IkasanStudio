@@ -26,6 +26,7 @@ public abstract class PropertiesPanel extends JPanel {
     protected JButton okButton;
     protected ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JPanel propertiesEditorPanel = new JPanel();
+    private boolean dataValid = true;
 
     protected PropertiesPanel(String projectKey, boolean popupMode) {
         super();
@@ -51,7 +52,9 @@ public abstract class PropertiesPanel extends JPanel {
             okButton = new JButton(OK_BUTTON_TEXT);
             okButton.addActionListener(e -> {
                     okActionListener(e);
-                    doOKAction();
+                    if (dataValid) {
+                        doOKAction();
+                    }
                    //@todo popup a temp message 'no changes detected'
                }
             );
@@ -75,6 +78,7 @@ public abstract class PropertiesPanel extends JPanel {
     protected void okActionListener(ActionEvent ae) {
         List<ValidationInfo> infoList = doValidateAll();
         if (!infoList.isEmpty()) {
+            dataValid = false;
             ValidationInfo firstInfo = infoList.get(0);
             if (firstInfo.component != null && firstInfo.component.isVisible()) {
                 IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
@@ -87,6 +91,8 @@ public abstract class PropertiesPanel extends JPanel {
                     validationErrors.toString(),
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
+        } else {
+            dataValid = true;
         }
     }
     /**
