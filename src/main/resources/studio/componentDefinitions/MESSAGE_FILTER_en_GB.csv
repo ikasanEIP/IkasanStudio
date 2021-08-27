@@ -25,5 +25,5 @@ Name|1|1|true|false|false|||java.lang.String||||The name of the component as dis
 # Optional Properties||||||||||||
 Description|1|1|false|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
 FromType|1|1|true|false|false|||java.lang.String|||java.lang.String|The fully qualified type the the converter will take as input.
-Configuration|1|1|false|true|true|||java.lang.String|configurationDefined|||Provide the bean type that contains bespoke configurations for this component
+Configuration|1|1|false|true|true|||java.lang.String|configurationDefined|[A-Z_$][a-zA-Z\d_$]*||Provide the bean type that contains bespoke configurations for this component
 ConfiguredResourceId|1|1|false|false|true|||java.lang.String||||This is the key to an instance of a Configuration (see definition of configuration). By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
