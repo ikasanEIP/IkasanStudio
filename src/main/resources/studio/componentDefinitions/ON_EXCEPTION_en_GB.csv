@@ -1,4 +1,4 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
@@ -14,6 +14,7 @@
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
+# validationMessage - To be displayed if the validation fails
 # defaultValue - As displayed in the properties editor.
 # helpText - As shown in the toolTip on the properties editor and error text.
 #
@@ -21,11 +22,11 @@
 #
 # Mandatory Properties
 # Optional Properties
-ignoreException|1|1|false|false|false|||||||Ignore the exception and continue.
-excludeEvent|1|1|false|false|false|||||||Rollback any actions resulting from this inflight event and exclude it.
-retry.delay|1|1|true|false|false|||java.lang.Integer|||100|The period to wait between retries.
-retry.interval|1|1|true|false|false|||java.lang.Integer|||10|The maximum number of retries.
-retryIndefinitely.delay|1|1|true|false|false|||java.lang.Integer|||5|Continually retry with a default delay period of 5 seconds.
-scheduledCronRetry.cronExpression|1|1|true|false|false|||java.lang.String|||* * * * * *|The cron expression.
-scheduledCronRetry.maxRetries|1|1|true|false|false|||java.lang.Integer|||10|The maximum number of retries.
-stop|1|1|false|false|false|||||||Cause the flow to halt.
+ignoreException|1|1|false|false|false||||||||Ignore the exception and continue.
+excludeEvent|1|1|false|false|false||||||||Rollback any actions resulting from this inflight event and exclude it.
+retry.delay|1|1|true|false|false|||java.lang.Integer||||100|The period to wait between retries.
+retry.interval|1|1|true|false|false|||java.lang.Integer||||10|The maximum number of retries.
+retryIndefinitely.delay|1|1|true|false|false|||java.lang.Integer||||5|Continually retry with a default delay period of 5 seconds.
+scheduledCronRetry.cronExpression|1|1|true|false|false|||java.lang.String||||* * * * * *|The cron expression.
+scheduledCronRetry.maxRetries|1|1|true|false|false|||java.lang.Integer||||10|The maximum number of retries.
+stop|1|1|false|false|false||||||||Cause the flow to halt.

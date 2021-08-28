@@ -171,9 +171,10 @@ public class StudioUtils {
     private static final int PROPERTY_DATA_TYPE_INDEX = 8;
     private static final int USAGE_DATA_TYPE_INDEX = 9;
     private static final int VALIDATION_INDEX = 10;
-    private static final int DEFAULT_VALUE_INDEX = 11;
-    private static final int HELP_INDEX = 12;
-    private static final int NUMBER_OF_CONFIGS = 13;
+    private static final int VALIDATION_MESSAGE_INDEX = 11;
+    private static final int DEFAULT_VALUE_INDEX = 12;
+    private static final int HELP_INDEX = 13;
+    private static final int NUMBER_OF_CONFIGS = 14;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
 
     //@todo should be in IkasanComponentType
@@ -241,6 +242,7 @@ public class StudioUtils {
 
                     String usageDataType = split[USAGE_DATA_TYPE_INDEX];
                     String validation = split[VALIDATION_INDEX];
+                    String validationMessage = split[VALIDATION_MESSAGE_INDEX];
 
                     // Data type
                     Class propertyDataType = null;
@@ -257,7 +259,7 @@ public class StudioUtils {
                     Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
                     IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
                             paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
-                            propertyDataType, usageDataType, validation, defaultValue, split[HELP_INDEX]);
+                            propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
                     if (parentPropertyName != null) {
                         // Parent child relationship
                         IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber, paramNumber);

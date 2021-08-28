@@ -21,14 +21,14 @@ public class IkasanComponentPropertyMeta {
     public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name", 1, 1);
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, true, false, false, true,
-            NAME.getPropertyName(), null, String.class, "", "", "",
+            NAME.getPropertyName(), null, String.class, "", "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
 
     // Special META for component DESCRIPTION, this standard for each component.
     public static final IkasanComponentPropertyMetaKey DESCRIPTION = new IkasanComponentPropertyMetaKey("Description", 1, 1);
     public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, false, false, false, true,
-            DESCRIPTION.getPropertyName(), null, String.class, "", "", "",
+            DESCRIPTION.getPropertyName(), null, String.class, "", "", "", "",
             "A more detailed description of the component that may assist in support.");
 
     // Special META for package parent of the users bespoke packages, a little like a pom group
@@ -36,7 +36,7 @@ public class IkasanComponentPropertyMeta {
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
-            APPLICATION_PACKAGE_NAME.getPropertyName(), null, String.class, "", "", "",
+            APPLICATION_PACKAGE_NAME.getPropertyName(), null, String.class, "", "", "", "",
             "The base java package for your application.");
 
     // Special META to model the port number to be used to launch the app and part of its user driven config.
@@ -44,7 +44,7 @@ public class IkasanComponentPropertyMeta {
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
             new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
-                    APPLICATION_PORT_NUMBER_NAME.getPropertyName(), null, String.class, "", "", "",
+                    APPLICATION_PORT_NUMBER_NAME.getPropertyName(), null, String.class, "", "", "", "",
                     "The port number that the running application will use locally.");
 
     Integer paramGroupNumber;
@@ -58,6 +58,7 @@ public class IkasanComponentPropertyMeta {
     Class propertyDataType;
     String usageDataType;
     String validation;
+    String validationMessage;
     Pattern validationPattern;
     Object defaultValue;
     String helpText;
@@ -91,6 +92,7 @@ public class IkasanComponentPropertyMeta {
     * @param propertyConfigFileLabel Identifies the spring injected property name
     * @param propertyDataType of the property
     * @param validation validation string (used by the property editor to validate the format of the data)
+    * @param validationMessage to display if the field failr validation
     * @param defaultValue for the property
     * @param helpText for the property
     */
@@ -105,6 +107,7 @@ public class IkasanComponentPropertyMeta {
                                        @NotNull Class propertyDataType,
                                        String usageDataType,
                                        String validation,
+                                       String validationMessage,
                                        Object defaultValue,
                                        String helpText) {
         this.paramGroupNumber = paramGroupNumber;
@@ -124,6 +127,7 @@ public class IkasanComponentPropertyMeta {
         this.validation = validation;
         if (validation != null && !validation.isEmpty()) {
             this.validationPattern = Pattern.compile(validation);
+            this.validationMessage = validationMessage;
         }
         this.defaultValue = defaultValue;
         this.helpText = helpText;
@@ -203,12 +207,16 @@ public class IkasanComponentPropertyMeta {
         return validationPattern;
     }
 
+    public String getValidationMessage() {
+        return validationMessage;
+    }
+
     public String getHelpText() {
         return helpText;
     }
 
     public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(1, 1, false, false, false, false, name, null, String.class, "", "", "", "");
+        return new IkasanComponentPropertyMeta(1, 1, false, false, false, false, name, null, String.class, "", "", "", "", "");
     }
 
     /**
@@ -250,6 +258,8 @@ public class IkasanComponentPropertyMeta {
                 ", propertyDataType=" + propertyDataType +
                 ", usageDataType=" + usageDataType +
                 ", validation=" + validation +
+                ", validationMessage=" + validationMessage +
+                ", validationPattern=" + validationPattern +
                 ", defaultValue=" + defaultValue +
                 ", helpText='" + helpText + '\'' +
                 '}';
