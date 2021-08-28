@@ -1,4 +1,4 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
@@ -14,42 +14,43 @@
 # propertyDataType - i.e. the data type used in the properties file, note that this is not always the same as the usage data type/valuedate e.g. a List will have a
 # usageDataType - Defaults to the propertyDataType. This is the data type from the Ikasan perspective e.g. List will have a propertyDataType of String but usageDatatype of List<T>, cron expression may have the regexp pattern they need to conform to
 # validation - Used by the property editor to validate the property
+# validationMessage - To be displayed if the validation fails
 # defaultValue - As displayed in the properties editor.
 # helpText - As shown in the toolTip on the properties editor and error text.
 #
 # EMAIL_PRODUCER -
 #
 # Mandatory Properties
-BccRecipient|1|1|false|false|true|||java.lang.String||||The Bcc recipient
-BccRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>|||The list of Bcc recipients
-CcRecipient|1|1|false|false|true|||java.lang.String||||The Cc recipient
-CcRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>|||The list of Cc recipients
-Configuration|1|1|false|true|true|||java.lang.String|org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration|||Provide the classname that overrides and implements the default FtpProducerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
-ConfiguredResourceId|1|1|false|false|true|||java.lang.String||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
-CriticalOnStartup|1|1|false|false|true|||java.lang.Boolean||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
-EmailBody|1|1|false|false|true|||java.lang.String||||Text body for the email
-EmailFormat|1|1|false|false|true|||java.lang.String||||Set the format for this email e.g. plain text, html
-ExtendedMailSessionProperties|1|1|false|true|true|||java.lang.String|java.util.Map<String, String>|||Extended set of email properties
-From|1|1|false|false|true|||java.lang.String||||email address of sender
-HasAttachments|1|1|false|false|true|||java.lang.Boolean||||Set to true if there attachements
-MailDebug|1|1|false|false|true|||java.lang.Boolean||||Set to true to start debugging
-Mailhost|1|1|false|false|true|||java.lang.String||||Optional. The default host name of the mail server for both Stores and Transports. Used if the mail.protocol.host property isn't set.
-MailMimeAddressStrict|1|1|false|false|true|||java.lang.Boolean||||The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method. The default is true.
-MailPopClass|1|1|false|false|true|||java.lang.String||||Optional. Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.
-MailPopPort|1|1|false|false|true|||java.lang.Integer||||Optional. The port number of the mail server for the specified protocol. If not specified the protocol's default port number is used.
-MailPopUser|1|1|false|false|true|||java.lang.String||||Optional. The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.
-MailSmtpClass|1|1|false|false|true|||java.lang.String||||Optional. Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.
-MailSmtpHost|1|1|false|false|true|||java.lang.String||||Optional. Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.
-MailSmtpPort|1|1|false|false|true|||java.lang.Integer||||Optional. The port number of the mail server for the specified protocol. If not specified the protocol's default port number is used.
-MailSmtpUser|1|1|false|false|true|||java.lang.String||||Optional. The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.
-MailStoreProtocol|1|1|false|false|true|||java.lang.String||||Optional. Specifies the default message access protocol.
-MailSubject|1|1|false|false|true|||java.lang.String||||Optional. Email subject line.
-MailPassword|1|1|false|false|true|||java.lang.String||||Optional. Password for the mail server.
-MailRuntimeEnvironment|1|1|false|false|true|||java.lang.String||||Optional. Addition property which may be specified to denote the runtime instance generating the email. ie. dev, uat.
-ToRecipient|1|1|false|false|true|||java.lang.String||||The To recipient
-ToRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>|||The list of To recipients
-TransportProtocol|1|1|false|false|true|||java.lang.String||||Optional. Specifies the default message transport protocol.
-User|1|1|false|false|true|||java.lang.String||||Optional. The default user name to use when connecting to the mail server. Used if the mail.protocol.user property isn't set.
-Name|1|1|true|false|false|||java.lang.String||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
+BccRecipient|1|1|false|false|true|||java.lang.String|||||The Bcc recipient
+BccRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>||||The list of Bcc recipients
+CcRecipient|1|1|false|false|true|||java.lang.String|||||The Cc recipient
+CcRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>||||The list of Cc recipients
+Configuration|1|1|false|true|true|||java.lang.String|org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration||||Provide the classname that overrides and implements the default FtpProducerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+ConfiguredResourceId|1|1|false|false|true|||java.lang.String|||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
+CriticalOnStartup|1|1|false|false|true|||java.lang.Boolean|||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
+EmailBody|1|1|false|false|true|||java.lang.String|||||Text body for the email
+EmailFormat|1|1|false|false|true|||java.lang.String|||||Set the format for this email e.g. plain text, html
+ExtendedMailSessionProperties|1|1|false|true|true||||java.lang.String|java.util.Map<String, String>|||Extended set of email properties
+From|1|1|false|false|true|||java.lang.String|||||email address of sender
+HasAttachments|1|1|false|false|true|||java.lang.Boolean|||||Set to true if there attachements
+MailDebug|1|1|false|false|true|||java.lang.Boolean|||||Set to true to start debugging
+Mailhost|1|1|false|false|true|||java.lang.String|||||Optional. The default host name of the mail server for both Stores and Transports. Used if the mail.protocol.host property isn't set.
+MailMimeAddressStrict|1|1|false|false|true|||java.lang.Boolean|||||The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method. The default is true.
+MailPopClass|1|1|false|false|true|||java.lang.String|||||Optional. Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.
+MailPopPort|1|1|false|false|true|||java.lang.Integer|||||Optional. The port number of the mail server for the specified protocol. If not specified the protocol's default port number is used.
+MailPopUser|1|1|false|false|true|||java.lang.String|||||Optional. The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.
+MailSmtpClass|1|1|false|false|true|||java.lang.String|||||Optional. Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.
+MailSmtpHost|1|1|false|false|true|||java.lang.String|||||Optional. Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.
+MailSmtpPort|1|1|false|false|true|||java.lang.Integer|||||Optional. The port number of the mail server for the specified protocol. If not specified the protocol's default port number is used.
+MailSmtpUser|1|1|false|false|true|||java.lang.String|||||Optional. The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.
+MailStoreProtocol|1|1|false|false|true|||java.lang.String|||||Optional. Specifies the default message access protocol.
+MailSubject|1|1|false|false|true|||java.lang.String|||||Optional. Email subject line.
+MailPassword|1|1|false|false|true|||java.lang.String|||||Optional. Password for the mail server.
+MailRuntimeEnvironment|1|1|false|false|true|||java.lang.String|||||Optional. Addition property which may be specified to denote the runtime instance generating the email. ie. dev, uat.
+ToRecipient|1|1|false|false|true|||java.lang.String|||||The To recipient
+ToRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>||||The list of To recipients
+TransportProtocol|1|1|false|false|true|||java.lang.String|||||Optional. Specifies the default message transport protocol.
+User|1|1|false|false|true|||java.lang.String|||||Optional. The default user name to use when connecting to the mail server. Used if the mail.protocol.user property isn't set.
+Name|1|1|true|false|false|||java.lang.String|||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
-Description|1|1|false|false|false|||java.lang.String||||A more detailed description of the component that may assist in support.
+Description|1|1|false|false|false|||java.lang.String|||||A more detailed description of the component that may assist in support.

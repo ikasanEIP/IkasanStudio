@@ -20,7 +20,7 @@ public class IkasanComponentPropertyMetaTest {
         ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
                 1, 1, true, true, true, true,
                 "Test property name", "config_label", java.lang.String.class,
-                "java.lang.String",CLASS_NAME_PATTERN, "defaultValue", "some help");
+                "java.lang.String",CLASS_NAME_PATTERN, "Please enter a valid clnassname", "defaultValue", "some help");
     }
 
     @Test

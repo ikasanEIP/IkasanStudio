@@ -184,7 +184,7 @@ public class ComponentPropertyEditBox {
         }
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null) {
             if (! meta.getValidationPattern().matcher((String)getValue()).matches()) {
-                result.add(new ValidationInfo("Validation Failed", getOverridingInputField()));
+                result.add(new ValidationInfo(meta.getValidationMessage(), getOverridingInputField()));
             }
         }
         if (result == null) {

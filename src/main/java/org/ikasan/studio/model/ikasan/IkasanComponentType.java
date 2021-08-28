@@ -90,7 +90,7 @@ public enum IkasanComponentType implements Serializable {
     @JsonIgnore
     public final IkasanComponentDependency componentDependency;
     @JsonIgnore
-    Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
+    protected Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
 
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
