@@ -21,17 +21,17 @@
 # EMAIL_PRODUCER -
 #
 # Mandatory Properties
-BccRecipient|1|1|false|false|true|||java.lang.String|||||The Bcc recipient
+BccRecipient|1|1|false|false|true|||java.lang.String||^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$|Please provide a valid formatted email address||The Bcc recipient
 BccRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>||||The list of Bcc recipients
-CcRecipient|1|1|false|false|true|||java.lang.String|||||The Cc recipient
+CcRecipient|1|1|false|false|true|||java.lang.String||^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$|Please provide a valid formatted email address||The Cc recipient
 CcRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>||||The list of Cc recipients
-Configuration|1|1|false|true|true|||java.lang.String|org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration||||Provide the classname that overrides and implements the default FtpProducerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
+Configuration|1|1|false|true|true|||java.lang.String|org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration|[A-Z_$][a-zA-Z\d_$]*|Provide a java classname for the Configuration bean||Provide the classname that overrides and implements the default FtpProducerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.
 ConfiguredResourceId|1|1|false|false|true|||java.lang.String|||||By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.
 CriticalOnStartup|1|1|false|false|true|||java.lang.Boolean|||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
 EmailBody|1|1|false|false|true|||java.lang.String|||||Text body for the email
 EmailFormat|1|1|false|false|true|||java.lang.String|||||Set the format for this email e.g. plain text, html
 ExtendedMailSessionProperties|1|1|false|true|true||||java.lang.String|java.util.Map<String, String>|||Extended set of email properties
-From|1|1|false|false|true|||java.lang.String|||||email address of sender
+From|1|1|false|false|true|||java.lang.String||^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$|Please provide a valid formatted email address||email address of sender
 HasAttachments|1|1|false|false|true|||java.lang.Boolean|||||Set to true if there attachements
 MailDebug|1|1|false|false|true|||java.lang.Boolean|||||Set to true to start debugging
 Mailhost|1|1|false|false|true|||java.lang.String|||||Optional. The default host name of the mail server for both Stores and Transports. Used if the mail.protocol.host property isn't set.
@@ -47,7 +47,7 @@ MailStoreProtocol|1|1|false|false|true|||java.lang.String|||||Optional. Specifie
 MailSubject|1|1|false|false|true|||java.lang.String|||||Optional. Email subject line.
 MailPassword|1|1|false|false|true|||java.lang.String|||||Optional. Password for the mail server.
 MailRuntimeEnvironment|1|1|false|false|true|||java.lang.String|||||Optional. Addition property which may be specified to denote the runtime instance generating the email. ie. dev, uat.
-ToRecipient|1|1|false|false|true|||java.lang.String|||||The To recipient
+ToRecipient|1|1|false|false|true|||java.lang.String||^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$|Please provide a valid formatted email address||The To recipient
 ToRecipients|1|1|false|false|true|||java.lang.String|java.util.List<String>||||The list of To recipients
 TransportProtocol|1|1|false|false|true|||java.lang.String|||||Optional. Specifies the default message transport protocol.
 User|1|1|false|false|true|||java.lang.String|||||Optional. The default user name to use when connecting to the mail server. Used if the mail.protocol.user property isn't set.
