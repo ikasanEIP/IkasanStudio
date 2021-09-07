@@ -28,7 +28,7 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
 
     // This callback will set the path to the correct data file used in the test
     public String getTestDataDir() {
-        return "/dbJmsIm/";
+        return "/ikasanStandardSampleApps/dbJmsIm/";
     }
 //    @Ignore
     @Test
@@ -77,44 +77,44 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.endpoint.EndpointException.class").toString(),
                     is("IkasanExceptionResoluation{theException=org.ikasan.spec.component.endpoint.EndpointException.class, theAction='retry', params=[IkasanComponentProperty{value=100, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='delay', " +
-                            "propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=100, helpText='The period to wait between retries.'}}, " +
+                            "propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=100, helpText='The period to wait between retries.'}}, " +
                             "IkasanComponentProperty{value=10, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, " +
-                            "propertyName='interval', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=10, helpText='The maximum number of retries.'}}]}"));
+                            "propertyName='interval', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=10, helpText='The maximum number of retries.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.splittingSplitterException.class").toString(),
                     is("IkasanExceptionResoluation{theException=org.ikasan.spec.component.splittingSplitterException.class, theAction='excludeEvent', params=[IkasanComponentProperty{value=null, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='excludeEvent', " +
-                            "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, defaultValue=null, helpText='Rollback any actions resulting from this inflight event and exclude it.'}}]}"));
+                            "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='Rollback any actions resulting from this inflight event and exclude it.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("javax.resource.ResourceException.class").toString(),
                     is("IkasanExceptionResoluation{theException=javax.resource.ResourceException.class, theAction='scheduledCronRetry', params=[IkasanComponentProperty{value=* * * * *, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='cronExpression', " +
-                            "propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, defaultValue=* * * * * *, helpText='The cron expression.'}}, " +
+                            "propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, validationMessage=null, validationPattern=null, defaultValue=* * * * * *, helpText='The cron expression.'}}, " +
                             "IkasanComponentProperty{value=100, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, " +
-                            "propertyName='maxRetries', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=10, " +
+                            "propertyName='maxRetries', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=10, " +
                             "helpText='The maximum number of retries.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.filter.FilterException.class").toString(),
                     is("IkasanExceptionResoluation{theException=org.ikasan.spec.component.filter.FilterException.class, theAction='stop', params=[IkasanComponentProperty{value=null, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='stop', " +
-                            "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, defaultValue=null, helpText='Cause the flow to halt.'}}]}"));
+                            "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='Cause the flow to halt.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("javax.jms.JMSException.class").toString(),
                     is("IkasanExceptionResoluation{theException=javax.jms.JMSException.class, theAction='retry', params=[IkasanComponentProperty{value=100, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, " +
                             "paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='delay', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, " +
-                            "usageDataType=java.lang.Integer, validation=, defaultValue=100, helpText='The period to wait between retries.'}}, IkasanComponentProperty{value=10, " +
+                            "usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=100, helpText='The period to wait between retries.'}}, IkasanComponentProperty{value=10, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='interval', " +
-                            "propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=10, helpText='The maximum number of retries.'}}]}"));
+                            "propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=10, helpText='The maximum number of retries.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("TimeoutException.class").toString(),
                     is("IkasanExceptionResoluation{theException=TimeoutException.class, theAction='stop', params=[IkasanComponentProperty{value=null, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, " +
                             "paramNumber=1, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='stop', propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, " +
-                            "validation=, defaultValue=null, helpText='Cause the flow to halt.'}}]}"));
+                            "validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='Cause the flow to halt.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.transformation.TransformationException.class").toString(),
                     is("IkasanExceptionResoluation{theException=org.ikasan.spec.component.transformation.TransformationException.class, theAction='ignoreException', params=[IkasanComponentProperty{value=null, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='ignoreException', " +
-                            "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, defaultValue=null, helpText='Ignore the exception and continue.'}}]}"));
+                            "propertyConfigFileLabel='', propertyDataType=null, usageDataType=null, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='Ignore the exception and continue.'}}]}"));
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.routing.RouterException.class").toString(),
                     is("IkasanExceptionResoluation{theException=org.ikasan.spec.component.routing.RouterException.class, theAction='retry', params=[IkasanComponentProperty{value=200, " +
                             "meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='delay', " +
-                            "propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, defaultValue=100, helpText='The period to wait " +
+                            "propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=100, helpText='The period to wait " +
                             "between retries.'}}, IkasanComponentProperty{value=10, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, paramNumber=1, mandatory=true, userImplementedClass=false, " +
-                            "userDefineResource=false, propertyName='interval', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, " +
+                            "userDefineResource=false, propertyName='interval', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, " +
                             "defaultValue=10, helpText='The maximum number of retries.'}}]}"));
         }
         {   // scope protection

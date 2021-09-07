@@ -28,7 +28,7 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
 
     // This callback will set the path to the correct data file used in the test
     public String getTestDataDir() {
-        return "/fmsFtp/";
+        return "/ikasanStandardSampleApps/fmsFtp/";
     }
     @Test
     public void test_parse_of_FmsFtp_standard_module() {

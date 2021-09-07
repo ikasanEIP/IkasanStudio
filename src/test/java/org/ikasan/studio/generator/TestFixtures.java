@@ -79,7 +79,6 @@ public class TestFixtures {
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("ConnectionTimeout", 600001);
-        component.setPropertyValue("CriticalOnStartup", true);
         component.setPropertyValue("DataTimeout", 300001);
         component.setPropertyValue("Destructive", true);
         component.setPropertyValue("FTPS", true);
@@ -480,7 +479,7 @@ public class TestFixtures {
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("RootName", "myRootName");
-        component.setPropertyValue("RootClass", "java.lang.String");
+        component.setPropertyValue("RootClassName", "java.lang.String");
         component.setPropertyValue("FastFailOnConfigurationLoad", true);
         component.setPropertyValue("NamespacePrefix", "myNamespacePrefix");
         component.setPropertyValue("NamespaceURI", "myNamespaceURI");

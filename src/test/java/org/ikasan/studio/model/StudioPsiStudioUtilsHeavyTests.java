@@ -16,12 +16,10 @@ import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.junit.Test;
 
-import java.util.Properties;
-
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
     private String TEST_PROJECT = "testproject";
-    private static String TEST_DATA_DIR = "/general/";
+    private static String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
 
     /**
      * @return path to test data file directory relative to root of this module.
