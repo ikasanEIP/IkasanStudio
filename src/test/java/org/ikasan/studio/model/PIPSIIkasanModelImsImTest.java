@@ -31,7 +31,7 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 
     // This callback will set the path to the correct data file used in the test
     public String getTestDataDir() {
-        return "/jmsIm/";
+        return "/ikasanStandardSampleApps/jmsIm/";
     }
     @Test
     public void test_parse_of_jmsIm_standard_module() {

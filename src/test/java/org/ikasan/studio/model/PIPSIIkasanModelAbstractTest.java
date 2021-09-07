@@ -8,9 +8,8 @@ import com.intellij.testFramework.PsiTestUtil;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
-import org.junit.Test;
 
-public class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
+public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
     private String testDataDir = "";
     protected VirtualFile myTestProjectRoot;
     protected static String TEST_PROJECT_KEY = "testproject";
@@ -49,10 +48,4 @@ public class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
         myTestProjectRoot = null;
         super.tearDown();
     }
-
-    @Test
-    public void testEmptyTestToPreventTestWarningsFromFrameworkFilter() {
-        assertTrue(true);
-    }
-
 }

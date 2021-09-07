@@ -30,7 +30,7 @@ ConfiguredResourceId|1|1|false|false|true|||java.lang.String|||||By default, the
 CriticalOnStartup|1|1|false|false|true|||java.lang.Boolean|||||Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.
 EmailBody|1|1|false|false|true|||java.lang.String|||||Text body for the email
 EmailFormat|1|1|false|false|true|||java.lang.String|||||Set the format for this email e.g. plain text, html
-ExtendedMailSessionProperties|1|1|false|true|true||||java.lang.String|java.util.Map<String, String>|||Extended set of email properties
+ExtendedMailSessionProperties|1|1|false|true|true|||java.lang.String|java.util.Map<String, String>||||Extended set of email properties
 From|1|1|false|false|true|||java.lang.String||^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$|Please provide a valid formatted email address||email address of sender
 HasAttachments|1|1|false|false|true|||java.lang.Boolean|||||Set to true if there attachements
 MailDebug|1|1|false|false|true|||java.lang.Boolean|||||Set to true to start debugging

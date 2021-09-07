@@ -1,4 +1,4 @@
-package com.ikasan.sample.spring.boot;
+ package com.ikasan.sample.spring.boot;
 
 import org.ikasan.builder.BuilderFactory;
 import org.ikasan.builder.ModuleBuilder;

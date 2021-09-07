@@ -34,7 +34,7 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
     @Test
     public void test_findFirstMethodByReturnType_finds_file() {
         // Note getTestDataPath() is overriding LightJavaCodeInsightFixtureTestCase
-        myFixture.copyDirectoryToProject("general", "src/");
+        myFixture.copyDirectoryToProject("ikasanStandardSampleApps/general", "src/");
 
         PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myFixture.getProject(), "org.ikasan.spec.module.Module");
 
