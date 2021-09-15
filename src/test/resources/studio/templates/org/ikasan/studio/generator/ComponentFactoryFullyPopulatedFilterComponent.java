@@ -15,7 +15,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @javax.annotation.Resource
-org.myApp.myflow1.MyFilter testFilterComponent;
+org.myApp.myflow1.MyMessageFilter testFilterComponent;
 @javax.annotation.Resource
 org.myApp.myflow1.MyConfigurationClass myConfigurationClass;
 

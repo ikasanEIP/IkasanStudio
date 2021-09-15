@@ -26,7 +26,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
     }
     @JsonIgnore
     public IkasanComponentProperty getProperty(String key) {
-        return configuredProperties.get(new IkasanComponentPropertyMetaKey(key, 1, 1));
+        return configuredProperties.get(new IkasanComponentPropertyMetaKey(key));
     }
     @JsonIgnore
     public IkasanComponentProperty getProperty(IkasanComponentPropertyMetaKey key) {
@@ -53,7 +53,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        updatePropertyValue(new IkasanComponentPropertyMetaKey(key, 1, 1), value);
+        updatePropertyValue(new IkasanComponentPropertyMetaKey(key), value);
     }
 
     /**
@@ -170,7 +170,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         configuredProperties.putAll(newProperties);
     }
     public void addComponentProperty(String key, IkasanComponentProperty value) {
-        configuredProperties.put(new IkasanComponentPropertyMetaKey(key, 1, 1), value);
+        configuredProperties.put(new IkasanComponentPropertyMetaKey(key), value);
     }
 
     /**

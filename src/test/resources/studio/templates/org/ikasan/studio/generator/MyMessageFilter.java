@@ -9,7 +9,7 @@ package org.ikasan;
 
 @org.springframework.stereotype.Component
 
-public class MyFilter implements org.ikasan.spec.component.filter.Filter<class java.lang.String>, org.ikasan.spec.configuration.ConfiguredResource<MyConfigurationClass>
+public class MyMessageFilter implements org.ikasan.spec.component.filter.Filter<class java.lang.String>, org.ikasan.spec.configuration.Configured<MyConfigurationClass>
 {
 MyConfigurationClass configuration;
 String configurationId;

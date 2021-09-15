@@ -9,7 +9,7 @@ package ${studioPackageTag};
 
 @org.springframework.stereotype.Component
 
-public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("Configuration")??>, org.ikasan.spec.configuration.ConfiguredResource<${component.getPropertyValue("Configuration")}></#if>
+public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("Configuration")??>, org.ikasan.spec.configuration.Configured<${component.getPropertyValue("Configuration")}></#if>
 {
 <#if component.getPropertyValue("Configuration")??>
 ${component.getPropertyValue("Configuration")} configuration;

@@ -66,24 +66,15 @@ public class ModuleFactory
         // get the builders
         ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("myIntegrationModule");
 
-        Flow sourceFlow = moduleBuilder.getFlowBuilder("dbToJMSFlow")
-            .withDescription("Sample DB to JMS flow")
+        Flow sourceFlow = moduleBuilder.getFlowBuilder("myTestFlow")
+            .withDescription("Test flow description")
             .withExceptionResolver( componentFactory.getSourceFlowExceptionResolver() )
             .consumer("DB Consumer", componentFactory.getDBConsumer())
             .filter("My Filter", componentFactory.getFilter())
-            .splitter("Split list", componentFactory.getListSplitter())
-            .converter("Person to XML", componentFactory.getObjectToXmlStringConverter())
             .producer("JMS Producer", componentFactory.getJmsProducer()).build();
 
-        Flow targetFlow = moduleBuilder.getFlowBuilder("jmsToDbFlow")
-            .withDescription("Sample JMS to DB flow")
-            .consumer("JMS Consumer", componentFactory.getJmsConsumer())
-            .converter("XML to Person", componentFactory.getXmlToObjectConverter())
-            .producer("DB Producer", componentFactory.getDBProducer()).build();
-
-        org.ikasan.spec.module.Module module = moduleBuilder.withDescription("Sample DB consumer / producer module.")
+        org.ikasan.spec.module.Module module = moduleBuilder.withDescription("My test module.")
             .addFlow(sourceFlow)
-            .addFlow(targetFlow)
             .build();
 
         return module;

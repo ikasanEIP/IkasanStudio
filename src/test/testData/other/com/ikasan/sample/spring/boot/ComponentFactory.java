@@ -153,21 +153,6 @@ public class ComponentFactory
     }
 
 
-
-    Converter getObjectToXmlStringConverter()
-    {
-        return builderFactory.getComponentBuilder().objectToXmlStringConverter()
-                .setObjectClass(Person.class)
-                .build();
-    }
-
-    Converter getXmlToObjectConverter()
-    {
-        return builderFactory.getComponentBuilder().xmlStringToObjectConverter()
-                .setClassToBeBound(com.ikasan.sample.person.model.Person.class)
-                .build();
-    }
-
     Filter getFilter()
     {
         MyFilter myFilter = new MyFilter();
