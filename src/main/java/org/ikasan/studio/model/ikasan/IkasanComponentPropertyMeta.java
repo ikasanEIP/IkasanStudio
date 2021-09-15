@@ -18,21 +18,21 @@ public class IkasanComponentPropertyMeta {
     public static final String TO_TYPE = "ToType";                      // Special meta for converter, the type of the outbound payload
 
     // Special META for component NAME, this standard for each component.
-    public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name", 1, 1);
+    public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name");
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, true, false, false, true,
             NAME.getPropertyName(), null, String.class, "", "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
 
     // Special META for component DESCRIPTION, this standard for each component.
-    public static final IkasanComponentPropertyMetaKey DESCRIPTION = new IkasanComponentPropertyMetaKey("Description", 1, 1);
+    public static final IkasanComponentPropertyMetaKey DESCRIPTION = new IkasanComponentPropertyMetaKey("Description");
     public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, false, false, false, true,
             DESCRIPTION.getPropertyName(), null, String.class, "", "", "", "",
             "A more detailed description of the component that may assist in support.");
 
     // Special META for package parent of the users bespoke packages, a little like a pom group
-    public static final IkasanComponentPropertyMetaKey APPLICATION_PACKAGE_NAME = new IkasanComponentPropertyMetaKey("ApplicationPackageName", 1, 1);
+    public static final IkasanComponentPropertyMetaKey APPLICATION_PACKAGE_NAME = new IkasanComponentPropertyMetaKey("ApplicationPackageName");
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
         new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
@@ -40,7 +40,7 @@ public class IkasanComponentPropertyMeta {
             "The base java package for your application.");
 
     // Special META to model the port number to be used to launch the app and part of its user driven config.
-    public static final IkasanComponentPropertyMetaKey APPLICATION_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("ApplicationPortNumber", 1, 1);
+    public static final IkasanComponentPropertyMetaKey APPLICATION_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("ApplicationPortNumber");
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
             new IkasanComponentPropertyMeta(1, 1, true, false, false, false,

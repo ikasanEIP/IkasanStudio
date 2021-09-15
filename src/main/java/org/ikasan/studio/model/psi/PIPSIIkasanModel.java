@@ -898,11 +898,11 @@ public class PIPSIIkasanModel {
                 // Configuration is a special case.
                 String parameter =  componentBuilderMethodList.getConfiguredResource();
                 // Only expect 1 param for the setter
-                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("Configuration", ""), 1, 1), parameter);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("Configuration", "")), parameter);
             } else if (methodName.startsWith("set")) {
                 String parameter =  getReferenceOrLiteralFromParameter(pipsiMethod, 0);
                 // Only expect 1 param for the setter
-                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("set", ""), 1, 1), parameter);
+                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("set", "")), parameter);
             } else {
                 // Must be the component type e.g. jmsConsumer()
                 ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.parseMethodName(methodName), parent, name, description);

@@ -41,7 +41,7 @@ public class TestFixtures {
         component.setName("testFilterComponent");
 
         // Mandatory properties
-        component.setPropertyValue("BespokeClassName", "MyFilter");
+        component.setPropertyValue("BespokeClassName", "MyMessageFilter");
         component.setPropertyValue("FromType", java.lang.String.class);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "MyConfiguredResourceId");
