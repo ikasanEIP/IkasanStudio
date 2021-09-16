@@ -5,14 +5,13 @@ import org.jetbrains.annotations.NotNull;
 public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponentPropertyMetaKey> {
     private String propertyName;
     private Integer parameterGroupNumber;
-    private Integer parameterNumber;
 
     /**
      * Construct the Metadata key
      * @param propertyName which often maps to a setter method name
      */
     public IkasanComponentPropertyMetaKey(String propertyName) {
-        this(propertyName, 1, 1);
+        this(propertyName, 1);
         this.propertyName = propertyName;
     }
 
@@ -20,12 +19,10 @@ public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponen
      * Construct the Metadata key
      * @param propertyName which often maps to a setter method name
      * @param parameterGroupNumber supports scenario where we have more than 1 group of parameters e.g. when we are overloading
-     * @param parameterNumber used to construct the property, most properties have 1 parameter to set them.
      */
-    public IkasanComponentPropertyMetaKey(String propertyName, Integer parameterGroupNumber, Integer parameterNumber) {
+    public IkasanComponentPropertyMetaKey(String propertyName, Integer parameterGroupNumber) {
         this.propertyName = propertyName;
         this.parameterGroupNumber = parameterGroupNumber;
-        this.parameterNumber = parameterNumber;
     }
 
     public String getPropertyName() {
@@ -44,13 +41,6 @@ public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponen
         this.parameterGroupNumber = parameterGroupNumber;
     }
 
-    public Integer getParameterNumber() {
-        return parameterNumber;
-    }
-
-    public void setParameterNumber(Integer parameterNumber) {
-        this.parameterNumber = parameterNumber;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -60,15 +50,13 @@ public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponen
         IkasanComponentPropertyMetaKey that = (IkasanComponentPropertyMetaKey) o;
 
         if (!propertyName.equals(that.propertyName)) return false;
-        if (!parameterGroupNumber.equals(that.parameterGroupNumber)) return false;
-        return parameterNumber.equals(that.parameterNumber);
+        return parameterGroupNumber.equals(that.parameterGroupNumber);
     }
 
     @Override
     public int hashCode() {
         int result = propertyName.hashCode();
         result = 31 * result + parameterGroupNumber.hashCode();
-        result = 31 * result + parameterNumber.hashCode();
         return result;
     }
 
@@ -77,12 +65,11 @@ public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponen
         return "MetadataKey{" +
                 "propertyName='" + propertyName + '\'' +
                 ", parameterGroupNumber=" + parameterGroupNumber +
-                ", parameterNumber=" + parameterNumber +
                 '}';
     }
 
     public String getCompareKey() {
-        return parameterGroupNumber + parameterNumber + propertyName;
+        return parameterGroupNumber + propertyName;
     }
 
     @Override

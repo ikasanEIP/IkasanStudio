@@ -37,10 +37,10 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         return getPropertyValue(new IkasanComponentPropertyMetaKey(key));
     }
 
-    @JsonIgnore
-    public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
-        return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
-    }
+//    @JsonIgnore
+//    public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
+//        return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
+//    }
     @JsonIgnore
     public Object getPropertyValue(IkasanComponentPropertyMetaKey key) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);

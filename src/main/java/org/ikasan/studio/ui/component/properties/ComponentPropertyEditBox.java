@@ -20,7 +20,7 @@ public class ComponentPropertyEditBox {
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
-    private boolean userMaintainedClass = false;
+    private boolean causesUserCodeRegeneration = false;
     private JCheckBox regenerateSourceCheckBox;
     private JLabel regenerateLabel;
     private IkasanComponentPropertyMeta meta;
@@ -75,29 +75,39 @@ public class ComponentPropertyEditBox {
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if (componentProperty.isUserImplementedClass() && !popupMode) {
-            userMaintainedClass = true;
+        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !popupMode) {
+            causesUserCodeRegeneration = true;
             regenerateLabel = new JLabel("Regenerate");
             regenerateSourceCheckBox = new JCheckBox();
             regenerateSourceCheckBox.addItemListener( ie -> {
+                if (propertyValueField != null) {
                     propertyValueField.setEditable(ie.getStateChange() == 1);
                     propertyValueField.setEnabled(ie.getStateChange() == 1);
+                } else if (propertyBooleanFieldTrue != null) {
+                    propertyBooleanFieldTrue.setEnabled(ie.getStateChange() == 1);
+                    propertyBooleanFieldFalse.setEnabled(ie.getStateChange() == 1);
+                }
             });
             regenerateSourceCheckBox.setBackground(Color.WHITE);
 
             // Cant edit unless the regenerateSource is selected
-            disableRegeneratingFeilds();
+            disableRegeneratingFields();
         }
     }
 
     /**
      * User can only select override box if a valid value has been supplied.
      */
-    public void disableRegeneratingFeilds() {
-        if (userMaintainedClass) {
+    public void disableRegeneratingFields() {
+        if (causesUserCodeRegeneration) {
             regenerateSourceCheckBox.setSelected(false);
-            propertyValueField.setEditable(false);
-            propertyValueField.setEnabled(false);
+            if (propertyValueField != null) {
+                propertyValueField.setEditable(false);
+                propertyValueField.setEnabled(false);
+            } else if (propertyBooleanFieldTrue != null) {
+                propertyBooleanFieldTrue.setEnabled(false);
+                propertyBooleanFieldFalse.setEnabled(false);
+            }
         }
     }
 
@@ -219,7 +229,7 @@ public class ComponentPropertyEditBox {
      */
     public IkasanComponentProperty updateValueObjectWithEnteredValues() {
         componentProperty.setValue(getValue());
-        if (isUserMaintainedClassWithPermissionToRegenerate()) {
+        if (causesUserCodeRegenerationAndHasPermissionToRegenerate()) {
             componentProperty.setRegenerateAllowed(true);
         }
         return componentProperty;
@@ -233,16 +243,16 @@ public class ComponentPropertyEditBox {
         Object propertyValue = componentProperty.getValue();
         return ((propertyValue == null && editBoxHasValue()) ||
                 (propertyValue != null && !componentProperty.getValue().equals(getValue())) ||
-                (isUserMaintainedClassWithPermissionToRegenerate() && editBoxHasValue()) );
+                (causesUserCodeRegenerationAndHasPermissionToRegenerate() && editBoxHasValue()) );
     }
 
-    public boolean isUserMaintainedClassWithPermissionToRegenerate() {
-        return isUserMaintainedClass() && regenerateSourceCheckBox != null && regenerateSourceCheckBox.isSelected();
+    public boolean causesUserCodeRegenerationAndHasPermissionToRegenerate() {
+        return causesUserCodeRegeneration && regenerateSourceCheckBox != null && regenerateSourceCheckBox.isSelected();
     }
 
-    public boolean isUserMaintainedClass() {
-        return userMaintainedClass;
-    }
+//    public boolean isUserMaintainedClass() {
+//        return userMaintainedClass;
+//    }
 
 
     public JLabel getPropertyTitleField() {

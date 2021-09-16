@@ -14,42 +14,42 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
-java.lang.String myFlow1FileConsumerCronexpression;
 @org.springframework.beans.factory.annotation.Value("#{${myflow1.file.consumer.filenames}}")
 java.util.List<String> myFlow1FileConsumerFilenames;
+@org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
+java.lang.String myFlow1FileConsumerCronexpression;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor myMessageProviderPostProcessor;
+org.ikasan.spec.event.EventFactory myEventFactoryClassName;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor myMessageProviderPostProcessor;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
-@javax.annotation.Resource
-org.ikasan.spec.event.EventFactory myEventFactoryClassName;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestLocalFileConsumer() {
 return builderFactory.getComponentBuilder().fileConsumer()
-.setCronExpression(myFlow1FileConsumerCronexpression)
-.setIgnoreMisfire(true)
-.setMessageProviderPostProcessor(myMessageProviderPostProcessor)
-.setMessageProvider(myMessageProviderClass)
-.setMaxEagerCallbacks(1)
-.setTimezone("GMT")
-.setScheduledJobGroupName("myScheduledJobGroupName")
-.setEncoding("UTF-8")
-.setConfiguration(myConfigurationClass)
-.setFilenames(myFlow1FileConsumerFilenames)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setSortByModifiedDateTime(12)
 .setEventFactory(myEventFactoryClassName)
-.setSortAscending(true)
-.setEager(true)
-.setScheduledJobName("myScheduledJobName")
+.setMessageProvider(myMessageProviderClass)
+.setMessageProviderPostProcessor(myMessageProviderPostProcessor)
 .setCriticalOnStartup(true)
-.setIgnoreFileRenameWhilstScanning(true)
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setSortByModifiedDateTime(12)
+.setConfiguration(myConfigurationClass)
+.setScheduledJobName("myScheduledJobName")
+.setFilenames(myFlow1FileConsumerFilenames)
+.setEager(true)
+.setSortAscending(true)
+.setCronExpression(myFlow1FileConsumerCronexpression)
+.setMaxEagerCallbacks(1)
 .setDirectoryDepth(1)
+.setScheduledJobGroupName("myScheduledJobGroupName")
+.setTimezone("GMT")
+.setEncoding("UTF-8")
+.setIgnoreFileRenameWhilstScanning(true)
+.setIgnoreMisfire(true)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .build();
 }}

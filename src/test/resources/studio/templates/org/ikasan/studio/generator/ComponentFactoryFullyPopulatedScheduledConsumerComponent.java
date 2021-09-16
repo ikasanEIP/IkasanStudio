@@ -17,7 +17,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
 java.lang.String myFlow1FtpConsumerCronexpression;
 @javax.annotation.Resource
-org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
+org.ikasan.spec.event.EventFactory myEventFactory;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
@@ -25,23 +25,23 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 @javax.annotation.Resource
 org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory myEventFactory;
+org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestScheduledConsumer() {
 return builderFactory.getComponentBuilder().scheduledConsumer()
-.setCronExpression(myFlow1FtpConsumerCronexpression)
-.setIgnoreMisfire(true)
-.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
-.setMessageProvider(myMessageProviderClass)
-.setMaxEagerCallbacks(1)
-.setTimezone("UTC")
-.setScheduledJobGroupName("myScheduledJobGroupName")
-.setConfiguration(myConfigurationClass)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setEventFactory(myEventFactory)
-.setEager(true)
-.setScheduledJobName("myScheduledJobName")
+.setMessageProvider(myMessageProviderClass)
 .setCriticalOnStartup(true)
+.setConfiguration(myConfigurationClass)
+.setScheduledJobName("myScheduledJobName")
+.setEager(true)
+.setCronExpression(myFlow1FtpConsumerCronexpression)
+.setMaxEagerCallbacks(1)
+.setScheduledJobGroupName("myScheduledJobGroupName")
+.setTimezone("UTC")
+.setIgnoreMisfire(true)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
 .build();
 }}

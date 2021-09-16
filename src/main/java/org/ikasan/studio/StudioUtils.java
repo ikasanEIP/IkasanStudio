@@ -13,10 +13,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Studio Utils
@@ -162,7 +159,7 @@ public class StudioUtils {
     }
     private static final int PROPERTY_NAME_INDEX = 0;
     private static final int PARAM_GROUP_NUMBER = 1;
-    private static final int PARAM_NUMBER = 2;
+    private static final int CAUSES_USER_CODE_REGENRATION_INDEX = 2;
     private static final int MANDATORY_INDEX = 3;
     private static final int USER_IMPLEMENTED_CLASS_INDEX = 4;
     private static final int SETTER_PROPERTY_INDEX = 5;
@@ -179,7 +176,8 @@ public class StudioUtils {
 
     //@todo should be in IkasanComponentType
     public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
-        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
+//        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
+        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
 //        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
@@ -200,16 +198,14 @@ public class StudioUtils {
                     }
 
                     Integer paramGroupNumber = 1;
-                    Integer paramNumber = 1;
                     try {
                         paramGroupNumber = Integer.parseInt(split[PARAM_GROUP_NUMBER]);
-                        paramNumber = Integer.parseInt(split[PARAM_NUMBER]);
 
                     } catch (NumberFormatException nfe) {
-                        LOG.error("Error trying to parse either paramGroupNumber=" + split[PARAM_GROUP_NUMBER] + " or paramNumber=" + split[PARAM_NUMBER] +
-                                " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
+                        LOG.error("Error trying to parse paramGroupNumber=" + split[PARAM_GROUP_NUMBER] + " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
+                    boolean causesUserCodeRegeneration = Boolean.parseBoolean(split[CAUSES_USER_CODE_REGENRATION_INDEX]);
                     String propertyName = split[PROPERTY_NAME_INDEX];
                     String parentPropertyName = null;
                     // Check to see if this property has sub properties
@@ -219,7 +215,7 @@ public class StudioUtils {
                         propertyName = parentChildPropertyNames[1];
                     } /// need to check size here and throw log error
 
-                    IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber, paramNumber);
+                    IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber);
                     if (componentProperties.containsKey(newKey)) {
                         LOG.error("A property of this key [" + newKey + "] already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                         continue;
@@ -258,11 +254,11 @@ public class StudioUtils {
                     //  default value
                     Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
                     IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
-                            paramGroupNumber, paramNumber, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
+                            paramGroupNumber, causesUserCodeRegeneration, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
                             propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
                     if (parentPropertyName != null) {
                         // Parent child relationship
-                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber, paramNumber);
+                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber);
                         IkasanComponentPropertyMeta parent = componentProperties.get(parentKey);
                         if (parent == null) {
                             componentProperties.put(parentKey, new IkasanComponentPropertyMeta(newKey, ikasanComponentPropertyMeta));
