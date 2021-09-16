@@ -14,74 +14,74 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.password}")
-java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryPassword;
-@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.name}")
-java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryName;
-@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination}")
-java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestination;
-@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.jndi.initial}")
-java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryJndiInitial;
-@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination.jndi.password}")
-java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination.jndi.user}")
 java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiUser;
 @org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination.jndi.initial}")
 java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiInitial;
+@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination}")
+java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestination;
+@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.name}")
+java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryName;
 @org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.jndi.provider.url}")
 java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryJndiProviderUrl;
-@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.user}")
-java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryUser;
 @org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination.jndi.provider.url}")
 java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiProviderUrl;
-@javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
-@javax.annotation.Resource
-org.ikasan.component.endpoint.jms.producer.PostProcessor myPostProcessor;
+@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.destination.jndi.password}")
+java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiPassword;
+@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.password}")
+java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryPassword;
+@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.jndi.initial}")
+java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryJndiInitial;
+@org.springframework.beans.factory.annotation.Value("${jms.myintegrationmodule.myflow1.testjmsconsumer.connection.factory.user}")
+java.lang.String jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryUser;
 @javax.annotation.Resource
 javax.jms.ConnectionFactory myConnectionFactory;
 @javax.annotation.Resource
+org.ikasan.component.endpoint.jms.producer.PostProcessor myPostProcessor;
+@javax.annotation.Resource
 org.springframework.jms.support.converter.MessageConverter myMessageConverter;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getTestJmsConsumer() {
 return builderFactory.getComponentBuilder().jmsProducer()
-.setConnectionFactoryJndiPropertySecurityPrincipal("myConnectionFactoryJndiPropertySecurityPrincipal")
-.setPriority(1)
-.setConnectionUsername("myConnectionUsername")
-.setConfiguration(myConfigurationClass)
-.setDeliveryMode(1)
-.setPostProcessor(myPostProcessor)
-.setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
-.setConnectionFactoryPassword(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryPassword)
-.setPubSubNoLocal(true)
-.setConnectionFactoryJndiPropertyUrlPkgPrefixes("myConnectionFactoryJndiPropertyUrlPkgPrefixes")
-.setConnectionFactoryJNDIProperties({key1:'value1',key2:'value2'})
-.setMessageIdEnabled(true)
-.setPubSubDomain(myPubSubDomain)
-.setSessionAcknowledgeMode(AUTO_ACKNOWLEDGE)
-.setSessionTransacted(true)
-.setExplicitQosEnabled(true)
-.setDestinationJndiProperties("myDestinationJndiProperties")
-.setConnectionFactoryName(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryName)
-.setDestinationJndiName(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestination)
-.setMessageTimestampEnabled(true)
 .setConnectionFactory(myConnectionFactory)
-.setConnectionFactoryJndiPropertyFactoryInitial(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryJndiInitial)
 .setDestinationJndiPropertyUrlPkgPrefixes("org.myapp")
-.setMessageConverter(myMessageConverter)
-.setDeliveryPersistent(true)
-.setTimeToLive(100)
-.setDestinationJndiPropertySecurityCredentials(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiPassword)
 .setConnectionPassword("myConnectionPassword")
+.setPriority(1)
+.setPostProcessor(myPostProcessor)
+.setDeliveryPersistent(true)
 .setDestinationJndiPropertySecurityPrincipal(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiUser)
 .setDestinationJndiPropertyFactoryInitial(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiInitial)
+.setConnectionUsername("myConnectionUsername")
+.setSessionTransacted(true)
+.setDestinationJndiName(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestination)
+.setTimeToLive(100)
+.setConnectionFactoryName(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryName)
+.setDeliveryMode(1)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryJndiProviderUrl)
-.setTransactionManager(myTransactionManagerClass)
-.setReceiveTimeout(1000)
-.setConnectionFactoryUsername(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryUser)
-.setDestinationJndiPropertyProviderUrl(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiProviderUrl)
+.setDestinationJndiProperties("myDestinationJndiProperties")
+.setMessageTimestampEnabled(true)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setPubSubNoLocal(true)
+.setSessionAcknowledgeMode(AUTO_ACKNOWLEDGE)
+.setConnectionFactoryJNDIProperties({key1:'value1',key2:'value2'})
+.setMessageConverter(myMessageConverter)
+.setReceiveTimeout(1000)
+.setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
+.setDestinationJndiPropertyProviderUrl(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiProviderUrl)
+.setConnectionFactoryJndiPropertySecurityPrincipal("myConnectionFactoryJndiPropertySecurityPrincipal")
+.setConfiguration(myConfigurationClass)
+.setDestinationJndiPropertySecurityCredentials(jmsMyIntegrationModuleMyFlow1TestJmsConsumerDestinationJndiPassword)
+.setPubSubDomain(myPubSubDomain)
+.setConnectionFactoryPassword(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryPassword)
+.setConnectionFactoryJndiPropertyUrlPkgPrefixes("myConnectionFactoryJndiPropertyUrlPkgPrefixes")
+.setExplicitQosEnabled(true)
+.setConnectionFactoryJndiPropertyFactoryInitial(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryJndiInitial)
+.setMessageIdEnabled(true)
+.setConnectionFactoryUsername(jmsMyIntegrationModuleMyFlow1TestJmsConsumerConnectionFactoryUser)
+.setTransactionManager(myTransactionManagerClass)
 .build();
 }}

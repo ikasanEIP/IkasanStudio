@@ -20,14 +20,14 @@ public class IkasanComponentPropertyMeta {
     // Special META for component NAME, this standard for each component.
     public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name");
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(1, 1, true, false, false, true,
+        new IkasanComponentPropertyMeta(1, false, true, false, false, true,
             NAME.getPropertyName(), null, String.class, "", "", "", "",
             "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.");
 
     // Special META for component DESCRIPTION, this standard for each component.
     public static final IkasanComponentPropertyMetaKey DESCRIPTION = new IkasanComponentPropertyMetaKey("Description");
     public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
-        new IkasanComponentPropertyMeta(1, 1, false, false, false, true,
+        new IkasanComponentPropertyMeta(1, false, false, false, false, true,
             DESCRIPTION.getPropertyName(), null, String.class, "", "", "", "",
             "A more detailed description of the component that may assist in support.");
 
@@ -35,7 +35,7 @@ public class IkasanComponentPropertyMeta {
     public static final IkasanComponentPropertyMetaKey APPLICATION_PACKAGE_NAME = new IkasanComponentPropertyMetaKey("ApplicationPackageName");
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
     public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
-        new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
+        new IkasanComponentPropertyMeta(1, false, true, false, false, false,
             APPLICATION_PACKAGE_NAME.getPropertyName(), null, String.class, "", "", "", "",
             "The base java package for your application.");
 
@@ -43,13 +43,13 @@ public class IkasanComponentPropertyMeta {
     public static final IkasanComponentPropertyMetaKey APPLICATION_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("ApplicationPortNumber");
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
-            new IkasanComponentPropertyMeta(1, 1, true, false, false, false,
+            new IkasanComponentPropertyMeta(1, false, true, false, false, false,
                     APPLICATION_PORT_NUMBER_NAME.getPropertyName(), null, String.class, "", "", "", "",
                     "The port number that the running application will use locally.");
 
     Integer paramGroupNumber;
-    Integer paramNumber;
     boolean mandatory;
+    boolean causesUserCodeRegeneration;
     boolean userImplementedClass;
     boolean setterProperty;
     boolean userDefineResource;
@@ -83,7 +83,7 @@ public class IkasanComponentPropertyMeta {
     * A IkasanComponentPropertyMeta could be a leaf i.e. hold a single set of metadata or could nest another set of metadata
     *
     * @param paramGroupNumber Supports sets of params e.g. overloaded methods
-    * @param paramNumber The parameter number (where a component might be instantiated with multiple parameters)
+    * @param causesUserCodeRegeneration Causes the user code to be regenerated
     * @param mandatory for the component to be deemed to be complete
     * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
     * @param setterProperty The property should feature in the component factory setter.
@@ -96,8 +96,9 @@ public class IkasanComponentPropertyMeta {
     * @param defaultValue for the property
     * @param helpText for the property
     */
+   /* @TODO convert to builder */
     public IkasanComponentPropertyMeta(@NotNull Integer paramGroupNumber,
-                                       @NotNull Integer paramNumber,
+                                       @NotNull boolean causesUserCodeRegeneration,
                                        @NotNull boolean mandatory,
                                        @NotNull boolean userImplementedClass,
                                        boolean setterProperty,
@@ -111,7 +112,7 @@ public class IkasanComponentPropertyMeta {
                                        Object defaultValue,
                                        String helpText) {
         this.paramGroupNumber = paramGroupNumber;
-        this.paramNumber = paramNumber;
+        this.causesUserCodeRegeneration = causesUserCodeRegeneration;
         this.mandatory = mandatory;
         this.userImplementedClass = userImplementedClass;
         this.setterProperty = setterProperty;
@@ -173,6 +174,14 @@ public class IkasanComponentPropertyMeta {
         return userImplementedClass;
     }
 
+    public boolean causesUserCodeRegeneration() {
+        return causesUserCodeRegeneration;
+    }
+
+    public void setCausesUserCodeRegeneration(boolean causesUserCodeRegeneration) {
+        this.causesUserCodeRegeneration = causesUserCodeRegeneration;
+    }
+
     public boolean isSetterProperty() {
         return setterProperty;
     }
@@ -216,7 +225,7 @@ public class IkasanComponentPropertyMeta {
     }
 
     public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(1, 1, false, false, false, false, name, null, String.class, "", "", "", "", "");
+        return new IkasanComponentPropertyMeta(1, false, false, false, false, false, name, null, String.class, "", "", "", "", "");
     }
 
     /**
@@ -230,7 +239,6 @@ public class IkasanComponentPropertyMeta {
         if (o == null || getClass() != o.getClass()) return false;
         IkasanComponentPropertyMeta that = (IkasanComponentPropertyMeta) o;
         return paramGroupNumber.equals(that.paramGroupNumber) &&
-                paramNumber.equals(that.paramNumber) &&
                 mandatory == that.mandatory &&
                 userImplementedClass == that.userImplementedClass &&
                 propertyName.equals(that.propertyName) &&
@@ -242,14 +250,14 @@ public class IkasanComponentPropertyMeta {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(paramGroupNumber, paramNumber, mandatory, userImplementedClass, propertyName, propertyDataType);
+        return Objects.hash(paramGroupNumber, mandatory, userImplementedClass, propertyName, propertyDataType);
     }
 
     @Override
     public String toString() {
         return "IkasanComponentPropertyMeta{" +
                 "paramGroupNumber=" + paramGroupNumber +
-                ", paramNumber=" + paramNumber +
+                ", causesUserCodeRegeneration=" + causesUserCodeRegeneration +
                 ", mandatory=" + mandatory +
                 ", userImplementedClass=" + userImplementedClass +
                 ", userDefineResource=" + userDefineResource +

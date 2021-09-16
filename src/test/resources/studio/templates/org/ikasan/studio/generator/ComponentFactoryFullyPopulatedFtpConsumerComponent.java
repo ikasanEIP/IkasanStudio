@@ -14,95 +14,95 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
-java.lang.String myFlow1FtpConsumerCronexpression;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.source-directory}")
 java.lang.String myFlow1FtpConsumerSourcedirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
 java.lang.Integer myFlow1FtpConsumerRemoteport;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")
 java.lang.String myFlow1FtpConsumerUsername;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
-java.lang.Integer myFlow1FtpConsumerMaxretryattempts;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.move-on-success-new-path}")
-java.lang.String myFlow1FtpConsumerMoveonsuccessnewpath;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.filename-pattern}")
-java.lang.String myFlow1FtpConsumerFilenamepattern;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password}")
 java.lang.String myFlow1FtpConsumerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.filename-pattern}")
+java.lang.String myFlow1FtpConsumerFilenamepattern;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password-filepath}")
 java.lang.String myFlow1FtpConsumerPasswordfilepath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
 java.lang.String myFlow1FtpConsumerRemotehost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.move-on-success-new-path}")
+java.lang.String myFlow1FtpConsumerMoveonsuccessnewpath;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
+java.lang.Integer myFlow1FtpConsumerMaxretryattempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
 java.lang.String myFlow1FtpConsumerFtpsprotocol;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
-java.lang.Integer myFlow1FtpConsumerFtpsport;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
+java.lang.String myFlow1FtpConsumerCronexpression;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
 java.lang.String myFlow1FtpConsumerSystemkey;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
+java.lang.Integer myFlow1FtpConsumerFtpsport;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
-org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
-@javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 @javax.annotation.Resource
-org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
+org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
+org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
+@javax.annotation.Resource
+org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getTestFtpConsumer() {
 return builderFactory.getComponentBuilder().ftpConsumer()
-.setCronExpression(myFlow1FtpConsumerCronexpression)
-.setFtpsIsImplicit(true)
+.setMessageProvider(myMessageProviderClass)
+.setSourceDirectory(myFlow1FtpConsumerSourcedirectory)
+.setClientID("myClientId")
+.setChronological(true)
 .setDataTimeout(300001)
+.setScheduledJobName("myScheduledJobName")
+.setFilterOnFilename(true)
 .setMaxEagerCallbacks(1)
 .setMaxRows(11)
-.setSourceDirectory(myFlow1FtpConsumerSourcedirectory)
-.setFTPS(true)
-.setMoveOnSuccess(true)
-.setFtpsKeyStoreFilePath("/test/ftps/keystore")
-.setChunkSize(1048577)
-.setRenameOnSuccess(true)
-.setScheduledJobName("myScheduledJobName")
 .setRemotePort(myFlow1FtpConsumerRemoteport)
-.setMessageProvider(myMessageProviderClass)
-.setRenameOnSuccessExtension("newExtension")
-.setCleanupJournalOnComplete(true)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setRenameOnSuccess(true)
+.setMinAge(12)
+.setMoveOnSuccess(true)
 .setUsername(myFlow1FtpConsumerUsername)
-.setMaxRetryAttempts(myFlow1FtpConsumerMaxretryattempts)
-.setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
-.setMoveOnSuccessNewPath(myFlow1FtpConsumerMoveonsuccessnewpath)
-.setIsRecursive(true)
-.setFilterDuplicates(true)
-.setConnectionTimeout(600001)
-.setTransactionManager(myTransactionManagerClass)
-.setChunking(true)
-.setIgnoreMisfire(true)
-.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
-.setChecksum(true)
-.setFilenamePattern(myFlow1FtpConsumerFilenamepattern)
 .setDestructive(true)
 .setScheduledJobGroupName("myScheduledJobGroupName")
-.setFilterOnLastModifiedDate(true)
-.setConfiguration(myConfigurationClass)
+.setFtpsIsImplicit(true)
 .setPassword(myFlow1FtpConsumerPassword)
+.setFilenamePattern(myFlow1FtpConsumerFilenamepattern)
+.setChecksum(true)
+.setTransactionManager(myTransactionManagerClass)
+.setIsRecursive(true)
 .setPasswordFilePath(myFlow1FtpConsumerPasswordfilepath)
-.setSocketTimeout(22)
-.setAgeOfFiles(10)
+.setFilterOnLastModifiedDate(true)
 .setRemoteHost(myFlow1FtpConsumerRemotehost)
-.setActive(true)
-.setFtpsProtocol(myFlow1FtpConsumerFtpsprotocol)
-.setClientID("myClientId")
+.setMoveOnSuccessNewPath(myFlow1FtpConsumerMoveonsuccessnewpath)
+.setConnectionTimeout(600001)
+.setChunking(true)
+.setFilterDuplicates(true)
+.setFtpsKeyStoreFilePath("/test/ftps/keystore")
+.setFTPS(true)
 .setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setFtpsPort(myFlow1FtpConsumerFtpsport)
-.setMinAge(12)
-.setFilterOnFilename(true)
-.setChronological(true)
+.setMaxRetryAttempts(myFlow1FtpConsumerMaxretryattempts)
+.setFtpsProtocol(myFlow1FtpConsumerFtpsprotocol)
+.setSocketTimeout(22)
+.setActive(true)
+.setAgeOfFiles(10)
+.setChunkSize(1048577)
+.setConfiguration(myConfigurationClass)
+.setCronExpression(myFlow1FtpConsumerCronexpression)
 .setSystemKey(myFlow1FtpConsumerSystemkey)
+.setRenameOnSuccessExtension("newExtension")
 .setFtpsKeyStoreFilePassword("myFtpsKeyStoreFilePassword")
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setCleanupJournalOnComplete(true)
+.setIgnoreMisfire(true)
+.setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
+.setFtpsPort(myFlow1FtpConsumerFtpsport)
+.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
 .build();
 }}

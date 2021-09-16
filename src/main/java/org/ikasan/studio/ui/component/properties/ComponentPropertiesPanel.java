@@ -57,7 +57,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     private void resetCheckboxes() {
         for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-            componentPropertyEditBox.disableRegeneratingFeilds();
+            componentPropertyEditBox.disableRegeneratingFields();
         }
         if (beskpokeComponentOverrideCheckBox != null) {
             beskpokeComponentOverrideCheckBox.setSelected(false);
@@ -112,7 +112,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     mandatoryPropertiesEditorPanel,
                                     property, gc, mandatoryTabley++));
-                        } else if (property.getMeta().isUserImplementedClass()) {
+                        } else if (property.getMeta().isUserImplementedClass() || property.getMeta().causesUserCodeRegeneration()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     regeneratingPropertiesEditorPanel,
                                     property, gc, regenerateTabley++));
@@ -212,9 +212,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty, popupMode);
 
-        if (componentProperty.isUserImplementedClass() && !popupMode) {
+        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !popupMode) {
             addLabelInputEditorAndGenerateSource(propertiesEditorPanel, gc, tabley,
-                    componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getOverridingInputField(),
+                    componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField(),
                     componentPropertyEditBox.getRegenerateLabel(), componentPropertyEditBox.getRegenerateSourceCheckBox());
         } else {
             addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
@@ -253,7 +253,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     private void addLabelInputEditorAndGenerateSource(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley,
-                                                      JLabel propertyLabel, JComponent propertyInputField,
+                                                      JLabel propertyLabel, ComponentInput componentInput,
                                                       JLabel generateSourceLabel, JCheckBox generateSourceCheckbox) {
         gc.weightx = 0.0;
         gc.gridx = 0;
@@ -261,7 +261,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyLabel, gc);
         gc.weightx = 1.0;
         gc.gridx = 1;
-        propertiesEditorPanel.add(propertyInputField, gc);
+        if (!componentInput.isBooleanInput()) {
+            gc.weightx = 1.0;
+            propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
+        } else {
+            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            booleanPanel.setBackground(Color.WHITE);
+            booleanPanel.add(new JLabel("true"));
+            booleanPanel.add(componentInput.getTrueBox());
+            booleanPanel.add(new JLabel("false"));
+            booleanPanel.add(componentInput.getFalseBox());
+            propertiesEditorPanel.add(booleanPanel, gc);
+        }
+//        propertiesEditorPanel.add(propertyInputField, gc);
 
         gc.weightx = 0.0;
         gc.gridx = 2;

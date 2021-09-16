@@ -1,11 +1,11 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|causesUserCodeRegeneration|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
 # propertyName - Name of the property, used on input screens and to generate variable names
 # paramGroup - Aggregates parameters
-# paramNumber - Within the group
+# causesUserCodeRegeneration - Causes the user part of the package structure to be regenerated so much be confirmed before being actioned
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
 # isSetterProperty - This property is for use in the component factory setter
@@ -21,10 +21,10 @@
 # Log Producer -
 #
 # Mandatory Properties
-Name|1|1|true|false|false|||java.lang.String|||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
+Name|1|false|true|false|false|||java.lang.String|||||The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.
 # Optional Properties
-Description|1|1|false|false|false|||java.lang.String|||||A more detailed description of the component that may assist in support.
-ConfiguredResourceId|1|1|false|true|false|||java.lang.String|||||An ID used to uniquely identify this component, which is then used as a key for configuration
-ReplacementText|1|1|false|false|true|||java.lang.String|||||Replace the matching text with the following string
-RegExpPattern|1|1|false|false|true|||java.lang.String|||||Only display logs matching this text
-LogEveryNth|1|1|false|false|true|||java.lang.Long|||||Only display every 'nth' log message
+Description|1|false|false|false|false|||java.lang.String|||||A more detailed description of the component that may assist in support.
+ConfiguredResourceId|1|false|false|true|false|||java.lang.String|||||An ID used to uniquely identify this component, which is then used as a key for configuration
+ReplacementText|1|false|false|false|true|||java.lang.String|||||Replace the matching text with the following string
+RegExpPattern|1|false|false|false|true|||java.lang.String|||||Only display logs matching this text
+LogEveryNth|1|false|false|false|true|||java.lang.Long|||||Only display every 'nth' log message

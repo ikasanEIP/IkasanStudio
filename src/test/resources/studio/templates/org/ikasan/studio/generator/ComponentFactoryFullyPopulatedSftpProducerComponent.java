@@ -14,20 +14,20 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.remote-port}")
-java.lang.Integer myFlow1SftpProducerRemoteport;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.clientID}")
-java.lang.String myFlow1SftpProducerClientID;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.max-retry-attempts}")
-java.lang.Integer myFlow1SftpProducerMaxretryattempts;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.username}")
-java.lang.String myFlow1SftpProducerUsername;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.outputDirectory}")
-java.lang.String myFlow1SftpProducerOutputDirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.password}")
-java.lang.String myFlow1SftpProducerPassword;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.remote-host}")
 java.lang.String myFlow1SftpProducerRemotehost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.clientID}")
+java.lang.String myFlow1SftpProducerClientID;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.outputDirectory}")
+java.lang.String myFlow1SftpProducerOutputDirectory;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.remote-port}")
+java.lang.Integer myFlow1SftpProducerRemoteport;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.username}")
+java.lang.String myFlow1SftpProducerUsername;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.password}")
+java.lang.String myFlow1SftpProducerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.max-retry-attempts}")
+java.lang.Integer myFlow1SftpProducerMaxretryattempts;
 @javax.annotation.Resource
 org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -35,27 +35,27 @@ org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecov
 
 public org.ikasan.spec.component.endpoint.Producer getTestSftpProducer() {
 return builderFactory.getComponentBuilder().sftpProducer()
-.setRemotePort(myFlow1SftpProducerRemoteport)
-.setClientID(myFlow1SftpProducerClientID)
-.setChecksumDelivered(true)
-.setUnzip(true)
-.setCleanupJournalOnComplete(true)
-.setMaxRetryAttempts(myFlow1SftpProducerMaxretryattempts)
-.setUsername(myFlow1SftpProducerUsername)
-.setConfiguration(myConfigurationClass)
-.setCreateParentDirectory(true)
-.setOutputDirectory(myFlow1SftpProducerOutputDirectory)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setPassword(myFlow1SftpProducerPassword)
 .setRemoteHost(myFlow1SftpProducerRemotehost)
+.setCreateParentDirectory(true)
+.setChecksumDelivered(true)
+.setClientID(myFlow1SftpProducerClientID)
 .setPrivateKeyFilename("myPrivateKeyFilename")
-.setConnectionTimeout(300001)
-.setTempFileName("myTempFileName")
-.setRenameExtension("newExtension")
-.setPreferredKeyExchangeAlgorithm("myPreferredKeyExchangeAlgorithm")
 .setCriticalOnStartup(true)
 .setKnownHostsFilename("myKnownHostsFilename")
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setConnectionTimeout(300001)
+.setConfiguration(myConfigurationClass)
+.setUnzip(true)
+.setPreferredKeyExchangeAlgorithm("myPreferredKeyExchangeAlgorithm")
 .setCleanUpChunks(true)
+.setOutputDirectory(myFlow1SftpProducerOutputDirectory)
+.setRemotePort(myFlow1SftpProducerRemoteport)
+.setRenameExtension("newExtension")
+.setUsername(myFlow1SftpProducerUsername)
+.setCleanupJournalOnComplete(true)
+.setPassword(myFlow1SftpProducerPassword)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setTempFileName("myTempFileName")
+.setMaxRetryAttempts(myFlow1SftpProducerMaxretryattempts)
 .build();
 }}

@@ -107,6 +107,10 @@ public class IkasanComponentProperty {
         return Boolean.TRUE.equals(getMeta().isUserImplementedClass());
     }
 
+    public boolean causesUserCodeRegeneration() {
+        return Boolean.TRUE.equals(getMeta().causesUserCodeRegeneration());
+    }
+
     public static List<IkasanComponentProperty> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {
         List<IkasanComponentProperty> propertyList = new ArrayList<>();
         if (metaList != null && !metaList.isEmpty()) {

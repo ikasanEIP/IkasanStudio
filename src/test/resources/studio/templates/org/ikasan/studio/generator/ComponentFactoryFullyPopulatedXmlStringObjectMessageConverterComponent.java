@@ -16,21 +16,21 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 @javax.annotation.Resource
-javax.xml.bind.ValidationEventHandler myValidationEventHandler;
-@javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+@javax.annotation.Resource
+javax.xml.bind.ValidationEventHandler myValidationEventHandler;
 
 public org.ikasan.spec.component.transformation.Converter get() {
 return builderFactory.getComponentBuilder().xmlStringToObjectConverter()
-.setUnmarshallerProperties({key1:'value1',key2:'value2'})
 .setMarshallerProperties({key1:'value1',key2:'value2'})
-.setValidationEventHandler(myValidationEventHandler)
+.setUnmarshallerProperties({key1:'value1',key2:'value2'})
+.setClassesToBeBound({'String.class','String.class'})
 .setConfiguration(myConfigurationClass)
-.setContextPath("/bob")
-.setAutoConvertElementToValue(true)
 .setContextPaths({'/aa','/bb'})
+.setAutoConvertElementToValue(true)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setClassToBeBound(String.class)
-.setClassesToBeBound({'String.class','String.class'})
+.setValidationEventHandler(myValidationEventHandler)
+.setContextPath("/bob")
 .build();
 }}

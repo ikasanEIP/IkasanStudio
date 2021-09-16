@@ -1,11 +1,11 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|causesUserCodeRegeneration|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
 # propertyName - Name of the property, used on input screens and to generate variable names
 # paramGroup - Aggregates parameters
-# paramNumber - Within the group
+# causesUserCodeRegeneration - Causes the user part of the package structure to be regenerated so much be confirmed before being actioned
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
 # isSetterProperty - This property is for use in the component factory setter
@@ -21,8 +21,8 @@
 # Module
 #
 # Mandatory Properties
-ApplicationPackageName|1|1|true|false|false||module.package|java.lang.String||||org.myApp|The package ID for this applicaiton
-ApplicationPortNumber|1|1|true|false|false||server.port|java.lang.String||||8080|The default port number for the application when used locally
-Name|1|1|true|false|false|||java.lang.String|||||The name of the module as displayed on diagrams, space are encouraged, succinct is best.
+ApplicationPackageName|1|false|true|false|false||module.package|java.lang.String||||org.myApp|The package ID for this applicaiton
+ApplicationPortNumber|1|false|true|false|false||server.port|java.lang.String||||8080|The default port number for the application when used locally
+Name|1|false|true|false|false|||java.lang.String|||||The name of the module as displayed on diagrams, space are encouraged, succinct is best.
 # Optional Properties
-Description|1|1|false|false|false|||java.lang.String|||||A more detailed description of the modules purpose that may assist in support.
+Description|1|false|false|false|false|||java.lang.String|||||A more detailed description of the modules purpose that may assist in support.
