@@ -2,6 +2,7 @@ package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
+import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -91,6 +92,51 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFilterComponent.java")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryMinimumPopulatedFilterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_minimumPopulatedFilterComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getMinimumPopulatedFilterComponent(ikasanFlow));
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "MinimumPopulatedFilterComponent.java")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedFilterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_filterComponentConfiguredResourceIDButNoIsEditable() throws IOException {
+
+        IkasanFlowComponent filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
+        filterFlowComponent.setPropertyValue("IsEditable", false);
+        ikasanFlow.getFlowComponentList().add(filterFlowComponent);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFilterComponent.java")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFilterComponentIsEditableButNoConfiguredResourceId.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_filterComponentIsEditableButNoConfiguredResourceID() throws IOException {
+
+        IkasanFlowComponent filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
+        filterFlowComponent.setPropertyValue("ConfiguredResourceId", null);
+        ikasanFlow.getFlowComponentList().add(filterFlowComponent);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        Assert.assertThat(templateString, is(notNullValue()));
+        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FilterComponentIsEditableButNoConfiguredResourceId.java")));
     }
 
 

@@ -46,6 +46,22 @@ public class TestFixtures {
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "MyConfiguredResourceId");
         component.setPropertyValue("Description", "Test description");
+        component.setPropertyValue("IsEditable", true);
+        return component;
+    }
+
+     /**
+     * Create a fully populated FILTER
+     * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
+     * @return a FullyPopulatedCustomConverter
+     */
+    public static IkasanFlowComponent getMinimumPopulatedFilterComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
+        component.setName("testFilterComponent");
+
+        // Mandatory properties
+        component.setPropertyValue("BespokeClassName", "MyMessageFilter");
+        component.setPropertyValue("FromType", java.lang.String.class);
         return component;
     }
 
