@@ -9,12 +9,12 @@ package ${studioPackageTag};
 
 @org.springframework.stereotype.Component
 
-public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("Configuration")??>, org.ikasan.spec.configuration.Configured<${component.getPropertyValue("Configuration")}></#if>
+public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("IsEditable")?has_content && component.getPropertyValue("IsEditable")>, org.ikasan.spec.configuration.ConfiguredResource<${component.getPropertyValue("Configuration")}><#elseif component.getPropertyValue("Configuration")?has_content>, org.ikasan.spec.configuration.Configured<${component.getPropertyValue("Configuration")}></#if>
 {
 <#if component.getPropertyValue("Configuration")??>
 ${component.getPropertyValue("Configuration")} configuration;
 </#if>
-<#if component.getPropertyValue("ConfiguredResourceId")??>
+<#if component.getPropertyValue("IsEditable")?has_content && component.getPropertyValue("IsEditable")>
 String configurationId;
 </#if>
 /**
@@ -38,8 +38,8 @@ else {
 return null;
 }
 }
+<#if component.getPropertyValue("IsEditable")?has_content && component.getPropertyValue("IsEditable")>
 
-<#if component.getPropertyValue("ConfiguredResourceId")??>
 @Override
 public String getConfiguredResourceId() {
 return configurationId;
@@ -50,8 +50,8 @@ public void setConfiguredResourceId(String id) {
 this.configurationId = id;
 }
 </#if>
-
 <#if component.getPropertyValue("Configuration")??>
+
 @Override
 public ${component.getPropertyValue("Configuration")} getConfiguration() {
 return configuration;

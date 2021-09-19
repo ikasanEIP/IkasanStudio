@@ -12,7 +12,6 @@ package org.ikasan;
 public class MyMessageFilter implements org.ikasan.spec.component.filter.Filter<class java.lang.String>, org.ikasan.spec.configuration.Configured<MyConfigurationClass>
 {
 MyConfigurationClass configuration;
-String configurationId;
 /**
 * If the message matches the criteria specified by the MessageFilter implementation,
 * the message is returned (passed through) and in turn routed to next part of the flow.
@@ -33,16 +32,6 @@ else {
 //@TODO return null if your filter has filtered this message
 return null;
 }
-}
-
-@Override
-public String getConfiguredResourceId() {
-return configurationId;
-}
-
-@Override
-public void setConfiguredResourceId(String id) {
-this.configurationId = id;
 }
 
 @Override
