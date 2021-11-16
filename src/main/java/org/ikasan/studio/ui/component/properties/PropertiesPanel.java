@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
@@ -83,12 +84,8 @@ public abstract class PropertiesPanel extends JPanel {
             if (firstInfo.component != null && firstInfo.component.isVisible()) {
                 IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
             }
-            StringBuilder validationErrors = new StringBuilder();
-            for (ValidationInfo info : infoList) {
-                validationErrors.append(info.message).append('\n');
-            }
             JOptionPane.showMessageDialog(((JButton)ae.getSource()).getParent().getParent(),
-                    validationErrors.toString(),
+                    infoList.stream().map(x -> x.message).collect(Collectors.joining("\n")),
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
         } else {

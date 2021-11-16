@@ -28,6 +28,8 @@ public class PIPSIIkasanModelOtherTest extends PIPSIIkasanModelAbstractTest {
     public String getTestDataDir() {
         return "/other/";
     }
+
+
     @Test
     public void test_parse_of_other_standard_module() {
         IkasanModule ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
@@ -38,6 +40,9 @@ public class PIPSIIkasanModelOtherTest extends PIPSIIkasanModelAbstractTest {
 
         Assert.assertThat(ikasanModule.getName(), is("myIntegrationModule"));
         Assert.assertThat(ikasanModule.getDescription(), is("My test module."));
+        Assert.assertThat(ikasanModule.getFlows().size(), is(1));
+        Assert.assertThat(ikasanModule.getFlows().get(0).getName(), is("myTestFlow"));
+        Assert.assertThat(ikasanModule.getFlows().get(0).getFlowComponentList().size(), is(1));
 
     }
 

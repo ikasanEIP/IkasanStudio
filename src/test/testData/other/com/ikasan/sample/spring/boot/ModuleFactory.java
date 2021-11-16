@@ -67,11 +67,12 @@ public class ModuleFactory
         ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder("myIntegrationModule");
 
         Flow sourceFlow = moduleBuilder.getFlowBuilder("myTestFlow")
-            .withDescription("Test flow description")
-            .withExceptionResolver( componentFactory.getSourceFlowExceptionResolver() )
-            .consumer("DB Consumer", componentFactory.getDBConsumer())
+//            .withDescription("Test flow description")
+//            .withExceptionResolver( componentFactory.getSourceFlowExceptionResolver() )
+//            .consumer("DB Consumer", componentFactory.getDBConsumer())
             .filter("My Filter", componentFactory.getFilter())
-            .producer("JMS Producer", componentFactory.getJmsProducer()).build();
+//            .producer("JMS Producer", componentFactory.getJmsProducer())
+            .build();
 
         org.ikasan.spec.module.Module module = moduleBuilder.withDescription("My test module.")
             .addFlow(sourceFlow)

@@ -71,12 +71,9 @@ public class StudioPsiUtils {
     }
 
     public static String findClassFile(Project project, String className) {
-        StringBuilder message = new StringBuilder();
         PsiFile[] files = FilenameIndex.getFilesByName(project, className, GlobalSearchScope.projectScope(project));
-        for (PsiFile myFile : files) {
-            message.append("looking for file " + className + ", found [" + myFile.getName() +"]");
-        }
-        return message.toString();
+        String message = Arrays.stream(files).map(x->"looking for file " + className + ", found [" + x.getName() +"]").collect(Collectors.joining(","));
+        return message;
     }
 
     /**

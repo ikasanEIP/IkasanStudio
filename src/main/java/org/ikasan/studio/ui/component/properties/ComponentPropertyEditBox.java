@@ -189,7 +189,6 @@ public class ComponentPropertyEditBox {
         if (meta.isMandatory() &&
             !isBooleanProperty() &&
             inputfieldIsUnset()) {
-//            result = new ArrayList<>();
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
         }
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {

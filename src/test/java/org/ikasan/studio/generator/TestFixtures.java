@@ -46,7 +46,7 @@ public class TestFixtures {
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "MyConfiguredResourceId");
         component.setPropertyValue("Description", "Test description");
-        component.setPropertyValue("IsEditable", true);
+        component.setPropertyValue("IsConfiguredResource", true);
         return component;
     }
 

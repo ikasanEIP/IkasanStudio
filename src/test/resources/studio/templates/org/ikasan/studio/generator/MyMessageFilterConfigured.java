@@ -29,7 +29,7 @@ if (true) {
 return message;
 }
 else {
-//@TODO return null if your filter has filtered this message
+//@TODO return null if your filter has filtered this message, maybe log this result.
 return null;
 }
 }

@@ -12,10 +12,12 @@ import java.util.regex.Pattern;
  * Represents all the possible properties an Ikasan component is allowed to have
  */
 public class IkasanComponentPropertyMeta {
-    public static final String BESPOKE_CLASS_NAME = "BespokeClassName"; // Special meta for a bespoke class used as a property
-    public static final String CONFIGURATION = "Configuration";         // Bean containing user defined, Ikasan maintained properties
-    public static final String FROM_TYPE = "FromType";                  // Special meta for converter, the type of the inbound payload
-    public static final String TO_TYPE = "ToType";                      // Special meta for converter, the type of the outbound payload
+    public static final String BESPOKE_CLASS_NAME = "BespokeClassName";         // Special meta for a bespoke class used as a property
+    public static final String CONFIGURATION = "Configuration";                 // Bean containing user defined, Ikasan maintained properties
+    public static final String CONFIGURED_RESOURCE_INTERFACE = "ConfiguredResource";   // Is the configuration exposed in the dashboard.
+    public static final String IS_CONFIGURED_RESOURCE = "IsConfiguredResource";   // Is the configuration exposed in the dashboard.
+    public static final String FROM_TYPE = "FromType";                          // Special meta for converter, the type of the inbound payload
+    public static final String TO_TYPE = "ToType";                              // Special meta for converter, the type of the outbound payload
 
     // Special META for component NAME, this standard for each component.
     public static final IkasanComponentPropertyMetaKey NAME = new IkasanComponentPropertyMetaKey("Name");

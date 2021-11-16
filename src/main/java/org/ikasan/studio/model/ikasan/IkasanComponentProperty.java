@@ -53,7 +53,7 @@ public class IkasanComponentProperty {
 
     @JsonIgnore
     public String getValueString() {
-        return value.toString();
+        return value == null ? "null" : value.toString();
     }
 
     public void setValue(Object value) {
@@ -134,7 +134,7 @@ public class IkasanComponentProperty {
      * @return true if the field is empty or unset
      */
     @JsonIgnore
-    public boolean isEmpty() {
+    public boolean valueNotSet() {
         boolean empty = false;
         if ((value == null) ||
             (value instanceof java.lang.String && ((String)value).isEmpty()) ||

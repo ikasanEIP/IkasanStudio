@@ -6,7 +6,11 @@ import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Focuses on the ikasan technical details of a component i.e. type, properties etc
@@ -158,11 +162,18 @@ public enum IkasanComponentType implements Serializable {
      * @return the list of properties
      */
     public List<String> getPropertyNames() {
-        Set<String> uniqueProperties = new HashSet<>();
-        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
-            uniqueProperties.add(key.getPropertyName());
-        }
-        return new ArrayList<>(uniqueProperties);
+        return new ArrayList<>(
+                metadataMap.keySet().stream()
+                .map(x->x.getPropertyName())
+                // guarantee no duplicates
+                .collect(Collectors.toSet())
+            );
+
+//        Set<String> uniqueProperties = new HashSet<>();
+//        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
+//            uniqueProperties.add(key.getPropertyName());
+//        }
+//        return new ArrayList<>(uniqueProperties);
     }
 
     /**
@@ -170,12 +181,16 @@ public enum IkasanComponentType implements Serializable {
      * @return true if there exists a property with the same name as the supplied property
      */
     public boolean hasProperty(String propertyName) {
-        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
-            if (key.getPropertyName().equals(propertyName)) {
-                return true;
-            }
-        }
-        return false;
+        return metadataMap.keySet().stream()
+                .filter(x->x.getPropertyName().equals(propertyName))
+                .findAny()
+                .isPresent();
+//        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
+//            if (key.getPropertyName().equals(propertyName)) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public IkasanComponentPropertyMeta getMetaDataForPropertyName(final IkasanComponentPropertyMetaKey propertyName) {

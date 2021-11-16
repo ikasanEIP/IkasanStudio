@@ -2,6 +2,7 @@ package org.ikasan.studio.model;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
+import org.hamcrest.Matchers;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanModule;
@@ -30,21 +31,14 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
     public String getTestDataDir() {
         return "/ikasanStandardSampleApps/dbJmsIm/";
     }
-//    @Ignore
     @Test
     public void test_parse_of_dbJmsIm_standard_module() {
-//        final PsiMethod moduleConfigPsiFile = StudioPsiUtils.findFirstMethodByReturnType(myProject, "Module");
         IkasanModule ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
         final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleFactory", ProjectScope.getAllScope(myProject));
         Assert.assertThat(moduleConfigClass, is(notNullValue()));
         pipsiIkasanModel.setModuleConfigClazz(moduleConfigClass);
         pipsiIkasanModel.updateIkasanModule();
 
-//
-//        final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleFactory", ProjectScope.getAllScope(myProject));
-//        moduleConfigPsiFile = moduleConfigClass.getContainingFile();
-//
-//        IkasanModule ikasanModule = pipsiIkasanModel.buildIkasanModule(moduleConfigPsiFile);
         Assert.assertThat(ikasanModule.getName(), is("myIntegrationModule"));
         Assert.assertThat(ikasanModule.getDescription(), is("Sample DB consumer / producer module."));
         Assert.assertThat(ikasanModule.getFlows().size(), is(2));
@@ -59,20 +53,25 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
             Assert.assertThat(flow1.getDescription(), is("Sample DB to JMS flow"));
 //            Assert.assertThat(flow1.getOutput().getDescription(), is("jms.topic.test"));
 
-            Assert.assertThat(flow1.getFlowComponentList().size(), is(5));
-            Assert.assertThat(flow1.getFlowComponentList().get(0).getName(), is("DB Consumer"));
-            Assert.assertThat(flow1.getFlowComponentList().get(0).getConfiguredProperties().size(), is(5));
-            Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("My Filter"));
-            Assert.assertThat(flow1.getFlowComponentList().get(1).getConfiguredProperties().size(), is(5));
-            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(1).getConfiguredProperties()),
-                    is("BespokeClassName->MyFilter,ConfiguredResourceId->myFilterPoJo,Description->My Filter,FromType->java.lang.String,Name->My Filter,"));
-            Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("Split list"));
-            Assert.assertThat(flow1.getFlowComponentList().get(2).getConfiguredProperties().size(), is(2));
-            Assert.assertThat(flow1.getFlowComponentList().get(3).getName(), is("Person to XML"));
-            Assert.assertThat(flow1.getFlowComponentList().get(3).getConfiguredProperties().size(), is(3));
-            Assert.assertThat(flow1.getFlowComponentList().get(4).getName(), is("JMS Producer"));
-            Assert.assertThat(flow1.getFlowComponentList().get(4).getConfiguredProperties().size(), is(17));
+//            Assert.assertThat(flow1.getFlowComponentList().size(), is(5));
 
+            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(0).getConfiguredProperties()),
+                    Matchers.is("ConfiguredResourceId->null,CronExpression->null,MessageProvider->personMessageProvider,Name->DB Consumer"));
+
+            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(1).getConfiguredProperties()),
+                    is("BespokeClassName->MyFilter,Configuration->com.ikasan.sample.spring.boot.MyFilterConfiguration,FromType->List<Person>,IsConfiguredResource->true,Name->My Filter"));
+
+            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(2).getConfiguredProperties()),
+                    is("Name->Split list"));
+
+            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(3).getConfiguredProperties()),
+                    is("Name->Person to XML,ObjectClass->Person.class"));
+
+            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(4).getConfiguredProperties()),
+                    is("ConfiguredResourceId->null,ConnectionFactory->connectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->org.apache.activemq.jndi.ActiveMQInitialContextFactory," +
+                            "ConnectionFactoryName->ConnectionFactory,ConnectionFactoryPassword->admin,ConnectionFactoryUsername->admin,DeliveryMode->DeliveryMode.PERSISTENT,DeliveryPersistent->true," +
+                            "DestinationJndiName->jms.topic.test,ExplicitQosEnabled->true,MessageIdEnabled->true,MessageTimestampEnabled->true,Name->JMS Producer,PubSubDomain->false," +
+                            "SessionAcknowledgeMode->Session.SESSION_TRANSACTED,SessionTransacted->true"));
 
             Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).get("org.ikasan.spec.component.endpoint.EndpointException.class").toString(),
                     is("IkasanExceptionResoluation{theException=org.ikasan.spec.component.endpoint.EndpointException.class, theAction='retry', params=[IkasanComponentProperty{value=10, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='interval', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=10, helpText='The maximum number of retries.'}}, IkasanComponentProperty{value=100, meta=IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='delay', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=100, helpText='The period to wait between retries.'}}]}"));
@@ -97,14 +96,17 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
             Assert.assertThat(flow2.getName(), is("jmsToDbFlow"));
             Assert.assertThat(flow2.getDescription(), is("Sample JMS to DB flow"));
 
-//            Assert.assertThat(flow2.getInput().getDescription(), is("jms.topic.test"));
             Assert.assertThat(flow2.getFlowComponentList().size(), is(3));
-            Assert.assertThat(flow2.getFlowComponentList().get(0).getName(), is("JMS Consumer"));
-            Assert.assertThat(flow2.getFlowComponentList().get(0).getConfiguredProperties().size(), is(16));
-            Assert.assertThat(flow2.getFlowComponentList().get(1).getName(), is("XML to Person"));
-            Assert.assertThat(flow2.getFlowComponentList().get(1).getConfiguredProperties().size(), is(3));
-            Assert.assertThat(flow2.getFlowComponentList().get(2).getName(), is("DB Producer"));
-            Assert.assertThat(flow2.getFlowComponentList().get(2).getConfiguredProperties().size(), is(2));
+            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowComponentList().get(0).getConfiguredProperties()),
+                    is("AutoContentConversion->true,AutoSplitBatch->true,BatchMode->false,BatchSize->1,CacheLevel->CACHE_CONNECTION,ConcurrentConsumers->1," +
+                            "ConnectionFactory->connectionFactory,DestinationJndiName->jms.topic.test,Durable->true,DurableSubscriptionName->testDurableSubscription," +
+                            "MaxConcurrentConsumers->1,Name->JMS Consumer,PubSubDomain->false,SessionAcknowledgeMode->Session.SESSION_TRANSACTED,SessionTransacted->true"));
+
+            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowComponentList().get(1).getConfiguredProperties()),
+                    is("ClassToBeBound->com.ikasan.sample.person.model.Person.class,Name->XML to Person"));
+
+            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowComponentList().get(2).getConfiguredProperties()),
+                    is("Name->DB Producer"));
         }
     }
 

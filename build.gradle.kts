@@ -72,6 +72,10 @@ dependencies {
     testImplementation("org.ikasan:ikasan-test-endpoint:3.1.0")
     testImplementation("org.ikasan:ikasan-test:3.1.0")
 }
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
 
 // Configure gradle-intellij-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
