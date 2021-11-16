@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class TestUtils {
 
@@ -20,18 +21,14 @@ public class TestUtils {
     }
 
     public static String getConfiguredPropertyValues(Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
-        StringBuilder returnString = new StringBuilder();
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
             TreeSet<IkasanComponentPropertyMetaKey> keys = new TreeSet<>(configuredProperties.keySet());
-            for (IkasanComponentPropertyMetaKey key : keys) {
-                Object value = configuredProperties.get(key);
-                String displayValue = "null";
-                if (value != null) {
-                    displayValue = ((IkasanComponentProperty) value).getValueString();
-                }
-                returnString.append(key.getPropertyName()).append("->").append(displayValue).append(",");
-            }
+
+            return keys.stream()
+                .filter(x -> configuredProperties.get(x)!=null)
+                .map(x -> x.getPropertyName() + "->" + configuredProperties.get(x).getValueString())
+                .collect(Collectors.joining(","));
         }
-        return returnString.toString();
+        return "";
     }
 }

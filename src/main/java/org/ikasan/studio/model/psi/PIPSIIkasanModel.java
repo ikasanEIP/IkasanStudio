@@ -428,7 +428,7 @@ public class PIPSIIkasanModel {
                 componentCategory == TRANSLATER) {
 
                 String flowElementName = pipsiMethod.getLiteralParameterAsString(0, true);
-                String flowElementDescription = pipsiMethod.getLiteralParameterAsString(0, true);
+                String flowElementDescription = null;
                 IkasanFlowComponent ikasanFlowComponent = null;
 
                 // componentCreator : usually the component, or componentFactory.getXX(), or new PayloadToMapConverter()
@@ -554,10 +554,19 @@ public class PIPSIIkasanModel {
                                 List<String> implementedInterfaces = safeGetInterfacesFromReturnVariable(componentVariable);
                                 pipsiMethodList.setInterfaces(implementedInterfaces);
                                 pipsiMethodList.setBaseType(ikasanComponentType);
-                                if (componentVariable instanceof PsiField &&
-                                        ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource")) {
-                                    // this is an injected bespoke class
-                                    String beskpokeClassName = ((PsiField) componentVariable).getType().getCanonicalText();
+
+                                // The getter method might use an @Resource or a local variable (in which case may have created a new instance)
+                                if (componentVariable instanceof PsiLocalVariable ||
+                                        (componentVariable instanceof PsiField &&
+                                        ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource"))) {
+                                    String beskpokeClassName = null ;
+                                    if (componentVariable instanceof PsiLocalVariable) {
+                                        // this is an injected bespoke class
+                                        beskpokeClassName = ((PsiLocalVariable) componentVariable).getType().getCanonicalText();
+                                    } else {
+                                        // this is an injected bespoke class
+                                        beskpokeClassName = ((PsiField) componentVariable).getType().getCanonicalText();
+                                    }
                                     List<PIPSIMethod> additionalParameters = extractParametersFromBespokeIkasanComponent(beskpokeClassName);
                                     pipsiMethodList.addAllPIPSIMethod(additionalParameters);
 
@@ -614,14 +623,14 @@ public class PIPSIIkasanModel {
                     }
                 }
             } catch (NullPointerException npe) {
-                LOG.info("Atttmp to get resolved interfaces for " + componentVariable.toString() + " failed");
+                LOG.info("Attempt to get resolved interfaces for " + componentVariable.toString() + " failed");
             }
         }
         return implementedInterfaces;
     }
 
     /**
-     * We have resolved to a bespoke class that is implementing an Ikasan Component interface gete Converter<String, String>
+     * We have resolved to a bespoke class that is implementing an Ikasan Component interface
      * This method will extract the appropriate custom properties for this special class type.
      * @param beskpokeClassName to be explored
      * @return A list of fake IkasanMethods that emulate the fluid interface set methods.
@@ -640,9 +649,22 @@ public class PIPSIIkasanModel {
             if (psiClassTypes != null) {
                 for (PsiClassType type : psiClassTypes) {
                     PsiClass resolvedType = type.resolve();
+                    IkasanComponentCategory ikasanComponentCategory = null;
+                    String componentType = null;
                     if (resolvedType != null) {
-                        IkasanComponentCategory ikasanComponentCategory = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName());
-                        if (ikasanComponentCategory == CONVERTER) {
+                        componentType = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName()).toString();
+                    } else {
+                        // These tend to be parameterised types
+                        String qualifiedName = ((PsiClassReferenceType) type).getReference().getQualifiedName();
+//                        if (IkasanComponentPropertyMeta.CONFIGURED_RESOURCE.toString().equals(qualifiedName) || IkasanComponentPropertyMeta.CONFIGURATION.toString().equals(qualifiedName)) {
+                        if (IkasanComponentPropertyMeta.CONFIGURED_RESOURCE_INTERFACE.toString().equals(qualifiedName) || IkasanComponentPropertyMeta.CONFIGURATION.toString().equals(qualifiedName)) {
+                            componentType = qualifiedName;
+                        } else {
+                            componentType = IkasanComponentCategory.parseBaseClass(qualifiedName).toString();
+                        }
+                    }
+                    if (componentType != null) {
+                        if (ikasanComponentCategory.CONVERTER.toString().equals(componentType)) {
                             PsiType[] templateTypes = type.getParameters();
                             if (templateTypes.length > 0) {
                                 PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
@@ -652,11 +674,25 @@ public class PIPSIIkasanModel {
                                 PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
                                 additionalParameters.add(toType);
                             }
-                        } else if (ikasanComponentCategory == FILTER) {
+                        } else if (ikasanComponentCategory.FILTER.toString().equals(componentType)) {
                             PsiType[] templateTypes = type.getParameters();
                             if (templateTypes.length > 0) {
                                 PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
                                 additionalParameters.add(fromType);
+                            }
+                        } else if (ikasanComponentCategory.CONFIGURED_RESOURCE.toString().equals(componentType) || IkasanComponentPropertyMeta.CONFIGURED_RESOURCE_INTERFACE.toString().equals(componentType)) {
+                            String resourceType = ((PsiClassReferenceType) type).getReference().getTypeParameters()[0].getCanonicalText();
+                            if (resourceType != null) {
+                                PIPSIMethod configuration = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.CONFIGURATION, psiClass.getMethods()[0], resourceType);
+                                additionalParameters.add(configuration);
+                                PIPSIMethod isConfiguredResource = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.IS_CONFIGURED_RESOURCE, psiClass.getMethods()[0], Boolean.TRUE.toString());
+                                additionalParameters.add(isConfiguredResource);
+                            }
+                        } else if (IkasanComponentPropertyMeta.CONFIGURATION.toString().equals(componentType)) {
+                            String resourceType = ((PsiClassReferenceType) type).getReference().getTypeParameters()[0].getCanonicalText();
+                            if (resourceType != null) {
+                                PIPSIMethod configuration = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.CONFIGURATION, psiClass.getMethods()[0], resourceType);
+                                additionalParameters.add(configuration);
                             }
                         }
                     }
@@ -894,11 +930,16 @@ public class PIPSIIkasanModel {
                     log.error("Expecting an IkasanExceptionResolver but got a " + ikasanFlowComponent);
                 }
 
-            } else if (methodName.startsWith("setConfiguration")) {
-                // Configuration is a special case.
-                String parameter =  componentBuilderMethodList.getConfiguredResource();
-                // Only expect 1 param for the setter
-                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("Configuration", "")), parameter);
+//            } else if (methodName.startsWith("setConfiguration")) {
+//                // Configuration is a special case.
+//                String parameter =  componentBuilderMethodList.getConfiguredResource();
+//                // Only expect 1 param for the setter
+//                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("Configuration", "")), parameter);
+//            } else if (methodName.startsWith("setConfiguration")) {
+//                // Configuration is a special case.
+//                String parameter =  componentBuilderMethodList.getConfiguredResource();
+//                // Only expect 1 param for the setter
+//                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("Configuration", "")), parameter);
             } else if (methodName.startsWith("set")) {
                 String parameter =  getReferenceOrLiteralFromParameter(pipsiMethod, 0);
                 // Only expect 1 param for the setter

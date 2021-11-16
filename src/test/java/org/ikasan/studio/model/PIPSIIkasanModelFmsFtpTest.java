@@ -2,6 +2,7 @@ package org.ikasan.studio.model;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
+import org.hamcrest.Matchers;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.ikasan.studio.generator.TestUtils.getConfiguredPropertyValues;
 
 public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
 
@@ -54,33 +56,47 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
         Assert.assertThat(flow1.getViewHandler(), is(notNullValue()));
         Assert.assertThat(flow1.getDescription(), is("Ftp to Jms"));
         Assert.assertThat(flow1.getName(), is("sourceFlow"));
-//        Assert.assertThat(flow1.getInput().getDescription(), is("ftpConsumerRemoteHost"));
-//        Assert.assertThat(flow1.getOutput().getDescription(), is("ftp.private.jms.queue"));
+
         Assert.assertThat(flow1.getFlowComponentList().size(), is(3));
 
         IkasanFlowComponent ftpConsumer = flow1.getFlowComponentList().get(0);
         Assert.assertThat(ftpConsumer.getName(), is("Ftp Consumer"));
-        Assert.assertThat(ftpConsumer.getConfiguredProperties().size(), is(22));
+        Assert.assertThat(getConfiguredPropertyValues(ftpConsumer.getConfiguredProperties()),
+                Matchers.is("AgeOfFiles->30,Chronological->true,Chunking->false,ClientID->null,ConfiguredResourceId->configuredResourceId,CronExpression->null," +
+                        "Destructive->false,FilenamePattern->null,FilterDuplicates->true,FilterOnLastModifiedDate->true,MinAge->1l,Name->Ftp Consumer,Password->null," +
+                        "RemoteHost->null,RemotePort->null,RenameOnSuccess->false,RenameOnSuccessExtension->.tmp,ScheduledJobGroupName->FtpToLogFlow,ScheduledJobName->FtpConsumer,SourceDirectory->null,Username->null"));
 
-        Assert.assertThat(flow1.getFlowComponentList().get(1).getName(), is("Ftp Payload to Map Converter"));
-        Assert.assertThat(flow1.getFlowComponentList().get(2).getName(), is("Ftp Jms Producer"));
+        IkasanFlowComponent payloadToMap = flow1.getFlowComponentList().get(1);
+        Assert.assertThat(payloadToMap.getName(), is("Ftp Payload to Map Converter"));
+        Assert.assertThat(getConfiguredPropertyValues(payloadToMap.getConfiguredProperties()),
+                Matchers.is("Name->Ftp Payload to Map Converter"));
+
+        IkasanFlowComponent jmsProducer = flow1.getFlowComponentList().get(2);
+        Assert.assertThat(jmsProducer.getName(), is("Ftp Jms Producer"));
+        Assert.assertThat(getConfiguredPropertyValues(jmsProducer.getConfiguredProperties()),
+                Matchers.is("ConfiguredResourceId->ftpJmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->org.apache.activemq.jndi.ActiveMQInitialContextFactory," +
+                        "ConnectionFactoryName->ConnectionFactory,ConnectionFactoryPassword->admin,ConnectionFactoryUsername->admin,DestinationJndiName->ftp.private.jms.queue,Name->Ftp Jms Producer"));
 
         IkasanFlow flow2 = flows.get(1);
         Assert.assertThat(flow2.getViewHandler(), is(notNullValue()));
         Assert.assertThat(flow2.getName(), is("targetFlow"));
         Assert.assertThat(flow2.getDescription(), is("Receives Text Jms message and sends it to FTP as file"));
-//        Assert.assertThat(flow2.getInput().getDescription(), is("ftp.private.jms.queue"));
-//        Assert.assertThat(flow2.getOutput().getDescription(), is("ftpProducerRemoteHost"));
+
         Assert.assertThat(flow2.getFlowComponentList().size(), is(3));
 
         IkasanFlowComponent jmsConsumer = flow2.getFlowComponentList().get(0);
         Assert.assertThat(jmsConsumer.getName(), is("Ftp Jms Consumer"));
-        Assert.assertThat(jmsConsumer.getConfiguredProperties().size(), is(5));
+        Assert.assertThat(getConfiguredPropertyValues(jmsConsumer.getConfiguredProperties()),
+                Matchers.is("ConfiguredResourceId->ftpJmsConsumer,ConnectionFactory->consumerConnectionFactory,DestinationJndiName->ftp.private.jms.queue,Name->Ftp Jms Consumer"));
 
-        Assert.assertThat(flow2.getFlowComponentList().get(1).getName(), is("MapMessage to FTP Payload Converter"));
+        IkasanFlowComponent mapToPayload = flow2.getFlowComponentList().get(1);
+        Assert.assertThat(mapToPayload.getName(), is("MapMessage to FTP Payload Converter"));
+        Assert.assertThat(getConfiguredPropertyValues(mapToPayload.getConfiguredProperties()),
+                Matchers.is("Name->MapMessage to FTP Payload Converter"));
 
         IkasanFlowComponent ftpProdcuer = flow2.getFlowComponentList().get(2);
         Assert.assertThat(ftpProdcuer.getName(), is("Ftp Producer"));
-        Assert.assertThat(ftpProdcuer.getConfiguredProperties().size(), is(10));
+        Assert.assertThat(getConfiguredPropertyValues(ftpProdcuer.getConfiguredProperties()),
+                Matchers.is("ClientID->null,ConfiguredResourceId->ftpProducerConfiguration,Name->Ftp Producer,OutputDirectory->null,Overwrite->true,Password->null,RemoteHost->null,RemotePort->null,Username->null"));
     }
 }

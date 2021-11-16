@@ -9,12 +9,12 @@ package ${studioPackageTag};
 
 @org.springframework.stereotype.Component
 
-public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("IsEditable")?has_content && component.getPropertyValue("IsEditable")>, org.ikasan.spec.configuration.ConfiguredResource<${component.getPropertyValue("Configuration")}><#elseif component.getPropertyValue("Configuration")?has_content>, org.ikasan.spec.configuration.Configured<${component.getPropertyValue("Configuration")}></#if>
+public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("IsConfiguredResource")?has_content && component.getPropertyValue("IsConfiguredResource")>, org.ikasan.spec.configuration.ConfiguredResource<${component.getPropertyValue("Configuration")}><#elseif component.getPropertyValue("Configuration")?has_content>, org.ikasan.spec.configuration.Configured<${component.getPropertyValue("Configuration")}></#if>
 {
 <#if component.getPropertyValue("Configuration")??>
 ${component.getPropertyValue("Configuration")} configuration;
 </#if>
-<#if component.getPropertyValue("IsEditable")?has_content && component.getPropertyValue("IsEditable")>
+<#if component.getPropertyValue("IsConfiguredResource")?has_content && component.getPropertyValue("IsConfiguredResource")>
 String configurationId;
 </#if>
 /**
@@ -34,11 +34,11 @@ if (true) {
 return message;
 }
 else {
-//@TODO return null if your filter has filtered this message
+//@TODO return null if your filter has filtered this message, maybe log this result.
 return null;
 }
 }
-<#if component.getPropertyValue("IsEditable")?has_content && component.getPropertyValue("IsEditable")>
+<#if component.getPropertyValue("IsConfiguredResource")?has_content && component.getPropertyValue("IsConfiguredResource")>
 
 @Override
 public String getConfiguredResourceId() {

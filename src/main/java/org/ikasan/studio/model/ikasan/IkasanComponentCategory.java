@@ -19,7 +19,8 @@ public enum IkasanComponentCategory {
     ROUTER(50, "router", "router"),
     SPLITTER(60, "splitter", "org.ikasan.spec.component.splitting.Splitter"),
     TRANSLATER(70, "translater", "translater"),
-    UNKNOWN(100, "unknown", "unknown");
+    UNKNOWN(100, "unknown", "unknown"),
+    CONFIGURED_RESOURCE(101, "", "org.ikasan.spec.configuration.ConfiguredResource");
 
     private final Integer displayOrder;
     public final String associatedMethodName;

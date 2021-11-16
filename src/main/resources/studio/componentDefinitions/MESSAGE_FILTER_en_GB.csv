@@ -26,6 +26,5 @@ Name|1|false|true|false|false|||java.lang.String|||||The name of the component a
 # Optional Properties
 FromType|1|false|true|false|false|||java.lang.String||||java.lang.String|The fully qualified type the the converter will take as input.
 Configuration|1|false|false|true|true|||java.lang.String|configurationDefined|[A-Z_$][a-zA-Z\d_$]*|Provide a java classname for the Configuration bean||Provide the bean type that contains bespoke configurations for this component
-IsEditable|1|true|false|false|false|||java.lang.Boolean|||||Allow the Configuration to be exposed in the Ikasan console
+IsConfiguredResource|1|true|false|false|false|||java.lang.Boolean|||||Allow the Configuration to be exposed in the Ikasan console
 ConfiguredResourceId|1|false|false|false|true|||java.lang.String|||||By Assigning a specific ID to a configuration, would can reuse that configuration in other flows of this module.
-Description|1|false|false|false|false|||java.lang.String|||||A more detailed description of the component that may assist in support.

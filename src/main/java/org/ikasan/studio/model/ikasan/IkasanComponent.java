@@ -236,13 +236,18 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
      * @return true if there are mandatory components that do not yet have a value.
      */
     public boolean hasUnsetMandatoryProperties() {
-        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
-            IkasanComponentProperty ikasanComponentProperty = entry.getValue();
-            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        return configuredProperties.entrySet().stream()
+            .filter(x -> {return x.getValue().getMeta().isMandatory() && x.getValue().valueNotSet(); })
+            .findAny()
+            .isPresent();
+//
+//        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
+//            IkasanComponentProperty ikasanComponentProperty = entry.getValue();
+//            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.valueNotSet()) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     @Override

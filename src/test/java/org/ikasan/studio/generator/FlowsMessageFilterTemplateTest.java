@@ -49,13 +49,13 @@ public class FlowsMessageFilterTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateWith_filterComponentConfiguredResourceIDButNoIsEditable() throws IOException {
+    public void testCreateWith_filterComponentConfiguredResourceIDButNoIsConfiguredResource() throws IOException {
         IkasanModule ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.addFlow(new IkasanFlow());
         IkasanFlow newFlow = ikasanModule.getFlows().get(0);
 
         IkasanFlowComponent filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(newFlow);
-        filterFlowComponent.setPropertyValue("IsEditable", false);
+        filterFlowComponent.setPropertyValue("IsConfiguredResource", false);
 
         newFlow.getFlowComponentList().add(filterFlowComponent);
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
@@ -64,7 +64,7 @@ public class FlowsMessageFilterTemplateTest extends TestCase {
     }
 
     @Test
-    public void testCreateWith_filterComponentIsEditableButNoConfiguredResourceID() throws IOException {
+    public void testCreateWith_filterComponentIsConfiguredResourceButNoConfiguredResourceID() throws IOException {
         IkasanModule ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.addFlow(new IkasanFlow());
         IkasanFlow newFlow = ikasanModule.getFlows().get(0);
