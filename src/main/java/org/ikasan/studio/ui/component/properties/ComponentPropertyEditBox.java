@@ -64,6 +64,16 @@ public class ComponentPropertyEditBox {
                     }
                 }
             }
+            propertyBooleanFieldTrue.addActionListener(e -> {
+                if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
+                    propertyBooleanFieldFalse.setSelected(false);
+                }
+            });
+            propertyBooleanFieldFalse.addActionListener(e -> {
+                if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
+                    propertyBooleanFieldTrue.setSelected(false);
+                }
+            });
         }
         else {
             // STRING INPUT
