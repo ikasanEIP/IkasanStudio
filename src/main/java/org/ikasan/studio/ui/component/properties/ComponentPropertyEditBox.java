@@ -26,11 +26,14 @@ public class ComponentPropertyEditBox {
     private IkasanComponentPropertyMeta meta;
     private IkasanComponentProperty componentProperty;
 
-    public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean popupMode) {
+    public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean componentInitialisation) {
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
         Object value = componentProperty.getValue();
+        if (componentInitialisation && value == null) {
+            value = componentProperty.getDefaultValue();
+        }
 
         // @todo we can have all types of components with rich pattern matching validation
         if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
@@ -79,13 +82,13 @@ public class ComponentPropertyEditBox {
             // STRING INPUT
             this.propertyValueField = new JFormattedTextField();
 
-            if (componentProperty.getValue() != null) {
-                propertyValueField.setText(componentProperty.getValue().toString());
+            if (value != null) {
+                propertyValueField.setText(value.toString());
             }
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !popupMode) {
+        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !componentInitialisation) {
             causesUserCodeRegeneration = true;
             regenerateLabel = new JLabel("Regenerate");
             regenerateSourceCheckBox = new JCheckBox();
@@ -191,7 +194,7 @@ public class ComponentPropertyEditBox {
 
     /**
      * Validates the values populated
-     * @return a populated ValidationInfo array if htere are any validation issues.
+     * @return a populated ValidationInfo array if there are any validation issues.
      */
     protected java.util.List<ValidationInfo> doValidateAll() {
         //@todo setup once in class and clear down
@@ -249,20 +252,16 @@ public class ComponentPropertyEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-        Object propertyValue = componentProperty.getValue();
-        return ((propertyValue == null && editBoxHasValue()) ||
-                (propertyValue != null && !componentProperty.getValue().equals(getValue())) ||
+        Object currentValue = componentProperty.getValue();
+        Object enteredValue = getValue();
+        return ((currentValue == null && editBoxHasValue()) ||
+                (currentValue != null && !currentValue.equals(enteredValue)) ||
                 (causesUserCodeRegenerationAndHasPermissionToRegenerate() && editBoxHasValue()) );
     }
 
     public boolean causesUserCodeRegenerationAndHasPermissionToRegenerate() {
         return causesUserCodeRegeneration && regenerateSourceCheckBox != null && regenerateSourceCheckBox.isSelected();
     }
-
-//    public boolean isUserMaintainedClass() {
-//        return userMaintainedClass;
-//    }
-
 
     public JLabel getPropertyTitleField() {
         return propertyTitleField;

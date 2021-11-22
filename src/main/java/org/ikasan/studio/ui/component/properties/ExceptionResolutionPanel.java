@@ -32,10 +32,10 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * that will set the property to be exposed / edited.
      *
      * @param projectKey for this project
-     * @param popupMode true if this is for the popup version, false if this is for the canvas sidebar.
+     * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPanel(List<ExceptionResolution> exceptionResolutionList, String projectKey, boolean popupMode) {
-        super(projectKey, popupMode);
+    public ExceptionResolutionPanel(List<ExceptionResolution> exceptionResolutionList, String projectKey, boolean componentInitialisation) {
+        super(projectKey, componentInitialisation);
         this.exceptionResolutionList = exceptionResolutionList;
     }
 
@@ -83,7 +83,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected void populatePropertiesEditorPanel() {
-        if (!popupMode) {
+        if (!componentInitialisation) {
             okButton.setEnabled(false);
         }
 
@@ -107,7 +107,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
     private void updateExceptionAndAction() {
         exceptionActionEditorPanel.removeAll();
-        exceptionResolutionEditBox = new ExceptionResolutionEditBox(this, getSelectedComponent(), popupMode);
+        exceptionResolutionEditBox = new ExceptionResolutionEditBox(this, getSelectedComponent(), componentInitialisation);
         GridBagConstraints gc = new GridBagConstraints();
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(3, 4, 3, 4);

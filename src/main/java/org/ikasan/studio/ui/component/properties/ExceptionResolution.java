@@ -16,14 +16,14 @@ public class ExceptionResolution {
     private JLabel exceptionField = new JLabel();
     private JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
-    private boolean popupMode;
+    private boolean componentInitialisation;
     private IkasanExceptionResolution ikasanExceptionResolution;
     private JButton deleteButton = new JButton("DEL");
 
-    public ExceptionResolution(ExceptionResolverEditBox parent, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+    public ExceptionResolution(ExceptionResolverEditBox parent, IkasanExceptionResolution ikasanExceptionResolution, boolean componentInitialisation) {
         this.parent = parent;
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
-        this.popupMode = popupMode;
+        this.componentInitialisation = componentInitialisation;
 
         String theException = ikasanExceptionResolution.getTheException();
         String theAction = ikasanExceptionResolution.getTheAction();
@@ -42,7 +42,7 @@ public class ExceptionResolution {
                 !ikasanExceptionResolution.getParams().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
             for (IkasanComponentProperty property : ikasanExceptionResolution.getParams()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.popupMode);
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
                 actionParamEditBoxList.add(actionParam);
             }
         }

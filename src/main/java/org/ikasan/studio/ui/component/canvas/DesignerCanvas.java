@@ -147,7 +147,6 @@ public class DesignerCanvas extends JPanel {
                  (mouseSelectedComponent != null && !mouseSelectedComponent.getViewHandler().isAlreadySelected())) {
             setSelectedComponent(mouseSelectedComponent);
             if (mouseSelectedComponent instanceof IkasanExceptionResolver) {
-                // XXXXXX
                 ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
                 exceptionResolverPanel.updateTargetComponent(mouseSelectedComponent);
                 PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
@@ -500,7 +499,7 @@ public class DesignerCanvas extends JPanel {
      */
     private IkasanComponent createViableComponent(IkasanComponent newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
-
+            // Add new component
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
             componentPropertiesPanel.updateTargetComponent(newComponent);
             PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
