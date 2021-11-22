@@ -6,6 +6,7 @@ import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 /**
@@ -76,7 +77,7 @@ public class IkasanComponentPropertyMeta {
      */
     public IkasanComponentPropertyMeta(@NotNull IkasanComponentPropertyMetaKey key,
                                        @NotNull IkasanComponentPropertyMeta value) {
-        this.metadataMap = new HashMap<>();
+        this.metadataMap = new TreeMap<>();
         metadataMap.put(key, value);
         this.subProperties = true;
     }
@@ -150,7 +151,7 @@ public class IkasanComponentPropertyMeta {
     public void addSubProperty(@NotNull IkasanComponentPropertyMetaKey key,
                                @NotNull IkasanComponentPropertyMeta value) {
         if (metadataMap == null) {
-            this.metadataMap = new HashMap<>();
+            this.metadataMap = new TreeMap<>();
         }
         metadataMap.put(key, value);
         this.subProperties = true;
