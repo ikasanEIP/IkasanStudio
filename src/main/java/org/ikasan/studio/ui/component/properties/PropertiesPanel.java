@@ -19,8 +19,9 @@ public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String OK_BUTTON_TEXT = "Update Code";
     private transient IkasanBaseComponent selectedComponent;
+    private transient IkasanBaseComponent componentDefaults;
     protected String projectKey;
-    protected boolean popupMode;
+    protected boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private transient PropertiesDialogue propertiesDialogue;
 
@@ -29,14 +30,14 @@ public abstract class PropertiesPanel extends JPanel {
     protected JPanel propertiesEditorPanel = new JPanel();
     private boolean dataValid = true;
 
-    protected PropertiesPanel(String projectKey, boolean popupMode) {
+    protected PropertiesPanel(String projectKey, boolean componentInitialisation) {
         super();
         this.projectKey = projectKey ;
-        this.popupMode = popupMode;
+        this.componentInitialisation = componentInitialisation;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        if (! popupMode) {
+        if (! componentInitialisation) {
             JPanel propertiesHeaderPanel = new JPanel();
             propertiesHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
             propertiesHeaderPanel.add(propertiesHeaderLabel);
@@ -49,7 +50,7 @@ public abstract class PropertiesPanel extends JPanel {
         propertiesBodyPanel.setBackground(Color.WHITE);
 
         // Palette editor mode, add an OK button at the bottom.
-        if (! popupMode) {
+        if (! componentInitialisation) {
             okButton = new JButton(OK_BUTTON_TEXT);
             okButton.addActionListener(e -> {
                     okActionListener(e);
@@ -122,11 +123,20 @@ public abstract class PropertiesPanel extends JPanel {
 
     /**
      * External actors will update the component to be exposed / displayed.
-     * @param selectedComponent that now needs to be displayed.
+     * @param selectedComponent that now needs to be updated.
      */
     public void updateTargetComponent(IkasanBaseComponent selectedComponent) {
         this.selectedComponent = selectedComponent;
-        if (! popupMode) {
+        if (! componentInitialisation) {
+            propertiesHeaderLabel.setText(getPropertiesPanelTitle());
+        }
+        populatePropertiesEditorPanel();
+        redrawPanel();
+    }
+
+    public void setTargetComponent(IkasanBaseComponent selectedComponent) {
+        this.selectedComponent = selectedComponent;
+        if (! componentInitialisation) {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
         }
         populatePropertiesEditorPanel();
@@ -172,6 +182,11 @@ public abstract class PropertiesPanel extends JPanel {
     protected IkasanBaseComponent getSelectedComponent() {
         return selectedComponent;
     }
+
+    protected IkasanBaseComponent getComponentDefaults() {
+        return componentDefaults;
+    }
+
     protected abstract List<ValidationInfo> doValidateAll();
     public abstract void processEditedFlowComponents();
     public abstract boolean dataHasChanged();

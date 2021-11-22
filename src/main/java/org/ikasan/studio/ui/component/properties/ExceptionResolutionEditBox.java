@@ -23,13 +23,13 @@ public class ExceptionResolutionEditBox {
     private JComboBox<String> actionJComboBox;
     private JLabel paramsTitleField;
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
-    private boolean popupMode;
+    private boolean componentInitialisation;
     private IkasanExceptionResolution ikasanExceptionResolution;
 
-    public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, IkasanExceptionResolution ikasanExceptionResolution, boolean popupMode) {
+    public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, IkasanExceptionResolution ikasanExceptionResolution, boolean componentInitialisation) {
         this.resolutionPanel = resolutionPanel;
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
-        this.popupMode = popupMode;
+        this.componentInitialisation = componentInitialisation;
 
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
@@ -52,7 +52,7 @@ public class ExceptionResolutionEditBox {
             if (!ikasanExceptionResolution.getParams().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
                 for (IkasanComponentProperty property : ikasanExceptionResolution.getParams()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.popupMode);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
             }
@@ -72,7 +72,7 @@ public class ExceptionResolutionEditBox {
             actionParamEditBoxList = new ArrayList<>();
             for (IkasanComponentPropertyMeta propertyMeta : IkasanExceptionResolution.getMetaForActionParams(actionSelected)) {
                 if (!propertyMeta.isVoid()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.popupMode);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
             }

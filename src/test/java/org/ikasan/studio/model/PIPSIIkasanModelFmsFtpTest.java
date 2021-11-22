@@ -74,8 +74,8 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
         IkasanFlowComponent jmsProducer = flow1.getFlowComponentList().get(2);
         Assert.assertThat(jmsProducer.getName(), is("Ftp Jms Producer"));
         Assert.assertThat(getConfiguredPropertyValues(jmsProducer.getConfiguredProperties()),
-                Matchers.is("ConfiguredResourceId->ftpJmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->org.apache.activemq.jndi.ActiveMQInitialContextFactory," +
-                        "ConnectionFactoryName->ConnectionFactory,ConnectionFactoryPassword->admin,ConnectionFactoryUsername->admin,DestinationJndiName->ftp.private.jms.queue,Name->Ftp Jms Producer"));
+                Matchers.is("ConfiguredResourceId->ftpJmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null," +
+                        "ConnectionFactoryName->null,ConnectionFactoryPassword->null,ConnectionFactoryUsername->null,DestinationJndiName->ftp.private.jms.queue,Name->Ftp Jms Producer"));
 
         IkasanFlow flow2 = flows.get(1);
         Assert.assertThat(flow2.getViewHandler(), is(notNullValue()));

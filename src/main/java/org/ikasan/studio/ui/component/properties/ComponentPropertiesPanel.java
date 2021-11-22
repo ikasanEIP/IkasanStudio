@@ -27,10 +27,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * that will set the property to be exposed / edited.
      *
      * @param projectKey for this project
-     * @param popupMode true if this is for the popup version, false if this is for the canvas sidebar.
+     * @param componentInitialisation true if this is for the popup version i.e. the first configuration of this component,
+     *                                false if this is for the canvas sidebar.
      */
-    public ComponentPropertiesPanel(String projectKey, boolean popupMode) {
-        super(projectKey, popupMode);
+    public ComponentPropertiesPanel(String projectKey, boolean componentInitialisation) {
+        super(projectKey, componentInitialisation);
     }
 
     /**
@@ -72,7 +73,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected void populatePropertiesEditorPanel() {
-        if (!popupMode) {
+        if (!componentInitialisation) {
             okButton.setEnabled(false);
         }
 
@@ -123,7 +124,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         }
                     }
                 }
-                if (!popupMode && getSelectedComponent().getType().isBespokeClass()) {
+                if (!componentInitialisation && getSelectedComponent().getType().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
             }
@@ -148,7 +149,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
 
-            if (!popupMode && !getSelectedComponent().getType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
+            if (!componentInitialisation && !getSelectedComponent().getType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
             }
         }
@@ -210,9 +211,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty, popupMode);
+        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty, componentInitialisation);
 
-        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !popupMode) {
+        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !componentInitialisation) {
             addLabelInputEditorAndGenerateSource(propertiesEditorPanel, gc, tabley,
                     componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField(),
                     componentPropertyEditBox.getRegenerateLabel(), componentPropertyEditBox.getRegenerateSourceCheckBox());
@@ -285,6 +286,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     @Override
     protected IkasanComponent getSelectedComponent() {
         return (IkasanComponent)super.getSelectedComponent();
+    }
+
+    @Override
+    protected IkasanComponent getComponentDefaults() {
+        return (IkasanComponent)super.getComponentDefaults();
     }
 
     @Override

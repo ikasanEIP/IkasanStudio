@@ -26,10 +26,10 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * that will set the property to be exposed / edited.
      *
      * @param projectKey for this project
-     * @param popupMode true if this is for the popup version, false if this is for the canvas sidebar.
+     * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolverPanel(String projectKey, boolean popupMode) {
-        super(projectKey, popupMode);
+    public ExceptionResolverPanel(String projectKey, boolean componentInitialisation) {
+        super(projectKey, componentInitialisation);
     }
 
     /**
@@ -90,7 +90,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
 
             // Only initialise on the first pass.
             if (exceptionResolverEditBox == null) {
-                exceptionResolverEditBox = new ExceptionResolverEditBox(this, projectKey, getSelectedComponent(), popupMode);
+                exceptionResolverEditBox = new ExceptionResolverEditBox(this, projectKey, getSelectedComponent(), componentInitialisation);
             }
 
             JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());

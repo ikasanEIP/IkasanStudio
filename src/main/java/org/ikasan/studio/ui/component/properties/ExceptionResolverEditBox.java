@@ -21,15 +21,15 @@ public class ExceptionResolverEditBox {
     private JLabel paramsTitleField;
     private JButton addButton;
     private List<ExceptionResolution> exceptionResolutionList = new ArrayList<>();
-    private boolean popupMode;
+    private boolean componentInitialisation;
     private IkasanExceptionResolver ikasanExceptionResolver;
     private boolean hasChanged = false;
 
-    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean popupMode) {
+    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean componentInitialisation) {
         this.resolverPanel = resolverPanel;
         this.projectKey = projectKey;
         this.ikasanExceptionResolver = ikasanExceptionResolver ;
-        this.popupMode = popupMode;
+        this.componentInitialisation = componentInitialisation;
 
         this.exceptionTitleField = new JLabel("Exception");
         this.actionTitleField = new JLabel("Action");
@@ -37,7 +37,7 @@ public class ExceptionResolverEditBox {
 
         if (ikasanExceptionResolver.getIkasanExceptionResolutionMap() != null) {
             for (IkasanExceptionResolution exceptionResolution : ikasanExceptionResolver.getIkasanExceptionResolutionMap().values()) {
-                exceptionResolutionList.add(new ExceptionResolution(this, exceptionResolution, popupMode));
+                exceptionResolutionList.add(new ExceptionResolution(this, exceptionResolution, componentInitialisation));
             }
         }
         addButton = new JButton("ADD");
@@ -65,7 +65,7 @@ public class ExceptionResolverEditBox {
                 Context.getDesignerCanvas(projectKey),
                 exceptionResolutionPanel);
         if (propertiesDialogue.showAndGet()) {
-            exceptionResolutionList.add(new ExceptionResolution(this, newResolution, popupMode));
+            exceptionResolutionList.add(new ExceptionResolution(this, newResolution, componentInitialisation));
             hasChanged = true;
             resolverPanel.populatePropertiesEditorPanel();
             resolverPanel.redrawPanel();

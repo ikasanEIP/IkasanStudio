@@ -71,8 +71,8 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
         IkasanFlowComponent jmsProducer = flow1.getFlowComponentList().get(2);
         Assert.assertThat(jmsProducer.getName(), is("JMS Producer"));
         Assert.assertThat(getConfiguredPropertyValues(jmsProducer.getConfiguredProperties()),
-                Matchers.is("ConfiguredResourceId->jmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->org.apache.activemq.jndi.ActiveMQInitialContextFactory," +
-                        "ConnectionFactoryName->ConnectionFactory,ConnectionFactoryPassword->admin,ConnectionFactoryUsername->admin,DestinationJndiName->target,Name->JMS Producer"));
+                Matchers.is("ConfiguredResourceId->jmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null,ConnectionFactoryName->null,ConnectionFactoryPassword->null," +
+                        "ConnectionFactoryUsername->null,DestinationJndiName->target,Name->JMS Producer"));
 
         Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).size(), is(2));
         Set actions = new TreeSet(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).keySet());
