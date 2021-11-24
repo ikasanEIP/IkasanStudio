@@ -27,7 +27,8 @@ public class IkasanComponentProperty {
         return value;
     }
 
-     public Object getDefaultValue() {
+    @JsonIgnore
+    public Object getDefaultValue() {
         return meta.getDefaultValue();
     }
 
@@ -87,6 +88,7 @@ public class IkasanComponentProperty {
         }
     }
 
+    @JsonIgnore
     public IkasanComponentPropertyMeta getMeta() {
         return meta;
     }
