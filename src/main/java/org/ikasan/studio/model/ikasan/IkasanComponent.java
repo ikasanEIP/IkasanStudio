@@ -122,6 +122,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         }
     }
 
+    @JsonPropertyOrder(alphabetic = true)
     public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getConfiguredProperties() {
         return configuredProperties;
     }
