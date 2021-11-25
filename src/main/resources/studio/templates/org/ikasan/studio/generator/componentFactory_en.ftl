@@ -73,7 +73,12 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     public ${ikasanFlowComponent.type.elementCategory.baseClass} get${ikasanFlowComponent.getJavaClassName()}() {
     <#if ! ikasanFlowComponent.type.bespokeClass>
+        <#if ikasanFlowComponent.type.usesBuilder>
         return builderFactory.getComponentBuilder().${ikasanFlowComponent.type.associatedMethodName}()
+        <#else>
+        return new ${ikasanFlowComponent.type.associatedMethodName}()
+        </#if>
+
     </#if>
     <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >

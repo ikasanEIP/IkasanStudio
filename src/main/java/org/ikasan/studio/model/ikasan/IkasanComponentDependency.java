@@ -8,6 +8,7 @@ import java.util.Map;
 public enum IkasanComponentDependency {
     BASIC(),
     JMS(),
+    CONVERTER(),
     NONE();
 
     Map<String, Dependency> dependencies;
