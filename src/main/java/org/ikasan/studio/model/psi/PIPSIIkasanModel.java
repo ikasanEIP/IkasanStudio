@@ -484,10 +484,6 @@ public class PIPSIIkasanModel {
         ikasanModule.addFlow(newFlow);
     }
 
-
-    // componentFactory.getXmlToObjectConverter()....
-    // jmsProducer -> Producer jmsProducer = builderFactory.getComponentBuilder().jmsProducer()
-
     /**
      * Get all the methods (settings) applied to a specific ikasan component
      * @param expressionToBeSearched, this is usually the second parameter of the flows Builder's consumer or converter methods
@@ -537,7 +533,7 @@ public class PIPSIIkasanModel {
                         // Hopefully the method that creates the component
                         PsiStatement getterReturnStatement = getReturnStatementFromMethod((PsiMethod)factoryClassGetterMethod);
                         //// return statement
-                        // The returnReference will contain our type of component .e.g Filter, Producer etc
+                        // The returnReference will contain our type of component .e.g Filter, Producer etc - BUT this might be the interface type, so will it be specific enough ??
                         PsiReferenceExpressionImpl returnReference = getLocalVariableFromReturnStatement(getterReturnStatement);
 
                         String getterReturnType = ((PsiType)factoryClassGetterMethod.getReturnType()).getCanonicalText();

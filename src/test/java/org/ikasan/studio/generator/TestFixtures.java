@@ -490,6 +490,17 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/OBJECT_MESSAGE_TO_XML_STRING_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
+    public static IkasanFlowComponent getFullyPopulatedObjectMessageToObjectConverterComponent(IkasanFlow ikasanFlow) {
+        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, ikasanFlow);
+        component.setPropertyValue("Name", "MyObjectToObjectconverter");
+        return component;
+    }
+
+    /**
+     * Create a fully populated email producer
+     * See resources/studio/componentDefinitions/OBJECT_MESSAGE_TO_XML_STRING_CONVERTER_en_GB.csv
+     * @return a FullyPopulatedEmailProducer
+     */
     public static IkasanFlowComponent getFullyPopulatedObjectMessageToXmlStringConverterComponent(IkasanFlow ikasanFlow) {
         IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
