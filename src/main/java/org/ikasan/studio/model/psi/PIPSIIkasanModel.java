@@ -537,15 +537,18 @@ public class PIPSIIkasanModel {
                         PsiReferenceExpressionImpl returnReference = getLocalVariableFromReturnStatement(getterReturnStatement);
 
                         String getterReturnType = ((PsiType)factoryClassGetterMethod.getReturnType()).getCanonicalText();
-                        String ikasanComponentType = null;
-                        if (IkasanComponentCategory.isIkasanComponent(getterReturnType)) {
-                            ikasanComponentType = getterReturnType;
-                        }
 
                         if (returnReference != null) {
                             // the method returns a variable, that local variable is the component
                             PsiElement componentVariable = returnReference.resolve();
                             if (componentVariable != null) {
+
+                                String ikasanComponentType = null;
+                                if (componentVariable instanceof PsiField && ((PsiField) componentVariable).getType() != null) {
+                                    ikasanComponentType = ((PsiField) componentVariable).getType().getCanonicalText();
+                                } else if (IkasanComponentCategory.isIkasanComponent(getterReturnType)) {
+                                    ikasanComponentType = getterReturnType;
+                                }
                                 PIPSIMethodList  pipsiMethodList = new PIPSIMethodList();
                                 List<String> implementedInterfaces = safeGetInterfacesFromReturnVariable(componentVariable);
                                 pipsiMethodList.setInterfaces(implementedInterfaces);
