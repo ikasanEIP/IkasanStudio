@@ -17,9 +17,13 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
-    <#if ikasanFlowComponent.type.bespokeClass>
+    <#if ikasanFlowComponent.type.bespokeClass  || !ikasanFlowComponent.type.usesBuilder>
         @javax.annotation.Resource
+        <#if ikasanFlowComponent.type.bespokeClass>
         ${module.getPropertyValue('ApplicationPackageName')}.${flow.getJavaPackageName()}.${ikasanFlowComponent.getPropertyValue('BespokeClassName')} ${ikasanFlowComponent.getJavaVariableName()};
+        <#else>
+        ${ikasanFlowComponent.type.associatedMethodName} ${ikasanFlowComponent.getJavaVariableName()};
+        </#if>
     <#else>
     </#if>
 <#--    <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>-->
@@ -72,13 +76,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#compress>
 <#list flow.flowComponentList![] as ikasanFlowComponent>
     public ${ikasanFlowComponent.type.elementCategory.baseClass} get${ikasanFlowComponent.getJavaClassName()}() {
-    <#if ! ikasanFlowComponent.type.bespokeClass>
-        <#if ikasanFlowComponent.type.usesBuilder>
+    <#if ikasanFlowComponent.type.usesBuilder>
         return builderFactory.getComponentBuilder().${ikasanFlowComponent.type.associatedMethodName}()
-        <#else>
-        return new ${ikasanFlowComponent.type.associatedMethodName}()
-        </#if>
-
     </#if>
     <#list ikasanFlowComponent.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
@@ -101,7 +100,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#if ikasanFlowComponent.type=="MESSAGE_FILTER" && ikasanFlowComponent.getProperty("IsConfiguredResource")?has_content && ikasanFlowComponent.getProperty("IsConfiguredResource").getValue() && (!ikasanFlowComponent.getProperty("ConfiguredResourceId")?has_content || !ikasanFlowComponent.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${ikasanFlowComponent.getJavaVariableName()}.setConfiguredResourceId("${StudioUtils.toJavaIdentifier(module.name)}-${StudioUtils.toJavaIdentifier(flow.name)}-${StudioUtils.toJavaIdentifier(ikasanFlowComponent.name)}");
     </#if>
-    <#if ikasanFlowComponent.type.bespokeClass>
+    <#if ikasanFlowComponent.type.bespokeClass || !ikasanFlowComponent.type.usesBuilder>
         return ${ikasanFlowComponent.getJavaVariableName()};
     <#else>
         .build();
