@@ -221,6 +221,14 @@ public enum IkasanComponentType implements Serializable {
      */
     public static IkasanComponentType parseCategoryType(String methodName) {
         if (methodName != null) {
+            // First try for an exact match
+            for (IkasanComponentType name : IkasanComponentType.values()) {
+                if (!name.elementCategory.associatedMethodName.isEmpty() &&
+                    StringUtils.equalsIgnoreCase(methodName, name.elementCategory.associatedMethodName)) {
+                    return name;
+                }
+            }
+            // Now more fuzzy match
             for (IkasanComponentType name : IkasanComponentType.values()) {
                 if (!name.elementCategory.associatedMethodName.isEmpty() &&
                     StringUtils.containsIgnoreCase(methodName, name.elementCategory.associatedMethodName)) {
