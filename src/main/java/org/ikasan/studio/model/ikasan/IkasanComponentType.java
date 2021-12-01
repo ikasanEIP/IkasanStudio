@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
  * No UI specific elements should be present in this class (@see org.ikasan.studio.ui.model.IkasanFlowUIComponent for that)
  */
 public enum IkasanComponentType implements Serializable {
-    MODULE(IkasanComponentCategory.MODULE, false, true, "", IkasanComponentDependency.BASIC),
-    FLOW(IkasanComponentCategory.FLOW, false, true, "", IkasanComponentDependency.NONE),
+    MODULE(IkasanComponentCategory.MODULE, false, true, "org.ikasan.spec.module.Module", IkasanComponentDependency.BASIC),
+    FLOW(IkasanComponentCategory.FLOW, false, true, "org.ikasan.spec.flow.Flow", IkasanComponentDependency.NONE),
     BROKER(IkasanComponentCategory.BROKER, false, true, "broker", IkasanComponentDependency.NONE),
     DB_BROKER(IkasanComponentCategory.BROKER, false, true, "DbBroker", IkasanComponentDependency.NONE),
     DELAY_GENERATION_BROKER(IkasanComponentCategory.BROKER, false, true, "DelayGenerationBroker", IkasanComponentDependency.NONE),
@@ -222,6 +222,20 @@ public enum IkasanComponentType implements Serializable {
     public static IkasanComponentType parseCategoryType(String methodName) {
         if (methodName != null) {
             // First try for an exact match
+//            for (IkasanComponentType name : IkasanComponentType.values()) {
+//                if (!name.associatedMethodName.isEmpty() &&
+//                    StringUtils.equalsIgnoreCase(methodName, name.associatedMethodName)) {
+//                    return name;
+//                }
+//            }
+//            // Now more fuzzy match
+//            for (IkasanComponentType name : IkasanComponentType.values()) {
+//                if (!name.associatedMethodName.isEmpty() &&
+//                    StringUtils.containsIgnoreCase(methodName, name.associatedMethodName)) {
+//                    return name;
+//                }
+//            }
+
             for (IkasanComponentType name : IkasanComponentType.values()) {
                 if (!name.elementCategory.associatedMethodName.isEmpty() &&
                     StringUtils.equalsIgnoreCase(methodName, name.elementCategory.associatedMethodName)) {

@@ -14,10 +14,9 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@javax.annotation.Resource
-org.ikasan.component.converter.jms.ObjectMessageToObjectConverter myObjectToObjectconverter;
+
 
 
 public org.ikasan.spec.component.transformation.Converter getMyObjectToObjectconverter() {
-return myObjectToObjectconverter;
+return new org.ikasan.component.converter.jms.ObjectMessageToObjectConverter();
 }}
