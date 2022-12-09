@@ -100,3 +100,5 @@ The local properties file should be geared totally to local running only
 A copy can be taken and substituted with environment and test values. This keeps seperate between local running and how the client does environment config.
 Wizards and meta compomnents.
 
+## Testing
+
