@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * The Context allows all the independent parts of the UI to collaborate with each other.
@@ -72,6 +73,10 @@ public enum Context {
             return cache.get(key);
         }
         return null;
+    }
+
+    public static Set<String> getProjectKeys() {
+        return perProjectCache.keySet();
     }
 
     public static Options getOptions(String projectKey) {

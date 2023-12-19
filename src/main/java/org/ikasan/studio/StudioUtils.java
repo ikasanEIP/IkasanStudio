@@ -286,8 +286,22 @@ public class StudioUtils {
     private static final int NUMBER_OF_DEPENDENCY_CONFIGS = 3;
     public static final String COMPONENT_DEPENDENCIES_DIR = "/studio/componentDependencies/";
 
+    /**
+     * Look for csv files in /studio/componentDependencies and load the Maven dependencies (jar dependencies) for that
+     * component e.g. BASIC.csv holds all the basic Ikasan dependencies
+     *
+     * artifactid,           groupid,   versionid
+     * ikasan-connector-base,org.ikasan,3.1.0
+     * ikasan-eip-standalone,org.ikasan,3.1.0
+     *
+     * so the Map is of Dependency.getManagementKey() -> Dependency
+     *
+     * @param propertiesFile one of the properties fiiles to be read
+     * @return the growing list of dependencies, including the properties file provided.
+     */
     public static Map<String, Dependency> readIkasanComponentDependencies(String propertiesFile) {
-        Map<String, Dependency> dependencies = new TreeMap<>() ;
+
+        Map<String, Dependency> dependencies = new TreeMap<>() ;        // Map of Dependency.getManagementKey() -> Dependency
 
         String propertiesFileName = COMPONENT_DEPENDENCIES_DIR + propertiesFile + ".csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
