@@ -1,6 +1,7 @@
 package org.ikasan.studio.model.psi;
 
 import com.intellij.lang.jvm.JvmMethod;
+import com.intellij.lang.jvm.annotation.JvmAnnotationAttribute;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
@@ -44,9 +45,9 @@ public class PIPSIIkasanModel {
     private static final String EXCEPTION_RESOLVER_NAME_METHOD = "getExceptionResolverBuilder";
     private static final String ADD_EXCEPTION_TO_ACTION = "addExceptionToAction";
 
-    private PsiElementFactory javaPsiFactory;
-    private String projectKey ;
-    private IkasanModule ikasanModule;
+    private final PsiElementFactory javaPsiFactory;
+    private final String projectKey ;
+    private final IkasanModule ikasanModule;
     private PsiClass moduleConfigClazz;
     private PsiJavaFile moduleConfigFile;
     private PsiJavaFile applicationClazz;
@@ -88,7 +89,7 @@ public class PIPSIIkasanModel {
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
-                        StudioPsiUtils.addDependancies(projectKey, newDependencies);
+                        StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
                         //@todo start making below conditional on state changed.
                         ApplicationTemplate.create(project);
 //                        generateBespokeComponents(project);
@@ -558,7 +559,7 @@ public class PIPSIIkasanModel {
                                 if (componentVariable instanceof PsiLocalVariable ||
                                         (componentVariable instanceof PsiField &&
                                         ((PsiField) componentVariable).getSourceElement().getText().contains("@Resource"))) {
-                                    String beskpokeClassName = null ;
+                                    String beskpokeClassName ;
                                     if (componentVariable instanceof PsiLocalVariable) {
                                         // this is an injected bespoke class
                                         beskpokeClassName = ((PsiLocalVariable) componentVariable).getType().getCanonicalText();
@@ -599,7 +600,7 @@ public class PIPSIIkasanModel {
     /**
      * traversing the pointers to get to the Interfaces would result in a lot of null checks, or just a try catch
      */
-    private List<String> safeGetInterfacesFromReturnVariable(PsiElement componentVariable) {
+    private List safeGetInterfacesFromReturnVariable(PsiElement componentVariable) {
         List implementedInterfaces = null;
         if (componentVariable != null && componentVariable instanceof PsiLocalVariable) {
             try {
@@ -615,14 +616,14 @@ public class PIPSIIkasanModel {
                                         .resolve())
                                 .getImplementsList())
                         .getReferencedTypes();
-                if (interfaces != null && interfaces.length > 0) {
+                if (interfaces.length > 0) {
                     implementedInterfaces = new ArrayList();
                     for (PsiClassType psiClassType : interfaces) {
                         implementedInterfaces.add(psiClassType.getCanonicalText());
                     }
                 }
             } catch (NullPointerException npe) {
-                LOG.info("Attempt to get resolved interfaces for " + componentVariable.toString() + " failed");
+                LOG.info("Attempt to get resolved interfaces for " + componentVariable + " failed");
             }
         }
         return implementedInterfaces;
@@ -645,55 +646,49 @@ public class PIPSIIkasanModel {
             additionalParameters.add(bespokeClassParam);
             PsiClassType[] psiClassTypes = psiClass.getImplementsList().getReferencedTypes();
 
-            if (psiClassTypes != null) {
-                for (PsiClassType type : psiClassTypes) {
-                    PsiClass resolvedType = type.resolve();
-                    IkasanComponentCategory ikasanComponentCategory = null;
-                    String componentType = null;
-                    if (resolvedType != null) {
-                        componentType = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName()).toString();
-                    } else {
-                        // These tend to be parameterised types
-                        String qualifiedName = ((PsiClassReferenceType) type).getReference().getQualifiedName();
+            for (PsiClassType type : psiClassTypes) {
+                PsiClass resolvedType = type.resolve();
+                IkasanComponentCategory ikasanComponentCategory = null;
+                String componentType;
+                if (resolvedType != null) {
+                    componentType = IkasanComponentCategory.parseBaseClass(resolvedType.getQualifiedName()).toString();
+                } else {
+                    // These tend to be parameterised types
+                    String qualifiedName = ((PsiClassReferenceType) type).getReference().getQualifiedName();
 //                        if (IkasanComponentPropertyMeta.CONFIGURED_RESOURCE.toString().equals(qualifiedName) || IkasanComponentPropertyMeta.CONFIGURATION.toString().equals(qualifiedName)) {
-                        if (IkasanComponentPropertyMeta.CONFIGURED_RESOURCE_INTERFACE.toString().equals(qualifiedName) || IkasanComponentPropertyMeta.CONFIGURATION.toString().equals(qualifiedName)) {
-                            componentType = qualifiedName;
-                        } else {
-                            componentType = IkasanComponentCategory.parseBaseClass(qualifiedName).toString();
-                        }
+                    if (IkasanComponentPropertyMeta.CONFIGURED_RESOURCE_INTERFACE.equals(qualifiedName) || IkasanComponentPropertyMeta.CONFIGURATION.equals(qualifiedName)) {
+                        componentType = qualifiedName;
+                    } else {
+                        componentType = IkasanComponentCategory.parseBaseClass(qualifiedName).toString();
                     }
-                    if (componentType != null) {
-                        if (ikasanComponentCategory.CONVERTER.toString().equals(componentType)) {
-                            PsiType[] templateTypes = type.getParameters();
-                            if (templateTypes.length > 0) {
-                                PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
-                                additionalParameters.add(fromType);
-                            }
-                            if (templateTypes.length > 1) {
-                                PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
-                                additionalParameters.add(toType);
-                            }
-                        } else if (ikasanComponentCategory.FILTER.toString().equals(componentType)) {
-                            PsiType[] templateTypes = type.getParameters();
-                            if (templateTypes.length > 0) {
-                                PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
-                                additionalParameters.add(fromType);
-                            }
-                        } else if (ikasanComponentCategory.CONFIGURED_RESOURCE.toString().equals(componentType) || IkasanComponentPropertyMeta.CONFIGURED_RESOURCE_INTERFACE.toString().equals(componentType)) {
-                            String resourceType = ((PsiClassReferenceType) type).getReference().getTypeParameters()[0].getCanonicalText();
-                            if (resourceType != null) {
-                                PIPSIMethod configuration = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.CONFIGURATION, psiClass.getMethods()[0], resourceType);
-                                additionalParameters.add(configuration);
-                                PIPSIMethod isConfiguredResource = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.IS_CONFIGURED_RESOURCE, psiClass.getMethods()[0], Boolean.TRUE.toString());
-                                additionalParameters.add(isConfiguredResource);
-                            }
-                        } else if (IkasanComponentPropertyMeta.CONFIGURATION.toString().equals(componentType)) {
-                            String resourceType = ((PsiClassReferenceType) type).getReference().getTypeParameters()[0].getCanonicalText();
-                            if (resourceType != null) {
-                                PIPSIMethod configuration = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.CONFIGURATION, psiClass.getMethods()[0], resourceType);
-                                additionalParameters.add(configuration);
-                            }
+                }
+                if (componentType != null) {
+                    if (IkasanComponentCategory.CONVERTER.toString().equals(componentType)) {
+                        PsiType[] templateTypes = type.getParameters();
+                        if (templateTypes.length > 0) {
+                            PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
+                            additionalParameters.add(fromType);
                         }
+                        if (templateTypes.length > 1) {
+                            PIPSIMethod toType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.TO_TYPE, psiClass.getMethods()[0], templateTypes[1].getCanonicalText());
+                            additionalParameters.add(toType);
+                        }
+                    } else if (IkasanComponentCategory.FILTER.toString().equals(componentType)) {
+                        PsiType[] templateTypes = type.getParameters();
+                        if (templateTypes.length > 0) {
+                            PIPSIMethod fromType = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.FROM_TYPE, psiClass.getMethods()[0], templateTypes[0].getCanonicalText());
+                            additionalParameters.add(fromType);
+                        }
+                    } else if (IkasanComponentCategory.CONFIGURED_RESOURCE.toString().equals(componentType) || IkasanComponentPropertyMeta.CONFIGURED_RESOURCE_INTERFACE.equals(componentType)) {
+                        String resourceType = ((PsiClassReferenceType) type).getReference().getTypeParameters()[0].getCanonicalText();
+                        PIPSIMethod configuration = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.CONFIGURATION, psiClass.getMethods()[0], resourceType);
+                        additionalParameters.add(configuration);
+                        PIPSIMethod isConfiguredResource = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.IS_CONFIGURED_RESOURCE, psiClass.getMethods()[0], Boolean.TRUE.toString());
+                        additionalParameters.add(isConfiguredResource);
+                    } else if (IkasanComponentPropertyMeta.CONFIGURATION.equals(componentType)) {
+                        String resourceType = ((PsiClassReferenceType) type).getReference().getTypeParameters()[0].getCanonicalText();
+                        PIPSIMethod configuration = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.CONFIGURATION, psiClass.getMethods()[0], resourceType);
+                        additionalParameters.add(configuration);
                     }
                 }
             }
@@ -852,8 +847,8 @@ public class PIPSIIkasanModel {
             if (springVariable instanceof  PsiField) {
                 PsiAnnotation[] annotations = ((PsiField)springVariable).getAnnotations();
                 if (annotations.length > 0) {
-                    List annotationAttributes = annotations[0].getAttributes();
-                    if (annotationAttributes != null && ! annotationAttributes.isEmpty()) {
+                    List<JvmAnnotationAttribute> annotationAttributes = annotations[0].getAttributes();
+                    if (annotationAttributes.isEmpty()) {
                         springValueKey = ((PsiNameValuePair)annotationAttributes.get(0)).getLiteralValue();
                         if (springValueKey!=null && springValueKey.contains("${")) {
                             springValueKey = springValueKey.replace("$", "")
@@ -891,6 +886,7 @@ public class PIPSIIkasanModel {
             String methodName = pipsiMethod.getName();
             if  ("build".equals(methodName) || COMPONENT_BUILDER_NAME_METHOD.equals(methodName)) {
                 // Ignore for now
+                ;
             } else if (EXCEPTION_RESOLVER_NAME_METHOD.equals(methodName)) {
                 ikasanFlowComponent = IkasanFlowComponent.getInstance(IkasanComponentType.parseMethodName(methodName), parent, name, description);
             } else if (ADD_EXCEPTION_TO_ACTION.equals(methodName)) {
@@ -913,7 +909,7 @@ public class PIPSIIkasanModel {
                 List<IkasanComponentPropertyMeta> actionParams = IkasanExceptionResolutionMeta.getPropertyMetaListForAction(actionType);
                 List<IkasanComponentProperty> propertyList = IkasanComponentProperty.generateIkasanComponentPropertyList(actionParams);
                 PsiExpression onExceptionMethodCall = pipsiMethod.getParameter(1);
-                if (onExceptionMethodCall != null && onExceptionMethodCall instanceof PsiMethodCallExpression) {
+                if (onExceptionMethodCall instanceof PsiMethodCallExpression) {
                     int paramCount = ((PsiMethodCallExpression)onExceptionMethodCall).getArgumentList().getExpressionCount();
 
                     for (int index = 0; index < paramCount; index++) {
@@ -994,8 +990,8 @@ public class PIPSIIkasanModel {
      *
      * public Flow getFtpConsumerFlow(ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder)
      *
-     * @param myMethod
-     * @return
+     * @param myMethod to search
+     * @return flow local variable if it exists
      */
     protected PsiLocalVariable getFlowLocalVariableFromBespokeGetterMethod(final PsiMethod myMethod) {
         PsiLocalVariable flowLocalVariable = null;
@@ -1068,7 +1064,7 @@ public class PIPSIIkasanModel {
      */
     protected PIPSIMethodList extractMethodCallsFromChain(final PsiElement[] children, final PIPSIMethodList pipsiMethodList) {
         boolean isSpringBean = false;
-        if (children != null && children.length > 0) {
+        if (children != null) {
             for (PsiElement subelement : children) {
 //                if (subelement instanceof PsiNewExpression) {
 //                    PsiJavaCodeReferenceElement xx = (PsiJavaCodeReferenceElement) Arrays.stream(subelement.getChildren()).filter(x -> x instanceof PsiJavaCodeReferenceElement).findFirst().orElse(null);

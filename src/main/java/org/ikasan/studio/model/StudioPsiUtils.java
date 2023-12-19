@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
@@ -31,9 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.ikasan.studio.model.ikasan.IkasanPomModel.MAVEN_COMPILER_SOURCE;
+import static org.ikasan.studio.model.ikasan.IkasanPomModel.MAVEN_COMPILER_TARGET;
 
 public class StudioPsiUtils {
     private static final Logger LOG = Logger.getLogger(StudioPsiUtils.class);
@@ -101,11 +102,11 @@ public class StudioPsiUtils {
      * @param project currently being worked on
      * @return the studio representation of the POM
      */
-    public static IkasanPomModel loadPom(Project project) {
+    public static IkasanPomModel pomLoad(Project project) {
         IkasanPomModel pom = Context.getPom(project.getName());
         if (pom == null) {
             Model model = null;
-            PsiFile pomPsiFile = getPom(project);
+            PsiFile pomPsiFile = pomGetTopLevel(project);
             if (pomPsiFile != null) {
                 try (Reader reader = new StringReader(pomPsiFile.getText())) {
                     MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
@@ -125,60 +126,90 @@ public class StudioPsiUtils {
      * @param projectKey for the project being worked on
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
-    public static IkasanPomModel addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
+    public static void pomAddDependancies(String projectKey, Map<String, Dependency> newDependencies) {
         IkasanPomModel pom = null;
         if (newDependencies != null && !newDependencies.isEmpty()) {
             Project project = Context.getProject(projectKey);
-            pom = loadPom(project); // Have to load each time because might have been independently updated.
+            pom = pomLoad(project); // Have to load each time because might have been independently updated.
             boolean pomUpdated = false;
 
             if (pom != null) {
-                Set<String> existingDependencyKeys = pom.getDependencyKeys();
-
                 for (Dependency newDependency : newDependencies.values()) {
-                    if (!existingDependencyKeys.contains(newDependency.getManagementKey())) {
-                        pom.addDependency(newDependency);
-                        pomUpdated = true;
-                    }
+                    pom.addDependency(newDependency);
                 }
             }
-
-            if (pomUpdated) {
-                savePom(project, pom);
+            pomAddStandardProperties(pom);
+            if (pom.isDirty()) {
+                pomSave(project, pom);
 //            ProjectManager.getInstance().reloadProject(project);
             }
         }
-        return pom;
     }
 
-    public static void savePom(Project project, IkasanPomModel pom) {
-        MavenXpp3Writer writer = new MavenXpp3Writer();
-        StringWriter sw = new StringWriter();
-        try {
-            writer.write(sw, pom.getModel());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * Add in the standard properties for the pom, based on project level config e.g. JDK
+     * @param pom is the root level pom to be updated
+     */
+    private static void pomAddStandardProperties(IkasanPomModel pom) {
+        pom.addProperty(MAVEN_COMPILER_TARGET, "1.8");
+        pom.addProperty(MAVEN_COMPILER_SOURCE, "1.8");
+    }
 
-        // Always need to reget the PsiFile since a reload might have disposed previous handle.
-        pom.setPomPsiFile(getPom(project));
+    public static void pomSave(final Project project, final IkasanPomModel pom) {
 
-        PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
-        String fileName = pom.getPomPsiFile().getName();
+        String pomAsString = pom.getModelAsString();
+//        MavenXpp3Writer writer = new MavenXpp3Writer();
+//        StringWriter pomStringWriter = new StringWriter();
+//        try {
+//            writer.write(pomStringWriter, pom.getModel());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+        // Always need to re-get the PsiFile since a reload might have disposed previous handle.
+        PsiFile currentPomPsiFile = pomGetTopLevel(project);
+
+        PsiDirectory containtingDirectory = currentPomPsiFile.getContainingDirectory();
+        String fileName = currentPomPsiFile.getName();
 
         // Delete the old POM file
-        if (pom.getPomPsiFile() != null) {
-            pom.getPomPsiFile().delete();
-            pom.setPomPsiFile(null);
+        if (currentPomPsiFile != null) {
+            currentPomPsiFile.delete();
         }
 
-        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.XML, sw.toString());
+//        pom.setPomPsiFile(pomGetTopLevel(project));
+//        PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
+//        String fileName = pom.getPomPsiFile().getName();
+//
+//        // Delete the old POM file
+//        if (pom.getPomPsiFile() != null) {
+//            pom.getPomPsiFile().delete();
+//            pom.setPomPsiFile(null);
+//        }
+
+        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.XML, pomAsString);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         newPomFile = (XmlFile)containtingDirectory.add(newPomFile);
         CodeStyleManager.getInstance(project).reformat(newPomFile);
         // Technically this is a testing Util
         PsiTestUtil.checkFileStructure(newPomFile);
-        pom.setPomPsiFile(newPomFile);
+
+//        pom.setPomPsiFile(newPomFile);
+    }
+
+
+    /**
+     * Attempt to get the top level pom for the prject
+     * @param project to be searched
+     * @return A PsiFile handle to the pom or null
+     */
+    public static PsiFile pomGetTopLevel(Project project) {
+        PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
+        if (pomFiles.length > 0) {
+            return pomFiles[0];
+        } else {
+            return null;
+        }
     }
 
     public static PsiFile createFile1(final String filename, final String text, Project project) {
@@ -191,20 +222,6 @@ public class StudioPsiUtils {
         return newFile;
     }
 
-
-    /**
-     * Attempt to get the top level pom for the prject
-     * @param project to be searched
-     * @return A PsiFile handle to the pom or null
-     */
-    public static PsiFile getPom(Project project) {
-        PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
-        if (pomFiles.length > 0) {
-            return pomFiles[0];
-        } else {
-            return null;
-        }
-    }
 
     /**
      * This class attempts to find a file, it does not attempt to retrieve it
