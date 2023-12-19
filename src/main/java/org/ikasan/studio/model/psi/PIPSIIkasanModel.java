@@ -848,7 +848,7 @@ public class PIPSIIkasanModel {
                 PsiAnnotation[] annotations = ((PsiField)springVariable).getAnnotations();
                 if (annotations.length > 0) {
                     List<JvmAnnotationAttribute> annotationAttributes = annotations[0].getAttributes();
-                    if (annotationAttributes.isEmpty()) {
+                    if (! annotationAttributes.isEmpty()) {
                         springValueKey = ((PsiNameValuePair)annotationAttributes.get(0)).getLiteralValue();
                         if (springValueKey!=null && springValueKey.contains("${")) {
                             springValueKey = springValueKey.replace("$", "")
