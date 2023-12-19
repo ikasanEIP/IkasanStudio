@@ -123,13 +123,13 @@ public class StudioPsiUtils {
     /**
      * Add the new dependencies IF they are not already in the pom
      * @param projectKey for the project being worked on
-     * @param newDependencies to be added.
+     * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
-    public static void addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
+    public static IkasanPomModel addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
+        IkasanPomModel pom = null;
         if (newDependencies != null && !newDependencies.isEmpty()) {
-            IkasanPomModel pom = Context.getPom(projectKey);
             Project project = Context.getProject(projectKey);
-            pom = loadPom(project); // Have to load each time because might have been independantly updated.
+            pom = loadPom(project); // Have to load each time because might have been independently updated.
             boolean pomUpdated = false;
 
             if (pom != null) {
@@ -148,6 +148,7 @@ public class StudioPsiUtils {
 //            ProjectManager.getInstance().reloadProject(project);
             }
         }
+        return pom;
     }
 
     public static void savePom(Project project, IkasanPomModel pom) {
@@ -164,6 +165,8 @@ public class StudioPsiUtils {
 
         PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
         String fileName = pom.getPomPsiFile().getName();
+
+        // Delete the old POM file
         if (pom.getPomPsiFile() != null) {
             pom.getPomPsiFile().delete();
             pom.setPomPsiFile(null);
@@ -189,6 +192,11 @@ public class StudioPsiUtils {
     }
 
 
+    /**
+     * Attempt to get the top level pom for the prject
+     * @param project to be searched
+     * @return A PsiFile handle to the pom or null
+     */
     public static PsiFile getPom(Project project) {
         PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
         if (pomFiles.length > 0) {
@@ -198,6 +206,12 @@ public class StudioPsiUtils {
         }
     }
 
+    /**
+     * This class attempts to find a file, it does not attempt to retrieve it
+     * @param project to that contains the file
+     * @param filename to search for
+     * @return A message string to indicate progress.
+     */
     public static String findFile(Project project, String filename) {
         StringBuilder message = new StringBuilder();
 

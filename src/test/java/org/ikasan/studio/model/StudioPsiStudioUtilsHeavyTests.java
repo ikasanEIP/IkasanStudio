@@ -3,6 +3,7 @@ package org.ikasan.studio.model;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -14,11 +15,34 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.Context;
+import org.ikasan.studio.generator.ApplicationTemplate;
+import org.ikasan.studio.generator.FlowTemplate;
+import org.ikasan.studio.generator.ModuleConfigTemplate;
+import org.ikasan.studio.generator.PropertiesTemplate;
+import org.ikasan.studio.model.ikasan.IkasanPomModel;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+
+/**
+ * Heavy tests create a new project for each test, where possible use lightwieght
+ *
+ * https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html
+ *
+ */
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
     private String TEST_PROJECT = "testproject";
+    protected static String TEST_PROJECT_KEY = "testproject";
     private static String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
 
     /**
@@ -104,6 +128,44 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        Assert.assertThat(psiJavaDirectory[0].getName(), is("test"));
 //    }
 
+
+    //public static void addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
+    @Test
+    public void test_addDependancies_adds_provided_dependancies_and_default_dependencies() {
+
+        // The test fixtures set the project name to be the test method name
+        String testProjectKey = myProject.getName();
+
+        StudioPsiUtils.getAllSourceRootsForProject(myProject);
+        IkasanPomModel ikasanPomModel = StudioPsiUtils.loadPom(myProject) ;
+        Context.setProject(testProjectKey, myProject);
+        Context.setPom(testProjectKey, ikasanPomModel);
+
+        Assert.assertThat(ikasanPomModel.getModel().getDependencies().size(), is(0));
+
+        Dependency dependency = new Dependency();
+        dependency.setType("jar");
+        dependency.setArtifactId("ikasan-connector-base");
+        dependency.setGroupId("org.ikasan");
+        dependency.setVersion("3.1.0");
+
+        Map<String, Dependency> newDependencies = new HashMap<>();
+        newDependencies.put(dependency.getManagementKey(), dependency);
+
+        WriteCommandAction.runWriteCommandAction(
+                myProject,
+                () -> {
+                    IkasanPomModel updatedPom = StudioPsiUtils.addDependancies(testProjectKey, newDependencies);
+                }
+        );
+
+        IkasanPomModel updatedPom = StudioPsiUtils.loadPom(myProject) ;
+        Assert.assertThat(updatedPom.getModel().getDependencies().size(), is(1));
+
+//        IkasanPomModel.getModel().getProperties();
+//        String taget = properties.getProperty("maven.compiler.target");
+//        String target = properties.getProperty("maven.compiler.source");
+    }
 
     @Test
     public void test_findFile() {

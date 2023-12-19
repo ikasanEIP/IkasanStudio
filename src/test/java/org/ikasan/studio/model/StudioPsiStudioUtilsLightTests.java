@@ -15,6 +15,14 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
+/**
+ * Light tests reuse a project from the previous test run when possible, they are quicker and therefore advised
+ *
+ * https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html
+ *
+ * Before executing each test, the project instance will be reused if the test case returns the same project descriptor
+ * as the previous one or recreated if the descriptor is different (equals() = false).
+ */
 public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureTestCase {
 
     /**
