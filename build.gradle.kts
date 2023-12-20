@@ -71,6 +71,11 @@ dependencies {
     testImplementation("org.ikasan:ikasan-component-converter:3.1.0")
     testImplementation("org.ikasan:ikasan-test-endpoint:3.1.0")
     testImplementation("org.ikasan:ikasan-test:3.1.0")
+    compileOnly ("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_11
