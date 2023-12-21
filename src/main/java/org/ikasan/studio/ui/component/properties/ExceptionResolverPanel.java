@@ -1,7 +1,10 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolver;
 
@@ -12,16 +15,14 @@ import java.util.List;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
- *
  * This panel contains the data entry for the exception and action
  */
 public class ExceptionResolverPanel extends PropertiesPanel {
-    private static final Logger log = Logger.getLogger(ExceptionResolverPanel.class);
+    private static final Logger LOG = Logger.getInstance("#ExceptionResolverPanel");
     private transient ExceptionResolverEditBox exceptionResolverEditBox;
 
     /**
      * Create the ExceptionResolutionPanel
-     *
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
      *
@@ -43,7 +44,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
         } else {
-            log.info("Data hos not changed in exception resolver, code will not be updated");
+            LOG.info("Data hos not changed in exception resolver, code will not be updated");
         }
     }
 
@@ -60,7 +61,6 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     /**
      * Called once the OK button is pressed.
      * Check to see if any new values have been entered, update the model and return true if that is the case.
-     * @return true if the model has been updated with new values.
      */
     public void processEditedFlowComponents() {
         if (dataHasChanged()) {
@@ -71,21 +71,16 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     /**
      * When updateTargetComponent is called, it will set the component to be exposed / edited, it will then
      * delegate update of the editor pane to this component so that we can specialise for different components.
-     *
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected void populatePropertiesEditorPanel() {
         if (okButton != null) {
-            if (dataHasChanged()) {
-                okButton.setEnabled(true);
-            } else {
-                okButton.setEnabled(false);
-            }
+            okButton.setEnabled(dataHasChanged());
         }
 
         if (getSelectedComponent() != null) {
             propertiesEditorPanel = new JPanel(new GridBagLayout());
-            propertiesEditorPanel.setBackground(Color.WHITE);
+            propertiesEditorPanel.setBackground(JBColor.WHITE);
             propertiesEditorScrollingContainer.removeAll();
 
             // Only initialise on the first pass.
@@ -106,7 +101,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                     !exceptionResolverEditBox.getExceptionResolutionList().isEmpty()) {
                 for (ExceptionResolution exceptionResolution : exceptionResolverEditBox.getExceptionResolutionList()) {
                     JPanel paramsSubPanel = new JPanel(new GridBagLayout());
-                    paramsSubPanel.setBackground(Color.WHITE);
+                    paramsSubPanel.setBackground(JBColor.WHITE);
                     int subPanelY = 0;
 
                     for (ComponentPropertyEditBox componentPropertyEditBox : exceptionResolution.getActionParamsEditBoxList()) {
@@ -122,13 +117,13 @@ public class ExceptionResolverPanel extends PropertiesPanel {
 
             GridBagConstraints gc1 = new GridBagConstraints();
             gc1.fill = GridBagConstraints.HORIZONTAL;
-            gc1.insets = new Insets(3, 4, 3, 4);
+            gc1.insets = JBUI.insets(3, 4);
             gc1.gridx = 0;
             gc1.weightx = 1;
             gc1.gridy = 0;
 
             // Add the params to the display panels.
-            setSubPanel(propertiesEditorPanel, exceptionResolutionTablePanel, "", Color.LIGHT_GRAY, gc1);
+            setSubPanel(propertiesEditorPanel, exceptionResolutionTablePanel, "", JBColor.LIGHT_GRAY, gc1);
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
         }
     }
@@ -154,7 +149,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * @param gc1 is used to dictate layout and relay layout to the next subsection.
      */
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
-        subPanel.setBackground(Color.WHITE);
+        subPanel.setBackground(JBColor.WHITE);
         subPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(borderColor), title,
                 TitledBorder.LEFT,
@@ -171,12 +166,12 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         gc.gridx = 0;
         gc.gridy = tabley;
         gc.weighty = 1;
-        Color backGroundColor = Color.WHITE;
+        Color backGroundColor = JBColor.WHITE;
 
         if (isHeader) {
-            backGroundColor = new Color(242, 242, 242);
+            backGroundColor = Gray._242;
         }
-        actionButton.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY,1));
+        actionButton.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY,1));
         jPanel.add(formatCell(actionButton, backGroundColor, false), gc);
         gc.gridx += 1;
         jPanel.add(formatCell(theException, backGroundColor, true), gc);
@@ -195,7 +190,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         }
         JPanel tableCell = new JPanel();
         tableCell.setBackground(backgroundColor);
-        tableCell.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        tableCell.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
         tableCell.add(theComponent);
         return tableCell;
     }
@@ -214,7 +209,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                 jPanel.add(componentInput.getFirstFocusComponent(), gc);
             } else {
                 JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                booleanPanel.setBackground(Color.WHITE);
+                booleanPanel.setBackground(JBColor.WHITE);
                 booleanPanel.add(new JLabel("true"));
                 booleanPanel.add(componentInput.getTrueBox());
                 booleanPanel.add(new JLabel("false"));
@@ -227,13 +222,10 @@ public class ExceptionResolverPanel extends PropertiesPanel {
 
     /**
      * Ensure the fields are valid and the exception / action combo does not already exist.
-     *
      * This Object holds the metadata for the object
-     *
      * @return a list of ValidationInfo that will only be populated if there are validation errors on the form.
      */
     protected List<ValidationInfo> doValidateAll() {
-        List<ValidationInfo> result = exceptionResolverEditBox.doValidateAll();
-        return result;
+        return exceptionResolverEditBox.doValidateAll();
     }
 }

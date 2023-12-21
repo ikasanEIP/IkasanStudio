@@ -18,6 +18,7 @@ import com.intellij.testFramework.PsiTestUtil;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,25 +26,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 
 /**
  * Heavy tests create a new project for each test, where possible use lightwieght
- *
- * https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html
+ * <a href="https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html">See Jetbrains Documentation</a>
  *
  */
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
-    private String TEST_PROJECT = "testproject";
-    protected static String TEST_PROJECT_KEY = "testproject";
-    private static String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
+    private final String TEST_PROJECT = "testproject";
+    protected final static String TEST_PROJECT_KEY = "testproject";
+    private final static String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
 
     /**
      * @return path to test data file directory relative to root of this module.
      */
     @Override
-    protected String getTestDataPath() {
+    protected @NotNull String getTestDataPath() {
         return "src/test/testData";
     }
 
@@ -86,16 +85,12 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        Project myProject = myFixture.getProject();
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject, StudioPsiUtils.JAVA_CODE);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
+            @Override
             public void run() {
-                CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
-                    @Override
-                    public void run() {
-                        StudioPsiUtils.createPackage(baseDir, packageName);
-                    }
-                }, "Name of the command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION);
+                StudioPsiUtils.createPackage(baseDir, packageName);
             }
-        });
+        }, "Name of the Command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION));
         return baseDir;
     }
 
@@ -124,7 +119,6 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 
 
     //public static void addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
-    @Test
     public void test_addDependancies_adds_provided_dependancies_and_default_dependencies() {
 
         // The test fixtures set the project name to be the test method name
@@ -152,6 +146,9 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
                     StudioPsiUtils.pomAddDependancies(testProjectKey, newDependencies);
                 }
         );
+
+
+
 
         IkasanPomModel updatedPom = StudioPsiUtils.pomLoad(myProject) ;
         Assert.assertThat(updatedPom.hasDependency(dependency), is(true));

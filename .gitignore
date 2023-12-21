@@ -160,7 +160,7 @@ $RECYCLE.BIN/
 
 ### Gradle ###
 .gradle
-build/
+.qodana
 
 # Ignore Gradle GUI config
 gradle-app.setting

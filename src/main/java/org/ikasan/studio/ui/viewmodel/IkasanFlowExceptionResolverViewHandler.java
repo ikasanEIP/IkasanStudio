@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
@@ -12,7 +12,7 @@ import java.awt.*;
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
 public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
-    private static final Logger log = Logger.getLogger(IkasanFlowExceptionResolverViewHandler.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowExceptionResolverViewHandler");
     public static final int VERTICAL_PAD = 5;
     public static final int HORIZONTAL_PAD = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 15;
@@ -25,7 +25,7 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
 
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
-     * @param model
+     * @param model for view handler
      */
     public IkasanFlowExceptionResolverViewHandler(IkasanFlowComponent model) {
         this.model = model;
@@ -38,12 +38,12 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
 
 
     /**
-     * Return the X that the component could reasonable be displayed from the right side of its flow container
-     * @param xx
+     * Return the X that the component could reasonably be displayed from the right side of its flow container
+     * @param xOffsetFromRight to be set
      * @return at least 0, or the X coord that the resolver could be displayed at
      */
-    public static int getXOffsetFromRight(int xx) {
-        int newX = xx - FLOWCHART_SYMBOL_DEFAULT_WIDTH - HORIZONTAL_PAD;
+    public static int getXOffsetFromRight(int xOffsetFromRight) {
+        int newX = xOffsetFromRight - FLOWCHART_SYMBOL_DEFAULT_WIDTH - HORIZONTAL_PAD;
         if (newX > 0) {
             return newX;
         } else {
@@ -51,8 +51,8 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
         }
     }
 
-    public static int getYOffsetFromTop(int yy) {
-        int newY = yy + VERTICAL_PAD;
+    public static int getYOffsetFromTop(int yOffsetFromTop) {
+        int newY = yOffsetFromTop + VERTICAL_PAD;
         if (newY > 0) {
             return newY;
         } else {
@@ -69,7 +69,7 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
      * @return
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        log.debug("paintComponent invoked");
+        LOG.debug("paintComponent invoked");
         // here we ket the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return minimumTopY + flowchartSymbolHeight;

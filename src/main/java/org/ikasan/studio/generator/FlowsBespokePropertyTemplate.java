@@ -19,9 +19,9 @@ public class FlowsBespokePropertyTemplate extends Generator {
         }
     }
 
-    public static String generateContents(String packageName, String clazzName, IkasanComponentProperty property, String prefix) {
+    protected static String generateContents(String packageName, String clazzName, IkasanComponentProperty property, String prefix) {
         String interfaceName = property.getMeta().getUsageDataType();
-        String templateName = null;
+        String templateName;
         if (IkasanComponentPropertyMeta.CONFIGURATION.equals(property.getMeta().getPropertyName())) {
             templateName = "configurationTemplate_en.ftl";
         } else {

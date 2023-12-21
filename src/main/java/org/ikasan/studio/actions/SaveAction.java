@@ -16,7 +16,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 public class SaveAction implements ActionListener {
-   private String projectKey;
+   private final String projectKey;
 
    public SaveAction(String projectKey) {
       this.projectKey = projectKey;
@@ -26,12 +26,13 @@ public class SaveAction implements ActionListener {
       boolean transparentBackground = false ; // cant get this to work for now.
       String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
       boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
-      FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as image", "Choose the destination to save the image", extensions);
+      FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as Image", "Choose the destination to save the image", extensions);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
 
       String moduleName = Context.getIkasanModule(projectKey).getName();
       String imageFileName = "ModuleDiagram-" + moduleName + (isMacNativSaveDialog ? ".png" : "");
-      VirtualFileWrapper vf = dialog.save(null, imageFileName);
+//      VirtualFileWrapper vf = dialog.save(null, imageFileName);
+      VirtualFileWrapper vf = dialog.save(imageFileName);
 
       if (vf == null) {
           return;

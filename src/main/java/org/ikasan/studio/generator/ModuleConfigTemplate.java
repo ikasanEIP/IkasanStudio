@@ -18,7 +18,7 @@ public class ModuleConfigTemplate extends Generator {
         ikasanModule.getViewHandler().setPsiJavaFile(newFile);
     }
 
-    public static String generateContents(IkasanModule ikasanModule) {
+    protected static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(CLASS_NAME_TAG, MODULE_CLASS_NAME);

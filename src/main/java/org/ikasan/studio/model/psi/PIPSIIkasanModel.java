@@ -11,14 +11,11 @@ import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.impl.source.PsiJavaCodeReferenceElementImpl;
 import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.generator.ApplicationTemplate;
-import org.ikasan.studio.generator.FlowTemplate;
-import org.ikasan.studio.generator.ModuleConfigTemplate;
-import org.ikasan.studio.generator.PropertiesTemplate;
+import org.ikasan.studio.generator.*;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.*;
 
@@ -28,15 +25,12 @@ import static org.ikasan.studio.model.ikasan.IkasanComponentCategory.*;
 
 /**
  * Encapsulates the Intellij representation of the ikasan Module
- *
  * The idea is to keep the ikasan Module clean of any Initellij specific details, this module will inpect the
  * code to generate the ikasan Module and update the code to reflect changes to the ikasan Module.
  */
 public class PIPSIIkasanModel {
-    private static final Logger LOG = Logger.getLogger(PIPSIIkasanModel.class);
+    private static final Logger LOG = Logger.getInstance("#org.ikasan.studio.model.psi.PIPSIIkasanModel");
     public static final String OLD_MODULE_BEAN_CLASS = "org.ikasan.spec.module.Module";
-
-    private static final Logger log = Logger.getLogger(PIPSIIkasanModel.class);
     private static final String WITH_DESCRIPTION_METHOD_NAME = "withDescription";
     private static final String ADD_FLOW_METHOD_NAME = "addFlow";
     private static final String MODULE_BUILDER_SET_NAME_METHOD = "getModuleBuilder";
@@ -91,13 +85,14 @@ public class PIPSIIkasanModel {
                     () -> {
                         StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
                         //@todo start making below conditional on state changed.
+                        ModelTemplate.create(project);
                         ApplicationTemplate.create(project);
 //                        generateBespokeComponents(project);
                         FlowTemplate.create(project);
                         ModuleConfigTemplate.create(project);
                         PropertiesTemplate.create(project);
                     }),
-                "Generate source from flow diagram",
+                    "Generate Source from Flow Diagram",
                 "Undo group ID");
 
             // Above is asynch, need to execute below as a second command in the same undo group,
@@ -194,7 +189,7 @@ public class PIPSIIkasanModel {
      */
     private String getReferenceOrLiteralFromParameter(PIPSIMethod pipsiMethod, int parameterNumber) {
         //                //@todo we should be able to get the type as well if we need to
-        String parameter = "";
+        String parameter ;
         String springValueKey = getSpringValueKey(pipsiMethod, parameterNumber);
         if (springValueKey != null) {
             Properties properties = Context.getApplicationProperties(projectKey);
@@ -208,12 +203,11 @@ public class PIPSIIkasanModel {
 
     /**
      * The public entry point, builds the Pseudo ikasan Module used by the plugin.
-     * @return A populated ikasan Module used by the plugin.
      */
     // New Way
     public void updateIkasanModule() {
         PsiFile moduleConfigPsiFile = moduleConfigClazz.getContainingFile();
-        log.debug("Extracting ikasan model from file " + moduleConfigPsiFile.getText());
+        LOG.debug("Extracting ikasan model from file " + moduleConfigPsiFile.getText());
         PsiClass moduleConfigClass = getClassFromPsiFile(moduleConfigPsiFile);
         if (moduleConfigClass != null) {
             PsiMethod getModuleMethod = StudioPsiUtils.findMethodFromClassByReturnType(moduleConfigClass, OLD_MODULE_BEAN_CLASS);
@@ -243,14 +237,14 @@ public class PIPSIIkasanModel {
 
                         parseModuleStatementRHS(moduleMethodList, moduleConfigClass);
                     } else {
-                        log.error("Could not find moduleLocalVariable using moduleBeanMethod [" + getModuleMethod + "] and returnReference [" + localVariableOfReturnStatement + "]");
+                        LOG.warn("Could not find moduleLocalVariable using moduleBeanMethod [" + getModuleMethod + "] and returnReference [" + localVariableOfReturnStatement + "]");
                     }
                 }
             } else {
-                log.error("Could not load moduleBeanMethod using moduleConfigClass [" + moduleConfigClass + "]");
+                LOG.warn("Could not load moduleBeanMethod using moduleConfigClass [" + moduleConfigClass + "]");
             }
         } else {
-            log.error("Could not build moduleConfigClass from moduleConfigPsiFile [" + moduleConfigPsiFile + "]");
+            LOG.warn("Could not build moduleConfigClass from moduleConfigPsiFile [" + moduleConfigPsiFile + "]");
         }
     }
 
@@ -273,10 +267,8 @@ public class PIPSIIkasanModel {
 
     /**
      * Parse the declaration of the module e.g.
-     *
      * ... mb.withDescription("Ftp Jms Sample Module")
      *                 .addFlow(ftpToJmsFlow).addFlow(jmsToFtpFlow).build();
-     *
      * extract description then process each flow.
      *
      * @param methodList of the methods called by the builder e.g. withDescription, addFlow
@@ -348,7 +340,7 @@ public class PIPSIIkasanModel {
 
                 } else {
 
-                    log.error("Unable to parse methodList [" + methodList + "]");
+                    LOG.warn("Unable to parse methodList [" + methodList + "]");
                 }
 
                 if (flowBuilderLocalVariable != null || flowLocalVariable != null) {
@@ -384,11 +376,9 @@ public class PIPSIIkasanModel {
 
     /**
      * Get the flowBuilder method from the flow variable
-     *
      * Flow ftpToJmsFlow = ftpToLogFlowBuilder.withDescription("Ftp to Jms")
-     *
-     * @param flowLocalVariable
-     * @return
+     * @param flowLocalVariable to be identified
+     * @return the flowBuilder method from the flow variable
      */
     protected PsiLocalVariable getFlowBuilderLocalVariableFromFlowExpression(final PsiElement flowLocalVariable) {
         PsiLocalVariable flowBuilderLocalVariable = null;
@@ -406,7 +396,7 @@ public class PIPSIIkasanModel {
     /**
      * Parse the flow method e.g. getFtpConsumerFlow(..) { .. }. This works backwards from the return statement
      * @param flowLocalVar pointing to Flow definition
-     * @param moduleConfigClass
+     * @param moduleConfigClass to be searched
      */
     protected void parseFlowMethod(final PsiLocalVariable flowLocalVar, final PsiClass moduleConfigClass, IkasanFlow newFlow) {
 
@@ -455,7 +445,7 @@ public class PIPSIIkasanModel {
                                     ikasanComponentType = IkasanComponentType.parseMethodName(classInterface);
                                 } catch (NullPointerException npe) {
                                     // Hate to catch NPE but until I can turn this into an element safe recursion, this will have to do.
-                                    log.warn("Attempt to get interface type for " + flowComponentConstructor.getText()+ " failed. Component type will be set as unknown");
+                                    LOG.warn("Attempt to get interface type for " + flowComponentConstructor.getText()+ " failed. Component type will be set as unknown");
                                 }
                             }
                             ikasanFlowComponent = IkasanFlowComponent.getInstance(ikasanComponentType, newFlow, flowElementName, flowElementDescription);
@@ -492,7 +482,7 @@ public class PIPSIIkasanModel {
      *      .consumer("JMS Consumer", jmsConsumer)
      *      .converter("XML to Person", componentFactory.getXmlToObjectConverter())
      *
-     * @return
+     * @return all the methods (settings) applied to a specific ikasan component
      */
     protected PIPSIMethodList getComponentBuilderMethods(PsiExpression expressionToBeSearched) {
         PIPSIMethodList returnPIPSIMethodList = null;
@@ -509,10 +499,10 @@ public class PIPSIIkasanModel {
                         returnPIPSIMethodList = expressionRHS;
                         // TODO, maybe need to continue, case style
                     } else {
-                        log.error("getComponentBuilderMethods(1) failed for " + expressionToBeSearched.getText());
+                        LOG.warn("getComponentBuilderMethods(1) failed for " + expressionToBeSearched.getText());
                     }
                 } else {
-                    log.error("getComponentBuilderMethods(2) failed to resolve local varaible " + expressionToBeSearched.getText());
+                    LOG.warn("getComponentBuilderMethods(2) failed to resolve local varaible " + expressionToBeSearched.getText());
                 }
             } else if (expressionToBeSearched instanceof PsiMethodCallExpression) {
                 // A call to a method that may eventually contain a reference to a component builder e.g.
@@ -581,7 +571,7 @@ public class PIPSIIkasanModel {
                                 returnPIPSIMethodList =  pipsiMethodList;
                             } else {
                                 // TODO ... otherwise ?
-                                log.error("getComponentBuilderMethods(3) failed for " + expressionToBeSearched.getText());
+                                LOG.warn("getComponentBuilderMethods(3) failed for " + expressionToBeSearched.getText());
                             }
                         } else {
                             // the return statement itself created the component e.g.
@@ -600,9 +590,9 @@ public class PIPSIIkasanModel {
     /**
      * traversing the pointers to get to the Interfaces would result in a lot of null checks, or just a try catch
      */
-    private List safeGetInterfacesFromReturnVariable(PsiElement componentVariable) {
-        List implementedInterfaces = null;
-        if (componentVariable != null && componentVariable instanceof PsiLocalVariable) {
+    private List<String> safeGetInterfacesFromReturnVariable(PsiElement componentVariable) {
+        List<String> implementedInterfaces = null;
+        if (componentVariable instanceof PsiLocalVariable) {
             try {
                 PsiClassType[] interfaces = ((PsiReferenceList)
                         ((PsiClass)
@@ -617,7 +607,7 @@ public class PIPSIIkasanModel {
                                 .getImplementsList())
                         .getReferencedTypes();
                 if (interfaces.length > 0) {
-                    implementedInterfaces = new ArrayList();
+                    implementedInterfaces = new ArrayList<>();
                     for (PsiClassType psiClassType : interfaces) {
                         implementedInterfaces.add(psiClassType.getCanonicalText());
                     }
@@ -640,7 +630,7 @@ public class PIPSIIkasanModel {
         // The Bespoke Ikasan Class
         PsiClass psiClass = StudioPsiUtils.findFirstClass(getProject(), beskpokeClassName);
         if (psiClass == null || psiClass.getMethods().length == 0) {
-            log.error("Expected to find class " + beskpokeClassName + " but could not be found, skipping");
+            LOG.warn("Expected to find class " + beskpokeClassName + " but could not be found, skipping");
         } else {
             PIPSIMethod bespokeClassParam = createFakePIPSIMethod("set" + IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, psiClass.getMethods()[0], StudioUtils.getLastToken("\\.", beskpokeClassName));
             additionalParameters.add(bespokeClassParam);
@@ -772,7 +762,7 @@ public class PIPSIIkasanModel {
     IkasanClazz getTypeOfReferenceExpression(PsiReferenceExpression firstRHSToken) {
         IkasanClazz ikasanClazz = IkasanClazz.UNKNOWN;
         if (firstRHSToken == null) {
-            log.warn("getTypeOfReferenceExpression called with null firstRHSToken");
+            LOG.warn("getTypeOfReferenceExpression called with null firstRHSToken");
         } else {
             PsiElement methodOrVariable = firstRHSToken.resolve();
             if (methodOrVariable instanceof PsiVariable) {
@@ -922,7 +912,7 @@ public class PIPSIIkasanModel {
                 if (ikasanFlowComponent instanceof IkasanExceptionResolver) {
                     ((IkasanExceptionResolver)ikasanFlowComponent).addExceptionResolution(ikasanExceptionResolution);
                 } else {
-                    log.error("Expecting an IkasanExceptionResolver but got a " + ikasanFlowComponent);
+                    LOG.warn("Expecting an IkasanExceptionResolver but got a " + ikasanFlowComponent);
                 }
 
 //            } else if (methodName.startsWith("setConfiguration")) {
@@ -987,9 +977,7 @@ public class PIPSIIkasanModel {
 
     /**
      * This is typically a local method that contains the flow defintion e.g.
-     *
      * public Flow getFtpConsumerFlow(ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder)
-     *
      * @param myMethod to search
      * @return flow local variable if it exists
      */
@@ -1027,7 +1015,7 @@ public class PIPSIIkasanModel {
                         .findFirst()
                         .orElse(null);
             } catch (NoSuchElementException nsee) {
-                log.warn("Could not find return statement reference from " + psiReturnStatement + ". Exception: " + nsee.getMessage(), nsee);
+                LOG.warn("Could not find return statement reference from " + psiReturnStatement + ". Exception: " + nsee.getMessage(), nsee);
             }
         }
         return returnReference;
@@ -1146,7 +1134,7 @@ public class PIPSIIkasanModel {
 
     protected PsiElement getFirstInstanceOfType(PsiStatement statements, Class searchForType) {
         return Arrays.stream(statements.getChildren())
-                .filter(x -> searchForType.isInstance(x))
+                .filter(searchForType::isInstance)
                 .findFirst().orElse(null);
     }
     /**
@@ -1207,7 +1195,7 @@ public class PIPSIIkasanModel {
 //     */
 //    // OLD way
 //    public IkasanModule buildIkasanModulex(final PsiFile moduleConfigPsiFile) {
-//        log.debug("Extracting ikasan model from file " + moduleConfigPsiFile.getText());
+//        LOG.debug("Extracting ikasan model from file " + moduleConfigPsiFile.getText());
 //        PsiClass moduleConfigClass = getClassFromPsiFile(moduleConfigPsiFile);
 //        // Visit every method statement in the whole file ...
 //        moduleConfigPsiFile.accept(new JavaRecursiveElementVisitor() {
@@ -1220,7 +1208,7 @@ public class PIPSIIkasanModel {
 //                    if (element instanceof PsiLocalVariable) {
 //                        PsiLocalVariable psiLocalVariable = (PsiLocalVariable)element;
 //
-//                        log.debug("Element was " + element + " type was " + psiLocalVariable.getType());
+//                        LOG.debug("Element was " + element + " type was " + psiLocalVariable.getType());
 //
 //                        // ModuleBuilder mb = builderFactory.getModuleBuilder("fms-ftp");
 //                        if (StudioUtils.getLastToken("\\.", psiLocalVariable.getType().getCanonicalText()).equals(DEFAULT_MODULE_BUILDER_TYPE)) {

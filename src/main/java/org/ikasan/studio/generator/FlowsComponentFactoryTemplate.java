@@ -15,7 +15,7 @@ public class FlowsComponentFactoryTemplate extends Generator {
         createTemplateFile(project, packageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
     }
 
-    public static String generateContents(String packageName, IkasanModule ikasanModule, IkasanFlow ikasanFlow) {
+    protected static String generateContents(String packageName, IkasanModule ikasanModule, IkasanFlow ikasanFlow) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);

@@ -1,6 +1,8 @@
 package org.ikasan.studio.ui;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import org.ikasan.studio.Context;
 
 import javax.swing.*;
@@ -16,9 +18,9 @@ public class StudioUIUtils {
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
     private StudioUIUtils() {}
 
-    public static final Color IKASAN_GREY = new Color(231, 231, 231);
-    public static final Color IKASAN_ORANGE = new Color(241, 90, 35);
-    private static final Logger log = Logger.getLogger(StudioUIUtils.class);
+    public static final Color IKASAN_GREY = Gray._231;
+    public static final Color IKASAN_ORANGE = new JBColor(new Color(241, 90, 35), new Color(241, 90, 35));
+    private static final Logger LOG = Logger.getInstance("#StudioUIUtils");
 
     public static void setLine(Graphics g, float width) {
         if (g instanceof Graphics2D) {
@@ -33,13 +35,13 @@ public class StudioUIUtils {
 
     public static void displayErrorMessage(String projectKey, String message) {
         JTextArea canvasTextArea = Context.getCanvasTextArea(projectKey);
-        canvasTextArea.setForeground(Color.RED);
+        canvasTextArea.setForeground(JBColor.RED);
         canvasTextArea.setText(message);
     }
 
     public static void displayMessage(String projectKey, String message) {
         JTextArea canvasTextArea = Context.getCanvasTextArea(projectKey);
-        canvasTextArea.setForeground(Color.BLACK);
+        canvasTextArea.setForeground(JBColor.BLACK);
         canvasTextArea.setText(message);
     }
 
@@ -89,19 +91,19 @@ public class StudioUIUtils {
     /**
      * Draw the text string, center the first line at centerX but take the top Y as topY
      * If the string is bigger then maxWidth, split it over multiple substrings
-     * @param g
-     * @param paintMode
-     * @param text
-     * @param centerX
-     * @param topY
-     * @param maxWidth
-     * @param font
+     * @param g the graphic object
+     * @param paintMode to use
+     * @param text to display
+     * @param centerX for the text
+     * @param topY for the text
+     * @param maxWidth for the text
+     * @param font for the text
      * @return the bottom y value of the last string (se we know how far down we went)
      * //@todo turn all strings into components to support better x,y,width,height
      */
     public static int drawCenteredStringFromTopCentre(Graphics g, PaintMode paintMode, String text, int centerX, int topY, int maxWidth, Font font) {
         if (maxWidth <= 0) {
-            log.error("Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
+            LOG.warn("Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
             maxWidth = 1;
         }
         Font origFont = g.getFont();
@@ -131,12 +133,12 @@ public class StudioUIUtils {
     /**
      * Draw the text string, center the first line at centerX and CenterY
      * If the string is bigger then maxWidth, split it over multiple substrings
-     * @param g
-     * @param text
-     * @param centerX
-     * @param centerY
-     * @param maxWidth
-     * @param font
+     * @param g the graphics object
+     * @param text to display
+     * @param centerX for the text
+     * @param centerY for the text
+     * @param maxWidth for the text
+     * @param font for the text
      * @return the bottom y value of the last string (se we know how far down we went)
      */
     public static int drawCenteredStringFromMiddleCentre(Graphics g, PaintMode paintMode, String text, int centerX, int centerY, int maxWidth, Font font) {
@@ -155,8 +157,8 @@ public class StudioUIUtils {
             int targetLength = (text.length() - savedSpaces) / numberOfRows;
             String[] splitInput = text.split("\\s+");
             StringBuilder subString = new StringBuilder();
-            for (int index = 0; index < splitInput.length; index++) {
-                subString.append(splitInput[index]).append(" ");
+            for (String s : splitInput) {
+                subString.append(s).append(" ");
                 if (subString.length() >= targetLength) {
                     returnList.add(subString.toString().trim());
                     // If we are on the last row, just absorb remaining words.
@@ -184,7 +186,7 @@ public class StudioUIUtils {
     }
 
     public static void paintWarningPopup(Graphics g, int x, int y, int maxX,int maxY, String text) {
-        if (text.length() > 0) {
+        if (!text.isEmpty()) {
             Font font = StudioUIUtils.getBoldFont(g) ;
 
             int width = StudioUIUtils.getTextWidth(g, text, font) + 10;
@@ -201,15 +203,15 @@ public class StudioUIUtils {
 
             Color oldColor = g.getColor();
             // Central rectangle
-            g.setColor(Color.LIGHT_GRAY);
+            g.setColor(JBColor.LIGHT_GRAY);
             g.fillRect(popupX, popupY, width, height);
 
             // Border
-            g.setColor(Color.RED);
+            g.setColor(JBColor.RED);
             g.drawRect(popupX, popupY, width, height);
 
             // Text
-            g.setColor(Color.BLACK);
+            g.setColor(JBColor.BLACK);
             StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, text, popupX + 3, popupY + 3, font);
             g.setColor(oldColor);
         }

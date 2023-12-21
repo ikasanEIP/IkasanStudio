@@ -19,7 +19,7 @@ public class ApplicationTemplate extends Generator {
         createTemplateFile(project, STUDIO_BOOT_PACKAGE, APPLICATION_CLASS_NAME, templateString, true, true);
     }
 
-    public static String generateContents(IkasanModule ikasanModule) {
+    protected static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(MODULE_TAG, ikasanModule);

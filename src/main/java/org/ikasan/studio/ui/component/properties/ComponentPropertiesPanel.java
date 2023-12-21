@@ -2,12 +2,15 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.*;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,16 +19,14 @@ import java.util.Map;
  * Encapsulate the properties entry from a UI and validity perspective.
  */
 public class ComponentPropertiesPanel extends PropertiesPanel {
-    public static final Logger LOG = Logger.getInstance(ComponentPropertiesPanel.class);
+    public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     private JCheckBox beskpokeComponentOverrideCheckBox;
 
     /**
      * Create the ComponentPropertiesPanel
-     *
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     *
      * @param projectKey for this project
      * @param componentInitialisation true if this is for the popup version i.e. the first configuration of this component,
      *                                false if this is for the canvas sidebar.
@@ -69,7 +70,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     /**
      * When updateTargetComponent is called, it will set the component to be exposed / edited, it will then
      * delegate update of the editor pane to this component so that we can specialise for different components.
-     *
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected void populatePropertiesEditorPanel() {
@@ -81,7 +81,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             propertiesEditorScrollingContainer.removeAll();
 
             propertiesEditorPanel = new JPanel(new GridBagLayout());
-            propertiesEditorPanel.setBackground(Color.WHITE);
+            propertiesEditorPanel.setBackground(JBColor.WHITE);
 
             JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
             JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
@@ -91,7 +91,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
-            gc.insets = new Insets(3, 4, 3, 4);
+            gc.insets = JBUI.insets(3, 4);
 
             int mandatoryTabley = 0;
             int regenerateTabley = 0;
@@ -100,14 +100,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
                         getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
-            if (getSelectedComponent().getType().getMetadataMap().size() > 0) {
+            if (!getSelectedComponent().getType().getMetadataMap().isEmpty()) {
                 for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : getSelectedComponent().getType().getMetadataMap().entrySet()) {
                     IkasanComponentPropertyMetaKey key = entry.getKey();
                     if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
                         IkasanComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component
-                            property = new IkasanComponentProperty(((IkasanComponent) getSelectedComponent()).getType().getMetaDataForPropertyName(key));
+                            property = new IkasanComponentProperty((getSelectedComponent()).getType().getMetaDataForPropertyName(key));
                         }
                         if (property.getMeta().isMandatory()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
@@ -131,21 +131,21 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
             GridBagConstraints gc1 = new GridBagConstraints();
             gc1.fill = GridBagConstraints.HORIZONTAL;
-            gc1.insets = new Insets(3, 4, 3, 4);
+            gc1.insets = JBUI.insets(3, 4);
             gc1.gridx = 0;
             gc1.weightx = 1;
             gc1.gridy = 0;
 
             if (mandatoryTabley > 0) {
-                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, gc1);
+                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", JBColor.RED, gc1);
             }
 
             if (regenerateTabley > 0) {
-                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", Color.orange, gc1);
+                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", JBColor.ORANGE, gc1);
             }
 
             if (optionalTabley > 0) {
-                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, gc1);
+                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", JBColor.LIGHT_GRAY, gc1);
             }
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
 
@@ -176,7 +176,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param gc1 is used to dictate layout and relay layout to the next subsection.
      */
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
-        subPanel.setBackground(Color.WHITE);
+        subPanel.setBackground(JBColor.WHITE);
         subPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(borderColor), title,
                 TitledBorder.LEFT,
@@ -196,9 +196,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this beskpoke implementation");
         beskpokeComponentOverrideCheckBox = new JCheckBox();
         beskpokeComponentOverrideCheckBox.addItemListener(ie ->
-            okButton.setEnabled(ie.getStateChange() == 1)
+            okButton.setEnabled(ie.getStateChange() == ItemEvent.SELECTED)
         );
-        beskpokeComponentOverrideCheckBox.setBackground(Color.WHITE);
+        beskpokeComponentOverrideCheckBox.setBackground(JBColor.WHITE);
         addLabelAndSimpleInput(propertiesEditorPanel, gc, tabley, overrideLabel, beskpokeComponentOverrideCheckBox);
     }
 
@@ -244,7 +244,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
             JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            booleanPanel.setBackground(Color.WHITE);
+            booleanPanel.setBackground(JBColor.WHITE);
             booleanPanel.add(new JLabel("true"));
             booleanPanel.add(componentInput.getTrueBox());
             booleanPanel.add(new JLabel("false"));
@@ -267,7 +267,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
             JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            booleanPanel.setBackground(Color.WHITE);
+            booleanPanel.setBackground(JBColor.WHITE);
             booleanPanel.add(new JLabel("true"));
             booleanPanel.add(componentInput.getTrueBox());
             booleanPanel.add(new JLabel("false"));
@@ -309,7 +309,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     /**
      * Check to see if any new values have been entered, update the model and return true if that is the case.
-     * @return true if the model has been updated with new values.
      */
     public void processEditedFlowComponents() {
         if (componentPropertyEditBoxList != null) {

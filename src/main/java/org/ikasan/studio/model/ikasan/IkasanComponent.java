@@ -3,7 +3,7 @@ package org.ikasan.studio.model.ikasan;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.collections.map.HashedMap;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioUtils;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  */
 public abstract class IkasanComponent extends IkasanBaseComponent {
     @JsonIgnore
-    private static final Logger log = Logger.getLogger(IkasanComponent.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanComponent");
     @JsonPropertyOrder(alphabetic = true)
     protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
 
@@ -66,7 +66,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
         } else {
-            log.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
+            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
         }
     }
 
@@ -115,7 +115,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
         } else {
             IkasanComponentPropertyMeta properyMeta = getType().getMetadata(key);
             if (properyMeta == null) {
-                log.error("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getType() + " this property will be ignored.");
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getType() + " this property will be ignored.");
             } else {
                 configuredProperties.put(key, new IkasanComponentProperty(getType().getMetadata(key), value));
             }
@@ -157,7 +157,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
     @JsonIgnore
     public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getStandardConfiguredProperties() {
         Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> standardProperties = new HashedMap();
-        if (configuredProperties != null && configuredProperties.size() > 0) {
+        if (configuredProperties != null && !configuredProperties.isEmpty()) {
             for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
                 if (! IkasanComponentPropertyMeta.NAME.equals(entry.getKey()) && !(IkasanComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
@@ -226,7 +226,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
 
     /**
      * Set the description for this component
-     * @param description
+     * @param description for the component
      */
     public void setDescription(String description) {
         this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
@@ -238,9 +238,7 @@ public abstract class IkasanComponent extends IkasanBaseComponent {
      */
     public boolean hasUnsetMandatoryProperties() {
         return configuredProperties.entrySet().stream()
-            .filter(x -> {return x.getValue().getMeta().isMandatory() && x.getValue().valueNotSet(); })
-            .findAny()
-            .isPresent();
+            .anyMatch(x -> x.getValue().getMeta().isMandatory() && x.getValue().valueNotSet());
 //
 //        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
 //            IkasanComponentProperty ikasanComponentProperty = entry.getValue();

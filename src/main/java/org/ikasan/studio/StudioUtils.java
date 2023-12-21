@@ -2,7 +2,7 @@ package org.ikasan.studio;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.model.ikasan.*;
 
@@ -19,7 +19,7 @@ import java.util.*;
  * Studio Utils
  */
 public class StudioUtils {
-    private static final Logger LOG = Logger.getLogger(StudioUtils.class);
+    private static final Logger LOG = Logger.getInstance("#StudioUtils");
 
     // Enforce as a untility only class
     private StudioUtils () {}
@@ -48,7 +48,7 @@ public class StudioUtils {
      * @return All but the last stoken of the string or an empty sp
      */
     public static String getAllButLastToken(String delimeter, String input) {
-        StringBuilder returnString = new StringBuilder("");
+        StringBuilder returnString = new StringBuilder();
         if (input != null && delimeter != null) {
             String [] tokens = input.split(delimeter, -1);
             if (tokens.length > 1) {
@@ -68,7 +68,7 @@ public class StudioUtils {
      */
     public static String toJavaClassName(final String input) {
         String identifer = toJavaIdentifier(input);
-        if (identifer.length() > 0) {
+        if (!identifer.isEmpty()) {
             char first = Character.toUpperCase(identifer.charAt(0));
             identifer = first + identifer.substring(1);
         }
@@ -83,7 +83,7 @@ public class StudioUtils {
      * @return the input string in the form of a java package
      */
     public static String toJavaPackageName(String input) {
-        if (input != null && input.length() > 0) {
+        if (input != null && !input.isEmpty()) {
             if (Character.isDigit(input.charAt(0))) {
                 input = "_" + input;
             }
@@ -101,7 +101,7 @@ public class StudioUtils {
      * @return the input string in kebab case
      */
     public static String toUrlString(final String input) {
-        if (input != null && input.length() > 0) {
+        if (input != null && !input.isEmpty()) {
             return  input
                     .replaceAll("  +", " ")
                     .replaceAll("[ -]+", "-").toLowerCase();
@@ -117,7 +117,7 @@ public class StudioUtils {
      * @return a string that could be used as a java identifer
      */
     public static String toJavaIdentifier(final String input) {
-        if (input != null && input.length() > 0) {
+        if (input != null && !input.isEmpty()) {
             int inputStringLength = input.length();
             char[] inputString = input.toCharArray();
             int outputStringLength = 0;
@@ -129,7 +129,7 @@ public class StudioUtils {
                     toUpper = true;
                 }
                 else {
-                    Character current;
+                    char current;
                     if (outputStringLength == 0) {
                         current = Character.toLowerCase(inputString[inputStringIndex]);
                         if (! (Character.isJavaIdentifierStart(current))) {
@@ -187,12 +187,12 @@ public class StudioUtils {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    if (line.startsWith("#") || line.length() == 0 || line.isEmpty()) {
+                    if (line.startsWith("#") || line.isEmpty()) {
                         continue;
                     }
                     String[] split = line.split("\\|");
                     if (split.length != NUMBER_OF_CONFIGS) {
-                        LOG.error("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS +
+                        LOG.warn("An incorrect config has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS +
                                 ", was " + split.length + "), please remove from properties file [" + propertiesFile + "] or fix, the line was [" + line+ "]");
                         continue;
                     }
@@ -202,7 +202,7 @@ public class StudioUtils {
                         paramGroupNumber = Integer.parseInt(split[PARAM_GROUP_NUMBER]);
 
                     } catch (NumberFormatException nfe) {
-                        LOG.error("Error trying to parse paramGroupNumber=" + split[PARAM_GROUP_NUMBER] + " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
+                        LOG.warn("Error trying to parse paramGroupNumber=" + split[PARAM_GROUP_NUMBER] + " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
                     boolean causesUserCodeRegeneration = Boolean.parseBoolean(split[CAUSES_USER_CODE_REGENRATION_INDEX]);
@@ -217,14 +217,14 @@ public class StudioUtils {
 
                     IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber);
                     if (componentProperties.containsKey(newKey)) {
-                        LOG.error("A property of this key [" + newKey + "] already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        LOG.warn("A property of this key [" + newKey + "] already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
 
                     final String propertyConfigLabel = split[PROPERTY_CONFIG_LABEL_INDEX];
-                    if (propertyConfigLabel != null && propertyConfigLabel.length() > 0) {
+                    if (propertyConfigLabel != null && !propertyConfigLabel.isEmpty()) {
                         if (propertyConfigLabels.contains(propertyConfigLabel)) {
-                            LOG.error("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                            LOG.warn("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                             continue;
                         } else {
                             propertyConfigLabels.add(propertyConfigLabel);
@@ -246,7 +246,7 @@ public class StudioUtils {
                         try {
                             propertyDataType = Class.forName(split[PROPERTY_DATA_TYPE_INDEX]);
                         } catch (ClassNotFoundException ex) {
-                            LOG.error("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
+                            LOG.warn("An error has occurred while determining the class for " + line + " please remove from " + propertiesFile + " or correct it ", ex);
                             propertyDataType = String.class;  // dont crash the IDE
                         }
                     }
@@ -289,11 +289,9 @@ public class StudioUtils {
     /**
      * Look for csv files in /studio/componentDependencies and load the Maven dependencies (jar dependencies) for that
      * component e.g. BASIC.csv holds all the basic Ikasan dependencies
-     *
      * artifactid,           groupid,   versionid
      * ikasan-connector-base,org.ikasan,3.1.0
      * ikasan-eip-standalone,org.ikasan,3.1.0
-     *
      * so the Map is of Dependency.getManagementKey() -> Dependency
      *
      * @param propertiesFile one of the properties fiiles to be read
@@ -311,12 +309,12 @@ public class StudioUtils {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    if (line.startsWith("#") || line.length() == 0 || line.isEmpty()) {
+                    if (line.startsWith("#") || line.isEmpty()) {
                         continue;
                     }
                     String[] split = line.split(",");
                     if (split.length != NUMBER_OF_DEPENDENCY_CONFIGS) {
-                        LOG.error("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS +
+                        LOG.warn("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS +
                                 ", was " + split.length + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
                         continue;
                     }
@@ -326,9 +324,9 @@ public class StudioUtils {
                     String version = split[VERSION_INDEX];
 
                     if (artifactId.isEmpty() || groupId.isEmpty() || version.isEmpty()) {
-                        LOG.error("The dependency is not fully configured, artifactId=" + artifactId + ", groupId=" + groupId + ",version=" + version + " so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        LOG.warn("The dependency is not fully configured, artifactId=" + artifactId + ", groupId=" + groupId + ",version=" + version + " so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                     } else if (artifactIds.contains(artifactId)) {
-                        LOG.error("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+                        LOG.warn("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                     } else {
                         artifactIds.add(artifactId);
                         Dependency dependency = new Dependency();
@@ -352,19 +350,17 @@ public class StudioUtils {
     private static Object getDefaultValue(final String[] split, final Class dataTypeOfProperty, final String line, final String propertiesFile) {
         Object defaultValue = null;
         String defaultValueAsString = split[DEFAULT_VALUE_INDEX];
-        if (dataTypeOfProperty != null && defaultValueAsString != null && defaultValueAsString.length() > 0) {
+        if (dataTypeOfProperty != null && defaultValueAsString != null && !defaultValueAsString.isEmpty()) {
             try {
                 if ("java.lang.String".equals(split[PROPERTY_DATA_TYPE_INDEX])) {
                     defaultValue = defaultValueAsString;
                 } else {
 //                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", null);
                     Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
-                    if (methodToFind != null) {
-                        defaultValue = methodToFind.invoke(defaultValue, defaultValueAsString);
-                    }
+                    defaultValue = methodToFind.invoke(defaultValue, defaultValueAsString);
                 }
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                LOG.error("An error has occurred while determining the default value for " + line + " please remove from " + propertiesFile + " or correct it. The default value will be set to null ", ex);
+                LOG.warn("An error has occurred while determining the default value for " + line + " please remove from " + propertiesFile + " or correct it. The default value will be set to null ", ex);
             }
         }
         return defaultValue;

@@ -17,8 +17,8 @@ public class PropertiesTemplate extends Generator {
         createResourceFile(project, null, MODULE_PROPERTIES_FILENAME, templateString, false);
     }
 
-    //@todo it might be more efficiant to have 1 properties file per flow
-    public static String generateContents(IkasanModule ikasanModule) {
+    //@todo it might be more efficient to have 1 properties file per flow
+    protected static String generateContents(IkasanModule ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
         return FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);

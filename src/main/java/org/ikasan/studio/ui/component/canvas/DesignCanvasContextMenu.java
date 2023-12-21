@@ -10,7 +10,7 @@ import javax.swing.*;
 import java.awt.event.MouseEvent;
 
 public class DesignCanvasContextMenu {
-    public static final Logger LOG = Logger.getInstance(DesignCanvasContextMenu.class);
+    public static final Logger LOG = Logger.getInstance("DesignCanvasContextMenu");
 
     // Enforce as utility clASS
     private DesignCanvasContextMenu () {}

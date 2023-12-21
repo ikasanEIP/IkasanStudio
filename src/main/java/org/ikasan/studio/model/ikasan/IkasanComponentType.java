@@ -2,7 +2,6 @@ package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.ikasan.studio.StudioUtils;
 
 import java.io.Serializable;
@@ -14,7 +13,6 @@ import java.util.stream.Collectors;
 
 /**
  * Focuses on the ikasan technical details of a component i.e. type, properties etc
- *
  * No UI specific elements should be present in this class (@see org.ikasan.studio.ui.model.IkasanFlowUIComponent for that)
  */
 public enum IkasanComponentType implements Serializable {
@@ -87,7 +85,6 @@ public enum IkasanComponentType implements Serializable {
 
     // --- Population ----
     // Remember, to make the below available to constructor, they must be instance and not static
-    private static final Logger LOG = Logger.getLogger(IkasanComponentType.class);
     public final String associatedMethodName;
     public final boolean bespokeClass;
     //@todo move this to component copnfig.csv
@@ -96,7 +93,8 @@ public enum IkasanComponentType implements Serializable {
     @JsonIgnore
     public final IkasanComponentDependency componentDependency;
     @JsonIgnore
-    protected Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
+    final
+    Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
 
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
@@ -166,12 +164,8 @@ public enum IkasanComponentType implements Serializable {
      * @return the list of properties
      */
     public List<String> getPropertyNames() {
-        return new ArrayList<>(
-                metadataMap.keySet().stream()
-                .map(x->x.getPropertyName())
-                // guarantee no duplicates
-                .collect(Collectors.toSet())
-            );
+        return metadataMap.keySet().stream()
+                .map(IkasanComponentPropertyMetaKey::getPropertyName).distinct().collect(Collectors.toList());
 
 //        Set<String> uniqueProperties = new HashSet<>();
 //        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
@@ -186,9 +180,7 @@ public enum IkasanComponentType implements Serializable {
      */
     public boolean hasProperty(String propertyName) {
         return metadataMap.keySet().stream()
-                .filter(x->x.getPropertyName().equals(propertyName))
-                .findAny()
-                .isPresent();
+                .anyMatch(x->x.getPropertyName().equals(propertyName));
 //        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
 //            if (key.getPropertyName().equals(propertyName)) {
 //                return true;
@@ -205,7 +197,7 @@ public enum IkasanComponentType implements Serializable {
         if (methodName != null) {
             for (IkasanComponentType name : IkasanComponentType.values()) {
                 if (name.associatedMethodName != null &&
-                    name.associatedMethodName.length() > 0 &&
+                    !name.associatedMethodName.isEmpty() &&
                     StringUtils.equalsIgnoreCase(methodName, name.associatedMethodName)) {
                     return name;
                 }

@@ -21,7 +21,7 @@ public class FlowsResourceFactoryTemplate extends Generator {
         }
     }
 
-    public static String generateContents(String packageName, String clazzName, IkasanComponentProperty property) {
+    protected static String generateContents(String packageName, String clazzName, IkasanComponentProperty property) {
         String interfaceName = property.getMeta().getUsageDataType();
         String templateName = "genericInterfaceTemplate_en.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();

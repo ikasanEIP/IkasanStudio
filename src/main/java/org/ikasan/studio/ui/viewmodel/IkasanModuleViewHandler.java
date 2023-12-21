@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -9,14 +9,14 @@ import javax.swing.*;
 import java.awt.*;
 
 public class IkasanModuleViewHandler extends ViewHandler {
-    private static final Logger log = Logger.getLogger(IkasanModuleViewHandler.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
     public static final int FLOW_Y_START_POINT = 100;
     IkasanModule model;
 
     /**
-     * @param model
+     * @param model for the view handler
      */
     public IkasanModuleViewHandler(IkasanModule model) {
         this.model = model;
@@ -25,7 +25,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
     @Override
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         int currentY = 0;
-        log.debug("paintComponent invoked");
+        LOG.debug("paintComponent invoked");
 
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
 

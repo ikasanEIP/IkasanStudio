@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.JBColor;
 import org.ikasan.studio.model.ikasan.IkasanFlow;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.PaintMode;
@@ -21,17 +22,17 @@ public class IkasanFlowViewHandler extends ViewHandler {
     public static final int FLOW_CONTAINER_BORDER = 10;
     public static final int CONTAINER_CORNER_ARC = 30;
 
-    private static final Logger log = Logger.getLogger(IkasanFlowViewHandler.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
 
-    private Color borderColor =  Color.BLACK;
+    private Color borderColor = JBColor.BLACK;
     private String warningText =  "";
     private int warningX = 0;
     private int warningY = 0;
-    private IkasanFlow model;
+    private final IkasanFlow model;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
-     * @param model
+     * @param model for view handler
      */
     public IkasanFlowViewHandler(IkasanFlow model) {
         this.model = model;
@@ -74,9 +75,8 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private int paintFlowTitle(Graphics g, PaintMode paintMode) {
-        int bottomY = StudioUIUtils.drawCenteredStringFromTopCentre
+        return StudioUIUtils.drawCenteredStringFromTopCentre
                 (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
-        return bottomY;
     }
 
     /**
@@ -100,7 +100,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public int paintComponent(JPanel canvas, Graphics g, int minimumLeftX, int minimumTopY) {
-        log.debug("paintComponent invoked");
+        LOG.debug("paintComponent invoked");
         int newLeftX = getNewCoord(minimumLeftX, getLeftX());
         int newTopY = getNewCoord(minimumTopY, getTopY());
 
@@ -236,7 +236,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
 
     public void setFlowReceptiveMode() {
         this.warningText = "";
-        this.borderColor = Color.GREEN;
+        this.borderColor = JBColor.GREEN;
     }
 
     public boolean isFlowReceptiveMode() {
@@ -247,7 +247,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         this.warningText = message;
         this.warningX = mouseX;
         this.warningY = mouseY;
-        this.borderColor = Color.RED;
+        this.borderColor = JBColor.RED;
     }
 
     public boolean isFlowWarningMode() {
@@ -255,7 +255,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
     public void setFlowNormalMode() {
         this.warningText = "";
-        this.borderColor = Color.BLACK;
+        this.borderColor = JBColor.BLACK;
     }
 
     public boolean isFlowNormalMode() {

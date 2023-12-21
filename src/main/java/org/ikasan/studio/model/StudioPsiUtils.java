@@ -2,7 +2,8 @@ package org.ikasan.studio.model;
 
 import com.intellij.lang.Language;
 import com.intellij.lang.jvm.JvmMethod;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -15,7 +16,7 @@ import com.intellij.psi.search.*;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.IncorrectOperationException;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -37,7 +38,7 @@ import static org.ikasan.studio.model.ikasan.IkasanPomModel.MAVEN_COMPILER_SOURC
 import static org.ikasan.studio.model.ikasan.IkasanPomModel.MAVEN_COMPILER_TARGET;
 
 public class StudioPsiUtils {
-    private static final Logger LOG = Logger.getLogger(StudioPsiUtils.class);
+    private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
 
     // Enforce utility nature upon class
     private StudioPsiUtils() {}
@@ -47,7 +48,7 @@ public class StudioPsiUtils {
         if(file != null)
         {
             message.append("File name was [" + file.getName() +"]\n");
-            message.append("File was [" + file.toString() +"]\n");
+            message.append("File was [" + file +"]\n");
             Language lang = file.getLanguage();
             message.append("Language was [" + lang.getDisplayName().toLowerCase() +"]");
         }
@@ -73,25 +74,25 @@ public class StudioPsiUtils {
 
     public static String findClassFile(Project project, String className) {
         PsiFile[] files = FilenameIndex.getFilesByName(project, className, GlobalSearchScope.projectScope(project));
-        String message = Arrays.stream(files).map(x->"looking for file " + className + ", found [" + x.getName() +"]").collect(Collectors.joining(","));
-        return message;
+        return Arrays.stream(files).map(x->"looking for file " + className + ", found [" + x.getName() +"]").collect(Collectors.joining(","));
     }
 
     /**
      * Attempt to load in all files ending in properties
-     * @todo we could scope this to the JAVA root to avoid catching test properties.
+     * @TODO we could scope this to the JAVA root to avoid catching test properties.
      * @param project to load the files file
      * @return a java Properties instance
      */
     public static Properties getApplicationProperties(Project project) {
         Properties properties = new Properties();
-        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(StdFileTypes.PROPERTIES, GlobalSearchScope.projectScope(project));
+
+        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(FileTypeManager.getInstance().getFileTypeByExtension(Context.PROPERTIES_FILE_EXTENSION), GlobalSearchScope.projectScope(project));
         for (VirtualFile virtualFile : virtualFiles) {
             PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
             try {
                 properties.load(new StringReader(psiFile.getText()));
             } catch (IOException e) {
-                LOG.error("Problems loading in application properties " + e);
+                LOG.warn("Problems loading in application properties " + e);
             }
         }
         return properties;
@@ -114,7 +115,7 @@ public class StudioPsiUtils {
                     pom = new IkasanPomModel(model, pomPsiFile);
                     Context.setPom(project.getName(), pom);
                 } catch (IOException | XmlPullParserException ex) {
-                    LOG.error("Unable to load project pom", ex);
+                    LOG.warn("Unable to load project pom", ex);
                 }
             }
         }
@@ -187,13 +188,10 @@ public class StudioPsiUtils {
 //            pom.setPomPsiFile(null);
 //        }
 
-        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.XML, pomAsString);
+        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.XML_FILE_EXTENSION), pomAsString);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         newPomFile = (XmlFile)containtingDirectory.add(newPomFile);
         CodeStyleManager.getInstance(project).reformat(newPomFile);
-        // Technically this is a testing Util
-        PsiTestUtil.checkFileStructure(newPomFile);
-
 //        pom.setPomPsiFile(newPomFile);
     }
 
@@ -218,8 +216,7 @@ public class StudioPsiUtils {
         PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
         @NotNull Module[] module = ModuleManager.getInstance(project).getModules();
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
-        PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
-        return newFile;
+        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
     }
 
 
@@ -282,8 +279,8 @@ public class StudioPsiUtils {
      *
      * I suspect this is NOT very efficient.
      *
-     * @param project
-     * @param methodReturnType
+     * @param project to search
+     * @param methodReturnType to search for
      * @return the method whose return type matches methodReturnType
      */
     public  static PsiMethod findFirstMethodByReturnType(Project project, String methodReturnType) {
@@ -376,7 +373,7 @@ public class StudioPsiUtils {
      * For the given class, look for the first method with the given return type.
      * @param psiClass to look for
      * @param methodReturnType (canonical and fully qualified) string of the return type searched for.
-     * @return
+     * @return found method
      */
     public static PsiMethod findMethodFromClassByReturnType(PsiClass psiClass, String methodReturnType) {
         PsiMethod methodFound = null ;
@@ -397,7 +394,7 @@ public class StudioPsiUtils {
      * Find the class in the project
      * @param project the class
      * @param className the non-qualified or fully qualified classname
-     * @return
+     * @return found class
      */
     public static PsiClass[] findClass(Project project, String className) {
         // Note, getClassesByName will only work with non-qualified classname
@@ -410,10 +407,8 @@ public class StudioPsiUtils {
             files = PsiShortNamesCache.getInstance(project).getClassesByName(className, ProjectScope.getProjectScope(project));
         }
 
-        if (files != null) {
-            for (PsiClass myClass : files) {
-                LOG.debug("looking for class " + className + ", found [" + myClass.getName() +"]");
-            }
+        for (PsiClass myClass : files) {
+            LOG.debug("looking for class " + className + ", found [" + myClass.getName() + "]");
         }
         return files;
     }
@@ -422,7 +417,7 @@ public class StudioPsiUtils {
      * Find the first class of the given classname in the project
      * @param project the class
      * @param className the non-qualified or fully qualified classname
-     * @return
+     * @return found class
      */
     public static PsiClass findFirstClass(Project project, String className) {
         PsiClass[] classes = findClass(project, className);
@@ -473,7 +468,7 @@ public class StudioPsiUtils {
         return psiVariable.getType().getCanonicalText();
     }
 
-    private static final PIPSIIkasanModel updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
+    private static PIPSIIkasanModel updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
         PsiClass moduleConfigClazz = getModuleConfigClass(projectKey, assumeModuleConfigClass);
         if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
@@ -482,7 +477,7 @@ public class StudioPsiUtils {
         return pipsiIkasanModel;
     }
 
-    private static final PsiClass getModuleConfigClass(String projectKey, boolean assumeModuleConfigClass) {
+    private static PsiClass getModuleConfigClass(String projectKey, boolean assumeModuleConfigClass) {
         PsiClass moduleConfigClazz = null ;
         Project project = Context.getProject(projectKey);
         if (!assumeModuleConfigClass) {
@@ -525,8 +520,7 @@ public class StudioPsiUtils {
         return sourceCodeRoot;
     }
     public static PsiFile createFileInDirectory(final PsiDirectory baseDir, final String filename, final String text, Project project) {
-        PsiFile newFile = PsiFileFactory.getInstance(project).createFileFromText(filename, StdFileTypes.JAVA, text);
-        return newFile;
+        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
     }
 
 
@@ -535,7 +529,7 @@ public class StudioPsiUtils {
 
 //    PsiFile psiFile = anActionEvent.getData(CommonDataKeys.PSI_FILE);
 //    PsiElement element = psiFile.findElementAt(offset);
-//    PsiMethod containingMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+//    PsiMethod containingMethod = PsiTreeUtil.getParentOfType(element, PsiMethod");
 //    PsiClass containingClass = containingMethod.getContainingClass();
 // binary expression holds a PSI expression of the form x==y  whch we need to change to s.equals(y)
     public static void bob(Project project) {
@@ -560,7 +554,6 @@ public class StudioPsiUtils {
      * @param parent directory to contain the new directory
      * @param newDirectoryName to be created
      * @return the directory created or a handle to the existing directory if it exists
-     * @throws IncorrectOperationException
      */
     public static PsiDirectory createDirectory(PsiDirectory parent, String newDirectoryName)
             throws IncorrectOperationException {
@@ -586,8 +579,7 @@ public class StudioPsiUtils {
      * Create the directories for the supplied package name, returning the handle to the leaf directory
      * @param sourceRootDir that contains the package
      * @param qualifiedPackage i.e. dotted notation
-     * @return
-     * @throws IncorrectOperationException
+     * @return parent directory of pacjage
      */
     public static PsiDirectory createPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
             throws IncorrectOperationException {

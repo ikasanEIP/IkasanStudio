@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Pair;
 import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
 import org.ikasan.studio.ui.PaintMode;
@@ -15,7 +15,7 @@ import java.awt.*;
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
 public class IkasanFlowComponentViewHandler extends ViewHandler {
-    private static final Logger log = Logger.getLogger(IkasanFlowComponentViewHandler.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowComponentViewHandler");
     public static final int TEXT_VERTICAL_SPACE = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 60;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 90;
@@ -28,7 +28,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
 
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
-     * @param model
+     * @param model for the vie handler
      */
     public IkasanFlowComponentViewHandler(IkasanFlowComponent model) {
         this.model = model;
@@ -45,10 +45,10 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
      * @param g Swing graphics class
      * @param minimumTopY top y of the component, sometimes we need to supply this, otherwise -1 will allow viewHandler to
      *             determine
-     * @return
+     * @return the y position of the bottom of the text
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        log.debug("paintComponent invoked");
+        LOG.debug("paintComponent invoked");
         // here we ket the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);
@@ -90,9 +90,9 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
 
     /**
      * How close (x,y) does a dragged component need to be to the centre of this component so that we consider it attachable.
-     * @return
+     * @return the x,y coords
      */
-    public static final Pair<Integer, Integer> getProximityDetect() {
+    public static Pair<Integer, Integer> getProximityDetect() {
         return new Pair<>(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
     }
 

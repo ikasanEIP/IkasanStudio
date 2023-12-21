@@ -6,6 +6,7 @@ import com.intellij.codeInsight.generation.PsiElementClassMember;
 import com.intellij.codeInsight.generation.PsiFieldMember;
 import com.intellij.codeInsight.generation.PsiMethodMember;
 import com.intellij.java.JavaBundle;
+import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -35,13 +36,13 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-
+import com.intellij.openapi.diagnostic.Logger;
 /**
  * Try to avoid using the velocity templates / manager within Intellij to insulate from (frequent) internal Intellij (breaking) updates.
  */
 public final class VelocityUtilsShed {
     public static final String VELOCITY_TEMPLATE_PATH = "studio/templates/org/ikasan/studio/generator/";
-    private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(VelocityUtilsShed.class);
+    private static final Logger LOG = Logger.getInstance("#VelocityUtilsShed");
 
     // Enforce utility class.
     private VelocityUtilsShed() {}
@@ -210,7 +211,7 @@ public final class VelocityUtilsShed {
                 // information to keep as it is to avoid breaking compatibility with prior releases
                 vc.put("classname", useFullyQualifiedName ? ce.getQualifiedName() : ce.getName());
                 vc.put("FQClassname", ce.getQualifiedName());
-                vc.put("classSignature", ce.getName() + (clazz.hasTypeParameters() ? "<" + StringUtil.join(clazz.getTypeParameters(), param -> param.getName(),", ") + ">": ""));
+                vc.put("classSignature", ce.getName() + (clazz.hasTypeParameters() ? "<" + StringUtil.join(clazz.getTypeParameters(), NavigationItem::getName,", ") + ">": ""));
             }
 
             if (member != null) {
@@ -225,7 +226,7 @@ public final class VelocityUtilsShed {
             vc.put("NameUtil", NameUtil.class);
 
             for (Map.Entry <String, Object>paramNameEntry : contextMap.entrySet()) {
-                vc.put((String)paramNameEntry.getKey(), contextMap.get(paramNameEntry.getKey()));
+                vc.put(paramNameEntry.getKey(), contextMap.get(paramNameEntry.getKey()));
             }
 
             if (LOG.isDebugEnabled()) LOG.debug("Velocity Macro:\n" + templateMacro);
@@ -251,14 +252,14 @@ public final class VelocityUtilsShed {
         return StringUtil.convertLineSeparators(sw.getBuffer().toString());
     }
 
-    protected static String readFile(String templateName)  {
+    private static String readFile(String templateName)  {
         String template = "";
         if (templateName != null) {
             InputStream inputStream = VelocityUtilsShed.class.getClassLoader().getResourceAsStream(VELOCITY_TEMPLATE_PATH + templateName);
             try {
                 template = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             } catch (IOException | NullPointerException e) {
-                LOG.error("Could not read in the template " + templateName + " Trace was " + e.getMessage());
+                LOG.warn("Could not read in the template " + templateName + " Trace was " + e.getMessage());
             }
         }
         template = StringUtil.convertLineSeparators(template);
@@ -269,7 +270,7 @@ public final class VelocityUtilsShed {
         String template = null;
         template = readFile(templateName);
         VelocityContext context = new VelocityContext();
-        if (configurations != null && configurations.size() > 0) {
+        if (configurations != null && !configurations.isEmpty()) {
             Set<Map.Entry<String, Object>> entries = configurations.entrySet();
             for (Map.Entry<String, Object> mapEntry : entries) {
                 context.put(mapEntry.getKey(), mapEntry.getValue());
