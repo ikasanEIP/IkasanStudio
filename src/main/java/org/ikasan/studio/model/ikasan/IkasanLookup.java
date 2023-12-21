@@ -1,6 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioUtils;
 
 import java.io.BufferedReader;
@@ -13,7 +13,7 @@ import java.util.TreeMap;
 
 public enum IkasanLookup {
     EXCEPTION_RESOLVER_STD_EXCEPTIONS;
-    Map<String,String> displayAndValuePairs;
+    final Map<String,String> displayAndValuePairs;
 
     IkasanLookup() {
         displayAndValuePairs = readIkasanLookups(this.toString());
@@ -25,7 +25,7 @@ public enum IkasanLookup {
 
     // --- Population ----
     // Remember, to make the below available to constructor, they must be instance and not static
-    private static final Logger LOG = Logger.getLogger(IkasanLookup.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanLookup");
     private static final int LOOKUP_NAME = 0;
     private static final int LOOKUP_VALUE = 1;
     private static final int NUMBER_OF_CONFIGS = 2;
@@ -40,12 +40,12 @@ public enum IkasanLookup {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    if (line.startsWith("#") || line.length() == 0 || line.isEmpty()) {
+                    if (line.startsWith("#") || line.isEmpty()) {
                         continue;
                     }
                     String[] split = line.split("\\|");
                     if (split.length != NUMBER_OF_CONFIGS) {
-                        LOG.error("An incorrect lookup has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS +
+                        LOG.warn("An incorrect lookup has been supplied, incorrect number of configs (should be " + NUMBER_OF_CONFIGS +
                                 ", was " + split.length + "), please remove from properties file [" + propertiesFile + "] or fix, the line was [" + line+ "]");
                         continue;
                     }

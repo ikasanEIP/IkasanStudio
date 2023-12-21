@@ -10,7 +10,6 @@ import java.util.Map;
  * Template to create the bespoke classes i.e. those with property for
  *      'BespokeClassName' e.g. Filter, Converter
  *      'Configuration'
- *
  * The type of template used depends on the component hence each component can have at most 1 BespokeClassName
  */
 public class FlowsBespokeComponentTemplate extends Generator {
@@ -51,7 +50,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
         component.getViewHandler().setPsiJavaFile(newFile);
     }
 
-    public static String generateContents(String packageName, IkasanFlowComponent ikasanFlowComponent) {
+    protected static String generateContents(String packageName, IkasanFlowComponent ikasanFlowComponent) {
         String templateName = ikasanFlowComponent.getType().getElementCategory().toString().toLowerCase() + "Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);

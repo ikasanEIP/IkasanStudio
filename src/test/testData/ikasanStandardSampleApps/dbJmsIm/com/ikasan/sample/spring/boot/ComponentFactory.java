@@ -241,7 +241,7 @@ public class ComponentFactory
 
     class MyFilter implements Filter<List<Person>>, ConfiguredResource<MyFilterConfiguration>
     {
-        private final Logger logger = LoggerFactory.getLogger(MyFilter.class);
+        private static final Logger LOG = LoggerFactory.getLogger(MyFilter.class);
 
         String configuredResourceId;
         MyFilterConfiguration configuration;

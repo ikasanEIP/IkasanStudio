@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.IkasanComponentType;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
@@ -13,9 +13,9 @@ import java.io.IOException;
 
 public class CanvasImportTransferHandler extends TransferHandler // implements Transferable
 {
-    private static final Logger log = Logger.getLogger(CanvasImportTransferHandler.class);
+    private static final Logger LOG = Logger.getInstance("#CanvasImportTransferHandler");
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
-    private DesignerCanvas designerCanvas;
+    private final DesignerCanvas designerCanvas;
 
     public CanvasImportTransferHandler(DesignerCanvas designerCanvas) {
         this.designerCanvas = designerCanvas;
@@ -52,7 +52,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         final Component targetComponent = support.getComponent();
         final DataFlavor[] destinationSupportedflavors = support.getDataFlavors();
 
-        log.trace("Can import check " + targetComponent);
+        LOG.trace("Can import check " + targetComponent);
         // Only allow drop (not paste) and ignore unless on canvas
         if (! support.isDrop() ||
             // and only on the canvas
@@ -106,7 +106,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      */
     @Override
     public boolean importData(TransferSupport support) {
-        log.info("import Data invoked " + support);
+        LOG.info("import Data invoked " + support);
         if (this.canImport(support)) {
             IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
             if (ikasanFlowUIComponent != null) {
@@ -128,7 +128,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
             IkasanFlowUIComponentTransferable  ikasanFlowUIComponentTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(ikasanFlowUIComponentFlavor);
             ikasanFlowComponent = ikasanFlowUIComponentTransferable.getIkasanFlowUIComponent();
         } catch (IOException | UnsupportedFlavorException e) {
-            log.error("Could not import flavor " + ikasanFlowUIComponentFlavor + " from support " + support + " due to exception " + e.getMessage());
+            LOG.warn("Could not import flavor " + ikasanFlowUIComponentFlavor + " from support " + support + " due to exception " + e.getMessage());
             e.printStackTrace();
         }
         return ikasanFlowComponent;

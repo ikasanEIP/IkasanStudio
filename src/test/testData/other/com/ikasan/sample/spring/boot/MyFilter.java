@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 
 class MyFilter implements Filter<List<Person>>, ConfiguredResource<MyFilterConfiguration>
 {
-    private final Logger logger = LoggerFactory.getLogger(MyFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MyFilter.class);
 
     String configuredResourceId;
     MyFilterConfiguration configuration;
@@ -53,7 +53,7 @@ class MyFilter implements Filter<List<Person>>, ConfiguredResource<MyFilterConfi
             }
             catch(Exception e)
             {
-                logger.info("Unable to calculate age for " + person.getName(), e);
+                LOG.info("Unable to calculate age for " + person.getName(), e);
             }
         }
 

@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.component.palette;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
@@ -14,7 +14,7 @@ import java.io.IOException;
 
 public class PaletteExportTransferHandler extends TransferHandler // implements Transferable
 {
-    private static final Logger log = Logger.getLogger(PaletteExportTransferHandler.class);
+    private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
     private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
 
@@ -81,7 +81,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     @Override
     public boolean importData(TransferHandler.TransferSupport support) {
-        log.info("Got " + support);
+        LOG.info("Got " + support);
         return super.importData(support);
 
     }
@@ -101,7 +101,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             if (t.isDataFlavorSupported(ikasanFlowUIComponentFlavor)) {
                 try {
                     IkasanFlowUIComponentTransferable ikasanFlowUIComponent = (IkasanFlowUIComponentTransferable) t.getTransferData(ikasanFlowUIComponentFlavor);
-                    log.warn("I can perhaps drop " + ikasanFlowUIComponent);
+                    LOG.warn("I can perhaps drop " + ikasanFlowUIComponent);
 
                     return true;
                 } catch (UnsupportedFlavorException | IOException ignored) {

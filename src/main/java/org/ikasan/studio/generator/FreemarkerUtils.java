@@ -4,7 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Context;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.io.StringWriter;
 import java.util.Map;
 
 public class FreemarkerUtils {
-    private static final Logger log = Logger.getLogger(FreemarkerUtils.class);
+    private static final Logger LOG = Logger.getInstance("#FreemarkerUtils");
 
     // Enforce as a utility class
     private FreemarkerUtils() {}
@@ -26,7 +26,7 @@ public class FreemarkerUtils {
             // Would have thought we remove \r in Freemarker but it does not look like it.
             output = writer.toString().replace("\r", "");
         } catch (IOException | TemplateException e) {
-            log.error("Problems encountered trying to read template " + templateName + " exception message " + e.getMessage(), e);
+            LOG.warn("Problems encountered trying to read template " + templateName + " exception message " + e.getMessage(), e);
         }
         return output;
     }

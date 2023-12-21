@@ -1,14 +1,14 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class IkasanComponentProperty {
-    private static final Logger LOG = Logger.getLogger(IkasanComponentProperty.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanComponentProperty");
     private Object value;
     private Boolean regenerateAllowed = true;
     @JsonIgnore
@@ -64,7 +64,7 @@ public class IkasanComponentProperty {
     /**
      * Using the supplied string and meta data, attempt to set the value to an object of the appropriate class in accordance
      * with the metaData
-     * @param newValue
+     * @param newValue to update
      */
     public void setValueFromString(String newValue) {
         if (meta != null) {
@@ -137,16 +137,12 @@ public class IkasanComponentProperty {
      */
     @JsonIgnore
     public boolean valueNotSet() {
-        boolean empty = false;
-        if ((value == null) ||
-            (value instanceof java.lang.String && ((String)value).isEmpty()) ||
-            (value instanceof java.lang.Integer && ((Integer)value) ==0) ||
-            (value instanceof Long && ((Long)value) == 0l) ||
-            (value instanceof java.lang.Double && ((Double)value) == 0.0) ||
-            (value instanceof java.lang.Float && ((Float)value) == 0.0)) {
-            empty = true;
-        }
-        return empty;
+        return (value == null) ||
+                (value instanceof String && ((String) value).isEmpty()) ||
+                (value instanceof Integer && ((Integer) value) == 0) ||
+                (value instanceof Long && ((Long) value) == 0) ||
+                (value instanceof Double && ((Double) value) == 0.0) ||
+                (value instanceof Float && ((Float) value) == 0.0);
     }
 
 }

@@ -1,6 +1,7 @@
 package org.ikasan.studio.generator;
 
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -10,15 +11,14 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.testFramework.PsiTestUtil;
-import org.apache.log4j.Logger;
+import org.ikasan.studio.Context;
 import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Generator {
-    private static final Logger log = Logger.getLogger(Generator.class);
+public abstract class Generator {
+    private static final Logger LOG = Logger.getInstance("#Generator");
     public static final String STUDIO_PACKAGE_TAG = "studioPackageTag";
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
@@ -51,7 +51,7 @@ public class Generator {
             psiFile.delete();
         }
 
-        PsiJavaFile newPsiFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.JAVA, content);
+        PsiJavaFile newPsiFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), content);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         standardJavaFormatting(project, newPsiFile);
         newPsiFile = (PsiJavaFile)myPackage.add(newPsiFile);
@@ -64,7 +64,7 @@ public class Generator {
 
     public static PsiFile createResourceFile(final Project project, final String subDir,final  String propertiesFileNme, final String content, boolean focus) {
         PsiFile psiFile = null;
-        String fileName = propertiesFileNme + ".properties";
+        String fileName = propertiesFileNme + "." + Context.PROPERTIES_FILE_EXTENSION;
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(project, StudioPsiUtils.JAVA_RESOURCES);
         if (sourceRoot != null) {
             PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
@@ -78,7 +78,7 @@ public class Generator {
                 psiFile.delete();
             }
 
-            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, StdFileTypes.PROPERTIES, content);
+            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.PROPERTIES_FILE_EXTENSION), content);
             // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
             psiFile = (PsiFile)directory.add(psiFile);
             standardPropertiesFormatting(project, psiFile);
@@ -90,7 +90,7 @@ public class Generator {
             }
         } else {
             //@todo add this to system alerts in Intellij
-            log.error("The resources directory was missing, please add it and restart the project");
+            LOG.warn("The resources directory was missing, please add it and restart the project");
         }
 
         return psiFile;
@@ -99,14 +99,10 @@ public class Generator {
     private static void standardJavaFormatting(final Project project, final PsiFile psiFile) {
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
         CodeStyleManager.getInstance(project).reformat(psiFile);
-        // Technically this is a testing Util
-        PsiTestUtil.checkFileStructure(psiFile);
     }
 
     private static void standardPropertiesFormatting(final Project project, final PsiFile psiFile) {
         CodeStyleManager.getInstance(project).reformat(psiFile);
-        // Technically this is a testing Util
-        PsiTestUtil.checkFileStructure(psiFile);
     }
 
     /**

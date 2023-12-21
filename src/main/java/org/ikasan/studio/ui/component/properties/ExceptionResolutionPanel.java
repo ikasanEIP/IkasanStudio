@@ -1,7 +1,9 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanExceptionResolution;
 
@@ -16,21 +18,19 @@ import java.util.List;
  * This panel contains the data entry for the exception and action
  */
 public class ExceptionResolutionPanel extends PropertiesPanel {
-    private static final Logger log = Logger.getLogger(ExceptionResolutionPanel.class);
+    private static final Logger LOG = Logger.getInstance("#ExceptionResolutionPanel");
     private static final String OK_BUTTON_TEST = "Add";
     private transient List<ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
-    private JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
-    private JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
-    private JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());   // contains the Optional properties for the action
+    private final JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
+    private final JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
+    private final JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());   // contains the Optional properties for the action
     private boolean updateActionPropertiesOnly = false;
 
     /**
      * Create the ExceptionResolutionPanel
-     *
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     *
      * @param projectKey for this project
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
@@ -50,7 +50,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
         } else {
-            log.info("Data has not changed in Exception Resolution, code will not be updated");
+            LOG.info("Data has not changed in Exception Resolution, code will not be updated");
         }
     }
 
@@ -67,7 +67,6 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     /**
      * Called once the OK button is pressed.
      * Check to see if any new values have been entered, update the model and return true if that is the case.
-     * @return true if the model has been updated with new values.
      */
     @Override
     public void processEditedFlowComponents() {
@@ -92,7 +91,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             if (! updateActionPropertiesOnly) {
                 propertiesEditorScrollingContainer.removeAll();
                 propertiesEditorPanel = new JPanel(new GridBagLayout());
-                propertiesEditorPanel.setBackground(Color.WHITE);
+                propertiesEditorPanel.setBackground(JBColor.WHITE);
                 propertiesEditorScrollingContainer.add(propertiesEditorPanel);
                 updateExceptionAndAction();
 
@@ -110,11 +109,11 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         exceptionResolutionEditBox = new ExceptionResolutionEditBox(this, getSelectedComponent(), componentInitialisation);
         GridBagConstraints gc = new GridBagConstraints();
         gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(3, 4, 3, 4);
+        gc.insets = JBUI.insets(3, 4);
 
         addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
         addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
-        addToScrollPanelContent(exceptionActionEditorPanel, "", Color.LIGHT_GRAY, 0);
+        addToScrollPanelContent(exceptionActionEditorPanel, "", JBColor.LIGHT_GRAY, 0);
     }
 
     public void updatePropertiesForAction() {
@@ -123,7 +122,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
         GridBagConstraints gc = new GridBagConstraints();
         gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(3, 4, 3, 4);
+        gc.insets = JBUI.insets(3, 4);
 
         // Populate the list of params to be displayed and add to respective panels
         int mandatoryParamsTabley = 0;
@@ -141,8 +140,8 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
         // Add the params to the display panels.
         // The the panels even if empty so we can update subsequently.
-        addToScrollPanelContent(mandatoryPropertiesEditorPanel, "Mandatory Properties", Color.red, 1);
-        addToScrollPanelContent(optionalPropertiesEditorPanel, "Optional Properties", Color.LIGHT_GRAY, 2);
+        addToScrollPanelContent(mandatoryPropertiesEditorPanel, "Mandatory Properties", JBColor.RED, 1);
+        addToScrollPanelContent(optionalPropertiesEditorPanel, "Optional Properties", JBColor.LIGHT_GRAY, 2);
     }
 
     @Override
@@ -172,11 +171,11 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     private void addToScrollPanelContent(JPanel subPanel, String title, Color borderColor, int rowNumber) {
         GridBagConstraints subPanelgc = new GridBagConstraints();
         subPanelgc.fill = GridBagConstraints.HORIZONTAL;
-        subPanelgc.insets = new Insets(3, 4, 3, 4);
+        subPanelgc.insets = JBUI.insets(3, 4);
         subPanelgc.gridx = 0;
         subPanelgc.weightx = 1;
         subPanelgc.gridy = rowNumber;
-        subPanel.setBackground(Color.WHITE);
+        subPanel.setBackground(JBColor.WHITE);
         subPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(borderColor), title,
                 TitledBorder.LEFT,
@@ -206,7 +205,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
             JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            booleanPanel.setBackground(Color.WHITE);
+            booleanPanel.setBackground(JBColor.WHITE);
             booleanPanel.add(new JLabel("true"));
             booleanPanel.add(componentInput.getTrueBox());
             booleanPanel.add(new JLabel("false"));
@@ -223,8 +222,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * @return a list of ValidationInfo that will only be populated if there are validation errors on the form.
      */
     protected List<ValidationInfo> doValidateAll() {
-        List<ValidationInfo> result = exceptionResolutionEditBox.doValidateAll();
-        return result;
+        return exceptionResolutionEditBox.doValidateAll();
     }
 
     public boolean hasExceptionResolution(String exception) {

@@ -1,18 +1,19 @@
 package org.ikasan.studio.ui.model;
 
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.IkasanComponentType;
 
 import javax.swing.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class IkasanFlowUIComponentFactory {
-    private static final Logger log = Logger.getLogger(IkasanFlowUIComponentFactory.class);
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowUIComponentFactory");
     private static final String DEFAULT_README = "Readme.md";
 
-    private static List<IkasanFlowUIComponent> ikasanFlowUIComponents = new ArrayList<>();
-    private IkasanFlowUIComponent UNKNOWN ;
+    private static final List<IkasanFlowUIComponent> ikasanFlowUIComponents = new ArrayList<>();
+    private final IkasanFlowUIComponent UNKNOWN ;
     private static final String FLOW_HELP_TEXT = "The flow is the container for components and generally represents an atomic action";
     private static final String BROKER_HELP_TEXT = "Brokers enrich the contents of the existing message with additional data or structure in a number of different ways. Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.";
     private static final String SPLITTER_HELP_TEXT = "Splitters break up the incoming event in to many outgoing events. ikasan will operate on the returned list of events and pass each event in the list independently to the next component for processing. Read more about EIP Sequencer In order to create your own splitter you need to implement Splitter Interface.";
@@ -126,10 +127,11 @@ public class IkasanFlowUIComponentFactory {
 
     private ImageIcon getImageIcon(String iconLocation) {
         ImageIcon imageIcon = null;
-        try {
-            imageIcon = new ImageIcon(getClass().getResource(iconLocation));
-        } catch (NullPointerException npe) {
-            log.error("Could not create Icon for " + iconLocation, npe);
+        URL iconURL = getClass().getResource(iconLocation);
+        if (iconURL == null) {
+            LOG.warn("Could not create Icon for " + iconLocation);
+        } else {
+            imageIcon = new ImageIcon(iconURL);
         }
         return imageIcon;
     }

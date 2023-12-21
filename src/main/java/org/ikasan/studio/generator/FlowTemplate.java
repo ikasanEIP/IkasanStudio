@@ -32,7 +32,7 @@ public class FlowTemplate extends Generator {
         }
     }
 
-    public static String generateContents(String packageName, IkasanModule ikasanModule, IkasanFlow ikasanFow) {
+    protected static String generateContents(String packageName, IkasanModule ikasanModule, IkasanFlow ikasanFow) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(MODULE_TAG, ikasanModule);

@@ -1,7 +1,7 @@
 package org.ikasan.studio.model.psi;
 
 import com.intellij.psi.PsiReferenceExpression;
-import org.apache.log4j.Logger;
+import com.intellij.openapi.diagnostic.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +10,11 @@ import java.util.stream.Collectors;
 
 /**
  * Helper method for list of methods.
- *
  * Remember, a list can contain multiple methods of the same name e.f. addFlow
  */
 public class PIPSIMethodList {
     public static final String SPRING_BEAN = "springBean";
-    private static final Logger log = Logger.getLogger(PIPSIMethodList.class);
+    private static final Logger LOG = Logger.getInstance("#PIPSIMethodList");
     PsiReferenceExpression baseMethodinstanceVariable;  // something like jmsProducer()
     String baseType;                                        // e.g. Filter, Splitter etc
     List<PIPSIMethod> pipsiMethods;                         // The fluent method chain used to enrich the basic type
@@ -81,7 +80,7 @@ public class PIPSIMethodList {
                     .findFirst()
                     .orElse(null);
         } catch (NoSuchElementException nse) {
-            log.warn("Search for method of name [" + methodName + "] failed");
+            LOG.warn("Search for method of name [" + methodName + "] failed");
         }
 
         return methodFound;
