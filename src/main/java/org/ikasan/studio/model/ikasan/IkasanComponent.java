@@ -13,12 +13,13 @@ import java.util.stream.Collectors;
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  */
-public abstract class IkasanComponent extends IkasanBaseComponent {
+public  class IkasanComponent extends IkasanBaseComponent {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
     @JsonPropertyOrder(alphabetic = true)
     protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
 
+    public IkasanComponent() {}
 
     protected IkasanComponent(IkasanComponentType type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
         super(type);
