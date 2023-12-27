@@ -3,6 +3,10 @@ package org.ikasan.studio.model.ikasan;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.psi.PsiFile;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
@@ -14,6 +18,10 @@ import java.util.List;
  * from any changes to ikasan or componentDependencies on any particular ikasan version.
  */
 //@Data
+@Data
+@AllArgsConstructor
+@Jacksonized
+@Builder
 public class IkasanModule extends IkasanComponent {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore

@@ -1,0 +1,8 @@
+[
+  {
+    "type": "Integer",
+    "section": "someSection",
+    "name": "someProperty",
+    "defaultValue": "1"
+  }
+]

@@ -20,50 +20,7 @@ plugins {
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
-    
-    
-    // Kotlin support
-    //id("org.jetbrains.kotlin.jvm") version "1.5.10"
-    
-    
-    // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
-    //id("org.jetbrains.intellij") version "1.0"
-    
-    // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
-    //id("org.jetbrains.changelog") version "1.1.2"
-    
-    // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
-    //id("io.gitlab.arturbosch.detekt") version "1.17.1"
-    
-    // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
-    //id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
-//    id("java")
-//    // Kotlin support
-//    id("org.jetbrains.kotlin.jvm") version "1.5.10"
-//    // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
-//    id("org.jetbrains.intellij") version "1.0"
-//    // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
-//    id("org.jetbrains.changelog") version "0.6.2"
-//    // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
-//    id("io.gitlab.arturbosch.detekt") version "1.17.1"
-//    // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
-//    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
-
-// Import variables from gradle.properties file
-//val pluginGroup: String by project
-// `pluginName_` variable ends with `_` because of the collision with Kotlin magic getter in the `intellij` closure.
-// Read more about the issue: https://github.com/JetBrains/intellij-platform-plugin-template/issues/29
-//val pluginName_: String by project
-//val pluginVersion: String by project
-//val pluginSinceBuild: String by project
-//val pluginUntilBuild: String by project
-//val pluginVerifierIdeVersions: String by project
-
-//val platformType: String by project
-//val platformVersion: String by project
-//val platformPlugins: String by project
-//val platformDownloadSources: String by project
 
 group = properties("pluginGroup").get()
 version = properties("pluginVersion").get()
@@ -74,18 +31,12 @@ repositories {
     //jcenter()
 }
 dependencies {
-//    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
-// For now, pause the use of V2.2, too many issues with Plugin clashes.
-//    api("org.apache.velocity:velocity-engine-core:2.2")
-//    implementation("org.apache.velocity:velocity-engine-core:2.2")
-//    implementation("org.freemarker:freemarker:2.3.20")
     implementation("org.freemarker:freemarker:2.3.31")
     implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
     implementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
     implementation("org.ikasan:ikasan-h2-standalone-persistence:3.1.0")
-//    testImplementation("org.freemarker:freemarker:2.3.20")
     testImplementation("org.freemarker:freemarker:2.3.31")
-//    testImplementation("org.apache.velocity:velocity-engine-core:2.3.20")
+    implementation("net.sourceforge.fmpp:fmpp:0.9.16")
     testImplementation("org.ikasan:ikasan-eip-standalone:3.0.1")
     testImplementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
     testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.1.0")
@@ -94,7 +45,6 @@ dependencies {
     testImplementation("org.ikasan:ikasan-test:3.1.0")
     compileOnly ("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
-
     testCompileOnly("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 }

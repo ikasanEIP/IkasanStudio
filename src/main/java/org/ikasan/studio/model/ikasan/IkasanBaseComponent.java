@@ -14,7 +14,7 @@ public abstract class IkasanBaseComponent {
     @JsonPropertyOrder(alphabetic = true)
     protected IkasanComponentType type;
 
-    private IkasanBaseComponent() {}
+    public IkasanBaseComponent() {}
 
     protected IkasanBaseComponent(IkasanComponentType type) {
         this.type = type;
