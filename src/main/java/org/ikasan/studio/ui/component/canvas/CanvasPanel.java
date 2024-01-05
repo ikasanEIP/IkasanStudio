@@ -17,7 +17,8 @@ public class CanvasPanel extends JPanel {
 
         JPanel canvasHeaderButtonPanel = new JPanel();
 
-        addButtonsToPanel(canvasHeaderButtonPanel, "Launch", new LaunchDashboardAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Blue", new LaunchDashboardAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "H2", new LaunchH2Action(projectKey));
         addButtonsToPanel(canvasHeaderButtonPanel, "Refresh", new ModelRefreshAction(projectKey));
         addButtonsToPanel(canvasHeaderButtonPanel, "Rebuild", new ModelRebuildAction(projectKey));
         addButtonsToPanel(canvasHeaderButtonPanel, "Save", new SaveAction(projectKey));

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * Helper method for list of methods.
  * Remember, a list can contain multiple methods of the same name e.f. addFlow
  */
-public class PIPSIMethodList {
+class PIPSIMethodList {
     public static final String SPRING_BEAN = "springBean";
     private static final Logger LOG = Logger.getInstance("#PIPSIMethodList");
     PsiReferenceExpression baseMethodinstanceVariable;  // something like jmsProducer()

@@ -4,6 +4,8 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
@@ -18,8 +20,8 @@ import java.util.stream.Collectors;
 public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String OK_BUTTON_TEXT = "Update Code";
-    private transient IkasanBaseComponent selectedComponent;
-    private transient IkasanBaseComponent componentDefaults;
+    private transient IkasanBaseElement selectedComponent;
+    private transient IkasanBaseElement componentDefaults;
     protected String projectKey;
     protected boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
@@ -104,14 +106,14 @@ public abstract class PropertiesPanel extends JPanel {
      */
     public String getPropertiesPanelTitle() {
         String propertyType = "";
-        if (selectedComponent instanceof IkasanModule) {
+        if (selectedComponent instanceof Module) {
             propertyType = "Module " + PROPERTIES_TAG;
-        } else if (selectedComponent instanceof IkasanFlow) {
+        } else if (selectedComponent instanceof Flow) {
             propertyType = "Flow " + PROPERTIES_TAG;
-        } else if (selectedComponent instanceof IkasanFlowComponent) {
+        } else if (selectedComponent instanceof FlowElement) {
             IkasanFlowUIComponent type = IkasanFlowUIComponentFactory
                     .getInstance()
-                    .getIkasanFlowUIComponentFromType((((IkasanFlowComponent) selectedComponent).getType()));
+                    .getIkasanFlowUIComponentFromType((((FlowElement) selectedComponent).getComponentType()));
             if (type.getIkasanComponentType() != IkasanComponentType.UNKNOWN) {
                 propertyType = type.getTitle() + " " + PROPERTIES_TAG;
             } else {
@@ -125,7 +127,7 @@ public abstract class PropertiesPanel extends JPanel {
      * External actors will update the component to be exposed / displayed.
      * @param selectedComponent that now needs to be updated.
      */
-    public void updateTargetComponent(IkasanBaseComponent selectedComponent) {
+    public void updateTargetComponent(IkasanBaseElement selectedComponent) {
         this.selectedComponent = selectedComponent;
         if (! componentInitialisation) {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
@@ -134,7 +136,7 @@ public abstract class PropertiesPanel extends JPanel {
         redrawPanel();
     }
 
-    public void setTargetComponent(IkasanBaseComponent selectedComponent) {
+    public void setTargetComponent(IkasanBaseElement selectedComponent) {
         this.selectedComponent = selectedComponent;
         if (! componentInitialisation) {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
@@ -179,11 +181,11 @@ public abstract class PropertiesPanel extends JPanel {
      */
     public abstract JComponent getFirstFocusField();
 
-    protected IkasanBaseComponent getSelectedComponent() {
+    protected IkasanBaseElement getSelectedComponent() {
         return selectedComponent;
     }
 
-    protected IkasanBaseComponent getComponentDefaults() {
+    protected IkasanBaseElement getComponentDefaults() {
         return componentDefaults;
     }
 

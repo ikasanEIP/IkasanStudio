@@ -1,10 +1,10 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.ikasan.studio.model.ikasan.IkasanLookup.EXCEPTION_RESOLVER_STD_EXCEPTIONS;
+import static org.ikasan.studio.model.ikasan.meta.IkasanLookup.EXCEPTION_RESOLVER_STD_EXCEPTIONS;
 
 /**
  * Capture the meta information for an action resolution. The meta will never change per class, so this is static.

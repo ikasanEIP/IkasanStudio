@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -388,7 +391,7 @@ public class StudioUtils {
     private static final String SUBSTITUTION_PREFIX_FLOW = SUBSTITUTION_PREFIX + "flow";
     private static final String SUBSTITUTION_PREFIX_COMPONENT = SUBSTITUTION_PREFIX + "component";
     private static final String SUBSTITUTION_PREFIX_MODULE = SUBSTITUTION_PREFIX + "module";
-    public static String getPropertyLabelPackageStyle(IkasanModule module, IkasanFlow flow, IkasanComponent component, String template) {
+    public static String getPropertyLabelPackageStyle(Module module, Flow flow, IkasanElement component, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
@@ -404,7 +407,7 @@ public class StudioUtils {
         return propertyLabel;
     }
 
-    public static String getPropertyLabelVariableStyle(IkasanModule module, IkasanFlow flow, IkasanComponent component, String template) {
+    public static String getPropertyLabelVariableStyle(Module module, Flow flow, IkasanElement component, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {

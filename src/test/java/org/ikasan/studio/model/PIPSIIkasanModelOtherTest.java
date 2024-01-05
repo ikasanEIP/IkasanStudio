@@ -3,7 +3,7 @@ package org.ikasan.studio.model;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,16 +32,16 @@ public class PIPSIIkasanModelOtherTest extends PIPSIIkasanModelAbstractTest {
 
     @Test
     public void test_parse_of_other_standard_module() {
-        IkasanModule ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
+        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
         final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleFactory", ProjectScope.getAllScope(myProject));
         Assert.assertThat(moduleConfigClass, is(notNullValue()));
         pipsiIkasanModel.setModuleConfigClazz(moduleConfigClass);
-        pipsiIkasanModel.updateIkasanModule();
+//        pipsiIkasanModel.updateIkasanModuleFromSourceCode();
 
-        Assert.assertThat(ikasanModule.getName(), is("myIntegrationModule"));
+        Assert.assertThat(ikasanModule.getComponentName(), is("myIntegrationModule"));
         Assert.assertThat(ikasanModule.getDescription(), is("My test module."));
         Assert.assertThat(ikasanModule.getFlows().size(), is(1));
-        Assert.assertThat(ikasanModule.getFlows().get(0).getName(), is("myTestFlow"));
+        Assert.assertThat(ikasanModule.getFlows().get(0).getComponentName(), is("myTestFlow"));
         Assert.assertThat(ikasanModule.getFlows().get(0).getFlowComponentList().size(), is(1));
 
     }

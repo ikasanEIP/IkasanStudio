@@ -1,8 +1,9 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 import org.ikasan.studio.StudioUtils;
+import org.ikasan.studio.model.ikasan.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -245,27 +246,27 @@ public enum IkasanComponentType implements Serializable {
         return UNKNOWN;
     }
 
-    public static IkasanFlowComponent getEndpointForFlowElement(IkasanFlowComponent ikasanFlowComponent, IkasanFlow ikasanFlow) {
-        IkasanFlowComponent endpointFlowElement = null ;
-        if (ikasanFlowComponent.getType() != null) {
-            switch (ikasanFlowComponent.getType()) {
+    public static FlowElement getEndpointForFlowElement(FlowElement ikasanFlowComponent, Flow ikasanFlow) {
+        FlowElement endpointFlowElement = null ;
+        if (ikasanFlowComponent.getComponentType() != null) {
+            switch (ikasanFlowComponent.getComponentType()) {
                 case SFTP_CONSUMER :
-                    endpointFlowElement = new IkasanFlowComponent(SFTP_LOCATION, ikasanFlow);
+                    endpointFlowElement = new FlowElement(SFTP_LOCATION, ikasanFlow);
                     break;
                 case FTP_PRODUCER :
                 case FTP_CONSUMER :
-                    endpointFlowElement = new IkasanFlowComponent(FTP_LOCATION, ikasanFlow);
+                    endpointFlowElement = new FlowElement(FTP_LOCATION, ikasanFlow);
                     break;
                 case JMS_PRODUCER :
                 case JMS_PRODUCER_BASIC_AMQ:
                 case SPRING_JMS_CONSUMER :
                 case SPRING_JMS_CONSUMER_BASIC_AMQ:
                     String destinationName = ikasanFlowComponent.getDestinationName();
-                    endpointFlowElement = new IkasanFlowComponent(CHANNEL, ikasanFlow, destinationName, destinationName);
+                    endpointFlowElement = new FlowElement(CHANNEL, ikasanFlow, destinationName, destinationName);
                     break;
                 case DB_PRODUCER :
                 case DB_CONSUMER :
-                    endpointFlowElement = new IkasanFlowComponent(DB, ikasanFlow);
+                    endpointFlowElement = new FlowElement(DB, ikasanFlow);
                     break;
             }
         }

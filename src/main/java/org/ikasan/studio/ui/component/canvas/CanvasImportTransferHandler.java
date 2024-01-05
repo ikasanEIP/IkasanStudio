@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 

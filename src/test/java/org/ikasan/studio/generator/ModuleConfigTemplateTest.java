@@ -1,8 +1,8 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class ModuleConfigTemplateTest extends TestCase {
      */
     @Test
     public void testCreateModuleWith_emptyIkasanModel() throws IOException {
-        IkasanModule ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.setDescription("New Module, please provide description");
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
@@ -33,10 +33,10 @@ public class ModuleConfigTemplateTest extends TestCase {
      */
     @Test
     public void testCreateModuleWith_oneFlow() throws IOException {
-        IkasanModule ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.setDescription("New Module, please provide description");
-        IkasanFlow ikasanFlow = new IkasanFlow();
-        ikasanFlow.setName("newFlow1");
+        Flow ikasanFlow = new Flow();
+        ikasanFlow.setComponentName("newFlow1");
         ikasanModule.addFlow(ikasanFlow);
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);

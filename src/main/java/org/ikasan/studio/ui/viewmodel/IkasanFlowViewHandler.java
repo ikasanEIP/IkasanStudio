@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 
@@ -28,24 +28,24 @@ public class IkasanFlowViewHandler extends ViewHandler {
     private String warningText =  "";
     private int warningX = 0;
     private int warningY = 0;
-    private final IkasanFlow model;
+    private final Flow model;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param model for view handler
      */
-    public IkasanFlowViewHandler(IkasanFlow model) {
+    public IkasanFlowViewHandler(Flow model) {
         this.model = model;
     }
 
     public String getText() {
-        return model.getName() != null ? model.getName() : model.getDescription();
+        return model.getComponentName() != null ? model.getComponentName() : model.getDescription();
     }
 
 //    public String getExceptionResolverIcon() {
 //        if (model.hasExceptionResolver()) {
 //        }
-//        return model.getName() != null ? model.getName() : model.getDescription();
+//        return model.getComponentName() != null ? model.getComponentName() : model.getDescription();
 //    }
 
     private int getFlowTitleWidth(Graphics g) {
@@ -113,13 +113,13 @@ public class IkasanFlowViewHandler extends ViewHandler {
         if (model.hasExceptionResolver()) {
             model.getIkasanExceptionResolver().getViewHandler().paintComponent(canvas, g, -1, -1);
         }
-        List<IkasanFlowComponent> flowElementList = model.getFlowComponentList();
+        List<FlowElement> flowElementList = model.getFlowComponentList();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
 
         // Paint any components between the first and the last
         for (int index=0; index < flowSize; index ++) {
-            IkasanFlowComponent flowElement = flowElementList.get(index);
+            FlowElement flowElement = flowElementList.get(index);
             flowElement.getViewHandler().paintComponent(canvas, g, -1, -1);
             if (index < flowSize-1) {
                 drawConnector(g, flowElement.getViewHandler(), flowElementList.get(index+1).getViewHandler());
@@ -185,7 +185,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
         if (!model.getFlowComponentList().isEmpty()) {
-            for (IkasanFlowComponent ikasanFlowComponent : model.getFlowComponentList()) {
+            for (FlowElement ikasanFlowComponent : model.getFlowComponentList()) {
                 ikasanFlowComponent.getViewHandler().initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                 currentX += ikasanFlowComponent.getViewHandler().getWidth() + FLOW_X_SPACING;
             }

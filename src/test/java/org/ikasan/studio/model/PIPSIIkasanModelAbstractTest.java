@@ -6,15 +6,15 @@ import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanModule;
-import org.ikasan.studio.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.psi.PIPSIIkasanModelx;
 
 public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
     private String testDataDir = "";
     protected VirtualFile myTestProjectRoot;
     protected static String TEST_PROJECT_KEY = "testproject";
     protected PsiFile moduleConfigPsiFile;
-    protected PIPSIIkasanModel pipsiIkasanModel;
+    protected PIPSIIkasanModelx pipsiIkasanModel;
 
     public String getTestDataDir() {
         return testDataDir;
@@ -37,10 +37,10 @@ public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
         PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
         myTestProjectRoot = createTestProjectStructure(root);
         Context.setProject(TEST_PROJECT_KEY, myProject);
-        Context.setIkasanModule(TEST_PROJECT_KEY, new IkasanModule());
+        Context.setIkasanModule(TEST_PROJECT_KEY, new Module());
 
-        pipsiIkasanModel = new PIPSIIkasanModel(TEST_PROJECT_KEY);
-        Context.setPipsiIkasanModel(TEST_PROJECT_KEY, pipsiIkasanModel);
+        pipsiIkasanModel = new PIPSIIkasanModelx(TEST_PROJECT_KEY);
+//        Context.setPipsiIkasanModel(TEST_PROJECT_KEY, pipsiIkasanModel);
     }
 
     @Override

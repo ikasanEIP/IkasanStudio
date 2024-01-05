@@ -29,7 +29,7 @@ public class SaveAction implements ActionListener {
       FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as Image", "Choose the destination to save the image", extensions);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
 
-      String moduleName = Context.getIkasanModule(projectKey).getName();
+      String moduleName = Context.getIkasanModule(projectKey).getComponentName();
       String imageFileName = "ModuleDiagram-" + moduleName + (isMacNativSaveDialog ? ".png" : "");
 //      VirtualFileWrapper vf = dialog.save(null, imageFileName);
       VirtualFileWrapper vf = dialog.save(imageFileName);

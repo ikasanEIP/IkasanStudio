@@ -3,12 +3,15 @@ package org.ikasan.studio.generator;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import java.util.Map;
 
 public class FlowsBespokePropertyTemplate extends Generator {
 
-    public static void create(final Project project, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow, IkasanFlowComponent component) {
+    public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow, FlowElement component) {
         for (IkasanComponentProperty property : component.getUserImplementedClassProperties()) {
             String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());

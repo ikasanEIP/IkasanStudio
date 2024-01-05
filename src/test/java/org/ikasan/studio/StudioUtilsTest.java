@@ -1,9 +1,9 @@
 package org.ikasan.studio;
 
 import org.ikasan.studio.generator.TestUtils;
-import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMetaKey;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -111,9 +111,9 @@ public class StudioUtilsTest {
     public void toJsonTest() throws IOException {
         Assert.assertThat(StudioUtils.toJson("bob"), is("\"bob\""));
 
-        IkasanModule module = new IkasanModule();
+        Module module = new Module();
         module.setVersion("1.3");
-        module.setName("");
+        module.setComponentName("");
         module.setDescription("The Description");
         Assert.assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
     }

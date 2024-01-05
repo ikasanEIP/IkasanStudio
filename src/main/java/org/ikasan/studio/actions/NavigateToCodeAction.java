@@ -1,7 +1,7 @@
 package org.ikasan.studio.actions;
 
 import org.ikasan.studio.Navigator;
-import org.ikasan.studio.model.ikasan.IkasanComponent;
+import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import java.awt.event.ActionEvent;
@@ -9,10 +9,10 @@ import java.awt.event.ActionListener;
 
 public class NavigateToCodeAction implements ActionListener {
    private String projectKey;
-   IkasanComponent component;
+   IkasanElement component;
    boolean jumpToLine;
 
-   public NavigateToCodeAction(String projectKey, IkasanComponent component, boolean jumpToLine) {
+   public NavigateToCodeAction(String projectKey, IkasanElement component, boolean jumpToLine) {
       this.projectKey = projectKey;
       this.component = component;
       this.jumpToLine = jumpToLine;

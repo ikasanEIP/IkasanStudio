@@ -23,6 +23,8 @@
 # Mandatory Properties
 ApplicationPackageName|1|false|true|false|false||module.package|java.lang.String||||org.myApp|The package ID for this applicaiton
 ApplicationPortNumber|1|false|true|false|false||server.port|java.lang.String||||8080|The default port number for the application when used locally
+H2BBPortNumber|1|false|true|false|false||h2.db.port|java.lang.String||||12451|The default port number for the H2 DB when used locally
+H2WebPortNumber|1|false|true|false|false||h2.db.port|java.lang.String||||8091|The default port number for the H2 Web Interface when used locally
 Name|1|false|true|false|false|||java.lang.String|||||The name of the module as displayed on diagrams, space are encouraged, succinct is best.
 # Optional Properties
 Description|1|false|false|false|false|||java.lang.String|||||A more detailed description of the modules purpose that may assist in support.

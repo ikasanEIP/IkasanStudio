@@ -2,9 +2,8 @@ package org.ikasan.studio.model;
 
 import com.intellij.lang.Language;
 import com.intellij.lang.jvm.JvmMethod;
-
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -14,18 +13,15 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.*;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.IkasanModule;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
-import org.ikasan.studio.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.model.psi.PIPSIIkasanModelx;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -142,7 +138,7 @@ public class StudioPsiUtils {
             pomAddStandardProperties(pom);
             if (pom.isDirty()) {
                 pomSave(project, pom);
-//            ProjectManager.getInstance().reloadProject(project);
+//            ProjectManager.getElement().reloadProject(project);
             }
         }
     }
@@ -180,7 +176,7 @@ public class StudioPsiUtils {
 
 //        pom.setPomPsiFile(pomGetTopLevel(project));
 //        PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
-//        String fileName = pom.getPomPsiFile().getName();
+//        String fileName = pom.getPomPsiFile().getComponentName();
 //
 //        // Delete the old POM file
 //        if (pom.getPomPsiFile() != null) {
@@ -214,7 +210,7 @@ public class StudioPsiUtils {
         //  ************************* PsiJavaParserFacadeImpl ********************************
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
-        @NotNull Module[] module = ModuleManager.getInstance(project).getModules();
+        @NotNull com.intellij.openapi.module.Module[] module = ModuleManager.getInstance(project).getModules();
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
         return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
     }
@@ -250,9 +246,10 @@ public class StudioPsiUtils {
 
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
-        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-        pipsiIkasanModel.generateSourceFromModel();
-        StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
+        // @TODO MODEL
+//        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//        pipsiIkasanModel.generateSourceFromModel();
+//        StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
@@ -297,16 +294,16 @@ public class StudioPsiUtils {
 //                    PsiClass[] psiClasses = cache.getClassesByName(className, ProjectScope.getProjectScope(project));
 //                    if (psiClasses != null) {
 //                        for (PsiClass psiClass : psiClasses) {
-//                            System.out.println(" L1 " + psiClass.getName());
+//                            System.out.println(" L1 " + psiClass.getComponentName());
 //                            PsiMethod[] psiMethods = psiClass.getAllMethods();
 //                            if (psiMethods != null) {
 //                                for (PsiMethod psiMethod : psiMethods) {
 //                                    PsiType returnType = psiMethod.getReturnType();
 //
 //                                    if (returnType == null) {
-//                                        System.out.println(" L2 " + psiMethod.getName() + " ret is null");
+//                                        System.out.println(" L2 " + psiMethod.getComponentName() + " ret is null");
 //                                    } else {
-//                                        System.out.println(" L2 " + psiMethod.getName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
+//                                        System.out.println(" L2 " + psiMethod.getComponentName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
 //                                    }
 //                                    if (returnType != null && returnType.equalsToText(methodReturnType)) {
 //                                        returnPsiMethod = psiMethod;
@@ -336,7 +333,7 @@ public class StudioPsiUtils {
 //                        if (psiMethods != null) {
 //                            for (PsiMethod psiMethod : psiMethods) {
 //                                PsiType returnType = psiMethod.getReturnType();
-//    System.out.println(" L2 " + psiMethod.getName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
+//    System.out.println(" L2 " + psiMethod.getComponentName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
 //                                if (returnType != null && returnType.equalsToText(methodReturnType)) {
 //                                    returnPsiMethod = psiMethod;
 //                                    returnPsiMethodFound = true;
@@ -449,40 +446,40 @@ public class StudioPsiUtils {
         }
     }
 
-
-    //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static void generateModelFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
-        IkasanModule ikasanModule = Context.getIkasanModule(projectKey);
-        ikasanModule.reset();
-        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-        if (pipsiIkasanModel.getModuleConfigClazz() == null || !pipsiIkasanModel.getModuleConfigClazz().isValid() ) {
-            updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
-        }
-        if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {
-            pipsiIkasanModel.updateIkasanModule();
-        }
-        ikasanModule.resetRegenratePermissions();
-    }
+//
+//    //@ todo make a plugin property to switch on / off assumeModuleConfigClass
+//    public static void generateModelFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
+//        Module ikasanModule = Context.getIkasanModule(projectKey);
+//        ikasanModule.reset();
+//        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//        if (pipsiIkasanModel.getModuleConfigClazz() == null || !pipsiIkasanModel.getModuleConfigClazz().isValid() ) {
+//            updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
+//        }
+//        if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {
+//            pipsiIkasanModel.updateIkasanModuleFromSourceCode();
+//        }
+//        ikasanModule.resetRegenratePermissions();
+//    }
 
     public static String getTypeOfVariable(PsiVariable psiVariable) {
         return psiVariable.getType().getCanonicalText();
     }
 
-    private static PIPSIIkasanModel updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
-        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-        PsiClass moduleConfigClazz = getModuleConfigClass(projectKey, assumeModuleConfigClass);
-        if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
-            pipsiIkasanModel.setModuleConfigClazz(moduleConfigClazz);
-        }
-        return pipsiIkasanModel;
-    }
+//    private static PIPSIIkasanModelx updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
+//        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//        PsiClass moduleConfigClazz = getModuleConfigClass(projectKey, assumeModuleConfigClass);
+//        if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
+//            pipsiIkasanModel.setModuleConfigClazz(moduleConfigClazz);
+//        }
+//        return pipsiIkasanModel;
+//    }
 
     private static PsiClass getModuleConfigClass(String projectKey, boolean assumeModuleConfigClass) {
         PsiClass moduleConfigClazz = null ;
         Project project = Context.getProject(projectKey);
         if (!assumeModuleConfigClass) {
             //@todo this seems quite expensive, see if better way
-            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModel.OLD_MODULE_BEAN_CLASS);
+            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModelx.OLD_MODULE_BEAN_CLASS);
             if (getModuleMethod != null) {
                 moduleConfigClazz = getModuleMethod.getContainingClass();
             }
@@ -533,13 +530,13 @@ public class StudioPsiUtils {
 //    PsiClass containingClass = containingMethod.getContainingClass();
 // binary expression holds a PSI expression of the form x==y  whch we need to change to s.equals(y)
     public static void bob(Project project) {
-//        ReadonlyStatusHandler.getInstance(project).ensureFilesWritable();
+//        ReadonlyStatusHandler.getElement(project).ensureFilesWritable();
         // PsiBinaryExpression binaryExpression = (PsiBinaryExpression) descriptor.getPsiElement();
 //        IElementType opSign = binaryExpression.getOperationTokenType();
 //        PsiExpression lExpr = binaryExpression.getLOperand();
 //        PsiExpression rExpr = binaryExpression.getROperand();
         // 1 Create replacement fragment from test with 'a' and 'b' as placeholders
-//        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+//        PsiElementFactory factory = JavaPsiFacade.getElement(project).getElementFactory();
 //        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
         // 2 replace a and b
 //        equalsCall.getMethodExpression().getQualifierExpression().replace(lExpr);

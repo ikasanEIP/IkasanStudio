@@ -1,8 +1,8 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,15 +13,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class PropertiesTemplateTest extends TestCase {
-    IkasanModule testModule;
-    IkasanFlow ikasanFlow;
+    Module testModule;
+    Flow ikasanFlow;
 
     @Before
     public void setUp() {
         testModule = TestFixtures.getIkasanModule();
-        testModule.setName("myModule");
-        ikasanFlow = new IkasanFlow();
-        ikasanFlow.setName("newFlow1");
+        testModule.setComponentName("myModule");
+        ikasanFlow = new Flow();
+        ikasanFlow.setComponentName("newFlow1");
         testModule.addFlow(ikasanFlow);
     }
 
@@ -32,6 +32,7 @@ public class PropertiesTemplateTest extends TestCase {
     @Test
     public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
         testModule.setApplicationPortNumber("8090");
+        testModule.setH2WebPortNumber("8091");
         String templateString = PropertiesTemplate.generateContents(testModule);
         Assert.assertThat(templateString, is(notNullValue()));
         Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties")));

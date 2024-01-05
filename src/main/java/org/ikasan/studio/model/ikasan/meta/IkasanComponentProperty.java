@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.intellij.openapi.diagnostic.Logger;

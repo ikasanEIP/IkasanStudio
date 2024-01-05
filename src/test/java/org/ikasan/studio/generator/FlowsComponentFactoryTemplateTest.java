@@ -1,9 +1,9 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,16 +14,16 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class FlowsComponentFactoryTemplateTest extends TestCase {
-    IkasanModule ikasanModule = TestFixtures.getIkasanModule();
-    IkasanFlow ikasanFlow = new IkasanFlow();
+    Module ikasanModule = TestFixtures.getIkasanModule();
+    Flow ikasanFlow = new Flow();
     private static String TEST_FLOW_NAME = "MyFlow1";
     private static String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @Before
     public void setUp() {
         ikasanModule = TestFixtures.getIkasanModule();
-        ikasanFlow = new IkasanFlow();
-        ikasanFlow.setName(TEST_FLOW_NAME);
+        ikasanFlow = new Flow();
+        ikasanFlow.setComponentName(TEST_FLOW_NAME);
         ikasanFlow.setDescription("MyFlowDescription");
     }
 
@@ -114,7 +114,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     @Test
     public void testCreateFlowWith_filterComponentConfiguredResourceIDButNoIsConfiguredResource() throws IOException {
 
-        IkasanFlowComponent filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
+        FlowElement filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
         filterFlowComponent.setPropertyValue("IsConfiguredResource", false);
         ikasanFlow.getFlowComponentList().add(filterFlowComponent);
 
@@ -130,7 +130,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     @Test
     public void testCreateFlowWith_filterComponentIsConfiguredResourceButNoConfiguredResourceID() throws IOException {
 
-        IkasanFlowComponent filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
+        FlowElement filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
         filterFlowComponent.setPropertyValue("ConfiguredResourceId", null);
         ikasanFlow.getFlowComponentList().add(filterFlowComponent);
 

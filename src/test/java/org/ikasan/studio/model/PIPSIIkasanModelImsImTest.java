@@ -4,9 +4,9 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import org.hamcrest.Matchers;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,39 +37,39 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
     }
     @Test
     public void test_parse_of_jmsIm_standard_module() {
-        IkasanModule ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
+        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
         final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleConfig", ProjectScope.getAllScope(myProject));
         Assert.assertThat(moduleConfigClass, is(notNullValue()));
         pipsiIkasanModel.setModuleConfigClazz(moduleConfigClass);
-        pipsiIkasanModel.updateIkasanModule();
+//        pipsiIkasanModel.updateIkasanModuleFromSourceCode();
 
-        Assert.assertThat(ikasanModule.getName(), is("jms-im"));
+        Assert.assertThat(ikasanModule.getComponentName(), is("jms-im"));
         Assert.assertThat(ikasanModule.getDescription(), is("Sample Module"));
         Assert.assertThat(ikasanModule.getFlows().size(), is(1));
         Assert.assertThat(ikasanModule.getViewHandler(), is(notNullValue()));
 
-        List<IkasanFlow> flows = ikasanModule.getFlows();
-        IkasanFlow flow1 = flows.get(0);
+        List<Flow> flows = ikasanModule.getFlows();
+        Flow flow1 = flows.get(0);
 
         Assert.assertThat(flow1.getViewHandler(), is(notNullValue()));
-        Assert.assertThat(flow1.getName(), is("JMS to JMS Flow"));
+        Assert.assertThat(flow1.getComponentName(), is("JMS to JMS Flow"));
         Assert.assertThat(flow1.getDescription(), is("Flow demonstrates usage of JMS Concumer and JMS Producer"));
 
         Assert.assertThat(flow1.getFlowComponentList().size(), is(3));
 
-        IkasanFlowComponent jmsConsumer = flow1.getFlowComponentList().get(0);
-        Assert.assertThat(jmsConsumer.getName(), is("JMS Consumer"));
+        FlowElement jmsConsumer = flow1.getFlowComponentList().get(0);
+        Assert.assertThat(jmsConsumer.getComponentName(), is("JMS Consumer"));
         Assert.assertThat(jmsConsumer.getConfiguredProperties().size(), is(5));
         Assert.assertThat(getConfiguredPropertyValues(jmsConsumer.getConfiguredProperties()),
                 Matchers.is("AutoContentConversion->true,ConfiguredResourceId->jmsConsumer,ConnectionFactory->consumerConnectionFactory,DestinationJndiName->source,Name->JMS Consumer"));
 
-        IkasanFlowComponent exceptionGeneratingBroker = flow1.getFlowComponentList().get(1);
-        Assert.assertThat(exceptionGeneratingBroker.getName(), is("Exception Generating Broker"));
+        FlowElement exceptionGeneratingBroker = flow1.getFlowComponentList().get(1);
+        Assert.assertThat(exceptionGeneratingBroker.getComponentName(), is("Exception Generating Broker"));
         Assert.assertThat(getConfiguredPropertyValues(exceptionGeneratingBroker.getConfiguredProperties()),
                 Matchers.is("Name->Exception Generating Broker"));
 
-        IkasanFlowComponent jmsProducer = flow1.getFlowComponentList().get(2);
-        Assert.assertThat(jmsProducer.getName(), is("JMS Producer"));
+        FlowElement jmsProducer = flow1.getFlowComponentList().get(2);
+        Assert.assertThat(jmsProducer.getComponentName(), is("JMS Producer"));
         Assert.assertThat(getConfiguredPropertyValues(jmsProducer.getConfiguredProperties()),
                 Matchers.is("ConfiguredResourceId->jmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null,ConnectionFactoryName->null,ConnectionFactoryPassword->null," +
                         "ConnectionFactoryUsername->null,DestinationJndiName->target,Name->JMS Producer"));

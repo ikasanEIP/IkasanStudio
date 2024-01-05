@@ -1,37 +1,49 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.ikasan.studio.model.ik.Transition;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentCategory;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class IkasanFlow extends IkasanComponent {
+public class Flow extends IkasanElement {
 
-    private IkasanFlowComponent input;
+    String name;
+    String configurationId;
+    String flowStartupType;
+    String flowStartupComment;
+    org.ikasan.studio.model.ik.FlowElement consumer;
+    List<Transition> transitions;
+    List<org.ikasan.studio.model.ik.FlowElement> flowElements;
 
-    private IkasanFlowComponent output;
+    private FlowElement input;
 
-    private List<IkasanFlowComponent> flowComponentList = new ArrayList<>();
+    private FlowElement output;
+
+    private List<FlowElement> flowComponentList = new ArrayList<>();
 
     private IkasanExceptionResolver ikasanExceptionResolver;
 
-    public IkasanFlow () {
+    public Flow() {
         super (IkasanComponentType.FLOW, IkasanComponentType.FLOW.getMandatoryProperties());
 //        this.configuredProperties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
 //        this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT));
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
-    public List<IkasanFlowComponent> getFlowComponentList() {
+    public List<FlowElement> getFlowComponentList() {
         return flowComponentList;
     }
 
-    public boolean addFlowComponent(IkasanFlowComponent ikasanFlowComponent) {
+    public boolean addFlowComponent(FlowElement ikasanFlowComponent) {
         return flowComponentList.add(ikasanFlowComponent);
     }
 
-    public void removeFlowElement(IkasanFlowComponent ikasanFlowComponentToBeRemoved) {
+    public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
         if (ikasanFlowComponentToBeRemoved != null && ! flowComponentList.isEmpty()) {
             getFlowComponentList().remove(ikasanFlowComponentToBeRemoved);
         }
@@ -92,12 +104,12 @@ public class IkasanFlow extends IkasanComponent {
 
     public boolean hasConsumer() {
         return flowComponentList.stream()
-            .anyMatch(e->e.getType().getElementCategory().equals(IkasanComponentCategory.CONSUMER));
+            .anyMatch(e->e.getComponentType().getElementCategory().equals(IkasanComponentCategory.CONSUMER));
     }
 
     public boolean hasProducer() {
         return flowComponentList.stream()
-            .anyMatch(e->e.getType().getElementCategory().equals(IkasanComponentCategory.PRODUCER));
+            .anyMatch(e->e.getComponentType().getElementCategory().equals(IkasanComponentCategory.PRODUCER));
     }
 
     /**
@@ -108,19 +120,19 @@ public class IkasanFlow extends IkasanComponent {
         return (ikasanExceptionResolver != null && ikasanExceptionResolver.isValid());
     }
 
-    public IkasanFlowComponent getInput() {
+    public FlowElement getInput() {
         return input;
     }
 
-    public void setInput(IkasanFlowComponent input) {
+    public void setInput(FlowElement input) {
         this.input = input;
     }
 
-    public IkasanFlowComponent getOutput() {
+    public FlowElement getOutput() {
         return output;
     }
 
-    public void setOutput(IkasanFlowComponent output) {
+    public void setOutput(FlowElement output) {
         this.output = output;
     }
 
@@ -135,7 +147,7 @@ public class IkasanFlow extends IkasanComponent {
     @Override
     public String toString() {
         return "IkasanFlow{" +
-                "name='" + getName() + '\'' +
+                "name='" + getComponentName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", flowComponentList=" + flowComponentList +
                 '}';

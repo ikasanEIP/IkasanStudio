@@ -1,17 +1,22 @@
 package org.ikasan.studio.generator;
 
 import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.meta.*;
 
 import java.util.List;
 
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
 
-    public static IkasanModule getIkasanModule() {
-        IkasanModule ikasanModule = new IkasanModule();
-        ikasanModule.setName("My Integration Module");
+    public static Module getIkasanModule() {
+        Module ikasanModule = new Module();
+        ikasanModule.setComponentName("My Integration Module");
         ikasanModule.setApplicationPackageName("org.myApp");
         ikasanModule.setApplicationPortNumber("8080");
+        ikasanModule.setH2DbPortNumber("12452");
+        ikasanModule.setH2WebPortNumber("12452");
+        ikasanModule.setH2WebPortNumber("12452");
         return ikasanModule;
     }
 
@@ -20,9 +25,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/CUSTOM_CONVERTER_en_GB.csv
      * @return a FullyPopulatedCustomConverter
      */
-    public static IkasanFlowComponent getFullyPopulatedCustomConverterComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.CUSTOM_CONVERTER, ikasanFlow);
-        component.setName("testCustomConverter");
+    public static FlowElement getFullyPopulatedCustomConverterComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.CUSTOM_CONVERTER, ikasanFlow);
+        component.setComponentName("testCustomConverter");
 
         // Mandatory properties
         component.setPropertyValue("BespokeClassName", "MyConverterClass");
@@ -36,9 +41,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
      * @return a FullyPopulatedCustomConverter
      */
-    public static IkasanFlowComponent getFullyPopulatedFilterComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
-        component.setName("testFilterComponent");
+    public static FlowElement getFullyPopulatedFilterComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
+        component.setComponentName("testFilterComponent");
 
         // Mandatory properties
         component.setPropertyValue("BespokeClassName", "MyMessageFilter");
@@ -55,9 +60,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
      * @return a FullyPopulatedCustomConverter
      */
-    public static IkasanFlowComponent getMinimumPopulatedFilterComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
-        component.setName("testFilterComponent");
+    public static FlowElement getMinimumPopulatedFilterComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.MESSAGE_FILTER, ikasanFlow);
+        component.setComponentName("testFilterComponent");
 
         // Mandatory properties
         component.setPropertyValue("BespokeClassName", "MyMessageFilter");
@@ -70,9 +75,9 @@ public class TestFixtures {
      * See also resources/studio/componentDefinitions/FTP_CONSUMER_en_GB.csv
      * @return a FullyPopulatedFtpConsumerComponent
      */
-    public static IkasanFlowComponent getFullyPopulatedFtpConsumerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
-        component.setName("testFtpConsumer");
+    public static FlowElement getFullyPopulatedFtpConsumerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.FTP_CONSUMER, ikasanFlow);
+        component.setComponentName("testFtpConsumer");
 
         // Mandatory properties
         component.setPropertyValue("CronExpression", "*/5 * * * * ?");
@@ -135,9 +140,9 @@ public class TestFixtures {
      * See also resources/studio/componentDefinitions/FTP_PRODUCER_en_GB.csv
      * @return a FullyPopulatedFtpProducerComponent
      */
-    public static IkasanFlowComponent getFullyPopulatedFtpProducerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.FTP_PRODUCER, ikasanFlow);
-        component.setName("testFtpProducer");
+    public static FlowElement getFullyPopulatedFtpProducerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.FTP_PRODUCER, ikasanFlow);
+        component.setComponentName("testFtpProducer");
 
         // Mandatory properties
         component.setPropertyValue("ClientID", "myClientID");
@@ -180,9 +185,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/SFTP_CONSUMER_en_GB.csv
      * @return a FullyPopulatedSftpConsumerComponent
      */
-    public static IkasanFlowComponent getFullyPopulatedSftpConsumerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SFTP_CONSUMER, ikasanFlow);
-        component.setName("testSftpConsumer");
+    public static FlowElement getFullyPopulatedSftpConsumerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.SFTP_CONSUMER, ikasanFlow);
+        component.setComponentName("testSftpConsumer");
 
         // Mandatory properties
         component.setPropertyValue("CronExpression", "*/5 * * * * ?");
@@ -239,9 +244,9 @@ public class TestFixtures {
      * See also resources/studio/componentDefinitions/SFTP_PRODUCER_en_GB.csv
      * @return a FullyPopulatedSftpProducerComponent
      */
-    public static IkasanFlowComponent getFullyPopulatedSftpProducerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SFTP_PRODUCER, ikasanFlow);
-        component.setName("testSftpProducer");
+    public static FlowElement getFullyPopulatedSftpProducerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.SFTP_PRODUCER, ikasanFlow);
+        component.setComponentName("testSftpProducer");
 
         // Mandatory properties
         component.setPropertyValue("ClientID", "myClientID");
@@ -276,9 +281,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/LOCAL_FILE_CONSUMER_en_GB.csv
      * @return a FullyPopulatedLocalFileConverter
      */
-    public static IkasanFlowComponent getFullyPopulatedLocalFileConsumerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.LOCAL_FILE_CONSUMER, ikasanFlow);
-        component.setName("testLocalFileConsumer");
+    public static FlowElement getFullyPopulatedLocalFileConsumerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.LOCAL_FILE_CONSUMER, ikasanFlow);
+        component.setComponentName("testLocalFileConsumer");
 
         // Mandatory properties
         component.setPropertyValue("CronExpression", "*/5 * * * * ?");
@@ -309,9 +314,9 @@ public class TestFixtures {
      * See also resources/studio/componentDefinitions/SCHEDULED_CONSUMER_en_GB.csv
      * @return a FullyPopulatedScheduledConsumerComponent
      */
-    public static IkasanFlowComponent getFullyPopulatedScheduledConsumerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SCHEDULED_CONSUMER, ikasanFlow);
-        component.setName("testScheduledConsumer");
+    public static FlowElement getFullyPopulatedScheduledConsumerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.SCHEDULED_CONSUMER, ikasanFlow);
+        component.setComponentName("testScheduledConsumer");
 
         // Mandatory properties
         component.setPropertyValue("CronExpression", "*/5 * * * * ?");
@@ -339,9 +344,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/SPRING_JMS_CONSUMER_en_GB.csv
      * @return a FullyPopulatedJmsConsumer
      */
-    public static IkasanFlowComponent getFullyPopulatedSpringJmsConsumerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.SPRING_JMS_CONSUMER, ikasanFlow);
-        component.setName("testJmsConsumer");
+    public static FlowElement getFullyPopulatedSpringJmsConsumerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.SPRING_JMS_CONSUMER, ikasanFlow);
+        component.setComponentName("testJmsConsumer");
         component.setPropertyValue("AutoContentConversion", "true");
         component.setPropertyValue("AutoSplitBatch", "true");
         component.setPropertyValue("BatchMode", "true");
@@ -389,9 +394,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/JMS_PRODUCER_en_GB.csv
      * @return a FullyPopulatedJmsProducer
      */
-    public static IkasanFlowComponent getFullyPopulatedJmsProducerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.JMS_PRODUCER, ikasanFlow);
-        component.setName("testJmsConsumer");
+    public static FlowElement getFullyPopulatedJmsProducerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.JMS_PRODUCER, ikasanFlow);
+        component.setComponentName("testJmsConsumer");
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("ConnectionFactory", "myConnectionFactory");
@@ -438,9 +443,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/DEV_NULL_PRODUCER_en_GB.csv
      * @return a FullyPopulatedDevNullProducer
      */
-    public static IkasanFlowComponent getFullyPopulatedDevNullProducerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.DEV_NULL_PRODUCER, ikasanFlow);
-        component.setName("testDevNullProducer");
+    public static FlowElement getFullyPopulatedDevNullProducerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.DEV_NULL_PRODUCER, ikasanFlow);
+        component.setComponentName("testDevNullProducer");
         return component;
     }
 
@@ -449,9 +454,9 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/EMAIL_PRODUCER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
-    public static IkasanFlowComponent getFullyPopulatedEmailProducerComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.EMAIL_PRODUCER, ikasanFlow);
-        component.setName("testEmailProducer");
+    public static FlowElement getFullyPopulatedEmailProducerComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.EMAIL_PRODUCER, ikasanFlow);
+        component.setComponentName("testEmailProducer");
         component.setPropertyValue("BccRecipient", "myBccRecipient");
         component.setPropertyValue("BccRecipients", "{'bcc1','bcc2'}");
         component.setPropertyValue("CcRecipient", "myCcRecipient");
@@ -490,8 +495,8 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/OBJECT_MESSAGE_TO_XML_STRING_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
-    public static IkasanFlowComponent getFullyPopulatedObjectMessageToObjectConverterComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, ikasanFlow);
+    public static FlowElement getFullyPopulatedObjectMessageToObjectConverterComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, ikasanFlow);
         component.setPropertyValue("Name", "MyObjectToObjectconverter");
         return component;
     }
@@ -501,8 +506,8 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/OBJECT_MESSAGE_TO_XML_STRING_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
-    public static IkasanFlowComponent getFullyPopulatedObjectMessageToXmlStringConverterComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
+    public static FlowElement getFullyPopulatedObjectMessageToXmlStringConverterComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("RootName", "myRootName");
@@ -527,8 +532,8 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/XML_STRING_TO_OBJECT_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
-    public static IkasanFlowComponent getFullyPopulatedXmlStringObjectMessageConverterComponent(IkasanFlow ikasanFlow) {
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.XML_STRING_TO_OBJECT_CONVERTER, ikasanFlow);
+    public static FlowElement getFullyPopulatedXmlStringObjectMessageConverterComponent(Flow ikasanFlow) {
+        FlowElement component = FlowElement.getElement(IkasanComponentType.XML_STRING_TO_OBJECT_CONVERTER, ikasanFlow);
         component.setPropertyValue("AutoConvertElementToValue", true);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
@@ -552,8 +557,8 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/XML_STRING_TO_OBJECT_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
-    public static IkasanFlow populateFlowExceptionResolver(IkasanFlow ikasanFlow) {
-        IkasanExceptionResolver ikasanExceptionResolver = (IkasanExceptionResolver)IkasanFlowComponent.getInstance(IkasanComponentType.EXCEPTION_RESOLVER, ikasanFlow);
+    public static Flow populateFlowExceptionResolver(Flow ikasanFlow) {
+        IkasanExceptionResolver ikasanExceptionResolver = (IkasanExceptionResolver) FlowElement.getElement(IkasanComponentType.EXCEPTION_RESOLVER, ikasanFlow);
         ikasanFlow.setIkasanExceptionResolver(ikasanExceptionResolver);
 
         List<IkasanComponentProperty> retryProperties = getPropertiesForAction("retry");

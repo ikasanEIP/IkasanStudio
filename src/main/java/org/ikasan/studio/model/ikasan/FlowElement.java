@@ -1,14 +1,18 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
  */
-public class IkasanFlowComponent extends IkasanComponent {
+public class FlowElement extends IkasanElement {
     @JsonIgnore
-    private IkasanFlow parent;
+    private Flow parent;
 
     /**
      * Any component that belongs in the flow
@@ -17,7 +21,7 @@ public class IkasanFlowComponent extends IkasanComponent {
      * @param name of the element
      * @param description of the element
      */
-    protected IkasanFlowComponent(IkasanComponentType type, IkasanFlow parent, String name, String description) {
+    public FlowElement(IkasanComponentType type, Flow parent, String name, String description) {
         super (type, type.getMandatoryProperties());
         this.parent = parent;
         if (name != null) {
@@ -34,7 +38,7 @@ public class IkasanFlowComponent extends IkasanComponent {
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
      * @param parent flow that contains this element
      */
-    protected IkasanFlowComponent(IkasanComponentType type, IkasanFlow parent) {
+    public FlowElement(IkasanComponentType type, Flow parent) {
         this(type, parent, "", "");
     }
 
@@ -47,13 +51,13 @@ public class IkasanFlowComponent extends IkasanComponent {
      * @param description of the element
      * @todo maybe this should be in a factory, not in this class
      */
-    public static IkasanFlowComponent getInstance(IkasanComponentType type, IkasanFlow parent, String name, String description) {
+    public static FlowElement getElement(IkasanComponentType type, Flow parent, String name, String description) {
         if (type.isBespokeClass()) {
-            return new IkasanFlowBeskpokeComponent(type, parent, name, description, false);
+            return new IkasanFlowBeskpokeElement(type, parent, name, description, false);
         } else if (IkasanComponentType.EXCEPTION_RESOLVER.equals(type)) {
             return new IkasanExceptionResolver(parent);
         } else {
-            return new IkasanFlowComponent(type, parent, name, description);
+            return new FlowElement(type, parent, name, description);
         }
     }
 
@@ -62,26 +66,26 @@ public class IkasanFlowComponent extends IkasanComponent {
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
      * @param parent flow that contains this element
      */
-    public static IkasanFlowComponent getInstance(IkasanComponentType type, IkasanFlow parent) {
+    public static FlowElement getElement(IkasanComponentType type, Flow parent) {
         if (type.isBespokeClass()) {
-            return new IkasanFlowBeskpokeComponent(type, parent, false);
+            return new IkasanFlowBeskpokeElement(type, parent, false);
         } else if (IkasanComponentType.EXCEPTION_RESOLVER.equals(type)) {
             return new IkasanExceptionResolver(parent);
         } else {
-            return new IkasanFlowComponent(type, parent);
+            return new FlowElement(type, parent);
         }
     }
 
     @JsonIgnore
-    public IkasanFlow getParent() {
+    public Flow getParent() {
         return parent;
     }
 
     @Override
     public String toString() {
         return "IkasanFlowComponent {" +
-                ", flowComponent='" + getType() + '\'' +
-                ", name='" + getName() + '\'' +
+                ", flowComponent='" + getComponentType() + '\'' +
+                ", name='" + getComponentName() + '\'' +
                 ", properties=" + configuredProperties +
                 '}';
     }
@@ -92,7 +96,7 @@ public class IkasanFlowComponent extends IkasanComponent {
      */
     public String getDestinationName() {
         String destinationName = "";
-        if (type.isJms()) {
+        if (componentType.isJms()) {
             IkasanComponentProperty destination = this.getProperty("DestinationJndiName");
             if (destination != null && destination.getValue() != null) {
                     destinationName = destination.getValueString();

@@ -6,7 +6,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanExceptionResolver;
+import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -40,7 +40,8 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
             processEditedFlowComponents();
-            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+            // @TODO MODEL
+//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
         } else {

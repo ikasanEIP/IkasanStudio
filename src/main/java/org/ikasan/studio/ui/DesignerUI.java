@@ -4,9 +4,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.StudioPsiUtils;
-import org.ikasan.studio.model.ikasan.IkasanModule;
-import org.ikasan.studio.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.model.ikasan.Module;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
@@ -33,11 +31,11 @@ public class DesignerUI {
         this.projectKey = project.getName();
         Context.setProject(projectKey, project);
         if (Context.getIkasanModule(projectKey) == null) {
-            Context.setIkasanModule(projectKey, new IkasanModule());
+            Context.setIkasanModule(projectKey, new Module());
         }
-        if (Context.getPipsiIkasanModel(projectKey) == null) {
-            Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
-        }
+//        if (Context.getPipsiIkasanModel(projectKey) == null) {
+//            Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
+//        }
 
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
         Context.setPropertiesPanel(projectKey, componentPropertiesPanel);
@@ -67,7 +65,8 @@ public class DesignerUI {
         dumbService.runWhenSmart(() -> {
             DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
-                StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
+                // @TODO MODEL
+//                StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
             }
         });
     }

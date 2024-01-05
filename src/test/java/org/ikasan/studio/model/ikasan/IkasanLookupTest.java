@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
+import org.ikasan.studio.model.ikasan.meta.IkasanLookup;
 import org.junit.Assert;
 import org.junit.Test;
 

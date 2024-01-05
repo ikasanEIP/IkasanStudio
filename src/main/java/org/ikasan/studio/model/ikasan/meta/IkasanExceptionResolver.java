@@ -1,5 +1,7 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.Map;
 /**
  * Encapsulate the IkasanExceptionResolver.
  */
-public class IkasanExceptionResolver extends IkasanFlowComponent {
+public class IkasanExceptionResolver extends FlowElement {
     //@todo need to split IkasanComponent to nest IkasanExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
     private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();
 
@@ -18,7 +20,7 @@ public class IkasanExceptionResolver extends IkasanFlowComponent {
      * Create an IkasanExceptionResolver
      * @param parent flow that contains this exceptions resolver
      */
-    public IkasanExceptionResolver(IkasanFlow parent) {
+    public IkasanExceptionResolver(Flow parent) {
         super(IkasanComponentType.EXCEPTION_RESOLVER, parent);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }

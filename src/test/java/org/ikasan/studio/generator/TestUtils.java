@@ -2,8 +2,8 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.IOUtils;
-import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMetaKey;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 
 import java.io.IOException;
 import java.io.InputStream;

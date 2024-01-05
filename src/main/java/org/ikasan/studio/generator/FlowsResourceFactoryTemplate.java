@@ -2,16 +2,16 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
+import org.ikasan.studio.model.ikasan.Module;
 
 import java.util.Map;
 
 public class FlowsResourceFactoryTemplate extends Generator {
 
-    public static void create(final Project project, final IkasanModule ikasanModule, final IkasanFlow ikasanFlow, IkasanFlowComponent component) {
+    public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow, FlowElement component) {
         for (IkasanComponentProperty property : component.getUserImplementedClassProperties()) {
             String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
