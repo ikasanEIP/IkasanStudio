@@ -1,11 +1,12 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.ikasan.studio.model.ikasan.IkasanBaseElement;
 
 import java.util.Collections;
 import java.util.List;
 
-public class IkasanExceptionResolution extends IkasanBaseComponent {
+public class IkasanExceptionResolution extends IkasanBaseElement {
     private static final IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     @JsonIgnore
     IkasanExceptionResolver parent;

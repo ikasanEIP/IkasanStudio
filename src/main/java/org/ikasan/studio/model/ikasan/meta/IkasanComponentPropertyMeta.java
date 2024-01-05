@@ -1,9 +1,8 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
 import org.ikasan.studio.StudioUtils;
 
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -44,7 +43,10 @@ public class IkasanComponentPropertyMeta {
 
     // Special META to model the port number to be used to launch the app and part of its user driven config.
     public static final IkasanComponentPropertyMetaKey APPLICATION_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("ApplicationPortNumber");
+    public static final IkasanComponentPropertyMetaKey H2_DB_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("H2DbPortNumber");
+    public static final IkasanComponentPropertyMetaKey H2_WEB_PORT_NUMBER_NAME = new IkasanComponentPropertyMetaKey("H2WebPortNumber");
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
+    public static final String H2_PORT_NUMBER_KEY = "h2.db.port";
     public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
             new IkasanComponentPropertyMeta(1, false, true, false, false, false,
                     APPLICATION_PORT_NUMBER_NAME.getPropertyName(), null, String.class, "", "", "", "",

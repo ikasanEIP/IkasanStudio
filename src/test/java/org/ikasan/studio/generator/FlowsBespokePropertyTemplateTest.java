@@ -1,8 +1,8 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.Assert;
 import org.junit.Test;
 

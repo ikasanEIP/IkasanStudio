@@ -1,10 +1,10 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.IkasanComponentType;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,15 +16,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class FlowTemplateTest extends TestCase {
-    IkasanModule ikasanModule = TestFixtures.getIkasanModule();
-    IkasanFlow ikasanFlow = new IkasanFlow();
+    Module ikasanModule = TestFixtures.getIkasanModule();
+    Flow ikasanFlow = new Flow();
     private static String TEST_FLOW_NAME = "MyFlow1";
 
     @Before
     public void setUp() {
         ikasanModule = TestFixtures.getIkasanModule();
-        ikasanFlow = new IkasanFlow();
-        ikasanFlow.setName(TEST_FLOW_NAME);
+        ikasanFlow = new Flow();
+        ikasanFlow.setComponentName(TEST_FLOW_NAME);
         ikasanFlow.setDescription("MyFlowDescription");
     }
 
@@ -45,9 +45,9 @@ public class FlowTemplateTest extends TestCase {
      */
     @Test
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
-        List<IkasanFlowComponent> components = ikasanFlow.getFlowComponentList() ;
-        IkasanFlowComponent component = IkasanFlowComponent.getInstance(IkasanComponentType.EVENT_GENERATING_CONSUMER, ikasanFlow);
-        component.setName("testEventGeneratingConsumer");
+        List<FlowElement> components = ikasanFlow.getFlowComponentList() ;
+        FlowElement component = FlowElement.getElement(IkasanComponentType.EVENT_GENERATING_CONSUMER, ikasanFlow);
+        component.setComponentName("testEventGeneratingConsumer");
         components.add(component);
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);

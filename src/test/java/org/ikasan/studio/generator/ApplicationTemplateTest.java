@@ -1,7 +1,7 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Module;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,7 +18,7 @@ public class ApplicationTemplateTest extends TestCase {
      */
     @Test
     public void test_generateApplicationClass() throws IOException {
-        IkasanModule ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getIkasanModule();
 
         String templateString = ApplicationTemplate.generateContents(ikasanModule);
 

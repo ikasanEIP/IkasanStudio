@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Module;
 
 import java.util.Map;
 
@@ -14,12 +14,12 @@ public class ApplicationTemplate extends Generator {
     private static final String APPLICATION_FTL = "applicationTemplate.ftl";
 
     public static void create(final Project project) {
-        IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+        Module ikasanModule = Context.getIkasanModule(project.getName());
         String templateString = generateContents(ikasanModule);
         createTemplateFile(project, STUDIO_BOOT_PACKAGE, APPLICATION_CLASS_NAME, templateString, true, true);
     }
 
-    protected static String generateContents(IkasanModule ikasanModule) {
+    protected static String generateContents(Module ikasanModule) {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(MODULE_TAG, ikasanModule);

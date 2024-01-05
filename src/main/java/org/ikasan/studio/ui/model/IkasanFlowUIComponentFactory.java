@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.model;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
 
 import javax.swing.*;
 import java.net.URL;

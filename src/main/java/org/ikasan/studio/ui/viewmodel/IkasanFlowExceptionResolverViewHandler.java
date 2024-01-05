@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.IkasanFlowComponent;
+import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
@@ -21,16 +21,16 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
     IkasanFlowUIComponent ikasanFlowUIComponent;
-    IkasanFlowComponent model;
+    FlowElement model;
 
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
      * @param model for view handler
      */
-    public IkasanFlowExceptionResolverViewHandler(IkasanFlowComponent model) {
+    public IkasanFlowExceptionResolverViewHandler(FlowElement model) {
         this.model = model;
         if (model != null) {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getType());
+            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getComponentType());
         } else {
             ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
         }

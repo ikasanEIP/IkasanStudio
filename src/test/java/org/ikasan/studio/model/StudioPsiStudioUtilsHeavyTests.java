@@ -77,8 +77,8 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        PsiDirectory baseDir = createPackageFixture("org.test");
 //        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
 //        Assert.assertThat(psiJavaDirectory.length, is(2));
-//        Assert.assertThat(psiJavaDirectory[0].getName(), is("org"));
-//        Assert.assertThat(psiJavaDirectory[1].getName(), is("test"));
+//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
+//        Assert.assertThat(psiJavaDirectory[1].getComponentName(), is("test"));
 //    }
 
     private PsiDirectory createPackageFixture(String packageName) {
@@ -97,11 +97,11 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //    @Test
 //    public void test_createPackage() {
 //        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject,StudioPsiUtils.JAVA_CODE);
-//        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
+//        PsiDirectory baseDir = PsiDirectoryFactory.getElement(myProject).createDirectory(sourceRoot);
 //        ApplicationManager.getApplication().runWriteAction(new Runnable() {
 //            @Override
 //            public void run() {
-//                CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
+//                CommandProcessor.getElement().executeCommand(myProject, new Runnable() {
 //                    @Override
 //                    public void run() {
 //                        StudioPsiUtils.createPackage(baseDir, "org.test");
@@ -112,9 +112,9 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //
 //        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
 //        Assert.assertThat(psiJavaDirectory.length, is(3));
-//        Assert.assertThat(psiJavaDirectory[0].getName(), is("com"));
-//        Assert.assertThat(psiJavaDirectory[0].getName(), is("org"));
-//        Assert.assertThat(psiJavaDirectory[0].getName(), is("test"));
+//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("com"));
+//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
+//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("test"));
 //    }
 
 
@@ -196,7 +196,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
 
 
-//        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(project.getBaseDir());
+//        PsiDirectory baseDir = PsiDirectoryFactory.getElement(myProject).createDirectory(project.getBaseDir());
 
         //JavaDirectoryService.createClass(PsiDirectory dir, String name) // allows you to create a java class in a a given directory.
         //JavaDirectoryService.createClass(PsiDirectory dir, String name, String templateName)  -- allows to create a java cla
@@ -209,7 +209,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        // Technically, we could have found any one of the methods in ikasaSource/*
 //        PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myProject, "org.ikasan.spec.module.Module");
 //        Assert.assertThat(methodFound, is(notNullValue()));
-//        Assert.assertThat(methodFound.getName(), is("getModule"));
+//        Assert.assertThat(methodFound.getComponentName(), is("getModule"));
 //    }
 // Test failing in Github server
 //    public void testSCR22368_1() {

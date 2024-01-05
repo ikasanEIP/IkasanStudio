@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.meta;
 
 import org.junit.Ignore;
 import org.junit.Test;

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.psi.PsiFile;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
@@ -18,18 +18,17 @@ import java.util.List;
  * from any changes to ikasan or componentDependencies on any particular ikasan version.
  */
 //@Data
-@Data
+
 @AllArgsConstructor
 @Jacksonized
-@Builder
-public class IkasanModule extends IkasanComponent {
+public class Module extends IkasanElement {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     private PsiFile moduleConfig;
     private String version;
-    private List<IkasanFlow> flows = new ArrayList<>();
+    private List<Flow> flows = new ArrayList<>();
 
-    public IkasanModule() {
+    public Module() {
         super(IkasanComponentType.MODULE, IkasanComponentType.MODULE.getMandatoryProperties());
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
@@ -41,7 +40,7 @@ public class IkasanModule extends IkasanComponent {
         if (flows != null && !flows.isEmpty()) {
             flows = new ArrayList<>();
         }
-        setName("");
+        setComponentName("");
         setDescription("");
     }
 
@@ -49,8 +48,8 @@ public class IkasanModule extends IkasanComponent {
      * Ensure any permissions to regenerate source is reset to false
      */
     public void resetRegenratePermissions() {
-        for (IkasanFlow flow : flows) {
-            for (IkasanComponent component : flow.getFlowComponentList()) {
+        for (Flow flow : flows) {
+            for (IkasanElement component : flow.getFlowComponentList()) {
                 component.resetUserImplementedClassPropertiesRegenratePermission();
             }
         }
@@ -64,13 +63,13 @@ public class IkasanModule extends IkasanComponent {
         this.version = version;
     }
 
-    public List<IkasanFlow> getFlows() {
+    public List<Flow> getFlows() {
         return flows;
     }
 
-    public IkasanFlow getFlow(IkasanFlow searchedFlow) {
+    public Flow getFlow(Flow searchedFlow) {
         if (searchedFlow != null && flows != null && !flows.isEmpty()) {
-            for (IkasanFlow currentFlow : getFlows()) {
+            for (Flow currentFlow : getFlows()) {
                 if (searchedFlow.equals(currentFlow)) {
                     return currentFlow;
                 }
@@ -79,7 +78,7 @@ public class IkasanModule extends IkasanComponent {
         return null;
     }
 
-    public boolean addFlow(IkasanFlow ikasanFlow) {
+    public boolean addFlow(Flow ikasanFlow) {
         return flows.add(ikasanFlow);
     }
 
@@ -89,7 +88,7 @@ public class IkasanModule extends IkasanComponent {
                 "moduleConfig=" + moduleConfig +
                 ", version='" + version + '\'' +
                 ", flows=" + flows +
-                ", Module type=" + type +
+                ", Module type=" + componentType +
                 ", Module properties=" + configuredProperties +
                 '}';
     }
@@ -105,15 +104,28 @@ public class IkasanModule extends IkasanComponent {
     public String getApplicationPackageName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME);
     }
-    public String getApplicationPortNumber() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME.getPropertyName());
-    }
     @JsonIgnore
     public void setApplicationPackageName(String applicationPackageName) {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
     }
+    public String getApplicationPortNumber() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME.getPropertyName());
+    }
     @JsonIgnore
     public void setApplicationPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    }
+    public String getH2PortNumber() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME.getPropertyName());
+    }
+    @JsonIgnore
+    public void setH2DbPortNumber(String applicationPortNumber) {
+        this.setPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    }
+    public String getH2WebPortNumber(String applicationPortNumber) {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME.getPropertyName());
+    }    @JsonIgnore
+    public void setH2WebPortNumber(String applicationPortNumber) {
+        this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
     }
 }

@@ -1,8 +1,8 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.IkasanFlow;
-import org.ikasan.studio.model.ikasan.IkasanModule;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
@@ -13,12 +13,12 @@ public class IkasanModuleViewHandler extends ViewHandler {
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
     public static final int FLOW_Y_START_POINT = 100;
-    IkasanModule model;
+    Module model;
 
     /**
      * @param model for the view handler
      */
-    public IkasanModuleViewHandler(IkasanModule model) {
+    public IkasanModuleViewHandler(Module model) {
         this.model = model;
     }
 
@@ -27,9 +27,9 @@ public class IkasanModuleViewHandler extends ViewHandler {
         int currentY = 0;
         LOG.debug("paintComponent invoked");
 
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getComponentName(),10,10, StudioUIUtils.getBoldFont(g));
 
-        for (IkasanFlow ikasanFlow : model.getFlows()) {
+        for (Flow ikasanFlow : model.getFlows()) {
             // remember initialise has already set x,y but we may be dealing with component move
             if (currentY == 0 ) {
                 currentY = ikasanFlow.getViewHandler().getTopY();
@@ -61,9 +61,9 @@ public class IkasanModuleViewHandler extends ViewHandler {
         setTopY(topy);
         setWidth(width);
         setHeight(height);
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, model.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, model.getComponentName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
-        for(IkasanFlow ikasanFlow : model.getFlows()) {
+        for(Flow ikasanFlow : model.getFlows()) {
             // intialise width/height to maximum, it will be adjusted down after reset
             ikasanFlow.getViewHandler().initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
             minimumTopY = ikasanFlow.getViewHandler().getBottomY();

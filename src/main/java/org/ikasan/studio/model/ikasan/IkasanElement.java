@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.collections.map.HashedMap;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioUtils;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
 
 import java.util.List;
 import java.util.Map;
@@ -13,18 +17,52 @@ import java.util.stream.Collectors;
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  */
-public  class IkasanComponent extends IkasanBaseComponent {
+public  class IkasanElement extends IkasanBaseElement {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
     @JsonPropertyOrder(alphabetic = true)
     protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
+    public IkasanElement() {}
 
-    public IkasanComponent() {}
-
-    protected IkasanComponent(IkasanComponentType type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
+    protected IkasanElement(IkasanComponentType type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
         super(type);
         this.configuredProperties = configuredProperties;
     }
+
+    /**
+     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    public String getComponentName() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);
+    }
+
+    /**
+     * Set the screen name (and indicate the java variable name) for this component
+     * @param name for the instance of this component.
+     */
+    public void setComponentName(String name) {
+        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+    }
+
+    /**
+     * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    public String getDescription() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
+    }
+
+    /**
+     * Set the description for this component
+     * @param description for the component
+     */
+    public void setDescription(String description) {
+        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
+    }
+
+
+
     @JsonIgnore
     public IkasanComponentProperty getProperty(String key) {
         return configuredProperties.get(new IkasanComponentPropertyMetaKey(key));
@@ -47,6 +85,8 @@ public  class IkasanComponent extends IkasanBaseComponent {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
     }
+
+
 
     /**
      * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
@@ -97,14 +137,6 @@ public  class IkasanComponent extends IkasanBaseComponent {
     }
 
     /**
-     * remove a property for the given key
-     * @param key of the property to be updated
-     */
-    public void removeProperty(String key) {
-        configuredProperties.remove(new IkasanComponentPropertyMetaKey(key));
-    }
-
-    /**
      * This setter should be used if we think the property might not already be set but will require the correct meta data
      * @param key of the property to be updated
      * @param value for the property
@@ -114,13 +146,21 @@ public  class IkasanComponent extends IkasanBaseComponent {
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
         } else {
-            IkasanComponentPropertyMeta properyMeta = getType().getMetadata(key);
+            IkasanComponentPropertyMeta properyMeta = getComponentType().getMetadata(key);
             if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getType() + " this property will be ignored.");
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getComponentType() + " this property will be ignored.");
             } else {
-                configuredProperties.put(key, new IkasanComponentProperty(getType().getMetadata(key), value));
+                configuredProperties.put(key, new IkasanComponentProperty(getComponentType().getMetadata(key), value));
             }
         }
+    }
+
+    /**
+     * remove a property for the given key
+     * @param key of the property to be updated
+     */
+    public void removeProperty(String key) {
+        configuredProperties.remove(new IkasanComponentPropertyMetaKey(key));
     }
 
     @JsonPropertyOrder(alphabetic = true)
@@ -135,14 +175,14 @@ public  class IkasanComponent extends IkasanBaseComponent {
     @JsonIgnore
     public List<IkasanComponentProperty> getUserImplementedClassProperties() {
         return configuredProperties.values().stream()
-            .filter(x -> x.getMeta().userImplementedClass && x.isRegenerateAllowed())
+            .filter(x -> x.getMeta().getUserImplementedClass() && x.isRegenerateAllowed())
             .collect(Collectors.toList());
     }
 
     public boolean hasUserImplementedClass() {
         return configuredProperties.values()
             .stream()
-            .anyMatch(x -> x.getMeta().userImplementedClass && x.isRegenerateAllowed());
+            .anyMatch(x -> x.getMeta().getUserImplementedClass() && x.isRegenerateAllowed());
     }
 
     public void resetUserImplementedClassPropertiesRegenratePermission() {
@@ -176,21 +216,12 @@ public  class IkasanComponent extends IkasanBaseComponent {
     }
 
     /**
-     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
-     * @return the component description
-     */
-    @JsonIgnore
-    public String getName() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);
-    }
-
-    /**
      * Return the name of this component in a format that would be appropriate to be used as a java class name
      * @return the class name format of the component name.
      */
     @JsonIgnore
     public String getJavaClassName() {
-        return StudioUtils.toJavaClassName(getName());
+        return StudioUtils.toJavaClassName(getComponentName());
     }
 
     /**
@@ -199,39 +230,17 @@ public  class IkasanComponent extends IkasanBaseComponent {
      */
     @JsonIgnore
     public String getJavaPackageName() {
-        return StudioUtils.toJavaPackageName(getName());
+        return StudioUtils.toJavaPackageName(getComponentName());
     }
 
     @JsonIgnore
     public String getJavaVariableName() {
-        return StudioUtils.toJavaIdentifier(getName());
-    }
-
-    /**
-     * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
-     * @return the component description
-     */
-    @JsonIgnore
-    public String getDescription() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
+        return StudioUtils.toJavaIdentifier(getComponentName());
     }
 
 
-    /**
-     * Set the screen name (and indicate the java variable name) for this component
-     * @param name for the instance of this component.
-     */
-    public void setName(String name) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
-    }
 
-    /**
-     * Set the description for this component
-     * @param description for the component
-     */
-    public void setDescription(String description) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
-    }
+
 
     /**
      * Determine if there are some mandatory properties that have not yet been set.
@@ -240,21 +249,13 @@ public  class IkasanComponent extends IkasanBaseComponent {
     public boolean hasUnsetMandatoryProperties() {
         return configuredProperties.entrySet().stream()
             .anyMatch(x -> x.getValue().getMeta().isMandatory() && x.getValue().valueNotSet());
-//
-//        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
-//            IkasanComponentProperty ikasanComponentProperty = entry.getValue();
-//            if (ikasanComponentProperty.getMeta().isMandatory() && ikasanComponentProperty.valueNotSet()) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
     @Override
     public String toString() {
         return "IkasanComponent{" +
                 "properties=" + configuredProperties +
-                ", type=" + type +
+                ", type=" + componentType +
                 '}';
     }
 }

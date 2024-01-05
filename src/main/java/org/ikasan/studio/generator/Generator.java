@@ -83,7 +83,7 @@ public abstract class Generator {
             psiFile = (PsiFile)directory.add(psiFile);
             standardPropertiesFormatting(project, psiFile);
 //            // Required post edit steps
-//            PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
+//            PsiDocumentManager documentManager = PsiDocumentManager.getElement(project);
 //            documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
             if (focus) {
                 psiFile.navigate(true); // Open the newly created file

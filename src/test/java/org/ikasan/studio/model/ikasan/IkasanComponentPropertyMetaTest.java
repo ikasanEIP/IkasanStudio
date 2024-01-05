@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.Before;
 import org.junit.Test;
 

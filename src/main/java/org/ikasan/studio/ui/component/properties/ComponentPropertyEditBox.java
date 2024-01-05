@@ -1,8 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.model.ikasan.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import javax.swing.*;
 import java.awt.*;

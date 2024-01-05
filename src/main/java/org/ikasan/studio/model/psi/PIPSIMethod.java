@@ -9,7 +9,7 @@ import java.util.Arrays;
  *  PlugIn PSI Method
  *  A cut down version of the PSI method containing only what we are interested in.
  */
-public class PIPSIMethod {
+class PIPSIMethod {
     private String name;
     private PsiMethod methodDeclaration;
     private PsiExpression[] parameters;
