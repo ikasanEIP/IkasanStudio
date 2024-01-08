@@ -15,7 +15,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
     List<IkasanComponentProperty> params;
 
     public IkasanExceptionResolution(IkasanExceptionResolver parent) {
-        super(IkasanComponentType.ON_EXCEPTION);
+        super(IkasanComponentTypeMeta.ON_EXCEPTION);
         this.parent = parent;
     }
 
@@ -24,7 +24,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
     }
 
     public IkasanExceptionResolution(String theException, String theAction, List<IkasanComponentProperty> params) {
-        super(IkasanComponentType.ON_EXCEPTION);
+        super(IkasanComponentTypeMeta.ON_EXCEPTION);
         this.theException = theException;
         this.theAction = theAction;
         this.params = params;

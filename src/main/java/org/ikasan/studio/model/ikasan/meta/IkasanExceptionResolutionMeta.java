@@ -11,7 +11,7 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanLookup.EXCEPTION_RESOLVE
  */
 public class IkasanExceptionResolutionMeta {
     private static final Map<String, String> STANDARD_EXCEPTIONS = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
-    private static final IkasanComponentType ON_EXCEPTION = IkasanComponentType.ON_EXCEPTION;
+    private static final IkasanComponentTypeMeta ON_EXCEPTION = IkasanComponentTypeMeta.ON_EXCEPTION;
 
     /**
      * Though this is currently a static class, we expose its instance creation to make it more accessible to the template library

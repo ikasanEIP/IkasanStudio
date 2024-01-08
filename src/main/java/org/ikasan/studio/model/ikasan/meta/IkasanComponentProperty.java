@@ -2,7 +2,6 @@ package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.StudioPsiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,25 +31,25 @@ public class IkasanComponentProperty {
         return meta.getDefaultValue();
     }
 
-    /**
-     * Get the value and present it in such a way as to be appropriate for display in the template language
-     * @return a string that contains the value display in such a way as to be appropriate for inclusion in a template
-     */
-    @JsonIgnore
-    public String getTemplateRepresentationOfValue() {
-        String displayValue = "";
-        if (value == null) {
-            displayValue = null;
-        } else if (meta != null) {
-            if ("java.lang.String".equals(meta.getUsageDataType())) {
-                displayValue = StudioPsiUtils.stripStartAndEndQuotes((String)value);
-                displayValue = "\"" + displayValue + "\"";
-            } else {
-                displayValue = value.toString();
-            }
-        }
-        return displayValue;
-    }
+//    /**
+//     * Get the value and present it in such a way as to be appropriate for display in the template language
+//     * @return a string that contains the value display in such a way as to be appropriate for inclusion in a template
+//     */
+//    @JsonIgnore
+//    public String getTemplateRepresentationOfValue() {
+//        String displayValue = "";
+//        if (value == null) {
+//            displayValue = null;
+//        } else if (meta != null) {
+//            if ("java.lang.String".equals(meta.getUsageDataType())) {
+//                displayValue = StudioPsiUtils.stripStartAndEndQuotes((String)value);
+//                displayValue = "\"" + displayValue + "\"";
+//            } else {
+//                displayValue = value.toString();
+//            }
+//        }
+//        return displayValue;
+//    }
 
     @JsonIgnore
     public String getValueString() {
@@ -61,32 +60,32 @@ public class IkasanComponentProperty {
         this.value = value;
     }
 
-    /**
-     * Using the supplied string and meta data, attempt to set the value to an object of the appropriate class in accordance
-     * with the metaData
-     * @param newValue to update
-     */
-    public void setValueFromString(String newValue) {
-        if (meta != null) {
-            if (meta.getPropertyDataType() == String.class) {
-                value = StudioPsiUtils.stripStartAndEndQuotes(newValue);
-            } else {
-                try {
-                    if (meta.getPropertyDataType() == Long.class) {
-                        value = Long.parseLong(newValue);
-                    } else if (meta.getPropertyDataType() == Integer.class) {
-                        value = Integer.parseInt(newValue);
-                    } else if (meta.getPropertyDataType() == Double.class) {
-                        value = Double.parseDouble(newValue);
-                    } else if (meta.getPropertyDataType() == Float.class) {
-                        value = Float.parseFloat(newValue);
-                    }
-                } catch (NumberFormatException nfe) {
-                    LOG.warn("Failed to set value of type " + meta.getPropertyDataType() + " to value " + newValue);
-                }
-            }
-        }
-    }
+//    /**
+//     * Using the supplied string and meta data, attempt to set the value to an object of the appropriate class in accordance
+//     * with the metaData
+//     * @param newValue to update
+//     */
+//    public void setValueFromString(String newValue) {
+//        if (meta != null) {
+//            if (meta.getPropertyDataType() == String.class) {
+//                value = StudioPsiUtils.stripStartAndEndQuotes(newValue);
+//            } else {
+//                try {
+//                    if (meta.getPropertyDataType() == Long.class) {
+//                        value = Long.parseLong(newValue);
+//                    } else if (meta.getPropertyDataType() == Integer.class) {
+//                        value = Integer.parseInt(newValue);
+//                    } else if (meta.getPropertyDataType() == Double.class) {
+//                        value = Double.parseDouble(newValue);
+//                    } else if (meta.getPropertyDataType() == Float.class) {
+//                        value = Float.parseFloat(newValue);
+//                    }
+//                } catch (NumberFormatException nfe) {
+//                    LOG.warn("Failed to set value of type " + meta.getPropertyDataType() + " to value " + newValue);
+//                }
+//            }
+//        }
+//    }
 
     @JsonIgnore
     public IkasanComponentPropertyMeta getMeta() {
@@ -110,7 +109,7 @@ public class IkasanComponentProperty {
     }
 
     public boolean causesUserCodeRegeneration() {
-        return Boolean.TRUE.equals(getMeta().causesUserCodeRegeneration());
+        return Boolean.TRUE.equals(getMeta().isCausesUserCodeRegeneration());
     }
 
     public static List<IkasanComponentProperty> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {

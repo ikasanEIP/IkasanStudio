@@ -33,7 +33,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     public IkasanFlowComponentViewHandler(FlowElement model) {
         this.model = model;
         if (model != null) {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getComponentType());
+            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getIkasanComponentTypeMeta());
         } else {
             ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
         }

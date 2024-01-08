@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.ikasan.Module;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class FlowsBespokeComponentTemplateTest extends TestCase {
         Module ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
-        FlowElement ikasanFlowComponent = FlowElement.getElement(IkasanComponentType.CUSTOM_CONVERTER, newFlow);
+        FlowElement ikasanFlowComponent = FlowElement.getElement(IkasanComponentTypeMeta.CUSTOM_CONVERTER, newFlow);
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
         ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);

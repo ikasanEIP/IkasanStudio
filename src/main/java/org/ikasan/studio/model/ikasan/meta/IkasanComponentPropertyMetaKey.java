@@ -1,7 +1,9 @@
 package org.ikasan.studio.model.ikasan.meta;
 
+import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
+@Data
 public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponentPropertyMetaKey> {
     private String propertyName;
     private Integer parameterGroupNumber;
@@ -23,49 +25,6 @@ public class IkasanComponentPropertyMetaKey implements Comparable<IkasanComponen
     public IkasanComponentPropertyMetaKey(String propertyName, Integer parameterGroupNumber) {
         this.propertyName = propertyName;
         this.parameterGroupNumber = parameterGroupNumber;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public void setPropertyName(String propertyName) {
-        this.propertyName = propertyName;
-    }
-
-    public Integer getParameterGroupNumber() {
-        return parameterGroupNumber;
-    }
-
-    public void setParameterGroupNumber(Integer parameterGroupNumber) {
-        this.parameterGroupNumber = parameterGroupNumber;
-    }
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        IkasanComponentPropertyMetaKey that = (IkasanComponentPropertyMetaKey) o;
-
-        if (!propertyName.equals(that.propertyName)) return false;
-        return parameterGroupNumber.equals(that.parameterGroupNumber);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = propertyName.hashCode();
-        result = 31 * result + parameterGroupNumber.hashCode();
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "MetadataKey{" +
-                "propertyName='" + propertyName + '\'' +
-                ", parameterGroupNumber=" + parameterGroupNumber +
-                '}';
     }
 
     public String getCompareKey() {

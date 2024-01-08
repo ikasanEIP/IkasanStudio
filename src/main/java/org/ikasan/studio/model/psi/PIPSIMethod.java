@@ -29,34 +29,34 @@ class PIPSIMethod {
     public void setName(String name) {
         this.name = name;
     }
-    public PsiMethod getMethodDeclaration() {
-        return methodDeclaration;
-    }
-    public void setMethodDeclaration(PsiMethod methodDeclaration) {
-        this.methodDeclaration = methodDeclaration;
-    }
-
-    public PsiExpression getParameter(int argumentNumber) {
-        if (parameters != null && parameters.length > argumentNumber) {
-            return parameters[argumentNumber];
-        } else {
-            return null;
-        }
-    }
-
-    // Can expenad to things like get literal etc
-    public String getLiteralParameterAsString(int argumentNumber, boolean stripQuotes) {
-        PsiExpression param = getParameter(argumentNumber);
-        if (param != null) {
-            if (stripQuotes) {
-                return param.getText().replace("\"", "");
-            } else {
-                return param.getText();
-            }
-        } else {
-            return "";
-        }
-    }
+//    public PsiMethod getMethodDeclaration() {
+//        return methodDeclaration;
+//    }
+//    public void setMethodDeclaration(PsiMethod methodDeclaration) {
+//        this.methodDeclaration = methodDeclaration;
+//    }
+//
+//    public PsiExpression getParameter(int argumentNumber) {
+//        if (parameters != null && parameters.length > argumentNumber) {
+//            return parameters[argumentNumber];
+//        } else {
+//            return null;
+//        }
+//    }
+//
+//    // Can expenad to things like get literal etc
+//    public String getLiteralParameterAsString(int argumentNumber, boolean stripQuotes) {
+//        PsiExpression param = getParameter(argumentNumber);
+//        if (param != null) {
+//            if (stripQuotes) {
+//                return param.getText().replace("\"", "");
+//            } else {
+//                return param.getText();
+//            }
+//        } else {
+//            return "";
+//        }
+//    }
 
     public PsiExpression[] getParameters() {
         return parameters;

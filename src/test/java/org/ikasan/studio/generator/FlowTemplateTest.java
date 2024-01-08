@@ -1,7 +1,7 @@
 package org.ikasan.studio.generator;
 
 import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.model.ikasan.Module;
@@ -46,7 +46,7 @@ public class FlowTemplateTest extends TestCase {
     @Test
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
         List<FlowElement> components = ikasanFlow.getFlowComponentList() ;
-        FlowElement component = FlowElement.getElement(IkasanComponentType.EVENT_GENERATING_CONSUMER, ikasanFlow);
+        FlowElement component = FlowElement.getElement(IkasanComponentTypeMeta.EVENT_GENERATING_CONSUMER, ikasanFlow);
         component.setComponentName("testEventGeneratingConsumer");
         components.add(component);
 

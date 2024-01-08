@@ -8,7 +8,7 @@ import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 
 import java.util.List;
 import java.util.Map;
@@ -20,11 +20,12 @@ import java.util.stream.Collectors;
 public  class IkasanElement extends IkasanBaseElement {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
-    @JsonPropertyOrder(alphabetic = true)
+//    @JsonPropertyOrder(alphabetic = true)
+    @JsonPropertyOrder({"ComponentName", "description"})
     protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
     public IkasanElement() {}
 
-    protected IkasanElement(IkasanComponentType type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
+    protected IkasanElement(IkasanComponentTypeMeta type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
         super(type);
         this.configuredProperties = configuredProperties;
     }
@@ -146,11 +147,11 @@ public  class IkasanElement extends IkasanBaseElement {
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
         } else {
-            IkasanComponentPropertyMeta properyMeta = getComponentType().getMetadata(key);
+            IkasanComponentPropertyMeta properyMeta = getIkasanComponentTypeMeta().getMetadata(key);
             if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getComponentType() + " this property will be ignored.");
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentTypeMeta() + " this property will be ignored.");
             } else {
-                configuredProperties.put(key, new IkasanComponentProperty(getComponentType().getMetadata(key), value));
+                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentTypeMeta().getMetadata(key), value));
             }
         }
     }
@@ -175,14 +176,14 @@ public  class IkasanElement extends IkasanBaseElement {
     @JsonIgnore
     public List<IkasanComponentProperty> getUserImplementedClassProperties() {
         return configuredProperties.values().stream()
-            .filter(x -> x.getMeta().getUserImplementedClass() && x.isRegenerateAllowed())
+            .filter(x -> x.getMeta().isUserImplementedClass() && x.isRegenerateAllowed())
             .collect(Collectors.toList());
     }
 
     public boolean hasUserImplementedClass() {
         return configuredProperties.values()
             .stream()
-            .anyMatch(x -> x.getMeta().getUserImplementedClass() && x.isRegenerateAllowed());
+            .anyMatch(x -> x.getMeta().isUserImplementedClass() && x.isRegenerateAllowed());
     }
 
     public void resetUserImplementedClassPropertiesRegenratePermission() {
@@ -255,7 +256,7 @@ public  class IkasanElement extends IkasanBaseElement {
     public String toString() {
         return "IkasanComponent{" +
                 "properties=" + configuredProperties +
-                ", type=" + componentType +
+                ", type=" + ikasanComponentTypeMeta +
                 '}';
     }
 }
