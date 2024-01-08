@@ -104,20 +104,20 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
                         getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
-            if (!getSelectedComponent().getComponentType().getMetadataMap().isEmpty()) {
-                for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : getSelectedComponent().getComponentType().getMetadataMap().entrySet()) {
+            if (!getSelectedComponent().getIkasanComponentTypeMeta().getMetadataMap().isEmpty()) {
+                for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : getSelectedComponent().getIkasanComponentTypeMeta().getMetadataMap().entrySet()) {
                     IkasanComponentPropertyMetaKey key = entry.getKey();
                     if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
                         IkasanComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component
-                            property = new IkasanComponentProperty((getSelectedComponent()).getComponentType().getMetaDataForPropertyName(key));
+                            property = new IkasanComponentProperty((getSelectedComponent()).getIkasanComponentTypeMeta().getMetaDataForPropertyName(key));
                         }
                         if (property.getMeta().isMandatory()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     mandatoryPropertiesEditorPanel,
                                     property, gc, mandatoryTabley++));
-                        } else if (property.getMeta().isUserImplementedClass() || property.getMeta().causesUserCodeRegeneration()) {
+                        } else if (property.getMeta().isUserImplementedClass() || property.getMeta().isCausesUserCodeRegeneration()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     regeneratingPropertiesEditorPanel,
                                     property, gc, regenerateTabley++));
@@ -128,7 +128,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         }
                     }
                 }
-                if (!componentInitialisation && getSelectedComponent().getComponentType().isBespokeClass()) {
+                if (!componentInitialisation && getSelectedComponent().getIkasanComponentTypeMeta().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
             }
@@ -153,7 +153,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
 
-            if (!componentInitialisation && !getSelectedComponent().getComponentType().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
+            if (!componentInitialisation && !getSelectedComponent().getIkasanComponentTypeMeta().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
             }
         }

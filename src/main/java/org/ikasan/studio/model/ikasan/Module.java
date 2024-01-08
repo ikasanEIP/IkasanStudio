@@ -6,7 +6,7 @@ import com.intellij.psi.PsiFile;
 import lombok.AllArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ public class Module extends IkasanElement {
     private List<Flow> flows = new ArrayList<>();
 
     public Module() {
-        super(IkasanComponentType.MODULE, IkasanComponentType.MODULE.getMandatoryProperties());
+        super(IkasanComponentTypeMeta.MODULE, IkasanComponentTypeMeta.MODULE.getMandatoryProperties());
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
@@ -88,7 +88,7 @@ public class Module extends IkasanElement {
                 "moduleConfig=" + moduleConfig +
                 ", version='" + version + '\'' +
                 ", flows=" + flows +
-                ", Module type=" + componentType +
+                ", Module type=" + ikasanComponentTypeMeta +
                 ", Module properties=" + configuredProperties +
                 '}';
     }

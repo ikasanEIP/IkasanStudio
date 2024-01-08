@@ -5,8 +5,6 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.junit.Assert;
@@ -39,21 +37,21 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
     }
 
 
-    @Test
-    public void test_findFirstMethodByReturnType_finds_file() {
-        // Note getTestDataPath() is overriding LightJavaCodeInsightFixtureTestCase
-        myFixture.copyDirectoryToProject("ikasanStandardSampleApps/general", "src/");
-
-        PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myFixture.getProject(), "org.ikasan.spec.module.Module");
-
-        Assert.assertThat(methodFound, is(notNullValue()));
-        Assert.assertThat(methodFound.getName(), is("getModule"));
-
-        PsiJavaFile javaFile = (PsiJavaFile) methodFound.getContainingFile();
-        Assert.assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig.java"));
-        Assert.assertThat(javaFile.getPackageName(), is("com.ikasan.studio.example"));
-        Assert.assertThat(javaFile.getFileType().getDescription(), is("Java"));
-    }
+//    @Test
+//    public void test_findFirstMethodByReturnType_finds_file() {
+//        // Note getTestDataPath() is overriding LightJavaCodeInsightFixtureTestCase
+//        myFixture.copyDirectoryToProject("ikasanStandardSampleApps/general", "src/");
+//
+//        PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myFixture.getProject(), "org.ikasan.spec.module.Module");
+//
+//        Assert.assertThat(methodFound, is(notNullValue()));
+//        Assert.assertThat(methodFound.getName(), is("getModule"));
+//
+//        PsiJavaFile javaFile = (PsiJavaFile) methodFound.getContainingFile();
+//        Assert.assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig.java"));
+//        Assert.assertThat(javaFile.getPackageName(), is("com.ikasan.studio.example"));
+//        Assert.assertThat(javaFile.getFileType().getDescription(), is("Java"));
+//    }
 
     @Test
     public void test_createPackage_StandardPackage() {

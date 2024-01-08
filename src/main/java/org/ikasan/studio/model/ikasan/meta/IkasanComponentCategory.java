@@ -32,21 +32,21 @@ public enum IkasanComponentCategory {
         this.baseClass = associatedBaseClass;
     }
 
-    /**
-     * Given a method name (broker, consumer etc), try to match its against a component Category
-     * @param methodName to search
-     * @return the IkasanComponentCategory or found or UNKNOWN
-     */
-    public static IkasanComponentCategory parseMethodName(String methodName) {
-        if (methodName != null) {
-            for (IkasanComponentCategory name : IkasanComponentCategory.values()) {
-                if (name.associatedMethodName.equals(methodName)) {
-                    return name;
-                }
-            }
-        }
-        return UNKNOWN;
-    }
+//    /**
+//     * Given a method name (broker, consumer etc), try to match its against a component Category
+//     * @param methodName to search
+//     * @return the IkasanComponentCategory or found or UNKNOWN
+//     */
+//    public static IkasanComponentCategory parseMethodName(String methodName) {
+//        if (methodName != null) {
+//            for (IkasanComponentCategory name : IkasanComponentCategory.values()) {
+//                if (name.associatedMethodName.equals(methodName)) {
+//                    return name;
+//                }
+//            }
+//        }
+//        return UNKNOWN;
+//    }
 
     /**
      * Given a base class / interface, try to match it against a component Category
@@ -84,7 +84,7 @@ public enum IkasanComponentCategory {
         return displayOrder;
     }
 
-    public String getBaseClass() {
-        return baseClass;
-    }
+//    public String getBaseClass() {
+//        return baseClass;
+//    }
 }

@@ -1,7 +1,5 @@
 package org.ikasan.studio.model;
 
-import com.intellij.lang.Language;
-import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.ModuleManager;
@@ -11,7 +9,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.psi.search.*;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.maven.model.Dependency;
@@ -19,15 +19,15 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
-import org.ikasan.studio.model.psi.PIPSIIkasanModelx;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 import static org.ikasan.studio.model.ikasan.IkasanPomModel.MAVEN_COMPILER_SOURCE;
@@ -39,60 +39,60 @@ public class StudioPsiUtils {
     // Enforce utility nature upon class
     private StudioPsiUtils() {}
 
-    public static String getSimpleFileData(PsiFile file) {
-        StringBuilder message = new StringBuilder();
-        if(file != null)
-        {
-            message.append("File name was [" + file.getName() +"]\n");
-            message.append("File was [" + file +"]\n");
-            Language lang = file.getLanguage();
-            message.append("Language was [" + lang.getDisplayName().toLowerCase() +"]");
-        }
-        return message.toString();
-    }
+//    public static String getSimpleFileData(PsiFile file) {
+//        StringBuilder message = new StringBuilder();
+//        if(file != null)
+//        {
+//            message.append("File name was [" + file.getName() +"]\n");
+//            message.append("File was [" + file +"]\n");
+//            Language lang = file.getLanguage();
+//            message.append("Language was [" + lang.getDisplayName().toLowerCase() +"]");
+//        }
+//        return message.toString();
+//    }
 
-    /**
-     * Remove the start and end quotes from a String to prevent double quoting.
-     * @param value to be examined
-     * @return the string with the start and end quites removed if there were any present
-     */
-    public static String stripStartAndEndQuotes(String value) {
-        if (value != null && !value.isEmpty()) {
-            if (value.startsWith("\"")) {
-                value = value.substring(1);
-            }
-            if (value.endsWith("\"")) {
-                value = value.substring(0,value.length()-1);
-            }
-        }
-        return value;
-    }
-
-    public static String findClassFile(Project project, String className) {
-        PsiFile[] files = FilenameIndex.getFilesByName(project, className, GlobalSearchScope.projectScope(project));
-        return Arrays.stream(files).map(x->"looking for file " + className + ", found [" + x.getName() +"]").collect(Collectors.joining(","));
-    }
-
-    /**
-     * Attempt to load in all files ending in properties
-     * @TODO we could scope this to the JAVA root to avoid catching test properties.
-     * @param project to load the files file
-     * @return a java Properties instance
-     */
-    public static Properties getApplicationProperties(Project project) {
-        Properties properties = new Properties();
-
-        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(FileTypeManager.getInstance().getFileTypeByExtension(Context.PROPERTIES_FILE_EXTENSION), GlobalSearchScope.projectScope(project));
-        for (VirtualFile virtualFile : virtualFiles) {
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-            try {
-                properties.load(new StringReader(psiFile.getText()));
-            } catch (IOException e) {
-                LOG.warn("Problems loading in application properties " + e);
-            }
-        }
-        return properties;
-    }
+//    /**
+//     * Remove the start and end quotes from a String to prevent double quoting.
+//     * @param value to be examined
+//     * @return the string with the start and end quites removed if there were any present
+//     */
+//    public static String stripStartAndEndQuotes(String value) {
+//        if (value != null && !value.isEmpty()) {
+//            if (value.startsWith("\"")) {
+//                value = value.substring(1);
+//            }
+//            if (value.endsWith("\"")) {
+//                value = value.substring(0,value.length()-1);
+//            }
+//        }
+//        return value;
+//    }
+//
+//    public static String findClassFile(Project project, String className) {
+//        PsiFile[] files = FilenameIndex.getFilesByName(project, className, GlobalSearchScope.projectScope(project));
+//        return Arrays.stream(files).map(x->"looking for file " + className + ", found [" + x.getName() +"]").collect(Collectors.joining(","));
+//    }
+//
+//    /**
+//     * Attempt to load in all files ending in properties
+//     * @TODO we could scope this to the JAVA root to avoid catching test properties.
+//     * @param project to load the files file
+//     * @return a java Properties instance
+//     */
+//    public static Properties getApplicationProperties(Project project) {
+//        Properties properties = new Properties();
+//
+//        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(FileTypeManager.getInstance().getFileTypeByExtension(Context.PROPERTIES_FILE_EXTENSION), GlobalSearchScope.projectScope(project));
+//        for (VirtualFile virtualFile : virtualFiles) {
+//            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+//            try {
+//                properties.load(new StringReader(psiFile.getText()));
+//            } catch (IOException e) {
+//                LOG.warn("Problems loading in application properties " + e);
+//            }
+//        }
+//        return properties;
+//    }
 
     /**
      * Load the content of the major pom
@@ -254,197 +254,197 @@ public class StudioPsiUtils {
         Context.getDesignerCanvas(projectKey).repaint();
     }
 
-    public static String dumpProject(Project project) {
-        StringBuilder dump = new StringBuilder();
-        dump.append("** All class names **");
-        String[] classNames = PsiShortNamesCache.getInstance(project).getAllClassNames();
-        dump.append(classNames);
-        dump.append("** All field names **");
-        String[] fieldNames = PsiShortNamesCache.getInstance(project).getAllFieldNames();
-        dump.append(fieldNames);
-        dump.append("** All file names **");
-        String[] fileNames = PsiShortNamesCache.getInstance(project).getAllFileNames();
-        dump.append(fileNames);
-        dump.append("** All method names **");
-        String[] methodNames = PsiShortNamesCache.getInstance(project).getAllMethodNames();
-        dump.append(methodNames);
-        return dump.toString();
-    }
+//    public static String dumpProject(Project project) {
+//        StringBuilder dump = new StringBuilder();
+//        dump.append("** All class names **");
+//        String[] classNames = PsiShortNamesCache.getInstance(project).getAllClassNames();
+//        dump.append(classNames);
+//        dump.append("** All field names **");
+//        String[] fieldNames = PsiShortNamesCache.getInstance(project).getAllFieldNames();
+//        dump.append(fieldNames);
+//        dump.append("** All file names **");
+//        String[] fileNames = PsiShortNamesCache.getInstance(project).getAllFileNames();
+//        dump.append(fileNames);
+//        dump.append("** All method names **");
+//        String[] methodNames = PsiShortNamesCache.getInstance(project).getAllMethodNames();
+//        dump.append(methodNames);
+//        return dump.toString();
+//    }
 
-    /**
-     * Primarily, this class is looking for the method that returns 'Module' but could be used to get anything
-     *
-     * I suspect this is NOT very efficient.
-     *
-     * @param project to search
-     * @param methodReturnType to search for
-     * @return the method whose return type matches methodReturnType
-     */
-    public  static PsiMethod findFirstMethodByReturnType(Project project, String methodReturnType) {
-        PsiMethod returnPsiMethod = null;
-        PsiShortNamesCache cache = PsiShortNamesCache.getInstance(project);
-        // In this release,  processAllClassNames does not scope all the classnames, in future release it might so keep code.
-        
-//        cache.processAllClassNames(new Processor<String>() {
-//            @Override
-//            public boolean process(String className) {
-//                System.out.println("try className " + className);
-//                if (!returnPsiMethodFound) {
-//                    System.out.println("try " + className);
-//                    PsiClass[] psiClasses = cache.getClassesByName(className, ProjectScope.getProjectScope(project));
-//                    if (psiClasses != null) {
-//                        for (PsiClass psiClass : psiClasses) {
-//                            System.out.println(" L1 " + psiClass.getComponentName());
-//                            PsiMethod[] psiMethods = psiClass.getAllMethods();
-//                            if (psiMethods != null) {
-//                                for (PsiMethod psiMethod : psiMethods) {
-//                                    PsiType returnType = psiMethod.getReturnType();
+//    /**
+//     * Primarily, this class is looking for the method that returns 'Module' but could be used to get anything
+//     *
+//     * I suspect this is NOT very efficient.
+//     *
+//     * @param project to search
+//     * @param methodReturnType to search for
+//     * @return the method whose return type matches methodReturnType
+//     */
+//    public  static PsiMethod findFirstMethodByReturnType(Project project, String methodReturnType) {
+//        PsiMethod returnPsiMethod = null;
+//        PsiShortNamesCache cache = PsiShortNamesCache.getInstance(project);
+//        // In this release,  processAllClassNames does not scope all the classnames, in future release it might so keep code.
 //
-//                                    if (returnType == null) {
-//                                        System.out.println(" L2 " + psiMethod.getComponentName() + " ret is null");
-//                                    } else {
-//                                        System.out.println(" L2 " + psiMethod.getComponentName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
-//                                    }
-//                                    if (returnType != null && returnType.equalsToText(methodReturnType)) {
-//                                        returnPsiMethod = psiMethod;
-//                                        break;
-//                                    }
-//                                }
-//                            }
-//                            if (returnPsiMethod != null) {
-//                                break;
-//                            }
-//                        }
-//                    }
+////        cache.processAllClassNames(new Processor<String>() {
+////            @Override
+////            public boolean process(String className) {
+////                System.out.println("try className " + className);
+////                if (!returnPsiMethodFound) {
+////                    System.out.println("try " + className);
+////                    PsiClass[] psiClasses = cache.getClassesByName(className, ProjectScope.getProjectScope(project));
+////                    if (psiClasses != null) {
+////                        for (PsiClass psiClass : psiClasses) {
+////                            System.out.println(" L1 " + psiClass.getComponentName());
+////                            PsiMethod[] psiMethods = psiClass.getAllMethods();
+////                            if (psiMethods != null) {
+////                                for (PsiMethod psiMethod : psiMethods) {
+////                                    PsiType returnType = psiMethod.getReturnType();
+////
+////                                    if (returnType == null) {
+////                                        System.out.println(" L2 " + psiMethod.getComponentName() + " ret is null");
+////                                    } else {
+////                                        System.out.println(" L2 " + psiMethod.getComponentName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
+////                                    }
+////                                    if (returnType != null && returnType.equalsToText(methodReturnType)) {
+////                                        returnPsiMethod = psiMethod;
+////                                        break;
+////                                    }
+////                                }
+////                            }
+////                            if (returnPsiMethod != null) {
+////                                break;
+////                            }
+////                        }
+////                    }
+////                }
+////                return returnPsiMethodFound;
+////            }
+////        }, ProjectScope.getProjectScope(project), IdFilter.getProjectIdFilter(project, false));
+////        return returnPsiMethod;
+//
+//// or this should work but does not
+//
+////        cache.processAllMethodNames(new Processor<String>() {
+////            @Override
+////            public boolean process(String methodNames) {
+////    System.out.println("try methodNames " + methodNames);
+////                    if (!returnPsiMethodFound) {
+////                        PsiMethod[] psiMethods = cache.getMethodsByName( methodNames, ProjectScope.getProjectScope(project));
+////                        if (psiMethods != null) {
+////                            for (PsiMethod psiMethod : psiMethods) {
+////                                PsiType returnType = psiMethod.getReturnType();
+////    System.out.println(" L2 " + psiMethod.getComponentName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
+////                                if (returnType != null && returnType.equalsToText(methodReturnType)) {
+////                                    returnPsiMethod = psiMethod;
+////                                    returnPsiMethodFound = true;
+////                                    break;
+////                                }
+////                            }
+////                        }
+////                    }
+////                return returnPsiMethodFound;
+////            }
+////        }, ProjectScope.getProjectScope(project), IdFilter.getProjectIdFilter(project, false));
+////        return returnPsiMethod;
+////            });
+//
+//
+//        // Very brute force, go through 52K classes, if its not in project scope ignore, otherwise inspect
+//        //@todo maybe we can force this to be governed by convention i.e. agree must be ModuleConfig.java
+//        //@todo use getSourceRootContaining(JAVA)
+//        for (String className : cache.getAllClassNames()) {
+//            for (PsiClass psiClass : cache.getClassesByName(className, ProjectScope.getProjectScope(project))) {
+//                returnPsiMethod = findMethodFromClassByReturnType(psiClass, methodReturnType);
+//                if (returnPsiMethod != null) {
+//                    break;
 //                }
-//                return returnPsiMethodFound;
 //            }
-//        }, ProjectScope.getProjectScope(project), IdFilter.getProjectIdFilter(project, false));
-//        return returnPsiMethod;
-
-// or this should work but does not
-
-//        cache.processAllMethodNames(new Processor<String>() {
-//            @Override
-//            public boolean process(String methodNames) {
-//    System.out.println("try methodNames " + methodNames);
-//                    if (!returnPsiMethodFound) {
-//                        PsiMethod[] psiMethods = cache.getMethodsByName( methodNames, ProjectScope.getProjectScope(project));
-//                        if (psiMethods != null) {
-//                            for (PsiMethod psiMethod : psiMethods) {
-//                                PsiType returnType = psiMethod.getReturnType();
-//    System.out.println(" L2 " + psiMethod.getComponentName() + " ret is " + returnType.getCanonicalText(true) + " eq " + returnType.equalsToText(methodReturnType));
-//                                if (returnType != null && returnType.equalsToText(methodReturnType)) {
-//                                    returnPsiMethod = psiMethod;
-//                                    returnPsiMethodFound = true;
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                    }
-//                return returnPsiMethodFound;
+//            if (returnPsiMethod != null) {
+//                break;
 //            }
-//        }, ProjectScope.getProjectScope(project), IdFilter.getProjectIdFilter(project, false));
+//        }
 //        return returnPsiMethod;
-//            });
+//    }
 
+//    /**
+//     * For the given class, look for the first method with the given return type.
+//     * @param psiClass to look for
+//     * @param methodReturnType (canonical and fully qualified) string of the return type searched for.
+//     * @return found method
+//     */
+//    public static PsiMethod findMethodFromClassByReturnType(PsiClass psiClass, String methodReturnType) {
+//        PsiMethod methodFound = null ;
+//        if (psiClass != null) {
+//            for (PsiMethod psiMethod : psiClass.getAllMethods()) {
+//                PsiType returnType = psiMethod.getReturnType();
+//                //@todo determine if "<?>" needs to be here or elsewhere, maybe pass in
+//                if (returnType != null && (returnType.equalsToText(methodReturnType) || returnType.equalsToText(methodReturnType+"<?>"))) {
+//                    methodFound = psiMethod;
+//                    break;
+//                }
+//            }
+//        }
+//        return methodFound;
+//    }
 
-        // Very brute force, go through 52K classes, if its not in project scope ignore, otherwise inspect
-        //@todo maybe we can force this to be governed by convention i.e. agree must be ModuleConfig.java
-        //@todo use getSourceRootContaining(JAVA)
-        for (String className : cache.getAllClassNames()) {
-            for (PsiClass psiClass : cache.getClassesByName(className, ProjectScope.getProjectScope(project))) {
-                returnPsiMethod = findMethodFromClassByReturnType(psiClass, methodReturnType);
-                if (returnPsiMethod != null) {
-                    break;
-                }
-            }
-            if (returnPsiMethod != null) {
-                break;
-            }
-        }
-        return returnPsiMethod;
-    }
+//    /***
+//     * Find the class in the project
+//     * @param project the class
+//     * @param className the non-qualified or fully qualified classname
+//     * @return found class
+//     */
+//    public static PsiClass[] findClass(Project project, String className) {
+//        // Note, getClassesByName will only work with non-qualified classname
+//        @NotNull PsiClass[] files = null;
+//        if (className.contains(".")) {
+//            String baseClassName = StudioUtils.getLastToken( "\\.", className);
+//            files = PsiShortNamesCache.getInstance(project).getClassesByName(baseClassName, ProjectScope.getProjectScope(project));
+//            files = Arrays.stream(files).filter(x -> className.equals(x.getQualifiedName())).toArray(PsiClass[]::new);
+//        } else {
+//            files = PsiShortNamesCache.getInstance(project).getClassesByName(className, ProjectScope.getProjectScope(project));
+//        }
+//
+//        for (PsiClass myClass : files) {
+//            LOG.debug("looking for class " + className + ", found [" + myClass.getName() + "]");
+//        }
+//        return files;
+//    }
 
-    /**
-     * For the given class, look for the first method with the given return type.
-     * @param psiClass to look for
-     * @param methodReturnType (canonical and fully qualified) string of the return type searched for.
-     * @return found method
-     */
-    public static PsiMethod findMethodFromClassByReturnType(PsiClass psiClass, String methodReturnType) {
-        PsiMethod methodFound = null ;
-        if (psiClass != null) {
-            for (PsiMethod psiMethod : psiClass.getAllMethods()) {
-                PsiType returnType = psiMethod.getReturnType();
-                //@todo determine if "<?>" needs to be here or elsewhere, maybe pass in
-                if (returnType != null && (returnType.equalsToText(methodReturnType) || returnType.equalsToText(methodReturnType+"<?>"))) {
-                    methodFound = psiMethod;
-                    break;
-                }
-            }
-        }
-        return methodFound;
-    }
+//     /***
+//     * Find the first class of the given classname in the project
+//     * @param project the class
+//     * @param className the non-qualified or fully qualified classname
+//     * @return found class
+//     */
+//    public static PsiClass findFirstClass(Project project, String className) {
+//        PsiClass[] classes = findClass(project, className);
+//        if (classes!= null && classes.length > 0) {
+//            if (classes.length > 1) {
+//                LOG.warn("Found more than one class of name " + className+ " but only expected 1");
+//            }
+//            return classes[0];
+//        } else {
+//            return null;
+//        }
+//    }
 
-    /***
-     * Find the class in the project
-     * @param project the class
-     * @param className the non-qualified or fully qualified classname
-     * @return found class
-     */
-    public static PsiClass[] findClass(Project project, String className) {
-        // Note, getClassesByName will only work with non-qualified classname
-        @NotNull PsiClass[] files = null;
-        if (className.contains(".")) {
-            String baseClassName = StudioUtils.getLastToken( "\\.", className);
-            files = PsiShortNamesCache.getInstance(project).getClassesByName(baseClassName, ProjectScope.getProjectScope(project));
-            files = Arrays.stream(files).filter(x -> className.equals(x.getQualifiedName())).toArray(PsiClass[]::new);
-        } else {
-            files = PsiShortNamesCache.getInstance(project).getClassesByName(className, ProjectScope.getProjectScope(project));
-        }
-
-        for (PsiClass myClass : files) {
-            LOG.debug("looking for class " + className + ", found [" + myClass.getName() + "]");
-        }
-        return files;
-    }
-
-     /***
-     * Find the first class of the given classname in the project
-     * @param project the class
-     * @param className the non-qualified or fully qualified classname
-     * @return found class
-     */
-    public static PsiClass findFirstClass(Project project, String className) {
-        PsiClass[] classes = findClass(project, className);
-        if (classes!= null && classes.length > 0) {
-            if (classes.length > 1) {
-                LOG.warn("Found more than one class of name " + className+ " but only expected 1");
-            }
-            return classes[0];
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Given a PsiClass, get the first method that matches the method name
-     * @param clazz to examine
-     * @param methodName to look for
-     * @return method name within given class or null if not found.
-     */
-    public static JvmMethod findFirstMethod (PsiClass clazz, String methodName) {
-        JvmMethod[] methods = clazz.findMethodsByName(methodName);
-        if (methods.length > 0) {
-            if (methods.length > 1) {
-                LOG.warn("Found more than one class of name " + methodName + " but only expected 1");
-            }
-            return methods[0];
-        } else {
-            return null;
-        }
-    }
+//    /**
+//     * Given a PsiClass, get the first method that matches the method name
+//     * @param clazz to examine
+//     * @param methodName to look for
+//     * @return method name within given class or null if not found.
+//     */
+//    public static JvmMethod findFirstMethod (PsiClass clazz, String methodName) {
+//        JvmMethod[] methods = clazz.findMethodsByName(methodName);
+//        if (methods.length > 0) {
+//            if (methods.length > 1) {
+//                LOG.warn("Found more than one class of name " + methodName + " but only expected 1");
+//            }
+//            return methods[0];
+//        } else {
+//            return null;
+//        }
+//    }
 
 //
 //    //@ todo make a plugin property to switch on / off assumeModuleConfigClass
@@ -461,9 +461,9 @@ public class StudioPsiUtils {
 //        ikasanModule.resetRegenratePermissions();
 //    }
 
-    public static String getTypeOfVariable(PsiVariable psiVariable) {
-        return psiVariable.getType().getCanonicalText();
-    }
+//    public static String getTypeOfVariable(PsiVariable psiVariable) {
+//        return psiVariable.getType().getCanonicalText();
+//    }
 
 //    private static PIPSIIkasanModelx updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
 //        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
@@ -474,20 +474,20 @@ public class StudioPsiUtils {
 //        return pipsiIkasanModel;
 //    }
 
-    private static PsiClass getModuleConfigClass(String projectKey, boolean assumeModuleConfigClass) {
-        PsiClass moduleConfigClazz = null ;
-        Project project = Context.getProject(projectKey);
-        if (!assumeModuleConfigClass) {
-            //@todo this seems quite expensive, see if better way
-            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModelx.OLD_MODULE_BEAN_CLASS);
-            if (getModuleMethod != null) {
-                moduleConfigClazz = getModuleMethod.getContainingClass();
-            }
-        } else {
-            moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfig");
-        }
-        return moduleConfigClazz;
-    }
+//    private static PsiClass getModuleConfigClass(String projectKey, boolean assumeModuleConfigClass) {
+//        PsiClass moduleConfigClazz = null ;
+//        Project project = Context.getProject(projectKey);
+//        if (!assumeModuleConfigClass) {
+//            //@todo this seems quite expensive, see if better way
+//            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModelx.OLD_MODULE_BEAN_CLASS);
+//            if (getModuleMethod != null) {
+//                moduleConfigClazz = getModuleMethod.getContainingClass();
+//            }
+//        } else {
+//            moduleConfigClazz = StudioPsiUtils.findFirstClass(Context.getProject(projectKey), "ModuleConfig");
+//        }
+//        return moduleConfigClazz;
+//    }
 
     public static void getAllSourceRootsForProject(Project project) {
         String projectName = project.getName();
@@ -516,9 +516,9 @@ public class StudioPsiUtils {
         }
         return sourceCodeRoot;
     }
-    public static PsiFile createFileInDirectory(final PsiDirectory baseDir, final String filename, final String text, Project project) {
-        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
-    }
+//    public static PsiFile createFileInDirectory(final PsiDirectory baseDir, final String filename, final String text, Project project) {
+//        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
+//    }
 
 
 

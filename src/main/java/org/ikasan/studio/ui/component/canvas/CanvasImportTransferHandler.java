@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 
@@ -82,7 +82,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         boolean mouseOverFlow = false;
         Point currentMouse = support.getDropLocation().getDropPoint();
         IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
-        if ((ikasanFlowUIComponent != null && ikasanFlowUIComponent.getIkasanComponentType() != null && IkasanComponentType.FLOW.equals(ikasanFlowUIComponent.getIkasanComponentType())) ||
+        if ((ikasanFlowUIComponent != null && ikasanFlowUIComponent.getIkasanComponentType() != null && IkasanComponentTypeMeta.FLOW.equals(ikasanFlowUIComponent.getIkasanComponentType())) ||
                 designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
             mouseOverFlow = true;
         }
@@ -110,7 +110,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         if (this.canImport(support)) {
             IkasanFlowUIComponent ikasanFlowUIComponent = getDraggedComponent(support);
             if (ikasanFlowUIComponent != null) {
-                IkasanComponentType ikasanComponentType = ikasanFlowUIComponent.getIkasanComponentType();
+                IkasanComponentTypeMeta ikasanComponentType = ikasanFlowUIComponent.getIkasanComponentType();
                 return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanComponentType);
             }
         }

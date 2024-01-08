@@ -1,7 +1,7 @@
 package org.ikasan.studio.model.ikasan;
 
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.junit.Test;
 
 public class FlowElementTest {
@@ -24,7 +24,7 @@ public class FlowElementTest {
     @Test
     public void testJsonSerialisation() {
 //        public FlowElement(IkasanComponentType type, Flow parent, String name, String description) {
-        FlowElement flowElement = new FlowElement(IkasanComponentType.DB_CONSUMER, null, "My Database Consumer", "My Database Consumer Description");
+        FlowElement flowElement = new FlowElement(IkasanComponentTypeMeta.DB_CONSUMER, null, "My Database Consumer", "My Database Consumer Description");
         System.out.println(StudioUtils.toJson(flowElement));
     }
 }

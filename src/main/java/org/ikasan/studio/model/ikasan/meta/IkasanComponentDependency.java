@@ -17,7 +17,7 @@ public enum IkasanComponentDependency {
         dependencies = StudioUtils.readIkasanComponentDependencies(this.toString());
     }
 
-    public Map<String, Dependency> getDependencies() {
-        return dependencies;
-    }
+//    public Map<String, Dependency> getDependencies() {
+//        return dependencies;
+//    }
 }

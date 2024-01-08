@@ -3,7 +3,7 @@ package org.ikasan.studio.model.ikasan;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
 
 /**
@@ -15,12 +15,16 @@ public abstract class IkasanBaseElement {
     @JsonIgnore
     protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
-    protected IkasanComponentType componentType;
+    protected IkasanComponentTypeMeta ikasanComponentTypeMeta;
 
     public IkasanBaseElement() {}
 
-    protected IkasanBaseElement(IkasanComponentType componentType) {
-        this.componentType = componentType;
+    protected IkasanBaseElement(IkasanComponentTypeMeta ikasanComponentTypeMeta) {
+        this.ikasanComponentTypeMeta = ikasanComponentTypeMeta;
+    }
+
+    public String getConponentType() {
+        return this.ikasanComponentTypeMeta.getComponentType();
     }
 //    @JsonIgnore
 //    public ViewHandler getViewHandler() {

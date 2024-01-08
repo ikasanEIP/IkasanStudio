@@ -30,7 +30,7 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     public IkasanFlowExceptionResolverViewHandler(FlowElement model) {
         this.model = model;
         if (model != null) {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getComponentType());
+            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getIkasanComponentTypeMeta());
         } else {
             ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
         }

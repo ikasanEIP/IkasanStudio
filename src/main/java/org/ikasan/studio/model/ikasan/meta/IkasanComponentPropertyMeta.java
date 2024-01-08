@@ -1,13 +1,13 @@
 package org.ikasan.studio.model.ikasan.meta;
 
-import org.ikasan.studio.StudioUtils;
+import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+@Data
 /**
  * Represents all the possible properties an Ikasan component is allowed to have
  */
@@ -163,118 +163,12 @@ public class IkasanComponentPropertyMeta {
         return this.metadataMap;
     }
 
-    public boolean isMandatory() {
-        return mandatory;
-    }
-
-    public boolean getMandatory() {
-        return mandatory;
-    }
-
-    public boolean getUserImplementedClass() {
-        return userImplementedClass;
-    }
-
-    public boolean isUserImplementedClass() {
-        return userImplementedClass;
-    }
-
-    public boolean causesUserCodeRegeneration() {
-        return causesUserCodeRegeneration;
-    }
-
-    public void setCausesUserCodeRegeneration(boolean causesUserCodeRegeneration) {
-        this.causesUserCodeRegeneration = causesUserCodeRegeneration;
-    }
-
-    public boolean isSetterProperty() {
-        return setterProperty;
-    }
-
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public String getPropertyConfigFileLabel() {
-        return propertyConfigFileLabel;
-    }
-    public String getPropertyConfigFileLabelAsVariable() {
-        return StudioUtils.toJavaIdentifier(propertyConfigFileLabel);
-    }
-    public Class getPropertyDataType() {
-        return propertyDataType;
-    }
-
-    public String getUsageDataType() {
-        return usageDataType;
-    }
-
-    public String getValidation() {
-        return validation;
-    }
-
-    public Pattern getValidationPattern() {
-        return validationPattern;
-    }
-
-    public String getValidationMessage() {
-        return validationMessage;
-    }
-
-    public String getHelpText() {
-        return helpText;
-    }
-
-    public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
-        return new IkasanComponentPropertyMeta(1, false, false, false, false, false, name, null, String.class, "", "", "", "", "");
-    }
-
-    /**
-     * Class equals, note that the method deliberately selects mandatory, propertyName, dataType ONLY
-     * @param o object to compare with.
-     * @return the Java equals contract.
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        IkasanComponentPropertyMeta that = (IkasanComponentPropertyMeta) o;
-        return paramGroupNumber.equals(that.paramGroupNumber) &&
-                mandatory == that.mandatory &&
-                userImplementedClass == that.userImplementedClass &&
-                propertyName.equals(that.propertyName) &&
-                propertyDataType.equals(that.propertyDataType);
-    }
-
-    /**
-     * Note the hashcode method deliberately selects mandatory, propertyName, dataType ONLY
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(paramGroupNumber, mandatory, userImplementedClass, propertyName, propertyDataType);
-    }
-
-    @Override
-    public String toString() {
-        return "IkasanComponentPropertyMeta{" +
-                "paramGroupNumber=" + paramGroupNumber +
-                ", causesUserCodeRegeneration=" + causesUserCodeRegeneration +
-                ", mandatory=" + mandatory +
-                ", userImplementedClass=" + userImplementedClass +
-                ", userDefineResource=" + userDefineResource +
-                ", propertyName='" + propertyName + '\'' +
-                ", propertyConfigFileLabel='" + propertyConfigFileLabel + '\'' +
-                ", propertyDataType=" + propertyDataType +
-                ", usageDataType=" + usageDataType +
-                ", validation=" + validation +
-                ", validationMessage=" + validationMessage +
-                ", validationPattern=" + validationPattern +
-                ", defaultValue=" + defaultValue +
-                ", helpText='" + helpText + '\'' +
-                '}';
-    }
+//
+//    public String getPropertyConfigFileLabelAsVariable() {
+//        return StudioUtils.toJavaIdentifier(propertyConfigFileLabel);
+//    }
+//
+//    public static IkasanComponentPropertyMeta getUnknownComponentMeta(final String name) {
+//        return new IkasanComponentPropertyMeta(1, false, false, false, false, false, name, null, String.class, "", "", "", "", "");
+//    }
 }

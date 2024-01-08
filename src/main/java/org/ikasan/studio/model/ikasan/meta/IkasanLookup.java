@@ -60,23 +60,23 @@ public enum IkasanLookup {
         return lookup;
     }
 
-    /**
-     * Given the supplied className, attempt to find a lookup that matches, otherwise return the supplied string
-     * @param className to lookup
-     * @return the fully qualified lookup or the input string if nothing was found
-     */
-    public String parseClass(String className) {
-        String fullyQualifiedClass = className;
-        if (className != null &&
-            className.chars().filter(c -> c == '.').count() <2 &&
-            className.contains(".class")) {
-            String lookup = this.getDisplayAndValuePairs().get(className.replace(".class", ""));
-            if (lookup != null) {
-                fullyQualifiedClass = lookup;
-            } else {
-                fullyQualifiedClass = this.getDisplayAndValuePairs().values().stream().filter(x -> x.endsWith(className)).findFirst().orElse(fullyQualifiedClass);
-            }
-        }
-        return fullyQualifiedClass;
-    }
+//    /**
+//     * Given the supplied className, attempt to find a lookup that matches, otherwise return the supplied string
+//     * @param className to lookup
+//     * @return the fully qualified lookup or the input string if nothing was found
+//     */
+//    public String parseClass(String className) {
+//        String fullyQualifiedClass = className;
+//        if (className != null &&
+//            className.chars().filter(c -> c == '.').count() <2 &&
+//            className.contains(".class")) {
+//            String lookup = this.getDisplayAndValuePairs().get(className.replace(".class", ""));
+//            if (lookup != null) {
+//                fullyQualifiedClass = lookup;
+//            } else {
+//                fullyQualifiedClass = this.getDisplayAndValuePairs().values().stream().filter(x -> x.endsWith(className)).findFirst().orElse(fullyQualifiedClass);
+//            }
+//        }
+//        return fullyQualifiedClass;
+//    }
 }

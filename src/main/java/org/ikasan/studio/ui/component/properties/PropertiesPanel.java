@@ -5,7 +5,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
@@ -113,8 +113,8 @@ public abstract class PropertiesPanel extends JPanel {
         } else if (selectedComponent instanceof FlowElement) {
             IkasanFlowUIComponent type = IkasanFlowUIComponentFactory
                     .getInstance()
-                    .getIkasanFlowUIComponentFromType((((FlowElement) selectedComponent).getComponentType()));
-            if (type.getIkasanComponentType() != IkasanComponentType.UNKNOWN) {
+                    .getIkasanFlowUIComponentFromType((((FlowElement) selectedComponent).getIkasanComponentTypeMeta()));
+            if (type.getIkasanComponentType() != IkasanComponentTypeMeta.UNKNOWN) {
                 propertyType = type.getTitle() + " " + PROPERTIES_TAG;
             } else {
                 propertyType = "Component " + PROPERTIES_TAG;

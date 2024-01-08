@@ -4,9 +4,7 @@ import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,30 +19,18 @@ public class IkasanExceptionResolver extends FlowElement {
      * @param parent flow that contains this exceptions resolver
      */
     public IkasanExceptionResolver(Flow parent) {
-        super(IkasanComponentType.EXCEPTION_RESOLVER, parent);
+        super(IkasanComponentTypeMeta.EXCEPTION_RESOLVER, parent);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
-    public boolean hasExceptionResolution(String key) {
-        return ikasanExceptionResolutionMap.containsKey(key);
-    }
+
     public Map<String, IkasanExceptionResolution> getIkasanExceptionResolutionMap() {
         return ikasanExceptionResolutionMap;
     }
-    public void setIkasanExceptionResolutionMap(Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap) {
-        this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
-    }
+
     public void addExceptionResolution(IkasanExceptionResolution ikasanExceptionResolution) {
         ikasanExceptionResolutionMap.put(ikasanExceptionResolution.getTheException(), ikasanExceptionResolution);
     }
-    public List<IkasanExceptionResolution> getIkasanExceptionResolutionList() {
-        return new ArrayList<>(ikasanExceptionResolutionMap.values());
-    }
-    public void resetIkasanExceptionResolutionList(List<IkasanExceptionResolution> ikasanExceptionResolutionList) {
-        resetIkasanExceptionResolutionList();
-        for (IkasanExceptionResolution ikasanExceptionResolution : ikasanExceptionResolutionList) {
-            addExceptionResolution(ikasanExceptionResolution);
-        }
-    }
+
     public void resetIkasanExceptionResolutionList() {
         ikasanExceptionResolutionMap = new HashMap<>();
     }

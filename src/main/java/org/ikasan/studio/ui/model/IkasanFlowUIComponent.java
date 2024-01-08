@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.model;
 
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentType;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 
 import javax.swing.*;
 import java.io.Serializable;
@@ -14,14 +14,14 @@ public class IkasanFlowUIComponent implements Serializable {
     String title;
     String helpText;
     String webHelpURL;
-    IkasanComponentType ikasanComponentType;
+    IkasanComponentTypeMeta ikasanComponentType;
     ImageIcon smallIcon;
     ImageIcon canvasIcon;
 
     public IkasanFlowUIComponent(String title) {
         this.title = title;
     }
-    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanComponentType ikasanComponentType
+    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanComponentTypeMeta ikasanComponentType
             , ImageIcon smallIcon, ImageIcon canvasIcon) {
         this.title = title;
         this.helpText = helpText;
@@ -51,11 +51,11 @@ public class IkasanFlowUIComponent implements Serializable {
         return webHelpURL;
     }
 
-    public IkasanComponentType getIkasanComponentType() {
+    public IkasanComponentTypeMeta getIkasanComponentType() {
         return ikasanComponentType;
     }
 
-    public void setIkasanComponentType(IkasanComponentType ikasanComponentType) {
+    public void setIkasanComponentType(IkasanComponentTypeMeta ikasanComponentType) {
         this.ikasanComponentType = ikasanComponentType;
     }
 
