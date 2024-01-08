@@ -34,7 +34,7 @@ dependencies {
     implementation("org.freemarker:freemarker:2.3.31")
     implementation("org.ikasan:ikasan-eip-standalone:3.1.0")
     implementation("org.ikasan:ikasan-ftp-endpoint:3.1.0")
-    implementation("org.ikasan:ikasan-h2-standalone-persistence:3.1.0")
+    implementation("org.ikasan:ikasan-h2-standalone-persistence:3.3.3")
     testImplementation("org.freemarker:freemarker:2.3.31")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
     testImplementation("org.ikasan:ikasan-eip-standalone:3.0.1")
