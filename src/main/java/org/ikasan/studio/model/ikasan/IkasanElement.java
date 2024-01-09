@@ -47,6 +47,16 @@ public  class IkasanElement extends IkasanBaseElement {
     }
 
     /**
+     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    @JsonIgnore
+    public String getName() {
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);
+    }
+
+
+    /**
      * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
      * @return the component description
      */
@@ -62,6 +72,19 @@ public  class IkasanElement extends IkasanBaseElement {
         this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
     }
 
+    /**
+     * Return the name of this component in a format that would be appropriate to be used as a component in a package name
+     * @return the package name format of the component name.
+     */
+    @JsonIgnore
+    public String getJavaPackageName() {
+        return StudioUtils.toJavaPackageName(getName());
+    }
+
+    @JsonIgnore
+    public String getJavaVariableName() {
+        return StudioUtils.toJavaIdentifier(getName());
+    }
 
 
     @JsonIgnore
@@ -225,19 +248,7 @@ public  class IkasanElement extends IkasanBaseElement {
         return StudioUtils.toJavaClassName(getComponentName());
     }
 
-    /**
-     * Return the name of this component in a format that would be appropriate to be used as a component in a package name
-     * @return the package name format of the component name.
-     */
-    @JsonIgnore
-    public String getJavaPackageName() {
-        return StudioUtils.toJavaPackageName(getComponentName());
-    }
 
-    @JsonIgnore
-    public String getJavaVariableName() {
-        return StudioUtils.toJavaIdentifier(getComponentName());
-    }
 
 
 

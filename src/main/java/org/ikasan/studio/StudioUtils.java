@@ -1,11 +1,14 @@
 package org.ikasan.studio;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.meta.Element;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 
@@ -17,7 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
+import java.util.stream.Collectors;
 /**
  * Studio Utils
  */
@@ -176,8 +179,15 @@ public class StudioUtils {
     private static final int HELP_INDEX = 13;
     private static final int NUMBER_OF_CONFIGS = 14;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
+    public static final String COMPONENTS_DIR = "/studio/components/";
 
     //@todo should be in IkasanComponentType
+
+    public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> nreadIkasanComponentProperties(String propertiesFile) {
+        return null;
+    }
+
+
     public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
 //        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
         Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
@@ -281,6 +291,21 @@ public class StudioUtils {
             LOG.warn("Could not load the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
         }
         return componentProperties;
+    }
+
+    protected Element deserializeElement(String elementPath) throws IOException {
+        LOG.info("Loading " + elementPath);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Below prevents comments in JSON from causing issues.
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(elementPath);
+        String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining());
+        Element element = objectMapper.readValue(jsonString, Element.class);
+        return element;
     }
 
     private static final int ARTIFACT_ID_INDEX = 0;

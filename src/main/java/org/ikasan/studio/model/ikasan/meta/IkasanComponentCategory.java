@@ -4,6 +4,8 @@ import org.ikasan.studio.StudioUtils;
 
 /**
  * The different elements (components) that might be in a flow
+ * These Categories are fundamental to Ikasan so there is no concern with including them explicitly i.e.
+ * it does not reduce the malleability
  */
 public enum IkasanComponentCategory {
     MODULE(01, "", "org.ikasan.spec.module.Module"),
@@ -18,8 +20,9 @@ public enum IkasanComponentCategory {
     PRODUCER(80, "producer", "org.ikasan.spec.component.endpoint.Producer"),
     ROUTER(50, "router", "router"),
     SPLITTER(60, "splitter", "org.ikasan.spec.component.splitting.Splitter"),
-    TRANSLATER(70, "translater", "translater"),
+    TRANSLATER(70, "translator", "translator"),
     UNKNOWN(100, "unknown", "unknown"),
+    BESPOKE(110, "unknown", "unknown"),
     CONFIGURED_RESOURCE(101, "", "org.ikasan.spec.configuration.ConfiguredResource");
 
     private final Integer displayOrder;
