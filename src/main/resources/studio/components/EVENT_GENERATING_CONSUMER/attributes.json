@@ -1,0 +1,6 @@
+{
+  "componentType": "org.ikasan.spec.component.Consumer",
+  "isBespokeClass": false,
+  "standardBuilderMethod": "eventGeneratingConsumer",
+  "componentType": ""
+}
