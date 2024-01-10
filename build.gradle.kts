@@ -42,7 +42,7 @@ dependencies {
     testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.3.3")
     testImplementation("org.ikasan:ikasan-component-converter:3.1.0")
     testImplementation("org.ikasan:ikasan-test-endpoint:3.3.3")
-    testImplementation("org.ikasan:ikasan-test:3.1.0")
+    testImplementation("org.ikasan:ikasan-test:3.3.3")
     compileOnly ("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     testCompileOnly("org.projectlombok:lombok:1.18.30")
