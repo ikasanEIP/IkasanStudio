@@ -10,7 +10,6 @@ import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.model.ikasan.Module;
 import org.ikasan.studio.model.ikasan.meta.Element;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -183,14 +182,15 @@ public class StudioUtils {
 
     //@todo should be in IkasanComponentType
 
-    public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> nreadIkasanComponentProperties(String propertiesFile) {
+    public static Map<String, IkasanComponentPropertyMeta> nreadIkasanComponentProperties(String propertiesFile) {
         return null;
     }
 
 
-    public static Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
+    public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
 //        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
-        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
+//        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
+        Map<String, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
 //        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
@@ -228,7 +228,9 @@ public class StudioUtils {
                         propertyName = parentChildPropertyNames[1];
                     } /// need to check size here and throw log error
 
-                    IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber);
+//                    IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName, paramGroupNumber);
+//                    IkasanComponentPropertyMetaKey newKey = new IkasanComponentPropertyMetaKey(propertyName);
+                    String newKey = propertyName;
                     if (componentProperties.containsKey(newKey)) {
                         LOG.warn("A property of this key [" + newKey + "] already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
                         continue;
@@ -266,23 +268,27 @@ public class StudioUtils {
 
                     //  default value
                     Object defaultValue = getDefaultValue(split, propertyDataType, line,  propertiesFile);
+
+                    // XXXXX try JSON deserialise here
+
                     IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
                             paramGroupNumber, causesUserCodeRegeneration, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
                             propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
-                    if (parentPropertyName != null) {
+//                    if (parentPropertyName != null) {
                         // Parent child relationship
-                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber);
-                        IkasanComponentPropertyMeta parent = componentProperties.get(parentKey);
-                        if (parent == null) {
-                            componentProperties.put(parentKey, new IkasanComponentPropertyMeta(newKey, ikasanComponentPropertyMeta));
-                        }
-                        else {
-                            parent.addSubProperty(newKey, ikasanComponentPropertyMeta);
-                        }
-                    } else {
+//                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber);
+//                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName);
+//                        IkasanComponentPropertyMeta parent = componentProperties.get(parentKey);
+//                        if (parent == null) {
+//                            componentProperties.put(parentKey, new IkasanComponentPropertyMeta(newKey, ikasanComponentPropertyMeta));
+//                        }
+//                        else {
+//                            parent.addSubProperty(newKey, ikasanComponentPropertyMeta);
+//                        }
+//                    } else {
                         // Simple scenario
                         componentProperties.put(newKey, ikasanComponentPropertyMeta);
-                    }
+//                    }
                 }
             } catch (IOException ioe) {
                 LOG.warn("Could not read the properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");

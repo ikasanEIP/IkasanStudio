@@ -3,7 +3,6 @@ package org.ikasan.studio.generator;
 import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.IOUtils;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,13 +19,13 @@ public class TestUtils {
         return expectedString;
     }
 
-    public static String getConfiguredPropertyValues(Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
+    public static String getConfiguredPropertyValues(Map<String, IkasanComponentProperty> configuredProperties) {
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
-            TreeSet<IkasanComponentPropertyMetaKey> keys = new TreeSet<>(configuredProperties.keySet());
+            TreeSet<String> keys = new TreeSet<>(configuredProperties.keySet());
 
             return keys.stream()
                 .filter(x -> configuredProperties.get(x)!=null)
-                .map(x -> x.getPropertyName() + "->" + configuredProperties.get(x).getValueString())
+                .map(x -> x + "->" + configuredProperties.get(x).getValueString())
                 .collect(Collectors.joining(","));
         }
         return "";

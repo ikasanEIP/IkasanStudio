@@ -109,21 +109,21 @@ public class Module extends IkasanElement {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
     }
     public String getApplicationPortNumber() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME.getPropertyName());
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
     }
     @JsonIgnore
     public void setApplicationPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
     }
     public String getH2PortNumber() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME.getPropertyName());
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME);
     }
     @JsonIgnore
     public void setH2DbPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
     }
     public String getH2WebPortNumber(String applicationPortNumber) {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME.getPropertyName());
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME);
     }    @JsonIgnore
     public void setH2WebPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
