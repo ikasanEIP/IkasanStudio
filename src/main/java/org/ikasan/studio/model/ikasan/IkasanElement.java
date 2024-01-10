@@ -2,12 +2,11 @@ package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.apache.commons.collections.map.HashedMap;
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 
 import java.util.List;
@@ -22,10 +21,10 @@ public  class IkasanElement extends IkasanBaseElement {
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
 //    @JsonPropertyOrder(alphabetic = true)
     @JsonPropertyOrder({"ComponentName", "description"})
-    protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties;
+    protected Map<String, IkasanComponentProperty> configuredProperties;
     public IkasanElement() {}
 
-    protected IkasanElement(IkasanComponentTypeMeta type, Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties) {
+    protected IkasanElement(IkasanComponentTypeMeta type, Map<String, IkasanComponentProperty> configuredProperties) {
         super(type);
         this.configuredProperties = configuredProperties;
     }
@@ -89,26 +88,26 @@ public  class IkasanElement extends IkasanBaseElement {
 
     @JsonIgnore
     public IkasanComponentProperty getProperty(String key) {
-        return configuredProperties.get(new IkasanComponentPropertyMetaKey(key));
-    }
-    @JsonIgnore
-    public IkasanComponentProperty getProperty(IkasanComponentPropertyMetaKey key) {
         return configuredProperties.get(key);
     }
+//    @JsonIgnore
+//    public IkasanComponentProperty getProperty(String key) {
+//        return configuredProperties.get(key);
+//    }
     @JsonIgnore
     public Object getPropertyValue(String key) {
-        return getPropertyValue(new IkasanComponentPropertyMetaKey(key));
+        return getPropertyValue(key);
     }
 
 //    @JsonIgnore
 //    public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
 //        return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
 //    }
-    @JsonIgnore
-    public Object getPropertyValue(IkasanComponentPropertyMetaKey key) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-        return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
-    }
+//    @JsonIgnore
+//    public Object getPropertyValue(String key) {
+//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+//        return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
+//    }
 
 
 
@@ -118,22 +117,22 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        updatePropertyValue(new IkasanComponentPropertyMetaKey(key), value);
+        updatePropertyValue(key, value);
     }
-
-    /**
-     * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
-     * @param key of the data to be updated
-     * @param value for the updated property
-     */
-    public void updatePropertyValue(IkasanComponentPropertyMetaKey key, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-        if (ikasanComponentProperty != null) {
-            ikasanComponentProperty.setValue(value);
-        } else {
-            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
-        }
-    }
+//
+//    /**
+//     * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
+//     * @param key of the data to be updated
+//     * @param value for the updated property
+//     */
+//    public void updatePropertyValue(String key, Object value) {
+//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+//        if (ikasanComponentProperty != null) {
+//            ikasanComponentProperty.setValue(value);
+//        } else {
+//            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
+//        }
+//    }
 
     /**
      * This setter should be used if we think the property might not already be set but will require the correct meta data
@@ -141,7 +140,7 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param properyMeta for the property
      * @param value for the property
      */
-    public void setPropertyValue(IkasanComponentPropertyMetaKey key, IkasanComponentPropertyMeta properyMeta, Object value) {
+    public void setPropertyValue(String key, IkasanComponentPropertyMeta properyMeta, Object value) {
         IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
@@ -157,38 +156,38 @@ public  class IkasanElement extends IkasanBaseElement {
      */
     public void setPropertyValue(String key, Object value) {
         // If we are stating a string key on its own, assume its the simple version.
-        setPropertyValue(new IkasanComponentPropertyMetaKey(key), value);
+        setPropertyValue(key, value);
     }
 
-    /**
-     * This setter should be used if we think the property might not already be set but will require the correct meta data
-     * @param key of the property to be updated
-     * @param value for the property
-     */
-    public void setPropertyValue(IkasanComponentPropertyMetaKey key, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-        if (ikasanComponentProperty != null) {
-            ikasanComponentProperty.setValue(value);
-        } else {
-            IkasanComponentPropertyMeta properyMeta = getIkasanComponentTypeMeta().getMetadata(key);
-            if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentTypeMeta() + " this property will be ignored.");
-            } else {
-                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentTypeMeta().getMetadata(key), value));
-            }
-        }
-    }
+//    /**
+//     * This setter should be used if we think the property might not already be set but will require the correct meta data
+//     * @param key of the property to be updated
+//     * @param value for the property
+//     */
+//    public void setPropertyValue(String key, Object value) {
+//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+//        if (ikasanComponentProperty != null) {
+//            ikasanComponentProperty.setValue(value);
+//        } else {
+//            IkasanComponentPropertyMeta properyMeta = getIkasanComponentTypeMeta().getMetadata(key);
+//            if (properyMeta == null) {
+//                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentTypeMeta() + " this property will be ignored.");
+//            } else {
+//                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentTypeMeta().getMetadata(key), value));
+//            }
+//        }
+//    }
 
     /**
      * remove a property for the given key
      * @param key of the property to be updated
      */
     public void removeProperty(String key) {
-        configuredProperties.remove(new IkasanComponentPropertyMetaKey(key));
+        configuredProperties.remove(key);
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getConfiguredProperties() {
+    public Map<String, IkasanComponentProperty> getConfiguredProperties() {
         return configuredProperties;
     }
 
@@ -220,10 +219,10 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return the Map of standard properties for this component.
      */
     @JsonIgnore
-    public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getStandardConfiguredProperties() {
-        Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> standardProperties = new HashedMap();
+    public Map<String, IkasanComponentProperty> getStandardConfiguredProperties() {
+        Map<String, IkasanComponentProperty> standardProperties = new HashedMap();
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
-            for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
+            for (Map.Entry<String, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
                 if (! IkasanComponentPropertyMeta.NAME.equals(entry.getKey()) && !(IkasanComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
                 }
@@ -232,11 +231,11 @@ public  class IkasanElement extends IkasanBaseElement {
         return standardProperties;
     }
 
-    public void addAllProperties(Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> newProperties) {
+    public void addAllProperties(Map<String, IkasanComponentProperty> newProperties) {
         configuredProperties.putAll(newProperties);
     }
     public void addComponentProperty(String key, IkasanComponentProperty value) {
-        configuredProperties.put(new IkasanComponentPropertyMetaKey(key), value);
+        configuredProperties.put(key, value);
     }
 
     /**

@@ -26,10 +26,10 @@ public abstract class IkasanBaseElement {
     public String getConponentType() {
         return this.ikasanComponentTypeMeta.getComponentType();
     }
-//    @JsonIgnore
-//    public ViewHandler getViewHandler() {
-//        return viewHandler;
-//    }
+    @JsonIgnore
+    public ViewHandler getViewHandler() {
+        return viewHandler;
+    }
 //
 //
 //    public IkasanComponentType getType() {

@@ -93,7 +93,7 @@ public enum IkasanComponentTypeMeta implements Serializable {
 //    public final IkasanComponentDependency componentDependency;
     @JsonIgnore
     final
-    Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> metadataMap;
+    Map<String, IkasanComponentPropertyMeta> metadataMap;
 
     /**
      * Represents a flow element e.g. JMS Consumer, DB Consumer et
@@ -117,17 +117,18 @@ public enum IkasanComponentTypeMeta implements Serializable {
      * Get a list of the mandatory properties for this component.
      * @return A map of the mandatory properties for this component
      */
-    public Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> getMandatoryProperties() {
-        Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
-        for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
-            if (!entry.getValue().subProperties && entry.getValue().isMandatory()) {
+    public Map<String, IkasanComponentProperty> getMandatoryProperties() {
+        Map<String, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
+        for (Map.Entry<String, IkasanComponentPropertyMeta> entry : metadataMap.entrySet()) {
+//            if (!entry.getValue().subProperties && entry.getValue().isMandatory()) {
+            if (entry.getValue().isMandatory()) {
                 mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
             }
         }
         return mandatoryProperties;
     }
 
-    public Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> getMetadataMap() {
+    public Map<String, IkasanComponentPropertyMeta> getMetadataMap() {
         return metadataMap;
     }
 
@@ -138,16 +139,16 @@ public enum IkasanComponentTypeMeta implements Serializable {
 
     public List<IkasanComponentPropertyMeta> getMetadataList(String propertyName) {
         List<IkasanComponentPropertyMeta> metadataList = new ArrayList<>();
-        IkasanComponentPropertyMeta meta = metadataMap.get(new IkasanComponentPropertyMetaKey(propertyName));
-        if (meta.hasSubProperties()) {
-            metadataList = new ArrayList<>(meta.getSubProperties().values());
-        } else {
+        IkasanComponentPropertyMeta meta = metadataMap.get(propertyName);
+//        if (meta.hasSubProperties()) {
+//            metadataList = new ArrayList<>(meta.getSubProperties().values());
+//        } else {
             metadataList.add(meta);
-        }
+//        }
         return metadataList;
     }
 
-    public IkasanComponentPropertyMeta getMetadata(IkasanComponentPropertyMetaKey propertyName) {
+    public IkasanComponentPropertyMeta getMetadata(String propertyName) {
         return metadataMap.get(propertyName);
     }
 
@@ -162,7 +163,7 @@ public enum IkasanComponentTypeMeta implements Serializable {
      */
     public List<String> getPropertyNames() {
         return metadataMap.keySet().stream()
-                .map(IkasanComponentPropertyMetaKey::getPropertyName).distinct().collect(Collectors.toList());
+                .distinct().collect(Collectors.toList());
 
 //        Set<String> uniqueProperties = new HashSet<>();
 //        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
@@ -176,8 +177,9 @@ public enum IkasanComponentTypeMeta implements Serializable {
      * @return true if there exists a property with the same name as the supplied property
      */
     public boolean hasProperty(String propertyName) {
-        return metadataMap.keySet().stream()
-                .anyMatch(x->x.getPropertyName().equals(propertyName));
+        return metadataMap.containsKey(propertyName);
+//        return metadataMap.keySet().stream()
+//                .anyMatch(x->x.getPropertyName().equals(propertyName));
 //        for(IkasanComponentPropertyMetaKey key : metadataMap.keySet()) {
 //            if (key.getPropertyName().equals(propertyName)) {
 //                return true;
@@ -186,7 +188,7 @@ public enum IkasanComponentTypeMeta implements Serializable {
 //        return false;
     }
 
-    public IkasanComponentPropertyMeta getMetaDataForPropertyName(final IkasanComponentPropertyMetaKey propertyName) {
+    public IkasanComponentPropertyMeta getMetaDataForPropertyName(final String propertyName) {
         return metadataMap.get(propertyName);
     }
 

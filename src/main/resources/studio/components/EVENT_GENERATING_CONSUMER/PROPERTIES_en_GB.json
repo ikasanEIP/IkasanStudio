@@ -1,0 +1,17 @@
+{
+  "properties": [
+    {
+      "propertyName": "Name",
+      "paramGroupNumber": 1,
+      "isConfigMandatory": true,
+      "propertyDataType": "java.lang.String",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
+    },
+    {
+      "propertyName": "Description",
+      "paramGroupNumber": 1,
+      "propertyDataType": "java.lang.String",
+      "helpText": "A more detailed description of the component that may assist in support.."
+    }
+  ]
+}

@@ -5,10 +5,10 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.IkasanElement;
+import org.ikasan.studio.model.ikasan.IkasanFlowBeskpokeElement;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetaKey;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -105,8 +105,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
             if (!getSelectedComponent().getIkasanComponentTypeMeta().getMetadataMap().isEmpty()) {
-                for (Map.Entry<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> entry : getSelectedComponent().getIkasanComponentTypeMeta().getMetadataMap().entrySet()) {
-                    IkasanComponentPropertyMetaKey key = entry.getKey();
+                for (Map.Entry<String, IkasanComponentPropertyMeta> entry : getSelectedComponent().getIkasanComponentTypeMeta().getMetadataMap().entrySet()) {
+                    String key = entry.getKey();
                     if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
                         IkasanComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
