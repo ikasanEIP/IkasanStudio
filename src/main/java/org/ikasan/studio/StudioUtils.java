@@ -1,15 +1,19 @@
 package org.ikasan.studio;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
+import org.ikasan.studio.io.GenericPojo;
+import org.ikasan.studio.io.PojoDeserialisation;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.model.ikasan.Module;
 import org.ikasan.studio.model.ikasan.meta.Element;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetan;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -182,8 +186,16 @@ public class StudioUtils {
 
     //@todo should be in IkasanComponentType
 
-    public static Map<String, IkasanComponentPropertyMeta> nreadIkasanComponentProperties(String propertiesFile) {
-        return null;
+    public static Map<String, IkasanComponentPropertyMetan> nreadIkasanComponentProperties(String propertiesFile) throws IOException {
+        // Loop through all components in COMPONENTS_DIR, user dir as key
+
+        String component = "EVENT_GENERATING_CONSUMER";
+        Map<String, IkasanComponentPropertyMetan> componentProperties = new LinkedHashMap<>();
+//        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(COMPONENTS_DIR + "/" + component + "/attributes.json",
+        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(propertiesFile,
+                new TypeReference<GenericPojo<IkasanComponentPropertyMetan>>() {});
+        componentProperties.put(component, ikasanComponentPropertyMetan1);
+        return componentProperties;
     }
 
 
@@ -313,6 +325,7 @@ public class StudioUtils {
         Element element = objectMapper.readValue(jsonString, Element.class);
         return element;
     }
+
 
     private static final int ARTIFACT_ID_INDEX = 0;
     private static final int GROUP_ID_INDEX = 1;

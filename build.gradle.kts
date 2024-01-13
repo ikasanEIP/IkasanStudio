@@ -31,12 +31,17 @@ repositories {
     //jcenter()
 }
 dependencies {
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+
     implementation("org.freemarker:freemarker:2.3.32")
     implementation("org.ikasan:ikasan-eip-standalone:3.3.3")
     implementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
     implementation("org.ikasan:ikasan-h2-standalone-persistence:3.3.3")
+
     testImplementation("org.freemarker:freemarker:2.3.32")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
+
     testImplementation("org.ikasan:ikasan-eip-standalone:3.3.3")
     testImplementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
     testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.3.3")
@@ -47,6 +52,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     testCompileOnly("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+
+
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
@@ -57,7 +64,6 @@ kotlin {
         vendor = JvmVendorSpec.JETBRAINS
     }
 }
-
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -70,14 +76,6 @@ intellij {
     pluginName = properties("pluginName")
     version = properties("platformVersion")
     type = properties("platformType")
-//    downloadSources = properties("platformDownloadSources")
-
-    //pluginName.set(properties("pluginName"))
-    //version.set(properties("platformVersion"))
-    //type.set(properties("platformType"))
-//    downloadSources.set(properties("platformDownloadSources").toBoolean())
-   //updateSinceUntilBuild.set(true)
-
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
 }
@@ -88,18 +86,6 @@ changelog {
     repositoryUrl = properties("pluginRepositoryUrl")
 }
 
-// Configure detekt plugin.
-// Read more: https://detekt.github.io/detekt/kotlindsl.html
-//detekt {
-//    config = files("./detekt-config.yml")
-//    buildUponDefaultConfig = true
-
-//    reports {
-//        html.enabled = false
-//        xml.enabled = false
-//        txt.enabled = false
-//    }
-//}
 // Configure Gradle Qodana Plugin - read more: https://github.com/JetBrains/gradle-qodana-plugin
 qodana {
     cachePath = provider { file(".qodana").canonicalPath }
@@ -126,10 +112,6 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
     }
-
-//    withType<Detekt> {
-//        jvmTarget = "1.8"
-//    }
 
     wrapper {
         gradleVersion = properties("gradleVersion").get()
@@ -193,7 +175,9 @@ tasks {
         channels = properties("pluginVersion").map { listOf(it.split('-').getOrElse(1) { "default" }.split('.').first()) }
     }
 
-
+    test {
+        useJUnitPlatform()
+    }
     // This seems quite brittle, to test, IJ requires to state the local path of where intellij community source code is installed.
 //    test {
 // //        systemProperty("idea.home.path", "/dev/ws/intellij-community-193.7288")

@@ -1,6 +1,5 @@
 package org.ikasan.studio.model.ikasan.meta;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
@@ -8,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import java.util.regex.Pattern;
 
 @Data
-@Builder
+//@Builder
 @Jacksonized
 /**
  * Represents all the possible properties an Ikasan component is allowed to have
@@ -70,6 +69,7 @@ public class IkasanComponentPropertyMetan {
     private Object defaultValue;
     private String helpText;
 
+    public IkasanComponentPropertyMetan() {}
    /**
     * A IkasanComponentPropertyMeta could be a leaf i.e. hold a single set of metadata or could nest another set of metadata
     *

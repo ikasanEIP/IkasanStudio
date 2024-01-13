@@ -1,15 +1,5 @@
 package org.ikasan.studio.model;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.ProjectScope;
-import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.Module;
-import org.junit.Assert;
-import org.junit.Test;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-
 /**
  * This test class is intended to be used to cover features not explicitly covered by one of the Ikasan Blueprint tests.
  */
@@ -29,21 +19,18 @@ public class PIPSIIkasanModelOtherTest extends PIPSIIkasanModelAbstractTest {
         return "/other/";
     }
 
-
-    @Test
-    public void test_parse_of_other_standard_module() {
-        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
-        final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleFactory", ProjectScope.getAllScope(myProject));
-        Assert.assertThat(moduleConfigClass, is(notNullValue()));
-        pipsiIkasanModel.setModuleConfigClazz(moduleConfigClass);
-//        pipsiIkasanModel.updateIkasanModuleFromSourceCode();
-
-        Assert.assertThat(ikasanModule.getComponentName(), is("myIntegrationModule"));
-        Assert.assertThat(ikasanModule.getDescription(), is("My test module."));
-        Assert.assertThat(ikasanModule.getFlows().size(), is(1));
-        Assert.assertThat(ikasanModule.getFlows().get(0).getComponentName(), is("myTestFlow"));
-        Assert.assertThat(ikasanModule.getFlows().get(0).getFlowComponentList().size(), is(1));
-
-    }
-
+    // @TODO this will migrate to JSON test
+//    @Test
+//    public void test_parse_of_other_standard_module() {
+//        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
+//        final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleFactory", ProjectScope.getAllScope(myProject));
+//        Assert.assertThat(moduleConfigClass, is(notNullValue()));
+//        pipsiIkasanModel.setModuleConfigClazz(moduleConfigClass);
+//
+//        Assert.assertThat(ikasanModule.getComponentName(), is("myIntegrationModule"));
+//        Assert.assertThat(ikasanModule.getDescription(), is("My test module."));
+//        Assert.assertThat(ikasanModule.getFlows().size(), is(1));
+//        Assert.assertThat(ikasanModule.getFlows().get(0).getComponentName(), is("myTestFlow"));
+//        Assert.assertThat(ikasanModule.getFlows().get(0).getFlowComponentList().size(), is(1));
+//    }
 }

@@ -16,7 +16,7 @@ public enum ElementMeta implements Serializable {
 
     ElementMeta() {
         elements = new ArrayList<>();
-        StudioUtils.nreadIkasanComponentProperties("");
+//        StudioUtils.nreadIkasanComponentProperties("");
     }
 
     public static final List<Element> getElementMeta() {

@@ -147,9 +147,6 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
                 }
         );
 
-
-
-
         IkasanPomModel updatedPom = StudioPsiUtils.pomLoad(myProject) ;
         Assert.assertThat(updatedPom.hasDependency(dependency), is(true));
         Assert.assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_SOURCE), is("1.8"));
@@ -202,36 +199,4 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         //JavaDirectoryService.createClass(PsiDirectory dir, String name, String templateName)  -- allows to create a java cla
     }
 
-
-
-//    @Test
-//    public void testGetMethodsByReturnType() {
-//        // Technically, we could have found any one of the methods in ikasaSource/*
-//        PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myProject, "org.ikasan.spec.module.Module");
-//        Assert.assertThat(methodFound, is(notNullValue()));
-//        Assert.assertThat(methodFound.getComponentName(), is("getModule"));
-//    }
-// Test failing in Github server
-//    public void testSCR22368_1() {
-//        JavaPsiFacadeEx facade =myJavaFacade;
-////        JavaPsiFacadeEx facade = JavaPsiFacadeEx.getInstanceEx(getProject());
-//        PsiElementFactory factory = facade.getElementFactory();
-//        PsiClass aClass = factory.createClass("X");
-//        PsiMethod methodFromText = factory.createMethodFromText("void method() {\n" +
-//                "    IntelliJIDEARulezz<\n" +
-//                "}", null);
-//        PsiMethod method = (PsiMethod)aClass.add(methodFromText);
-//        PsiCodeBlock body = method.getBody();
-//        assertNotNull(body);
-//        PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement)body.getStatements()[0];
-//        PsiJavaCodeReferenceElement referenceElement = (PsiJavaCodeReferenceElement)declarationStatement.getFirstChild().getFirstChild();
-//        PsiClass javaUtilListClass = facade.findClass(CommonClassNames.JAVA_UTIL_LIST);
-//
-//        assertNotNull(javaUtilListClass);
-//        PsiElement resultingElement = referenceElement.bindToElement(javaUtilListClass);
-//        assertEquals("List<", resultingElement.getText());
-//        assertEquals("void method() {\n" +
-//                "    List<\n" +
-//                "}", method.getText());
-//    }
 }
