@@ -94,22 +94,31 @@ public  class IkasanElement extends IkasanBaseElement {
 //    public IkasanComponentProperty getProperty(String key) {
 //        return configuredProperties.get(key);
 //    }
-    @JsonIgnore
-    public Object getPropertyValue(String key) {
-        return getPropertyValue(key);
-    }
-
+//    @JsonIgnore
+//    public Object getPropertyValue(String key) {
+//        return getPropertyValue(key);
+//    }
+//
 //    @JsonIgnore
 //    public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
 //        return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
 //    }
-//    @JsonIgnore
-//    public Object getPropertyValue(String key) {
-//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-//        return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
+    @JsonIgnore
+    public Object getPropertyValue(String key) {
+        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
+    }
+
+
+
+//    /**
+//     * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
+//     * @param key of the data to be updated
+//     * @param value for the updated property
+//     */
+//    public void updatePropertyValue(String key, Object value) {
+//        updatePropertyValue(key, value);
 //    }
-
-
 
     /**
      * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
@@ -117,22 +126,13 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        updatePropertyValue(key, value);
+        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        if (ikasanComponentProperty != null) {
+            ikasanComponentProperty.setValue(value);
+        } else {
+            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
+        }
     }
-//
-//    /**
-//     * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
-//     * @param key of the data to be updated
-//     * @param value for the updated property
-//     */
-//    public void updatePropertyValue(String key, Object value) {
-//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-//        if (ikasanComponentProperty != null) {
-//            ikasanComponentProperty.setValue(value);
-//        } else {
-//            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
-//        }
-//    }
 
     /**
      * This setter should be used if we think the property might not already be set but will require the correct meta data
@@ -149,34 +149,34 @@ public  class IkasanElement extends IkasanBaseElement {
         }
     }
 
-    /**
-     * This setter should be used if we think the property might not already be set but will require the correct meta data
-     * @param key of the property to be updated
-     * @param value for the property
-     */
-    public void setPropertyValue(String key, Object value) {
-        // If we are stating a string key on its own, assume its the simple version.
-        setPropertyValue(key, value);
-    }
-
 //    /**
 //     * This setter should be used if we think the property might not already be set but will require the correct meta data
 //     * @param key of the property to be updated
 //     * @param value for the property
 //     */
 //    public void setPropertyValue(String key, Object value) {
-//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-//        if (ikasanComponentProperty != null) {
-//            ikasanComponentProperty.setValue(value);
-//        } else {
-//            IkasanComponentPropertyMeta properyMeta = getIkasanComponentTypeMeta().getMetadata(key);
-//            if (properyMeta == null) {
-//                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentTypeMeta() + " this property will be ignored.");
-//            } else {
-//                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentTypeMeta().getMetadata(key), value));
-//            }
-//        }
+//        // If we are stating a string key on its own, assume its the simple version.
+//        configuredProperties.put(key, new IkasanComponentProperty( value));
 //    }
+
+    /**
+     * This setter should be used if we think the property might not already be set but will require the correct meta data
+     * @param key of the property to be updated
+     * @param value for the property
+     */
+    public void setPropertyValue(String key, Object value) {
+        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        if (ikasanComponentProperty != null) {
+            ikasanComponentProperty.setValue(value);
+        } else {
+            IkasanComponentPropertyMeta properyMeta = getIkasanComponentTypeMeta().getMetadata(key);
+            if (properyMeta == null) {
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentTypeMeta() + " this property will be ignored.");
+            } else {
+                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentTypeMeta().getMetadata(key), value));
+            }
+        }
+    }
 
     /**
      * remove a property for the given key
