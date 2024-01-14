@@ -107,7 +107,7 @@ tasks {
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "17"
-        targetCompatibility = "1.8"
+        targetCompatibility = "17"
     }
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
