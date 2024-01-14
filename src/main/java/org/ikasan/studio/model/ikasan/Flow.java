@@ -1,7 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.model.ik.Transition;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentCategory;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
@@ -17,8 +16,8 @@ public class Flow extends IkasanElement {
     String flowStartupType;
     String flowStartupComment;
     org.ikasan.studio.model.ik.FlowElement consumer;
-    List<Transition> transitions;
-    List<org.ikasan.studio.model.ik.FlowElement> flowElements;
+//    List<Transition> transitions;
+//    List<org.ikasan.studio.model.ik.FlowElement> flowElements;
 
     private FlowElement input;
 
@@ -39,8 +38,8 @@ public class Flow extends IkasanElement {
         return flowComponentList;
     }
 
-    public boolean addFlowComponent(FlowElement ikasanFlowComponent) {
-        return flowComponentList.add(ikasanFlowComponent);
+    public void addFlowComponent(FlowElement ikasanFlowComponent) {
+        flowComponentList.add(ikasanFlowComponent);
     }
 
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
@@ -51,17 +50,13 @@ public class Flow extends IkasanElement {
 
     /**
      * Return true if it is valid to add the supplied component
-     * @param newComponent
-     * @return
+     * @param newComponent to br added
+     * @return true if component valid to be added
      */
     public boolean isValidToAdd(IkasanComponentTypeMeta newComponent) {
-        boolean isValid = true ;
-        if (newComponent != null &&
-            (hasConsumer() && IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory()) ||
-            hasProducer() && IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory()))) {
-            isValid = false;
-        }
-        return isValid;
+        return newComponent == null ||
+                ((!hasConsumer() || !IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory())) &&
+                        (!hasProducer() || !IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory())));
     }
 
     /**
@@ -90,13 +85,13 @@ public class Flow extends IkasanElement {
             status += "The flow needs a consumer";
         }
         if (! hasProducer()) {
-            if (status.length() > 0) {
+            if (!status.isEmpty()) {
                 status += " and a producer";
             } else {
                 status += "The flow needs a producer";
             }
         }
-        if (status.length() > 0) {
+        if (!status.isEmpty()) {
             status += " to be complete.";
         }
         return status;
