@@ -192,8 +192,13 @@ public class StudioUtils {
         String component = "EVENT_GENERATING_CONSUMER";
         Map<String, IkasanComponentPropertyMetan> componentProperties = new LinkedHashMap<>();
 //        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(COMPONENTS_DIR + "/" + component + "/attributes.json",
-        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(propertiesFile,
-                new TypeReference<GenericPojo<IkasanComponentPropertyMetan>>() {});
+        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = null;
+        try {
+            ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(propertiesFile,
+                    new TypeReference<GenericPojo<IkasanComponentPropertyMetan>>() {});
+        } catch (StudioException e) {
+            throw new RuntimeException(e);
+        }
         componentProperties.put(component, ikasanComponentPropertyMetan1);
         return componentProperties;
     }
@@ -222,7 +227,7 @@ public class StudioUtils {
                         continue;
                     }
 
-                    Integer paramGroupNumber = 1;
+                    int paramGroupNumber = 1;
                     try {
                         paramGroupNumber = Integer.parseInt(split[PARAM_GROUP_NUMBER]);
 
