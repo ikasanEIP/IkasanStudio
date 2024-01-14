@@ -104,13 +104,12 @@ koverReport {
 }
 
 tasks {
-    // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"
     }
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
 
     wrapper {
