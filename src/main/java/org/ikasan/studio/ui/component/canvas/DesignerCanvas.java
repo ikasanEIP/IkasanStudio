@@ -13,7 +13,7 @@ import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta.EXCEPTION_RESOLVER;
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta.EXCEPTION_RESOLVER;
 
 /**
  * The main painting / design panel
@@ -370,7 +370,7 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                String issue = targetFlow.issueCausedByAdding(ikasanFlowUIComponent.getIkasanComponentType());
+                String issue = targetFlow.issueCausedByAdding(ikasanFlowUIComponent.getIkasanComponentMeta());
                 if (issue.isEmpty()) {
                     if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
                         ikasanFlowViewHandler.setFlowReceptiveMode();
@@ -432,7 +432,7 @@ public class DesignerCanvas extends JPanel {
      * @param ikasanComponentType to be added
      * @return true of we managed to add the component.
      */
-    public boolean requestToAddComponent(int x, int y, IkasanComponentTypeMeta ikasanComponentType) {
+    public boolean requestToAddComponent(int x, int y, IkasanComponentMeta ikasanComponentType) {
         if (x >= 0 && y >=0 && ikasanComponentType != null) {
             IkasanElement ikasanComponent = getComponentAtXY(x,y);
             IkasanElement newComponent;
@@ -487,7 +487,7 @@ public class DesignerCanvas extends JPanel {
      * @param containingFlow that will hold this component
      * @return the fully populated component or null if the action was cancelled.
      */
-    private FlowElement createViableFlowComponent(IkasanComponentTypeMeta ikasanComponentType, Flow containingFlow) {
+    private FlowElement createViableFlowComponent(IkasanComponentMeta ikasanComponentType, Flow containingFlow) {
         FlowElement newComponent = FlowElement.getElement(ikasanComponentType, containingFlow);
         if (EXCEPTION_RESOLVER.equals(ikasanComponentType)) {
             return (FlowElement)createExceptionResolver(newComponent);
@@ -548,7 +548,7 @@ public class DesignerCanvas extends JPanel {
      * @param x location of the drop
      * @param y location of the drop
      */
-    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, IkasanComponentTypeMeta ikasanComponentType, int x, int y) {
+    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, IkasanComponentMeta ikasanComponentType, int x, int y) {
         // insert new component between surrounding pari
         Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
         List<FlowElement> components = containingFlow.getFlowComponentList() ;

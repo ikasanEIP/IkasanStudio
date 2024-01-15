@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.model.ikasan.IkasanBaseElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +16,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
     List<IkasanComponentProperty> params;
 
     public IkasanExceptionResolution(IkasanExceptionResolver parent) {
-        super(IkasanComponentTypeMeta.ON_EXCEPTION);
+        super(IkasanComponentMeta.ON_EXCEPTION);
         this.parent = parent;
     }
 
@@ -24,7 +25,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
     }
 
     public IkasanExceptionResolution(String theException, String theAction, List<IkasanComponentProperty> params) {
-        super(IkasanComponentTypeMeta.ON_EXCEPTION);
+        super(IkasanComponentMeta.ON_EXCEPTION);
         this.theException = theException;
         this.theAction = theAction;
         this.params = params;

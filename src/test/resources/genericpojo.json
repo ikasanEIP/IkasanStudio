@@ -7,10 +7,17 @@
     "field1Long": 2,
     "field1Double": 1.1,
     "field1Float": 2.2,
-    "field1Subclass" :
-    {
+    "field1Subclass": {
       "field1SubclassString": "This is expected",
       "field2SubclassString": "This is not expected"
+    },
+    "field1Map": {
+      "key1": {
+        "field1SubclassString": "value1"
+      },
+      "key2": {
+        "field1SubclassString": "value2"
+      }
     }
   }
 }

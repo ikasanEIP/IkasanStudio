@@ -9,6 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 @AllArgsConstructor
-public class MyGenericSubClass {
+public class MyGenericOtherClass {
     String field1SubclassString;
 }

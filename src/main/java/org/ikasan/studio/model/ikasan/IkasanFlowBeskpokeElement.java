@@ -1,6 +1,6 @@
 package org.ikasan.studio.model.ikasan;
 
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 public class IkasanFlowBeskpokeElement extends FlowElement {
     private boolean overrideEnabled;
@@ -13,7 +13,7 @@ public class IkasanFlowBeskpokeElement extends FlowElement {
      * @param description of the element
      * @param overrideEnabled to allow the bespoke class to be regenerated from the template
      */
-    public IkasanFlowBeskpokeElement(IkasanComponentTypeMeta type, Flow parent, String name, String description, boolean overrideEnabled) {
+    public IkasanFlowBeskpokeElement(IkasanComponentMeta type, Flow parent, String name, String description, boolean overrideEnabled) {
         super (type, parent, name, description);
         this.overrideEnabled = overrideEnabled;
     }
@@ -24,7 +24,7 @@ public class IkasanFlowBeskpokeElement extends FlowElement {
      * @param parent flow that contains this element
      * @param overrideEnabled to allow the bespoke class to be regenerated from the template
      */
-    public IkasanFlowBeskpokeElement(IkasanComponentTypeMeta type, Flow parent, boolean overrideEnabled) {
+    public IkasanFlowBeskpokeElement(IkasanComponentMeta type, Flow parent, boolean overrideEnabled) {
         super(type, parent);
         this.overrideEnabled = overrideEnabled;
     }

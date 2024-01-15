@@ -7,7 +7,7 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.model.ikasan.IkasanFlowBeskpokeElement;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import javax.swing.*;

@@ -19,7 +19,7 @@ public class IkasanExceptionResolver extends FlowElement {
      * @param parent flow that contains this exceptions resolver
      */
     public IkasanExceptionResolver(Flow parent) {
-        super(IkasanComponentTypeMeta.EXCEPTION_RESOLVER, parent);
+        super(IkasanComponentMeta.EXCEPTION_RESOLVER, parent);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 

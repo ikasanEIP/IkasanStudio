@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.model.ikasan.Module;

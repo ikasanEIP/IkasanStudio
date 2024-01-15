@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.IOUtils;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 
 import java.io.IOException;
 import java.io.InputStream;
