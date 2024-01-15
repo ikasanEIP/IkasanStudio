@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.Map;
+
 @Data
 @Builder
 @Jacksonized
@@ -16,7 +18,7 @@ public class MyGenericClass {
     public Long field1Long;
     public Double field1Double;
     public Float field1Float;
-    MyGenericSubClass field1Subclass;
+    MyGenericOtherClass field1Subclass;
 
     public String unsuppliedField1String;
     public Boolean unsuppliedField1Boolean;
@@ -24,11 +26,13 @@ public class MyGenericClass {
     public Long unsuppliedField1Long;
     public Double unsuppliedField1Double;
     public Float unsuppliedField1Float;
-    MyGenericSubClass unsuppliedField1Subclass;
+    MyGenericOtherClass unsuppliedField1Subclass;
 
     public boolean unsuppliedPrimitiveField1Boolean;
     public int unsuppliedPrimitiveField1Int;
     public long unsuppliedPrimitiveField1Long;
     public double unsuppliedPrimitiveField1Double;
     public float unsuppliedPrimitiveField1Float;
+
+    Map<String, MyGenericOtherClass> field1Map;
 }

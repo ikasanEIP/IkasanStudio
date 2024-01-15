@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.model;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 import javax.swing.*;
 import java.net.URL;
@@ -52,74 +52,74 @@ public class IkasanFlowUIComponentFactory {
     private static final String WEB_URL_BASE = "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/";
 
     private IkasanFlowUIComponentFactory() {
-        UNKNOWN = createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.UNKNOWN, "unknown");
+        UNKNOWN = createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.UNKNOWN, "unknown");
         //@todo add in link to online ikasan help
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Flow",FLOW_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.FLOW, "flow"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Flow",FLOW_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.FLOW, "flow"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Aggregator","Aggregator is an ipsum", DEFAULT_README, IkasanComponentTypeMeta.UNKNOWN, "aggregator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Aggregator","Aggregator is an ipsum", DEFAULT_README, IkasanComponentMeta.UNKNOWN, "aggregator"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/ConcurrentSplitter.md", IkasanComponentTypeMeta.SPLITTER, "splitter"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("List Splitter", SPLITTER_HELP_TEXT, "splitter/DefaultSplitter.md", IkasanComponentTypeMeta.LIST_SPLITTER, "splitter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Splitter", SPLITTER_HELP_TEXT, "splitter/ConcurrentSplitter.md", IkasanComponentMeta.SPLITTER, "splitter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("List Splitter", SPLITTER_HELP_TEXT, "splitter/DefaultSplitter.md", IkasanComponentMeta.LIST_SPLITTER, "splitter"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Resolver", EXCEPTION_RESOLVER_HELP_TEXT, "hospital/Readme.md", IkasanComponentTypeMeta.EXCEPTION_RESOLVER, "exception-resolver"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Resolver", EXCEPTION_RESOLVER_HELP_TEXT, "hospital/Readme.md", IkasanComponentMeta.EXCEPTION_RESOLVER, "exception-resolver"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.BROKER, "broker"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Generating Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.EXCEPTION_GENERATING_BROKER, "broker"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Delay Generation Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.DELAY_GENERATION_BROKER, "broker"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("DB Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.DB_BROKER, "broker"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Schedule Rule Check Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.SCHEDULE_RULE_CHECK_BROKER, "broker"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.BROKER, "broker"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Exception Generating Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.EXCEPTION_GENERATING_BROKER, "broker"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Delay Generation Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.DELAY_GENERATION_BROKER, "broker"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("DB Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.DB_BROKER, "broker"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Schedule Rule Check Broker", BROKER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.SCHEDULE_RULE_CHECK_BROKER, "broker"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Channel", CHANNEL_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.CHANNEL, "channel"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Channel Adapter", CHANNEL_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.CHANNEL, "channel-adapter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Channel", CHANNEL_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.CHANNEL, "channel"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Channel Adapter", CHANNEL_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.CHANNEL, "channel-adapter"));
 
 //        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Driven Consumer", CONSUMER_HELP_TEXT, DEFAULT_README, IkasanComponentType.EVENT_DRIVEN_CONSUMER, "event-driven-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Generating Consumer", CONSUMER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.EVENT_GENERATING_CONSUMER, "event-driven-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Scheduled Consumer", SCHEDULED_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/Readme.md", IkasanComponentTypeMeta.SCHEDULED_CONSUMER, "scheduled-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Consumer", FTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/ftp/consumer.md", IkasanComponentTypeMeta.FTP_CONSUMER, "ftp-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Consumer", SFTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/sftp/consumer.md", IkasanComponentTypeMeta.SFTP_CONSUMER, "sftp-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Local File Consumer", LOCAL_FILE_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/localFileConsumer.md", IkasanComponentTypeMeta.LOCAL_FILE_CONSUMER, "local-file-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Mongo Consumer", MONGO_CONSUMER_HELP_TEXT, "endpoint/mongo-endpoint/Readme.md", IkasanComponentTypeMeta.MONGO_CONSUMER, "mongo-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Event Generating Consumer", CONSUMER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.EVENT_GENERATING_CONSUMER, "event-driven-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Scheduled Consumer", SCHEDULED_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/Readme.md", IkasanComponentMeta.SCHEDULED_CONSUMER, "scheduled-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Consumer", FTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/ftp/consumer.md", IkasanComponentMeta.FTP_CONSUMER, "ftp-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Consumer", SFTP_CONSUMER_HELP_TEXT, "endpoint/filetransfer/sftp/consumer.md", IkasanComponentMeta.SFTP_CONSUMER, "sftp-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Local File Consumer", LOCAL_FILE_CONSUMER_HELP_TEXT, "endpoint/quartz-schedule/localFileConsumer.md", IkasanComponentMeta.LOCAL_FILE_CONSUMER, "local-file-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Mongo Consumer", MONGO_CONSUMER_HELP_TEXT, "endpoint/mongo-endpoint/Readme.md", IkasanComponentMeta.MONGO_CONSUMER, "mongo-consumer"));
 //        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Generic Message Consumer", GENERIC_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-client/consumer.md", IkasanComponentType.JMS_CONSUMER, "message-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentTypeMeta.SPRING_JMS_CONSUMER, "message-consumer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer Basic AMQ", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentTypeMeta.SPRING_JMS_CONSUMER_BASIC_AMQ, "message-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentMeta.SPRING_JMS_CONSUMER, "message-consumer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Spring Message Consumer Basic AMQ", SPRING_MESSAGE_CONSUMER_HELP_TEXT, "endpoint/jms-spring-arjuna/consumer.md", IkasanComponentMeta.SPRING_JMS_CONSUMER_BASIC_AMQ, "message-consumer"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanComponentTypeMeta.CUSTOM_CONVERTER, "custom-converter"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JSON XML Converter", JSON_XML_CONVERTER_HELP_TEXT, "converter/JsonToXmlConverter.md", IkasanComponentTypeMeta.JSON_XML_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Object Converter", MAP_MESSAGE_OBJECT_CONVERTER_HELP_TEXT, "converter/MapMessageToObjectConverter.md", IkasanComponentTypeMeta.MAP_MESSAGE_TO_OBJECT_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Payload Converter", MAP_MESSAGE_PAYLOAD_CONVERTER_HELP_TEXT, "converter/MapMessageToPayloadConverter.md", IkasanComponentTypeMeta.MAP_MESSAGE_TO_PAYLOAD_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Object Message to Object Converter", OBJECT_MESSAGE_OBJECT_CONVERTER_HELP_TEXT, "converter/ObjectMessageToObjectConverter.md", IkasanComponentTypeMeta.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Object Message to XML String Converter", OBJECT_MESSAGE_XML_STRING_CONVERTER_HELP_TEXT, "converter/ObjectToXmlStringConverter.md", IkasanComponentTypeMeta.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, "converter"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Text Message to String Converter", CONVERTER_HELP_TEXT, "converter/TextMessageToStringConverter.md", IkasanComponentTypeMeta.TEXT_MESSAGE_TO_STRING_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Threadsafe to XSLT Converter", CONVERTER_HELP_TEXT, "component/converter/ThreadSafeXsltConverter.md", IkasanComponentTypeMeta.THREAD_SAFE_XSLT_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XML Byte Array to Object Converter", XML_BYTE_ARRAY_OBJECT_CONVERTER_HELP_TEXT, "converter/XmlByteArrayToObjectConverter.md", IkasanComponentTypeMeta.XML_BYTE_ARRAY_TO_OBJECT_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XML String to Object Converter", XML_STRING_OBJECT_CONVERTER_HELP_TEXT, "component/converter/XmlStringToObjectConverter.md", IkasanComponentTypeMeta.XML_STRING_TO_OBJECT_CONVERTER, "converter"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XML to JSON Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter/XmlToJsonConverter.md", IkasanComponentTypeMeta.XML_TO_JSON_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XSLT Configuration Converter", XSLT_CONFIGURATION_PARAMETER_HELP_TEXT, "converter/XsltConfigurationParameterConverter.md", IkasanComponentTypeMeta.XSLT_CONFIGURATION_PARAMETER_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XSLT Converter", XSLT_CONVERTER_HELP_TEXT, "converter/XsltConverter.md", IkasanComponentTypeMeta.XSLT_CONVERTER, "message-translator"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Payload to Map Converter", PAYLOAD_TO_MAP_CONVERTER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.PAYLOAD_TO_MAP_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Custom Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter", IkasanComponentMeta.CUSTOM_CONVERTER, "custom-converter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JSON XML Converter", JSON_XML_CONVERTER_HELP_TEXT, "converter/JsonToXmlConverter.md", IkasanComponentMeta.JSON_XML_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Object Converter", MAP_MESSAGE_OBJECT_CONVERTER_HELP_TEXT, "converter/MapMessageToObjectConverter.md", IkasanComponentMeta.MAP_MESSAGE_TO_OBJECT_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Map Message to Payload Converter", MAP_MESSAGE_PAYLOAD_CONVERTER_HELP_TEXT, "converter/MapMessageToPayloadConverter.md", IkasanComponentMeta.MAP_MESSAGE_TO_PAYLOAD_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Object Message to Object Converter", OBJECT_MESSAGE_OBJECT_CONVERTER_HELP_TEXT, "converter/ObjectMessageToObjectConverter.md", IkasanComponentMeta.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Object Message to XML String Converter", OBJECT_MESSAGE_XML_STRING_CONVERTER_HELP_TEXT, "converter/ObjectToXmlStringConverter.md", IkasanComponentMeta.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, "converter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Text Message to String Converter", CONVERTER_HELP_TEXT, "converter/TextMessageToStringConverter.md", IkasanComponentMeta.TEXT_MESSAGE_TO_STRING_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Threadsafe to XSLT Converter", CONVERTER_HELP_TEXT, "component/converter/ThreadSafeXsltConverter.md", IkasanComponentMeta.THREAD_SAFE_XSLT_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XML Byte Array to Object Converter", XML_BYTE_ARRAY_OBJECT_CONVERTER_HELP_TEXT, "converter/XmlByteArrayToObjectConverter.md", IkasanComponentMeta.XML_BYTE_ARRAY_TO_OBJECT_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XML String to Object Converter", XML_STRING_OBJECT_CONVERTER_HELP_TEXT, "component/converter/XmlStringToObjectConverter.md", IkasanComponentMeta.XML_STRING_TO_OBJECT_CONVERTER, "converter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XML to JSON Converter", XML_JSON_CONVERTER_HELP_TEXT, "component/converter/XmlToJsonConverter.md", IkasanComponentMeta.XML_TO_JSON_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XSLT Configuration Converter", XSLT_CONFIGURATION_PARAMETER_HELP_TEXT, "converter/XsltConfigurationParameterConverter.md", IkasanComponentMeta.XSLT_CONFIGURATION_PARAMETER_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("XSLT Converter", XSLT_CONVERTER_HELP_TEXT, "converter/XsltConverter.md", IkasanComponentMeta.XSLT_CONVERTER, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Payload to Map Converter", PAYLOAD_TO_MAP_CONVERTER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.PAYLOAD_TO_MAP_CONVERTER, "message-translator"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Single Recipient Router", ROUTER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.SINGLE_RECIPIENT_ROUTER, "message-router"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Multi Recipient Router", ROUTER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.MULTI_RECIPIENT_ROUTER, "message-router"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Single Recipient Router", ROUTER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.SINGLE_RECIPIENT_ROUTER, "message-router"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Multi Recipient Router", ROUTER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.MULTI_RECIPIENT_ROUTER, "message-router"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Dev Null Producer", DEV_NULL_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.DEV_NULL_PRODUCER, "dev-null-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.LOG_PRODUCER, "logging-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Email Producer", EMAIL_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.EMAIL_PRODUCER, "email-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer", JMS_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.JMS_PRODUCER, "jms-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer - Basic AMQ", JMS_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.JMS_PRODUCER_BASIC_AMQ, "jms-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Producer", FTP_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.FTP_PRODUCER, "ftp-producer"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Producer", FTP_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.SFTP_PRODUCER, "sftp-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Dev Null Producer", DEV_NULL_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.DEV_NULL_PRODUCER, "dev-null-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Logging Producer", LOGGING_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.LOG_PRODUCER, "logging-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Email Producer", EMAIL_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.EMAIL_PRODUCER, "email-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer", JMS_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.JMS_PRODUCER, "jms-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("JMS Producer - Basic AMQ", JMS_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.JMS_PRODUCER_BASIC_AMQ, "jms-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("FTP Producer", FTP_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.FTP_PRODUCER, "ftp-producer"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("SFTP Producer", FTP_PRODUCER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.SFTP_PRODUCER, "sftp-producer"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Filter", FILTER_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.MESSAGE_FILTER, "message-filter"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Message Translator", TRANSLATOR_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.TRANSLATOR, "message-translator"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Filter", FILTER_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.MESSAGE_FILTER, "message-filter"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Message Translator", TRANSLATOR_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.TRANSLATOR, "message-translator"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Ftp Location", ENDPOINT_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.FTP_LOCATION, "sftp-location"));
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Sftp Location", ENDPOINT_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.SFTP_LOCATION, "sftp-location"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Ftp Location", ENDPOINT_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.FTP_LOCATION, "sftp-location"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Sftp Location", ENDPOINT_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.SFTP_LOCATION, "sftp-location"));
 
-        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, DEFAULT_README, IkasanComponentTypeMeta.UNKNOWN, "unknown"));
+        ikasanFlowUIComponents.add(createIkasanFlowUIComponent("Bespoke Generator", BESPOKE_HELP_TEXT, DEFAULT_README, IkasanComponentMeta.UNKNOWN, "unknown"));
 
     }
 
-    private IkasanFlowUIComponent createIkasanFlowUIComponent(String text, String helpText, String webHelpURL, IkasanComponentTypeMeta ikasanComponentType, String iconName) {
+    private IkasanFlowUIComponent createIkasanFlowUIComponent(String text, String helpText, String webHelpURL, IkasanComponentMeta ikasanComponentType, String iconName) {
         String smallIconLocation = "/studio/icons/paletteSmall/" + iconName + ".png";
         String standardIconLocation = "/studio/icons/palette/" + iconName + ".png";
         return new IkasanFlowUIComponent(text, helpText, WEB_URL_BASE + webHelpURL, ikasanComponentType, getImageIcon(smallIconLocation), getImageIcon(standardIconLocation));
@@ -147,8 +147,8 @@ public class IkasanFlowUIComponentFactory {
         return BillPughSingleton.INSTANCE;
     }
 
-    public IkasanFlowUIComponent getIkasanFlowUIComponentFromType(IkasanComponentTypeMeta ikasanComponentType) {
-        return ikasanComponentType == null ? UNKNOWN : ikasanFlowUIComponents.stream().filter(x -> x.getIkasanComponentType().equals(ikasanComponentType)).findFirst().orElse(UNKNOWN);
+    public IkasanFlowUIComponent getIkasanFlowUIComponentFromType(IkasanComponentMeta ikasanComponentType) {
+        return ikasanComponentType == null ? UNKNOWN : ikasanFlowUIComponents.stream().filter(x -> x.getIkasanComponentMeta().equals(ikasanComponentType)).findFirst().orElse(UNKNOWN);
     }
 
     public IkasanFlowUIComponent getUNKNOWN() {

@@ -11,19 +11,16 @@ import org.ikasan.studio.io.PojoDeserialisation;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.IkasanElement;
 import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.Element;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetan;
+import org.ikasan.studio.model.ikasan.meta.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * Studio Utils
  */
@@ -182,27 +179,41 @@ public class StudioUtils {
     private static final int HELP_INDEX = 13;
     private static final int NUMBER_OF_CONFIGS = 14;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
-    public static final String COMPONENTS_DIR = "/studio/components/";
+    public static final String COMPONENTS_DIR = "studio/components/";
 
-    //@todo should be in IkasanComponentType
 
-    public static Map<String, IkasanComponentPropertyMetan> nreadIkasanComponentProperties(String propertiesFile) throws IOException {
+
+    // By this point the user has chosen the language pack and the version of Ikasan to use.
+    // There are opportunites here for providing upgrade tooling between Ikasan versions.
+    public static IkasanComponentLibrary initialiseComponentLibrary() throws IOException {
+        IkasanComponentLibrary ikasanComponentLibrary = new IkasanComponentLibrary();
+
         // Loop through all components in COMPONENTS_DIR, user dir as key
 
-        String component = "EVENT_GENERATING_CONSUMER";
-        Map<String, IkasanComponentPropertyMetan> componentProperties = new LinkedHashMap<>();
-//        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(COMPONENTS_DIR + "/" + component + "/attributes.json",
-        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = null;
-        try {
-            ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(propertiesFile,
-                    new TypeReference<GenericPojo<IkasanComponentPropertyMetan>>() {});
-        } catch (StudioException e) {
-            throw new RuntimeException(e);
+        // IkasanComponentMetan
+        Set<String> componentDirectories = getDirectories(COMPONENTS_DIR);
+        for(String componentName : componentDirectories) {
+            Map<String, IkasanComponentPropertyMetan> componentProperties = new LinkedHashMap<>();
+
+            IkasanComponentMetan ikasanComponentMetan = null;
+            try {
+                ikasanComponentMetan = PojoDeserialisation.deserializePojo(COMPONENTS_DIR+"/"+componentName+"/attributes_en_GB.json",
+                        new TypeReference<GenericPojo<IkasanComponentMetan>>() {});
+            } catch (StudioException e) {
+                throw new RuntimeException(e);
+            }
+//            componentProperties.put(componentName, ikasanComponentPropertyMetan1);
         }
-        componentProperties.put(component, ikasanComponentPropertyMetan1);
-        return componentProperties;
+//        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(COMPONENTS_DIR + "/" + component + "/attributes_en_GB.json",
+        return ikasanComponentLibrary;
     }
 
+    public static Set<String> getDirectories(String dir) {
+        return Stream.of(new File(dir).listFiles())
+            .filter(file -> !file.isDirectory())
+            .map(File::getName)
+            .collect(Collectors.toSet());
+    }
 
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
 //        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();

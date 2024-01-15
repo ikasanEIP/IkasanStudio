@@ -40,6 +40,10 @@ class PojoDeserialisationTest {
         MatcherAssert.assertThat(myGenericClass.unsuppliedPrimitiveField1Long, is(0L));
         MatcherAssert.assertThat(myGenericClass.unsuppliedPrimitiveField1Double, is(0.0));
         MatcherAssert.assertThat(myGenericClass.unsuppliedPrimitiveField1Float, is(0.0f));
+
+        MatcherAssert.assertThat(myGenericClass.getField1Map().get("key1").getField1SubclassString(), is("value1"));
+        MatcherAssert.assertThat(myGenericClass.getField1Map().get("key2").getField1SubclassString(), is("value2"));
+
     }
 
     @Test

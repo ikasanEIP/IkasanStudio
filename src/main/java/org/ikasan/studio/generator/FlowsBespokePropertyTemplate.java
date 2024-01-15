@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.*;
 import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import java.util.Map;

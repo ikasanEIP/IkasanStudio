@@ -12,7 +12,7 @@ public class IkasanComponentTypeTest {
     @Test
     @Ignore
     public void test_number_of_property_meta() {
-        for (IkasanComponentTypeMeta ikasanComponentType : IkasanComponentTypeMeta.values()) {
+        for (IkasanComponentMeta ikasanComponentType : IkasanComponentMeta.values()) {
                 assertThat("Incorrect number of metaValues for " + ikasanComponentType + "",  ikasanComponentType.metadataMap.values().size()> 0, is(true));
         }
     }

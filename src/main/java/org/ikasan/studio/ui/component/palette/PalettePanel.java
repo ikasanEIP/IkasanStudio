@@ -102,14 +102,14 @@ public class PalettePanel extends JPanel {
         List<IkasanFlowUIComponent> displayOrder = ikasanFlowUIComponents
                 .stream()
                 .sorted(Comparator
-                    .comparing((IkasanFlowUIComponent c1) -> c1.getIkasanComponentType().getElementCategory().getDisplayOrder())
+                    .comparing((IkasanFlowUIComponent c1) -> c1.getIkasanComponentMeta().getElementCategory().getDisplayOrder())
                     .thenComparing(IkasanFlowUIComponent::getTitle))
                 .collect(Collectors.toList());
 
         String category = "";
         for (IkasanFlowUIComponent ikasanFlowUIComponent : displayOrder) {
-            if (!category.equals(ikasanFlowUIComponent.getIkasanComponentType().getElementCategory().toString()) ) {
-                category = ikasanFlowUIComponent.getIkasanComponentType().getElementCategory().toString();
+            if (!category.equals(ikasanFlowUIComponent.getIkasanComponentMeta().getElementCategory().toString()) ) {
+                category = ikasanFlowUIComponent.getIkasanComponentMeta().getElementCategory().toString();
                 paletteItems.add(new PaletteItemSeparator(category));
             }
             paletteItems.add(new PaletteItemIkasanComponent(ikasanFlowUIComponent));

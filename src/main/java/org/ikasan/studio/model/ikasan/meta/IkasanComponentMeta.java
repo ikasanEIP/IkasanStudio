@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.StudioUtils;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
  * Focuses on the ikasan technical details of a component i.e. type, properties etc
  * No UI specific elements should be present in this class (@see org.ikasan.studio.ui.model.IkasanFlowUIComponent for that)
  */
-public enum IkasanComponentTypeMeta implements Serializable {
+public enum IkasanComponentMeta implements Serializable {
     MODULE(IkasanComponentCategory.MODULE, false, true, "org.ikasan.spec.module.Module"),
     FLOW(IkasanComponentCategory.FLOW, false, true, "org.ikasan.spec.flow.Flow"),
     BROKER(IkasanComponentCategory.BROKER, false, true, "broker"),
@@ -102,7 +103,7 @@ public enum IkasanComponentTypeMeta implements Serializable {
      * @param usesBuilder does the component use the component builder (some components need to be instantiated with 'new')
      * @param componentType in the source code that can be used to identify this element, typically used by ComponentBuilder.
      */
-    IkasanComponentTypeMeta(IkasanComponentCategory elementCategory, boolean bespokeClass, boolean usesBuilder, String componentType) {
+    IkasanComponentMeta(IkasanComponentCategory elementCategory, boolean bespokeClass, boolean usesBuilder, String componentType) {
         this.bespokeClass = bespokeClass;
         this.usesBuilder = usesBuilder;
         this.componentType = componentType;

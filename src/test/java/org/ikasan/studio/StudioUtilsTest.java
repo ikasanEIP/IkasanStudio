@@ -2,8 +2,8 @@ package org.ikasan.studio;
 
 import org.ikasan.studio.generator.TestUtils;
 import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMetan;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,11 +13,6 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 
 public class StudioUtilsTest {
-    @Test
-    public void test_desserialisation() throws IOException {
-        Map<String, IkasanComponentPropertyMetan> components = StudioUtils.nreadIkasanComponentProperties("studio/components/EVENT_GENERATING_CONSUMER/attributes.json");
-        System.out.println(components);
-    }
 
     @Test
     public void test_get_last_token_with_multiple_tokens() {

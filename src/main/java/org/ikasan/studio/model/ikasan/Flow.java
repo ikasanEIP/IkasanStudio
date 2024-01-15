@@ -2,7 +2,7 @@ package org.ikasan.studio.model.ikasan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentCategory;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
@@ -28,7 +28,7 @@ public class Flow extends IkasanElement {
     private IkasanExceptionResolver ikasanExceptionResolver;
 
     public Flow() {
-        super (IkasanComponentTypeMeta.FLOW, IkasanComponentTypeMeta.FLOW.getMandatoryProperties());
+        super (IkasanComponentMeta.FLOW, IkasanComponentMeta.FLOW.getMandatoryProperties());
 //        this.configuredProperties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
 //        this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT));
         this.viewHandler = ViewHandlerFactory.getInstance(this);
@@ -53,7 +53,7 @@ public class Flow extends IkasanElement {
      * @param newComponent to br added
      * @return true if component valid to be added
      */
-    public boolean isValidToAdd(IkasanComponentTypeMeta newComponent) {
+    public boolean isValidToAdd(IkasanComponentMeta newComponent) {
         return newComponent == null ||
                 ((!hasConsumer() || !IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory())) &&
                         (!hasProducer() || !IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory())));
@@ -64,7 +64,7 @@ public class Flow extends IkasanElement {
      * @param newComponent to be added
      * @return reason why the component can not be added or empty string if there is no problem.
      */
-    public String issueCausedByAdding(IkasanComponentTypeMeta newComponent) {
+    public String issueCausedByAdding(IkasanComponentMeta newComponent) {
         String reason = "";
         if (hasConsumer() && IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory())) {
             reason += "The flow cannot have more then one consumer";

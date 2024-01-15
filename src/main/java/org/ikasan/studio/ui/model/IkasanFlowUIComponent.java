@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.model;
 
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentTypeMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 import javax.swing.*;
 import java.io.Serializable;
@@ -14,19 +14,19 @@ public class IkasanFlowUIComponent implements Serializable {
     String title;
     String helpText;
     String webHelpURL;
-    IkasanComponentTypeMeta ikasanComponentType;
+    IkasanComponentMeta ikasanComponentMeta;
     ImageIcon smallIcon;
     ImageIcon canvasIcon;
 
     public IkasanFlowUIComponent(String title) {
         this.title = title;
     }
-    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanComponentTypeMeta ikasanComponentType
+    public IkasanFlowUIComponent(String title, String helpText, String webHelpURL, IkasanComponentMeta ikasanComponentMeta
             , ImageIcon smallIcon, ImageIcon canvasIcon) {
         this.title = title;
         this.helpText = helpText;
         this.webHelpURL = webHelpURL;
-        this.ikasanComponentType = ikasanComponentType;
+        this.ikasanComponentMeta = ikasanComponentMeta;
         this.smallIcon = smallIcon;
         this.canvasIcon = canvasIcon;
     }
@@ -51,12 +51,12 @@ public class IkasanFlowUIComponent implements Serializable {
         return webHelpURL;
     }
 
-    public IkasanComponentTypeMeta getIkasanComponentType() {
-        return ikasanComponentType;
+    public IkasanComponentMeta getIkasanComponentMeta() {
+        return ikasanComponentMeta;
     }
 
-    public void setIkasanComponentType(IkasanComponentTypeMeta ikasanComponentType) {
-        this.ikasanComponentType = ikasanComponentType;
+    public void setIkasanComponentMeta(IkasanComponentMeta ikasanComponentMeta) {
+        this.ikasanComponentMeta = ikasanComponentMeta;
     }
 
     public ImageIcon getSmallIcon() {
@@ -80,7 +80,7 @@ public class IkasanFlowUIComponent implements Serializable {
         return "IkasanFlowUIComponent{" +
                 "text='" + title + '\'' +
                 ", helpText='" + helpText + '\'' +
-                ", ikasanComponentType=" + ikasanComponentType +
+                ", ikasanComponentType=" + ikasanComponentMeta +
                 ", smallIcon=" + smallIcon +
                 ", canvasIcon=" + canvasIcon +
                 '}';
