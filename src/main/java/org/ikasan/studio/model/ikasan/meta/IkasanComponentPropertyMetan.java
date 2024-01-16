@@ -73,6 +73,7 @@ public class IkasanComponentPropertyMetan {
     @JsonKey
     private String propertyName;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private Integer paramGroupNumber = 1;
     private boolean causesUserCodeRegeneration;
     private boolean mandatory;
@@ -82,15 +83,20 @@ public class IkasanComponentPropertyMetan {
     private String propertyConfigFileLabel;
     private Class propertyDataType = java.lang.String.class;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private String usageDataType = "";
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private String validation = "";
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private String validationMessage = "";
     private Pattern validationPattern;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private Object defaultValue = "";
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private String helpText = "";
 
 

@@ -1,18 +1,17 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.model.ikasan.Module;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class FlowsMessageFilterTemplateTest extends TestCase {
+public class FlowsMessageFilterTemplateTest {
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/MyMessageFilter.java
@@ -25,8 +24,8 @@ public class FlowsMessageFilterTemplateTest extends TestCase {
         Flow newFlow = ikasanModule.getFlows().get(0);
         newFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFilterComponent(newFlow));
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfiguredResource.java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfiguredResource.java")));
     }
 
     /**
@@ -40,8 +39,8 @@ public class FlowsMessageFilterTemplateTest extends TestCase {
         Flow newFlow = ikasanModule.getFlows().get(0);
         newFlow.getFlowComponentList().add(TestFixtures.getMinimumPopulatedFilterComponent(newFlow));
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterMinimum.java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterMinimum.java")));
     }
 
     /**
@@ -59,8 +58,8 @@ public class FlowsMessageFilterTemplateTest extends TestCase {
 
         newFlow.getFlowComponentList().add(filterFlowComponent);
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
-        Assert.assertThat(templateString, is(notNullValue()));
-                Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfigured.java")));
+        assertThat(templateString, is(notNullValue()));
+                assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfigured.java")));
     }
 
     @Test
@@ -74,7 +73,7 @@ public class FlowsMessageFilterTemplateTest extends TestCase {
 
         newFlow.getFlowComponentList().add(filterFlowComponent);
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfiguredResource.java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfiguredResource.java")));
     }
 }

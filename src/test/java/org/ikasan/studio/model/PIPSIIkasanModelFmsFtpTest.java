@@ -18,8 +18,10 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
     }
 
     // @TODO this will migrate to JSON test
-//    @Test
-//    public void test_parse_of_FmsFtp_standard_module() {
+    public void test_parse_of_FmsFtp_standard_module() {
+        System.out.println("Suspended till migration is complete");
+    }
+
 //        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
 //        final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleConfig", ProjectScope.getAllScope(myProject));
 //        Assert.assertThat(moduleConfigClass, is(notNullValue()));

@@ -1,22 +1,22 @@
 package org.ikasan.studio.model.ikasan;
 
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class IkasanComponentPropertyMetaTest {
     IkasanComponentPropertyMeta ikasanComponentPropertyMeta;
 //    public static final String CLASS_NAME_PATTERN = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*";
     public static final String CLASS_NAME_PATTERN = "[A-Z_$][a-zA-Z\\d_$]*";
 
-    @Before
+    @BeforeEach
     public void setup() {
         ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
                 1, false, true, true, true, true,
@@ -27,7 +27,7 @@ public class IkasanComponentPropertyMetaTest {
     @Test
     public void test_pattern_matcher_is_populated_and_works() {
         Pattern validationPattern = ikasanComponentPropertyMeta.getValidationPattern();
-        assertNotNull(validationPattern);
+        Assertions.assertNotNull(validationPattern);
         {
             Matcher matcher = validationPattern.matcher("invalid class");
             assertThat(matcher.matches(), is(false));

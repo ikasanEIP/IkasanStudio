@@ -1,16 +1,15 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.Module;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class ApplicationTemplateTest extends TestCase {
+public class ApplicationTemplateTest {
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/Application.java
@@ -22,7 +21,7 @@ public class ApplicationTemplateTest extends TestCase {
 
         String templateString = ApplicationTemplate.generateContents(ikasanModule);
 
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ApplicationTemplate.APPLICATION_CLASS_NAME + ".java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ApplicationTemplate.APPLICATION_CLASS_NAME + ".java")));
     }
 }
