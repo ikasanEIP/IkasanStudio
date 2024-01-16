@@ -1,19 +1,19 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
-import org.ikasan.studio.model.ikasan.*;
+import org.ikasan.studio.model.ikasan.Flow;
+import org.ikasan.studio.model.ikasan.FlowElement;
 import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.junit.Assert;
-import org.junit.Test;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class FlowsBespokeComponentTemplateTest extends TestCase {
+public class FlowsBespokeComponentTemplateTest {
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/MyConverter.java
@@ -35,7 +35,7 @@ public class FlowsBespokeComponentTemplateTest extends TestCase {
 
         newFlow.addFlowComponent(ikasanFlowComponent);
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanFlowComponent);
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
     }
 }

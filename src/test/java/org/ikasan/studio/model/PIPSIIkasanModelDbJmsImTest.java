@@ -16,8 +16,10 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
         return "/ikasanStandardSampleApps/dbJmsIm/";
     }
     // @TODO this will migrate to JSON test
-    //    @Test
-//    public void test_parse_of_dbJmsIm_standard_module() {
+    public void test_parse_of_dbJmsIm_standard_module() {
+        System.out.println("Suspended till migration is complete");
+
+    }
 //        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
 //        final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleFactory", ProjectScope.getAllScope(myProject));
 //        Assert.assertThat(moduleConfigClass, is(notNullValue()));

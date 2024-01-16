@@ -19,18 +19,17 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Heavy tests create a new project for each test, where possible use lightwieght
  * <a href="https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html">See Jetbrains Documentation</a>
- *
+ * NOTE JavaPsiTestCase provided by Intellij is still JUNI3 !
  */
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
@@ -76,9 +75,9 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //    public void test_createPackage_StandardPackage() {
 //        PsiDirectory baseDir = createPackageFixture("org.test");
 //        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-//        Assert.assertThat(psiJavaDirectory.length, is(2));
-//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
-//        Assert.assertThat(psiJavaDirectory[1].getComponentName(), is("test"));
+//        assertThat(psiJavaDirectory.length, is(2));
+//        assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
+//        assertThat(psiJavaDirectory[1].getComponentName(), is("test"));
 //    }
 
     private PsiDirectory createPackageFixture(String packageName) {
@@ -111,10 +110,10 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        });
 //
 //        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-//        Assert.assertThat(psiJavaDirectory.length, is(3));
-//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("com"));
-//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
-//        Assert.assertThat(psiJavaDirectory[0].getComponentName(), is("test"));
+//        assertThat(psiJavaDirectory.length, is(3));
+//        assertThat(psiJavaDirectory[0].getComponentName(), is("com"));
+//        assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
+//        assertThat(psiJavaDirectory[0].getComponentName(), is("test"));
 //    }
 
 
@@ -135,7 +134,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         dependency.setGroupId("org.ikasan");
         dependency.setVersion("3.1.0");
 
-        Assert.assertThat(ikasanPomModel.hasDependency(dependency), is(false));
+        assertThat(ikasanPomModel.hasDependency(dependency), is(false));
 
         Map<String, Dependency> newDependencies = new HashMap<>();
         newDependencies.put(dependency.getManagementKey(), dependency);
@@ -148,9 +147,9 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         );
 
         IkasanPomModel updatedPom = StudioPsiUtils.pomLoad(myProject) ;
-        Assert.assertThat(updatedPom.hasDependency(dependency), is(true));
-        Assert.assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_SOURCE), is("1.8"));
-        Assert.assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_TARGET), is("1.8"));
+        assertThat(updatedPom.hasDependency(dependency), is(true));
+        assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_SOURCE), is("1.8"));
+        assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_TARGET), is("1.8"));
 
 
 //        IkasanPomModel.getModel().getProperties();
@@ -158,7 +157,6 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //        String target = properties.getProperty("maven.compiler.source");
     }
 
-    @Test
     public void test_findFile() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
         String applicationProperties = StudioPsiUtils.findFile(myProject, "application.properties") ;
@@ -168,7 +166,6 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     }
 
 
-    @Test
     public void test_createFile1() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
         PsiFile myFile = StudioPsiUtils.createFile1("bob.java", "public class Bob {} ", myProject);

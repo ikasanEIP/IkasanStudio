@@ -3,13 +3,13 @@ package org.ikasan.studio.generator;
 import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.Module;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ModuleConfigTemplateTest extends TestCase {
 
@@ -23,8 +23,8 @@ public class ModuleConfigTemplateTest extends TestCase {
         ikasanModule.setDescription("New Module, please provide description");
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java")));
     }
 
     /**
@@ -40,7 +40,7 @@ public class ModuleConfigTemplateTest extends TestCase {
         ikasanModule.addFlow(ikasanFlow);
 
         String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java")));
     }
 }

@@ -7,11 +7,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Light tests reuse a project from the previous test run when possible, they are quicker and therefore advised
@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
  *
  * Before executing each test, the project instance will be reused if the test case returns the same project descriptor
  * as the previous one or recreated if the descriptor is different (equals() = false).
+ * Note - LightJavaCodeInsightFixtureTestCase forces Junit4
  */
 public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureTestCase {
 
@@ -44,28 +45,28 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
 //
 //        PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myFixture.getProject(), "org.ikasan.spec.module.Module");
 //
-//        Assert.assertThat(methodFound, is(notNullValue()));
-//        Assert.assertThat(methodFound.getName(), is("getModule"));
+//        assertThat(methodFound, is(notNullValue()));
+//        assertThat(methodFound.getName(), is("getModule"));
 //
 //        PsiJavaFile javaFile = (PsiJavaFile) methodFound.getContainingFile();
-//        Assert.assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig.java"));
-//        Assert.assertThat(javaFile.getPackageName(), is("com.ikasan.studio.example"));
-//        Assert.assertThat(javaFile.getFileType().getDescription(), is("Java"));
+//        assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig.java"));
+//        assertThat(javaFile.getPackageName(), is("com.ikasan.studio.example"));
+//        assertThat(javaFile.getFileType().getDescription(), is("Java"));
 //    }
 
     @Test
     public void test_createPackage_StandardPackage() {
         PsiDirectory baseDir = createPackageFixture("org.test");
 
-        Assert.assertThat(baseDir, is(notNullValue()));
+        assertThat(baseDir, is(notNullValue()));
         PsiDirectory[] subDirs = baseDir.getSubdirectories();
-        Assert.assertThat(subDirs.length, is(1));
-        Assert.assertThat(subDirs[0].getName(), is("org"));
+        assertThat(subDirs.length, is(1));
+        assertThat(subDirs[0].getName(), is("org"));
         PsiDirectory[] subSubDirs = subDirs[0].getSubdirectories();
-        Assert.assertThat(subSubDirs.length, is(1));
-        Assert.assertThat(subSubDirs[0].getName(), is("test"));
+        assertThat(subSubDirs.length, is(1));
+        assertThat(subSubDirs[0].getName(), is("test"));
 
-        Assert.assertThat(subSubDirs[0].getSubdirectories().length, is(0));
+        assertThat(subSubDirs[0].getSubdirectories().length, is(0));
     }
 
     @Test
@@ -73,15 +74,15 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
         PsiDirectory baseDir = createPackageFixture("");
 
         PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-        Assert.assertThat(psiJavaDirectory.length, is(0));
+        assertThat(psiJavaDirectory.length, is(0));
     }
 
     @Test
     public void test_createPackage_SingleElementInPackage() {
         PsiDirectory baseDir = createPackageFixture("com");
         PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-        Assert.assertThat(psiJavaDirectory.length, is(1));
-        Assert.assertThat(psiJavaDirectory[0].getName(), is("com"));
+        assertThat(psiJavaDirectory.length, is(1));
+        assertThat(psiJavaDirectory[0].getName(), is("com"));
     }
 
     private PsiDirectory createPackageFixture(String packageName) {

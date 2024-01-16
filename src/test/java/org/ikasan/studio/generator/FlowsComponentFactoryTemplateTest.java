@@ -1,17 +1,24 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.Module;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-public class FlowsComponentFactoryTemplateTest extends TestCase {
+import java.io.IOException;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
+public class FlowsComponentFactoryTemplateTest {
     Module ikasanModule = TestFixtures.getIkasanModule();
     Flow ikasanFlow = new Flow();
     private static String TEST_FLOW_NAME = "MyFlow1";
     private static String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ikasanModule = TestFixtures.getIkasanModule();
         ikasanFlow = new Flow();
@@ -20,18 +27,19 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
     }
 
     // @todo suspend which this is being redeveloped
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedCustomConverter.java
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateFlowWith_bespokeComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
-//
-//        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedCustomConverter.java")));
-//    }
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedCustomConverter.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    @Disabled
+    public void testCreateFlowWith_bespokeComponent() throws IOException {
+        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedCustomConverter.java")));
+    }
 //
 //
 //    /**
@@ -43,8 +51,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpConsumerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpConsumerComponent.java")));
 //    }
 //
 //    /**
@@ -56,9 +64,9 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(notNullValue()));
 //        System.out.println(templateString);
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpProducerComponent.java")));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpProducerComponent.java")));
 //    }
 //
 //    /**
@@ -70,8 +78,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSftpConsumerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSftpConsumerComponent.java")));
 //    }
 //
 //    /**
@@ -83,8 +91,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFilterComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFilterComponent.java")));
 //    }
 //
 //    /**
@@ -96,8 +104,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getMinimumPopulatedFilterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "MinimumPopulatedFilterComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "MinimumPopulatedFilterComponent.java")));
 //    }
 //
 //    /**
@@ -112,8 +120,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(filterFlowComponent);
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFilterComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFilterComponent.java")));
 //    }
 //
 //    /**
@@ -128,8 +136,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(filterFlowComponent);
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FilterComponentIsConfiguredResourceButNoConfiguredResourceId.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FilterComponentIsConfiguredResourceButNoConfiguredResourceId.java")));
 //    }
 //
 //
@@ -142,8 +150,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSftpProducerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSftpProducerComponent.java")));
 //    }
 //
 //
@@ -156,8 +164,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedLocalFileConsumerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedLocalFileConsumerComponent.java")));
 //    }
 //
 //    /**
@@ -169,8 +177,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedScheduledConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedScheduledConsumerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedScheduledConsumerComponent.java")));
 //    }
 //
 //    /**
@@ -182,8 +190,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSpringJmsConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSpringJmsConsumerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSpringJmsConsumerComponent.java")));
 //    }
 //
 //    /**
@@ -195,8 +203,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedJmsProducerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedJmsProducerComponent.java")));
 //    }
 //
 //    /**
@@ -208,8 +216,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedDevNullProducerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedDevNullProducerComponent.java")));
 //    }
 //
 //    /**
@@ -221,8 +229,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedEmailProducerComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedEmailProducerComponent.java")));
 //    }
 //
 //    /**
@@ -234,8 +242,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToObjectConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToObjectConverterComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToObjectConverterComponent.java")));
 //    }
 //
 //    /**
@@ -247,8 +255,8 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java")));
 //    }
 //
 //    /**
@@ -260,7 +268,7 @@ public class FlowsComponentFactoryTemplateTest extends TestCase {
 //        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedXmlStringObjectMessageConverterComponent.java")));
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedXmlStringObjectMessageConverterComponent.java")));
 //    }
 }

@@ -1,17 +1,16 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class FlowsBespokePropertyTemplateTest extends TestCase{
+public class FlowsBespokePropertyTemplateTest {
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/MyBespokeClassForProperty.java
      * @throws IOException if the template cant be generated
@@ -25,7 +24,7 @@ public class FlowsBespokePropertyTemplateTest extends TestCase{
 
         String templateString = FlowsBespokePropertyTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, clazzName, ikasanComponentProperty, "");
 
-        Assert.assertThat(templateString, is(notNullValue()));
-        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
+        assertThat(templateString, is(notNullValue()));
+        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(clazzName + ".java")));
     }
 }

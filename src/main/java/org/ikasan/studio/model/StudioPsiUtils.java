@@ -9,8 +9,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.psi.search.FilenameIndex;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
@@ -233,11 +231,12 @@ public class StudioPsiUtils {
         }
         long t2 = System.currentTimeMillis();
 
-        message.append("] method 2 found [");
-        PsiFile[] files = FilenameIndex.getFilesByName(project, filename, GlobalSearchScope.projectScope(project));
-        for (PsiFile myFile : files) {
-            message.append("" + myFile.getName() +"] ");
-        }
+        // Mehtod 2 has now been deprecated.
+//        message.append("] method 2 found [");
+//        PsiFile[] files = FilenameIndex.getFilesByName(project, filename, GlobalSearchScope.projectScope(project));
+//        for (PsiFile myFile : files) {
+//            message.append("" + myFile.getName() +"] ");
+//        }
         long t3 = System.currentTimeMillis();
 
         message.append("] method 1 = " + (t2-t1) + " ms method 2 = " + (t3-t2));

@@ -16,10 +16,10 @@ import org.ikasan.studio.model.ikasan.meta.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Studio Utils
@@ -179,22 +179,27 @@ public class StudioUtils {
     private static final int HELP_INDEX = 13;
     private static final int NUMBER_OF_CONFIGS = 14;
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
-    public static final String COMPONENTS_DIR = "studio/components/";
+    public static final String COMPONENTS_DIR = "studio/components";
 
 
 
     // By this point the user has chosen the language pack and the version of Ikasan to use.
     // There are opportunites here for providing upgrade tooling between Ikasan versions.
     public static IkasanComponentLibrary initialiseComponentLibrary() throws IOException {
-        IkasanComponentLibrary ikasanComponentLibrary = new IkasanComponentLibrary();
+        Map<String, IkasanComponentMetan> ikasanComponentMetanMap = new HashMap<>();
+        IkasanComponentLibrary ikasanComponentLibrary = new IkasanComponentLibrary(ikasanComponentMetanMap);
 
         // Loop through all components in COMPONENTS_DIR, user dir as key
 
         // IkasanComponentMetan
-        Set<String> componentDirectories = getDirectories(COMPONENTS_DIR);
+        String[] componentDirectories = null;
+        try {
+            componentDirectories = getDirectories(COMPONENTS_DIR);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
         for(String componentName : componentDirectories) {
             Map<String, IkasanComponentPropertyMetan> componentProperties = new LinkedHashMap<>();
-
             IkasanComponentMetan ikasanComponentMetan = null;
             try {
                 ikasanComponentMetan = PojoDeserialisation.deserializePojo(COMPONENTS_DIR+"/"+componentName+"/attributes_en_GB.json",
@@ -202,17 +207,15 @@ public class StudioUtils {
             } catch (StudioException e) {
                 throw new RuntimeException(e);
             }
-//            componentProperties.put(componentName, ikasanComponentPropertyMetan1);
+            ikasanComponentMetanMap.put(componentName, ikasanComponentMetan);
         }
-//        IkasanComponentPropertyMetan ikasanComponentPropertyMetan1 = PojoDeserialisation.deserializePojo(COMPONENTS_DIR + "/" + component + "/attributes_en_GB.json",
         return ikasanComponentLibrary;
     }
 
-    public static Set<String> getDirectories(String dir) {
-        return Stream.of(new File(dir).listFiles())
-            .filter(file -> !file.isDirectory())
-            .map(File::getName)
-            .collect(Collectors.toSet());
+    public static String[] getDirectories(String dir) throws URISyntaxException {
+        ClassLoader classLoader = StudioUtils.class.getClassLoader();
+        File file = new File(Objects.requireNonNull(classLoader.getResource(dir)).toURI());
+        return file.list((current, name) -> new File(current, name).isDirectory());
     }
 
     public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {

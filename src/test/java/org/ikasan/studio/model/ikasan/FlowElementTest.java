@@ -2,7 +2,7 @@ package org.ikasan.studio.model.ikasan;
 
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FlowElementTest {
 

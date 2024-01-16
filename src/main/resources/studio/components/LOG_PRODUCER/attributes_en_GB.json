@@ -2,40 +2,40 @@
   "payload": {
     "name": "Logging Producer",
     "helpText": "Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A",
-    "componentType" : "org.ikasan.spec.component.endpoint.Producer",
-    "implementingClass" : "org.ikasan.component.endpoint.util.producer.LogProducer",
-    "ikasanComponentFactoryMethod" : "logProducer",
-    "properties": [
-      {
+    "componentType": "org.ikasan.spec.component.endpoint.Producer",
+    "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
+    "ikasanComponentFactoryMethod": "logProducer",
+    "properties": {
+      "Name": {
         "propertyName": "name",
         "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
         "mandatory": true
       },
-      {
+      "Description": {
         "propertyName": "Description",
         "helpText": "A more detailed description of the component that may assist in support."
       },
-      {
+      "ConfiguredResourceId": {
         "propertyName": "ConfiguredResourceId",
         "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration."
       },
-      {
+      "ReplacementText": {
         "propertyName": "ReplacementText",
         "setterProperty": true,
         "helpText": "Replace the matching text with the following string."
       },
-      {
+      "RegExpPattern": {
         "propertyName": "RegExpPattern",
         "setterProperty": true,
         "helpText": "Only display logs matching this text."
       },
-      {
+      "LogEveryNth": {
         "propertyName": "LogEveryNth",
         "setterProperty": true,
         "propertyDataType": "java.lang.Long",
         "helpText": "Only display every 'nth' log message."
       }
-    ]
+    }
   }
 }
 

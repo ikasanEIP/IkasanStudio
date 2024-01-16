@@ -1,15 +1,16 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
 import org.ikasan.studio.model.ikasan.Flow;
 import org.ikasan.studio.model.ikasan.Module;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class PropertiesTemplateTest extends TestCase {
+
+public class PropertiesTemplateTest {
     Module testModule;
     Flow ikasanFlow;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testModule = TestFixtures.getIkasanModule();
         testModule.setComponentName("myModule");
@@ -18,6 +19,11 @@ public class PropertiesTemplateTest extends TestCase {
         testModule.addFlow(ikasanFlow);
     }
 
+    @Test
+    public void dumbTest() {
+
+        System.out.println("Suspended till migration is complete");
+    }
     //@Test - suspend while this is being redeveloped
 //    /**
 //     * See also resources/studio/templates/org/ikasan/studio/generator/application_emptyFlow.properties
