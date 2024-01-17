@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
+import javax.swing.*;
 import java.util.Map;
 
 @Data
@@ -21,10 +22,15 @@ public class IkasanComponentMetan {
     String implementingClass;
     String ikasanComponentFactoryMethod;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     String webHelpURL = DEFAULT_README;
     String smallPalletteIcon;
     String mediumPalletteIcon;
     String largePalletteIcon;
+
+    ImageIcon smallIcon;
+    ImageIcon canvasIcon;
+
     Map<String, IkasanComponentPropertyMetan> properties;
     //Map<String, IkasanComponentPropertyMetan> componentProperties = new LinkedHashMap<>();
 }

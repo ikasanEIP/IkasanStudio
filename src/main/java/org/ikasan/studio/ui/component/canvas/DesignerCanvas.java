@@ -3,9 +3,6 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
@@ -23,8 +20,6 @@ import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -647,25 +642,25 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    public void saveAsSvg(File file, boolean useTransparentBackground) {
-        DOMImplementation domImplementation = GenericDOMImplementation.getDOMImplementation();
-        Document document = domImplementation.createDocument("http://www.w3.org/2000/svg", "svg", null);
-        SVGGraphics2D svgGraphics2D = new SVGGraphics2D(document);
-
-        if (!useTransparentBackground) {
-            svgGraphics2D.setColor(JBColor.WHITE);
-            svgGraphics2D.fillRect(0, 0, getWidth(), getHeight());
-        }
-        paint(svgGraphics2D);
-
-        try {
-            svgGraphics2D.stream(file.getAbsolutePath(), true);
-            StudioUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
-        } catch (SVGGraphics2DIOException se) {
-            StudioUIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
-            LOG.warn("Error saving SVG image to file " + file.getAbsolutePath(), se);
-        }
-    }
+//    public void saveAsSvg(File file, boolean useTransparentBackground) {
+//        DOMImplementation domImplementation = GenericDOMImplementation.getDOMImplementation();
+//        Document document = domImplementation.createDocument("http://www.w3.org/2000/svg", "svg", null);
+//        SVGGraphics2D svgGraphics2D = new SVGGraphics2D(document);
+//
+//        if (!useTransparentBackground) {
+//            svgGraphics2D.setColor(JBColor.WHITE);
+//            svgGraphics2D.fillRect(0, 0, getWidth(), getHeight());
+//        }
+//        paint(svgGraphics2D);
+//
+//        try {
+//            svgGraphics2D.stream(file.getAbsolutePath(), true);
+//            StudioUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
+//        } catch (SVGGraphics2DIOException se) {
+//            StudioUIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
+//            LOG.warn("Error saving SVG image to file " + file.getAbsolutePath(), se);
+//        }
+//    }
 
     public Module getIkasanModule() {
         return ikasanModule;

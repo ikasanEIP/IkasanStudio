@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan.meta;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ public class IkasanComponentTypeTest {
     @Disabled
     public void test_number_of_property_meta() {
         for (IkasanComponentMeta ikasanComponentType : IkasanComponentMeta.values()) {
-                assertThat("Incorrect number of metaValues for " + ikasanComponentType + "",  ikasanComponentType.metadataMap.values().size()> 0, is(true));
+                MatcherAssert.assertThat("Incorrect number of metaValues for " + ikasanComponentType + "", ikasanComponentType.metadataMap.values().size()> 0, is(true));
         }
     }
 }

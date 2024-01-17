@@ -2,13 +2,11 @@ package org.ikasan.studio.model;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
@@ -18,7 +16,6 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -208,8 +205,8 @@ public class StudioPsiUtils {
         //  ************************* PsiJavaParserFacadeImpl ********************************
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
-        @NotNull com.intellij.openapi.module.Module[] module = ModuleManager.getInstance(project).getModules();
-        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
+//        @NotNull com.intellij.openapi.module.Module[] module = ModuleManager.getInstance(project).getModules();
+//        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(project.getBaseDir());
         return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
     }
 

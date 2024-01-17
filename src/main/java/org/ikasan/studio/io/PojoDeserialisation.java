@@ -24,7 +24,20 @@ public class PojoDeserialisation {
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    public static <T> T deserializePojo(String path, TypeReference<GenericPojo<T>> typeReference) throws JsonProcessingException, StudioException {
+    /**
+     * Deserialize the object that has been wrapped in the GenericPojo wrapper.
+     * The json will typically be { payload : { real object in json form }}
+     * A typical invocation would be
+     * MyClass myClass = PojoDeserialisation.deserializePojo(
+     *      "myClassPojo.json",
+     *      new TypeReference<GenericPojo<MyClass>>() {});
+     * @param path to the object
+     * @param typeReference of the object to create
+     * @return the deserialized object
+     * @param <T> type of object to deserialize
+     * @throws StudioException if there were issues in the deserialization
+     */
+    public static <T> T deserializePojo(String path, TypeReference<GenericPojo<T>> typeReference) throws StudioException {
         InputStream inputStream = PojoDeserialisation.class.getClassLoader().getResourceAsStream(path);
         if (inputStream == null) {
             throw new StudioException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
@@ -37,7 +50,12 @@ public class PojoDeserialisation {
         if (!header.contains("payload")) {
             throw new StudioException("The serialised data in [" + path + "] did not contain the required 'payload' top level element");
         }
-        GenericPojo<T> pojo = mapper.readValue(jsonString, typeReference);
+        GenericPojo<T> pojo = null;
+        try {
+            pojo = mapper.readValue(jsonString, typeReference);
+        } catch (JsonProcessingException e) {
+            throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
+        }
         return pojo.getPayload();
     }
 }
