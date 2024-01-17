@@ -32,7 +32,7 @@ repositories {
 }
 dependencies {
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
 
     implementation("org.freemarker:freemarker:2.3.32")
     implementation("org.ikasan:ikasan-eip-standalone:3.3.3")
