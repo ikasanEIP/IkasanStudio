@@ -81,6 +81,8 @@ public class IkasanComponentPropertyMetan {
     private boolean setterProperty;
     private boolean userDefineResource;
     private String propertyConfigFileLabel;
+    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private Class propertyDataType = java.lang.String.class;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default

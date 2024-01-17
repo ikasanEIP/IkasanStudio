@@ -2,7 +2,6 @@ package org.ikasan.studio;
 
 import org.ikasan.studio.generator.TestUtils;
 import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 
@@ -13,12 +12,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class StudioUtilsTest {
-    @Test
-    public void test_desserialisation() throws IOException {
-        IkasanComponentLibrary library = StudioUtils.initialiseComponentLibrary();
-        System.out.println(library);
-    }
-
     @Test
     public void test_get_last_token_with_multiple_tokens() {
         String actual = StudioUtils.getLastToken("\\.", "this.is.dot.delim");

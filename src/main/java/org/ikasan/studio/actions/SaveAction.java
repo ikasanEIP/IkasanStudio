@@ -8,7 +8,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import org.apache.commons.lang.StringUtils;
 import org.ikasan.studio.Context;
 
 import java.awt.event.ActionEvent;
@@ -24,7 +23,8 @@ public class SaveAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       boolean transparentBackground = false ; // cant get this to work for now.
-      String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
+//      String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
+      String[] extensions = transparentBackground ? new String[]{"png"} : new String[]{"png", "jpg",};
       boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
       FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as Image", "Choose the destination to save the image", extensions);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
@@ -40,14 +40,14 @@ public class SaveAction implements ActionListener {
 
       File file = vf.getFile();
       String imageFormat = FileUtilRt.getExtension(file.getName());
-      if (StringUtils.isBlank(imageFormat)) {
+      if (imageFormat.trim().isEmpty()) {
           imageFormat = "png";
       }
-
-      if ("svg".equals(imageFormat)) {
-         Context.getDesignerCanvas(projectKey).saveAsSvg(file, transparentBackground);
-      } else {
+// SVG has temporary compatibility problems with Intellij Verifyer.
+//      if ("svg".equals(imageFormat)) {
+//         Context.getDesignerCanvas(projectKey).saveAsSvg(file, transparentBackground);
+//      } else {
          Context.getDesignerCanvas(projectKey).saveAsImage(file, imageFormat, transparentBackground);
-      }
+//      }
    }
 }
