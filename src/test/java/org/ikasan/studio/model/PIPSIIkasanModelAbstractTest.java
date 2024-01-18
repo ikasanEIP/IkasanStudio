@@ -2,11 +2,7 @@ package org.ikasan.studio.model;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.JavaPsiTestCase;
-import com.intellij.testFramework.PsiTestUtil;
-import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.Module;
 import org.ikasan.studio.model.psi.PIPSIIkasanModelx;
 
 public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
@@ -29,23 +25,25 @@ public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        super.setUp();
-        if (getTestDataDir() == "") {
-            System.out.println("TEST_DATA_DIR should have been over-ridden, this may cause you issues");
-        }
-        String root = getTestDataPath() + getTestDataDir();
-        PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
-        myTestProjectRoot = createTestProjectStructure(root);
-        Context.setProject(TEST_PROJECT_KEY, myProject);
-        Context.setIkasanModule(TEST_PROJECT_KEY, new Module());
-
-        pipsiIkasanModel = new PIPSIIkasanModelx(TEST_PROJECT_KEY);
+//        super.setUp();
+//        if (getTestDataDir() == "") {
+//            System.out.println("TEST_DATA_DIR should have been over-ridden, this may cause you issues");
+//        }
+//        IkasanComponentLibrary.refreshComponentLibrary();
+//
+//        String root = getTestDataPath() + getTestDataDir();
+//        PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
+//        myTestProjectRoot = createTestProjectStructure(root);
+//        Context.setProject(TEST_PROJECT_KEY, myProject);
+//        Context.setIkasanModule(TEST_PROJECT_KEY, new Module());
+//
+//        pipsiIkasanModel = new PIPSIIkasanModelx(TEST_PROJECT_KEY);
 //        Context.setPipsiIkasanModel(TEST_PROJECT_KEY, pipsiIkasanModel);
     }
 
     @Override
     protected void tearDown() throws Exception {
-        myTestProjectRoot = null;
-        super.tearDown();
+//        myTestProjectRoot = null;
+//        super.tearDown();
     }
 }

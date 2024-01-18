@@ -2,8 +2,10 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
-import org.ikasan.studio.model.ikasan.*;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanFlowBeskpokeElement;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import java.util.Map;
@@ -53,7 +55,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
     }
 
     protected static String generateContents(String packageName, FlowElement ikasanFlowComponent) {
-        String templateName = ikasanFlowComponent.getIkasanComponentTypeMeta().getElementCategory().toString().toLowerCase() + "Template.ftl";
+        String templateName = ikasanFlowComponent.getIkasanComponentMeta().getName().toString().toLowerCase() + "Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(COMPONENT_TAG, ikasanFlowComponent);

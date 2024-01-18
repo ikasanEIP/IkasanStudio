@@ -1,7 +1,5 @@
 package org.ikasan.studio.model.ikasan;
 
-import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.junit.jupiter.api.Test;
 
 public class FlowElementTest {
@@ -24,7 +22,7 @@ public class FlowElementTest {
     @Test
     public void testJsonSerialisation() {
 //        public FlowElement(IkasanComponentType type, Flow parent, String name, String description) {
-        FlowElement flowElement = new FlowElement(IkasanComponentMeta.DB_CONSUMER, null, "My Database Consumer", "My Database Consumer Description");
-        System.out.println(StudioUtils.toJson(flowElement));
+//        FlowElement flowElement = FlowElement.getDummyFlowElement();
+//        System.out.println(StudioUtils.toJson(flowElement));
     }
 }

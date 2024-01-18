@@ -3,12 +3,11 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.*;
-import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -111,11 +110,8 @@ public abstract class PropertiesPanel extends JPanel {
         } else if (selectedComponent instanceof Flow) {
             propertyType = "Flow " + PROPERTIES_TAG;
         } else if (selectedComponent instanceof FlowElement) {
-            IkasanFlowUIComponent type = IkasanFlowUIComponentFactory
-                    .getInstance()
-                    .getIkasanFlowUIComponentFromType((((FlowElement) selectedComponent).getIkasanComponentTypeMeta()));
-            if (type.getIkasanComponentMeta() != IkasanComponentMeta.UNKNOWN) {
-                propertyType = type.getTitle() + " " + PROPERTIES_TAG;
+            if (selectedComponent != null) {
+                propertyType = selectedComponent.getIkasanComponentMeta().getName() + " " + PROPERTIES_TAG;
             } else {
                 propertyType = "Component " + PROPERTIES_TAG;
             }

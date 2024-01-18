@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.IOUtils;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +19,7 @@ public class TestUtils {
         return expectedString;
     }
 
-    public static String getConfiguredPropertyValues(Map<String, IkasanComponentProperty> configuredProperties) {
+    public static String getConfiguredPropertyValues(Map<String, IkasanComponentPropertyInstance> configuredProperties) {
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
             TreeSet<String> keys = new TreeSet<>(configuredProperties.keySet());
 

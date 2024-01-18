@@ -1,8 +1,8 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.FlowElement;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.Module;
 
 public class GeneratorUtils {
 

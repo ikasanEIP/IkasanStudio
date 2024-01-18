@@ -5,6 +5,7 @@
     "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
     "implementingClass" : "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
     "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
+    "displayOrder": 2,
     "properties": {
       "Name": {
         "propertyName": "Name",

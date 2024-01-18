@@ -1,6 +1,10 @@
 package org.ikasan.studio.ui.component.palette;
 
-import org.ikasan.studio.ui.model.*;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
+import org.ikasan.studio.ui.model.PaletteItem;
+import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
+import org.ikasan.studio.ui.model.PaletteItemSeparator;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -98,18 +102,18 @@ public class PalettePanel extends JPanel {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
         IkasanFlowUIComponentFactory ikasanFlowUIComponentFactory = IkasanFlowUIComponentFactory.getInstance();
 
-        List<IkasanFlowUIComponent> ikasanFlowUIComponents = ikasanFlowUIComponentFactory.getIkasanFlowComponents();
-        List<IkasanFlowUIComponent> displayOrder = ikasanFlowUIComponents
+        List<FlowElement> ikasanFlowUIComponents = ikasanFlowUIComponentFactory.getIkasanFlowComponents();
+        List<FlowElement> displayOrder = ikasanFlowUIComponents
                 .stream()
                 .sorted(Comparator
-                    .comparing((IkasanFlowUIComponent c1) -> c1.getIkasanComponentMeta().getElementCategory().getDisplayOrder())
-                    .thenComparing(IkasanFlowUIComponent::getTitle))
+                    .comparing((FlowElement c1) -> c1.getIkasanComponentMeta().getDisplayOrder())
+                    .thenComparing((FlowElement c1) -> c1.getIkasanComponentMeta().getName()))
                 .collect(Collectors.toList());
 
         String category = "";
-        for (IkasanFlowUIComponent ikasanFlowUIComponent : displayOrder) {
-            if (!category.equals(ikasanFlowUIComponent.getIkasanComponentMeta().getElementCategory().toString()) ) {
-                category = ikasanFlowUIComponent.getIkasanComponentMeta().getElementCategory().toString();
+        for (FlowElement ikasanFlowUIComponent : displayOrder) {
+            if (!category.equals(ikasanFlowUIComponent.getIkasanComponentMeta().getComponentType().toString()) ) {
+                category = ikasanFlowUIComponent.getIkasanComponentMeta().getComponentType().toString();
                 paletteItems.add(new PaletteItemSeparator(category));
             }
             paletteItems.add(new PaletteItemIkasanComponent(ikasanFlowUIComponent));

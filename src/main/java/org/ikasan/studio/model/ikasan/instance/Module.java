@@ -1,16 +1,20 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.psi.PsiFile;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKASAN_PACK;
 
 /**
  * This class holds all the information about the ikasan module flow.
@@ -19,8 +23,10 @@ import java.util.List;
  */
 //@Data
 
+@Data
 @AllArgsConstructor
 @Jacksonized
+@Builder
 public class Module extends IkasanElement {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
@@ -29,7 +35,7 @@ public class Module extends IkasanElement {
     private List<Flow> flows = new ArrayList<>();
 
     public Module() {
-        super(IkasanComponentMeta.MODULE, IkasanComponentMeta.MODULE.getMandatoryProperties());
+        super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK));
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
@@ -82,16 +88,16 @@ public class Module extends IkasanElement {
         return flows.add(ikasanFlow);
     }
 
-    @Override
-    public String toString() {
-        return "IkasanModule{" +
-                "moduleConfig=" + moduleConfig +
-                ", version='" + version + '\'' +
-                ", flows=" + flows +
-                ", Module type=" + ikasanComponentTypeMeta +
-                ", Module properties=" + configuredProperties +
-                '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "IkasanModule{" +
+//                "moduleConfig=" + moduleConfig +
+//                ", version='" + version + '\'' +
+//                ", flows=" + flows +
+//                ", Module type=" + ikasanComponentTypeMeta +
+//                ", Module properties=" + configuredProperties +
+//                '}';
+//    }
 
     @JsonIgnore
     public PsiFile getModuleConfig() {

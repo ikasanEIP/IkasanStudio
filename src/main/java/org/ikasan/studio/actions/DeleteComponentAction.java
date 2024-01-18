@@ -2,10 +2,10 @@ package org.ikasan.studio.actions;
 
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.StudioPsiUtils;
-import org.ikasan.studio.model.ikasan.IkasanElement;
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.FlowElement;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.IkasanElement;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.Module;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

@@ -2,11 +2,10 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Pair;
-import org.ikasan.studio.model.ikasan.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,20 +21,24 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
-    IkasanFlowUIComponent ikasanFlowUIComponent;
-    FlowElement model;
+//    IkasanFlowUIComponent ikasanFlowUIComponent;
+    Flow flow;
+    FlowElement flowElement;
 
-
+    public FlowElement getFlowElement() {
+        return flowElement;
+    }
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
-     * @param model for the vie handler
+     * @param flowElement for the vie handler
      */
-    public IkasanFlowComponentViewHandler(FlowElement model) {
-        this.model = model;
-        if (model != null) {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getIkasanComponentTypeMeta());
-        } else {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
+    public IkasanFlowComponentViewHandler(FlowElement flowElement) {
+        this.flowElement = flowElement;
+        if (flowElement != null) {
+            flow = new Flow();
+//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getIkasanComponentMeta());
+//        } else {
+//            ikasanFlowUIComponent = IkasanComponentLibrary.UNKNOWN
         }
     }
 
@@ -85,7 +88,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     }
 
     public String getText() {
-        return model.getComponentName();
+        return flowElement.getComponentName();
     }
 
     /**
@@ -97,7 +100,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     }
 
     public ImageIcon getCanvasIcon() {
-        return ikasanFlowUIComponent.getCanvasIcon();
+        return flow.getIkasanComponentMeta().getCanvasIcon();
     }
 
     @Override
@@ -120,14 +123,14 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
         return new Point(getLeftX() + (flowchartSymbolWidth/2), getTopY() + flowchartSymbolHeight);
     }
 
-    public IkasanFlowUIComponent getIkasanFlowUIComponent() {
-        return ikasanFlowUIComponent;
-    }
+//    public IkasanFlowUIComponent getFlowElement() {
+//        return ikasanFlowUIComponent;
+//    }
 
     @Override
     public String toString() {
         return "IkasanFlowComponentViewHandler{" +
-                "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
+//                "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
                 '}';
     }
 }

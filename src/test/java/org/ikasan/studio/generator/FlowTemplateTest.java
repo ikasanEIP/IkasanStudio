@@ -1,28 +1,23 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class FlowTemplateTest {
-    Module ikasanModule = TestFixtures.getIkasanModule();
-    Flow ikasanFlow = new Flow();
+    Module ikasanModule;
+//    Flow ikasanFlow = new Flow();
     private static String TEST_FLOW_NAME = "MyFlow1";
 
     @BeforeEach
     public void setUp() {
-        ikasanModule = TestFixtures.getIkasanModule();
-        ikasanFlow = new Flow();
-        ikasanFlow.setComponentName(TEST_FLOW_NAME);
-        ikasanFlow.setDescription("MyFlowDescription");
+//        ikasanModule = TestFixtures.getIkasanModule();
+//        ikasanFlow = new Flow();
+//        ikasanFlow.setComponentName(TEST_FLOW_NAME);
+//        ikasanFlow.setDescription("MyFlowDescription");
     }
 
     /**
@@ -32,9 +27,9 @@ public class FlowTemplateTest {
     @Disabled
     @Test
     public void testCreateFlowWith_oneFlow() throws IOException {
-        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-        assertThat(templateString, is(notNullValue()));
-        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
+//        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
     }
 //
 //    /**

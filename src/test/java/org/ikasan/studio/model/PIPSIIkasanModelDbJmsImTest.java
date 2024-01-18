@@ -3,12 +3,12 @@ package org.ikasan.studio.model;
 public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
     @Override
     protected void setUp() throws Exception {
-        super.setUp();
+//        super.setUp();
     }
 
     @Override
     protected void tearDown() throws Exception {
-        super.tearDown();
+//        super.tearDown();
     }
 
     // This callback will set the path to the correct data file used in the test

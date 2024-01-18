@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,14 +11,14 @@ import java.awt.*;
  */
 public class IkasanPaletteElementViewHandler extends ViewHandler {
     private static final Logger LOG = Logger.getInstance("#IkasanPaletteElementViewHandler");
-    IkasanFlowUIComponent model;
+    FlowElement flowElement;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
-     * @param model for the view handler
+     * @param flowElement for the view handler
      */
-    public IkasanPaletteElementViewHandler(IkasanFlowUIComponent model) {
-        this.model = model;
+    public IkasanPaletteElementViewHandler(FlowElement flowElement) {
+        this.flowElement = flowElement;
     }
 
     public int paintComponent(JPanel canvas, Graphics g, int topX, int topY){
@@ -30,20 +30,20 @@ public class IkasanPaletteElementViewHandler extends ViewHandler {
     }
 
     public String getText() {
-        return model.getTitle();
+        return flowElement.getIkasanComponentMeta().getName();
     }
     public String getHelpText() {
-        return model.getHelpText();
+        return flowElement.getIkasanComponentMeta().getHelpText();
     }
 
     public ImageIcon getDisplayIcon() {
-        return model.getSmallIcon();
+        return flowElement.getIkasanComponentMeta().getSmallIcon();
     }
 
     @Override
     public String toString() {
         return "IkasanPaletteElementViewHandler{" +
-                "model=" + model +
+                "model=" + flowElement +
                 '}';
     }
 }

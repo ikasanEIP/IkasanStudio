@@ -10,9 +10,7 @@ import org.ikasan.studio.io.PojoDeserialisation;
 import javax.swing.*;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.ikasan.studio.StudioUtils.getDirectories;
 
@@ -26,11 +24,15 @@ public class IkasanComponentLibrary {
     private static String SMALL_ICON_NAME = "paletteSmall.png";
     private static String NORMAL_ICON_NAME = "paletteNormal.png";
     private static String LARGE_ICON_NAME = "paletteLarge.png";
+    private static String FLOW = "Flow";
+    private static String MODULE = "Module";
     private static final Logger LOG = Logger.getInstance("#IkasanComponentLibrary");
 
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
-    private static Map<String, Map<String, IkasanComponentMetan>> versionedComponenetsLibrary = new HashMap<>(new HashMap<>());
+    private static Map<String, Map<String, IkasanComponentMeta>> versionedComponenetsLibrary = new HashMap<>(new HashMap<>());
+    private static Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(FLOW));
 
+    public static final IkasanComponentMeta UNKNOWN = IkasanComponentMeta.builder().build();
     /**
      * refresh the component library, by this point the version of Ikasan will have been chosen.
      */
@@ -45,7 +47,7 @@ public class IkasanComponentLibrary {
      * @param ikasanVersionPack to search for components
      */
     public static void refreshComponentLibrary(final String ikasanVersionPack) {
-        Map<String, IkasanComponentMetan> newIkasanComponentMetanMap
+        Map<String, IkasanComponentMeta> newIkasanComponentMetanMap
                 = new HashMap<>();
         String baseDirectory = VERSION_PACK_BASE_DIR + ikasanVersionPack + "/components";
         String[] componentDirectories = null;
@@ -58,24 +60,41 @@ public class IkasanComponentLibrary {
         assert componentDirectories != null;
         for(String componentName : componentDirectories) {
             final String componentBaseDirectory = baseDirectory+"/"+componentName;
-            IkasanComponentMetan ikasanComponentMetan = null;
+            IkasanComponentMeta ikasanComponentMeta = null;
             try {
-                ikasanComponentMetan = PojoDeserialisation.deserializePojo(
+                ikasanComponentMeta = PojoDeserialisation.deserializePojo(
                         componentBaseDirectory+"/attributes_en_GB.json",
-                        new TypeReference<GenericPojo<IkasanComponentMetan>>() {});
+                        new TypeReference<GenericPojo<IkasanComponentMeta>>() {});
             } catch (StudioException e) {
                 LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
                         " there was an error generating the details for component " + componentName +
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version");
             }
-            ikasanComponentMetan.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME));
-            ikasanComponentMetan.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME));
-            newIkasanComponentMetanMap.put(componentName, ikasanComponentMetan);
+            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME));
+            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME));
+            newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
+        }
+        if (! newIkasanComponentMetanMap.keySet().containsAll(mandatoryComponents)) {
+            LOG.error("The ikasan version pack " + ikasanVersionPack + " did not contain all the mandatory components " +
+                    mandatoryComponents.toString() + " so will be ignored");
         }
 
         synchronized (IkasanComponentLibrary.class) {
             versionedComponenetsLibrary.put(ikasanVersionPack, newIkasanComponentMetanMap);
         }
+    }
+
+    public static IkasanComponentMeta getFLow(final String version) {
+        return getIkasanComponent(version, FLOW);
+    }
+    public static IkasanComponentMeta getModule(final String version) {
+        return getIkasanComponent(version, MODULE);
+    }
+    public static IkasanComponentMeta getExceptionResolver(final String version) {
+        return getIkasanComponent(version, "ExceptionResolver");
+    }
+    public static IkasanComponentMeta getOnException(final String version) {
+        return getIkasanComponent(version, "OnException");
     }
 
     /**
@@ -84,18 +103,18 @@ public class IkasanComponentLibrary {
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    protected synchronized static Map<String, IkasanComponentMetan> geIkasanComponentMetanMap(final String version) {
+    protected synchronized static Map<String, IkasanComponentMeta> geIkasanComponentMetanMap(final String version) {
         return versionedComponenetsLibrary.get(version);
     }
 
     // Currently, restrict access to the Map
-    public static IkasanComponentMetan getIkasanComponent(String version, String key) {
-        Map<String, IkasanComponentMetan> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
+    public static IkasanComponentMeta getIkasanComponent(String version, String key) {
+        Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
         return safeIkasanComponentMetanMap.get(key);
     }
 
     public static Set<String> getIkasanComponentList(String version) {
-        Map<String, IkasanComponentMetan> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
+        Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
         return safeIkasanComponentMetanMap.keySet();
     }
 
@@ -115,4 +134,5 @@ public class IkasanComponentLibrary {
         }
         return imageIcon;
     }
+
 }

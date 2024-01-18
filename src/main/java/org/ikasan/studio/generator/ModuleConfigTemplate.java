@@ -3,7 +3,7 @@ package org.ikasan.studio.generator;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
 
 import java.util.Map;
 

@@ -1,7 +1,7 @@
 package org.ikasan.studio;
 
 import org.ikasan.studio.generator.TestUtils;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 

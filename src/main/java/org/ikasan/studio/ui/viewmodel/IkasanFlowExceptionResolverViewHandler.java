@@ -1,9 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.FlowElement;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,20 +18,20 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
-    IkasanFlowUIComponent ikasanFlowUIComponent;
-    FlowElement model;
+//    IkasanFlowUIComponentx ikasanFlowUIComponent;
+    FlowElement flowElement;
 
     /**
      * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
-     * @param model for view handler
+     * @param flowElement for view handler
      */
-    public IkasanFlowExceptionResolverViewHandler(FlowElement model) {
-        this.model = model;
-        if (model != null) {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getIkasanComponentTypeMeta());
-        } else {
-            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
-        }
+    public IkasanFlowExceptionResolverViewHandler(FlowElement flowElement) {
+        this.flowElement = flowElement;
+//        if (flowElement != null) {
+//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(flowElement.getIkasanComponentMeta());
+//        } else {
+//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
+//        }
     }
 
 
@@ -95,17 +93,17 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     }
 
     public ImageIcon getCanvasIcon() {
-        return ikasanFlowUIComponent.getCanvasIcon();
+        return flowElement.getIkasanComponentMeta().getCanvasIcon();
     }
 
-    public IkasanFlowUIComponent getIkasanFlowUIComponent() {
-        return ikasanFlowUIComponent;
-    }
+//    public IkasanFlowUIComponentx getFlowElement() {
+//        return ikasanFlowUIComponent;
+//    }
 
     @Override
     public String toString() {
         return "IkasanFlowComponentViewHandler{" +
-                "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
+//                "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
                 '}';
     }
 }

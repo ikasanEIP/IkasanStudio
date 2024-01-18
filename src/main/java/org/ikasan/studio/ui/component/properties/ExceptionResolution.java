@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolution;
 
 import javax.swing.*;
@@ -41,7 +41,7 @@ public class ExceptionResolution {
                 ikasanExceptionResolution.getParams() != null &&
                 !ikasanExceptionResolution.getParams().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
-            for (IkasanComponentProperty property : ikasanExceptionResolution.getParams()) {
+            for (IkasanComponentPropertyInstance property : ikasanExceptionResolution.getParams()) {
                 ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
                 actionParamEditBoxList.add(actionParam);
             }

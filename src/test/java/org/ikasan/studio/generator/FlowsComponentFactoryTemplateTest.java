@@ -1,29 +1,24 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-
 public class FlowsComponentFactoryTemplateTest {
-    Module ikasanModule = TestFixtures.getIkasanModule();
-    Flow ikasanFlow = new Flow();
+    Module ikasanModule ;
+//    Flow ikasanFlow = new Flow();
     private static String TEST_FLOW_NAME = "MyFlow1";
     private static String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @BeforeEach
     public void setUp() {
-        ikasanModule = TestFixtures.getIkasanModule();
-        ikasanFlow = new Flow();
-        ikasanFlow.setComponentName(TEST_FLOW_NAME);
-        ikasanFlow.setDescription("MyFlowDescription");
+//        ikasanModule = TestFixtures.getIkasanModule();
+//        ikasanFlow = new Flow();
+//        ikasanFlow.setComponentName(TEST_FLOW_NAME);
+//        ikasanFlow.setDescription("MyFlowDescription");
     }
 
     // @todo suspend which this is being redeveloped
@@ -34,11 +29,11 @@ public class FlowsComponentFactoryTemplateTest {
     @Test
     @Disabled
     public void testCreateFlowWith_bespokeComponent() throws IOException {
-        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
-
-        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
-        assertThat(templateString, is(notNullValue()));
-        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedCustomConverter.java")));
+//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
+//
+//        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
+//        assertThat(templateString, is(notNullValue()));
+//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedCustomConverter.java")));
     }
 //
 //

@@ -6,17 +6,16 @@ import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.FlowElement;
-import org.ikasan.studio.model.ikasan.IkasanElement;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanElement;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
@@ -31,7 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta.EXCEPTION_RESOLVER;
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMetax.EXCEPTION_RESOLVER;
 
 /**
  * The main painting / design panel
@@ -350,8 +349,8 @@ public class DesignerCanvas extends JPanel {
     /**
      * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
      */
-    public void componentDraggedToFlowAction(int mouseX, int mouseY, final IkasanFlowUIComponent ikasanFlowUIComponent) {
-        if (ikasanFlowUIComponent != null) {
+    public void componentDraggedToFlowAction(int mouseX, int mouseY, final FlowElement flowElement) {
+        if (flowElement != null) {
             final IkasanElement targetComponent = getComponentAtXY(mouseX, mouseY);
             Flow targetFlow = null;
             FlowElement targetFlowComponent;
@@ -365,7 +364,7 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                String issue = targetFlow.issueCausedByAdding(ikasanFlowUIComponent.getIkasanComponentMeta());
+                String issue = targetFlow.issueCausedByAdding(flowElement.getIkasanComponentMeta());
                 if (issue.isEmpty()) {
                     if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
                         ikasanFlowViewHandler.setFlowReceptiveMode();
