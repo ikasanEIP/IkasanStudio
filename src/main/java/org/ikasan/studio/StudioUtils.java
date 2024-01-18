@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.IkasanElement;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.IkasanElement;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.Element;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
@@ -271,9 +271,10 @@ public class StudioUtils {
 
                     // XXXXX try JSON deserialise here
 
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
-                            paramGroupNumber, causesUserCodeRegeneration, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
-                            propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
+                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = IkasanComponentPropertyMeta.builder().build();
+//                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
+//                            paramGroupNumber, causesUserCodeRegeneration, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
+//                            propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
 //                    if (parentPropertyName != null) {
                         // Parent child relationship
 //                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber);

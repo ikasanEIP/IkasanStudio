@@ -1,8 +1,8 @@
 package org.ikasan.studio.model.ikasan.meta;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.model.ikasan.IkasanBaseElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,10 +13,10 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
     IkasanExceptionResolver parent;
     String theException;
     String theAction;
-    List<IkasanComponentProperty> params;
+    List<IkasanComponentPropertyInstance> params;
 
     public IkasanExceptionResolution(IkasanExceptionResolver parent) {
-        super(IkasanComponentMeta.ON_EXCEPTION);
+        super(IkasanComponentLibrary.getOnException(IkasanComponentLibrary.STD_IKASAN_PACK));
         this.parent = parent;
     }
 
@@ -24,8 +24,8 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
         this(theException, theAction, Collections.emptyList());
     }
 
-    public IkasanExceptionResolution(String theException, String theAction, List<IkasanComponentProperty> params) {
-        super(IkasanComponentMeta.ON_EXCEPTION);
+    public IkasanExceptionResolution(String theException, String theAction, List<IkasanComponentPropertyInstance> params) {
+        super(IkasanComponentLibrary.getOnException(IkasanComponentLibrary.STD_IKASAN_PACK));
         this.theException = theException;
         this.theAction = theAction;
         this.params = params;
@@ -64,7 +64,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
         return IkasanExceptionResolutionMeta.getPropertyMetaListForAction(action);
     }
     @JsonIgnore
-    public List<IkasanComponentProperty> getParams() {
+    public List<IkasanComponentPropertyInstance> getParams() {
         if (params == null) {
             return Collections.emptyList();
         } else {
@@ -72,7 +72,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
         }
     }
 
-    public void setParams(List<IkasanComponentProperty> params) {
+    public void setParams(List<IkasanComponentPropertyInstance> params) {
         this.params = params;
     }
 

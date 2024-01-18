@@ -1,8 +1,8 @@
 package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.Module;
 
 import java.util.Map;
 

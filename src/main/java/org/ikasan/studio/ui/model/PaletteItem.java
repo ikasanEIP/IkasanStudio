@@ -1,14 +1,15 @@
 package org.ikasan.studio.ui.model;
 
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 
 public class PaletteItem {
-    IkasanFlowUIComponent ikasanFlowUIComponent;
+    FlowElement flowElement;
     IkasanPaletteElementViewHandler ikasanFlowElementViewHandler;
     public IkasanPaletteElementViewHandler getIkasanFlowElementViewHandler() {
         return ikasanFlowElementViewHandler;
     }
-    public IkasanFlowUIComponent getIkasanFlowUIComponent() {
-        return ikasanFlowUIComponent;
+    public FlowElement getFlowElement() {
+        return flowElement;
     }
 }

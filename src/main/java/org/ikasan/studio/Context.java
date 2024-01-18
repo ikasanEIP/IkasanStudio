@@ -3,7 +3,7 @@ package org.ikasan.studio;
 import com.intellij.openapi.project.Project;
 import freemarker.template.Configuration;
 import freemarker.template.Version;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;

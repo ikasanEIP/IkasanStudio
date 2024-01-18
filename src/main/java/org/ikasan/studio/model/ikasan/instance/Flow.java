@@ -1,13 +1,13 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentCategory;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
+import org.ikasan.studio.model.ikasan.meta.*;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKASAN_PACK;
 
 public class Flow extends IkasanElement {
 
@@ -28,7 +28,8 @@ public class Flow extends IkasanElement {
     private IkasanExceptionResolver ikasanExceptionResolver;
 
     public Flow() {
-        super (IkasanComponentMeta.FLOW, IkasanComponentMeta.FLOW.getMandatoryProperties());
+        super (IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
+//        super (IkasanComponentMetax.FLOW, IkasanComponentMetax.FLOW.getMandatoryInstanceProperties());
 //        this.configuredProperties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
 //        this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT));
         this.viewHandler = ViewHandlerFactory.getInstance(this);
@@ -55,8 +56,8 @@ public class Flow extends IkasanElement {
      */
     public boolean isValidToAdd(IkasanComponentMeta newComponent) {
         return newComponent == null ||
-                ((!hasConsumer() || !IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory())) &&
-                        (!hasProducer() || !IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory())));
+                ((!hasConsumer() || !newComponent.isConsumer())) &&
+                        (!hasProducer() || !newComponent.isProducer());
     }
 
     /**
@@ -66,9 +67,9 @@ public class Flow extends IkasanElement {
      */
     public String issueCausedByAdding(IkasanComponentMeta newComponent) {
         String reason = "";
-        if (hasConsumer() && IkasanComponentCategory.CONSUMER.equals(newComponent.getElementCategory())) {
+        if (hasConsumer() && newComponent.isConsumer()) {
             reason += "The flow cannot have more then one consumer";
-        } else if (hasProducer() && IkasanComponentCategory.PRODUCER.equals(newComponent.getElementCategory())) {
+        } else if (hasProducer() && newComponent.isProducer()) {
             reason += "The flow cannot have more then one producer";
         }
         return reason;
@@ -99,12 +100,12 @@ public class Flow extends IkasanElement {
 
     public boolean hasConsumer() {
         return flowComponentList.stream()
-            .anyMatch(e->e.getIkasanComponentTypeMeta().getElementCategory().equals(IkasanComponentCategory.CONSUMER));
+            .anyMatch(e->e.getIkasanComponentMeta().isConsumer());
     }
 
     public boolean hasProducer() {
         return flowComponentList.stream()
-            .anyMatch(e->e.getIkasanComponentTypeMeta().getElementCategory().equals(IkasanComponentCategory.PRODUCER));
+            .anyMatch(e->e.getIkasanComponentMeta().isProducer());
     }
 
     /**

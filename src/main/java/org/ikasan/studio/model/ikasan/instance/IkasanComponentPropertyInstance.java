@@ -10,19 +10,19 @@ import java.util.List;
 /**
  * Holds the value of a property
  */
-public class IkasanComponentProperty {
+public class IkasanComponentPropertyInstance {
     private static final Logger LOG = Logger.getInstance("#IkasanComponentProperty");
     private Object value;
     private Boolean regenerateAllowed = true;
     @JsonIgnore
     private IkasanComponentPropertyMeta meta;
 
-    public IkasanComponentProperty(IkasanComponentPropertyMeta meta, Object value) {
+    public IkasanComponentPropertyInstance(IkasanComponentPropertyMeta meta, Object value) {
         this.meta = meta;
         this.value = value;
     }
 
-    public IkasanComponentProperty(IkasanComponentPropertyMeta meta) {
+    public IkasanComponentPropertyInstance(IkasanComponentPropertyMeta meta) {
         this(meta, null);
     }
 
@@ -116,11 +116,11 @@ public class IkasanComponentProperty {
         return Boolean.TRUE.equals(getMeta().isCausesUserCodeRegeneration());
     }
 
-    public static List<IkasanComponentProperty> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {
-        List<IkasanComponentProperty> propertyList = new ArrayList<>();
+    public static List<IkasanComponentPropertyInstance> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {
+        List<IkasanComponentPropertyInstance> propertyList = new ArrayList<>();
         if (metaList != null && !metaList.isEmpty()) {
             for(IkasanComponentPropertyMeta meta : metaList) {
-                propertyList.add(new IkasanComponentProperty(meta));
+                propertyList.add(new IkasanComponentPropertyInstance(meta));
             }
         }
         return propertyList;

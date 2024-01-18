@@ -5,6 +5,7 @@
     "componentType": "org.ikasan.spec.component.endpoint.Producer",
     "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
     "ikasanComponentFactoryMethod": "logProducer",
+    "displayOrder": 3,
     "properties": {
       "Name": {
         "propertyName": "name",

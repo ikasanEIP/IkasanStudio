@@ -3,7 +3,7 @@ package org.ikasan.studio.actions;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Module;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

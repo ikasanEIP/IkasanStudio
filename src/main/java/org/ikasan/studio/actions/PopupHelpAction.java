@@ -4,7 +4,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.IkasanElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanElement;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
@@ -30,9 +30,9 @@ public class PopupHelpAction  implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
       final IkasanFlowComponentViewHandler viewHandler = (IkasanFlowComponentViewHandler) component.getViewHandler();
       if (webHelp) {
-         BrowserUtil.browse(viewHandler.getIkasanFlowUIComponent().getWebHelpURL());
+         BrowserUtil.browse(viewHandler.getFlowElement().getIkasanComponentMeta().getWebHelpURL());
       } else {
-         JTextArea jTextArea = new JTextArea(viewHandler.getIkasanFlowUIComponent().getHelpText());
+         JTextArea jTextArea = new JTextArea(viewHandler.getFlowElement().getIkasanComponentMeta().getHelpText());
          jTextArea.setLineWrap(true);
          JComponent helpPanel = new JPanel(new BorderLayout());
          helpPanel.add(jTextArea, BorderLayout.CENTER);

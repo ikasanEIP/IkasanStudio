@@ -1,8 +1,9 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.ikasan.*;
-import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.*;
 
 import java.util.List;
@@ -27,7 +28,8 @@ public class TestFixtures {
      * @return a FullyPopulatedCustomConverter
      */
     public static FlowElement getFullyPopulatedCustomConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.CUSTOM_CONVERTER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//        FlowElement component = FlowElement.getElement(IkasanComponentMetax.CUSTOM_CONVERTER, ikasanFlow);
         component.setComponentName("testCustomConverter");
 
         // Mandatory properties
@@ -43,7 +45,8 @@ public class TestFixtures {
      * @return a FullyPopulatedCustomConverter
      */
     public static FlowElement getFullyPopulatedFilterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.MESSAGE_FILTER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
         component.setComponentName("testFilterComponent");
 
         // Mandatory properties
@@ -62,7 +65,8 @@ public class TestFixtures {
      * @return a FullyPopulatedCustomConverter
      */
     public static FlowElement getMinimumPopulatedFilterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.MESSAGE_FILTER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
         component.setComponentName("testFilterComponent");
 
         // Mandatory properties
@@ -77,7 +81,8 @@ public class TestFixtures {
      * @return a FullyPopulatedFtpConsumerComponent
      */
     public static FlowElement getFullyPopulatedFtpConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.FTP_CONSUMER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.FTP_CONSUMER, ikasanFlow);
         component.setComponentName("testFtpConsumer");
 
         // Mandatory properties
@@ -142,7 +147,8 @@ public class TestFixtures {
      * @return a FullyPopulatedFtpProducerComponent
      */
     public static FlowElement getFullyPopulatedFtpProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.FTP_PRODUCER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.FTP_PRODUCER, ikasanFlow);
         component.setComponentName("testFtpProducer");
 
         // Mandatory properties
@@ -187,7 +193,8 @@ public class TestFixtures {
      * @return a FullyPopulatedSftpConsumerComponent
      */
     public static FlowElement getFullyPopulatedSftpConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.SFTP_CONSUMER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.SFTP_CONSUMER, ikasanFlow);
         component.setComponentName("testSftpConsumer");
 
         // Mandatory properties
@@ -246,7 +253,8 @@ public class TestFixtures {
      * @return a FullyPopulatedSftpProducerComponent
      */
     public static FlowElement getFullyPopulatedSftpProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.SFTP_PRODUCER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.SFTP_PRODUCER, ikasanFlow);
         component.setComponentName("testSftpProducer");
 
         // Mandatory properties
@@ -283,7 +291,8 @@ public class TestFixtures {
      * @return a FullyPopulatedLocalFileConverter
      */
     public static FlowElement getFullyPopulatedLocalFileConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.LOCAL_FILE_CONSUMER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.LOCAL_FILE_CONSUMER, ikasanFlow);
         component.setComponentName("testLocalFileConsumer");
 
         // Mandatory properties
@@ -316,7 +325,8 @@ public class TestFixtures {
      * @return a FullyPopulatedScheduledConsumerComponent
      */
     public static FlowElement getFullyPopulatedScheduledConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.SCHEDULED_CONSUMER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.SCHEDULED_CONSUMER, ikasanFlow);
         component.setComponentName("testScheduledConsumer");
 
         // Mandatory properties
@@ -346,7 +356,8 @@ public class TestFixtures {
      * @return a FullyPopulatedJmsConsumer
      */
     public static FlowElement getFullyPopulatedSpringJmsConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.SPRING_JMS_CONSUMER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.SPRING_JMS_CONSUMER, ikasanFlow);
         component.setComponentName("testJmsConsumer");
         component.setPropertyValue("AutoContentConversion", "true");
         component.setPropertyValue("AutoSplitBatch", "true");
@@ -396,7 +407,8 @@ public class TestFixtures {
      * @return a FullyPopulatedJmsProducer
      */
     public static FlowElement getFullyPopulatedJmsProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.JMS_PRODUCER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.JMS_PRODUCER, ikasanFlow);
         component.setComponentName("testJmsConsumer");
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
@@ -445,7 +457,8 @@ public class TestFixtures {
      * @return a FullyPopulatedDevNullProducer
      */
     public static FlowElement getFullyPopulatedDevNullProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.DEV_NULL_PRODUCER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.DEV_NULL_PRODUCER, ikasanFlow);
         component.setComponentName("testDevNullProducer");
         return component;
     }
@@ -456,7 +469,8 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedEmailProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.EMAIL_PRODUCER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.EMAIL_PRODUCER, ikasanFlow);
         component.setComponentName("testEmailProducer");
         component.setPropertyValue("BccRecipient", "myBccRecipient");
         component.setPropertyValue("BccRecipients", "{'bcc1','bcc2'}");
@@ -497,7 +511,8 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedObjectMessageToObjectConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, ikasanFlow);
         component.setPropertyValue("Name", "MyObjectToObjectconverter");
         return component;
     }
@@ -508,7 +523,8 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedObjectMessageToXmlStringConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
         component.setPropertyValue("RootName", "myRootName");
@@ -534,7 +550,8 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedXmlStringObjectMessageConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getElement(IkasanComponentMeta.XML_STRING_TO_OBJECT_CONVERTER, ikasanFlow);
+        FlowElement component = FlowElement.getDummyFlowElement();
+//FlowElement component = FlowElement.getElement(IkasanComponentMetax.XML_STRING_TO_OBJECT_CONVERTER, ikasanFlow);
         component.setPropertyValue("AutoConvertElementToValue", true);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
@@ -548,9 +565,9 @@ public class TestFixtures {
         return component;
     }
 
-    public static List<IkasanComponentProperty> getPropertiesForAction(String actionName) {
+    public static List<IkasanComponentPropertyInstance> getPropertiesForAction(String actionName) {
         List<IkasanComponentPropertyMeta> actionParams = IkasanExceptionResolutionMeta.getPropertyMetaListForAction(actionName);
-        return IkasanComponentProperty.generateIkasanComponentPropertyList(actionParams);
+        return IkasanComponentPropertyInstance.generateIkasanComponentPropertyList(actionParams);
     }
 
     /**
@@ -558,30 +575,30 @@ public class TestFixtures {
      * See resources/studio/componentDefinitions/XML_STRING_TO_OBJECT_CONVERTER_en_GB.csv
      * @return a FullyPopulatedEmailProducer
      */
-    public static Flow populateFlowExceptionResolver(Flow ikasanFlow) {
-        IkasanExceptionResolver ikasanExceptionResolver = (IkasanExceptionResolver) FlowElement.getElement(IkasanComponentMeta.EXCEPTION_RESOLVER, ikasanFlow);
-        ikasanFlow.setIkasanExceptionResolver(ikasanExceptionResolver);
-
-        List<IkasanComponentProperty> retryProperties = getPropertiesForAction("retry");
-        retryProperties.get(0).setValue(200);
-        retryProperties.get(1).setValue(10);
-        IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(
-                "org.ikasan.spec.component.routing.RouterException.class", "retry", retryProperties);
-        ikasanExceptionResolver.addExceptionResolution(ikasanExceptionResolution);
-        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "org.ikasan.spec.component.transformation.TransformationException.class", "ignoreException"));
-        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "org.ikasan.spec.component.splitting.SplitterException.class", "excludeEvent"));
-        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "org.ikasan.spec.component.endpoint.EndpointException.class", "retryIndefinitely"));
-        List<IkasanComponentProperty> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
-        scheduledCronProperties.get(0).setValue("* * * * *");
-        scheduledCronProperties.get(1).setValue(100);
-        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "java.util.concurrent.TimeoutException.class", "retryIndefinitely", scheduledCronProperties));
-        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
-                "org.ikasan.spec.component.filter.FilterException.class", "retryIndefinitely"));
-
-        return ikasanFlow;
-    }
+//    public static Flow populateFlowExceptionResolver(Flow ikasanFlow) {
+//        IkasanExceptionResolver ikasanExceptionResolver = (IkasanExceptionResolver) FlowElement.getElement(IkasanComponentMetax.EXCEPTION_RESOLVER, ikasanFlow);
+//        ikasanFlow.setIkasanExceptionResolver(ikasanExceptionResolver);
+//
+//        List<IkasanComponentPropertyInstance> retryProperties = getPropertiesForAction("retry");
+//        retryProperties.get(0).setValue(200);
+//        retryProperties.get(1).setValue(10);
+//        IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(
+//                "org.ikasan.spec.component.routing.RouterException.class", "retry", retryProperties);
+//        ikasanExceptionResolver.addExceptionResolution(ikasanExceptionResolution);
+//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//                "org.ikasan.spec.component.transformation.TransformationException.class", "ignoreException"));
+//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//                "org.ikasan.spec.component.splitting.SplitterException.class", "excludeEvent"));
+//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//                "org.ikasan.spec.component.endpoint.EndpointException.class", "retryIndefinitely"));
+//        List<IkasanComponentPropertyInstance> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
+//        scheduledCronProperties.get(0).setValue("* * * * *");
+//        scheduledCronProperties.get(1).setValue(100);
+//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//                "java.util.concurrent.TimeoutException.class", "retryIndefinitely", scheduledCronProperties));
+//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//                "org.ikasan.spec.component.filter.FilterException.class", "retryIndefinitely"));
+//
+//        return ikasanFlow;
+//    }
 }

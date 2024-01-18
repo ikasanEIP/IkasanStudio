@@ -2,9 +2,10 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.*;
-import org.ikasan.studio.model.ikasan.Module;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class FlowsBespokePropertyTemplate extends Generator {
 
     public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow, FlowElement component) {
-        for (IkasanComponentProperty property : component.getUserImplementedClassProperties()) {
+        for (IkasanComponentPropertyInstance property : component.getUserImplementedClassProperties()) {
             String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
             String prefix = GeneratorUtils.getUniquePrefix(ikasanModule, ikasanFlow, component);
@@ -22,7 +23,7 @@ public class FlowsBespokePropertyTemplate extends Generator {
         }
     }
 
-    protected static String generateContents(String packageName, String clazzName, IkasanComponentProperty property, String prefix) {
+    protected static String generateContents(String packageName, String clazzName, IkasanComponentPropertyInstance property, String prefix) {
         String interfaceName = property.getMeta().getUsageDataType();
         String templateName;
         if (IkasanComponentPropertyMeta.CONFIGURATION.equals(property.getMeta().getPropertyName())) {

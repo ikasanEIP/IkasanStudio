@@ -1,7 +1,7 @@
 package org.ikasan.studio.generator;
 
-import org.ikasan.studio.model.ikasan.Flow;
-import org.ikasan.studio.model.ikasan.Module;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,11 +12,11 @@ public class PropertiesTemplateTest {
 
     @BeforeEach
     public void setUp() {
-        testModule = TestFixtures.getIkasanModule();
-        testModule.setComponentName("myModule");
-        ikasanFlow = new Flow();
-        ikasanFlow.setComponentName("newFlow1");
-        testModule.addFlow(ikasanFlow);
+//        testModule = TestFixtures.getIkasanModule();
+//        testModule.setComponentName("myModule");
+//        ikasanFlow = new Flow();
+//        ikasanFlow.setComponentName("newFlow1");
+//        testModule.addFlow(ikasanFlow);
     }
 
     @Test

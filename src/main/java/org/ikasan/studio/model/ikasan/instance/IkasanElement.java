@@ -1,13 +1,14 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import java.util.List;
 import java.util.Map;
@@ -21,12 +22,16 @@ public  class IkasanElement extends IkasanBaseElement {
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
 //    @JsonPropertyOrder(alphabetic = true)
     @JsonPropertyOrder({"ComponentName", "description"})
-    protected Map<String, IkasanComponentProperty> configuredProperties;
+    protected Map<String, IkasanComponentPropertyInstance> configuredProperties;
     public IkasanElement() {}
 
-    protected IkasanElement(IkasanComponentMeta type, Map<String, IkasanComponentProperty> configuredProperties) {
-        super(type);
-        this.configuredProperties = configuredProperties;
+//    protected IkasanElement(IkasanComponentMetax type, Map<String, IkasanComponentProperty> configuredProperties) {
+//        super(type);
+//        this.configuredProperties = configuredProperties;
+//    }
+    protected IkasanElement(IkasanComponentMeta componentMeta) {
+        super(componentMeta);
+        this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
     }
 
     /**
@@ -87,7 +92,7 @@ public  class IkasanElement extends IkasanBaseElement {
 
 
     @JsonIgnore
-    public IkasanComponentProperty getProperty(String key) {
+    public IkasanComponentPropertyInstance getProperty(String key) {
         return configuredProperties.get(key);
     }
 //    @JsonIgnore
@@ -105,7 +110,7 @@ public  class IkasanElement extends IkasanBaseElement {
 //    }
     @JsonIgnore
     public Object getPropertyValue(String key) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        IkasanComponentPropertyInstance ikasanComponentProperty = configuredProperties.get(key);
         return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
     }
 
@@ -126,7 +131,7 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        IkasanComponentPropertyInstance ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
         } else {
@@ -141,11 +146,11 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the property
      */
     public void setPropertyValue(String key, IkasanComponentPropertyMeta properyMeta, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        IkasanComponentPropertyInstance ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
         } else {
-            configuredProperties.put(key, new IkasanComponentProperty(properyMeta, value));
+            configuredProperties.put(key, new IkasanComponentPropertyInstance(properyMeta, value));
         }
     }
 
@@ -165,15 +170,15 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the property
      */
     public void setPropertyValue(String key, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+        IkasanComponentPropertyInstance ikasanComponentProperty = configuredProperties.get(key);
         if (ikasanComponentProperty != null) {
             ikasanComponentProperty.setValue(value);
         } else {
-            IkasanComponentPropertyMeta properyMeta = getIkasanComponentTypeMeta().getMetadata(key);
+            IkasanComponentPropertyMeta properyMeta = getIkasanComponentMeta().getMetadata(key);
             if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentTypeMeta() + " this property will be ignored.");
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentMeta() + " this property will be ignored.");
             } else {
-                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentTypeMeta().getMetadata(key), value));
+                configuredProperties.put(key, new IkasanComponentPropertyInstance(getIkasanComponentMeta().getMetadata(key), value));
             }
         }
     }
@@ -187,7 +192,7 @@ public  class IkasanElement extends IkasanBaseElement {
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    public Map<String, IkasanComponentProperty> getConfiguredProperties() {
+    public Map<String, IkasanComponentPropertyInstance> getConfiguredProperties() {
         return configuredProperties;
     }
 
@@ -196,7 +201,7 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return User Implemented class properties
      */
     @JsonIgnore
-    public List<IkasanComponentProperty> getUserImplementedClassProperties() {
+    public List<IkasanComponentPropertyInstance> getUserImplementedClassProperties() {
         return configuredProperties.values().stream()
             .filter(x -> x.getMeta().isUserImplementedClass() && x.isRegenerateAllowed())
             .collect(Collectors.toList());
@@ -209,7 +214,7 @@ public  class IkasanElement extends IkasanBaseElement {
     }
 
     public void resetUserImplementedClassPropertiesRegenratePermission() {
-        for (IkasanComponentProperty property : getUserImplementedClassProperties()) {
+        for (IkasanComponentPropertyInstance property : getUserImplementedClassProperties()) {
             property.setRegenerateAllowed(false);
         }
     }
@@ -219,10 +224,10 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return the Map of standard properties for this component.
      */
     @JsonIgnore
-    public Map<String, IkasanComponentProperty> getStandardConfiguredProperties() {
-        Map<String, IkasanComponentProperty> standardProperties = new HashedMap();
+    public Map<String, IkasanComponentPropertyInstance> getStandardConfiguredProperties() {
+        Map<String, IkasanComponentPropertyInstance> standardProperties = new HashedMap();
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
-            for (Map.Entry<String, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
+            for (Map.Entry<String, IkasanComponentPropertyInstance> entry : configuredProperties.entrySet()) {
                 if (! IkasanComponentPropertyMeta.NAME.equals(entry.getKey()) && !(IkasanComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
                 }
@@ -231,10 +236,10 @@ public  class IkasanElement extends IkasanBaseElement {
         return standardProperties;
     }
 
-    public void addAllProperties(Map<String, IkasanComponentProperty> newProperties) {
+    public void addAllProperties(Map<String, IkasanComponentPropertyInstance> newProperties) {
         configuredProperties.putAll(newProperties);
     }
-    public void addComponentProperty(String key, IkasanComponentProperty value) {
+    public void addComponentProperty(String key, IkasanComponentPropertyInstance value) {
         configuredProperties.put(key, value);
     }
 
@@ -266,7 +271,7 @@ public  class IkasanElement extends IkasanBaseElement {
     public String toString() {
         return "IkasanComponent{" +
                 "properties=" + configuredProperties +
-                ", type=" + ikasanComponentTypeMeta +
+                ", type=" + ikasanComponentMeta +
                 '}';
     }
 }

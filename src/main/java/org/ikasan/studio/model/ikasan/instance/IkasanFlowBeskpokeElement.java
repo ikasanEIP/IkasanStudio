@@ -1,5 +1,7 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.instance;
 
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 public class IkasanFlowBeskpokeElement extends FlowElement {

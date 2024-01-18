@@ -1,4 +1,4 @@
-package org.ikasan.studio.model.ikasan;
+package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -15,17 +15,18 @@ public abstract class IkasanBaseElement {
     @JsonIgnore
     protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
-    protected IkasanComponentMeta ikasanComponentTypeMeta;
+    protected IkasanComponentMeta ikasanComponentMeta;
 
     public IkasanBaseElement() {}
 
-    protected IkasanBaseElement(IkasanComponentMeta ikasanComponentTypeMeta) {
-        this.ikasanComponentTypeMeta = ikasanComponentTypeMeta;
+    protected IkasanBaseElement(IkasanComponentMeta ikasanComponentMeta) {
+        this.ikasanComponentMeta = ikasanComponentMeta;
     }
 
     public String getConponentType() {
-        return this.ikasanComponentTypeMeta.getComponentType();
+        return this.ikasanComponentMeta.getComponentType();
     }
+
     @JsonIgnore
     public ViewHandler getViewHandler() {
         return viewHandler;

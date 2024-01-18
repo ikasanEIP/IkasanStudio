@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponent;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
 
@@ -15,7 +15,7 @@ import java.io.IOException;
 public class PaletteExportTransferHandler extends TransferHandler // implements Transferable
 {
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
-    private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(IkasanFlowUIComponent.class, "IkasanFlowUIComponent");
+    private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "IkasanFlowUIComponent");
     private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
 
     // Source actions i.e. methods called for the source of the copy
@@ -35,8 +35,8 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
         if (sourceComponent instanceof JList && ((JList)sourceComponent).getSelectedValue() instanceof PaletteItemIkasanComponent) {
             JList paletteList = (JList)sourceComponent;
             PaletteItemIkasanComponent item = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
-            IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getIkasanFlowUIComponent());
-            Image dragImage = item.getIkasanFlowUIComponent().getSmallIcon().getImage();
+            IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getFlowElement());
+            Image dragImage = item.getFlowElement().getIkasanComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);
             }
