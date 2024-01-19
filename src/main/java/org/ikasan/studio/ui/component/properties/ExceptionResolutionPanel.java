@@ -5,7 +5,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolution;
+import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;

@@ -2,10 +2,13 @@ package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.intellij.psi.PsiFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.jackson.Jacksonized;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
@@ -27,11 +30,14 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 @AllArgsConstructor
 @Jacksonized
 @Builder
+@EqualsAndHashCode(callSuper=true)
 public class Module extends IkasanElement {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     private PsiFile moduleConfig;
     private String version;
+    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @Builder.Default
     private List<Flow> flows = new ArrayList<>();
 
     public Module() {
@@ -39,73 +45,10 @@ public class Module extends IkasanElement {
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
-    /**
-     * This will be called if the module is reloaded or re-initialised.
-     */
-    public void reset() {
-        if (flows != null && !flows.isEmpty()) {
-            flows = new ArrayList<>();
-        }
-        setComponentName("");
-        setDescription("");
-    }
-
-    /**
-     * Ensure any permissions to regenerate source is reset to false
-     */
-    public void resetRegenratePermissions() {
-        for (Flow flow : flows) {
-            for (IkasanElement component : flow.getFlowComponentList()) {
-                component.resetUserImplementedClassPropertiesRegenratePermission();
-            }
-        }
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public List<Flow> getFlows() {
-        return flows;
-    }
-
-    public Flow getFlow(Flow searchedFlow) {
-        if (searchedFlow != null && flows != null && !flows.isEmpty()) {
-            for (Flow currentFlow : getFlows()) {
-                if (searchedFlow.equals(currentFlow)) {
-                    return currentFlow;
-                }
-            }
-        }
-        return null;
-    }
-
     public boolean addFlow(Flow ikasanFlow) {
         return flows.add(ikasanFlow);
     }
 
-//    @Override
-//    public String toString() {
-//        return "IkasanModule{" +
-//                "moduleConfig=" + moduleConfig +
-//                ", version='" + version + '\'' +
-//                ", flows=" + flows +
-//                ", Module type=" + ikasanComponentTypeMeta +
-//                ", Module properties=" + configuredProperties +
-//                '}';
-//    }
-
-    @JsonIgnore
-    public PsiFile getModuleConfig() {
-        return moduleConfig;
-    }
-    public void setModuleConfig(PsiFile moduleConfig) {
-        this.moduleConfig = moduleConfig;
-    }
 
     public String getApplicationPackageName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME);

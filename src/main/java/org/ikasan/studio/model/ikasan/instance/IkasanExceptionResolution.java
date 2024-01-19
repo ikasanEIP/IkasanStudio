@@ -1,12 +1,17 @@
-package org.ikasan.studio.model.ikasan.meta;
+package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolutionMeta;
 
 import java.util.Collections;
 import java.util.List;
 
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class IkasanExceptionResolution extends IkasanBaseElement {
     private static final IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     @JsonIgnore
@@ -20,28 +25,6 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
         this.parent = parent;
     }
 
-    public IkasanExceptionResolution(String theException, String theAction) {
-        this(theException, theAction, Collections.emptyList());
-    }
-
-    public IkasanExceptionResolution(String theException, String theAction, List<IkasanComponentPropertyInstance> params) {
-        super(IkasanComponentLibrary.getOnException(IkasanComponentLibrary.STD_IKASAN_PACK));
-        this.theException = theException;
-        this.theAction = theAction;
-        this.params = params;
-    }
-    public String getTheException() {
-        return theException;
-    }
-    public void setTheException(String theException) {
-        this.theException = theException;
-    }
-    public String getTheAction() {
-        return theAction;
-    }
-    public void setTheAction(String theAction) {
-        this.theAction = theAction;
-    }
     public static IkasanExceptionResolutionMeta getMeta() {
         return IKASAN_EXCEPTION_RESOLUTION_META;
     }
@@ -70,18 +53,5 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
         } else {
             return params;
         }
-    }
-
-    public void setParams(List<IkasanComponentPropertyInstance> params) {
-        this.params = params;
-    }
-
-    @Override
-    public String toString() {
-        return "IkasanExceptionResoluation{" +
-                "theException=" + theException +
-                ", theAction='" + theAction + '\'' +
-                ", params=" + params +
-                '}';
     }
 }

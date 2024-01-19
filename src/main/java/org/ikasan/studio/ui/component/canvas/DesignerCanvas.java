@@ -6,12 +6,9 @@ import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
-import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
@@ -29,8 +26,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMetax.EXCEPTION_RESOLVER;
 
 /**
  * The main painting / design panel
@@ -483,7 +478,7 @@ public class DesignerCanvas extends JPanel {
      */
     private FlowElement createViableFlowComponent(IkasanComponentMeta ikasanComponentType, Flow containingFlow) {
         FlowElement newComponent = FlowElement.getElement(ikasanComponentType, containingFlow);
-        if (EXCEPTION_RESOLVER.equals(ikasanComponentType)) {
+        if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver(newComponent);
         } else {
             return (FlowElement)createViableComponent(newComponent);

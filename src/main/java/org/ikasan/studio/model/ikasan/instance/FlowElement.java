@@ -2,9 +2,7 @@ package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMetax;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 /**
@@ -58,7 +56,7 @@ public class FlowElement extends IkasanElement {
     public static FlowElement getElement(IkasanComponentMeta type, Flow parent, String name, String description) {
         if (type.isBespokeClass()) {
             return new IkasanFlowBeskpokeElement(type, parent, name, description, false);
-        } else if (IkasanComponentMetax.EXCEPTION_RESOLVER.equals(type)) {
+        } else if (type.isExceptionResolver()) {
             return new IkasanExceptionResolver(parent);
         } else {
             return new FlowElement(type, parent, name, description);
@@ -73,7 +71,7 @@ public class FlowElement extends IkasanElement {
     public static FlowElement getElement(IkasanComponentMeta type, Flow parent) {
         if (type.isBespokeClass()) {
             return new IkasanFlowBeskpokeElement(type, parent, false);
-        } else if (IkasanComponentMetax.EXCEPTION_RESOLVER.equals(type)) {
+        } else if (type.isExceptionResolver()) {
             return new IkasanExceptionResolver(parent);
         } else {
             return new FlowElement(type, parent);

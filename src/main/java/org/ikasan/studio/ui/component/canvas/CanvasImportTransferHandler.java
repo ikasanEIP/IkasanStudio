@@ -3,7 +3,6 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMetax;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 
 import javax.swing.*;
@@ -83,7 +82,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         boolean mouseOverFlow = false;
         Point currentMouse = support.getDropLocation().getDropPoint();
         FlowElement flowElement = getDraggedComponent(support);
-        if ((flowElement != null && flowElement.getIkasanComponentMeta() != null && IkasanComponentMetax.FLOW.equals(flowElement.getIkasanComponentMeta())) ||
+        if ((flowElement != null && flowElement.getIkasanComponentMeta() != null && flowElement.getIkasanComponentMeta().isFlow()) ||
                 designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
             mouseOverFlow = true;
         }

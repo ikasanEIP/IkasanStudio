@@ -22,29 +22,4 @@ public abstract class IkasanBaseElement {
     protected IkasanBaseElement(IkasanComponentMeta ikasanComponentMeta) {
         this.ikasanComponentMeta = ikasanComponentMeta;
     }
-
-    public String getConponentType() {
-        return this.ikasanComponentMeta.getComponentType();
-    }
-
-    @JsonIgnore
-    public ViewHandler getViewHandler() {
-        return viewHandler;
-    }
-//
-//
-//    public IkasanComponentType getType() {
-//        return type;
-//    }
-//
-//    public void setType(IkasanComponentType type) {
-//        this.type = type;
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return "IkasanComponent{" +
-//                ", type=" + type +
-//                '}';
-//    }
 }

@@ -18,8 +18,11 @@ import java.util.TreeMap;
 @AllArgsConstructor
 public class IkasanComponentMeta {
     private static final String DEFAULT_README = "Readme.md";
+    // Its assumed these types are so fundmental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
     private static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
     private static final String PRODUCER_TYPE = "org.ikasan.spec.component.endpoint.Producer";
+    private static final String EXCEPTION_RESOLVER_TYPE = "org.ikasan.exceptionResolver.ExceptionResolver";
+    private static final String FLOW_TYPE = "org.ikasan.spec.flow.Flow";
 
     String name;
     String helpText;
@@ -69,4 +72,12 @@ public class IkasanComponentMeta {
     public boolean isProducer() {
         return PRODUCER_TYPE.equals(componentType);
     }
+    public boolean isFlow() {
+        return FLOW_TYPE.equals(componentType);
+    }
+    public boolean isExceptionResolver() {
+        return EXCEPTION_RESOLVER_TYPE.equals(componentType);
+    }
+
+
 }

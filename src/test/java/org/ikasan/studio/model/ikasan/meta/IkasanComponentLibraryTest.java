@@ -18,11 +18,11 @@ class IkasanComponentLibraryTest {
 
         MatcherAssert.assertThat(
                 IkasanComponentLibrary.getNumberOfComponents(IkasanComponentLibrary.TEST_IKASAN_PACK),
-                is(2));
+                is(3));
 
         MatcherAssert.assertThat(
                 new TreeSet<>(IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.TEST_IKASAN_PACK)),
-                is(new TreeSet<>(Arrays.asList("EVENT_GENERATING_CONSUMER", "LOG_PRODUCER"))));
+                is(new TreeSet<>(Arrays.asList("EXCEPTION_RESOLVER", "FLOW", "MODULE"))));
         IkasanComponentLibrary.getNumberOfComponents(IkasanComponentLibrary.TEST_IKASAN_PACK);
     }
 }

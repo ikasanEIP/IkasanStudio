@@ -182,8 +182,7 @@ public class StudioUtils {
 
 
     public static String[] getDirectories(String dir) throws URISyntaxException {
-        ClassLoader classLoader = StudioUtils.class.getClassLoader();
-        File file = new File(Objects.requireNonNull(classLoader.getResource(dir)).toURI());
+        File file = new File(Objects.requireNonNull(StudioUtils.class.getClassLoader().getResource(dir)).toURI());
         return file.list((current, name) -> new File(current, name).isDirectory());
     }
 
