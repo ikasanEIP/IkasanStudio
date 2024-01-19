@@ -3,7 +3,6 @@ package org.ikasan.studio.model.ikasan.meta;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioException;
-import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.io.GenericPojo;
 import org.ikasan.studio.io.PojoDeserialisation;
 
@@ -18,19 +17,22 @@ import static org.ikasan.studio.StudioUtils.getDirectories;
  * This class aggregates all the defined Ikasan components
  */
 public class IkasanComponentLibrary {
-    private static final String VERSION_PACK_BASE_DIR = "studio/";
+    private static final String RESOURCE_BASE_BASE_DIR = "studio/";
+    private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR +"icons/";
+    private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR +"unknown/";
     public static final String STD_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
     public static final String TEST_IKASAN_PACK = "Vtest.x";
-    private static String SMALL_ICON_NAME = "paletteSmall.png";
-    private static String NORMAL_ICON_NAME = "paletteNormal.png";
-    private static String LARGE_ICON_NAME = "paletteLarge.png";
-    private static String FLOW = "Flow";
-    private static String MODULE = "Module";
+    private static String SMALL_ICON_NAME = "small.png";
+    private static String NORMAL_ICON_NAME = "normal.png";
+    private static String LARGE_ICON_NAME = "large.png";
+    private static String FLOW = "FLOW";
+    private static String MODULE = "MODULE";
+    private static String EXCEPTION_RESOLVER = "EXCEPTION_RESOLVER";
     private static final Logger LOG = Logger.getInstance("#IkasanComponentLibrary");
 
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
-    private static Map<String, Map<String, IkasanComponentMeta>> versionedComponenetsLibrary = new HashMap<>(new HashMap<>());
-    private static Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(FLOW));
+    protected static Map<String, Map<String, IkasanComponentMeta>> versionedComponenetsLibrary = new HashMap<>(new HashMap<>());
+    private static Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(MODULE, FLOW, EXCEPTION_RESOLVER));
 
     public static final IkasanComponentMeta UNKNOWN = IkasanComponentMeta.builder().build();
     /**
@@ -49,7 +51,7 @@ public class IkasanComponentLibrary {
     public static void refreshComponentLibrary(final String ikasanVersionPack) {
         Map<String, IkasanComponentMeta> newIkasanComponentMetanMap
                 = new HashMap<>();
-        String baseDirectory = VERSION_PACK_BASE_DIR + ikasanVersionPack + "/components";
+        String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanVersionPack + "/components";
         String[] componentDirectories = null;
         try {
             componentDirectories = getDirectories(baseDirectory);
@@ -69,9 +71,10 @@ public class IkasanComponentLibrary {
                 LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
                         " there was an error generating the details for component " + componentName +
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version");
+                continue;
             }
-            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME));
-            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME));
+            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
+            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
             newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
         }
         if (! newIkasanComponentMetanMap.keySet().containsAll(mandatoryComponents)) {
@@ -91,11 +94,12 @@ public class IkasanComponentLibrary {
         return getIkasanComponent(version, MODULE);
     }
     public static IkasanComponentMeta getExceptionResolver(final String version) {
-        return getIkasanComponent(version, "ExceptionResolver");
+        return getIkasanComponent(version, EXCEPTION_RESOLVER);
     }
     public static IkasanComponentMeta getOnException(final String version) {
         return getIkasanComponent(version, "OnException");
     }
+
 
     /**
      * Attempt to minimize the synchronized lock. We will guarentee the Map is valid and not in the process
@@ -122,17 +126,14 @@ public class IkasanComponentLibrary {
         return getIkasanComponentList(version).size();
     }
 
-
-
-    private static ImageIcon getImageIcon(String iconLocation) {
+    private static ImageIcon getImageIcon(String iconLocation, String defaultIcon) {
         ImageIcon imageIcon = null;
-        URL iconURL = StudioUtils.class.getResource(iconLocation);
+        URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
         if (iconURL == null) {
-            LOG.warn("Could not create Icon for " + iconLocation);
-        } else {
-            imageIcon = new ImageIcon(iconURL);
+            LOG.warn("Could not create Icon for " + iconLocation + " using default");
+            iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(defaultIcon);
         }
+        imageIcon = new ImageIcon(iconURL);
         return imageIcon;
     }
-
 }

@@ -6,7 +6,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
+import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolver;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;

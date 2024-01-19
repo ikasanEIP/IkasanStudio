@@ -1,7 +1,6 @@
-package org.ikasan.studio.model.ikasan.meta;
+package org.ikasan.studio.model.ikasan.instance;
 
-import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.HashMap;
@@ -10,9 +9,10 @@ import java.util.Map;
 /**
  * Encapsulate the IkasanExceptionResolver.
  */
+
 public class IkasanExceptionResolver extends FlowElement {
     //@todo need to split IkasanComponent to nest IkasanExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
-    private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();
+    private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();  // list of all the exceptions we catch / process
 
     /**
      * Create an IkasanExceptionResolver

@@ -10,8 +10,10 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanLookup.EXCEPTION_RESOLVE
  * Capture the meta information for an action resolution. The meta will never change per class, so this is static.
  */
 public class IkasanExceptionResolutionMeta {
+    List<String> ExceptionsCaught;
+    List<String> Actions;
     private static final Map<String, String> STANDARD_EXCEPTIONS = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
-    private static final IkasanComponentMetax ON_EXCEPTION = IkasanComponentMetax.ON_EXCEPTION;
+//    private static final IkasanComponentMeta ON_EXCEPTION = IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK);
 
     /**
      * Though this is currently a static class, we expose its instance creation to make it more accessible to the template library
@@ -25,23 +27,19 @@ public class IkasanExceptionResolutionMeta {
     }
 
     public static boolean isValidAction(String action) {
-        return ON_EXCEPTION.hasProperty(action);
+        return true;
+//        return ON_EXCEPTION.hasProperty(action);
     }
 
     public static List<IkasanComponentPropertyMeta> getPropertyMetaListForAction(String action) {
-        return ON_EXCEPTION.getMetadataList(action);
+        return null;
+//        return ON_EXCEPTION.getMetadataList(action);
     }
 
     public static List<String> getActionList() {
-        return ON_EXCEPTION.getPropertyNames();
+        return null;
+//        return ON_EXCEPTION.getPropertyNames();
     }
 
-    public static String parseAction(String onExceptionMethod) {
-        if (onExceptionMethod != null) {
-            return ON_EXCEPTION.getPropertyNames().stream().filter(action -> onExceptionMethod.contains(action)).findFirst().orElse("");
-        } else {
-            return "";
-        }
-    }
 
 }

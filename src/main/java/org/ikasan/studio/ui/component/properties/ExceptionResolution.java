@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolution;
+import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
 
 import javax.swing.*;
 import java.util.ArrayList;

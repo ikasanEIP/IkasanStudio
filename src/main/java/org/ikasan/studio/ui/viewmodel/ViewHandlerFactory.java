@@ -1,17 +1,14 @@
 package org.ikasan.studio.ui.viewmodel;
 
-import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolver;
-
+import org.ikasan.studio.model.ikasan.instance.*;
 
 public class ViewHandlerFactory {
 
     // Static class
     private ViewHandlerFactory() {}
 
-    public static ViewHandler getInstance(Object component) {
+    public static ViewHandler getInstance(IkasanElement component) {
         if (component == null) {
             return null;
         } else if (component instanceof FlowElement) {
