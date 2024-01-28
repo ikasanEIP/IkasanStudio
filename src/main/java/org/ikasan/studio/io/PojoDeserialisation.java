@@ -18,10 +18,10 @@ import java.nio.charset.StandardCharsets;
  * This approach will be sufficient for Internal json but external, we can't pollute the json.
  */
 public class PojoDeserialisation {
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     /**
@@ -50,9 +50,9 @@ public class PojoDeserialisation {
         if (!header.contains("payload")) {
             throw new StudioException("The serialised data in [" + path + "] did not contain the required 'payload' top level element");
         }
-        GenericPojo<T> pojo = null;
+        GenericPojo<T> pojo;
         try {
-            pojo = mapper.readValue(jsonString, typeReference);
+            pojo = MAPPER.readValue(jsonString, typeReference);
         } catch (JsonProcessingException e) {
             throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
         }

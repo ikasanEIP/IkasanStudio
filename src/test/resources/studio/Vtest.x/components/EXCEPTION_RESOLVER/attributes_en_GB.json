@@ -1,12 +1,14 @@
 {
-  "payload": {
+
+    "xx" : "bob",
+
     "name": "Exception Resolver",
     "helpText": "Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.",
-    "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
-    "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
-    "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
-    "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
-    "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
+    "componentType": "org.ikasan.exceptionResolver.ExceptionResolver",
+    "implementingClass": "org.ikasan.exceptionResolver.MatchingExceptionResolver",
+    "ikasanComponentFactoryMethod": "eventGeneratingConsumer",
+    "ikasanComponentBuilderClass": "org.ikasan.builder.ExceptionResolverBuilderImpl",
+    "ikasanComponentBuilderInterface": "org.ikasan.builder.ExceptionResolverBuilder",
     "displayOrder": 5,
     "properties": {
       "Name": {
@@ -17,34 +19,9 @@
       "Description": {
         "propertyName": "Description",
         "helpText": "A more detailed description of the component that may assist in support.."
-      },
-      "ExceptionsCaught" : [
-        "org.ikasan.spec.component.transformation.TransformationException.class",
-        "org.ikasan.spec.component.splitting.SplitterException.class",
-        "org.ikasan.spec.component.routing.RouterException.class",
-        "org.ikasan.spec.component.endpoint.EndpointException.class",
-        "javax.jms.JMSException.class",
-        "javax.resource.ResourceException.class",
-        "org.ikasan.spec.component.filter.FilterException.class"
-      ],
-      "Actions" : [
-        {
-          "ignoreException": {},
-          "excludeEvent": {},
-          "retry":{
-            "delay": "Integer",
-            "interval": "Integer"
-          },
-          "retryIndefinatel":{
-          "delay": "Integer"
-        },
-          "scheduledCronEntry":{
-            "cronExpression": "String",
-            "maxRetries": "Integer"
-          }
-        }
-      ]
+      }
+
     }
-  }
+
 }
 

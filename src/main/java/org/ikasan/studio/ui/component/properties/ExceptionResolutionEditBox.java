@@ -38,12 +38,12 @@ public class ExceptionResolutionEditBox {
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
         this.actionJComboBox = new JComboBox(IkasanExceptionResolutionMeta.getActionList().toArray());
-        if (ikasanExceptionResolution.getTheException() != null) {
+        if (ikasanExceptionResolution.getExceptionsCaught() != null) {
             // There might be a bespoke exception already set
-            if (!currentExceptions.contains(ikasanExceptionResolution.getTheException())) {
-                currentExceptions.add(ikasanExceptionResolution.getTheException());
+            if (!currentExceptions.contains(ikasanExceptionResolution.getExceptionsCaught())) {
+                currentExceptions.add(ikasanExceptionResolution.getExceptionsCaught());
             }
-            exceptionJComboBox.setSelectedItem(ikasanExceptionResolution.getTheException());
+            exceptionJComboBox.setSelectedItem(ikasanExceptionResolution.getExceptionsCaught());
         }
         
         if (ikasanExceptionResolution.getTheAction() != null) {
@@ -91,7 +91,7 @@ public class ExceptionResolutionEditBox {
         if (theException != null && ! theException.endsWith(".class")) {
             theException += ".class";
         }
-        ikasanExceptionResolution.setTheException(theException);
+        ikasanExceptionResolution.setExceptionsCaught(theException);
         ikasanExceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
             List<IkasanComponentPropertyInstance> newActionParams = new ArrayList<>();
@@ -154,7 +154,7 @@ public class ExceptionResolutionEditBox {
         String selectedAction = (String) actionJComboBox.getSelectedItem();
 
         if (editBoxHasValue()) {
-            if (!selectedException.equals(ikasanExceptionResolution.getTheException()) ||
+            if (!selectedException.equals(ikasanExceptionResolution.getExceptionsCaught()) ||
                     !selectedAction.equals(ikasanExceptionResolution.getTheAction())) {
                 hasChanged = true;
             } else if (selectedAction.equals(ikasanExceptionResolution.getTheAction())) {
@@ -166,7 +166,7 @@ public class ExceptionResolutionEditBox {
                     }
                 }
             }
-        } else if (ikasanExceptionResolution.getTheException() != null || ikasanExceptionResolution.getTheAction() != null){
+        } else if (ikasanExceptionResolution.getExceptionsCaught() != null || ikasanExceptionResolution.getTheAction() != null){
             hasChanged = true;
         }
         return hasChanged;

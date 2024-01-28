@@ -14,13 +14,12 @@ import java.util.List;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
- *
  * This panel contains the data entry for the exception and action
  */
 public class ExceptionResolutionPanel extends PropertiesPanel {
     private static final Logger LOG = Logger.getInstance("#ExceptionResolutionPanel");
     private static final String OK_BUTTON_TEST = "Add";
-    private transient List<ExceptionResolution> exceptionResolutionList;
+    private final transient List<ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     private final JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
     private final JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
@@ -227,6 +226,6 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
     public boolean hasExceptionResolution(String exception) {
-        return exceptionResolutionList.stream().anyMatch(res -> res.getIkasanExceptionResolution().getTheException().equals(exception));
+        return exceptionResolutionList.stream().anyMatch(res -> res.getIkasanExceptionResolution().getExceptionsCaught().equals(exception));
     }
 }

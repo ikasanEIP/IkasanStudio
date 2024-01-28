@@ -1,10 +1,12 @@
 package org.ikasan.studio.model.ikasan.meta;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 
@@ -13,10 +15,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Data
-@Builder
+@SuperBuilder
 @Jacksonized
 @AllArgsConstructor
-public class IkasanComponentMeta {
+public class IkasanComponentMeta implements IkasanComponentMetaIfc {
     private static final String DEFAULT_README = "Readme.md";
     // Its assumed these types are so fundmental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
     private static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
@@ -39,11 +41,14 @@ public class IkasanComponentMeta {
     boolean bespokeClass;
     int displayOrder;
 
+    @JsonIgnore
     ImageIcon smallIcon;
+    @JsonIgnore
     ImageIcon canvasIcon;
 
     Map<String, IkasanComponentPropertyMeta> properties;
-    //Map<String, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
+
+    public IkasanComponentMeta() {}
 
     /**
      * Get a list of the mandatory properties for this component.
@@ -78,6 +83,5 @@ public class IkasanComponentMeta {
     public boolean isExceptionResolver() {
         return EXCEPTION_RESOLVER_TYPE.equals(componentType);
     }
-
 
 }

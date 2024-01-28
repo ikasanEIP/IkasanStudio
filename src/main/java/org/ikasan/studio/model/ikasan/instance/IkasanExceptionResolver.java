@@ -28,7 +28,7 @@ public class IkasanExceptionResolver extends FlowElement {
     }
 
     public void addExceptionResolution(IkasanExceptionResolution ikasanExceptionResolution) {
-        ikasanExceptionResolutionMap.put(ikasanExceptionResolution.getTheException(), ikasanExceptionResolution);
+        ikasanExceptionResolutionMap.put(ikasanExceptionResolution.getExceptionsCaught(), ikasanExceptionResolution);
     }
 
     public void resetIkasanExceptionResolutionList() {
