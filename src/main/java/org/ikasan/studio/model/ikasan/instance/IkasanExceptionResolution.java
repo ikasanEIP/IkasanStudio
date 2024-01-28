@@ -13,10 +13,10 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class IkasanExceptionResolution extends IkasanBaseElement {
-    private static final IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
+//    private static final IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     @JsonIgnore
     IkasanExceptionResolver parent;
-    String theException;
+    String exceptionsCaught;
     String theAction;
     List<IkasanComponentPropertyInstance> params;
 
@@ -25,8 +25,11 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
         this.parent = parent;
     }
 
+//    public static IkasanExceptionResolutionMeta getMeta() {
+//        return IKASAN_EXCEPTION_RESOLUTION_META;
+//    }
     public static IkasanExceptionResolutionMeta getMeta() {
-        return IKASAN_EXCEPTION_RESOLUTION_META;
+        return null;
     }
 
     /**

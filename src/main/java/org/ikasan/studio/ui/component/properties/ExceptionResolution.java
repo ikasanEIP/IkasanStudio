@@ -25,11 +25,11 @@ public class ExceptionResolution {
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
         this.componentInitialisation = componentInitialisation;
 
-        String theException = ikasanExceptionResolution.getTheException();
+        String theException = ikasanExceptionResolution.getExceptionsCaught();
         String theAction = ikasanExceptionResolution.getTheAction();
 
         if (theException != null && !theException.isEmpty()) {
-            exceptionField.setText(ikasanExceptionResolution.getTheException());
+            exceptionField.setText(ikasanExceptionResolution.getExceptionsCaught());
             deleteButton.addActionListener(e ->
                 parent.doDelete(ikasanExceptionResolution)
             );
@@ -53,7 +53,7 @@ public class ExceptionResolution {
      * @return the key for this exception resolution
      */
     public String getPropertyKey() {
-        return ikasanExceptionResolution.getTheException();
+        return ikasanExceptionResolution.getExceptionsCaught();
     }
 
     /**
