@@ -122,35 +122,23 @@ public class IkasanComponentLibrary {
         assert componentDirectories != null;
         for(String componentName : componentDirectories) {
             final String componentBaseDirectory = baseDirectory+"/"+componentName;
-            IkasanComponentMetaIfc ikasanComponentMeta = null;
-//            IkasanExceptionResolutionMeta ikasanExceptionResolutionMeta = null;
+            IkasanComponentMetaIfc ikasanComponentMetaIfc = null;
+            IkasanComponentMeta ikasanComponentMeta = null;
             try {
-                if (componentName.equals(EXCEPTION_RESOLVER)) {
-                    ikasanComponentMeta = ComponentDeserialisation.deserializeComponent(
-                            componentBaseDirectory+"/attributes_en_GB.json"
-//                            ,
-//                            new TypeReference<GenericPojo<IkasanExceptionResolutionMeta>>() {});
-//                   ikasanComponentMeta = PojoDeserialisation.deserializePojo(
-//                            componentBaseDirectory+"/attributes_en_GB.json",
-//                            new TypeReference<GenericPojo<IkasanExceptionResolutionMeta>>() {});
-                    );
-                    System.out.println("Test " + ikasanComponentMeta);
+                ikasanComponentMetaIfc = ComponentDeserialisation.deserializeComponent(
+                        componentBaseDirectory+"/attributes_en_GB.json"
+                );
 
-//                } else
-//                {
-//                    ikasanComponentMeta = PojoDeserialisation.deserializePojo(
-//                            componentBaseDirectory+"/attributes_en_GB.json",
-//                            new TypeReference<GenericPojo<IkasanExceptionResolutionMeta>>() {});
-                }
             } catch (StudioException e) {
                 LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
                         " there was an error generating the details for component " + componentName +
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version");
                 continue;
             }
-//            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
-//            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
-//            newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
+            ikasanComponentMeta = (IkasanComponentMeta)ikasanComponentMetaIfc;
+            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
+            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
+            newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
         }
         if (! newIkasanComponentMetanMap.keySet().containsAll(mandatoryComponents)) {
             LOG.error("The ikasan version pack " + ikasanVersionPack + " did not contain all the mandatory components " +

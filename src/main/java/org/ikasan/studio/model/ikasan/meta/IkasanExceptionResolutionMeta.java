@@ -20,7 +20,7 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanLookup.EXCEPTION_RESOLVE
 @AllArgsConstructor
 public class IkasanExceptionResolutionMeta extends IkasanComponentMeta {
     List<String> exceptionsCaught;
-    List<String> actions;
+    List<ExceptionAction> actionList;
     private static final Map<String, String> STANDARD_EXCEPTIONS = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
 //    private static final IkasanComponentMeta ON_EXCEPTION = IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK);
 

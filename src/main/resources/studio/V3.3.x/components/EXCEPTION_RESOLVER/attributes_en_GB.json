@@ -1,50 +1,55 @@
 {
-  "payload": {
-    "name": "Exception Resolver",
-    "helpText": "Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.",
-    "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
-    "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
-    "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
-    "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
-    "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
-    "displayOrder": 5,
-    "properties": {
-      "Name": {
-        "propertyName": "Name",
-        "mandatory": true,
-        "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
-      },
-      "Description": {
-        "propertyName": "Description",
-        "helpText": "A more detailed description of the component that may assist in support.."
-      },
-      "ExceptionsCaught" : [
-        "org.ikasan.spec.component.transformation.TransformationException.class",
-        "org.ikasan.spec.component.splitting.SplitterException.class",
-        "org.ikasan.spec.component.routing.RouterException.class",
-        "org.ikasan.spec.component.endpoint.EndpointException.class",
-        "javax.jms.JMSException.class",
-        "javax.resource.ResourceException.class",
-        "org.ikasan.spec.component.filter.FilterException.class"
-      ],
-      "Actions" : [
-        {
-          "ignoreException": {},
-          "excludeEvent": {},
-          "retry":{
-            "delay": "Integer",
-            "interval": "Integer"
-          },
-          "retryIndefinatel":{
-          "delay": "Integer"
-        },
-          "scheduledCronEntry":{
-            "cronExpression": "String",
-            "maxRetries": "Integer"
-          }
-        }
-      ]
+  "name": "Exception Resolver",
+  "helpText": "Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.",
+  "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
+  "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
+  "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
+  "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
+  "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
+  "displayOrder": 5,
+  "properties": {
+    "Name": {
+      "propertyName": "Name",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
+    },
+    "Description": {
+      "propertyName": "Description",
+      "helpText": "A more detailed description of the component that may assist in support.."
+    }},
+  "exceptionsCaught" : [
+    "org.ikasan.spec.component.transformation.TransformationException.class",
+    "org.ikasan.spec.component.splitting.SplitterException.class",
+    "org.ikasan.spec.component.routing.RouterException.class",
+    "org.ikasan.spec.component.endpoint.EndpointException.class",
+    "javax.jms.JMSException.class",
+    "javax.resource.ResourceException.class",
+    "org.ikasan.spec.component.filter.FilterException.class"
+  ],
+  "actionList" : [
+    {
+      "actionName" : "ignoreException",
+      "actionProperties":{}
+    },{
+      "actionName" : "excludeEvent",
+      "actionProperties":{}
+    },{
+      "actionName" : "retry",
+      "actionProperties":{
+        "delay": "Integer",
+        "interval": "Integer"
+      }
+    },{
+      "actionName" : "retryIndefinatel",
+      "actionProperties":{
+        "delay": "Integer"
+      }
+    },{
+      "actionName" : "scheduledCronEntry",
+      "actionProperties":{
+        "cronExpression": "String",
+        "maxRetries": "Integer"
+      }
     }
-  }
+  ]
 }
-
