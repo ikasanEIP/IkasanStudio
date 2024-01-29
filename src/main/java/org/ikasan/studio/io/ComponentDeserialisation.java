@@ -17,8 +17,9 @@ public class ComponentDeserialisation {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
-        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        MAPPER
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
     public static IkasanComponentMetaIfc deserializeComponent(String path) throws StudioException {
