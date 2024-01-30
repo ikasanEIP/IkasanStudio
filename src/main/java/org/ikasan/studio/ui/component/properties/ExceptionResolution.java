@@ -13,17 +13,15 @@ import java.util.List;
  */
 public class ExceptionResolution {
     ExceptionResolverEditBox parent;
-    private JLabel exceptionField = new JLabel();
-    private JLabel actionField = new JLabel();
+    private final JLabel exceptionField = new JLabel();
+    private final JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
-    private boolean componentInitialisation;
-    private IkasanExceptionResolution ikasanExceptionResolution;
-    private JButton deleteButton = new JButton("DEL");
+    private final IkasanExceptionResolution ikasanExceptionResolution;
+    private final JButton deleteButton = new JButton("DEL");
 
     public ExceptionResolution(ExceptionResolverEditBox parent, IkasanExceptionResolution ikasanExceptionResolution, boolean componentInitialisation) {
         this.parent = parent;
         this.ikasanExceptionResolution = ikasanExceptionResolution ;
-        this.componentInitialisation = componentInitialisation;
 
         String theException = ikasanExceptionResolution.getExceptionsCaught();
         String theAction = ikasanExceptionResolution.getTheAction();
@@ -42,7 +40,7 @@ public class ExceptionResolution {
                 !ikasanExceptionResolution.getParams().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
             for (IkasanComponentPropertyInstance property : ikasanExceptionResolution.getParams()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, componentInitialisation);
                 actionParamEditBoxList.add(actionParam);
             }
         }

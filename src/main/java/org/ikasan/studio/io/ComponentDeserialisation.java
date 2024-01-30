@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.StudioException;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMetaIfc;
+import org.ikasan.studio.model.ikasan.meta.IkasanMeta;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -22,7 +22,7 @@ public class ComponentDeserialisation {
             .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
-    public static IkasanComponentMetaIfc deserializeComponent(String path) throws StudioException {
+    public static IkasanMeta deserializeComponent(String path) throws StudioException {
 
         InputStream inputStream = ComponentDeserialisation.class.getClassLoader().getResourceAsStream(path);
         if (inputStream == null) {
@@ -32,9 +32,9 @@ public class ComponentDeserialisation {
                 .lines()
                 .collect(Collectors.joining());
 
-        IkasanComponentMetaIfc ikasanComponentMeta;
+        IkasanMeta ikasanComponentMeta;
         try {
-            ikasanComponentMeta = MAPPER.readValue(jsonString, IkasanComponentMetaIfc.class);
+            ikasanComponentMeta = MAPPER.readValue(jsonString, IkasanMeta.class);
         } catch (JsonProcessingException e) {
             throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
         }
