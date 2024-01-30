@@ -1,10 +1,8 @@
 package org.ikasan.studio.model.ikasan.meta;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.io.ComponentDeserialisation;
-import org.ikasan.studio.io.PojoDeserialisation;
 
 import javax.swing.*;
 import java.net.URISyntaxException;
@@ -25,7 +23,7 @@ public class IkasanComponentLibrary {
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
     private static final String LARGE_ICON_NAME = "large.png";
-    private static String FLOW = "FLOW";
+    private static final String FLOW = "FLOW";
     private static final String MODULE = "MODULE";
     private static final String EXCEPTION_RESOLVER = "EXCEPTION_RESOLVER";
     private static final Logger LOG = Logger.getInstance("#IkasanComponentLibrary");
@@ -63,69 +61,10 @@ public class IkasanComponentLibrary {
         assert componentDirectories != null;
         for(String componentName : componentDirectories) {
             final String componentBaseDirectory = baseDirectory+"/"+componentName;
-            IkasanComponentMeta ikasanComponentMeta = null;
-            IkasanExceptionResolutionMeta ikasanExceptionResolutionMeta = null;
+            IkasanMeta ikasanMeta = null;
+
             try {
-                if (componentName.equals(EXCEPTION_RESOLVER)) {
-                    ikasanExceptionResolutionMeta = PojoDeserialisation.deserializePojo(
-                            componentBaseDirectory+"/attributes_en_GB.json",
-                            new TypeReference<>() {
-                            });
-//                   ikasanComponentMeta = PojoDeserialisation.deserializePojo(
-//                            componentBaseDirectory+"/attributes_en_GB.json",
-//                            new TypeReference<GenericPojo<IkasanExceptionResolutionMeta>>() {});
-                    System.out.println("Test " + ikasanExceptionResolutionMeta);
-
-//                } else
-//                {
-//                    ikasanComponentMeta = PojoDeserialisation.deserializePojo(
-//                            componentBaseDirectory+"/attributes_en_GB.json",
-//                            new TypeReference<GenericPojo<IkasanExceptionResolutionMeta>>() {});
-                }
-            } catch (StudioException e) {
-                LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
-                        " there was an error generating the details for component " + componentName +
-                        " review the Ikasan version pack, perhaps reinstall or use an alternate version");
-                continue;
-            }
-            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
-            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
-            newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
-        }
-        if (! newIkasanComponentMetanMap.keySet().containsAll(mandatoryComponents)) {
-            LOG.error("The ikasan version pack " + ikasanVersionPack + " did not contain all the mandatory components " +
-                    mandatoryComponents + " so will be ignored");
-        }
-
-        synchronized (IkasanComponentLibrary.class) {
-            versionedComponenetsLibrary.put(ikasanVersionPack, newIkasanComponentMetanMap);
-        }
-    }
-
-    /**
-     * Refresh the component library.
-     * By making this protected, we intend to limit that only the test can state an alternate root
-     * At some point we may need to key this by project or version since all open projects will share this.
-     * @param ikasanVersionPack to search for components
-     */
-    public static void refreshComponentLibraryx(final String ikasanVersionPack) {
-        Map<String, IkasanComponentMeta> newIkasanComponentMetanMap
-                = new HashMap<>();
-        String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanVersionPack + "/components";
-        String[] componentDirectories = null;
-        try {
-            componentDirectories = getDirectories(baseDirectory);
-        } catch (URISyntaxException e) {
-            LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
-        }
-
-        assert componentDirectories != null;
-        for(String componentName : componentDirectories) {
-            final String componentBaseDirectory = baseDirectory+"/"+componentName;
-            IkasanComponentMetaIfc ikasanComponentMetaIfc = null;
-            IkasanComponentMeta ikasanComponentMeta = null;
-            try {
-                ikasanComponentMetaIfc = ComponentDeserialisation.deserializeComponent(
+                ikasanMeta = ComponentDeserialisation.deserializeComponent(
                         componentBaseDirectory+"/attributes_en_GB.json"
                 );
 
@@ -135,7 +74,7 @@ public class IkasanComponentLibrary {
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version");
                 continue;
             }
-            ikasanComponentMeta = (IkasanComponentMeta)ikasanComponentMetaIfc;
+            IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta)ikasanMeta;
             ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
             ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
             newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
