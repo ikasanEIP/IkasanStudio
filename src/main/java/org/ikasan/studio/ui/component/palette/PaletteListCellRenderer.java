@@ -3,8 +3,8 @@ package org.ikasan.studio.ui.component.palette;
 // Display an icon and a string for each object in the list.
 
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.model.PaletteItem;
 import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
-import org.ikasan.studio.ui.model.PaletteItemSeparator;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -22,7 +22,7 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             boolean cellHasFocus)    // does the cell have focus
     {
         if (value instanceof PaletteItemIkasanComponent) {
-            PaletteItemIkasanComponent paletteItem = (PaletteItemIkasanComponent) value;
+            PaletteItem paletteItem = (PaletteItem) value;
             setText(paletteItem.getIkasanFlowElementViewHandler().getText());
             setIcon(paletteItem.getIkasanFlowElementViewHandler().getDisplayIcon());
             setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
@@ -42,8 +42,8 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             if (index > 0) {
                 setBorder(new MatteBorder(1, 0, 0, 0, StudioUIUtils.IKASAN_GREY));
             }
-            PaletteItemSeparator paletteItemSeparator = (PaletteItemSeparator) value;
-            setText(paletteItemSeparator.getFlowElement().getIkasanComponentMeta().getName());
+            PaletteItem paletteItemSeparator = (PaletteItem) value;
+            setText(paletteItemSeparator.getIkasanComponentMeta().getName());
             Font labelFont = getFont();
             Font boldLabelFond = new Font(labelFont.getFontName(), Font.BOLD, labelFont.getSize());
             setFont(boldLabelFond);

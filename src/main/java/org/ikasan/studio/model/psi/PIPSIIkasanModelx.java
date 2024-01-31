@@ -1,6 +1,5 @@
 package org.ikasan.studio.model.psi;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import org.ikasan.studio.Context;
@@ -12,7 +11,6 @@ import org.ikasan.studio.model.ikasan.instance.Module;
  * code to generate the ikasan Module and update the code to reflect changes to the ikasan Module.
  */
 public class PIPSIIkasanModelx {
-    private static final Logger LOG = Logger.getInstance("#org.ikasan.studio.model.psi.PIPSIIkasanModel");
     public static final String OLD_MODULE_BEAN_CLASS = "org.ikasan.spec.module.Module";
     private static final String WITH_DESCRIPTION_METHOD_NAME = "withDescription";
     private static final String ADD_FLOW_METHOD_NAME = "addFlow";
@@ -396,7 +394,7 @@ public class PIPSIIkasanModelx {
 //                                    LOG.warn("Attempt to get interface type for " + flowComponentConstructor.getText()+ " failed. Component type will be set as unknown");
 //                                }
 //                            }
-//                            ikasanFlowComponent = FlowElement.getElement(ikasanComponentType, newFlow, flowElementName, flowElementDescription);
+//                            ikasanFlowComponent = FlowElement.createFlowElement(ikasanComponentType, newFlow, flowElementName, flowElementDescription);
 //                        }
 //                    } else {
 //                    // More complex scenario, we need to traverse down the call stack until we find a component.
@@ -405,7 +403,7 @@ public class PIPSIIkasanModelx {
 //                    }
 //                }
 //                if (ikasanFlowComponent == null) {
-//                    ikasanFlowComponent = FlowElement.getElement(IkasanComponentType.UNKNOWN, newFlow, flowElementName, flowElementDescription);
+//                    ikasanFlowComponent = FlowElement.createFlowElement(IkasanComponentType.UNKNOWN, newFlow, flowElementName, flowElementDescription);
 //                }
 //
 //                // This is not the right long term class but will do for now.
@@ -825,7 +823,7 @@ public class PIPSIIkasanModelx {
 //                // Ignore for now
 //                ;
 //            } else if (EXCEPTION_RESOLVER_NAME_METHOD.equals(methodName)) {
-//                ikasanFlowComponent = FlowElement.getElement(IkasanComponentType.parseMethodName(methodName), parent, name, description);
+//                ikasanFlowComponent = FlowElement.createFlowElement(IkasanComponentType.parseMethodName(methodName), parent, name, description);
 //            } else if (ADD_EXCEPTION_TO_ACTION.equals(methodName)) {
 //                // .addExceptionToAction(RouterException.class, OnException.retry(200, 10))
 //                // Exception resolver is a special case, key name will be ExceptionResolver, group will increment from 1 for each addExceptionToAction method call.
@@ -869,7 +867,7 @@ public class PIPSIIkasanModelx {
 //                flowElementProperties.put(new IkasanComponentPropertyMetaKey(methodName.replaceFirst("set", "")), parameter);
 //            } else {
 //                // Must be the component type e.g. jmsConsumer()
-//                ikasanFlowComponent = FlowElement.getElement(IkasanComponentType.parseMethodName(methodName), parent, name, description);
+//                ikasanFlowComponent = FlowElement.createFlowElement(IkasanComponentType.parseMethodName(methodName), parent, name, description);
 //
 //            }
 //        }
@@ -877,7 +875,7 @@ public class PIPSIIkasanModelx {
 //        // In this case, the object was created before the setter chaining
 //        if (ikasanFlowComponent == null && componentBuilderMethodList.getBaseType() != null) {
 //            IkasanComponentType componentType = IkasanComponentType.parseCategoryType(componentBuilderMethodList.getBaseType());
-//            ikasanFlowComponent = FlowElement.getElement(componentType, parent, name, description);
+//            ikasanFlowComponent = FlowElement.createFlowElement(componentType, parent, name, description);
 //        }
 //
 //        if (ikasanFlowComponent != null && ! flowElementProperties.isEmpty()) {

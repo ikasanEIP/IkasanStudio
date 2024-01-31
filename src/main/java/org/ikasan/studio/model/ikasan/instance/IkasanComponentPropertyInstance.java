@@ -1,7 +1,6 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.List;
  * Holds the value of a property
  */
 public class IkasanComponentPropertyInstance {
-    private static final Logger LOG = Logger.getInstance("#IkasanComponentProperty");
     private Object value;
     private Boolean regenerateAllowed = true;
     @JsonIgnore

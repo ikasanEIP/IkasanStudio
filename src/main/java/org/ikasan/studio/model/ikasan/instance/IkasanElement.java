@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
@@ -25,10 +23,6 @@ public  class IkasanElement extends IkasanBaseElement {
     protected Map<String, IkasanComponentPropertyInstance> configuredProperties;
     public IkasanElement() {}
 
-//    protected IkasanElement(IkasanComponentMetax type, Map<String, IkasanComponentProperty> configuredProperties) {
-//        super(type);
-//        this.configuredProperties = configuredProperties;
-//    }
     protected IkasanElement(IkasanComponentMeta componentMeta) {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();

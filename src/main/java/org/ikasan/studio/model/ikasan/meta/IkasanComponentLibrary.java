@@ -33,14 +33,6 @@ public class IkasanComponentLibrary {
     protected static Map<String, Map<String, IkasanComponentMeta>> versionedComponenetsLibrary = new HashMap<>(new HashMap<>());
     private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(MODULE, FLOW, EXCEPTION_RESOLVER));
 
-    public static final IkasanComponentMeta UNKNOWN = IkasanComponentMeta.builder().build();
-    /**
-     * refresh the component library, by this point the version of Ikasan will have been chosen.
-     */
-    public static void refreshComponentLibrary() {
-        refreshComponentLibrary(STD_IKASAN_PACK);
-    }
-
     /**
      * Refresh the component library.
      * By making this protected, we intend to limit that only the test can state an alternate root
@@ -61,7 +53,7 @@ public class IkasanComponentLibrary {
         assert componentDirectories != null;
         for(String componentName : componentDirectories) {
             final String componentBaseDirectory = baseDirectory+"/"+componentName;
-            IkasanMeta ikasanMeta = null;
+            IkasanMeta ikasanMeta;
 
             try {
                 ikasanMeta = ComponentDeserialisation.deserializeComponent(
@@ -119,13 +111,17 @@ public class IkasanComponentLibrary {
         return safeIkasanComponentMetanMap.get(key);
     }
 
-    public static Set<String> getIkasanComponentList(String version) {
+    public static Set<String> getIkasanComponentNames(String version) {
         Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
         return safeIkasanComponentMetanMap.keySet();
     }
+    public static Collection<IkasanComponentMeta>  getIkasanComponentList(String version) {
+        Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
+        return safeIkasanComponentMetanMap.values();
+    }
 
     public static int getNumberOfComponents(String version) {
-        return getIkasanComponentList(version).size();
+        return getIkasanComponentNames(version).size();
     }
 
     private static ImageIcon getImageIcon(String iconLocation, String defaultIcon) {

@@ -120,10 +120,10 @@ public class StudioMaintenanceDebug extends AnAction
       //      StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
 //      StudioUIUtils.displayMessage(projectKey, getKeyData(ae));
 //      VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(ae.getProject(),StudioPsiUtils.JAVA_CODE);
-//      PsiDirectory baseDir = PsiDirectoryFactory.getElement(ae.getProject()).createDirectory(sourceRoot);
+//      PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(ae.getProject()).createDirectory(sourceRoot);
 //      PsiDirectory bobDir = StudioPsiUtils.createPackage(baseDir, "bob");
 //      PsiFile newFile = StudioPsiUtils.createFileInDirectory(bobDir, "myFile", "Some text", ae.getProject());
-//      PsiDocumentManager documentManager = PsiDocumentManager.getElement(ae.getProject());
+//      PsiDocumentManager documentManager = PsiDocumentManager.createFlowElement(ae.getProject());
 //      documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(newFile));
 //      StudioPsiUtils.
 //      if(caretModel.getCurrentCaret().hasSelection())

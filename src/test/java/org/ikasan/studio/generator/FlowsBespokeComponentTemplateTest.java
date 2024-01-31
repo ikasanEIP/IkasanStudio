@@ -18,7 +18,7 @@ public class FlowsBespokeComponentTemplateTest {
 //        Module ikasanModule = TestFixtures.getIkasanModule();
 //        ikasanModule.addFlow(new Flow());
 //        Flow newFlow = ikasanModule.getFlows().get(0);
-//        FlowElement ikasanFlowComponent = FlowElement.getElement(IkasanComponentMetax.CUSTOM_CONVERTER, newFlow);
+//        FlowElement ikasanFlowComponent = FlowElement.createFlowElement(IkasanComponentMetax.CUSTOM_CONVERTER, newFlow);
 //        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
 //        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
 //        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
