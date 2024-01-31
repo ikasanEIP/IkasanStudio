@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.ui.model.IkasanFlowUIComponentFactory;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.model.PaletteItem;
 import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
 import org.ikasan.studio.ui.model.PaletteItemSeparator;
@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,23 +101,30 @@ public class PalettePanel extends JPanel {
      */
     private java.util.List<PaletteItem> buildPalettItems() {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
-        IkasanFlowUIComponentFactory ikasanFlowUIComponentFactory = IkasanFlowUIComponentFactory.getInstance();
 
-        List<FlowElement> ikasanFlowUIComponents = ikasanFlowUIComponentFactory.getIkasanFlowComponents();
-        List<FlowElement> displayOrder = ikasanFlowUIComponents
-                .stream()
-                .sorted(Comparator
-                    .comparing((FlowElement c1) -> c1.getIkasanComponentMeta().getDisplayOrder())
-                    .thenComparing((FlowElement c1) -> c1.getIkasanComponentMeta().getName()))
-                .collect(Collectors.toList());
+        Collection<IkasanComponentMeta> ikasanComponentMetaList = IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);
+        List<IkasanComponentMeta> displayOrder = ikasanComponentMetaList
+            .stream()
+            .sorted(Comparator
+                    .comparing((IkasanComponentMeta c1) -> c1.getDisplayOrder())
+                    .thenComparing((IkasanComponentMeta c1) -> c1.getName()))
+            .collect(Collectors.toList());
+
+//        List<FlowElement> ikasanFlowUIComponents = ikasanFlowUIComponentFactory.getIkasanFlowComponents();
+//        List<FlowElement> displayOrder = ikasanFlowUIComponents
+//            .stream()
+//            .sorted(Comparator
+//                .comparing((FlowElement c1) -> c1.getIkasanComponentMeta().getDisplayOrder())
+//                .thenComparing((FlowElement c1) -> c1.getIkasanComponentMeta().getName()))
+//            .collect(Collectors.toList());
 
         String category = "";
-        for (FlowElement ikasanFlowUIComponent : displayOrder) {
-            if (!category.equals(ikasanFlowUIComponent.getIkasanComponentMeta().getComponentType().toString()) ) {
-                category = ikasanFlowUIComponent.getIkasanComponentMeta().getComponentType().toString();
+        for (IkasanComponentMeta ikasanComponentMeta : displayOrder) {
+            if (!category.equals(ikasanComponentMeta.getComponentType().toString()) ) {
+                category = ikasanComponentMeta.getComponentType().toString();
                 paletteItems.add(new PaletteItemSeparator(category));
             }
-            paletteItems.add(new PaletteItemIkasanComponent(ikasanFlowUIComponent));
+            paletteItems.add(new PaletteItem(ikasanComponentMeta));
         }
         return paletteItems;
     }

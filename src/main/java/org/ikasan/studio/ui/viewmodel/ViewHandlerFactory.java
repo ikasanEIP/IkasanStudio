@@ -12,7 +12,7 @@ public class ViewHandlerFactory {
         if (component == null) {
             return null;
         } else if (component instanceof FlowElement) {
-            return new IkasanPaletteElementViewHandler((FlowElement) component);
+            return new IkasanPaletteElementViewHandler(component.getIkasanComponentMeta());
         } else if (component instanceof Module) {
             return new IkasanModuleViewHandler((Module) component);
         } else if (component instanceof Flow) {

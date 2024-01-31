@@ -39,7 +39,7 @@ public class FlowTemplateTest {
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
 //        List<FlowElement> components = ikasanFlow.getFlowComponentList() ;
-//        FlowElement component = FlowElement.getElement(IkasanComponentTypeMeta.EVENT_GENERATING_CONSUMER, ikasanFlow);
+//        FlowElement component = FlowElement.createFlowElement(IkasanComponentTypeMeta.EVENT_GENERATING_CONSUMER, ikasanFlow);
 //        component.setComponentName("testEventGeneratingConsumer");
 //        components.add(component);
 //

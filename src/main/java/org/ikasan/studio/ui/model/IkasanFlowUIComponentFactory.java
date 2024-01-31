@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.model;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMetax;
 
 import javax.swing.*;
@@ -123,7 +124,7 @@ public class IkasanFlowUIComponentFactory {
     private FlowElement createIkasanFlowUIComponent(String text, String helpText, String webHelpURL, IkasanComponentMetax ikasanComponentType, String iconName) {
         String smallIconLocation = "/studio/icons/paletteSmall/" + iconName + ".png";
         String standardIconLocation = "/studio/icons/palette/" + iconName + ".png";
-        return FlowElement.getDummyFlowElement();
+        return FlowElementFactory.createFlowElement(null, null);
     }
 
     private ImageIcon getImageIcon(String iconLocation) {

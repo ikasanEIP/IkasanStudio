@@ -97,7 +97,7 @@ public class StudioPsiUtils {
     public static IkasanPomModel pomLoad(Project project) {
         IkasanPomModel pom = Context.getPom(project.getName());
         if (pom == null) {
-            Model model = null;
+            Model model;
             PsiFile pomPsiFile = pomGetTopLevel(project);
             if (pomPsiFile != null) {
                 try (Reader reader = new StringReader(pomPsiFile.getText())) {
@@ -119,11 +119,10 @@ public class StudioPsiUtils {
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
     public static void pomAddDependancies(String projectKey, Map<String, Dependency> newDependencies) {
-        IkasanPomModel pom = null;
+        IkasanPomModel pom;
         if (newDependencies != null && !newDependencies.isEmpty()) {
             Project project = Context.getProject(projectKey);
             pom = pomLoad(project); // Have to load each time because might have been independently updated.
-            boolean pomUpdated = false;
 
             if (pom != null) {
                 for (Dependency newDependency : newDependencies.values()) {
@@ -133,7 +132,7 @@ public class StudioPsiUtils {
             pomAddStandardProperties(pom);
             if (pom.isDirty()) {
                 pomSave(project, pom);
-//            ProjectManager.getElement().reloadProject(project);
+//            ProjectManager.createFlowElement().reloadProject(project);
             }
         }
     }
@@ -222,9 +221,12 @@ public class StudioPsiUtils {
 
         PsiFile[] files2 = PsiShortNamesCache.getInstance(project).getFilesByName(filename);
         long t1 = System.currentTimeMillis();
-        message.append("looking for file " + filename + " method 1 found [");
+        message
+                .append("looking for file ")
+                .append(filename)
+                .append(" method 1 found [");
         for (PsiFile myFile : files2) {
-            message.append("" + myFile.getName());
+            message.append(myFile.getName());
         }
         long t2 = System.currentTimeMillis();
 
@@ -526,13 +528,13 @@ public class StudioPsiUtils {
 //    PsiClass containingClass = containingMethod.getContainingClass();
 // binary expression holds a PSI expression of the form x==y  whch we need to change to s.equals(y)
     public static void bob(Project project) {
-//        ReadonlyStatusHandler.getElement(project).ensureFilesWritable();
+//        ReadonlyStatusHandler.createFlowElement(project).ensureFilesWritable();
         // PsiBinaryExpression binaryExpression = (PsiBinaryExpression) descriptor.getPsiElement();
 //        IElementType opSign = binaryExpression.getOperationTokenType();
 //        PsiExpression lExpr = binaryExpression.getLOperand();
 //        PsiExpression rExpr = binaryExpression.getROperand();
         // 1 Create replacement fragment from test with 'a' and 'b' as placeholders
-//        PsiElementFactory factory = JavaPsiFacade.getElement(project).getElementFactory();
+//        PsiElementFactory factory = JavaPsiFacade.createFlowElement(project).getElementFactory();
 //        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
         // 2 replace a and b
 //        equalsCall.getMethodExpression().getQualifierExpression().replace(lExpr);

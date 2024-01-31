@@ -19,7 +19,7 @@ class IkasanComponentLibraryTest {
                 is(3));
 
         MatcherAssert.assertThat(
-                new TreeSet<>(IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.TEST_IKASAN_PACK)),
+                new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(IkasanComponentLibrary.TEST_IKASAN_PACK)),
                 is(new TreeSet<>(Arrays.asList("EXCEPTION_RESOLVER", "FLOW", "MODULE"))));
 
     }

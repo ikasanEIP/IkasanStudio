@@ -18,7 +18,7 @@ public class IkasanExceptionResolver extends FlowElement {
      * Create an IkasanExceptionResolver
      * @param parent flow that contains this exceptions resolver
      */
-    public IkasanExceptionResolver(Flow parent) {
+    protected IkasanExceptionResolver(Flow parent) {
         super(IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK), parent);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }

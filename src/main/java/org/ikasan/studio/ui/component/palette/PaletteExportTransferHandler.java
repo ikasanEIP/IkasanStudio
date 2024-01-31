@@ -2,8 +2,9 @@ package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
-import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
+import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 {
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "IkasanFlowUIComponent");
-    private static final DataFlavor flavors[] = { ikasanFlowUIComponentFlavor };
+    private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
 
     // Source actions i.e. methods called for the source of the copy
 
@@ -32,11 +33,14 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     @Override
     public Transferable createTransferable(JComponent sourceComponent) {
-        if (sourceComponent instanceof JList && ((JList)sourceComponent).getSelectedValue() instanceof PaletteItemIkasanComponent) {
+        if (sourceComponent instanceof JList &&
+                ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem &&
+                ! ((PaletteItem)((JList)sourceComponent).getSelectedValue()).isCategory()) {
             JList paletteList = (JList)sourceComponent;
-            PaletteItemIkasanComponent item = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
-            IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(item.getFlowElement());
-            Image dragImage = item.getFlowElement().getIkasanComponentMeta().getSmallIcon().getImage();
+            PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
+            IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(
+                    FlowElementFactory.createFlowElement(item.getIkasanComponentMeta(), null));
+            Image dragImage = item.getIkasanComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);
             }

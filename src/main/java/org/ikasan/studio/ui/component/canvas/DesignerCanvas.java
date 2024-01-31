@@ -477,7 +477,7 @@ public class DesignerCanvas extends JPanel {
      * @return the fully populated component or null if the action was cancelled.
      */
     private FlowElement createViableFlowComponent(IkasanComponentMeta ikasanComponentType, Flow containingFlow) {
-        FlowElement newComponent = FlowElement.getElement(ikasanComponentType, containingFlow);
+        FlowElement newComponent = FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver(newComponent);
         } else {
@@ -544,10 +544,10 @@ public class DesignerCanvas extends JPanel {
         int numberOfComponents = components.size();
         for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
             if (components.get(ii).equals(surroundingComponents.getRight())) {
-                components.add(ii, FlowElement.getElement(ikasanComponentType, containingFlow));
+                components.add(ii, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
                 break;
             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                components.add(ii+1, FlowElement.getElement(ikasanComponentType, containingFlow));
+                components.add(ii+1, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
                 break;
             }
         }
@@ -665,7 +665,7 @@ public class DesignerCanvas extends JPanel {
 //        VirtualFile virtualFile = containingFile.getVirtualFile ();
 //        if (virtualFile != null)
 //        {
-//            FileEditorManager manager = FileEditorManager.getElement (Context.getProject());
+//            FileEditorManager manager = FileEditorManager.createFlowElement (Context.getProject());
 //            FileEditor[] fileEditors = manager.openFile (virtualFile, true);
 //            if (fileEditors.length > 0)
 //            {

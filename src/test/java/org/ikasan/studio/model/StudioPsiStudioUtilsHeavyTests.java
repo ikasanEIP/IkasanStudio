@@ -96,11 +96,11 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //    @Test
 //    public void test_createPackage() {
 //        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject,StudioPsiUtils.JAVA_CODE);
-//        PsiDirectory baseDir = PsiDirectoryFactory.getElement(myProject).createDirectory(sourceRoot);
+//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createDirectory(sourceRoot);
 //        ApplicationManager.getApplication().runWriteAction(new Runnable() {
 //            @Override
 //            public void run() {
-//                CommandProcessor.getElement().executeCommand(myProject, new Runnable() {
+//                CommandProcessor.createFlowElement().executeCommand(myProject, new Runnable() {
 //                    @Override
 //                    public void run() {
 //                        StudioPsiUtils.createPackage(baseDir, "org.test");
@@ -190,7 +190,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
 
 
-//        PsiDirectory baseDir = PsiDirectoryFactory.getElement(myProject).createDirectory(project.getBaseDir());
+//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createDirectory(project.getBaseDir());
 
         //JavaDirectoryService.createClass(PsiDirectory dir, String name) // allows you to create a java class in a a given directory.
         //JavaDirectoryService.createClass(PsiDirectory dir, String name, String templateName)  -- allows to create a java cla
