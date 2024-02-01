@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan.meta;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -15,6 +16,7 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanLookup.EXCEPTION_RESOLVE
  * Capture the meta information for an action resolution. The meta will never change per class, so this is static.
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor

@@ -11,11 +11,16 @@ import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.Element;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -179,19 +184,35 @@ public class StudioUtils {
     public static final String COMPONENT_DEFINTIONS_DIR = "/studio/componentDefinitions/";
 
 
-
-
-    public static String[] getDirectories(String dir) throws URISyntaxException {
-        File file = new File(Objects.requireNonNull(StudioUtils.class.getClassLoader().getResource(dir)).toURI());
-        return file.list((current, name) -> new File(current, name).isDirectory());
+    /**
+     * Get the subdirectories of a given directory on the classpath, when in a jar file or file system
+     * @param dir to look through
+     * @return a string array of subdirectories
+     * @throws URISyntaxException if there were issues
+     * @throws IOException if there were issues
+     */
+    public static String[] getDirectories(final String dir) throws URISyntaxException, IOException {
+        final URI uri = Objects.requireNonNull(StudioUtils.class.getClassLoader().getResource(dir)).toURI();
+        Path myPath;
+        if (uri.getScheme().equals("jar")) {
+            // The newFileSystem must remain open for Intellij
+            FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
+            myPath = fileSystem.getPath(dir);
+        } else {
+            myPath = Paths.get(uri);
+        }
+        // The walk must remain open for Intellij
+        Set<String> directories = Files.walk(myPath, 1)
+                .filter(Files::isDirectory)
+                .map(Path::toString)
+                .filter(string -> ! string.endsWith(dir))
+                .collect(Collectors.toSet());
+        return directories.toArray(String[]::new);
     }
 
-    public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
-//        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new TreeMap<>();
-//        Map<IkasanComponentPropertyMetaKey, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
-        Map<String, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
-//        componentProperties.put(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT);
 
+    public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
+        Map<String, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
         Set<String> propertyConfigLabels = new HashSet<>();
