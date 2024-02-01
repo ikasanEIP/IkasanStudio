@@ -5,6 +5,7 @@ import org.ikasan.studio.StudioException;
 import org.ikasan.studio.io.ComponentDeserialisation;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
@@ -19,7 +20,7 @@ public class IkasanComponentLibrary {
     private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR +"icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR +"unknown/";
     public static final String STD_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
-    public static final String TEST_IKASAN_PACK = "Vtest.x";
+
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
     private static final String LARGE_ICON_NAME = "large.png";
@@ -39,14 +40,14 @@ public class IkasanComponentLibrary {
      * At some point we may need to key this by project or version since all open projects will share this.
      * @param ikasanVersionPack to search for components
      */
-    public static void refreshComponentLibrary(final String ikasanVersionPack) {
-        Map<String, IkasanComponentMeta> newIkasanComponentMetanMap
+    public static Map<String, IkasanComponentMeta> refreshComponentLibrary(final String ikasanVersionPack) {
+        Map<String, IkasanComponentMeta> newIkasanComponentMetaMap
                 = new HashMap<>();
         String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanVersionPack + "/components";
         String[] componentDirectories = null;
         try {
             componentDirectories = getDirectories(baseDirectory);
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException | IOException e) {
             LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
         }
 
@@ -69,16 +70,17 @@ public class IkasanComponentLibrary {
             IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta)ikasanMeta;
             ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
             ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
-            newIkasanComponentMetanMap.put(componentName, ikasanComponentMeta);
+            newIkasanComponentMetaMap.put(componentName, ikasanComponentMeta);
         }
-        if (! newIkasanComponentMetanMap.keySet().containsAll(mandatoryComponents)) {
+        if (! newIkasanComponentMetaMap.keySet().containsAll(mandatoryComponents)) {
             LOG.error("The ikasan version pack " + ikasanVersionPack + " did not contain all the mandatory components " +
                     mandatoryComponents + " so will be ignored");
         }
 
         synchronized (IkasanComponentLibrary.class) {
-            versionedComponenetsLibrary.put(ikasanVersionPack, newIkasanComponentMetanMap);
+            versionedComponenetsLibrary.put(ikasanVersionPack, newIkasanComponentMetaMap);
         }
+        return newIkasanComponentMetaMap;
     }
 
     public static IkasanComponentMeta getFLow(final String version) {
@@ -101,23 +103,27 @@ public class IkasanComponentLibrary {
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    protected synchronized static Map<String, IkasanComponentMeta> geIkasanComponentMetanMap(final String version) {
+    protected synchronized static Map<String, IkasanComponentMeta> geIkasanComponentMetaMap(final String version) {
+        Map<String, IkasanComponentMeta> ikasanComponentMetaMap = versionedComponenetsLibrary.get(version);
+        if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
+            ikasanComponentMetaMap = refreshComponentLibrary(version);
+        }
         return versionedComponenetsLibrary.get(version);
     }
 
     // Currently, restrict access to the Map
     public static IkasanComponentMeta getIkasanComponent(String version, String key) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
-        return safeIkasanComponentMetanMap.get(key);
+        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMap(version);
+        return safeIkasanComponentMetaMap.get(key);
     }
 
     public static Set<String> getIkasanComponentNames(String version) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
-        return safeIkasanComponentMetanMap.keySet();
+        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMap(version);
+        return safeIkasanComponentMetaMap.keySet();
     }
     public static Collection<IkasanComponentMeta>  getIkasanComponentList(String version) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetanMap = geIkasanComponentMetanMap(version);
-        return safeIkasanComponentMetanMap.values();
+        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMap(version);
+        return safeIkasanComponentMetaMap.values();
     }
 
     public static int getNumberOfComponents(String version) {

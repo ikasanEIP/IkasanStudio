@@ -1,10 +1,9 @@
 package org.ikasan.studio.generator;
 
 import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
-import org.ikasan.studio.model.ikasan.meta.*;
+import org.ikasan.studio.model.ikasan.instance.*;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolutionMeta;
 
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class TestFixtures {
      * @return a FullyPopulatedCustomConverter
      */
     public static FlowElement getFullyPopulatedCustomConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //        FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.CUSTOM_CONVERTER, ikasanFlow);
         component.setComponentName("testCustomConverter");
 
@@ -45,7 +44,7 @@ public class TestFixtures {
      * @return a FullyPopulatedCustomConverter
      */
     public static FlowElement getFullyPopulatedFilterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
         component.setComponentName("testFilterComponent");
 
@@ -65,7 +64,7 @@ public class TestFixtures {
      * @return a FullyPopulatedCustomConverter
      */
     public static FlowElement getMinimumPopulatedFilterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
         component.setComponentName("testFilterComponent");
 
@@ -81,7 +80,7 @@ public class TestFixtures {
      * @return a FullyPopulatedFtpConsumerComponent
      */
     public static FlowElement getFullyPopulatedFtpConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.FTP_CONSUMER, ikasanFlow);
         component.setComponentName("testFtpConsumer");
 
@@ -147,7 +146,7 @@ public class TestFixtures {
      * @return a FullyPopulatedFtpProducerComponent
      */
     public static FlowElement getFullyPopulatedFtpProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.FTP_PRODUCER, ikasanFlow);
         component.setComponentName("testFtpProducer");
 
@@ -193,7 +192,7 @@ public class TestFixtures {
      * @return a FullyPopulatedSftpConsumerComponent
      */
     public static FlowElement getFullyPopulatedSftpConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.SFTP_CONSUMER, ikasanFlow);
         component.setComponentName("testSftpConsumer");
 
@@ -253,7 +252,7 @@ public class TestFixtures {
      * @return a FullyPopulatedSftpProducerComponent
      */
     public static FlowElement getFullyPopulatedSftpProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.SFTP_PRODUCER, ikasanFlow);
         component.setComponentName("testSftpProducer");
 
@@ -291,7 +290,7 @@ public class TestFixtures {
      * @return a FullyPopulatedLocalFileConverter
      */
     public static FlowElement getFullyPopulatedLocalFileConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.LOCAL_FILE_CONSUMER, ikasanFlow);
         component.setComponentName("testLocalFileConsumer");
 
@@ -325,7 +324,7 @@ public class TestFixtures {
      * @return a FullyPopulatedScheduledConsumerComponent
      */
     public static FlowElement getFullyPopulatedScheduledConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.SCHEDULED_CONSUMER, ikasanFlow);
         component.setComponentName("testScheduledConsumer");
 
@@ -356,7 +355,7 @@ public class TestFixtures {
      * @return a FullyPopulatedJmsConsumer
      */
     public static FlowElement getFullyPopulatedSpringJmsConsumerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.SPRING_JMS_CONSUMER, ikasanFlow);
         component.setComponentName("testJmsConsumer");
         component.setPropertyValue("AutoContentConversion", "true");
@@ -407,7 +406,7 @@ public class TestFixtures {
      * @return a FullyPopulatedJmsProducer
      */
     public static FlowElement getFullyPopulatedJmsProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.JMS_PRODUCER, ikasanFlow);
         component.setComponentName("testJmsConsumer");
         component.setPropertyValue("Configuration", "MyConfigurationClass");
@@ -457,7 +456,7 @@ public class TestFixtures {
      * @return a FullyPopulatedDevNullProducer
      */
     public static FlowElement getFullyPopulatedDevNullProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.DEV_NULL_PRODUCER, ikasanFlow);
         component.setComponentName("testDevNullProducer");
         return component;
@@ -469,7 +468,7 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedEmailProducerComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.EMAIL_PRODUCER, ikasanFlow);
         component.setComponentName("testEmailProducer");
         component.setPropertyValue("BccRecipient", "myBccRecipient");
@@ -511,7 +510,7 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedObjectMessageToObjectConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.OBJECT_MESSAGE_TO_OBJECT_CONVERTER, ikasanFlow);
         component.setPropertyValue("Name", "MyObjectToObjectconverter");
         return component;
@@ -523,7 +522,7 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedObjectMessageToXmlStringConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.OBJECT_MESSAGE_TO_XML_STRING_CONVERTER, ikasanFlow);
         component.setPropertyValue("Configuration", "MyConfigurationClass");
         component.setPropertyValue("ConfiguredResourceId", "myUniqueConfiguredResourceIdName");
@@ -550,7 +549,7 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
     public static FlowElement getFullyPopulatedXmlStringObjectMessageConverterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElement.getDummyFlowElement();
+        FlowElement component = FlowElementFactory.createFlowElement(null, null);;
 //FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.XML_STRING_TO_OBJECT_CONVERTER, ikasanFlow);
         component.setPropertyValue("AutoConvertElementToValue", true);
         component.setPropertyValue("Configuration", "MyConfigurationClass");

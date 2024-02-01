@@ -6,12 +6,19 @@ import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class StudioUtilsTest {
+    @Test
+    public void test_get_directories() throws URISyntaxException, IOException {
+        String[] dirs = StudioUtils.getDirectories("studio/Vtest.x/components");
+        assertThat(dirs.length, is(3));
+
+    }
     @Test
     public void test_get_last_token_with_multiple_tokens() {
         String actual = StudioUtils.getLastToken("\\.", "this.is.dot.delim");

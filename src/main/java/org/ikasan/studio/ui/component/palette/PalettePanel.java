@@ -3,8 +3,6 @@ package org.ikasan.studio.ui.component.palette;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.model.PaletteItem;
-import org.ikasan.studio.ui.model.PaletteItemIkasanComponent;
-import org.ikasan.studio.ui.model.PaletteItemSeparator;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
 public class PalettePanel extends JPanel {
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
 
-    private PaletteExportTransferHandler paletteExportTransferHandler;
+    private final PaletteExportTransferHandler paletteExportTransferHandler;
 
     public PalettePanel() {
         super();
@@ -75,13 +73,13 @@ public class PalettePanel extends JPanel {
         setBorder(new EmptyBorder(1,0,0,0));
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
-            if (paletteList.getSelectedValue() instanceof PaletteItemIkasanComponent) {
-                PaletteItemIkasanComponent paletteItemIkasanComponent = (PaletteItemIkasanComponent)paletteList.getSelectedValue();
+            if (paletteList.getSelectedValue() instanceof PaletteItem) {
+                PaletteItem PaletteItem = (PaletteItem)paletteList.getSelectedValue();
                 // Only do this if its the first time, otherwise it might get annoying.
                 if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
                 }
-                paletteHelpTextArea.setText(paletteItemIkasanComponent.getIkasanFlowElementViewHandler().getHelpText());
+                paletteHelpTextArea.setText(PaletteItem.getIkasanFlowElementViewHandler().getHelpText());
             }
         });
 
@@ -122,7 +120,7 @@ public class PalettePanel extends JPanel {
         for (IkasanComponentMeta ikasanComponentMeta : displayOrder) {
             if (!category.equals(ikasanComponentMeta.getComponentType().toString()) ) {
                 category = ikasanComponentMeta.getComponentType().toString();
-                paletteItems.add(new PaletteItemSeparator(category));
+                paletteItems.add(new PaletteItem(category));
             }
             paletteItems.add(new PaletteItem(ikasanComponentMeta));
         }

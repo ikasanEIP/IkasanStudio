@@ -9,17 +9,17 @@ import java.util.TreeSet;
 import static org.hamcrest.CoreMatchers.is;
 
 class IkasanComponentLibraryTest {
-
+    public static final String TEST_IKASAN_PACK = "Vtest.x";
     @Test
     void testThatDeserialisationPopulatesTheIcasanComponentLibrary() {
-        IkasanComponentLibrary.refreshComponentLibrary(IkasanComponentLibrary.TEST_IKASAN_PACK);
+        IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);
 
         MatcherAssert.assertThat(
-                IkasanComponentLibrary.getNumberOfComponents(IkasanComponentLibrary.TEST_IKASAN_PACK),
+                IkasanComponentLibrary.getNumberOfComponents(TEST_IKASAN_PACK),
                 is(3));
 
         MatcherAssert.assertThat(
-                new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(IkasanComponentLibrary.TEST_IKASAN_PACK)),
+                new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(TEST_IKASAN_PACK)),
                 is(new TreeSet<>(Arrays.asList("EXCEPTION_RESOLVER", "FLOW", "MODULE"))));
 
     }

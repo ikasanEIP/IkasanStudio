@@ -83,5 +83,4 @@ public class IkasanComponentMeta implements IkasanMeta {
     public boolean isExceptionResolver() {
         return EXCEPTION_RESOLVER_TYPE.equals(componentType);
     }
-
 }
