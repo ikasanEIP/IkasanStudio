@@ -11,10 +11,7 @@ import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.Element;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -198,16 +195,21 @@ public class StudioUtils {
             // The newFileSystem must remain open for Intellij
             FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
             myPath = fileSystem.getPath(dir);
+            // The walk must remain open for Intellij
+            Set<String> directories = Files.walk(myPath, 1)
+                    .filter(Files::isDirectory)
+                    .map(Path::toString)
+                    .filter(string -> ! string.endsWith(dir))
+                    .collect(Collectors.toSet());
+            return directories.toArray(String[]::new);
         } else {
-            myPath = Paths.get(uri);
+            File file = new File(uri);
+//            File[] xx = file.listFiles((current, name) -> new File(current, name).isDirectory());
+            String[] fileList = file.list((current, name) -> new File(current, name).isDirectory());
+            return Arrays.stream(fileList).map(theFile -> dir + File.separator + theFile).toArray(String[]::new);
+//            System.out.println("x");
+//            return file.list((current, name) -> new File(current, name).isDirectory());
         }
-        // The walk must remain open for Intellij
-        Set<String> directories = Files.walk(myPath, 1)
-                .filter(Files::isDirectory)
-                .map(Path::toString)
-                .filter(string -> ! string.endsWith(dir))
-                .collect(Collectors.toSet());
-        return directories.toArray(String[]::new);
     }
 
 

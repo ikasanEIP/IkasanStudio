@@ -15,9 +15,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class StudioUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] dirs = StudioUtils.getDirectories("studio/Vtest.x/components");
-        assertThat(dirs.length, is(3));
-
+        String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER"};
+        String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
+        assertThat(actualDirs.length, is(3));
+        assertThat(actualDirs, is(expectedDirs));
     }
     @Test
     public void test_get_last_token_with_multiple_tokens() {
@@ -93,7 +94,7 @@ public class StudioUtilsTest {
 
     // @TODO suspend while this is being redeveloped
     //@Test
-    public void testConfigReader() throws IOException {
+    public void testConfigReader() {
         Map<String, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
         assertThat(properties.size(), is(5));
         IkasanComponentPropertyMeta additionalName = properties.get("AdditionalName");

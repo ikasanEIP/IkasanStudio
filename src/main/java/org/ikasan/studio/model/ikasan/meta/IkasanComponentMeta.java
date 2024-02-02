@@ -20,11 +20,12 @@ import java.util.TreeMap;
 @AllArgsConstructor
 public class IkasanComponentMeta implements IkasanMeta {
     private static final String DEFAULT_README = "Readme.md";
-    // Its assumed these types are so fundmental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
+    // Its assumed these types are so fundamental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
     private static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
     private static final String PRODUCER_TYPE = "org.ikasan.spec.component.endpoint.Producer";
     private static final String EXCEPTION_RESOLVER_TYPE = "org.ikasan.exceptionResolver.ExceptionResolver";
     private static final String FLOW_TYPE = "org.ikasan.spec.flow.Flow";
+    private static final String MODULE_TYPE = "org.ikasan.spec.module.Module";
 
     String name;
     String helpText;
@@ -34,9 +35,9 @@ public class IkasanComponentMeta implements IkasanMeta {
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     String webHelpURL = DEFAULT_README;
-    String smallPalletteIcon;
-    String mediumPalletteIcon;
-    String largePalletteIcon;
+    String smallPaletteIcon;
+    String mediumPaletteIcon;
+    String largePaletteIcon;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     boolean bespokeClass;
     int displayOrder;
@@ -57,7 +58,6 @@ public class IkasanComponentMeta implements IkasanMeta {
     public Map<String, IkasanComponentPropertyInstance> getMandatoryInstanceProperties() {
         Map<String, IkasanComponentPropertyInstance> mandatoryProperties = new TreeMap<>();
         for (Map.Entry<String, IkasanComponentPropertyMeta> entry : properties.entrySet()) {
-//            if (!entry.getValue().subProperties && entry.getValue().isMandatory()) {
             if (entry.getValue().isMandatory()) {
                 mandatoryProperties.put(entry.getKey(), new IkasanComponentPropertyInstance(entry.getValue()));
             }
@@ -68,9 +68,6 @@ public class IkasanComponentMeta implements IkasanMeta {
     public IkasanComponentPropertyMeta getMetadata(String propertyName) {
         return properties.get(propertyName);
     }
-
-//    "componentType": "org.ikasan.spec.component.endpoint.Producer",
-
     public boolean isConsumer() {
         return CONSUMER_TYPE.equals(componentType);
     }
@@ -80,7 +77,19 @@ public class IkasanComponentMeta implements IkasanMeta {
     public boolean isFlow() {
         return FLOW_TYPE.equals(componentType);
     }
+    public boolean isModule() {
+        return MODULE_TYPE.equals(componentType);
+    }
     public boolean isExceptionResolver() {
         return EXCEPTION_RESOLVER_TYPE.equals(componentType);
+    }
+
+    public String getDisplayComponentType() {
+        if (componentType != null && componentType.contains(".")) {
+            return componentType.substring(componentType.lastIndexOf('.') + 1).trim();
+        } else {
+            return "";
+        }
+
     }
 }
