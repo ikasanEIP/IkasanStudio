@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,8 +20,10 @@ public class StudioUtilsTest {
     public void test_get_directories() throws URISyntaxException, IOException {
         String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER"};
         String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
+        Set<String> expectedDirsSorted = new TreeSet<String>(List.of(expectedDirs)) ;
+        Set<String> actualDirsSorted = new TreeSet<String>(List.of(actualDirs)) ;
         assertThat(actualDirs.length, is(3));
-        assertThat(actualDirs, is(expectedDirs));
+        assertThat(actualDirsSorted, is(expectedDirsSorted));
     }
     @Test
     public void test_get_last_token_with_multiple_tokens() {
