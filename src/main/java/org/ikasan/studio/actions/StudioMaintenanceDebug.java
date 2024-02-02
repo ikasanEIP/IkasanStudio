@@ -13,7 +13,6 @@ import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.sun.istack.NotNull;
-import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.generator.ApplicationTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
 import org.ikasan.studio.generator.PropertiesTemplate;
@@ -54,7 +53,7 @@ public class StudioMaintenanceDebug extends AnAction
    {
       System.out.println("actionPerformed test");
 //      try {
-         StudioUtils.readIkasanComponentProperties("/studio/componentDefinitions/BROKER_en_GB.csv");
+//         StudioUtils.readIkasanComponentProperties("/studio/componentDefinitions/BROKER_en_GB.csv");
 //      } catch (IOException e) {
 //         e.printStackTrace();
 //         log.error("XXXXXXXXXXXXXXXXXXXXXXXXXX can read configs");
@@ -76,8 +75,6 @@ public class StudioMaintenanceDebug extends AnAction
       ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(Arrays.asList(virtualFile));
 
       final String clazzName = "MyFile";
-      final String fileName = "MyFile.java";
-      String HELLO = "public class " + clazzName + " {public static void main(String[] args) {System.out.println(java.util.Arrays.asList(\"Hi\"));}}";
 
       CommandProcessor.getInstance().executeCommand(
               project,

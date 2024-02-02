@@ -1,16 +1,17 @@
 package org.ikasan.studio.model.ikasan.meta;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.ikasan.studio.StudioException;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.io.ComponentDeserialisation;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
-
-import static org.ikasan.studio.StudioUtils.getDirectories;
 
 /**
  * This class aggregates all the defined Ikasan components
@@ -41,46 +42,53 @@ public class IkasanComponentLibrary {
      * @param ikasanVersionPack to search for components
      */
     public static Map<String, IkasanComponentMeta> refreshComponentLibrary(final String ikasanVersionPack) {
-        Map<String, IkasanComponentMeta> newIkasanComponentMetaMap
-                = new HashMap<>();
-        String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanVersionPack + "/components";
-        String[] componentDirectories = null;
-        try {
-            componentDirectories = getDirectories(baseDirectory);
-        } catch (URISyntaxException | IOException e) {
-            LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
-        }
+        Map<String, IkasanComponentMeta> returnedIkasanComponentMetaMap;
 
-        assert componentDirectories != null;
-        for(String componentName : componentDirectories) {
-            final String componentBaseDirectory = baseDirectory+"/"+componentName;
-            IkasanMeta ikasanMeta;
+        if (versionedComponenetsLibrary.containsKey(ikasanVersionPack)) {
+            LOG.warn("The pack for version " + ikasanVersionPack + " has already been loaded, the attempt to reload it will be ignored");
+            returnedIkasanComponentMetaMap = geIkasanComponentMetaMap(ikasanVersionPack);
+        } else {
+            returnedIkasanComponentMetaMap = new HashMap<>();
 
+            String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanVersionPack + File.separator + "components";
+            String[] componentDirectories = null;
             try {
-                ikasanMeta = ComponentDeserialisation.deserializeComponent(
-                        componentBaseDirectory+"/attributes_en_GB.json"
-                );
-
-            } catch (StudioException e) {
-                LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
-                        " there was an error generating the details for component " + componentName +
-                        " review the Ikasan version pack, perhaps reinstall or use an alternate version");
-                continue;
+                componentDirectories = StudioUtils.getDirectories(baseDirectory);
+            } catch (URISyntaxException | IOException e) {
+                LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
             }
-            IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta)ikasanMeta;
-            ikasanComponentMeta.setSmallIcon(getImageIcon(componentBaseDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
-            ikasanComponentMeta.setCanvasIcon(getImageIcon(componentBaseDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
-            newIkasanComponentMetaMap.put(componentName, ikasanComponentMeta);
-        }
-        if (! newIkasanComponentMetaMap.keySet().containsAll(mandatoryComponents)) {
-            LOG.error("The ikasan version pack " + ikasanVersionPack + " did not contain all the mandatory components " +
-                    mandatoryComponents + " so will be ignored");
-        }
 
-        synchronized (IkasanComponentLibrary.class) {
-            versionedComponenetsLibrary.put(ikasanVersionPack, newIkasanComponentMetaMap);
+            assert componentDirectories != null;
+            for (String componentDirectory : componentDirectories) {
+                final String componentName = FileNameUtils.getBaseName(componentDirectory);
+                IkasanMeta ikasanMeta;
+
+                try {
+                    ikasanMeta = ComponentDeserialisation.deserializeComponent(
+                            componentDirectory + "/attributes_en_GB.json"
+                    );
+
+                } catch (StudioException e) {
+                    LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
+                            " there was an error generating the details for component " + componentDirectory +
+                            " review the Ikasan version pack, perhaps reinstall or use an alternate version");
+                    continue;
+                }
+                IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta) ikasanMeta;
+                ikasanComponentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
+                ikasanComponentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
+                returnedIkasanComponentMetaMap.put(componentName, ikasanComponentMeta);
+            }
+            if (!returnedIkasanComponentMetaMap.keySet().containsAll(mandatoryComponents)) {
+                LOG.error("The ikasan version pack " + ikasanVersionPack + " did not contain all the mandatory components " +
+                        mandatoryComponents + " so will be ignored");
+            }
+
+            synchronized (IkasanComponentLibrary.class) {
+                versionedComponenetsLibrary.put(ikasanVersionPack, returnedIkasanComponentMetaMap);
+            }
         }
-        return newIkasanComponentMetaMap;
+        return returnedIkasanComponentMetaMap;
     }
 
     public static IkasanComponentMeta getFLow(final String version) {
