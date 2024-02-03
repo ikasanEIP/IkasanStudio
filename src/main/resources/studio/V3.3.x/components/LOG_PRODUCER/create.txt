@@ -1,0 +1,4 @@
+public Producer getKitty() {
+    return builderFactory.getComponentBuilder().logProducer()
+            .build();
+}

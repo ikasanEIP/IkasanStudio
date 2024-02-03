@@ -1,0 +1,22 @@
+{
+  "name": "Broker",
+  "helpText": "Ending component of the flow, or a route in the flow. This type of producer discards all data passed to it and does not perform any processing.",
+  "componentType": "org.ikasan.spec.component.endpoint.Producer",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.spec.component.endpoint.Broker",
+  "_ikasanComponentFactoryMethod": "The broker is a user implemented class so has no factory as such",
+  "ikasanComponentFactoryMethod": "",
+  "displayOrder": 9,
+  "properties": {
+    "Name": {
+      "propertyName": "Name",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
+    },
+    "Description": {
+      "propertyName": "Description",
+      "helpText": "A more detailed description of the component that may assist in support.."
+    }
+  }
+}
+

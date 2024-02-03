@@ -37,12 +37,12 @@ public class Module extends IkasanElement {
     private PsiFile moduleConfig;
     private String version;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
-    @Builder.Default
-    private List<Flow> flows = new ArrayList<>();
+    private List<Flow> flows;
 
     public Module() {
         super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK));
         this.viewHandler = ViewHandlerFactory.getInstance(this);
+        flows = new ArrayList<>();
     }
 
     public boolean addFlow(Flow ikasanFlow) {

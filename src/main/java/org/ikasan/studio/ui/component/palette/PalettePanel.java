@@ -1,11 +1,12 @@
 package org.ikasan.studio.ui.component.palette;
 
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class PalettePanel extends JPanel {
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
@@ -23,22 +23,22 @@ public class PalettePanel extends JPanel {
     public PalettePanel() {
         super();
         this.setLayout(new BorderLayout());
-        this.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        this.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         this.paletteExportTransferHandler = new PaletteExportTransferHandler();
 
         // Header
         JLabel paletteHeaderLabel =  new JLabel("Palette");
-        paletteHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
+        paletteHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
         JPanel paletteHeaderPanel = new JPanel();
         paletteHeaderPanel.add(paletteHeaderLabel);
-        paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
         // Body
         JPanel paletteHelpBodyPanel = new JPanel(new BorderLayout());
         JTextArea paletteHelpTextArea = new JTextArea();
         paletteHelpTextArea.setLineWrap(true);
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
-        paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
         JList<PaletteItem> paletteList;
         paletteList = new JList(buildPalettItems().toArray());
@@ -66,15 +66,15 @@ public class PalettePanel extends JPanel {
 
         JPanel paletteBodyPanel = new JPanel(new BorderLayout());
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
-        paletteBodyPanel.setBackground(Color.WHITE);
+        paletteBodyPanel.setBackground(JBColor.WHITE);
 
         add(paletteHeaderPanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
-        setBorder(new EmptyBorder(1,0,0,0));
+        setBorder(JBUI.Borders.emptyTop(1));
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
-            if (paletteList.getSelectedValue() instanceof PaletteItem) {
-                PaletteItem PaletteItem = (PaletteItem)paletteList.getSelectedValue();
+            if (paletteList.getSelectedValue() != null) {
+                PaletteItem PaletteItem = paletteList.getSelectedValue();
                 // Only do this if its the first time, otherwise it might get annoying.
                 if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
@@ -103,23 +103,16 @@ public class PalettePanel extends JPanel {
         Collection<IkasanComponentMeta> ikasanComponentMetaList = IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);
         List<IkasanComponentMeta> displayOrder = ikasanComponentMetaList
             .stream()
+            .filter(meta -> !meta.isModule())
             .sorted(Comparator
-                    .comparing((IkasanComponentMeta c1) -> c1.getDisplayOrder())
-                    .thenComparing((IkasanComponentMeta c1) -> c1.getName()))
-            .collect(Collectors.toList());
-
-//        List<FlowElement> ikasanFlowUIComponents = ikasanFlowUIComponentFactory.getIkasanFlowComponents();
-//        List<FlowElement> displayOrder = ikasanFlowUIComponents
-//            .stream()
-//            .sorted(Comparator
-//                .comparing((FlowElement c1) -> c1.getIkasanComponentMeta().getDisplayOrder())
-//                .thenComparing((FlowElement c1) -> c1.getIkasanComponentMeta().getName()))
-//            .collect(Collectors.toList());
+                    .comparing(IkasanComponentMeta::getDisplayOrder)
+                    .thenComparing(IkasanComponentMeta::getName))
+            .toList();
 
         String category = "";
         for (IkasanComponentMeta ikasanComponentMeta : displayOrder) {
-            if (!category.equals(ikasanComponentMeta.getComponentType().toString()) ) {
-                category = ikasanComponentMeta.getComponentType().toString();
+            if (!category.equals(ikasanComponentMeta.getComponentType()) ) {
+                category = ikasanComponentMeta.getDisplayComponentType();
                 paletteItems.add(new PaletteItem(category));
             }
             paletteItems.add(new PaletteItem(ikasanComponentMeta));
