@@ -9,20 +9,20 @@
   "displayOrder": 3,
   "properties": {
     "Name": {
-      "propertyName": "name",
+      "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
     },
     "Description": {
-      "propertyName": "Description",
+      "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."
     },
     "ConfiguredResourceId": {
-      "propertyName": "ConfiguredResourceId",
+      "propertyName": "configuredResourceId",
       "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration."
     },
     "ReplacementText": {
-      "propertyName": "ReplacementText",
+      "propertyName": "replacementText",
       "setterProperty": true,
       "helpText": "Replace the matching text with the following string."
     },

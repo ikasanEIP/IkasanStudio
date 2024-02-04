@@ -193,7 +193,7 @@ public class StudioUtils {
         Path myPath;
         if (uri.getScheme().equals("jar")) {
             // The newFileSystem must remain open for Intellij
-            FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
+            FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
             myPath = fileSystem.getPath(dir);
             // The walk must remain open for Intellij
             Set<String> directories = Files.walk(myPath, 1)
@@ -204,11 +204,8 @@ public class StudioUtils {
             return directories.toArray(String[]::new);
         } else {
             File file = new File(uri);
-//            File[] xx = file.listFiles((current, name) -> new File(current, name).isDirectory());
             String[] fileList = file.list((current, name) -> new File(current, name).isDirectory());
             return Arrays.stream(fileList).map(theFile -> dir + File.separator + theFile).toArray(String[]::new);
-//            System.out.println("x");
-//            return file.list((current, name) -> new File(current, name).isDirectory());
         }
     }
 
@@ -333,8 +330,7 @@ public class StudioUtils {
         String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining());
-        Element element = objectMapper.readValue(jsonString, Element.class);
-        return element;
+        return objectMapper.readValue(jsonString, Element.class);
     }
 
 

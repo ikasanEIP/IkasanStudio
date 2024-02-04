@@ -6,12 +6,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
         property = "name",
-        defaultImpl = IkasanComponentMeta.class
+        defaultImpl = IkasanComponentMeta.class,
+        visible = true
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = IkasanComponentMeta.class, name = ""),
+        @JsonSubTypes.Type(value = IkasanComponentMeta.class),
         @JsonSubTypes.Type(value = IkasanExceptionResolutionMeta.class, name = "Exception Resolver")
 })
 

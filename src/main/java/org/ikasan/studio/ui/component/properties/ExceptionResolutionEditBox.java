@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolutionMeta;
@@ -15,16 +16,16 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolutionEditBox {
-    private ExceptionResolutionPanel resolutionPanel;
-    private JLabel exceptionTitleField;
-    private JComboBox<String> exceptionJComboBox;
-    private JLabel actionTitleField;
+    private final ExceptionResolutionPanel resolutionPanel;
+    private final JLabel exceptionTitleField;
+    private final JComboBox<String> exceptionJComboBox;
+    private final JLabel actionTitleField;
     private String currentAction = null;
-    private JComboBox<String> actionJComboBox;
-    private JLabel paramsTitleField;
+    private final JComboBox<String> actionJComboBox;
+    private final JLabel paramsTitleField;
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
-    private boolean componentInitialisation;
-    private IkasanExceptionResolution ikasanExceptionResolution;
+    private final boolean componentInitialisation;
+    private final IkasanExceptionResolution ikasanExceptionResolution;
 
     public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, IkasanExceptionResolution ikasanExceptionResolution, boolean componentInitialisation) {
         this.resolutionPanel = resolutionPanel;
@@ -37,7 +38,7 @@ public class ExceptionResolutionEditBox {
         this.exceptionJComboBox = new JComboBox(currentExceptions.toArray());
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
-        this.actionJComboBox = new JComboBox(IkasanExceptionResolutionMeta.getActionList().toArray());
+        this.actionJComboBox = new JComboBox(IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK).getActionList().toArray());
         if (ikasanExceptionResolution.getExceptionsCaught() != null) {
             // There might be a bespoke exception already set
             if (!currentExceptions.contains(ikasanExceptionResolution.getExceptionsCaught())) {

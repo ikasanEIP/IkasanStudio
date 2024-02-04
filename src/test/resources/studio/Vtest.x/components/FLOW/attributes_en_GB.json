@@ -1,21 +1,20 @@
 {
-  "payload": {
-    "name": "Flow",
-    "helpText": "The flow is the container for components and generally represents an atomic action",
-    "componentType": "org.ikasan.spec.flow.Flow",
-    "implementingClass": "na",
-    "ikasanComponentFactoryMethod": "na",
-    "displayOrder": 1,
-    "properties": {
-      "Name": {
-        "propertyName": "name",
-        "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
-        "mandatory": true
-      },
-      "Description": {
-        "propertyName": "Description",
-        "helpText": "A more detailed description of the component that may assist in support."
-      }
+  "name": "Flow",
+  "helpText": "The flow is the container for components and generally represents an atomic action.",
+  "componentType": "org.ikasan.spec.flow.Flow",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "na",
+  "ikasanComponentFactoryMethod": "na",
+  "displayOrder": 1,
+  "properties": {
+    "Name": {
+      "propertyName": "name",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
+      "mandatory": true
+    },
+    "Description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
     }
   }
 }

@@ -14,12 +14,14 @@ import java.util.stream.Collectors;
 
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
+ * To make the instance model flexible and driven by Ikasan Meta Pack, most attributes are contained within the properties map.
+ * This does
  */
 public  class IkasanElement extends IkasanBaseElement {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
 //    @JsonPropertyOrder(alphabetic = true)
-    @JsonPropertyOrder({"ComponentName", "description"})
+    @JsonPropertyOrder({"componentName", "description"})
     protected Map<String, IkasanComponentPropertyInstance> configuredProperties;
     public IkasanElement() {}
 
@@ -245,12 +247,6 @@ public  class IkasanElement extends IkasanBaseElement {
     public String getJavaClassName() {
         return StudioUtils.toJavaClassName(getComponentName());
     }
-
-
-
-
-
-
 
     /**
      * Determine if there are some mandatory properties that have not yet been set.

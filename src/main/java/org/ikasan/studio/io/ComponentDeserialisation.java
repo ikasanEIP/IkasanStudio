@@ -22,22 +22,29 @@ public class ComponentDeserialisation {
             .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
-    public static IkasanMeta deserializeComponent(String path) throws StudioException {
+    /**
+     * Deserialize the component at the given path.
+     * The component could be any of the child classes of IkasanMeta
+     * @param
+     * @return
+     * @throws StudioException
+     */
+    public static IkasanMeta deserializeComponent(final String path) throws StudioException {
 
-        InputStream inputStream = ComponentDeserialisation.class.getClassLoader().getResourceAsStream(path);
+        final InputStream inputStream = ComponentDeserialisation.class.getClassLoader().getResourceAsStream(path);
         if (inputStream == null) {
             throw new StudioException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
         }
-        String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        final String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining());
 
-        IkasanMeta ikasanComponentMeta;
+        IkasanMeta ikasanMeta;
         try {
-            ikasanComponentMeta = MAPPER.readValue(jsonString, IkasanMeta.class);
+            ikasanMeta = MAPPER.readValue(jsonString, IkasanMeta.class);
         } catch (JsonProcessingException e) {
             throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
         }
-        return ikasanComponentMeta;
+        return ikasanMeta;
     }
 }
