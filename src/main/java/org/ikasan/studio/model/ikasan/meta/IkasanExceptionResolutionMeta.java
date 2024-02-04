@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan.meta;
 
+import com.intellij.openapi.diagnostic.Logger;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +25,7 @@ public class IkasanExceptionResolutionMeta extends IkasanComponentMeta {
     List<String> exceptionsCaught;
     List<ExceptionAction> actionList;
     private static final Map<String, String> STANDARD_EXCEPTIONS = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
-//    private static final IkasanComponentMeta ON_EXCEPTION = IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK);
+    private static final Logger LOG = Logger.getInstance("#IkasanExceptionResolutionMeta");
 
     /**
      * Though this is currently a static class, we expose its instance creation to make it more accessible to the template library
@@ -41,14 +42,8 @@ public class IkasanExceptionResolutionMeta extends IkasanComponentMeta {
     }
 
     public static List<IkasanComponentPropertyMeta> getPropertyMetaListForAction(String action) {
+        LOG.error("Not yet implemented");
         return null;
 //        return ON_EXCEPTION.getMetadataList(action);
     }
-
-    public static List<String> getActionList() {
-        return null;
-//        return ON_EXCEPTION.getPropertyNames();
-    }
-
-
 }

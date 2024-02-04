@@ -14,9 +14,9 @@ import java.util.regex.Pattern;
 @Builder
 @Jacksonized
 @AllArgsConstructor
-/**
+/*
  * Each Ikasan Component will have multiple properties e.g. name, description, configuredResourceID
- * This class holds the metadata about a sinlge property e.g. 'description' - is i mandatory, what data type is it
+ * This class holds the metadata about a single property e.g. 'description' - is i mandatory, what data type is it
  */
 public class IkasanComponentPropertyMeta {
     public static final String BESPOKE_CLASS_NAME = "BespokeClassName";         // Special meta for a bespoke class used as a property
@@ -28,7 +28,9 @@ public class IkasanComponentPropertyMeta {
 
     // Special META for component NAME, this standard for each component.
     public static final String NAME = "Name";
+    public static final String COMPONENT_NAME = "ComponentName";
     public static final String DESCRIPTION = "Description";
+
     public static final String APPLICATION_PORT_NUMBER_NAME = "ApplicationPortNumber";
     public static final String H2_DB_PORT_NUMBER_NAME = "H2DbPortNumber";
     public static final String H2_WEB_PORT_NUMBER_NAME = "H2WebPortNumber";

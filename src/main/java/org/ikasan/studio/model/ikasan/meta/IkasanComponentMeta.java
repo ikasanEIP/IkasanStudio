@@ -21,11 +21,11 @@ import java.util.TreeMap;
 public class IkasanComponentMeta implements IkasanMeta {
     private static final String DEFAULT_README = "Readme.md";
     // Its assumed these types are so fundamental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
-    private static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
-    private static final String PRODUCER_TYPE = "org.ikasan.spec.component.endpoint.Producer";
-    private static final String EXCEPTION_RESOLVER_TYPE = "org.ikasan.exceptionResolver.ExceptionResolver";
-    private static final String FLOW_TYPE = "org.ikasan.spec.flow.Flow";
-    private static final String MODULE_TYPE = "org.ikasan.spec.module.Module";
+    public static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
+    public static final String PRODUCER_TYPE = "org.ikasan.spec.component.endpoint.Producer";
+    public static final String EXCEPTION_RESOLVER_TYPE = "org.ikasan.exceptionResolver.ExceptionResolver";
+    public static final String FLOW_TYPE = "org.ikasan.spec.flow.Flow";
+    public static final String MODULE_TYPE = "org.ikasan.spec.module.Module";
 
     String name;
     String helpText;
@@ -35,9 +35,6 @@ public class IkasanComponentMeta implements IkasanMeta {
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     String webHelpURL = DEFAULT_README;
-    String smallPaletteIcon;
-    String mediumPaletteIcon;
-    String largePaletteIcon;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     boolean bespokeClass;
     int displayOrder;

@@ -25,9 +25,12 @@ public class IkasanComponentLibrary {
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
     private static final String LARGE_ICON_NAME = "large.png";
-    private static final String FLOW = "FLOW";
-    private static final String MODULE = "MODULE";
-    private static final String EXCEPTION_RESOLVER = "EXCEPTION_RESOLVER";
+    public static final String FLOW = "FLOW";
+    public static final String FLOW_NAME = "Flow";
+    public static final String MODULE = "MODULE";
+    public static final String MODULE_NAME = "Module";
+    public static final String EXCEPTION_RESOLVER = "EXCEPTION_RESOLVER";
+    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
     private static final Logger LOG = Logger.getInstance("#IkasanComponentLibrary");
 
 
@@ -64,9 +67,7 @@ public class IkasanComponentLibrary {
                 IkasanMeta ikasanMeta;
 
                 try {
-                    ikasanMeta = ComponentDeserialisation.deserializeComponent(
-                            componentDirectory + "/attributes_en_GB.json"
-                    );
+                    ikasanMeta = ComponentDeserialisation.deserializeComponent(componentDirectory + "/attributes_en_GB.json");
 
                 } catch (StudioException e) {
                     LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
@@ -75,8 +76,8 @@ public class IkasanComponentLibrary {
                     continue;
                 }
                 IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta) ikasanMeta;
-                ikasanComponentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME));
-                ikasanComponentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME));
+                ikasanComponentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                ikasanComponentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 returnedIkasanComponentMetaMap.put(componentName, ikasanComponentMeta);
             }
             if (!returnedIkasanComponentMetaMap.keySet().containsAll(mandatoryComponents)) {
@@ -97,8 +98,8 @@ public class IkasanComponentLibrary {
     public static IkasanComponentMeta getModule(final String version) {
         return getIkasanComponent(version, MODULE);
     }
-    public static IkasanComponentMeta getExceptionResolver(final String version) {
-        return getIkasanComponent(version, EXCEPTION_RESOLVER);
+    public static IkasanExceptionResolutionMeta getExceptionResolver(final String version) {
+        return (IkasanExceptionResolutionMeta)getIkasanComponent(version, EXCEPTION_RESOLVER);
     }
     public static IkasanComponentMeta getOnException(final String version) {
         return getIkasanComponent(version, "OnException");
@@ -134,18 +135,22 @@ public class IkasanComponentLibrary {
         return safeIkasanComponentMetaMap.values();
     }
 
+    public static Map<String, IkasanComponentMeta> getIkasanComponents(String version) {
+        return geIkasanComponentMetaMap(version);
+    }
+
     public static int getNumberOfComponents(String version) {
         return getIkasanComponentNames(version).size();
     }
 
-    private static ImageIcon getImageIcon(String iconLocation, String defaultIcon) {
+    private static ImageIcon getImageIcon(String iconLocation, String defaultIcon, String description) {
         ImageIcon imageIcon;
         URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
         if (iconURL == null) {
             LOG.warn("Could not create Icon for " + iconLocation + " using default");
             iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(defaultIcon);
         }
-        imageIcon = new ImageIcon(iconURL);
+        imageIcon = new ImageIcon(iconURL, description);
         return imageIcon;
     }
 }

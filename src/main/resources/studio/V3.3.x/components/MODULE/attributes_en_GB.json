@@ -1,6 +1,6 @@
 {
-  "name": "Flow",
-  "helpText": "The flow is the container for components and generally represents an atomic action",
+  "name": "Module",
+  "helpText": "The module is the container for all flows",
   "componentType": "org.ikasan.spec.module.Module",
   "implementingClass": "na",
   "ikasanComponentFactoryMethod": "na",
@@ -11,7 +11,7 @@
       "mandatory": true
     },
     "Description": {
-      "propertyName": "Description",
+      "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."
     }
   }
