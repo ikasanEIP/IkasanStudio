@@ -36,7 +36,7 @@ public class FlowElement extends IkasanElement {
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
      * @param parent flow that contains this element
      */
-    protected FlowElement(IkasanComponentMeta type, Flow parent) {
+    public FlowElement(IkasanComponentMeta type, Flow parent) {
         super (type);
         setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, "");
         setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, "");

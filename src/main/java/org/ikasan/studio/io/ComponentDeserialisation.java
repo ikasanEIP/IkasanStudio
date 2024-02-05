@@ -2,7 +2,6 @@ package org.ikasan.studio.io;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.model.ikasan.meta.IkasanMeta;
@@ -18,16 +17,15 @@ public class ComponentDeserialisation {
 
     static {
         MAPPER
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    /**
+    /*
      * Deserialize the component at the given path.
      * The component could be any of the child classes of IkasanMeta
-     * @param
-     * @return
-     * @throws StudioException
+     * @param path to the file containing the JSON to deserializes
+     * @return an IkasanMeta object representing the deserialized class
+     * @throws StudioException  to wrap JsonProcessingException
      */
     public static IkasanMeta deserializeComponent(final String path) throws StudioException {
 

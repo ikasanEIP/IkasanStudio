@@ -17,7 +17,6 @@ public class FlowsResourceFactoryTemplate extends Generator {
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
             String templateString = generateContents(newPackageName, clazzName, property);
             createTemplateFile(project, newPackageName, clazzName, templateString, true, true);
-            property.setRegenerateAllowed(false);
         }
     }
 

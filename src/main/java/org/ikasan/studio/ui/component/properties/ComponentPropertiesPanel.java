@@ -217,7 +217,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentPropertyInstance componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty, componentInitialisation);
 
-        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !componentInitialisation) {
+        if (componentProperty.causesUserCodeRegeneration() && !componentInitialisation) {
             addLabelInputEditorAndGenerateSource(propertiesEditorPanel, gc, tabley,
                     componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField(),
                     componentPropertyEditBox.getRegenerateLabel(), componentPropertyEditBox.getRegenerateSourceCheckBox());
