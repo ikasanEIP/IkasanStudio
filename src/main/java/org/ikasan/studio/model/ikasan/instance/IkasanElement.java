@@ -199,20 +199,14 @@ public  class IkasanElement extends IkasanBaseElement {
     @JsonIgnore
     public List<IkasanComponentPropertyInstance> getUserImplementedClassProperties() {
         return configuredProperties.values().stream()
-            .filter(x -> x.getMeta().isUserImplementedClass() && x.isRegenerateAllowed())
+            .filter(x -> x.getMeta().isUserImplementedClass())
             .collect(Collectors.toList());
     }
 
     public boolean hasUserImplementedClass() {
         return configuredProperties.values()
             .stream()
-            .anyMatch(x -> x.getMeta().isUserImplementedClass() && x.isRegenerateAllowed());
-    }
-
-    public void resetUserImplementedClassPropertiesRegenratePermission() {
-        for (IkasanComponentPropertyInstance property : getUserImplementedClassProperties()) {
-            property.setRegenerateAllowed(false);
-        }
+            .anyMatch(x -> x.getMeta().isUserImplementedClass());
     }
 
     /**

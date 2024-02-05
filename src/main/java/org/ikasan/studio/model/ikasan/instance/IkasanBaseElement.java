@@ -15,6 +15,7 @@ public abstract class IkasanBaseElement {
     @JsonIgnore
     protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
+    @JsonIgnore
     protected IkasanComponentMeta ikasanComponentMeta;
 
     public IkasanBaseElement() {}

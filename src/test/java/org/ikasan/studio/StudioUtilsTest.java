@@ -1,7 +1,10 @@
 package org.ikasan.studio;
 
 import org.ikasan.studio.generator.TestUtils;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 
@@ -18,11 +21,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class StudioUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER"};
+        String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER", "studio/Vtest.x/components/DEV_NULL_PRODUCER"};
         String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
-        Set<String> expectedDirsSorted = new TreeSet<String>(List.of(expectedDirs)) ;
-        Set<String> actualDirsSorted = new TreeSet<String>(List.of(actualDirs)) ;
-        assertThat(actualDirs.length, is(3));
+        Set<String> expectedDirsSorted = new TreeSet<>(List.of(expectedDirs)) ;
+        Set<String> actualDirsSorted = new TreeSet<>(List.of(actualDirs)) ;
+        assertThat(actualDirs.length, is(4));
         assertThat(actualDirsSorted, is(expectedDirsSorted));
     }
     @Test
@@ -119,15 +122,24 @@ public class StudioUtilsTest {
             "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=true, userDefineResource=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', propertyDataType=class java.lang.Object, usageDataType=java.lang.Object, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
     }
 
-    // @TODO suspend while this is being redeveloped
-    //@Test
-    public void toJsonTest() throws IOException {
-        assertThat(StudioUtils.toJson("bob"), is("\"bob\""));
-
+    @Test
+    public void testModuleToJson() throws IOException {
         Module module = new Module();
         module.setVersion("1.3");
         module.setComponentName("");
         module.setDescription("The Description");
         assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
+    }
+
+
+    public static final String TEST_IKASAN_PACK = "Vtest.x";
+    @Test
+    public void testComponentToJson() throws IOException {
+        IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);
+        IkasanComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponent(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
+        FlowElement devNullProducer = new FlowElement(devNullProducerMeta, null);
+        devNullProducer.setComponentName("My DN Producer");
+        devNullProducer.setDescription("The DN Description");
+        assertThat(StudioUtils.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
     }
 }

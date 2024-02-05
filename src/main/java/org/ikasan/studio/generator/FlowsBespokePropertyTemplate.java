@@ -19,7 +19,6 @@ public class FlowsBespokePropertyTemplate extends Generator {
             String prefix = GeneratorUtils.getUniquePrefix(ikasanModule, ikasanFlow, component);
             String templateString = generateContents(newPackageName, clazzName, property, prefix);
             createTemplateFile(project, newPackageName, clazzName, templateString, true, true);
-            property.setRegenerateAllowed(false);
         }
     }
 

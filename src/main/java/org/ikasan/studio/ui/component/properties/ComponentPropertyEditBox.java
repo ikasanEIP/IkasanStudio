@@ -1,11 +1,12 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.JBColor;
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,15 +17,15 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ComponentPropertyEditBox {
-    private JLabel propertyTitleField;
+    private final JLabel propertyTitleField;
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
     private boolean causesUserCodeRegeneration = false;
     private JCheckBox regenerateSourceCheckBox;
     private JLabel regenerateLabel;
-    private IkasanComponentPropertyMeta meta;
-    private IkasanComponentPropertyInstance componentProperty;
+    private final IkasanComponentPropertyMeta meta;
+    private final IkasanComponentPropertyInstance componentProperty;
 
     public ComponentPropertyEditBox(IkasanComponentPropertyInstance componentProperty, boolean componentInitialisation) {
         this.componentProperty = componentProperty;
@@ -51,8 +52,8 @@ public class ComponentPropertyEditBox {
             // BOOLEAN INPUT
             propertyBooleanFieldTrue = new JCheckBox();
             propertyBooleanFieldFalse = new JCheckBox();
-            propertyBooleanFieldTrue.setBackground(Color.WHITE);
-            propertyBooleanFieldFalse.setBackground(Color.WHITE);
+            propertyBooleanFieldTrue.setBackground(JBColor.WHITE);
+            propertyBooleanFieldFalse.setBackground(JBColor.WHITE);
             if (value != null) {
                 // Defensive, just in case not set correctly
                 if (value instanceof String) {
@@ -88,20 +89,20 @@ public class ComponentPropertyEditBox {
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if ((componentProperty.isUserImplementedClass() || componentProperty.causesUserCodeRegeneration()) && !componentInitialisation) {
+        if (componentProperty.causesUserCodeRegeneration() && !componentInitialisation) {
             causesUserCodeRegeneration = true;
             regenerateLabel = new JLabel("Regenerate");
             regenerateSourceCheckBox = new JCheckBox();
             regenerateSourceCheckBox.addItemListener( ie -> {
                 if (propertyValueField != null) {
-                    propertyValueField.setEditable(ie.getStateChange() == 1);
-                    propertyValueField.setEnabled(ie.getStateChange() == 1);
+                    propertyValueField.setEditable(ie.getStateChange() == ItemEvent.SELECTED);
+                    propertyValueField.setEnabled(ie.getStateChange() == ItemEvent.SELECTED);
                 } else if (propertyBooleanFieldTrue != null) {
-                    propertyBooleanFieldTrue.setEnabled(ie.getStateChange() == 1);
-                    propertyBooleanFieldFalse.setEnabled(ie.getStateChange() == 1);
+                    propertyBooleanFieldTrue.setEnabled(ie.getStateChange() == ItemEvent.SELECTED);
+                    propertyBooleanFieldFalse.setEnabled(ie.getStateChange() == ItemEvent.SELECTED);
                 }
             });
-            regenerateSourceCheckBox.setBackground(Color.WHITE);
+            regenerateSourceCheckBox.setBackground(JBColor.WHITE);
 
             // Cant edit unless the regenerateSource is selected
             disableRegeneratingFields();
@@ -241,9 +242,6 @@ public class ComponentPropertyEditBox {
      */
     public IkasanComponentPropertyInstance updateValueObjectWithEnteredValues() {
         componentProperty.setValue(getValue());
-        if (causesUserCodeRegenerationAndHasPermissionToRegenerate()) {
-            componentProperty.setRegenerateAllowed(true);
-        }
         return componentProperty;
     }
 

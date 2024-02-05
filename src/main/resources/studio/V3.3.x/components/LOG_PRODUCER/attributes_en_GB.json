@@ -8,31 +8,31 @@
   "ikasanComponentFactoryMethod": "logProducer",
   "displayOrder": 3,
   "properties": {
-    "Name": {
+    "componentName": {
       "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
     },
-    "Description": {
+    "description": {
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."
     },
-    "ConfiguredResourceId": {
+    "configuredResourceId": {
       "propertyName": "configuredResourceId",
       "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration."
     },
-    "ReplacementText": {
+    "replacementText": {
       "propertyName": "replacementText",
       "setterProperty": true,
       "helpText": "Replace the matching text with the following string."
     },
-    "RegExpPattern": {
-      "propertyName": "RegExpPattern",
+    "regExpPattern": {
+      "propertyName": "regExpPattern",
       "setterProperty": true,
       "helpText": "Only display logs matching this text."
     },
-    "LogEveryNth": {
-      "propertyName": "LogEveryNth",
+    "logEveryNth": {
+      "propertyName": "logEveryNth",
       "setterProperty": true,
       "propertyDataType": "java.lang.Long",
       "helpText": "Only display every 'nth' log message."

@@ -11,7 +11,6 @@ import java.util.List;
  */
 public class IkasanComponentPropertyInstance {
     private Object value;
-    private Boolean regenerateAllowed = true;
     @JsonIgnore
     private IkasanComponentPropertyMeta meta;
 
@@ -98,18 +97,6 @@ public class IkasanComponentPropertyInstance {
         this.meta = meta;
     }
 
-    public Boolean isRegenerateAllowed() {
-        return regenerateAllowed;
-    }
-
-    public void setRegenerateAllowed(Boolean regenerateAllowed) {
-        this.regenerateAllowed = regenerateAllowed;
-    }
-
-    public boolean isUserImplementedClass() {
-        return Boolean.TRUE.equals(getMeta().isUserImplementedClass());
-    }
-
     public boolean causesUserCodeRegeneration() {
         return Boolean.TRUE.equals(getMeta().isCausesUserCodeRegeneration());
     }
@@ -145,5 +132,4 @@ public class IkasanComponentPropertyInstance {
                 (value instanceof Double && ((Double) value) == 0.0) ||
                 (value instanceof Float && ((Float) value) == 0.0);
     }
-
 }
