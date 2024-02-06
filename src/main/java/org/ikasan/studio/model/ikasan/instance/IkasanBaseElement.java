@@ -10,7 +10,8 @@ import org.ikasan.studio.ui.viewmodel.ViewHandler;
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  */
 @Data
-public abstract class IkasanBaseElement {
+public class IkasanBaseElement {
+//public abstract class IkasanBaseElement {
     // The view handler has a number of circular dependencies to be avoided.
     @JsonIgnore
     protected ViewHandler viewHandler;

@@ -1,6 +1,5 @@
 package org.ikasan.studio;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
@@ -17,7 +16,10 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,7 @@ public class StudioUtils {
         if (input != null && delimeter != null) {
             String [] tokens = input.split(delimeter, -1);
             if (tokens.length > 1) {
-                returnString = returnString.append(tokens[0]);
+                returnString.append(tokens[0]);
                 for(int ii = 1; ii < tokens.length-1 ; ii++) {
                     returnString.append(".").append(tokens[ii]);
                 }
@@ -420,23 +422,6 @@ public class StudioUtils {
         return defaultValue;
     }
 
-    /**
-     * Convert the supplied java Object into its JSON representation
-     * @param value to be turned to JSON
-     * @return the Object in JSON format.
-     */
-    public static String toJson(Object value) {
-        String moduleString = "CouldNotConvert";
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            moduleString = objectMapper.writeValueAsString(value);
-        } catch (JsonProcessingException jpe) {
-            value = "";
-            LOG.warn("Could not generate JSON from [" + value + "] message [" + jpe.getMessage() + "]", jpe);
-        }
-        return moduleString;
-    }
 
     private static final String SUBSTITUTION_PREFIX = "__";
     private static final String SUBSTITUTION_PREFIX_FLOW = SUBSTITUTION_PREFIX + "flow";
