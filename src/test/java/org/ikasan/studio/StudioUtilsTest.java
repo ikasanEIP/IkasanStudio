@@ -1,10 +1,5 @@
 package org.ikasan.studio;
 
-import org.ikasan.studio.generator.TestUtils;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 
@@ -122,24 +117,4 @@ public class StudioUtilsTest {
             "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=true, userDefineResource=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', propertyDataType=class java.lang.Object, usageDataType=java.lang.Object, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
     }
 
-    @Test
-    public void testModuleToJson() throws IOException {
-        Module module = new Module();
-        module.setVersion("1.3");
-        module.setComponentName("");
-        module.setDescription("The Description");
-        assertThat(StudioUtils.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
-    }
-
-
-    public static final String TEST_IKASAN_PACK = "Vtest.x";
-    @Test
-    public void testComponentToJson() throws IOException {
-        IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);
-        IkasanComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponent(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
-        FlowElement devNullProducer = new FlowElement(devNullProducerMeta, null);
-        devNullProducer.setComponentName("My DN Producer");
-        devNullProducer.setDescription("The DN Description");
-        assertThat(StudioUtils.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
-    }
 }

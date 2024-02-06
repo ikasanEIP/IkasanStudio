@@ -2,6 +2,8 @@ package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
  * To make the instance model flexible and driven by Ikasan Meta Pack, most attributes are contained within the properties map.
  * This does
  */
+@JsonSerialize(using = IkasanElementSerializer.class)
+@JsonDeserialize(using = IkasanElementDeserializer.class)
 public  class IkasanElement extends IkasanBaseElement {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");

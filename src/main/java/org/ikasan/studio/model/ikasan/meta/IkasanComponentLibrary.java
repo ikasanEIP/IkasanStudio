@@ -4,7 +4,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.io.ComponentDeserialisation;
+import org.ikasan.studio.io.ComponentIO;
 
 import javax.swing.*;
 import java.io.File;
@@ -67,7 +67,7 @@ public class IkasanComponentLibrary {
                 IkasanMeta ikasanMeta;
 
                 try {
-                    ikasanMeta = ComponentDeserialisation.deserializeComponent(componentDirectory + "/attributes_en_GB.json");
+                    ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
 
                 } catch (StudioException e) {
                     LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
