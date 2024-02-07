@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.intellij.psi.PsiFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.jackson.Jacksonized;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
@@ -24,13 +26,13 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
  * Its a deliberate decision not to use components from within the ikasan framework itself in an attempt to insulate
  * from any changes to ikasan or componentDependencies on any particular ikasan version.
  */
-//@Data
 
 @Data
 @AllArgsConstructor
-@Jacksonized
+//@Jacksonized
 @Builder
 @EqualsAndHashCode(callSuper=true)
+@JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends IkasanElement {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
@@ -48,7 +50,6 @@ public class Module extends IkasanElement {
     public boolean addFlow(Flow ikasanFlow) {
         return flows.add(ikasanFlow);
     }
-
 
     public String getApplicationPackageName() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME);
@@ -76,5 +77,9 @@ public class Module extends IkasanElement {
     }    @JsonIgnore
     public void setH2WebPortNumber(String applicationPortNumber) {
         this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    }
+
+    public static IkasanBaseElement callBack(final ObjectMapper MAPPER, final String jsonString) throws JsonProcessingException {
+        return MAPPER.readValue(jsonString, Module.class);
     }
 }

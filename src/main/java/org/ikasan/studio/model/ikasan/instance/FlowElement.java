@@ -1,6 +1,8 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
@@ -68,7 +70,9 @@ public class FlowElement extends IkasanElement {
 //        }
 //    }
 
-
+    public static IkasanBaseElement callBack(final ObjectMapper MAPPER, final String jsonString) throws JsonProcessingException {
+        return MAPPER.readValue(jsonString, FlowElement.class);
+    }
 
     @JsonIgnore
     public Flow getParent() {

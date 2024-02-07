@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioException;
-import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.IkasanMeta;
 
 import java.io.BufferedReader;
@@ -56,7 +56,35 @@ public class ComponentIO {
      * @return an IkasanBaseElement object representing the deserialized class
      * @throws StudioException  to wrap JsonProcessingException
      */
-    public static IkasanBaseElement deserializeInstanceComponent(final String path) throws StudioException {
+//    public static IkasanBaseElement deserializeInstanceComponent(final String path, IkasanBaseElement objectToCreate) throws StudioException {
+//
+//        final InputStream inputStream = ComponentIO.class.getClassLoader().getResourceAsStream(path);
+//        if (inputStream == null) {
+//            throw new StudioException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
+//        }
+//        final String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+//                .lines()
+//                .collect(Collectors.joining());
+//
+////        IkasanBaseElement ikasanBaseElement;
+//        Object ikasanBaseElement;
+//        try {
+////            ikasanBaseElement = objectToCreate.callBack(MAPPER, jsonString);
+//            ikasanBaseElement = MAPPER.readValue(jsonString, org.ikasan.studio.model.ikasan.instance.Module.class);
+//        } catch (JsonProcessingException e) {
+//            throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
+//        }
+//        return (IkasanBaseElement)ikasanBaseElement;
+//    }
+
+    /*
+     * Deserialize the component at the given path.
+     * The component could be any of the child classes of IkasanBaseElement
+     * @param path to the file containing the JSON to deserializes
+     * @return an IkasanBaseElement object representing the deserialized class
+     * @throws StudioException  to wrap JsonProcessingException
+     */
+    public static Module deserializeModuleInstance(final String path) throws StudioException {
 
         final InputStream inputStream = ComponentIO.class.getClassLoader().getResourceAsStream(path);
         if (inputStream == null) {
@@ -66,13 +94,13 @@ public class ComponentIO {
                 .lines()
                 .collect(Collectors.joining());
 
-        IkasanBaseElement ikasanBaseElement;
+        Module moduleInstanc;
         try {
-            ikasanBaseElement = MAPPER.readValue(jsonString, IkasanBaseElement.class);
+            moduleInstanc = MAPPER.readValue(jsonString, Module.class);
         } catch (JsonProcessingException e) {
             throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
         }
-        return ikasanBaseElement;
+        return moduleInstanc;
     }
 
 
