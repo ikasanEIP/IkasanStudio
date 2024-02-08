@@ -1,0 +1,14 @@
+{
+  "description": "The Description",
+  "name": "My Module",
+  "host": "localhost",
+  "port": "1001",
+  "flows": [
+    {
+      "name": "flow1"
+    },
+    {
+      "name": "flow2"
+    }
+  ]
+}

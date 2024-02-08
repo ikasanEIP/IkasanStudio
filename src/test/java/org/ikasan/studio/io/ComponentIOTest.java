@@ -36,18 +36,9 @@ class ComponentIOTest {
     }
 
     @Test
-    public void testModuleInstanceDeserialise() throws IOException, StudioException {
-//        IkasanBaseElement module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
-//        System.out.println("BB");
-
-//        assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
+    public void testModuleInstanceDeserialise() throws StudioException {
+        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
+        assertThat(module.getName(), is("My Module"));
+        assertThat(module.getDescription(), is("The Description"));
     }
-//    @Test
-//    public void testInstanceComponentDeserialise() throws IOException, StudioException {
-//        IkasanBaseElement devNullProducer = ComponentIO.deserializeInstanceComponent("org/ikasan/studio/flowElement.json");
-//        System.out.println("BB");
-//
-//        assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
-//    }
-
 }
