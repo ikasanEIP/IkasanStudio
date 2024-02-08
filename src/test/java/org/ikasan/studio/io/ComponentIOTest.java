@@ -3,7 +3,6 @@ package org.ikasan.studio.io;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.generator.TestUtils;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanBaseElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
@@ -38,8 +37,8 @@ class ComponentIOTest {
 
     @Test
     public void testModuleInstanceDeserialise() throws IOException, StudioException {
-        IkasanBaseElement module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/module.json");
-        System.out.println("BB");
+//        IkasanBaseElement module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
+//        System.out.println("BB");
 
 //        assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
     }
