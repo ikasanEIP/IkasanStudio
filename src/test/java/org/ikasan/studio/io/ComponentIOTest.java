@@ -2,6 +2,7 @@ package org.ikasan.studio.io;
 
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.generator.TestUtils;
+import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
@@ -9,6 +10,7 @@ import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,5 +42,9 @@ class ComponentIOTest {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
         assertThat(module.getName(), is("My Module"));
         assertThat(module.getDescription(), is("The Description"));
+        List<Flow> flowList = module.getFlows();
+        assertThat(flowList.size(),is(2));
+        assertThat(flowList.get(0).getName(), is("flow1"));
+        assertThat(flowList.get(1).getName(), is("flow2"));
     }
 }

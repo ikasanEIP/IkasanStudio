@@ -4,9 +4,13 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class ModuleDeserializer extends StdDeserializer<IkasanElement> {
@@ -16,28 +20,65 @@ public class ModuleDeserializer extends StdDeserializer<IkasanElement> {
         super(IkasanElement.class);
     }
 
+    public List<Flow> getFlows(JsonNode root) {
+        List<Flow> flows = new ArrayList<>();
+        if (root.isArray()) {
+            ArrayNode arrayNode = (ArrayNode) root;
+            for (int i = 0; i < arrayNode.size(); i++) {
+                JsonNode arrayElement = arrayNode.get(i);
+                flows.add(getFlow(arrayElement));
+            }
+        }
+        return flows;
+    }
+
+    public Flow getFlow(JsonNode jsonNode) {
+        Flow flow = new Flow();
+
+        if(jsonNode.isObject()) {
+            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> field = fields.next();
+                String   fieldName  = field.getKey();
+                JsonNodeType type = field.getValue().getNodeType();
+                Object value = getTypedValue(type, field);
+                flow.setPropertyValue(fieldName, value);
+            }
+        }
+        return flow;
+    }
+
     @Override
     public Module deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException {
-        // The list of name value pairs need to be assigned to the properties of the module
+        Module module = new Module();
+
         JsonNode jsonNode = jp.getCodec().readTree(jp);
         Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-        Module module = new Module();
-        fields.forEachRemaining(field -> module.setPropertyValue(field.getKey(),field.getValue().asText()));
-
-//        if (jsonNode.isObject()) {
-//            Iterator<Entry<String, JsonNode>> fields = jsonNode.fields();
-//            fields.forEachRemaining(field -> {
-//                keys.add(field.getKey());
-//                getAllKeysUsingJsonNodeFieldNames((JsonNode) field.getValue(), keys);
-//            });
-//        } else if (jsonNode.isArray()) {
-//            ArrayNode arrayField = (ArrayNode) jsonNode;
-//            arrayField.forEach(node -> {
-//                getAllKeysUsingJsonNodeFieldNames(node, keys);
-//            });
-//        }
-
+        while(fields.hasNext()) {
+            Map.Entry<String, JsonNode> field = fields.next();
+            String   fieldName  = field.getKey();
+            if ("flows".equals(fieldName)) {
+                module.setFlows(getFlows(field.getValue()));
+            } else {
+                JsonNodeType type = field.getValue().getNodeType();
+                Object value = getTypedValue(type, field);
+                module.setPropertyValue(fieldName, value);
+            }
+        }
         return module;
+    }
+
+    public Object getTypedValue(JsonNodeType type, Map.Entry<String, JsonNode> field) {
+        Object value;
+        if (JsonNodeType.BOOLEAN == type) {
+            value = field.getValue().asBoolean();
+        } else if (JsonNodeType.NUMBER == type) {
+            value = field.getValue().asLong();
+        } else {
+            value = field.getValue().asText();
+        }
+        return value;
     }
 }
