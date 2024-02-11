@@ -12,6 +12,7 @@ import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 
 import javax.swing.*;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 @Data
@@ -60,6 +61,10 @@ public class IkasanComponentMeta implements IkasanMeta {
             }
         }
         return mandatoryProperties;
+    }
+
+    public Set<String> getPropetyKeys() {
+        return properties.keySet();
     }
 
     public IkasanComponentPropertyMeta getMetadata(String propertyName) {

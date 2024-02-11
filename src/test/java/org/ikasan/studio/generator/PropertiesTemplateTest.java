@@ -31,7 +31,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
-//        testModule.setApplicationPortNumber("8090");
+//        testModule.setPort("8090");
 //        testModule.setH2WebPortNumber("8091");
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));

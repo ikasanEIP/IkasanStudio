@@ -3,6 +3,7 @@ package org.ikasan.studio.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
@@ -40,13 +41,22 @@ public class FlowElement extends IkasanElement {
      */
     public FlowElement(IkasanComponentMeta type, Flow parent) {
         super (type);
-        setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, "");
-        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, "");
+        setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, "");
+//        setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, "");
+//        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, "");
+        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "");
         this.parent = parent;
 //        this(type, parent, "", "");
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
+    @Builder (builderMethodName = "flowElementBuilder")
+    protected FlowElement(IkasanComponentMeta componentMeta, String componentName, String description, Flow parent) {
+        super(componentMeta, description);
+        setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, componentName);
+        this.parent = parent;
+
+    }
 //    public static FlowElement getDummyFlowElement() {
 //        return new FlowElement(IkasanComponentMeta.builder().build(), null);
 //    }

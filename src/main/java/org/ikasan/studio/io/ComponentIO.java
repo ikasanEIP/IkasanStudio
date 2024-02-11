@@ -82,14 +82,14 @@ public class ComponentIO {
      * @return the Object in JSON format.
      */
     public static String toJson(Object value) {
-        String moduleString = "CouldNotConvert";
+        String jsonString = "CouldNotConvert";
 
         try {
-            moduleString = MAPPER.writeValueAsString(value);
+            jsonString = MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException jpe) {
             value = "";
             LOG.warn("Could not generate JSON from [" + value + "] message [" + jpe.getMessage() + "]", jpe);
         }
-        return moduleString;
+        return jsonString;
     }
 }

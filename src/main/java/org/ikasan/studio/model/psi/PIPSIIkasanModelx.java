@@ -121,7 +121,7 @@ public class PIPSIIkasanModelx {
 //    private void updateModuleWithProperties() {
 //        Properties properties = Context.getApplicationProperties(projectKey);
 //        ikasanModule.setApplicationPackageName((String)properties.get(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_KEY));
-//        ikasanModule.setApplicationPortNumber((String)properties.get(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_KEY));
+//        ikasanModule.setPort((String)properties.get(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_KEY));
 //        ikasanModule.setH2PortNumber((String)properties.get(IkasanComponentPropertyMeta.H2_PORT_NUMBER_KEY));
 //    }
 //

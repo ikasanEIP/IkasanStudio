@@ -1,14 +1,1 @@
-{
-  "description": "The Description",
-  "name": "My Module",
-  "host": "localhost",
-  "port": "1001",
-  "flows": [
-    {
-      "name": "flow1"
-    },
-    {
-      "name": "flow2"
-    }
-  ]
-}
+{"applicationPackageName":"co.uk.test","description":"My first module","h2DbPortNumber":"1","h2WebPortNumber":"2","name":"A to B convert","port":"3"}
