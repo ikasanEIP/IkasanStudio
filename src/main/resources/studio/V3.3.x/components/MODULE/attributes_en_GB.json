@@ -6,6 +6,10 @@
   "ikasanComponentFactoryMethod": "na",
   "properties": {
     "name": {
+      "version": {
+        "propertyName": "version",
+        "helpText": "The ikasan version used to build this module."
+      },
       "propertyName": "name",
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
@@ -14,13 +18,21 @@
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."
     },
-    "host": {
-      "propertyName": "host",
-      "helpText": "The host that this module runs on."
+    "applicationPackageName": {
+      "propertyName": "applicationPackageName",
+      "helpText": "The java package name for the generated module code."
     },
     "port": {
       "propertyName": "port",
-      "helpText": "The port on the host that this module listens to."
+      "helpText": "The http port to be used by the blue console for this module."
+    },
+    "h2DbPortNumber": {
+      "propertyName": "h2DbPortNumber",
+      "helpText": "The port to be used by the embedded H2 database."
+    },
+    "h2WebPortNumber": {
+      "propertyName": "h2WebPortNumber",
+      "helpText": "The port to be used by the embedded H2 database to expose its web interface."
     }
   }
 }

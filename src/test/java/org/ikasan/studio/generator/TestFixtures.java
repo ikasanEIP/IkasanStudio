@@ -14,7 +14,7 @@ public class TestFixtures {
         Module ikasanModule = new Module();
         ikasanModule.setComponentName("My Integration Module");
         ikasanModule.setApplicationPackageName("org.myApp");
-        ikasanModule.setApplicationPortNumber("8080");
+        ikasanModule.setPort("8080");
         ikasanModule.setH2DbPortNumber("12452");
         ikasanModule.setH2WebPortNumber("12452");
         ikasanModule.setH2WebPortNumber("12452");

@@ -30,7 +30,6 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 @Data
 @AllArgsConstructor
 //@Jacksonized
-@Builder
 @EqualsAndHashCode(callSuper=true)
 @JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends IkasanElement {
@@ -47,6 +46,25 @@ public class Module extends IkasanElement {
         flows = new ArrayList<>();
     }
 
+    @Builder (builderMethodName = "moduleBuilder")
+    public Module(String name,
+                  String description,
+                  String version,
+                  String applicationPackageName,
+                  String port,
+                  String h2PortNumber,
+                  String h2WebPortNumber) {
+        super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK), description);
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
+        flows = new ArrayList<>();
+        this.version = version;
+        setName(name);
+        setApplicationPackageName(applicationPackageName);
+        setPort(port);
+        setH2DbPortNumber(h2PortNumber);
+        setH2WebPortNumber(h2WebPortNumber);
+    }
+
     public boolean addFlow(Flow ikasanFlow) {
         return flows.add(ikasanFlow);
     }
@@ -56,27 +74,32 @@ public class Module extends IkasanElement {
     }
     @JsonIgnore
     public void setApplicationPackageName(String applicationPackageName) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
+//        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, IkasanComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
+        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PACKAGE_NAME, applicationPackageName);
     }
-    public String getApplicationPortNumber() {
+    public String getPort() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
     }
     @JsonIgnore
-    public void setApplicationPortNumber(String applicationPortNumber) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    public void setPort(String portNumber) {
+//        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, portNumber);
+        this.setPropertyValue(IkasanComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, portNumber);
     }
     public String getH2PortNumber() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME);
     }
     @JsonIgnore
-    public void setH2DbPortNumber(String applicationPortNumber) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    public void setH2DbPortNumber(String portNumber) {
+//        this.setPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, portNumber);
+        this.setPropertyValue(IkasanComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, portNumber);
     }
-    public String getH2WebPortNumber(String applicationPortNumber) {
+    public String getH2WebPortNumber() {
         return (String) getPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME);
-    }    @JsonIgnore
-    public void setH2WebPortNumber(String applicationPortNumber) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, applicationPortNumber);
+    }
+    @JsonIgnore
+    public void setH2WebPortNumber(String portNumber) {
+//        this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, IkasanComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, portNumber);
+        this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, portNumber);
     }
 
     public static IkasanBaseElement callBack(final ObjectMapper MAPPER, final String jsonString) throws JsonProcessingException {

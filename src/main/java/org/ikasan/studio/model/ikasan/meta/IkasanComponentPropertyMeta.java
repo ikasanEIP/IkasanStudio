@@ -31,10 +31,10 @@ public class IkasanComponentPropertyMeta {
     public static final String COMPONENT_NAME = "componentName";
     public static final String DESCRIPTION = "description";
 
-    public static final String APPLICATION_PORT_NUMBER_NAME = "applicationPortNumber";
+    public static final String APPLICATION_PORT_NUMBER_NAME = "port";
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
-    public static final String H2_DB_PORT_NUMBER_NAME = "H2DbPortNumber";
-    public static final String H2_WEB_PORT_NUMBER_NAME = "H2WebPortNumber";
+    public static final String H2_DB_PORT_NUMBER_NAME = "h2DbPortNumber";
+    public static final String H2_WEB_PORT_NUMBER_NAME = "h2WebPortNumber";
     public static final String H2_PORT_NUMBER_KEY = "h2.db.port";
 
     // Special META for package parent of the users bespoke packages, a little like a pom group

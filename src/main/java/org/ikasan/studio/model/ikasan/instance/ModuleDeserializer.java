@@ -48,6 +48,23 @@ public class ModuleDeserializer extends StdDeserializer<IkasanElement> {
         }
         return flow;
     }
+    public Flow getFlowElements(JsonNode jsonNode, Flow flow) {
+        FlowElement flowElement;
+
+        if(jsonNode.isObject()) {
+            String componentType = jsonNode.get("componentType").asText();
+            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> field = fields.next();
+                String   fieldName  = field.getKey();
+                JsonNodeType type = field.getValue().getNodeType();
+                Object value = getTypedValue(type, field);
+                flow.setPropertyValue(fieldName, value);
+            }
+        }
+        return flow;
+    }
 
     @Override
     public Module deserialize(JsonParser jp, DeserializationContext ctxt)

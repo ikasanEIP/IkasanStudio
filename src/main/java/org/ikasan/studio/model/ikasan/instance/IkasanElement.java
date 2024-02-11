@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.openapi.diagnostic.Logger;
+import lombok.Builder;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
@@ -33,13 +34,19 @@ public  class IkasanElement extends IkasanBaseElement {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
     }
+    @Builder
+    protected IkasanElement(IkasanComponentMeta componentMeta, String description) {
+        super(componentMeta);
+        this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
+        setDescription(description);
+    }
 
     /**
      * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
      * @return the component description
      */
     public String getComponentName() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);
+        return (String) getPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME);
     }
 
     /**
@@ -47,7 +54,12 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param name for the instance of this component.
      */
     public void setComponentName(String name) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        this.setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, name);
+    }
+    public void setName(String name) {
+//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, name);
     }
 
     /**
@@ -73,7 +85,8 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param description for the component
      */
     public void setDescription(String description) {
-        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
+//        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
+        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
     }
 
     /**
@@ -139,20 +152,21 @@ public  class IkasanElement extends IkasanBaseElement {
         }
     }
 
-    /**
-     * This setter should be used if we think the property might not already be set but will require the correct meta data
-     * @param key of the property to be updated
-     * @param properyMeta for the property
-     * @param value for the property
-     */
-    public void setPropertyValue(String key, IkasanComponentPropertyMeta properyMeta, Object value) {
-        IkasanComponentPropertyInstance ikasanComponentProperty = configuredProperties.get(key);
-        if (ikasanComponentProperty != null) {
-            ikasanComponentProperty.setValue(value);
-        } else {
-            configuredProperties.put(key, new IkasanComponentPropertyInstance(properyMeta, value));
-        }
-    }
+//    /**
+//     * This setter should be used if we think the property might not already be set but will require the correct meta data
+//     * @param key of the property to be updated
+//     * @param properyMeta for the property
+//     * @param value for the property
+//     */
+//    public void setPropertyValue(String key, IkasanComponentPropertyMeta properyMeta, Object value) {
+//        IkasanComponentPropertyInstance ikasanComponentProperty = configuredProperties.get(key);
+//        if (ikasanComponentProperty != null) {
+//            ikasanComponentProperty.setValue(value);
+//        } else {
+//            LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentMeta() + " this property will be ignored.");
+////            configuredProperties.put(key, new IkasanComponentPropertyInstance(properyMeta, value));
+//        }
+//    }
 
 //    /**
 //     * This setter should be used if we think the property might not already be set but will require the correct meta data
@@ -176,7 +190,7 @@ public  class IkasanElement extends IkasanBaseElement {
         } else {
             IkasanComponentPropertyMeta properyMeta = getIkasanComponentMeta().getMetadata(key);
             if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentMeta() + " this property will be ignored.");
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored.");
             } else {
                 configuredProperties.put(key, new IkasanComponentPropertyInstance(getIkasanComponentMeta().getMetadata(key), value));
             }
