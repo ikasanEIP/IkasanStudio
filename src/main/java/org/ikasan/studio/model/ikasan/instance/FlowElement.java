@@ -13,7 +13,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
  */
 public class FlowElement extends IkasanElement {
     @JsonIgnore
-    private final Flow parent;
+    private final Flow containingFlow;
 
 //    /**
 //     * Any component that belongs in the flow
@@ -33,29 +33,28 @@ public class FlowElement extends IkasanElement {
 //        }
 //        this.viewHandler = ViewHandlerFactory.getInstance(this);
 //    }
-
     /**
      * Any component that belongs in the flow
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
-     * @param parent flow that contains this element
+     * @param containingFlow flow that contains this element
      */
-    public FlowElement(IkasanComponentMeta type, Flow parent) {
+    public FlowElement(IkasanComponentMeta type, Flow containingFlow) {
         super (type);
+
         setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, "");
 //        setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, "");
 //        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, "");
         setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "");
-        this.parent = parent;
+        this.containingFlow = containingFlow;
 //        this(type, parent, "", "");
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     @Builder (builderMethodName = "flowElementBuilder")
-    protected FlowElement(IkasanComponentMeta componentMeta, String componentName, String description, Flow parent) {
+    protected FlowElement(Flow containingFlow, IkasanComponentMeta componentMeta, String componentName, String description) {
         super(componentMeta, description);
         setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, componentName);
-        this.parent = parent;
-
+        this.containingFlow = containingFlow;
     }
 //    public static FlowElement getDummyFlowElement() {
 //        return new FlowElement(IkasanComponentMeta.builder().build(), null);
@@ -85,8 +84,8 @@ public class FlowElement extends IkasanElement {
     }
 
     @JsonIgnore
-    public Flow getParent() {
-        return parent;
+    public Flow getContainingFlow() {
+        return containingFlow;
     }
 
     @Override

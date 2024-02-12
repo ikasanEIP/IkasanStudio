@@ -16,7 +16,7 @@ public class FlowTemplate extends Generator {
         for (Flow ikasanFlow : ikasanModule.getFlows()) {
             String packageName = STUDIO_BOOT_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             String templateString = generateContents(packageName, ikasanModule, ikasanFlow);
-            if (!ikasanFlow.getFlowComponentList().isEmpty()) {
+            if (!ikasanFlow.getFlowElements().isEmpty()) {
                 // Must do Beskpoke classes first otherwise resolution will not auto generate imports.
                 FlowsBespokeComponentTemplate.create(project, ikasanModule, ikasanFlow);
                 FlowsComponentFactoryTemplate.create(project, packageName, ikasanModule, ikasanFlow);

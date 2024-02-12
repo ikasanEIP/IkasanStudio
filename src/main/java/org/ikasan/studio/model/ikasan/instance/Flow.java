@@ -1,7 +1,13 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.model.ikasan.meta.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
@@ -9,43 +15,63 @@ import java.util.List;
 
 import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKASAN_PACK;
 
+@Data
+@EqualsAndHashCode(callSuper=false)
+//@Jacksonized
+//@Builder
+//@JsonDeserialize(using = IkasanElementSerializer.class)
+@JsonSerialize(using = FlowSerializer.class)
+@JsonDeserialize(using = FlowDeserializer.class)
 public class Flow extends IkasanElement {
-
-    String name;
-    String configurationId;
-    String flowStartupType;
-    String flowStartupComment;
-    org.ikasan.studio.model.ik.FlowElement consumer;
-//    List<Transition> transitions;
-//    List<org.ikasan.studio.model.ik.FlowElement> flowElements;
-
-    private FlowElement input;
-
-    private FlowElement output;
-
-    private List<FlowElement> flowComponentList = new ArrayList<>();
-
+    private FlowElement consumer;
+    private List<Transition> transitions;
+    private List<FlowElement> flowElements = new ArrayList<>();
     private IkasanExceptionResolver ikasanExceptionResolver;
-
+//    String configurationId;
+//    String flowStartupType;
+//    String flowStartupComment;
+    private FlowElement output;
     public Flow() {
         super (IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
-//        super (IkasanComponentMetax.FLOW, IkasanComponentMetax.FLOW.getMandatoryInstanceProperties());
-//        this.configuredProperties.put(IkasanComponentPropertyMeta.NAME, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT));
-//        this.configuredProperties.put(IkasanComponentPropertyMeta.DESCRIPTION, new IkasanComponentProperty(IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT));
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
+//    rotected IkasanElement(IkasanComponentMeta componentMeta, String description) {
+    @Builder(builderMethodName = "flowBuilder")
+    public Flow(
+//            String description,
+                FlowElement consumer,
+                List<Transition> transitions,
+                List<FlowElement> flowElements,
+                IkasanExceptionResolver ikasanExceptionResolver,
+                String name) {
+//        super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK), description);
+        super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
+        this.consumer = consumer;
+        if (transitions != null) {
+            this.transitions = transitions;
+        } else {
+            this.transitions = new ArrayList<>();
+        }
+        if (flowElements != null) {
+            this.flowElements = flowElements;
+        } else {
+            if (this.flowElements == null) {
+                this.flowElements = new ArrayList<>();
+            }
+        }
 
-    public List<FlowElement> getFlowComponentList() {
-        return flowComponentList;
+        this.ikasanExceptionResolver = ikasanExceptionResolver;
+        super.setName(name);
     }
 
     public void addFlowComponent(FlowElement ikasanFlowComponent) {
-        flowComponentList.add(ikasanFlowComponent);
+        flowElements.add(ikasanFlowComponent);
     }
 
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
-        if (ikasanFlowComponentToBeRemoved != null && ! flowComponentList.isEmpty()) {
-            getFlowComponentList().remove(ikasanFlowComponentToBeRemoved);
+        if (ikasanFlowComponentToBeRemoved != null && ! flowElements.isEmpty()) {
+            getFlowElements().remove(ikasanFlowComponentToBeRemoved);
         }
     }
 
@@ -99,12 +125,12 @@ public class Flow extends IkasanElement {
     }
 
     public boolean hasConsumer() {
-        return flowComponentList.stream()
+        return flowElements.stream()
             .anyMatch(e->e.getIkasanComponentMeta().isConsumer());
     }
 
     public boolean hasProducer() {
-        return flowComponentList.stream()
+        return flowElements.stream()
             .anyMatch(e->e.getIkasanComponentMeta().isProducer());
     }
 
@@ -116,36 +142,12 @@ public class Flow extends IkasanElement {
         return (ikasanExceptionResolver != null && ikasanExceptionResolver.isValid());
     }
 
-    public FlowElement getInput() {
-        return input;
-    }
-
-    public void setInput(FlowElement input) {
-        this.input = input;
-    }
-
-    public FlowElement getOutput() {
-        return output;
-    }
-
-    public void setOutput(FlowElement output) {
-        this.output = output;
-    }
-
-    public IkasanExceptionResolver getIkasanExceptionResolver() {
-        return ikasanExceptionResolver;
-    }
-
-    public void setIkasanExceptionResolver(IkasanExceptionResolver ikasanExceptionResolver) {
-        this.ikasanExceptionResolver = ikasanExceptionResolver;
-    }
-
     @Override
     public String toString() {
         return "IkasanFlow{" +
                 "name='" + getComponentName() + '\'' +
                 ", description='" + getDescription() + '\'' +
-                ", flowComponentList=" + flowComponentList +
+                ", flowElements=" + flowElements +
                 '}';
     }
 }

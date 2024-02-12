@@ -24,8 +24,8 @@ public class FlowsMessageFilterTemplateTest {
         Module ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
-        newFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFilterComponent(newFlow));
-        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
+        newFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFilterComponent(newFlow));
+        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowElements().get(0));
         assertThat(templateString, is(notNullValue()));
         assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfiguredResource.java")));
     }
@@ -40,8 +40,8 @@ public class FlowsMessageFilterTemplateTest {
         Module ikasanModule = TestFixtures.getIkasanModule();
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
-        newFlow.getFlowComponentList().add(TestFixtures.getMinimumPopulatedFilterComponent(newFlow));
-        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
+        newFlow.getFlowElements().add(TestFixtures.getMinimumPopulatedFilterComponent(newFlow));
+        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowElements().get(0));
         assertThat(templateString, is(notNullValue()));
         assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterMinimum.java")));
     }
@@ -60,8 +60,8 @@ public class FlowsMessageFilterTemplateTest {
         FlowElement filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(newFlow);
         filterFlowComponent.setPropertyValue("IsConfiguredResource", false);
 
-        newFlow.getFlowComponentList().add(filterFlowComponent);
-        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
+        newFlow.getFlowElements().add(filterFlowComponent);
+        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowElements().get(0));
         assertThat(templateString, is(notNullValue()));
                 assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfigured.java")));
     }
@@ -76,8 +76,8 @@ public class FlowsMessageFilterTemplateTest {
         FlowElement filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(newFlow);
         filterFlowComponent.setPropertyValue("ConfiguredResourceId", null);
 
-        newFlow.getFlowComponentList().add(filterFlowComponent);
-        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowComponentList().get(0));
+        newFlow.getFlowElements().add(filterFlowComponent);
+        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, newFlow.getFlowElements().get(0));
         assertThat(templateString, is(notNullValue()));
         assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile("MyMessageFilterConfiguredResource.java")));
     }

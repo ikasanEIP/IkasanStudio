@@ -33,13 +33,22 @@ public class IkasanElementSerializer extends StdSerializer<IkasanElement> {
     @Override
     public void serialize(IkasanElement ikasanElement, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();
-        Map<String, IkasanComponentPropertyInstance> properties = ikasanElement.getConfiguredProperties();
-        if (!properties.isEmpty()) {
-            for (IkasanComponentPropertyInstance ikasanComponentPropertyInstance : properties.values()) {
-                jsonGenerator.writeStringField(ikasanComponentPropertyInstance.getMeta().getPropertyName(),
+        serializePayload(ikasanElement, jsonGenerator);
+        jsonGenerator.writeEndObject();
+    }
+
+    protected void serializePayload(IkasanElement ikasanElement, JsonGenerator jsonGenerator) throws IOException {
+        // because we are serializing many nested elements, its possible the element is null, in which case we do nothing.
+        if (ikasanElement != null) {
+            Map<String, IkasanComponentPropertyInstance> properties = ikasanElement.getConfiguredProperties();
+
+            if (!properties.isEmpty()) {
+                for (IkasanComponentPropertyInstance ikasanComponentPropertyInstance : properties.values()) {
+                    jsonGenerator.writeStringField(
+                        ikasanComponentPropertyInstance.getMeta().getPropertyName(),
                         ikasanComponentPropertyInstance.getValue() == null ? "null" : ikasanComponentPropertyInstance.getValue().toString());
+                }
             }
         }
-        jsonGenerator.writeEndObject();
     }
 }

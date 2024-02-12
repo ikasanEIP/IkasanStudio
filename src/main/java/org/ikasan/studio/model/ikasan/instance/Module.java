@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.psi.PsiFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,9 +30,11 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 
 @Data
 @AllArgsConstructor
-//@Jacksonized
 @EqualsAndHashCode(callSuper=true)
+
+@JsonSerialize(using = ModuleSerializer.class)
 @JsonDeserialize(using = ModuleDeserializer.class)
+
 public class Module extends IkasanElement {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
@@ -53,7 +56,8 @@ public class Module extends IkasanElement {
                   String applicationPackageName,
                   String port,
                   String h2PortNumber,
-                  String h2WebPortNumber) {
+                  String h2WebPortNumber,
+                  List<Flow> flows) {
         super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK), description);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
         flows = new ArrayList<>();
@@ -63,6 +67,7 @@ public class Module extends IkasanElement {
         setPort(port);
         setH2DbPortNumber(h2PortNumber);
         setH2WebPortNumber(h2WebPortNumber);
+        this.flows = flows;
     }
 
     public boolean addFlow(Flow ikasanFlow) {
