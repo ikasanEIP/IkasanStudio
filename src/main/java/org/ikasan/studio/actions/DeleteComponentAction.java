@@ -23,7 +23,7 @@ public class DeleteComponentAction implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
       if (component instanceof FlowElement) {
          FlowElement ikasanFlowComponentToRemove = (FlowElement)component;
-         Flow parentFlow = ikasanFlowComponentToRemove.getParent();
+         Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
          if (parentFlow != null) {
             parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
          }

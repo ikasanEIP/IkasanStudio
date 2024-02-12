@@ -113,7 +113,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         if (model.hasExceptionResolver()) {
             model.getIkasanExceptionResolver().getViewHandler().paintComponent(canvas, g, -1, -1);
         }
-        List<FlowElement> flowElementList = model.getFlowComponentList();
+        List<FlowElement> flowElementList = model.getFlowElements();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
 
@@ -128,9 +128,9 @@ public class IkasanFlowViewHandler extends ViewHandler {
 
         if (flowSize > 1) {
             // Paint the first component
-            if (model.getInput() != null) {
+            if (model.getConsumer() != null) {
                 ViewHandler first = flowElementList.get(0).getViewHandler();
-                ViewHandler vh = model.getInput().getViewHandler();
+                ViewHandler vh = model.getConsumer().getViewHandler();
                 vh.setWidth(first.getWidth());
                 vh.setTopY(first.getTopY());
                 vh.setLeftX(first.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - vh.getWidth());
@@ -184,8 +184,8 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
-        if (!model.getFlowComponentList().isEmpty()) {
-            for (FlowElement ikasanFlowComponent : model.getFlowComponentList()) {
+        if (!model.getFlowElements().isEmpty()) {
+            for (FlowElement ikasanFlowComponent : model.getFlowElements()) {
                 ikasanFlowComponent.getViewHandler().initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                 currentX += ikasanFlowComponent.getViewHandler().getWidth() + FLOW_X_SPACING;
             }
@@ -206,7 +206,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private void setWidthHeights(Graphics graphics, int newTopY) {
-        if (!model.getFlowComponentList().isEmpty()) {
+        if (!model.getFlowElements().isEmpty()) {
             setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
         } else {
@@ -220,18 +220,18 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public int getFlowElementsTopY() {
-        return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getTopY()).min().orElse(0);
+        return model.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getTopY()).min().orElse(0);
     }
 
     public int getFlowElementsLeftX() {
-        return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
+        return model.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
     }
 
     public int getFlowElementsRightX() {
-        return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
+        return model.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
     }
     public int getFlowElementsBottomY() {
-        return model.getFlowComponentList().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
+        return model.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
     }
 
     public void setFlowReceptiveMode() {
