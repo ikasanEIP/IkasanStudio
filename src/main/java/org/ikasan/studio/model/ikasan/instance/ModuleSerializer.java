@@ -35,26 +35,18 @@ public class ModuleSerializer extends StdSerializer<Module> {
         FlowSerializer flowSerializer = new FlowSerializer();
 
         jsonGenerator.writeStartObject();
-        jsonGenerator.writeFieldName("flows");
-        jsonGenerator.writeStartArray();
+        // First, the module fields
+        ikasanElementSerializer.serializePayload(module, jsonGenerator);
+
+        // Now Flows
+        jsonGenerator.writeArrayFieldStart("flows");
         for (Flow flow : module.getFlows()) {
-//            flowSerializer.serialize(flow, jsonGenerator,serializerProvider);
-            flowSerializer.serializePayload(flow, jsonGenerator);
+            jsonGenerator.writeStartObject();
+            flowSerializer.serializePayload(flow, jsonGenerator, serializerProvider);
+            jsonGenerator.writeEndObject();
         }
         jsonGenerator.writeEndArray();
-
-        ikasanElementSerializer.serializePayload(module, jsonGenerator);
-//        ikasanElementSerializer.serialize(module, jsonGenerator, serializerProvider);
         jsonGenerator.writeEndObject();
     }
 
-//    protected void serializePayload(IkasanElement ikasanElement, JsonGenerator jsonGenerator) throws IOException {
-//        Map<String, IkasanComponentPropertyInstance> properties = ikasanElement.getConfiguredProperties();
-//        if (!properties.isEmpty()) {
-//            for (IkasanComponentPropertyInstance ikasanComponentPropertyInstance : properties.values()) {
-//                jsonGenerator.writeStringField(ikasanComponentPropertyInstance.getMeta().getPropertyName(),
-//                        ikasanComponentPropertyInstance.getValue() == null ? "null" : ikasanComponentPropertyInstance.getValue().toString());
-//            }
-//        }
-//    }
 }

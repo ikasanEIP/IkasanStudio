@@ -17,7 +17,7 @@ import org.ikasan.studio.generator.ApplicationTemplate;
 import org.ikasan.studio.generator.ModuleConfigTemplate;
 import org.ikasan.studio.generator.PropertiesTemplate;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 public class StudioMaintenanceDebug extends AnAction
 {
@@ -72,7 +72,7 @@ public class StudioMaintenanceDebug extends AnAction
       }
 
       final VirtualFile virtualFile = file.getVirtualFile();
-      ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(Arrays.asList(virtualFile));
+      ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(Collections.singletonList(virtualFile));
 
       final String clazzName = "MyFile";
 
@@ -95,8 +95,6 @@ public class StudioMaintenanceDebug extends AnAction
     * @return some data to be displayed in message box
     */
    protected String getKeyData(AnActionEvent ae) {
-      StringBuilder message = new StringBuilder();
-      message.append("Thou could ny anything");
 
 ////      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
 ////      CaretModel caretModel = editor.getCaretModel();
@@ -129,7 +127,37 @@ public class StudioMaintenanceDebug extends AnAction
 //         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
 //      }
 
-      return message.toString();
+      return "dummy"
+////      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+////      CaretModel caretModel = editor.getCaretModel();
+//
+//      // get the psi file from the action event.
+//      PsiFile psiFile = ae.getData(CommonDataKeys.PSI_FILE);
+//      if(psiFile != null) {
+////         PIPSIIkasanModel pipsiIkasanModel = (PIPSIIkasanModel)Context.get("pipsiIkasanModel");
+//         PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
+//         IkasanModule ikasanModule = pipsiIkasanModel.buildIkasanModule(psiFile);
+//
+//         message.append(ikasanModule.toString());
+////         message.append(StudioPsiUtils.getSimpleFileData(file));
+//      }
+//
+//      message.append("looking for Module config = " + StudioPsiUtils.findClass(ae.getProject(), "ModuleConfigTemplate"));
+              //      StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
+//      StudioUIUtils.displayMessage(projectKey, getKeyData(ae));
+//      VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(ae.getProject(),StudioPsiUtils.JAVA_CODE);
+//      PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(ae.getProject()).createDirectory(sourceRoot);
+//      PsiDirectory bobDir = StudioPsiUtils.createPackage(baseDir, "bob");
+//      PsiFile newFile = StudioPsiUtils.createFileInDirectory(bobDir, "myFile", "Some text", ae.getProject());
+//      PsiDocumentManager documentManager = PsiDocumentManager.createFlowElement(ae.getProject());
+//      documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(newFile));
+//      StudioPsiUtils.
+//      if(caretModel.getCurrentCaret().hasSelection())
+//      {
+//         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
+//         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
+//      }
+              ;
    }
 
 

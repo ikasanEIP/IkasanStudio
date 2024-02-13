@@ -51,7 +51,7 @@ public class IkasanComponentMeta implements IkasanMeta {
 
     /**
      * Get a list of the mandatory properties for this component.
-     * @return A map of the mandatory properties for this component
+     * @return An ordered map of the mandatory properties for this component
      */
     public Map<String, IkasanComponentPropertyInstance> getMandatoryInstanceProperties() {
         Map<String, IkasanComponentPropertyInstance> mandatoryProperties = new TreeMap<>();

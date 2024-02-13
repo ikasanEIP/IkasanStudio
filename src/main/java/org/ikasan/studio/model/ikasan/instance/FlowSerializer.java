@@ -1,7 +1,6 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
@@ -13,48 +12,26 @@ public class FlowSerializer extends StdSerializer<Flow> {
         super(Flow.class);
     }
 
-    protected FlowSerializer(Class<Flow> t) {
-        super(t);
-    }
-
-    protected FlowSerializer(JavaType type) {
-        super(type);
-    }
-
-    protected FlowSerializer(Class<?> t, boolean dummy) {
-        super(t, dummy);
-    }
-
-    protected FlowSerializer(StdSerializer<?> src) {
-        super(src);
-    }
-
     @Override
     public void serialize(Flow flow, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();
-        serializePayload(flow, jsonGenerator);
-        //        ikasanElementSerializer.serializePayload(flow, jsonGenerator);
-
-
-//        IkasanElementSerializer ikasanElementSerializer = new IkasanElementSerializer();
-//        ikasanElementSerializer.serialize(flow, jsonGenerator, serializerProvider);
-//        ikasanElementSerializer.serialize(flow.getConsumer(), jsonGenerator, serializerProvider);
-//        for(FlowElement flowElement : flow.getFlowElements()) {
-//            ikasanElementSerializer.serialize(flowElement, jsonGenerator, serializerProvider);
-//        }
-//        ikasanElementSerializer.serialize(flow.getIkasanExceptionResolver(), jsonGenerator, serializerProvider);
-
-
+        serializePayload(flow, jsonGenerator, serializerProvider);
         jsonGenerator.writeEndObject();
     }
 
-    protected void serializePayload(Flow flow, JsonGenerator jsonGenerator) throws IOException {
+    protected void serializePayload(Flow flow, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         IkasanElementSerializer ikasanElementSerializer = new IkasanElementSerializer();
 
         // The properties for the flow itself
         ikasanElementSerializer.serializePayload(flow, jsonGenerator);
 
+        jsonGenerator.writeFieldName("consumer");
+        jsonGenerator.writeStartObject();
         ikasanElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
+        jsonGenerator.writeEndObject();
+
+        // Since transitions are simple pojos, we can use the default serialiser
+        serializerProvider.defaultSerializeField("transitions", flow.getTransitions(), jsonGenerator);
 
         jsonGenerator.writeArrayFieldStart("flowElements");
         for(FlowElement flowElement : flow.getFlowElements()) {
