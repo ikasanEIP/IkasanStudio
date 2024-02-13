@@ -1,12 +1,10 @@
 package org.ikasan.studio;
 
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -16,11 +14,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class StudioUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER", "studio/Vtest.x/components/DEV_NULL_PRODUCER"};
+        String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER", "studio/Vtest.x/components/DEV_NULL_PRODUCER", "studio/Vtest.x/components/EVENT_GENERATING_CONSUMER"};
         String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
         Set<String> expectedDirsSorted = new TreeSet<>(List.of(expectedDirs)) ;
         Set<String> actualDirsSorted = new TreeSet<>(List.of(actualDirs)) ;
-        assertThat(actualDirs.length, is(4));
+        assertThat(actualDirs.length, is(5));
         assertThat(actualDirsSorted, is(expectedDirsSorted));
     }
     @Test
@@ -94,27 +92,4 @@ public class StudioUtilsTest {
         assertThat(StudioUtils.toUrlString("as d    c"), is("as-d-c"));
         assertThat(StudioUtils.toUrlString("Some 1 Text"), is("some-1-text"));
     }
-
-    // @TODO suspend while this is being redeveloped
-    //@Test
-    public void testConfigReader() {
-        Map<String, IkasanComponentPropertyMeta>  properties = StudioUtils.readIkasanComponentProperties("BROKER");
-        assertThat(properties.size(), is(5));
-        IkasanComponentPropertyMeta additionalName = properties.get("AdditionalName");
-        IkasanComponentPropertyMeta name = properties.get("Name");
-        IkasanComponentPropertyMeta other = properties.get("Other");
-        IkasanComponentPropertyMeta total = properties.get("Total");
-        IkasanComponentPropertyMeta userImplementedClass = properties.get("UserImplementedClass");
-        assertThat(additionalName.toString(), is(
-            "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='AdditionalName', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, validationMessage=null, validationPattern=null, defaultValue=MyDefault, helpText='The name of the component'}"));
-        assertThat(name.toString(), is(
-            "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=false, userDefineResource=false, propertyName='Name', propertyConfigFileLabel='', propertyDataType=class java.lang.String, usageDataType=java.lang.String, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.'}"));
-        assertThat(other.toString(), is(
-            "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='Other', propertyConfigFileLabel='', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='Total description'}"));
-        assertThat(total.toString(), is(
-            "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=false, userImplementedClass=false, userDefineResource=false, propertyName='Total', propertyConfigFileLabel='my.test.total', propertyDataType=class java.lang.Integer, usageDataType=java.lang.Integer, validation=, validationMessage=null, validationPattern=null, defaultValue=2, helpText='Total description'}"));
-        assertThat(userImplementedClass.toString(), is(
-            "IkasanComponentPropertyMeta{paramGroupNumber=1, causesUserCodeRegeneration=false, mandatory=true, userImplementedClass=true, userDefineResource=true, propertyName='UserImplementedClass', propertyConfigFileLabel='', propertyDataType=class java.lang.Object, usageDataType=java.lang.Object, validation=, validationMessage=null, validationPattern=null, defaultValue=null, helpText='This type of class will be implemented by the user, typically implementing an Ikasan interface'}"));
-    }
-
 }

@@ -5,13 +5,16 @@ import org.ikasan.studio.generator.TestUtils;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.Transition;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,18 +28,25 @@ class ComponentIOTest {
     }
     @Test
     public void testFlowElementToJson() throws IOException {
-        FlowElement devNullProducer = getFlowElementFixture();
+        FlowElement devNullProducer = getFixtureDevNullProducer();
         assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
     }
 
-    public FlowElement getFlowElementFixture() {
+    public FlowElement getFixtureDevNullProducer() {
         IkasanComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponent(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
-        FlowElement devNullProducer = FlowElement.flowElementBuilder()
+        return FlowElement.flowElementBuilder()
                 .componentMeta(devNullProducerMeta)
                 .componentName("My DevNumm Producer")
                 .description("The DevNumm Description")
                 .build();
-        return devNullProducer;
+    }
+    public FlowElement getFixtureEventGeneratingConsumer() {
+        IkasanComponentMeta eventGeneratingConsumerMeta = IkasanComponentLibrary.getIkasanComponent(TEST_IKASAN_PACK, "EVENT_GENERATING_CONSUMER");
+        return FlowElement.flowElementBuilder()
+                .componentMeta(eventGeneratingConsumerMeta)
+                .componentName("My Event Generating Consumer")
+                .description("The Event Generating Consumer Description")
+                .build();
     }
 
     @Test
@@ -56,42 +66,46 @@ class ComponentIOTest {
         assertThat(ComponentIO.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
     }
 
+    public Flow getFixtureEventGeneratingConsumerDevNullProducerFlow() {
+        FlowElement devNullProducer = getFixtureDevNullProducer();
+        FlowElement eventGeneratingConsumer = getFixtureEventGeneratingConsumer();
+        Transition transition = Transition.builder()
+                .from(eventGeneratingConsumer.getComponentName())
+                .to(devNullProducer.getComponentName())
+                .build();
+        return Flow.flowBuilder()
+                .name("Flow1")
+                .consumer(eventGeneratingConsumer)
+                .flowElements(Collections.singletonList(devNullProducer))
+                .transitions(Collections.singletonList(transition))
+                .build();
+    }
+
     @Test
     public void testPopulatedFlowToJson() throws IOException {
-        FlowElement devNullProducer = getFlowElementFixture();
-        Flow flow1 = Flow.flowBuilder()
-                .name("Flow1")
-                .flowElements(Arrays.asList(devNullProducer))
-                .build();
-
-        String jsonString = ComponentIO.toJson(flow1);
-
+        String jsonString = ComponentIO.toJson(getFixtureEventGeneratingConsumerDevNullProducerFlow());
         assertThat(jsonString, is(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json")));
     }
 
+    @Test
+    public void testPopulatedModuleToJson() throws IOException {
+        Flow flow1 = Flow.flowBuilder().name("Flow1").build();
+        List<Flow> flows = new ArrayList<>();
+        flows.add(flow1);
 
-
-//    @Test
-//    public void testPopulatedModuleToJson() throws IOException {
-//        Flow flow1 = Flow.flowBuilder().name("Flow1").build();
-//        List<Flow> flows = new ArrayList<>();
-//        flows.add(flow1);
-//
-//        Module module = Module.moduleBuilder()
-//            .version("1.3")
-//            .name("A to B convert")
-//            .description("My first module")
-//            .applicationPackageName("co.uk.test")
-//            .h2PortNumber("1")
-//            .h2WebPortNumber("2")
-//            .port("3")
-//            .flows(flows)
-//            .build();
-//        module.addFlow(Flow.flowBuilder().name("Flow1").build());
-//        String jsonString = ComponentIO.toJson(module);
-//
-//        assertThat(ComponentIO.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json")));
-//    }
+        Module module = Module.moduleBuilder()
+            .version("1.3")
+            .name("A to B convert")
+            .description("My first module")
+            .applicationPackageName("co.uk.test")
+            .h2PortNumber("1")
+            .h2WebPortNumber("2")
+            .port("3")
+            .flows(flows)
+            .build();
+        module.addFlow(getFixtureEventGeneratingConsumerDevNullProducerFlow());
+        assertThat(ComponentIO.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json")));
+    }
 
 
 

@@ -1,0 +1,4 @@
+public Producer getBobby() {
+    return builderFactory.getComponentBuilder().devNullProducer()
+            .build();
+}

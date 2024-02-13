@@ -19,11 +19,11 @@ class IkasanComponentLibraryTest {
 
         assertThat(
                 IkasanComponentLibrary.getNumberOfComponents(TEST_IKASAN_PACK),
-                is(4));
+                is(5));
 
         assertThat(
                 new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(TEST_IKASAN_PACK)),
-                is(new TreeSet<>(Arrays.asList(EXCEPTION_RESOLVER, FLOW, MODULE, "DEV_NULL_PRODUCER"))));
+                is(new TreeSet<>(Arrays.asList(EXCEPTION_RESOLVER, "EVENT_GENERATING_CONSUMER", FLOW, MODULE, "DEV_NULL_PRODUCER"))));
 
         Map<String, IkasanComponentMeta> componentMetaList = IkasanComponentLibrary.getIkasanComponents(TEST_IKASAN_PACK);
         verifyDefaultModuleMeta(componentMetaList.get(MODULE));
