@@ -410,8 +410,8 @@ public class PIPSIIkasanModelx {
 //                ikasanFlowComponent.getViewHandler().setClassToNavigateTo(moduleConfigClass);
 //                ikasanFlowComponent.getViewHandler().setOffsetInclassToNavigateTo(
 //                        pipsiMethod.getMethodDeclaration() != null ? pipsiMethod.getMethodDeclaration().getStartOffsetInParent() : 0);
-//                if (componentCategory == EXCEPTION_RESOLVER && ikasanFlowComponent instanceof IkasanExceptionResolver) {
-//                    newFlow.setIkasanExceptionResolver((IkasanExceptionResolver)ikasanFlowComponent);
+//                if (componentCategory == EXCEPTION_RESOLVER && ikasanFlowComponent instanceof ExceptionResolver) {
+//                    newFlow.setExceptionResolver((ExceptionResolver)ikasanFlowComponent);
 //                } else {
 //                    newFlow.addFlowComponent(ikasanFlowComponent);
 //                }
@@ -853,11 +853,11 @@ public class PIPSIIkasanModelx {
 //                        }
 //                    }
 //                }
-//                IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(exceptionClass, actionType, propertyList);
-//                if (ikasanFlowComponent instanceof IkasanExceptionResolver) {
-//                    ((IkasanExceptionResolver)ikasanFlowComponent).addExceptionResolution(ikasanExceptionResolution);
+//                ExceptionResolution ikasanExceptionResolution = new ExceptionResolution(exceptionClass, actionType, propertyList);
+//                if (ikasanFlowComponent instanceof ExceptionResolver) {
+//                    ((ExceptionResolver)ikasanFlowComponent).addExceptionResolution(ikasanExceptionResolution);
 //                } else {
-//                    LOG.warn("Expecting an IkasanExceptionResolver but got a " + ikasanFlowComponent);
+//                    LOG.warn("Expecting an ExceptionResolver but got a " + ikasanFlowComponent);
 //                }
 //
 //

@@ -7,28 +7,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Encapsulate the IkasanExceptionResolver.
+ * Encapsulate the ExceptionResolver.
  */
 
-public class IkasanExceptionResolver extends FlowElement {
-    //@todo need to split IkasanComponent to nest IkasanExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
-    private Map<String, IkasanExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();  // list of all the exceptions we catch / process
+public class ExceptionResolver extends FlowElement {
+    //@todo need to split IkasanComponent to nest ExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
+    private Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();  // list of all the exceptions we catch / process
 
     /**
-     * Create an IkasanExceptionResolver
+     * Create an ExceptionResolver
      * @param parent flow that contains this exceptions resolver
      */
-    protected IkasanExceptionResolver(Flow parent) {
+    protected ExceptionResolver(Flow parent) {
         super(IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK), parent);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
-    public Map<String, IkasanExceptionResolution> getIkasanExceptionResolutionMap() {
+    public Map<String, ExceptionResolution> getIkasanExceptionResolutionMap() {
         return ikasanExceptionResolutionMap;
     }
 
-    public void addExceptionResolution(IkasanExceptionResolution ikasanExceptionResolution) {
-        ikasanExceptionResolutionMap.put(ikasanExceptionResolution.getExceptionsCaught(), ikasanExceptionResolution);
+    public void addExceptionResolution(ExceptionResolution exceptionResolution) {
+        ikasanExceptionResolutionMap.put(exceptionResolution.getExceptionsCaught(), exceptionResolution);
     }
 
     public void resetIkasanExceptionResolutionList() {

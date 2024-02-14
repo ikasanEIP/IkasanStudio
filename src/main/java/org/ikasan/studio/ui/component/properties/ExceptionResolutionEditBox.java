@@ -1,10 +1,10 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolutionMeta;
 
 import javax.swing.*;
@@ -25,11 +25,11 @@ public class ExceptionResolutionEditBox {
     private final JLabel paramsTitleField;
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
     private final boolean componentInitialisation;
-    private final IkasanExceptionResolution ikasanExceptionResolution;
+    private final ExceptionResolution exceptionResolution;
 
-    public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, IkasanExceptionResolution ikasanExceptionResolution, boolean componentInitialisation) {
+    public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
         this.resolutionPanel = resolutionPanel;
-        this.ikasanExceptionResolution = ikasanExceptionResolution ;
+        this.exceptionResolution = exceptionResolution;
         this.componentInitialisation = componentInitialisation;
 
         this.actionTitleField = new JLabel("Action");
@@ -39,20 +39,20 @@ public class ExceptionResolutionEditBox {
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
         this.actionJComboBox = new JComboBox(IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK).getActionList().toArray());
-        if (ikasanExceptionResolution.getExceptionsCaught() != null) {
+        if (exceptionResolution.getExceptionsCaught() != null) {
             // There might be a bespoke exception already set
-            if (!currentExceptions.contains(ikasanExceptionResolution.getExceptionsCaught())) {
-                currentExceptions.add(ikasanExceptionResolution.getExceptionsCaught());
+            if (!currentExceptions.contains(exceptionResolution.getExceptionsCaught())) {
+                currentExceptions.add(exceptionResolution.getExceptionsCaught());
             }
-            exceptionJComboBox.setSelectedItem(ikasanExceptionResolution.getExceptionsCaught());
+            exceptionJComboBox.setSelectedItem(exceptionResolution.getExceptionsCaught());
         }
         
-        if (ikasanExceptionResolution.getTheAction() != null) {
-            currentAction = ikasanExceptionResolution.getTheAction();
+        if (exceptionResolution.getTheAction() != null) {
+            currentAction = exceptionResolution.getTheAction();
             actionJComboBox.setSelectedItem(currentAction);
-            if (!ikasanExceptionResolution.getParams().isEmpty()) {
+            if (!exceptionResolution.getParams().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
-                for (IkasanComponentPropertyInstance property : ikasanExceptionResolution.getParams()) {
+                for (IkasanComponentPropertyInstance property : exceptionResolution.getParams()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
@@ -71,7 +71,7 @@ public class ExceptionResolutionEditBox {
         String actionSelected = (String)actionJComboBox.getSelectedItem();
         if (actionSelected != null && ! actionSelected.equals(currentAction)) {
             actionParamEditBoxList = new ArrayList<>();
-            for (IkasanComponentPropertyMeta propertyMeta : IkasanExceptionResolution.getMetaForActionParams(actionSelected)) {
+            for (IkasanComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
                 if (!propertyMeta.isVoid()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentPropertyInstance(propertyMeta), this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
@@ -87,22 +87,22 @@ public class ExceptionResolutionEditBox {
     /**
      * Usually the final step of edit, update the original value object with the entered data
      */
-    public IkasanExceptionResolution updateValueObjectWithEnteredValues() {
+    public ExceptionResolution updateValueObjectWithEnteredValues() {
         String theException = (String)exceptionJComboBox.getSelectedItem();
         if (theException != null && ! theException.endsWith(".class")) {
             theException += ".class";
         }
-        ikasanExceptionResolution.setExceptionsCaught(theException);
-        ikasanExceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
+        exceptionResolution.setExceptionsCaught(theException);
+        exceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
             List<IkasanComponentPropertyInstance> newActionParams = new ArrayList<>();
-            ikasanExceptionResolution.setParams(newActionParams);
+            exceptionResolution.setParams(newActionParams);
             for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
                 newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());
             }
         }
 
-        return ikasanExceptionResolution;
+        return exceptionResolution;
     }
 
 
@@ -155,10 +155,10 @@ public class ExceptionResolutionEditBox {
         String selectedAction = (String) actionJComboBox.getSelectedItem();
 
         if (editBoxHasValue()) {
-            if (!selectedException.equals(ikasanExceptionResolution.getExceptionsCaught()) ||
-                    !selectedAction.equals(ikasanExceptionResolution.getTheAction())) {
+            if (!selectedException.equals(exceptionResolution.getExceptionsCaught()) ||
+                    !selectedAction.equals(exceptionResolution.getTheAction())) {
                 hasChanged = true;
-            } else if (selectedAction.equals(ikasanExceptionResolution.getTheAction())) {
+            } else if (selectedAction.equals(exceptionResolution.getTheAction())) {
                 // Check to see if the values of any action params has changed
                 for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
                     if (componentPropertyEditBox.propertyValueHasChanged()) {
@@ -167,7 +167,7 @@ public class ExceptionResolutionEditBox {
                     }
                 }
             }
-        } else if (ikasanExceptionResolution.getExceptionsCaught() != null || ikasanExceptionResolution.getTheAction() != null){
+        } else if (exceptionResolution.getExceptionsCaught() != null || exceptionResolution.getTheAction() != null){
             hasChanged = true;
         }
         return hasChanged;

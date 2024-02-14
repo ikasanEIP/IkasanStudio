@@ -111,7 +111,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
         paintFlowBox(g);
         if (model.hasExceptionResolver()) {
-            model.getIkasanExceptionResolver().getViewHandler().paintComponent(canvas, g, -1, -1);
+            model.getExceptionResolver().getViewHandler().paintComponent(canvas, g, -1, -1);
         }
         List<FlowElement> flowElementList = model.getFlowElements();
         int flowSize = flowElementList.size();
@@ -192,7 +192,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
         setWidthHeights(graphics, newTopY);
         if (model.hasExceptionResolver()) {
-            model.getIkasanExceptionResolver().getViewHandler().initialiseDimensions(graphics,
+            model.getExceptionResolver().getViewHandler().initialiseDimensions(graphics,
                     IkasanFlowExceptionResolverViewHandler.getXOffsetFromRight(getRightX()),
                     IkasanFlowExceptionResolverViewHandler.getYOffsetFromTop(getTopY()),
                     -1, -1);

@@ -28,6 +28,7 @@ public class IkasanComponentPropertyMeta {
 
     // Special META for component NAME, this standard for each component.
     public static final String NAME = "name";
+    public static final String VERSION = "version";
     public static final String COMPONENT_NAME = "componentName";
     public static final String DESCRIPTION = "description";
 

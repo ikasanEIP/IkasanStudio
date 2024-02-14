@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.psi.PsiFile;
@@ -13,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.ikasan.studio.model.ikasan.instance.serialization.ModuleDeserializer;
+import org.ikasan.studio.model.ikasan.instance.serialization.ModuleSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
@@ -39,7 +39,6 @@ public class Module extends IkasanElement {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     private PsiFile moduleConfig;
-    private String version;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     private List<Flow> flows;
 
@@ -61,7 +60,7 @@ public class Module extends IkasanElement {
         super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK), description);
         this.viewHandler = ViewHandlerFactory.getInstance(this);
         flows = new ArrayList<>();
-        this.version = version;
+        setVersion(version);
         setName(name);
         setApplicationPackageName(applicationPackageName);
         setPort(port);
@@ -107,7 +106,4 @@ public class Module extends IkasanElement {
         this.setPropertyValue(IkasanComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, portNumber);
     }
 
-    public static IkasanBaseElement callBack(final ObjectMapper MAPPER, final String jsonString) throws JsonProcessingException {
-        return MAPPER.readValue(jsonString, Module.class);
-    }
 }

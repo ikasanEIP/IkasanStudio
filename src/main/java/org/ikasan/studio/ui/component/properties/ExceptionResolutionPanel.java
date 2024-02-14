@@ -5,7 +5,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
+import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -19,7 +19,7 @@ import java.util.List;
 public class ExceptionResolutionPanel extends PropertiesPanel {
     private static final Logger LOG = Logger.getInstance("#ExceptionResolutionPanel");
     private static final String OK_BUTTON_TEST = "Add";
-    private final transient List<ExceptionResolution> exceptionResolutionList;
+    private final transient List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     private final JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
     private final JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
@@ -33,7 +33,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * @param projectKey for this project
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPanel(List<ExceptionResolution> exceptionResolutionList, String projectKey, boolean componentInitialisation) {
+    public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList, String projectKey, boolean componentInitialisation) {
         super(projectKey, componentInitialisation);
         this.exceptionResolutionList = exceptionResolutionList;
     }
@@ -55,8 +55,8 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
     @Override
-    protected IkasanExceptionResolution getSelectedComponent() {
-        return (IkasanExceptionResolution)super.getSelectedComponent();
+    protected org.ikasan.studio.model.ikasan.instance.ExceptionResolution getSelectedComponent() {
+        return (ExceptionResolution)super.getSelectedComponent();
     }
 
     @Override

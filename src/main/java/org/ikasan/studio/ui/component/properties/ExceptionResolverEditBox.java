@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
-import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolver;
+import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.model.ikasan.instance.ExceptionResolver;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -20,24 +20,24 @@ public class ExceptionResolverEditBox {
     private JLabel actionTitleField;
     private JLabel paramsTitleField;
     private JButton addButton;
-    private List<ExceptionResolution> exceptionResolutionList = new ArrayList<>();
+    private List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList = new ArrayList<>();
     private boolean componentInitialisation;
-    private IkasanExceptionResolver ikasanExceptionResolver;
+    private ExceptionResolver exceptionResolver;
     private boolean hasChanged = false;
 
-    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, IkasanExceptionResolver ikasanExceptionResolver, boolean componentInitialisation) {
+    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, ExceptionResolver exceptionResolver, boolean componentInitialisation) {
         this.resolverPanel = resolverPanel;
         this.projectKey = projectKey;
-        this.ikasanExceptionResolver = ikasanExceptionResolver ;
+        this.exceptionResolver = exceptionResolver;
         this.componentInitialisation = componentInitialisation;
 
         this.exceptionTitleField = new JLabel("Exception");
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
 
-        if (ikasanExceptionResolver.getIkasanExceptionResolutionMap() != null) {
-            for (IkasanExceptionResolution exceptionResolution : ikasanExceptionResolver.getIkasanExceptionResolutionMap().values()) {
-                exceptionResolutionList.add(new ExceptionResolution(this, exceptionResolution, componentInitialisation));
+        if (exceptionResolver.getIkasanExceptionResolutionMap() != null) {
+            for (org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution : exceptionResolver.getIkasanExceptionResolutionMap().values()) {
+                exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, exceptionResolution, componentInitialisation));
             }
         }
         addButton = new JButton("ADD");
@@ -46,9 +46,9 @@ public class ExceptionResolverEditBox {
         );
     }
 
-    public void doDelete(IkasanExceptionResolution ikasanExceptionResolution) {
+    public void doDelete(org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution) {
         if (exceptionResolutionList != null) {
-            if (exceptionResolutionList.removeIf(item -> ikasanExceptionResolution.equals(item.getIkasanExceptionResolution()))) {
+            if (exceptionResolutionList.removeIf(item -> exceptionResolution.equals(item.getIkasanExceptionResolution()))) {
                 hasChanged = true;
                 resolverPanel.populatePropertiesEditorPanel();
                 resolverPanel.redrawPanel();
@@ -58,14 +58,14 @@ public class ExceptionResolverEditBox {
 
     private void doAdd() {
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
-        IkasanExceptionResolution newResolution = new IkasanExceptionResolution(ikasanExceptionResolver);
+        ExceptionResolution newResolution = new org.ikasan.studio.model.ikasan.instance.ExceptionResolution(exceptionResolver);
         exceptionResolutionPanel.updateTargetComponent(newResolution);
         PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                 Context.getProject(projectKey),
                 Context.getDesignerCanvas(projectKey),
                 exceptionResolutionPanel);
         if (propertiesDialogue.showAndGet()) {
-            exceptionResolutionList.add(new ExceptionResolution(this, newResolution, componentInitialisation));
+            exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
             hasChanged = true;
             resolverPanel.populatePropertiesEditorPanel();
             resolverPanel.redrawPanel();
@@ -75,12 +75,12 @@ public class ExceptionResolverEditBox {
     /**
      * Usually the final step of edit, update the original value object with the entered data
      */
-    public IkasanExceptionResolver updateValueObjectWithEnteredValues() {
-        ikasanExceptionResolver.resetIkasanExceptionResolutionList();
-        for (ExceptionResolution exceptionResolution : exceptionResolutionList) {
-            ikasanExceptionResolver.addExceptionResolution(exceptionResolution.getIkasanExceptionResolution());
+    public ExceptionResolver updateValueObjectWithEnteredValues() {
+        exceptionResolver.resetIkasanExceptionResolutionList();
+        for (org.ikasan.studio.ui.component.properties.ExceptionResolution exceptionResolution : exceptionResolutionList) {
+            exceptionResolver.addExceptionResolution(exceptionResolution.getIkasanExceptionResolution());
         }
-        return ikasanExceptionResolver;
+        return exceptionResolver;
     }
 
 
@@ -97,7 +97,7 @@ public class ExceptionResolverEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-//        //@todo we could check ikasanExceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
+//        //@todo we could check exceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
         return hasChanged;
     }
 
@@ -132,7 +132,7 @@ public class ExceptionResolverEditBox {
         return paramsTitleField;
     }
 
-    public List<ExceptionResolution> getExceptionResolutionList() {
+    public List<org.ikasan.studio.ui.component.properties.ExceptionResolution> getExceptionResolutionList() {
         return exceptionResolutionList;
     }
 

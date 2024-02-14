@@ -8,6 +8,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
+import org.ikasan.studio.model.ikasan.instance.serialization.IkasanElementDeserializer;
+import org.ikasan.studio.model.ikasan.instance.serialization.IkasanElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
@@ -60,6 +62,14 @@ public  class IkasanElement extends IkasanBaseElement {
     public void setName(String name) {
 //        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
         this.setPropertyValue(IkasanComponentPropertyMeta.NAME, name);
+    }
+    public void setVersion(String version) {
+//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        this.setPropertyValue(IkasanComponentPropertyMeta.VERSION, version);
+    }
+    public String getVersion() {
+//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        return (String)this.getPropertyValue(IkasanComponentPropertyMeta.VERSION);
     }
 
     /**

@@ -47,7 +47,7 @@ class IkasanComponentLibraryTest {
         assertThat(module.getWebHelpURL(), is("Readme.md"));
         assertThat(module.getSmallIcon().getDescription(), is("Small MODULE icon"));
         assertThat(module.getCanvasIcon().getDescription(), is("Medium MODULE icon"));
-        assertThat(module.getProperties().size(), is(6));
+        assertThat(module.getProperties().size(), is(7));
     }
 
     protected void verifyDefaultExceptionResolverMeta(IkasanExceptionResolutionMeta exceptionResolver) {

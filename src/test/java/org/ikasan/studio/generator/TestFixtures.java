@@ -575,27 +575,27 @@ public class TestFixtures {
      * @return a FullyPopulatedEmailProducer
      */
 //    public static Flow populateFlowExceptionResolver(Flow ikasanFlow) {
-//        IkasanExceptionResolver ikasanExceptionResolver = (IkasanExceptionResolver) FlowElement.createFlowElement(IkasanComponentMetax.EXCEPTION_RESOLVER, ikasanFlow);
-//        ikasanFlow.setIkasanExceptionResolver(ikasanExceptionResolver);
+//        ExceptionResolver ikasanExceptionResolver = (ExceptionResolver) FlowElement.createFlowElement(IkasanComponentMetax.EXCEPTION_RESOLVER, ikasanFlow);
+//        ikasanFlow.setExceptionResolver(ikasanExceptionResolver);
 //
 //        List<IkasanComponentPropertyInstance> retryProperties = getPropertiesForAction("retry");
 //        retryProperties.get(0).setValue(200);
 //        retryProperties.get(1).setValue(10);
-//        IkasanExceptionResolution ikasanExceptionResolution = new IkasanExceptionResolution(
+//        ExceptionResolution ikasanExceptionResolution = new ExceptionResolution(
 //                "org.ikasan.spec.component.routing.RouterException.class", "retry", retryProperties);
 //        ikasanExceptionResolver.addExceptionResolution(ikasanExceptionResolution);
-//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(
 //                "org.ikasan.spec.component.transformation.TransformationException.class", "ignoreException"));
-//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(
 //                "org.ikasan.spec.component.splitting.SplitterException.class", "excludeEvent"));
-//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(
 //                "org.ikasan.spec.component.endpoint.EndpointException.class", "retryIndefinitely"));
 //        List<IkasanComponentPropertyInstance> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
 //        scheduledCronProperties.get(0).setValue("* * * * *");
 //        scheduledCronProperties.get(1).setValue(100);
-//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(
 //                "java.util.concurrent.TimeoutException.class", "retryIndefinitely", scheduledCronProperties));
-//        ikasanExceptionResolver.addExceptionResolution(new IkasanExceptionResolution(
+//        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(
 //                "org.ikasan.spec.component.filter.FilterException.class", "retryIndefinitely"));
 //
 //        return ikasanFlow;
