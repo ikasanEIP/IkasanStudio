@@ -33,8 +33,8 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 
 <#if flow.hasExceptionResolver()>
 .withExceptionResolver(builderFactory.getExceptionResolverBuilder()
-<#list flow.ikasanExceptionResolver.ikasanExceptionResolutionList![] as ikasanExceptionResolution>
-.addExceptionToAction(${ikasanExceptionResolution.theException}, org.ikasan.builder.OnException.${ikasanExceptionResolution.theAction}(<#list ikasanExceptionResolution.params![] as param><#if param.value??>${param.templateRepresentationOfValue!xx}<#sep>,</#if></#list>))<#sep>
+<#list flow.exceptionResolver.ikasanExceptionResolutionList![] as exceptionResolution>
+.addExceptionToAction(${exceptionResolution.theException}, org.ikasan.builder.OnException.${exceptionResolution.theAction}(<#list exceptionResolution.params![] as param><#if param.value??>${param.templateRepresentationOfValue!xx}<#sep>,</#if></#list>))<#sep>
 </#list>)
 </#if>
 

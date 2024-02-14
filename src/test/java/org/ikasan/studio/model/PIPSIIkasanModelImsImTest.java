@@ -57,8 +57,8 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 ////                Matchers.is("ConfiguredResourceId->jmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null,ConnectionFactoryName->null,ConnectionFactoryPassword->null," +
 ////                        "ConnectionFactoryUsername->null,DestinationJndiName->target,Name->JMS Producer"));
 ////
-////        Assert.assertThat(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).size(), is(2));
-////        Set actions = new TreeSet(((HashMap) flow1.getIkasanExceptionResolver().getIkasanExceptionResolutionMap()).keySet());
+////        Assert.assertThat(((HashMap) flow1.getExceptionResolver().getIkasanExceptionResolutionMap()).size(), is(2));
+////        Set actions = new TreeSet(((HashMap) flow1.getExceptionResolver().getIkasanExceptionResolutionMap()).keySet());
 ////        Assert.assertThat(actions.toString(), is("[com.ikasan.sample.spring.boot.SampleGeneratedException.class, org.ikasan.spec.component.endpoint.EndpointException.class]"));
 //    }
 }

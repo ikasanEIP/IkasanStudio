@@ -12,15 +12,15 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class IkasanExceptionResolution extends IkasanBaseElement {
+public class ExceptionResolution extends IkasanBaseElement {
 //    private static final IkasanExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new IkasanExceptionResolutionMeta();
     @JsonIgnore
-    IkasanExceptionResolver parent;
+ExceptionResolver parent;
     String exceptionsCaught;
     String theAction;
     List<IkasanComponentPropertyInstance> params;
 
-    public IkasanExceptionResolution(IkasanExceptionResolver parent) {
+    public ExceptionResolution(ExceptionResolver parent) {
         super(IkasanComponentLibrary.getOnException(IkasanComponentLibrary.STD_IKASAN_PACK));
         this.parent = parent;
     }
@@ -36,7 +36,7 @@ public class IkasanExceptionResolution extends IkasanBaseElement {
      * Getter for the parent of this resolution, note JsonIgnore to prevent circular dependency.
      */
     @JsonIgnore
-    public IkasanExceptionResolver getParent() {
+    public ExceptionResolver getParent() {
         return parent;
     }
 

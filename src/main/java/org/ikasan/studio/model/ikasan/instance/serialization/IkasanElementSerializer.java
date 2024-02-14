@@ -1,9 +1,11 @@
-package org.ikasan.studio.model.ikasan.instance;
+package org.ikasan.studio.model.ikasan.instance.serialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import org.ikasan.studio.model.ikasan.instance.IkasanElement;
 
 import java.io.IOException;
 import java.util.Map;

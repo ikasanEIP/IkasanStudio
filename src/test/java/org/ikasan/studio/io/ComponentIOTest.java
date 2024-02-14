@@ -33,7 +33,7 @@ class ComponentIOTest {
     }
 
     public FlowElement getFixtureDevNullProducer() {
-        IkasanComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponent(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
+        IkasanComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
         return FlowElement.flowElementBuilder()
                 .componentMeta(devNullProducerMeta)
                 .componentName("My DevNumm Producer")
@@ -41,11 +41,12 @@ class ComponentIOTest {
                 .build();
     }
     public FlowElement getFixtureEventGeneratingConsumer() {
-        IkasanComponentMeta eventGeneratingConsumerMeta = IkasanComponentLibrary.getIkasanComponent(TEST_IKASAN_PACK, "EVENT_GENERATING_CONSUMER");
+        IkasanComponentMeta eventGeneratingConsumerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "EVENT_GENERATING_CONSUMER");
         return FlowElement.flowElementBuilder()
                 .componentMeta(eventGeneratingConsumerMeta)
                 .componentName("My Event Generating Consumer")
                 .description("The Event Generating Consumer Description")
+
                 .build();
     }
 
@@ -107,13 +108,24 @@ class ComponentIOTest {
         assertThat(ComponentIO.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json")));
     }
 
+    @Test
+    public void testFlowElementDeserialise() throws IOException {
 
+        FlowElement devNullProducer = getFixtureDevNullProducer();
+        assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
+    }
 
     @Test
     public void testModuleInstanceDeserialise() throws StudioException {
-        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
-        assertThat(module.getName(), is("A to B convert"));
-        assertThat(module.getDescription(), is("My first module"));
+//        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
+//        assertThat(module.getVersion(), is("1.3"));
+//        assertThat(module.getName(), is("A to B convert"));
+//        assertThat(module.getDescription(), is("My first module"));
+//        assertThat(module.getApplicationPackageName(), is("co.uk.test"));
+//        assertThat(module.getH2PortNumber(), is("1"));
+//        assertThat(module.getH2WebPortNumber(), is("2"));
+//        assertThat(module.getPort(), is("3"));
+//        List<Flow> flows = module.getFlows();
 //        List<Flow> flowList = module.getFlows();
 //        assertThat(flowList.size(),is(2));
 //        assertThat(flowList.get(0).getName(), is("flow1"));

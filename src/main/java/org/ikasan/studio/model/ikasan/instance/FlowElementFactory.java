@@ -12,7 +12,7 @@ public class FlowElementFactory {
         if (type.isBespokeClass()) {
             return new IkasanFlowBeskpokeElement(type, parent, false);
         } else if (type.isExceptionResolver()) {
-            return new IkasanExceptionResolver(parent);
+            return new ExceptionResolver(parent);
         } else {
             return new FlowElement(type, parent);
         }

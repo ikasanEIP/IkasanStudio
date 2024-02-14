@@ -28,6 +28,11 @@ public class IkasanComponentMeta implements IkasanMeta {
     public static final String FLOW_TYPE = "org.ikasan.spec.flow.Flow";
     public static final String MODULE_TYPE = "org.ikasan.spec.module.Module";
 
+    public static final String NAME = "name";
+    public static final String HELP_TEXT = "helpText";
+    public static final String COMPONENT_TYPE = "componentType";
+    public static final String IMPLEMENTING_CLASS = "implementingClass";
+
     String name;
     String helpText;
     String componentType;

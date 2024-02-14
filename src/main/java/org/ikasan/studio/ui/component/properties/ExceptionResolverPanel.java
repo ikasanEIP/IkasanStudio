@@ -6,7 +6,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolver;
+import org.ikasan.studio.model.ikasan.instance.ExceptionResolver;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -50,8 +50,8 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     }
 
     @Override
-    protected IkasanExceptionResolver getSelectedComponent() {
-        return (IkasanExceptionResolver)super.getSelectedComponent();
+    protected ExceptionResolver getSelectedComponent() {
+        return (ExceptionResolver)super.getSelectedComponent();
     }
 
     @Override

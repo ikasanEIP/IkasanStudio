@@ -1,7 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
-import org.ikasan.studio.model.ikasan.instance.IkasanExceptionResolution;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -16,30 +15,30 @@ public class ExceptionResolution {
     private final JLabel exceptionField = new JLabel();
     private final JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
-    private final IkasanExceptionResolution ikasanExceptionResolution;
+    private final org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution;
     private final JButton deleteButton = new JButton("DEL");
 
-    public ExceptionResolution(ExceptionResolverEditBox parent, IkasanExceptionResolution ikasanExceptionResolution, boolean componentInitialisation) {
+    public ExceptionResolution(ExceptionResolverEditBox parent, org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution, boolean componentInitialisation) {
         this.parent = parent;
-        this.ikasanExceptionResolution = ikasanExceptionResolution ;
+        this.exceptionResolution = exceptionResolution;
 
-        String theException = ikasanExceptionResolution.getExceptionsCaught();
-        String theAction = ikasanExceptionResolution.getTheAction();
+        String theException = exceptionResolution.getExceptionsCaught();
+        String theAction = exceptionResolution.getTheAction();
 
         if (theException != null && !theException.isEmpty()) {
-            exceptionField.setText(ikasanExceptionResolution.getExceptionsCaught());
+            exceptionField.setText(exceptionResolution.getExceptionsCaught());
             deleteButton.addActionListener(e ->
-                parent.doDelete(ikasanExceptionResolution)
+                parent.doDelete(exceptionResolution)
             );
         }
         if (theAction != null && !theAction.isEmpty()) {
-            actionField.setText(ikasanExceptionResolution.getTheAction());
+            actionField.setText(exceptionResolution.getTheAction());
         }
-        if (ikasanExceptionResolution.getTheAction() != null &&
-                ikasanExceptionResolution.getParams() != null &&
-                !ikasanExceptionResolution.getParams().isEmpty()) {
+        if (exceptionResolution.getTheAction() != null &&
+                exceptionResolution.getParams() != null &&
+                !exceptionResolution.getParams().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
-            for (IkasanComponentPropertyInstance property : ikasanExceptionResolution.getParams()) {
+            for (IkasanComponentPropertyInstance property : exceptionResolution.getParams()) {
                 ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, componentInitialisation);
                 actionParamEditBoxList.add(actionParam);
             }
@@ -51,7 +50,7 @@ public class ExceptionResolution {
      * @return the key for this exception resolution
      */
     public String getPropertyKey() {
-        return ikasanExceptionResolution.getExceptionsCaught();
+        return exceptionResolution.getExceptionsCaught();
     }
 
     /**
@@ -74,8 +73,8 @@ public class ExceptionResolution {
 //        return  Collections.emptyList();
 //    }
 
-    public IkasanExceptionResolution getIkasanExceptionResolution() {
-        return ikasanExceptionResolution;
+    public org.ikasan.studio.model.ikasan.instance.ExceptionResolution getIkasanExceptionResolution() {
+        return exceptionResolution;
     }
 
     public JLabel getExceptionField() {

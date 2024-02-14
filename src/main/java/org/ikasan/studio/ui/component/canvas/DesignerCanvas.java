@@ -139,7 +139,7 @@ public class DesignerCanvas extends JPanel {
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
                  (mouseSelectedComponent != null && !mouseSelectedComponent.getViewHandler().isAlreadySelected())) {
             setSelectedComponent(mouseSelectedComponent);
-            if (mouseSelectedComponent instanceof IkasanExceptionResolver) {
+            if (mouseSelectedComponent instanceof ExceptionResolver) {
                 ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
                 exceptionResolverPanel.updateTargetComponent(mouseSelectedComponent);
                 PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
@@ -298,15 +298,15 @@ public class DesignerCanvas extends JPanel {
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
                 .filter(Flow::hasExceptionResolver)
-                .filter(x -> x.getIkasanExceptionResolver().getViewHandler().getLeftX() <= xpos &&
-                        x.getIkasanExceptionResolver().getViewHandler().getRightX() >= xpos &&
-                        x.getIkasanExceptionResolver().getViewHandler().getTopY() <= ypos &&
-                        x.getIkasanExceptionResolver().getViewHandler().getBottomY() >= ypos)
+                .filter(x -> x.getExceptionResolver().getViewHandler().getLeftX() <= xpos &&
+                        x.getExceptionResolver().getViewHandler().getRightX() >= xpos &&
+                        x.getExceptionResolver().getViewHandler().getTopY() <= ypos &&
+                        x.getExceptionResolver().getViewHandler().getBottomY() >= ypos)
                 .findFirst()
                 .orElse(null);
 
         if (ikasanComponent != null) {
-            ikasanComponent = ((Flow)ikasanComponent).getIkasanExceptionResolver();
+            ikasanComponent = ((Flow)ikasanComponent).getExceptionResolver();
         }
 
         return ikasanComponent;
@@ -441,8 +441,8 @@ public class DesignerCanvas extends JPanel {
 
                 newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
                 if (newComponent != null) {
-                    if (newComponent instanceof IkasanExceptionResolver) {
-                        containingFlow.setIkasanExceptionResolver((IkasanExceptionResolver)newComponent);
+                    if (newComponent instanceof ExceptionResolver) {
+                        containingFlow.setExceptionResolver((ExceptionResolver)newComponent);
                     } else {
                         insertNewComponentBetweenSurroundingPair(containingFlow, (FlowElement) newComponent, x, y);
                     }

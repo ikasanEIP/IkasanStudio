@@ -27,7 +27,4 @@ public class IkasanBaseElement {
         this.ikasanComponentMeta = ikasanComponentMeta;
     }
 
-    public static IkasanBaseElement callBack(final ObjectMapper MAPPER, final String jsonString) throws JsonProcessingException {
-        return MAPPER.readValue(jsonString, IkasanBaseElement.class);
-    }
 }

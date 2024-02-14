@@ -19,8 +19,8 @@ public class ViewHandlerFactory {
             return new IkasanFlowViewHandler((Flow) component);
         } else if (component instanceof org.ikasan.studio.model.ikasan.instance.FlowElement) {
             return new IkasanFlowComponentViewHandler((org.ikasan.studio.model.ikasan.instance.FlowElement) component);
-        } else if (component instanceof IkasanExceptionResolver) {
-            return new IkasanFlowExceptionResolverViewHandler((IkasanExceptionResolver) component);
+        } else if (component instanceof ExceptionResolver) {
+            return new IkasanFlowExceptionResolverViewHandler((ExceptionResolver) component);
         } else {
             return null;
         }

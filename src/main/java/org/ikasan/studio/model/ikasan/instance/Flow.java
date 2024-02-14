@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.ikasan.studio.model.ikasan.instance.serialization.FlowDeserializer;
+import org.ikasan.studio.model.ikasan.instance.serialization.FlowSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
@@ -17,16 +19,18 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 
 @Data
 @EqualsAndHashCode(callSuper=false)
-//@Jacksonized
-//@Builder
-//@JsonDeserialize(using = IkasanElementSerializer.class)
 @JsonSerialize(using = FlowSerializer.class)
 @JsonDeserialize(using = FlowDeserializer.class)
 public class Flow extends IkasanElement {
+    // The fields of a Flow will need to be known for serialisation
+    public static final String CONSUMER = "consumer";
+    public static final String TRANSITIONS = "transitions";
+    public static final String FLOW_ELEMENTS = "flowElements";
+
     private FlowElement consumer;
     private List<Transition> transitions;
     private List<FlowElement> flowElements = new ArrayList<>();
-    private IkasanExceptionResolver ikasanExceptionResolver;
+    private ExceptionResolver exceptionResolver;
 //    String configurationId;
 //    String flowStartupType;
 //    String flowStartupComment;
@@ -42,7 +46,7 @@ public class Flow extends IkasanElement {
                 FlowElement consumer,
                 List<Transition> transitions,
                 List<FlowElement> flowElements,
-                IkasanExceptionResolver ikasanExceptionResolver,
+                ExceptionResolver exceptionResolver,
                 String name) {
 //        super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK), description);
         super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
@@ -61,7 +65,7 @@ public class Flow extends IkasanElement {
             }
         }
 
-        this.ikasanExceptionResolver = ikasanExceptionResolver;
+        this.exceptionResolver = exceptionResolver;
         super.setName(name);
     }
 
@@ -139,7 +143,7 @@ public class Flow extends IkasanElement {
      * @return if the flow has a valid exception resolver.
      */
     public boolean hasExceptionResolver() {
-        return (ikasanExceptionResolver != null && ikasanExceptionResolver.isValid());
+        return (exceptionResolver != null && exceptionResolver.isValid());
     }
 
     @Override
