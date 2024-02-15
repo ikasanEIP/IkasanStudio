@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.instance.IkasanElement;
 
 import java.io.IOException;
@@ -42,13 +42,13 @@ public class IkasanElementSerializer extends StdSerializer<IkasanElement> {
     protected void serializePayload(IkasanElement ikasanElement, JsonGenerator jsonGenerator) throws IOException {
         // because we are serializing many nested elements, its possible the element is null, in which case we do nothing.
         if (ikasanElement != null) {
-            Map<String, IkasanComponentPropertyInstance> properties = ikasanElement.getConfiguredProperties();
+            Map<String, IkasanComponentProperty> properties = ikasanElement.getConfiguredProperties();
 
             if (!properties.isEmpty()) {
-                for (IkasanComponentPropertyInstance ikasanComponentPropertyInstance : properties.values()) {
+                for (IkasanComponentProperty ikasanComponentProperty : properties.values()) {
                     jsonGenerator.writeStringField(
-                        ikasanComponentPropertyInstance.getMeta().getPropertyName(),
-                        ikasanComponentPropertyInstance.getValue() == null ? "null" : ikasanComponentPropertyInstance.getValue().toString());
+                        ikasanComponentProperty.getMeta().getPropertyName(),
+                        ikasanComponentProperty.getValue() == null ? "null" : ikasanComponentProperty.getValue().toString());
                 }
             }
         }

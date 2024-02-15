@@ -1,7 +1,9 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
+import org.ikasan.studio.model.ikasan.instance.serialization.FlowElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
@@ -9,6 +11,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
  */
+@JsonSerialize(using = FlowElementSerializer.class)
 public class FlowElement extends IkasanElement {
     @JsonIgnore
     private final Flow containingFlow;

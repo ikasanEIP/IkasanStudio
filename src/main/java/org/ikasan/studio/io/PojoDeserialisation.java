@@ -54,7 +54,7 @@ public class PojoDeserialisation {
         try {
             pojo = MAPPER.readValue(jsonString, typeReference);
         } catch (JsonProcessingException e) {
-            throw new StudioException("The serialised data in [" + path + "] could not be read due to" + e.getMessage(), e);
+            throw new StudioException("The serialised data in [" + path + "] could not be read due to " + e.getMessage(), e);
         }
         return pojo.getPayload();
     }

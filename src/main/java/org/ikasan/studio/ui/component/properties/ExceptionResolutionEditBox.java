@@ -2,7 +2,7 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolutionMeta;
@@ -52,7 +52,7 @@ public class ExceptionResolutionEditBox {
             actionJComboBox.setSelectedItem(currentAction);
             if (!exceptionResolution.getParams().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
-                for (IkasanComponentPropertyInstance property : exceptionResolution.getParams()) {
+                for (IkasanComponentProperty property : exceptionResolution.getParams()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
@@ -73,7 +73,7 @@ public class ExceptionResolutionEditBox {
             actionParamEditBoxList = new ArrayList<>();
             for (IkasanComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
                 if (!propertyMeta.isVoid()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentPropertyInstance(propertyMeta), this.componentInitialisation);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
             }
@@ -95,7 +95,7 @@ public class ExceptionResolutionEditBox {
         exceptionResolution.setExceptionsCaught(theException);
         exceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
-            List<IkasanComponentPropertyInstance> newActionParams = new ArrayList<>();
+            List<IkasanComponentProperty> newActionParams = new ArrayList<>();
             exceptionResolution.setParams(newActionParams);
             for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
                 newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());

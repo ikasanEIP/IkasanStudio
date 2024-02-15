@@ -23,6 +23,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
 
     protected void serializePayload(Flow flow, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         IkasanElementSerializer ikasanElementSerializer = new IkasanElementSerializer();
+        FlowElementSerializer flowElementSerializer = new FlowElementSerializer();
 
         // The properties for the flow itself
         ikasanElementSerializer.serializePayload(flow, jsonGenerator);
@@ -30,7 +31,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
         if (flow.getConsumer() != null) {
             jsonGenerator.writeFieldName(Flow.CONSUMER);
             jsonGenerator.writeStartObject();
-            ikasanElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
+            flowElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
             jsonGenerator.writeEndObject();
         }
 
@@ -43,7 +44,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
             jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS);
             for (FlowElement flowElement : flow.getFlowElements()) {
                 jsonGenerator.writeStartObject();
-                ikasanElementSerializer.serializePayload(flowElement, jsonGenerator);
+                flowElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
                 jsonGenerator.writeEndObject();
             }
             jsonGenerator.writeEndArray();
