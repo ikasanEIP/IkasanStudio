@@ -18,7 +18,7 @@ public class ExceptionResolution extends IkasanBaseElement {
 ExceptionResolver parent;
     String exceptionsCaught;
     String theAction;
-    List<IkasanComponentPropertyInstance> params;
+    List<IkasanComponentProperty> params;
 
     public ExceptionResolution(ExceptionResolver parent) {
         super(IkasanComponentLibrary.getOnException(IkasanComponentLibrary.STD_IKASAN_PACK));
@@ -50,7 +50,7 @@ ExceptionResolver parent;
         return IkasanExceptionResolutionMeta.getPropertyMetaListForAction(action);
     }
     @JsonIgnore
-    public List<IkasanComponentPropertyInstance> getParams() {
+    public List<IkasanComponentProperty> getParams() {
         if (params == null) {
             return Collections.emptyList();
         } else {

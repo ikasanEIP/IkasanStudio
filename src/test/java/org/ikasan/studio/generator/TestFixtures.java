@@ -564,9 +564,9 @@ public class TestFixtures {
         return component;
     }
 
-    public static List<IkasanComponentPropertyInstance> getPropertiesForAction(String actionName) {
+    public static List<IkasanComponentProperty> getPropertiesForAction(String actionName) {
         List<IkasanComponentPropertyMeta> actionParams = IkasanExceptionResolutionMeta.getPropertyMetaListForAction(actionName);
-        return IkasanComponentPropertyInstance.generateIkasanComponentPropertyList(actionParams);
+        return IkasanComponentProperty.generateIkasanComponentPropertyList(actionParams);
     }
 
     /**
@@ -578,7 +578,7 @@ public class TestFixtures {
 //        ExceptionResolver ikasanExceptionResolver = (ExceptionResolver) FlowElement.createFlowElement(IkasanComponentMetax.EXCEPTION_RESOLVER, ikasanFlow);
 //        ikasanFlow.setExceptionResolver(ikasanExceptionResolver);
 //
-//        List<IkasanComponentPropertyInstance> retryProperties = getPropertiesForAction("retry");
+//        List<IkasanComponentProperty> retryProperties = getPropertiesForAction("retry");
 //        retryProperties.get(0).setValue(200);
 //        retryProperties.get(1).setValue(10);
 //        ExceptionResolution ikasanExceptionResolution = new ExceptionResolution(
@@ -590,7 +590,7 @@ public class TestFixtures {
 //                "org.ikasan.spec.component.splitting.SplitterException.class", "excludeEvent"));
 //        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(
 //                "org.ikasan.spec.component.endpoint.EndpointException.class", "retryIndefinitely"));
-//        List<IkasanComponentPropertyInstance> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
+//        List<IkasanComponentProperty> scheduledCronProperties = getPropertiesForAction("scheduledCronRetry");
 //        scheduledCronProperties.get(0).setValue("* * * * *");
 //        scheduledCronProperties.get(1).setValue(100);
 //        ikasanExceptionResolver.addExceptionResolution(new ExceptionResolution(

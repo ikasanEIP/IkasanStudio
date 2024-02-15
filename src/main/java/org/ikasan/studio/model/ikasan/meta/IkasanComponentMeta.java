@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 
 import javax.swing.*;
 import java.util.Map;
@@ -58,11 +58,11 @@ public class IkasanComponentMeta implements IkasanMeta {
      * Get a list of the mandatory properties for this component.
      * @return An ordered map of the mandatory properties for this component
      */
-    public Map<String, IkasanComponentPropertyInstance> getMandatoryInstanceProperties() {
-        Map<String, IkasanComponentPropertyInstance> mandatoryProperties = new TreeMap<>();
+    public Map<String, IkasanComponentProperty> getMandatoryInstanceProperties() {
+        Map<String, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
         for (Map.Entry<String, IkasanComponentPropertyMeta> entry : properties.entrySet()) {
             if (entry.getValue().isMandatory()) {
-                mandatoryProperties.put(entry.getKey(), new IkasanComponentPropertyInstance(entry.getValue()));
+                mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
             }
         }
         return mandatoryProperties;

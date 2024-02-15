@@ -1,0 +1,3 @@
+public Converter getBirdy() {
+    return new MyConverter;
+}

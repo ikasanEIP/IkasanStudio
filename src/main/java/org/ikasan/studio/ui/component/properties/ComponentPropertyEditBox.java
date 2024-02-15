@@ -2,7 +2,7 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentPropertyInstance;
+import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 
 import javax.swing.*;
@@ -25,9 +25,9 @@ public class ComponentPropertyEditBox {
     private JCheckBox regenerateSourceCheckBox;
     private JLabel regenerateLabel;
     private final IkasanComponentPropertyMeta meta;
-    private final IkasanComponentPropertyInstance componentProperty;
+    private final IkasanComponentProperty componentProperty;
 
-    public ComponentPropertyEditBox(IkasanComponentPropertyInstance componentProperty, boolean componentInitialisation) {
+    public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean componentInitialisation) {
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
@@ -240,7 +240,7 @@ public class ComponentPropertyEditBox {
     /**
      * Usually the final step of edit, update the original value object with the entered data
      */
-    public IkasanComponentPropertyInstance updateValueObjectWithEnteredValues() {
+    public IkasanComponentProperty updateValueObjectWithEnteredValues() {
         componentProperty.setValue(getValue());
         return componentProperty;
     }
@@ -276,7 +276,7 @@ public class ComponentPropertyEditBox {
     public boolean isMandatory() {
         return meta.isMandatory();
     }
-    public IkasanComponentPropertyInstance getComponentProperty() {
+    public IkasanComponentProperty getComponentProperty() {
         return componentProperty;
     }
 }

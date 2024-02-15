@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
@@ -18,6 +17,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static org.ikasan.studio.model.ikasan.instance.serialization.SerializerUtils.getTypedValue;
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.BESKPOKE_CLASS_NAME;
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.TO_CLASS;
+import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.NAME;
 
 public class ModuleDeserializer extends StdDeserializer<Module> {
     public ModuleDeserializer() {
@@ -36,8 +40,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             if ("flows".equals(fieldName)) {
                 module.setFlows(getFlows(field.getValue(), ctxt));
             } else {
-                JsonNodeType type = field.getValue().getNodeType();
-                Object value = SerializerUtils.getTypedValue(type, field);
+                Object value = getTypedValue(field);
                 module.setPropertyValue(fieldName, value);
             }
         }
@@ -72,9 +75,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 } else if (Flow.FLOW_ELEMENTS.equals(fieldName)) {
                     flow.setFlowElements(getFlowElements(field.getValue()));
                 } else {
-
-                    JsonNodeType type = field.getValue().getNodeType();
-                    Object value = SerializerUtils.getTypedValue(type, field);
+                    Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);
                 }
             }
@@ -95,7 +96,21 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     }
 
     public Transition getTransition(JsonNode jsonNode, DeserializationContext ctxt) throws IOException {
-        return ctxt.readValue(jsonNode.traverse(), Transition.class);
+        Transition transition = new Transition();
+        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+        while(fields.hasNext()) {
+            Map.Entry<String, JsonNode> field = fields.next();
+            String   fieldName  = field.getKey();
+            if (BESKPOKE_CLASS_NAME.equals(fieldName)) {
+                transition.setFrom((String)getTypedValue(field));
+            } else if (TO_CLASS.equals(fieldName)) {
+                transition.setTo((String) getTypedValue(field));
+            } else if (NAME.equals(fieldName)) {
+                transition.setName((String) getTypedValue(field));
+            }
+        }
+        return transition;
+//        return ctxt.readValue(jsonNode.traverse(), Transition.class);
     }
     public List<FlowElement> getFlowElements(JsonNode root) throws IOException {
         List<FlowElement> flowElements = new ArrayList<>();
@@ -126,8 +141,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String   fieldName  = field.getKey();
-                JsonNodeType type = field.getValue().getNodeType();
-                Object value = SerializerUtils.getTypedValue(type, field);
+                Object value = getTypedValue(field);
                 flowElement.setPropertyValue(fieldName, value);
             }
         }

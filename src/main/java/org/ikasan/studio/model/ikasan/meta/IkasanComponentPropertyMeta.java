@@ -42,6 +42,14 @@ public class IkasanComponentPropertyMeta {
     public static final String APPLICATION_PACKAGE_NAME = "applicationPackageName";
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
 
+    // List of all known properties any components could have
+    public static final String CONFIGURATION_ID = "configurationId";
+    public static final String TO = "to";
+    public static final String TO_CLASS = "toClass";
+    public static final String FROM = "from";
+    public static final String FROM_CLASS = "fromClass";
+    public static final String BESKPOKE_CLASS_NAME = "beskpokeClassName";
+
     public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
             IkasanComponentPropertyMeta.builder()
                     .propertyName(NAME)
@@ -103,65 +111,8 @@ public class IkasanComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     private String helpText = "";
-
-
     private String componentType;
     private String standardBuilderMethod;
-
-//   /**
-//    * A IkasanComponentPropertyMeta could be a leaf i.e. hold a single set of metadata or could nest another set of metadata
-//    *
-//    * @param paramGroupNumber Supports sets of params e.g. overloaded methods
-//    * @param causesUserCodeRegeneration Causes the user code to be regenerated
-//    * @param mandatory for the component to be deemed to be complete
-//    * @param userImplementedClass The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
-//    * @param setterProperty The property should feature in the component factory setter.
-//    * @param userDefineResource The user will define the details of the resource within the ResourceFactory.
-//    * @param propertyName of the property, used on input screens and to generate variable names
-//    * @param propertyConfigFileLabel Identifies the spring injected property name
-//    * @param propertyDataType of the property
-//    * @param validation validation string (used by the property editor to validate the format of the data)
-//    * @param validationMessage to display if the field failr validation
-//    * @param defaultValue for the property
-//    * @param helpText for the property
-//    */
-//   /* @TODO convert to builder */
-//    public IkasanComponentPropertyMeta(@NotNull Integer paramGroupNumber,
-//                                        @NotNull boolean causesUserCodeRegeneration,
-//                                        @NotNull boolean mandatory,
-//                                        @NotNull boolean userImplementedClass,
-//                                        boolean setterProperty,
-//                                        boolean userDefineResource,
-//                                        @NotNull String propertyName,
-//                                        String propertyConfigFileLabel,
-//                                        @NotNull Class propertyDataType,
-//                                        String usageDataType,
-//                                        String validation,
-//                                        String validationMessage,
-//                                        Object defaultValue,
-//                                        String helpText) {
-//        this.paramGroupNumber = paramGroupNumber;
-//        this.causesUserCodeRegeneration = causesUserCodeRegeneration;
-//        this.mandatory = mandatory;
-//        this.userImplementedClass = userImplementedClass;
-//        this.setterProperty = setterProperty;
-//        this.userDefineResource = userDefineResource;
-//        this.propertyName = propertyName;
-//        this.propertyConfigFileLabel = propertyConfigFileLabel;
-//        this.propertyDataType = propertyDataType;
-//        if (usageDataType != null && usageDataType.length() > 0) {
-//            this.usageDataType = usageDataType;
-//        } else if (propertyDataType != null) {
-//            this.usageDataType = propertyDataType.getCanonicalName();
-//        }
-//        this.validation = validation;
-//        if (validation != null && !validation.isEmpty()) {
-//            this.validationPattern = Pattern.compile(validation);
-//            this.validationMessage = validationMessage;
-//        }
-//        this.defaultValue = defaultValue;
-//        this.helpText = helpText;
-//    }
 
     public boolean isVoid() {
         return propertyDataType == null;

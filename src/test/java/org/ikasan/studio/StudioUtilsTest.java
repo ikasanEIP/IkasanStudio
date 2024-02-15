@@ -14,12 +14,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class StudioUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] expectedDirs = new String[]{"studio/Vtest.x/components/FLOW", "studio/Vtest.x/components/MODULE", "studio/Vtest.x/components/EXCEPTION_RESOLVER", "studio/Vtest.x/components/DEV_NULL_PRODUCER", "studio/Vtest.x/components/EVENT_GENERATING_CONSUMER"};
+        String[] expectedDirs = new String[]{"studio/Vtest.x/components/CUSTOM_CONVERTER, studio/Vtest.x/components/DEV_NULL_PRODUCER, studio/Vtest.x/components/EVENT_GENERATING_CONSUMER, studio/Vtest.x/components/EXCEPTION_RESOLVER, studio/Vtest.x/components/FLOW, studio/Vtest.x/components/MODULE"};
         String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
         Set<String> expectedDirsSorted = new TreeSet<>(List.of(expectedDirs)) ;
         Set<String> actualDirsSorted = new TreeSet<>(List.of(actualDirs)) ;
-        assertThat(actualDirs.length, is(5));
-        assertThat(actualDirsSorted, is(expectedDirsSorted));
+        assertThat(actualDirs.length, is(6));
+        assertThat(actualDirsSorted.toString(), is(expectedDirsSorted.toString()));
     }
     @Test
     public void test_get_last_token_with_multiple_tokens() {
