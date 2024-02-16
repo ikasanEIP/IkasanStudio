@@ -44,7 +44,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
             jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS);
             for (FlowElement flowElement : flow.getFlowElements()) {
                 jsonGenerator.writeStartObject();
-                flowElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
+                flowElementSerializer.serializePayload(flowElement, jsonGenerator);
                 jsonGenerator.writeEndObject();
             }
             jsonGenerator.writeEndArray();

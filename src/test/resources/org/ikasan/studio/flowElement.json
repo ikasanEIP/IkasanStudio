@@ -1,1 +1,1 @@
-{"componentName":"My DevNumm Producer","description":"The DevNumm Description","componentType":"org.ikasan.spec.component.endpoint.Producer","implementingClass":"org.ikasan.spec.component.endpoint.Broker"}
+{"componentName":"My DevNull Producer","description":"The DevNull Description","componentType":"org.ikasan.spec.component.endpoint.Producer","implementingClass":"org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl"}

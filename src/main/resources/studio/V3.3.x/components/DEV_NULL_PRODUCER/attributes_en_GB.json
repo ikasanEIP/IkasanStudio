@@ -3,9 +3,8 @@
   "helpText": "Ending component of the flow, or a route in the flow. This type of producer discards all data passed to it and does not perform any processing.",
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
-  "implementingClass": "org.ikasan.spec.component.endpoint.Broker",
-  "_ikasanComponentFactoryMethod": "The broker is a user implemented class so has no factory as such",
-  "ikasanComponentFactoryMethod": "",
+  "implementingClass": "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl",
+  "ikasanComponentFactoryMethod": "getComponentBuilder().devNullProducer()",
   "displayOrder": 9,
   "properties": {
     "componentName": {
