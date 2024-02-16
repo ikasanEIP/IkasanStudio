@@ -17,9 +17,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ComponentIOTest {
     public static final String TEST_IKASAN_PACK = "Vtest.x";
@@ -31,7 +31,7 @@ class ComponentIOTest {
     @Test
     public void testFlowElementToJson() throws IOException {
         FlowElement devNullProducer = getFixtureDevNullProducer();
-        assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));
     }
 
     @Test
@@ -39,7 +39,7 @@ class ComponentIOTest {
         Flow flow1 = Flow.flowBuilder().name("Flow1").build();
         String jsonString = ComponentIO.toJson(flow1);
 
-        assertThat(jsonString, is(TestUtils.getFileAsString("/org/ikasan/studio/flow.json")));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flow.json"), jsonString);
     }
 
     @Test
@@ -48,7 +48,7 @@ class ComponentIOTest {
         module.setVersion("1.3");
         module.setName("The Module Name");
         module.setDescription("The Description");
-        assertThat(ComponentIO.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/module.json")));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/module.json"), ComponentIO.toJson(module));
     }
 
 
@@ -56,7 +56,7 @@ class ComponentIOTest {
     @Test
     public void testPopulatedFlowToJson() throws IOException {
         String jsonString = ComponentIO.toJson(getFixtureEventGeneratingConsumerCustomConverterDevNullProducerFlow());
-        assertThat(jsonString, is(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json")));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
     }
 
     @Test
@@ -76,44 +76,80 @@ class ComponentIOTest {
             .flows(flows)
             .build();
         module.addFlow(getFixtureEventGeneratingConsumerCustomConverterDevNullProducerFlow());
-        assertThat(ComponentIO.toJson(module), is(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json")));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json"), ComponentIO.toJson(module));
     }
 
     @Test
     public void testFlowElementDeserialise() throws IOException {
 
         FlowElement devNullProducer = getFixtureDevNullProducer();
-        assertThat(ComponentIO.toJson(devNullProducer), is(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json")));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));
     }
 
     //@NEXT EventGeneratingConsumer replicated
     @Test
     public void testModuleInstanceDeserialise() throws StudioException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
-        assertThat(module.getVersion(), is("1.3"));
-        assertThat(module.getName(), is("A to B convert"));
-        assertThat(module.getDescription(), is("My first module"));
-        assertThat(module.getApplicationPackageName(), is("co.uk.test"));
-        assertThat(module.getH2PortNumber(), is("1"));
-        assertThat(module.getH2WebPortNumber(), is("2"));
-        assertThat(module.getPort(), is("3"));
         List<Flow> flows = module.getFlows();
-//        List<Flow> flowList = module.getFlows();
-//        assertThat(flowList.size(),is(2));
-//        assertThat(flowList.get(0).getName(), is("flow1"));
-//        assertThat(flowList.get(1).getName(), is("flow2"));
+        Flow flow1 = flows.get(0);
+        FlowElement eventGeneratingConsumer = flow1.getConsumer();
+        List<Transition> transition = flow1.getTransitions();
+        FlowElement customConverter = flow1.getFlowElements().get(0);
+        FlowElement devNullProducer = flow1.getFlowElements().get(1);
+
+        assertAll(
+            "Check the module contains the expected values",
+            () -> assertEquals("1.3", module.getVersion()),
+            () -> assertEquals("A to B convert", module.getName()),
+            () -> assertEquals("My first module", module.getDescription()),
+            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
+            () -> assertEquals("1", module.getH2PortNumber()),
+            () -> assertEquals("2", module.getH2WebPortNumber()),
+            () -> assertEquals("3", module.getPort()),
+
+            () -> assertEquals(1, flows.size()),
+            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
+            () -> assertEquals("Flow1", flow1.getName()),
+
+            () -> assertEquals(2, eventGeneratingConsumer.getConfiguredProperties().size()),
+
+            () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
+            () -> assertEquals("The Event Generating Consumer Description", eventGeneratingConsumer.getDescription()),
+
+            () -> assertEquals(1, transition.size()),
+            () -> assertEquals("My Transition", transition.get(0).getName()),
+            () -> assertEquals("My Custom Converter", transition.get(0).getFrom()),
+            () -> assertEquals("My DevNull Producer", transition.get(0).getTo()),
+
+            () -> assertEquals(5, customConverter.getConfiguredProperties().size()),
+            () -> assertEquals("Custom Converter", customConverter.getIkasanComponentMeta().getName()),
+            () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getIkasanComponentMeta().getComponentType()),
+            () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getIkasanComponentMeta().getImplementingClass()),
+            () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESKPOKE_CLASS_NAME).getValue()),
+            () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
+            () -> assertEquals("The Custom Converter Description", customConverter.getDescription()),
+            () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_CLASS).getValue()),
+            () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_CLASS).getValue()),
+
+            () -> assertEquals(2, devNullProducer.getConfiguredProperties().size()),
+            () -> assertEquals("Dev Null Producer", devNullProducer.getIkasanComponentMeta().getName()),
+            () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getIkasanComponentMeta().getComponentType()),
+            () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getIkasanComponentMeta().getImplementingClass()),
+            () -> assertEquals("My DevNull Producer", devNullProducer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
+            () -> assertEquals("The DevNull Description", devNullProducer.getDescription())
+        );
+
     }
 
 
     // Reusable Fixtures
     public FlowElement getFixtureDevNullProducer() {
         IkasanComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
-        FlowElement flowElement =  FlowElement.flowElementBuilder()
+        return FlowElement.flowElementBuilder()
                 .componentMeta(devNullProducerMeta)
-                .componentName("My DevNumm Producer")
-                .description("The DevNumm Description")
+                .componentName("My DevNull Producer")
+                .description("The DevNull Description")
                 .build();
-        return flowElement;
     }
     public FlowElement getFixtureCustomConverter() {
         IkasanComponentMeta customConverterMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "CUSTOM_CONVERTER");
@@ -143,6 +179,7 @@ class ComponentIOTest {
         Transition transition = Transition.builder()
                 .from(customConverter.getComponentName())
                 .to(devNullProducer.getComponentName())
+                .name("My Transition")
                 .build();
         return Flow.flowBuilder()
                 .name("Flow1")
