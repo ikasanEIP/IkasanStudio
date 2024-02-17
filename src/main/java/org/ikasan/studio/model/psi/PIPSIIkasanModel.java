@@ -1,16 +1,24 @@
 package org.ikasan.studio.model.psi;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.psi.*;
+import org.apache.maven.model.Dependency;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.generator.*;
+import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.instance.Module;
+
+import java.util.Map;
 
 /**
  * Encapsulates the Intellij representation of the ikasan Module
  * The idea is to keep the ikasan Module clean of any Initellij specific details, this module will inpect the
  * code to generate the ikasan Module and update the code to reflect changes to the ikasan Module.
  */
-public class PIPSIIkasanModelx {
+public class PIPSIIkasanModel {
     public static final String OLD_MODULE_BEAN_CLASS = "org.ikasan.spec.module.Module";
     private static final String WITH_DESCRIPTION_METHOD_NAME = "withDescription";
     private static final String ADD_FLOW_METHOD_NAME = "addFlow";
@@ -34,7 +42,7 @@ public class PIPSIIkasanModelx {
      *                   memory for multiple open projects, so each plugin IkasanModule virtualisation needs to be keyed
      *                   by the project name. Hence projectKey is passed around most classes.
      */
-    public PIPSIIkasanModelx(final String projectKey) {
+    public PIPSIIkasanModel(final String projectKey) {
         this.projectKey = projectKey;
         ikasanModule = Context.getIkasanModule(projectKey);
         javaPsiFactory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
@@ -58,34 +66,61 @@ public class PIPSIIkasanModelx {
 //        generateSourceFromModel(null);
 //    }
 //
-//    public void generateSourceFromModel(Map<String, Dependency> newDependencies) {
-//        Project project = Context.getProject(projectKey);
+    public void generateSourceFromModel(Map<String, Dependency> newDependencies) {
+        Project project = Context.getProject(projectKey);
+        CommandProcessor.getInstance().executeCommand(
+                project,
+                () -> ApplicationManager.getApplication().runWriteAction(
+                        () -> {
+                            StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
+                            //@todo start making below conditional on state changed.
+                            ModelTemplate.create(project);
+                            ApplicationTemplate.create(project);
+//                        generateBespokeComponents(project);
+                            FlowTemplate.create(project);
+                            ModuleConfigTemplate.create(project);
+                            PropertiesTemplate.create(project);
+                        }),
+                "Generate Source from Flow Diagram",
+                "Undo group ID");
+
+        // Above is asynch, need to execute below as a second command in the same undo group,
+        // Above command is executed then when done, next command in command group is done.
 //            CommandProcessor.getInstance().executeCommand(
-//                project,
-//                () -> ApplicationManager.getApplication().runWriteAction(
-//                    () -> {
-//                        StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
-//                        //@todo start making below conditional on state changed.
-//                        ModelTemplate.create(project);
-//                        ApplicationTemplate.create(project);
-//                        FlowTemplate.create(project);
-//                        ModuleConfigTemplate.create(project);
-//                        PropertiesTemplate.create(project);
-//                    }),
-//                    "Generate Source from Flow Diagram",
-//                "Undo group ID");
-//
-//        ApplicationManager.getApplication().runReadAction(
-//                () -> {
-//                    Module ikasanModule = Context.getIkasanModule(project.getComponentName());
-//                    moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
-//                    // reloadProject needed to re-read POM, must not be done till addDependancies
-//                    // fully complete, hence in next executeCommand block
-//                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
-//                        ProjectManager.getInstance().reloadProject(project);
-//                    }
-//                });
-//    }
+//                    project,
+////                    () -> ApplicationManager.getApplication().runWriteAction(
+//                    () -> ApplicationManager.getApplication().runReadAction(
+//                            () -> {
+//                                IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+//                                moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+//                                // reloadProject needed to re-read POM, must not be done till addDependancies
+//                                // fully complete, hence in next executeCommand block
+//                                if (newDependencies != null && !newDependencies.isEmpty()) {
+//                                    ProjectManager.getInstance().reloadProject(project);
+//                                }
+//                            }),
+//                    "Refresh POM",
+//                    "Undo group ID");
+//        ReadAction.nonBlocking(() -> {
+//            IkasanModule ikasanModule = Context.getIkasanModule(project.getName());
+//            moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+//            // reloadProject needed to re-read POM, must not be done till addDependancies
+//            // fully complete, hence in next executeCommand block
+//            if (newDependencies != null && !newDependencies.isEmpty()) {
+//                ProjectManager.getInstance().reloadProject(project);
+//            }
+//        }).inSmartMode(project);
+        ApplicationManager.getApplication().runReadAction(
+                () -> {
+                    Module ikasanModule = Context.getIkasanModule(project.getName());
+                    moduleConfigClazz = ikasanModule.getViewHandler().getClassToNavigateTo();
+                    // reloadProject needed to re-read POM, must not be done till addDependancies
+                    // fully complete, hence in next executeCommand block
+                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+                        ProjectManager.getInstance().reloadProject(project);
+                    }
+                });
+    }
 //
 //
 //

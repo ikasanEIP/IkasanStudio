@@ -8,9 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+import org.apache.maven.model.Dependency;
 import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -38,6 +40,7 @@ public class IkasanComponentMeta implements IkasanMeta {
     String componentType;
     String implementingClass;
     String ikasanComponentFactoryMethod;
+    List<Dependency> jarDepedencies;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     String webHelpURL = DEFAULT_README;

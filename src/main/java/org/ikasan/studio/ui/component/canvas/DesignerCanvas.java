@@ -9,6 +9,7 @@ import org.ikasan.studio.Pair;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
@@ -88,8 +89,10 @@ public class DesignerCanvas extends JPanel {
                         Context.getDesignerCanvas(projectKey),
                         componentPropertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
+                    System.out.println("This is whwere I get the model from the context and update it then maybe gen the code");
+
                     // @TODO MODEL
-//                    PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
 //                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentType().getComponentDependency().getDependencies());
                     disableStart();
                 }
@@ -148,7 +151,7 @@ public class DesignerCanvas extends JPanel {
                         exceptionResolverPanel);
                 if (propertiesDialogue.showAndGet()) {
                     //@TODO MODEL
-//                    PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
 //                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentType().getComponentDependency().getDependencies());
                 }
             } else {
@@ -459,7 +462,7 @@ public class DesignerCanvas extends JPanel {
             }
 
             // @TODO MODEL
-//            PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
 //            pipsiIkasanModel.generateSourceFromModel(newComponent.getComponentType().getComponentDependency().getDependencies());
 //            StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
             initialiseAllDimensions = true;

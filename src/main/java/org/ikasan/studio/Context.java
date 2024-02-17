@@ -3,8 +3,9 @@ package org.ikasan.studio;
 import com.intellij.openapi.project.Project;
 import freemarker.template.Configuration;
 import freemarker.template.Version;
-import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
@@ -36,6 +37,7 @@ public enum Context {
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
+    private static final String JSON_IKASAN_MODEL = "jsonIkasanModel";
     private static final String POM = "pom";
 
     Context() {
@@ -146,10 +148,10 @@ public enum Context {
     public static Module getIkasanModule(String projectKey) {
         return (Module) getProjectCache(projectKey, IKASAN_MODULE);
     }
-//    public static void setPipsiIkasanModel(String projectKey, PIPSIIkasanModelx ikasanModule) {
-//        putProjectCache(projectKey, PIPSI_IKASAN_MODEL, ikasanModule);
-//    }
-//    public static PIPSIIkasanModelx getPipsiIkasanModel(String projectKey) {
-//        return (PIPSIIkasanModelx) getProjectCache(projectKey, PIPSI_IKASAN_MODEL);
-//    }
+    public static void setPipsiIkasanModel(String projectKey, PIPSIIkasanModel ikasanModule) {
+        putProjectCache(projectKey, PIPSI_IKASAN_MODEL, ikasanModule);
+    }
+    public static PIPSIIkasanModel getPipsiIkasanModel(String projectKey) {
+        return (PIPSIIkasanModel) getProjectCache(projectKey, PIPSI_IKASAN_MODEL);
+    }
 }

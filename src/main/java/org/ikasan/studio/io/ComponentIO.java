@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.instance.Transition;
 import org.ikasan.studio.model.ikasan.meta.IkasanMeta;
 
 import java.io.BufferedReader;
@@ -32,14 +31,7 @@ public class ComponentIO {
      * @throws StudioException  to wrap JsonProcessingException
      */
     public static IkasanMeta deserializeMetaComponent(final String path) throws StudioException {
-
-        final InputStream inputStream = ComponentIO.class.getClassLoader().getResourceAsStream(path);
-        if (inputStream == null) {
-            throw new StudioException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
-        }
-        final String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining());
+        final String jsonString = getJsonFromFile(path);
 
         IkasanMeta ikasanMeta;
         try {
@@ -59,6 +51,7 @@ public class ComponentIO {
     public static Module deserializeModuleInstance(final String path) throws StudioException {
         return deserializeModuleInstanceString(getJsonFromFile(path), path);
     }
+    // This interface is easier to test generically
     public static Module deserializeModuleInstanceString(final String jsonString, final String source) throws StudioException {
         Module moduleInstance;
         try {
@@ -68,17 +61,8 @@ public class ComponentIO {
         }
         return moduleInstance;
     }
-    public static Transition deserializeTransitionString(final String jsonString, final String source) throws StudioException {
-        Transition transition;
-        try {
-            transition = MAPPER.readValue(jsonString, Transition.class);
-        } catch (JsonProcessingException e) {
-            throw new StudioException("The serialised data in [" + source + "] could not be read due to " + e.getMessage(), e);
-        }
-        return transition;
-    }
 
-    public static String getJsonFromFile(final String path) throws StudioException {
+    private static String getJsonFromFile(final String path) throws StudioException {
         final InputStream inputStream = ComponentIO.class.getClassLoader().getResourceAsStream(path);
         if (inputStream == null) {
             throw new StudioException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
