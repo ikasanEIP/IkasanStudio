@@ -74,7 +74,7 @@ public class IkasanComponentLibrary {
                 } catch (StudioException e) {
                     LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
                             " there was an error generating the details for component " + componentDirectory +
-                            " review the Ikasan version pack, perhaps reinstall or use an alternate version");
+                            " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                     continue;
                 }
                 IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta) ikasanMeta;
@@ -85,7 +85,8 @@ public class IkasanComponentLibrary {
                 ikasanComponentMetaMapByClass.put(getClassOrType(ikasanComponentMeta) , ikasanComponentMeta);
             }
             if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
-                LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " did not contain all the mandatory components " +
+                LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
+                        returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
                         mandatoryComponents + " so will be ignored");
             }
 

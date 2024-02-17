@@ -4,6 +4,48 @@
   "componentType": "org.ikasan.spec.module.Module",
   "implementingClass": "na",
   "ikasanComponentFactoryMethod": "na",
+  "jarDepedencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-connector-base",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-ftp-endpoint",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-h2-standalone-persistence",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-test-endpoint",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "jackson-annotations",
+      "artifactId": "com.fasterxml.jackson.core",
+      "version": "2.12.3"
+    },
+    {
+      "groupId": "jackson-core",
+      "artifactId": "com.fasterxml.jackson.core",
+      "version": "2.12.3"
+    },
+    {
+      "groupId": "jackson-databind",
+      "artifactId": "com.fasterxml.jackson.core",
+      "version": "2.12.3"
+    }
+  ],
   "properties": {
     "version": {
       "propertyName": "version",

@@ -14,7 +14,7 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta.*;
 class IkasanComponentLibraryTest {
     public static final String TEST_IKASAN_PACK = "Vtest.x";
     @Test
-    void testThatDeserialisationPopulatesTheIcasanComponentLibrary() {
+    void testThatDeserializationPopulatesTheIkasanComponentLibrary() {
         IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);
 
         assertThat(

@@ -3,14 +3,14 @@ package org.ikasan.studio.model;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.JavaPsiTestCase;
-import org.ikasan.studio.model.psi.PIPSIIkasanModelx;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 
 public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
     private String testDataDir = "";
     protected VirtualFile myTestProjectRoot;
     protected static String TEST_PROJECT_KEY = "testproject";
     protected PsiFile moduleConfigPsiFile;
-    protected PIPSIIkasanModelx pipsiIkasanModel;
+    protected PIPSIIkasanModel pipsiIkasanModel;
 
     public String getTestDataDir() {
         return testDataDir;
@@ -37,7 +37,7 @@ public abstract class PIPSIIkasanModelAbstractTest extends JavaPsiTestCase {
 //        Context.setProject(TEST_PROJECT_KEY, myProject);
 //        Context.setIkasanModule(TEST_PROJECT_KEY, new Module());
 //
-//        pipsiIkasanModel = new PIPSIIkasanModelx(TEST_PROJECT_KEY);
+//        pipsiIkasanModel = new PIPSIIkasanModel(TEST_PROJECT_KEY);
 //        Context.setPipsiIkasanModel(TEST_PROJECT_KEY, pipsiIkasanModel);
     }
 

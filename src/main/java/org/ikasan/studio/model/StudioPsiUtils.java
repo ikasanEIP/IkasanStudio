@@ -245,7 +245,7 @@ public class StudioPsiUtils {
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         // @TODO MODEL
-//        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
 //        pipsiIkasanModel.generateSourceFromModel();
 //        StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
@@ -449,7 +449,7 @@ public class StudioPsiUtils {
 //    public static void generateModelFromSourceCode(String projectKey, boolean assumeModuleConfigClass) {
 //        Module ikasanModule = Context.getIkasanModule(projectKey);
 //        ikasanModule.reset();
-//        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
 //        if (pipsiIkasanModel.getModuleConfigClazz() == null || !pipsiIkasanModel.getModuleConfigClazz().isValid() ) {
 //            updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
 //        }
@@ -463,8 +463,8 @@ public class StudioPsiUtils {
 //        return psiVariable.getType().getCanonicalText();
 //    }
 
-//    private static PIPSIIkasanModelx updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
-//        PIPSIIkasanModelx pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//    private static PIPSIIkasanModel updatePIPSIIkasanModelWithModuleConfigClazz(String projectKey, boolean assumeModuleConfigClass) {
+//        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
 //        PsiClass moduleConfigClazz = getModuleConfigClass(projectKey, assumeModuleConfigClass);
 //        if (moduleConfigClazz != null && moduleConfigClazz.getContainingFile() != null) {
 //            pipsiIkasanModel.setModuleConfigClazz(moduleConfigClazz);
@@ -477,7 +477,7 @@ public class StudioPsiUtils {
 //        Project project = Context.getProject(projectKey);
 //        if (!assumeModuleConfigClass) {
 //            //@todo this seems quite expensive, see if better way
-//            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModelx.OLD_MODULE_BEAN_CLASS);
+//            PsiMethod getModuleMethod = findFirstMethodByReturnType(project, PIPSIIkasanModel.OLD_MODULE_BEAN_CLASS);
 //            if (getModuleMethod != null) {
 //                moduleConfigClazz = getModuleMethod.getContainingClass();
 //            }
