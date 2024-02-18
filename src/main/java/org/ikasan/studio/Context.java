@@ -25,6 +25,7 @@ import static freemarker.template.Configuration.VERSION_2_3_31;
 public enum Context {
     INSTANCE;
     public static final String JAVA_FILE_EXTENSION = "java";
+    public static final String JSON_FILE_EXTENSION = "json";
     public static final String PROPERTIES_FILE_EXTENSION = "properties";
     public static final String XML_FILE_EXTENSION = "xml";
 

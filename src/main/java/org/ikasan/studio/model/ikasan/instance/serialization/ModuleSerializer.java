@@ -40,7 +40,7 @@ public class ModuleSerializer extends StdSerializer<Module> {
         ikasanElementSerializer.serializePayload(module, jsonGenerator);
 
         // Now Flows
-        if (!module.getFlows().isEmpty()) {
+        if (module.getFlows() != null && !module.getFlows().isEmpty()) {
             jsonGenerator.writeArrayFieldStart("flows");
             FlowSerializer flowSerializer = new FlowSerializer();
             for (Flow flow : module.getFlows()) {

@@ -100,6 +100,5 @@ public class IkasanComponentMeta implements IkasanMeta {
         } else {
             return "";
         }
-
     }
 }

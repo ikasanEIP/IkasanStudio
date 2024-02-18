@@ -16,7 +16,7 @@ public class FlowsResourceFactoryTemplate extends Generator {
             String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
             String templateString = generateContents(newPackageName, clazzName, property);
-            createTemplateFile(project, newPackageName, clazzName, templateString, true, true);
+            createJavaSourceFile(project, newPackageName, clazzName, templateString, true, true);
         }
     }
 
