@@ -89,11 +89,9 @@ public class DesignerCanvas extends JPanel {
                         Context.getDesignerCanvas(projectKey),
                         componentPropertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
-                    System.out.println("This is whwere I get the model from the context and update it then maybe gen the code");
-
-                    // @TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-//                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentType().getComponentDependency().getDependencies());
+                    pipsiIkasanModel.updateJsonModel();
+                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
                     disableStart();
                 }
             }

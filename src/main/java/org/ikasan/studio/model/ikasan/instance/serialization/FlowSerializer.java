@@ -35,12 +35,12 @@ public class FlowSerializer extends StdSerializer<Flow> {
             jsonGenerator.writeEndObject();
         }
 
-        if (!flow.getTransitions().isEmpty()) {
+        if (flow.getTransitions() != null && !flow.getTransitions().isEmpty()) {
             // Since transitions are simple pojos, we can use the default serialiser
             serializerProvider.defaultSerializeField(Flow.TRANSITIONS, flow.getTransitions(), jsonGenerator);
         }
 
-        if (!flow.getFlowElements().isEmpty()) {
+        if (flow.getFlowElements() != null && !flow.getFlowElements().isEmpty()) {
             jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS);
             for (FlowElement flowElement : flow.getFlowElements()) {
                 jsonGenerator.writeStartObject();

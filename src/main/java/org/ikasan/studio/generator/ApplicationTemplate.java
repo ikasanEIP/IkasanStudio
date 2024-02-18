@@ -16,7 +16,7 @@ public class ApplicationTemplate extends Generator {
     public static void create(final Project project) {
         Module ikasanModule = Context.getIkasanModule(project.getName());
         String templateString = generateContents(ikasanModule);
-        createTemplateFile(project, STUDIO_BOOT_PACKAGE, APPLICATION_CLASS_NAME, templateString, true, true);
+        createJavaSourceFile(project, STUDIO_BOOT_PACKAGE, APPLICATION_CLASS_NAME, templateString, true, true);
     }
 
     protected static String generateContents(Module ikasanModule) {

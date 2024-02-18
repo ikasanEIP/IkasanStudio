@@ -20,8 +20,8 @@ import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -82,7 +82,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 
     private PsiDirectory createPackageFixture(String packageName) {
 //        Project myProject = myFixture.getProject();
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject, StudioPsiUtils.JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(myProject, StudioPsiUtils.JAVA_CODE);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
         ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
             @Override
@@ -96,7 +96,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 //    @Test
 //    public void test_createPackage() {
 //        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject,StudioPsiUtils.JAVA_CODE);
-//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createDirectory(sourceRoot);
+//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createOrGetDirectory(sourceRoot);
 //        ApplicationManager.getApplication().runWriteAction(new Runnable() {
 //            @Override
 //            public void run() {
@@ -136,8 +136,8 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 
         assertThat(ikasanPomModel.hasDependency(dependency), is(false));
 
-        Map<String, Dependency> newDependencies = new HashMap<>();
-        newDependencies.put(dependency.getManagementKey(), dependency);
+        List<Dependency> newDependencies = new ArrayList<>();
+        newDependencies.add(dependency);
 
         WriteCommandAction.runWriteCommandAction(
                 myProject,
@@ -190,7 +190,7 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
 
 
-//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createDirectory(project.getBaseDir());
+//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createOrGetDirectory(project.getBaseDir());
 
         //JavaDirectoryService.createClass(PsiDirectory dir, String name) // allows you to create a java class in a a given directory.
         //JavaDirectoryService.createClass(PsiDirectory dir, String name, String templateName)  -- allows to create a java cla

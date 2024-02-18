@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
@@ -33,9 +34,9 @@ public class DesignerUI {
         if (Context.getIkasanModule(projectKey) == null) {
             Context.setIkasanModule(projectKey, new Module());
         }
-//        if (Context.getPipsiIkasanModel(projectKey) == null) {
-//            Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
-//        }
+        if (Context.getPipsiIkasanModel(projectKey) == null) {
+            Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
+        }
 
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
         Context.setPropertiesPanel(projectKey, componentPropertiesPanel);

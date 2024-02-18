@@ -31,18 +31,18 @@
       "version": "3.1.0"
     },
     {
-      "groupId": "jackson-annotations",
-      "artifactId": "com.fasterxml.jackson.core",
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-annotations",
       "version": "2.12.3"
     },
     {
-      "groupId": "jackson-core",
-      "artifactId": "com.fasterxml.jackson.core",
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-core",
       "version": "2.12.3"
     },
     {
-      "groupId": "jackson-databind",
-      "artifactId": "com.fasterxml.jackson.core",
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-databind",
       "version": "2.12.3"
     }
   ],

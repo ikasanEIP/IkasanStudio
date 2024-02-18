@@ -37,9 +37,9 @@ public abstract class Generator {
     // Enforce Utility class.
     protected Generator() {}
 
-    public static PsiJavaFile createTemplateFile(final Project project, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
+    public static PsiJavaFile createJavaSourceFile(final Project project, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
         String fileName = clazzName + ".java";
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(project, StudioPsiUtils.JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(project, StudioPsiUtils.JAVA_CODE);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
         PsiDirectory myPackage = StudioPsiUtils.createPackage(baseDir, packageName);
         PsiFile psiFile = myPackage.findFile(fileName) ;
@@ -62,15 +62,22 @@ public abstract class Generator {
         return newPsiFile;
     }
 
-    public static PsiFile createResourceFile(final Project project, final String subDir,final  String propertiesFileNme, final String content, boolean focus) {
+    public static PsiFile createJsonModelFile(final Project project, final  String fileName, final String content) {
+        return createFile(project, StudioPsiUtils.MAIN, "model", fileName, Context.JSON_FILE_EXTENSION , content, false);
+    }
+
+    public static PsiFile createResourceFile(final Project project, final String subDir, final  String fileNameWithoutExtension, final String content, boolean focus) {
+        return createFile(project, StudioPsiUtils.JAVA_RESOURCES, subDir, fileNameWithoutExtension + "." + Context.PROPERTIES_FILE_EXTENSION, content, Context.PROPERTIES_FILE_EXTENSION, focus);
+    }
+
+    public static PsiFile createFile(final Project project, final String rootDirectory, final String subDir, final  String fileName, final String fileType, final String content, boolean focus) {
         PsiFile psiFile = null;
-        String fileName = propertiesFileNme + "." + Context.PROPERTIES_FILE_EXTENSION;
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(project, StudioPsiUtils.JAVA_RESOURCES);
+        VirtualFile sourceRoot = StudioPsiUtils.getOrCreateSourceRootEndingWith(project, rootDirectory);
         if (sourceRoot != null) {
-            PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
-            PsiDirectory directory = baseDir;
+            PsiDirectory srcDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
+            PsiDirectory directory = srcDir;
             if (subDir != null) {
-                directory = StudioPsiUtils.createDirectory(baseDir, subDir);
+                directory = StudioPsiUtils.createOrGetDirectory(srcDir, subDir);
             }
 
             psiFile = directory.findFile(fileName) ;
@@ -78,7 +85,7 @@ public abstract class Generator {
                 psiFile.delete();
             }
 
-            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.PROPERTIES_FILE_EXTENSION), content);
+            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(fileType), content);
             // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
             psiFile = (PsiFile)directory.add(psiFile);
             standardPropertiesFormatting(project, psiFile);
@@ -90,7 +97,7 @@ public abstract class Generator {
             }
         } else {
             //@todo add this to system alerts in Intellij
-            LOG.warn("The resources directory was missing, please add it and restart the project");
+            LOG.warn("The resources directory was missing, please add it and restart the project, could not save file " + fileName);
         }
 
         return psiFile;

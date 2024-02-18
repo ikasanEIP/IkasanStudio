@@ -30,7 +30,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
 //                String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
 //                String templateString = generateContents(newPackageName, component);
 //                boolean overwriteClassIfExists = ((IkasanFlowBeskpokeComponent)component).isOverrideEnabled();
-//                PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
+//                PsiJavaFile newFile = createJavaSourceFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
 //                ((IkasanFlowBeskpokeComponent)component).setOverrideEnabled(false);
 //
 //                component.getViewHandler().setPsiJavaFile(newFile);
@@ -48,7 +48,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
         String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
         String templateString = generateContents(newPackageName, component);
         boolean overwriteClassIfExists = ((IkasanFlowBeskpokeElement)component).isOverrideEnabled();
-        PsiJavaFile newFile = createTemplateFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
+        PsiJavaFile newFile = createJavaSourceFile(project, newPackageName, clazzName, templateString, true, overwriteClassIfExists);
         ((IkasanFlowBeskpokeElement)component).setOverrideEnabled(false);
 
         component.getViewHandler().setPsiJavaFile(newFile);

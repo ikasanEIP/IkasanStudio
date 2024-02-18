@@ -14,7 +14,7 @@ public class ModuleConfigTemplate extends Generator {
     public static void create(final Project project) {
         Module ikasanModule = Context.getIkasanModule(project.getName());
         String templateString = generateContents(ikasanModule);
-        PsiJavaFile newFile = createTemplateFile(project, STUDIO_BOOT_PACKAGE, MODULE_CLASS_NAME, templateString, true, true);
+        PsiJavaFile newFile = createJavaSourceFile(project, STUDIO_BOOT_PACKAGE, MODULE_CLASS_NAME, templateString, true, true);
         ikasanModule.getViewHandler().setPsiJavaFile(newFile);
     }
 

@@ -87,7 +87,7 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
 
     private PsiDirectory createPackageFixture(String packageName) {
         Project myProject = myFixture.getProject();
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject,"src");
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(myProject,"src");
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
 
         // This may be an asynch call but example tests in Intellij community indicate it is safe to assume it completes
