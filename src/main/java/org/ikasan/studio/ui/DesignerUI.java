@@ -10,6 +10,7 @@ import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.model.StudioPsiUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -67,7 +68,7 @@ public class DesignerUI {
             DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
                 // @TODO MODEL
-//                StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
+                StudioPsiUtils.generateModelFromJSON(projectKey, false);
             }
         });
     }

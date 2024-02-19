@@ -9,6 +9,7 @@ import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
 import org.ikasan.studio.model.ikasan.instance.IkasanElement;
 import org.ikasan.studio.model.ikasan.instance.IkasanFlowBeskpokeElement;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -51,8 +52,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     ((IkasanFlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
                 }
             }
-            // @TODO MODEL
-//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            pipsiIkasanModel.updateJsonModel();
+            pipsiIkasanModel.generateSourceFromModel();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
             resetCheckboxes();

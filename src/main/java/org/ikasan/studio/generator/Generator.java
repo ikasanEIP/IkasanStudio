@@ -62,19 +62,21 @@ public abstract class Generator {
         return newPsiFile;
     }
 
-    public static PsiFile createJsonModelFile(final Project project, final  String fileName, final String content) {
-        return createFile(project, StudioPsiUtils.MAIN, "model", fileName, Context.JSON_FILE_EXTENSION , content, false);
+    public static PsiFile createJsonModelFile(final Project project, final String content) {
+        return createFile(project, Context.JSON_MODEL_PARENT_DIR, Context.JSON_MODEL_SUB_DIR, Context.JSON_MODEL_FILE, Context.JSON_FILE_EXTENSION , content, false);
     }
+
 
     public static PsiFile createResourceFile(final Project project, final String subDir, final  String fileNameWithoutExtension, final String content, boolean focus) {
         return createFile(project, StudioPsiUtils.JAVA_RESOURCES, subDir, fileNameWithoutExtension + "." + Context.PROPERTIES_FILE_EXTENSION, content, Context.PROPERTIES_FILE_EXTENSION, focus);
     }
 
+
+
     public static PsiFile createFile(final Project project, final String rootDirectory, final String subDir, final  String fileName, final String fileType, final String content, boolean focus) {
         PsiFile psiFile = null;
-        VirtualFile sourceRoot = StudioPsiUtils.getOrCreateSourceRootEndingWith(project, rootDirectory);
-        if (sourceRoot != null) {
-            PsiDirectory srcDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
+        PsiDirectory srcDir = StudioPsiUtils.getOrCreateSourceRootEndingWith(project, rootDirectory);
+        if (srcDir != null) {
             PsiDirectory directory = srcDir;
             if (subDir != null) {
                 directory = StudioPsiUtils.createOrGetDirectory(srcDir, subDir);

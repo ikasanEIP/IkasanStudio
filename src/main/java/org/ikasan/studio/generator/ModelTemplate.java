@@ -13,7 +13,7 @@ public class ModelTemplate extends Generator {
 
     public static void create(final Project project) {
         Module module = Context.getIkasanModule(project.getName());
-        createJsonModelFile(project, MODULE_JSON, ComponentIO.toJson(module));
+        createJsonModelFile(project, ComponentIO.toJson(module));
     }
 }
 

@@ -16,7 +16,11 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.Context;
+import org.ikasan.studio.StudioException;
+import org.ikasan.studio.io.ComponentIO;
 import org.ikasan.studio.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -113,6 +117,41 @@ public class StudioPsiUtils {
         }
         return pom;
     }
+
+
+
+
+    //@ todo make a plugin property to switch on / off assumeModuleConfigClass
+    public static void generateModelFromJSON(String projectKey, boolean assumeModuleConfigClass) {
+        Module ikasanModule = Context.getIkasanModule(projectKey);
+
+        PsiDirectory modelDirectory = getModelDirectory(Context.getProject(projectKey));
+        PsiFile psiFile = modelDirectory.findFile(Context.JSON_MODEL_FILE) ;
+        if (psiFile != null ) {
+            String json = psiFile.getText();
+            Module newModule = null;
+            try {
+                newModule = ComponentIO.deserializeModuleInstanceString(json, Context.JSON_MODEL_PATH);
+            } catch (StudioException e) {
+                LOG.warn("Could not read module json");
+                throw new RuntimeException(e);
+            }
+
+            Context.setIkasanModule(projectKey, newModule);
+        } else {
+            LOG.warn("Could not read the model.json");
+        }
+//        ikasanModule.reset();
+//        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//        if (pipsiIkasanModel.getModuleConfigClazz() == null || !pipsiIkasanModel.getModuleConfigClazz().isValid() ) {
+//            updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
+//        }
+//        if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {
+//            pipsiIkasanModel.updateIkasanModule();
+//        }
+//        ikasanModule.resetRegenratePermissions();
+    }
+
 
     /**
      * Add the new dependencies IF they are not already in the pom
@@ -246,9 +285,10 @@ public class StudioPsiUtils {
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         // @TODO MODEL
-//        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-//        pipsiIkasanModel.generateSourceFromModel();
-//        StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
+        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+        pipsiIkasanModel.updateJsonModel();
+        pipsiIkasanModel.generateSourceFromModel();
+        StudioPsiUtils.generateModelFromJSON(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
@@ -274,6 +314,7 @@ public class StudioPsiUtils {
 
 
 
+
     public static void getAllSourceRootsForProject(Project project) {
         String projectName = project.getName();
         VirtualFile[] vFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
@@ -283,8 +324,7 @@ public class StudioPsiUtils {
 
     public static String JAVA_CODE = "main/java";
     public static String JAVA_RESOURCES = "main/resources";
-    public static String MAIN = "main";
-    public static String JASON_MODEL = "main/model";
+
     public static String JAVA_TESTS = "test";
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
@@ -304,23 +344,40 @@ public class StudioPsiUtils {
         return sourceCodeRoot;
     }
 
+    public static PsiDirectory getModelDirectory(final Project project) {
+        PsiDirectory targetDir = null;
+        VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
+        if (contentRootVFiles == null || contentRootVFiles.length != 1) {
+            LOG.warn("Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
+        } else {
+            VirtualFile contentRoot = contentRootVFiles[0];
+            PsiDirectory contentDir = PsiDirectoryFactory.getInstance(project).createDirectory(contentRoot);
+            PsiDirectory srcDir = StudioPsiUtils.createOrGetDirectory(contentDir, "src");
+            PsiDirectory mainDir = StudioPsiUtils.createOrGetDirectory(srcDir, Context.JSON_MODEL_PARENT_DIR);
+            targetDir = StudioPsiUtils.createOrGetDirectory(mainDir, Context.JSON_MODEL_SUB_DIR);
+        }
+        return targetDir;
+    }
 
-    public static VirtualFile getOrCreateSourceRootEndingWith(final Project project, final String relativeRootDir) {
+    public static PsiDirectory getOrCreateSourceRootEndingWith(final Project project, final String relativeRootDir) {
+        PsiDirectory targetDir = null;
         VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceRootEndingWith(project, relativeRootDir);
         if (sourceCodeRoot == null) {
             VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
             if (contentRootVFiles == null || contentRootVFiles.length != 1) {
-                LOG.warn("Could not find th source root for root directory [" + relativeRootDir + "] or the content root [" + Arrays.toString(contentRootVFiles) + "]");
+                LOG.warn("Could not find the source root for root directory [" + relativeRootDir + "] or the content root [" + Arrays.toString(contentRootVFiles) + "]");
             } else {
                 VirtualFile contentRoot = contentRootVFiles[0];
                 PsiDirectory contentDir = PsiDirectoryFactory.getInstance(project).createDirectory(contentRoot);
                 PsiDirectory srcDir = StudioPsiUtils.createOrGetDirectory(contentDir, "src");
-                StudioPsiUtils.createOrGetDirectory(srcDir, relativeRootDir);
+                targetDir = StudioPsiUtils.createOrGetDirectory(srcDir, relativeRootDir);
             }
             // try again
             sourceCodeRoot = StudioPsiUtils.getSourceRootEndingWith(project, relativeRootDir);
+        } else {
+            targetDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceCodeRoot);
         }
-        return sourceCodeRoot;
+        return targetDir;
     }
 
 

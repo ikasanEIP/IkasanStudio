@@ -6,6 +6,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -47,6 +48,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             processEditedFlowComponents();
             // @TODO below line needs changing to model contaxt
 //            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            pipsiIkasanModel.updateJsonModel();
+            pipsiIkasanModel.generateSourceFromModel();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
         } else {
