@@ -17,7 +17,7 @@ import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
-
+import org.ikasan.studio.model.StudioPsiUtils;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -149,8 +149,9 @@ public class DesignerCanvas extends JPanel {
                         exceptionResolverPanel);
                 if (propertiesDialogue.showAndGet()) {
                     //@TODO MODEL
-//                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-//                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentType().getComponentDependency().getDependencies());
+                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                    pipsiIkasanModel.updateJsonModel();
+                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
                 }
             } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
@@ -459,10 +460,10 @@ public class DesignerCanvas extends JPanel {
                 }
             }
 
-            // @TODO MODEL
-//            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-//            pipsiIkasanModel.generateSourceFromModel(newComponent.getComponentType().getComponentDependency().getDependencies());
-//            StudioPsiUtils.generateModelFromSourceCode(projectKey, false);
+            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            pipsiIkasanModel.updateJsonModel();
+            pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
+            StudioPsiUtils.generateModelFromJSON(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();
             return true;

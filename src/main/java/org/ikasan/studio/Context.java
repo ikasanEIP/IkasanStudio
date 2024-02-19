@@ -10,6 +10,7 @@ import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
 import javax.swing.*;
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +41,14 @@ public enum Context {
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String JSON_IKASAN_MODEL = "jsonIkasanModel";
     private static final String POM = "pom";
+
+    public static final String JSON_MODEL_PARENT_DIR = "main";
+    public static final String JSON_MODEL_SUB_DIR = "model";
+    public static final String JSON_MODEL_FILE = "model";
+    public static final String JSON_MODEL_PATH =
+            JSON_MODEL_PARENT_DIR + FileSystems.getDefault().getSeparator() +
+            JSON_MODEL_SUB_DIR + FileSystems.getDefault().getSeparator() +
+            JSON_MODEL_FILE + "." + JSON_FILE_EXTENSION;
 
     Context() {
         freemarkerConfiguration = new Configuration(VERSION_2_3_31);

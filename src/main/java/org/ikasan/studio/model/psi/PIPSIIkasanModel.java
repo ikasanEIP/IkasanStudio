@@ -37,6 +37,13 @@ public class PIPSIIkasanModel {
     }
 
     /**
+     * An update has been made to the diagram so we need to reverse this into the code.
+     */
+    public void generateSourceFromModel() {
+        generateSourceFromModel(null);
+    }
+
+    /**
      * An update has been made to the diagram, so we need to reverse this into the code.
      */
     public void generateSourceFromModel(List<Dependency> newDependencies) {
@@ -47,7 +54,6 @@ public class PIPSIIkasanModel {
                         () -> {
                             StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
                             //@todo start making below conditional on state changed.
-                            ModelTemplate.create(project);
                             ApplicationTemplate.create(project);
 //                        generateBespokeComponents(project);
                             FlowTemplate.create(project);
@@ -101,7 +107,6 @@ public class PIPSIIkasanModel {
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
                             ModelTemplate.create(project);
-                            ApplicationTemplate.create(project);
                         }),
                 "Generate JSON from Flow Diagram",
                 "Undo group ID");
@@ -116,6 +121,8 @@ public class PIPSIIkasanModel {
 //                    }
 //                });
     }
+
+
     //    /**
 //     * The public entry point, builds the Pseudo ikasan Module used by the plugin.
 //     */
