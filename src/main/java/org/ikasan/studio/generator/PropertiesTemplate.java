@@ -7,14 +7,14 @@ import org.ikasan.studio.model.ikasan.instance.Module;
 import java.util.Map;
 
 public class PropertiesTemplate extends Generator {
-    public static final String MODULE_PROPERTIES_FILENAME = "application";
+    public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";
     private static final String MODULE_PROPERTIES_FTL = "propertiesTemplate.ftl";
 
     public static void create(final Project project) {
         Module ikasanModule = Context.getIkasanModule(project.getName());
         String templateString = generateContents(ikasanModule);
 
-        createResourceFile(project, null, MODULE_PROPERTIES_FILENAME, templateString, false);
+        createResourceFile(project, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
     }
 
     //@todo it might be more efficient to have 1 properties file per flow

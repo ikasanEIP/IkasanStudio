@@ -11,6 +11,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
+import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.StudioPsiUtils;
 
@@ -63,17 +64,17 @@ public abstract class Generator {
     }
 
     public static PsiFile createJsonModelFile(final Project project, final String content) {
-        return createFile(project, Context.JSON_MODEL_PARENT_DIR, Context.JSON_MODEL_SUB_DIR, Context.JSON_MODEL_FILE, Context.JSON_FILE_EXTENSION , content, false);
+        return createFile(project, Context.JSON_MODEL_PARENT_DIR, Context.JSON_MODEL_SUB_DIR,
+                Context.JSON_MODEL_FILE_WITH_EXTENSION, content, false);
     }
 
-
-    public static PsiFile createResourceFile(final Project project, final String subDir, final  String fileNameWithoutExtension, final String content, boolean focus) {
-        return createFile(project, StudioPsiUtils.JAVA_RESOURCES, subDir, fileNameWithoutExtension + "." + Context.PROPERTIES_FILE_EXTENSION, content, Context.PROPERTIES_FILE_EXTENSION, focus);
+    public static PsiFile createResourceFile(final Project project, final String subDir, final  String fileNameWithExtension, final String content, boolean focus) {
+        return createFile(project, StudioPsiUtils.JAVA_RESOURCES, subDir,
+                fileNameWithExtension, content, focus);
     }
 
-
-
-    public static PsiFile createFile(final Project project, final String rootDirectory, final String subDir, final  String fileName, final String fileType, final String content, boolean focus) {
+    public static PsiFile createFile(final Project project, final String rootDirectory, final String subDir,
+                                     final String fileNameWithExtension, final String content, boolean focus) {
         PsiFile psiFile = null;
         PsiDirectory srcDir = StudioPsiUtils.getOrCreateSourceRootEndingWith(project, rootDirectory);
         if (srcDir != null) {
@@ -82,12 +83,12 @@ public abstract class Generator {
                 directory = StudioPsiUtils.createOrGetDirectory(srcDir, subDir);
             }
 
-            psiFile = directory.findFile(fileName) ;
+            psiFile = directory.findFile(fileNameWithExtension) ;
             if (psiFile != null) {
                 psiFile.delete();
             }
-
-            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(fileType), content);
+            String fileType = FilenameUtils.getExtension(fileNameWithExtension);
+            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileNameWithExtension, FileTypeManager.getInstance().getFileTypeByExtension(fileType), content);
             // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
             psiFile = (PsiFile)directory.add(psiFile);
             standardPropertiesFormatting(project, psiFile);
@@ -99,7 +100,7 @@ public abstract class Generator {
             }
         } else {
             //@todo add this to system alerts in Intellij
-            LOG.warn("The resources directory was missing, please add it and restart the project, could not save file " + fileName);
+            LOG.warn("The resources directory was missing, please add it and restart the project, could not save file " + fileNameWithExtension);
         }
 
         return psiFile;

@@ -44,11 +44,14 @@ public enum Context {
 
     public static final String JSON_MODEL_PARENT_DIR = "main";
     public static final String JSON_MODEL_SUB_DIR = "model";
-    public static final String JSON_MODEL_FILE = "model";
-    public static final String JSON_MODEL_PATH =
+    public static final String JSON_MODEL_DIR =
             JSON_MODEL_PARENT_DIR + FileSystems.getDefault().getSeparator() +
-            JSON_MODEL_SUB_DIR + FileSystems.getDefault().getSeparator() +
-            JSON_MODEL_FILE + "." + JSON_FILE_EXTENSION;
+                    JSON_MODEL_SUB_DIR;
+    public static final String JSON_MODEL_FILE = "model";
+    public static final String JSON_MODEL_FILE_WITH_EXTENSION = "model"  + "." + JSON_FILE_EXTENSION;
+    public static final String JSON_MODEL_FULL_PATH =
+            JSON_MODEL_DIR +  FileSystems.getDefault().getSeparator() +
+            JSON_MODEL_FILE_WITH_EXTENSION;
 
     Context() {
         freemarkerConfiguration = new Configuration(VERSION_2_3_31);
