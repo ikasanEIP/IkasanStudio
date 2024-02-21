@@ -10,7 +10,6 @@ import org.ikasan.studio.model.ikasan.instance.serialization.FlowDeserializer;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,20 +36,15 @@ public class Flow extends IkasanElement {
     private FlowElement output;
     public Flow() {
         super (IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
-        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
-//    rotected IkasanElement(IkasanComponentMeta componentMeta, String description) {
     @Builder(builderMethodName = "flowBuilder")
     public Flow(
-//            String description,
                 FlowElement consumer,
                 List<Transition> transitions,
                 List<FlowElement> flowElements,
                 ExceptionResolver exceptionResolver,
                 String name) {
-//        super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK), description);
         super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
-        this.viewHandler = ViewHandlerFactory.getInstance(this);
         this.consumer = consumer;
         if (transitions != null) {
             this.transitions = transitions;

@@ -7,6 +7,7 @@ import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.Transition;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -61,6 +62,7 @@ class ComponentIODeserializeTest {
 
             () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("The Event Generating Consumer Description", eventGeneratingConsumer.getDescription()),
+            () -> Assertions.assertNotNull(eventGeneratingConsumer.getViewHandler()),
 
             () -> assertEquals(1, transition.size()),
             () -> assertEquals("My Transition", transition.get(0).getName()),
@@ -76,13 +78,42 @@ class ComponentIODeserializeTest {
             () -> assertEquals("The Custom Converter Description", customConverter.getDescription()),
             () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_CLASS).getValue()),
             () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_CLASS).getValue()),
+            () -> Assertions.assertNotNull(customConverter.getViewHandler()),
 
             () -> assertEquals(2, devNullProducer.getConfiguredProperties().size()),
             () -> assertEquals("Dev Null Producer", devNullProducer.getIkasanComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getIkasanComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getIkasanComponentMeta().getImplementingClass()),
             () -> assertEquals("My DevNull Producer", devNullProducer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
-            () -> assertEquals("The DevNull Description", devNullProducer.getDescription())
+            () -> assertEquals("The DevNull Description", devNullProducer.getDescription()),
+            () -> Assertions.assertNotNull(devNullProducer.getViewHandler())
+        );
+    }
+
+    @Test
+    public void testModuleInstanceDeserialiseIsRobustNotFailingWithEmptyElements() throws StudioException {
+        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_with_empty_elements.json");
+        List<Flow> flows = module.getFlows();
+        Flow flow1 = flows.get(0);
+        FlowElement elements = flow1.getConsumer();
+        List<Transition> transition = flow1.getTransitions();
+
+        assertAll(
+            "Check the module contains the expected values",
+            () -> assertEquals("1.3", module.getVersion()),
+            () -> assertEquals("A to B convert", module.getName()),
+            () -> assertEquals("My first module", module.getDescription()),
+            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
+            () -> assertEquals("1", module.getH2PortNumber()),
+            () -> assertEquals("2", module.getH2WebPortNumber()),
+            () -> assertEquals("3", module.getPort()),
+
+            () -> assertEquals(1, flows.size()),
+            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
+            () -> assertEquals("Flow1", flow1.getName()),
+
+            () -> Assertions.assertNull(elements),
+            () -> Assertions.assertNull(transition)
         );
     }
 }

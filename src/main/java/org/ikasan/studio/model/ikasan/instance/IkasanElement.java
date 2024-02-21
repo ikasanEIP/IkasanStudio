@@ -12,6 +12,7 @@ import org.ikasan.studio.model.ikasan.instance.serialization.IkasanElementDeseri
 import org.ikasan.studio.model.ikasan.instance.serialization.IkasanElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -35,12 +36,14 @@ public  class IkasanElement extends IkasanBaseElement {
     protected IkasanElement(IkasanComponentMeta componentMeta) {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
     @Builder
     protected IkasanElement(IkasanComponentMeta componentMeta, String description) {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
         setDescription(description);
+        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     /**
@@ -200,7 +203,7 @@ public  class IkasanElement extends IkasanBaseElement {
         } else {
             IkasanComponentPropertyMeta properyMeta = getIkasanComponentMeta().getMetadata(key);
             if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored.");
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored.");
             } else {
                 configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentMeta().getMetadata(key), value));
             }

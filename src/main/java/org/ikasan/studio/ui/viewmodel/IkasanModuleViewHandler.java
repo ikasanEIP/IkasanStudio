@@ -27,7 +27,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
         int currentY = 0;
         LOG.debug("paintComponent invoked");
 
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getComponentName(),10,10, StudioUIUtils.getBoldFont(g));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
 
         for (Flow ikasanFlow : model.getFlows()) {
             // remember initialise has already set x,y but we may be dealing with component move
@@ -61,7 +61,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
         setTopY(topy);
         setWidth(width);
         setHeight(height);
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, model.getComponentName(),10,10, StudioUIUtils.getBoldFont(graphics));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, model.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         for(Flow ikasanFlow : model.getFlows()) {
             // intialise width/height to maximum, it will be adjusted down after reset

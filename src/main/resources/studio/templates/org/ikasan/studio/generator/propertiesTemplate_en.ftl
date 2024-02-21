@@ -13,8 +13,8 @@ logging.level.org.springframework=INFO
 server.error.whitelabel.enabled=false
 
 # Web Bindings
-server.port=${module.getApplicationPortNumber()}
-h2.db.port=${module.getApplicationPortNumber()}
+server.port=${module.getPort()}
+h2.db.port=${module.getH2PortNumber()}
 server.address=0.0.0.0
 server.servlet.context-path=/${StudioUtils.toUrlString(module.getName())}
 

@@ -2,13 +2,13 @@ package org.ikasan.studio.model.psi;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.generator.*;
 import org.ikasan.studio.model.StudioPsiUtils;
-import org.ikasan.studio.model.ikasan.instance.Module;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import java.util.List;
  * code to generate the ikasan Module and update the code to reflect changes to the ikasan Module.
  */
 public class PIPSIIkasanModel {
-
+    private static final Logger LOG = Logger.getInstance("#PIPSIIkasanModel");
     private final String projectKey ;
 
     /**
@@ -52,6 +52,7 @@ public class PIPSIIkasanModel {
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model");
                             StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
                             //@todo start making below conditional on state changed.
                             ApplicationTemplate.create(project);
@@ -59,6 +60,7 @@ public class PIPSIIkasanModel {
                             FlowTemplate.create(project);
                             ModuleConfigTemplate.create(project);
                             PropertiesTemplate.create(project);
+                            LOG.info("End ApplicationManager.getApplication().runWriteAction - source from model");
                         }),
                 "Generate Source from Flow Diagram",
                 "Undo group ID");
@@ -91,12 +93,14 @@ public class PIPSIIkasanModel {
 //        }).inSmartMode(project);
         ApplicationManager.getApplication().runReadAction(
                 () -> {
-                    Module ikasanModule = Context.getIkasanModule(project.getName());
+                    LOG.info("ApplicationManager.getApplication().runReadAction");
+//                    Module ikasanModule = Context.getIkasanModule(project.getName());
                     // reloadProject needed to re-read POM, must not be done till addDependancies
                     // fully complete, hence in next executeCommand block
                     if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
                     }
+                    LOG.info("End ApplicationManager.getApplication().runReadAction");
                 });
     }
 
@@ -106,7 +110,9 @@ public class PIPSIIkasanModel {
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - model from source");
                             ModelTemplate.create(project);
+                            LOG.info("End ApplicationManager.getApplication().runWriteAction - model from source");
                         }),
                 "Generate JSON from Flow Diagram",
                 "Undo group ID");

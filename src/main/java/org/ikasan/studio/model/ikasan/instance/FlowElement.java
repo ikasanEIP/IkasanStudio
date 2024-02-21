@@ -6,7 +6,6 @@ import lombok.Builder;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
@@ -43,12 +42,8 @@ public class FlowElement extends IkasanElement {
         super (type);
 
         setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, "");
-//        setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, "");
-//        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, "");
         setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "");
         this.containingFlow = containingFlow;
-//        this(type, parent, "", "");
-        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     @Builder (builderMethodName = "flowElementBuilder")
@@ -56,6 +51,7 @@ public class FlowElement extends IkasanElement {
         super(componentMeta, description);
         setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, componentName);
         this.containingFlow = containingFlow;
+//        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 //    public static FlowElement getDummyFlowElement() {
 //        return new FlowElement(IkasanComponentMeta.builder().build(), null);
