@@ -44,7 +44,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     protected void doOKAction() {
         // If the user has selected the checkbox, that indicates they wish to force a re-write
-        if (beskpokeComponentOverrideCheckBox.isSelected() || dataHasChanged()) {
+        if (beskpokeComponentOverrideCheckBox == null) {
+            LOG.warn("Call to doOKAction but beskpokeComponentOverrideCheckBox was null");
+        } else if (beskpokeComponentOverrideCheckBox.isSelected() || dataHasChanged()) {
             processEditedFlowComponents();
             // This will force a regeneration of the component
             if (beskpokeComponentOverrideCheckBox.isSelected()) {

@@ -1,0 +1,1 @@
+{"applicationPackageName":"co.uk.test","description":"My first module","h2DbPortNumber":"1","h2WebPortNumber":"2","name":"A to B convert","port":"3","version":"1.3","flows":[{"name":"Flow1","consumer":{},"transitions":[{}],"flowElements":[{}]},{}]}

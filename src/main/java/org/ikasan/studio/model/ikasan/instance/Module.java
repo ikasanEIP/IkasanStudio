@@ -15,7 +15,6 @@ import org.ikasan.studio.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.model.ikasan.instance.serialization.ModuleSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,6 @@ public class Module extends IkasanElement {
 
     public Module() {
         super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK));
-        this.viewHandler = ViewHandlerFactory.getInstance(this);
         flows = new ArrayList<>();
     }
 
@@ -58,7 +56,7 @@ public class Module extends IkasanElement {
                   String h2WebPortNumber,
                   List<Flow> flows) {
         super (IkasanComponentLibrary.getModule(STD_IKASAN_PACK), description);
-        this.viewHandler = ViewHandlerFactory.getInstance(this);
+
         flows = new ArrayList<>();
         setVersion(version);
         setName(name);

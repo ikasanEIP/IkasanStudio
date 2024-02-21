@@ -6,6 +6,7 @@ import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
+import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
@@ -17,7 +18,7 @@ import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandler;
-import org.ikasan.studio.model.StudioPsiUtils;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -35,7 +36,6 @@ public class DesignerCanvas extends JPanel {
     private boolean initialiseAllDimensions = true;
     private boolean drawGrid = false;
     private static final Logger LOG = Logger.getInstance("#DesignerCanvas");
-    private transient Module ikasanModule ;       // Old Swing serialisation not required.
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
@@ -44,7 +44,7 @@ public class DesignerCanvas extends JPanel {
 
     public DesignerCanvas(String projectKey) {
         this.projectKey = projectKey;
-        ikasanModule = Context.getIkasanModule(projectKey);
+//        ikasanModule = Context.getIkasanModule(projectKey);
         setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         setBackground(JBColor.WHITE);
         addMouseListener(new MouseAdapter() {
@@ -83,7 +83,8 @@ public class DesignerCanvas extends JPanel {
         startButton.addActionListener(e ->
             {
                 ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
-                componentPropertiesPanel.updateTargetComponent(ikasanModule);
+//                componentPropertiesPanel.updateTargetComponent(ikasanModule);
+                componentPropertiesPanel.updateTargetComponent(getIkasanModule());
                 PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                         Context.getProject(projectKey),
                         Context.getDesignerCanvas(projectKey),
@@ -91,7 +92,8 @@ public class DesignerCanvas extends JPanel {
                 if (propertiesDialogue.showAndGet()) {
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.updateJsonModel();
-                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
+//                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getIkasanComponentMeta().getJarDepedencies());
                     disableStart();
                 }
             }
@@ -107,6 +109,14 @@ public class DesignerCanvas extends JPanel {
     public void disableStart() {
         this.remove(startButton);
     }
+
+//    public void updatIkasanModel(Module module) {
+//        this.ikasanModule = module;
+//        if (ikasanModule.getName() != null) {
+//            disableStart();
+//            xxx
+//        }
+//    }
 
     /**
      * This is called by the mouse click Listener
@@ -151,7 +161,7 @@ public class DesignerCanvas extends JPanel {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.updateJsonModel();
-                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getIkasanComponentMeta().getJarDepedencies());
                 }
             } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
@@ -228,6 +238,7 @@ public class DesignerCanvas extends JPanel {
      * @param component currently pointed to by the mouse.
      */
     public void setSelectedComponent(IkasanElement component) {
+        Module ikasanModule = getIkasanModule();
         deSelectAllCompnentsAndFlows();
         // Set selected
         if (component instanceof FlowElement) {
@@ -246,10 +257,12 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+
     /**
      * Ensure everything is deselected.
      */
     private void deSelectAllCompnentsAndFlows() {
+        Module ikasanModule = getIkasanModule();
         ikasanModule.getViewHandler().setAlreadySelected(false);
         ikasanModule.getFlows()
                 .stream()
@@ -267,6 +280,7 @@ public class DesignerCanvas extends JPanel {
      * @return the ikasan component (flows component, flow, module) currently selected.
      */
     public IkasanElement getComponentAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
         IkasanElement ikasanComponent = null;
         if (ikasanModule != null) {
             ikasanComponent = ikasanModule.getFlows()
@@ -296,6 +310,7 @@ public class DesignerCanvas extends JPanel {
      * @return the ikasan component (flows component, flow, module) currently selected.
      */
     public IkasanElement getFlowExceptionResolverAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
         IkasanElement ikasanComponent;
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
@@ -322,6 +337,7 @@ public class DesignerCanvas extends JPanel {
      * @return the ikasan component (flows component, flow, module) currently selected.
      */
     public IkasanElement getFlowAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
         IkasanElement ikasanComponent ;
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
@@ -380,6 +396,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     public void resetContextSensitiveHighlighting() {
+        Module ikasanModule = getIkasanModule();
         boolean redrawNeeded = ikasanModule.getFlows()
                 .stream()
                 .anyMatch(x -> ! ((IkasanFlowViewHandler)x.getViewHandler()).isFlowNormalMode());
@@ -397,6 +414,7 @@ public class DesignerCanvas extends JPanel {
      * @return ikasan elements to the left or right (or both) within reasonable bounds
      */
     public Pair<FlowElement, FlowElement> getSurroundingComponents(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
         Pair<FlowElement, FlowElement> surroundingComponents = new Pair<>();
         Point dragged = new Point(xpos, ypos);
         Pair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
@@ -424,6 +442,7 @@ public class DesignerCanvas extends JPanel {
      * @return true of we managed to add the component.
      */
     public boolean requestToAddComponent(int x, int y, IkasanComponentMeta ikasanComponentType) {
+        Module ikasanModule = getIkasanModule();
         if (x >= 0 && y >=0 && ikasanComponentType != null) {
             IkasanElement ikasanComponent = getComponentAtXY(x,y);
             IkasanElement newComponent;
@@ -587,6 +606,7 @@ public class DesignerCanvas extends JPanel {
      */
     @Override
     public void paintComponent(Graphics g) {
+        Module ikasanModule = getIkasanModule();
         LOG.debug("paintComponent invoked");
         super.paintComponent(g);
         if (initialiseAllDimensions && ikasanModule != null) {
@@ -659,7 +679,7 @@ public class DesignerCanvas extends JPanel {
 //    }
 
     public Module getIkasanModule() {
-        return ikasanModule;
+        return Context.getIkasanModule(projectKey);
     }
 //    private void navigateToSource(@NotNull PsiElement classToNavigateTo, int offset)
 //    {

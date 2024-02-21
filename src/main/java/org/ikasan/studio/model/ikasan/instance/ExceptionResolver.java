@@ -1,7 +1,6 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +19,6 @@ public class ExceptionResolver extends FlowElement {
      */
     protected ExceptionResolver(Flow parent) {
         super(IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK), parent);
-        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 
     public Map<String, ExceptionResolution> getIkasanExceptionResolutionMap() {

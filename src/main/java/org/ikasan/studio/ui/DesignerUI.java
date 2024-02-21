@@ -19,9 +19,9 @@ import java.awt.*;
  * Create all onscreen components and register inter-thread communication components with Context
  */
 public class DesignerUI {
-    private String projectKey;
-    private Project project;
-    private JPanel mainJPanel = new JPanel();
+    private final String projectKey;
+    private final Project project;
+    private final JPanel mainJPanel = new JPanel();
 
     /**
      * Create the main Designer window
@@ -33,6 +33,7 @@ public class DesignerUI {
         this.projectKey = project.getName();
         Context.setProject(projectKey, project);
         if (Context.getIkasanModule(projectKey) == null) {
+            // This will serve as a dummy till the File system load completes.
             Context.setIkasanModule(projectKey, new Module());
         }
         if (Context.getPipsiIkasanModel(projectKey) == null) {
