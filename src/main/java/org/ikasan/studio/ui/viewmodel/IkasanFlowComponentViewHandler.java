@@ -21,7 +21,6 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
-//    IkasanFlowUIComponent ikasanFlowUIComponent;
     Flow flow;
     FlowElement flowElement;
 
@@ -100,7 +99,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     }
 
     public ImageIcon getCanvasIcon() {
-        return flow.getIkasanComponentMeta().getCanvasIcon();
+        return flowElement.getIkasanComponentMeta().getCanvasIcon();
     }
 
     @Override

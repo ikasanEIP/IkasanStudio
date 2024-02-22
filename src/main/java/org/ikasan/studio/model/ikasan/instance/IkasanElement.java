@@ -203,7 +203,9 @@ public  class IkasanElement extends IkasanBaseElement {
         } else {
             IkasanComponentPropertyMeta properyMeta = getIkasanComponentMeta().getMetadata(key);
             if (properyMeta == null) {
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored.");
+                Thread thread = Thread.currentThread();
+
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored." + thread.getStackTrace());
             } else {
                 configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentMeta().getMetadata(key), value));
             }
@@ -241,6 +243,7 @@ public  class IkasanElement extends IkasanBaseElement {
     }
 
     /**
+     * ** Used in FTL **
      * Get all the standard properties i.e. exclude the special 'name and description' properties.
      * @return the Map of standard properties for this component.
      */

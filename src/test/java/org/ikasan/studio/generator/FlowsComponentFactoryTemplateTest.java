@@ -29,7 +29,7 @@ public class FlowsComponentFactoryTemplateTest {
     @Test
     @Disabled
     public void testCreateFlowWith_bespokeComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -43,7 +43,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedFtpConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -56,7 +56,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedFtpProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -70,7 +70,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedSftpConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -83,7 +83,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedFilterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -96,7 +96,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_minimumPopulatedFilterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getMinimumPopulatedFilterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getMinimumPopulatedFilterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -112,7 +112,7 @@ public class FlowsComponentFactoryTemplateTest {
 //
 //        FlowElement filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
 //        filterFlowComponent.setPropertyValue("IsConfiguredResource", false);
-//        ikasanFlow.getFlowComponentList().add(filterFlowComponent);
+//        ikasanFlow.getFlowElements().add(filterFlowComponent);
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -128,7 +128,7 @@ public class FlowsComponentFactoryTemplateTest {
 //
 //        FlowElement filterFlowComponent = TestFixtures.getFullyPopulatedFilterComponent(ikasanFlow);
 //        filterFlowComponent.setPropertyValue("ConfiguredResourceId", null);
-//        ikasanFlow.getFlowComponentList().add(filterFlowComponent);
+//        ikasanFlow.getFlowElements().add(filterFlowComponent);
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -142,7 +142,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedSftpProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -156,7 +156,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedLocalFileConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -169,7 +169,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedScheduledConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedScheduledConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedScheduledConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -182,7 +182,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedJmsConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSpringJmsConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSpringJmsConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -195,7 +195,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedJmsProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -208,7 +208,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedDevNullProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -221,7 +221,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedEmailProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -234,7 +234,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedObjectMessageToObjectConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToObjectConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedObjectMessageToObjectConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -247,7 +247,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedObjectMessageToXmlStringConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -260,7 +260,7 @@ public class FlowsComponentFactoryTemplateTest {
 //     */
 //    @Test
 //    public void testCreateFlowWith_fullyPopulatedXmlStringObjectMessageConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));

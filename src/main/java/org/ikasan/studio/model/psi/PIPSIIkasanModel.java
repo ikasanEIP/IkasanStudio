@@ -52,7 +52,7 @@ public class PIPSIIkasanModel {
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
-                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model");
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + Context.getIkasanModule(projectKey));
                             StudioPsiUtils.pomAddDependancies(projectKey, newDependencies);
                             //@todo start making below conditional on state changed.
                             ApplicationTemplate.create(project);
@@ -110,9 +110,10 @@ public class PIPSIIkasanModel {
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
-                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - model from source");
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - json from model");
                             ModelTemplate.create(project);
-                            LOG.info("End ApplicationManager.getApplication().runWriteAction - model from source");
+                            LOG.info("End ApplicationManager.getApplication().runWriteAction - json from model");
+                            LOG.info("model now" + Context.getIkasanModule(projectKey));
                         }),
                 "Generate JSON from Flow Diagram",
                 "Undo group ID");
@@ -210,7 +211,7 @@ public class PIPSIIkasanModel {
 //     * @param ikasanFlow that holds all the flow elements
 //     */
 //    protected Flow addInputOutputForFlow(final Flow ikasanFlow) {
-//        List<FlowElement> flowElements = ikasanFlow.getFlowComponentList();
+//        List<FlowElement> flowElements = ikasanFlow.getFlowElements();
 //        if (!flowElements.isEmpty()) {
 //            FlowElement input = IkasanComponentType.getEndpointForFlowElement(flowElements.get(0), ikasanFlow);
 //            if (input != null) {

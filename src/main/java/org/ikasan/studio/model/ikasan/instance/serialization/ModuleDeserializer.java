@@ -46,16 +46,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     }
 
     public List<Flow> getFlows(JsonNode root) throws IOException {
-        List<Flow> flows = null;
+        List<Flow> flows = new ArrayList<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
                 Flow newFlow = getFlow(arrayElement);
                 if (newFlow != null) {
-                    if (flows == null) {
-                        flows = new ArrayList<>();
-                    }
                     flows.add(newFlow);
                 }
             }
@@ -89,16 +86,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     }
 
     public List<Transition> getTransitions(JsonNode root) {
-        List<Transition> transitions = null;
+        List<Transition> transitions = new ArrayList<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
                 Transition newTransition = getTransition(arrayElement);
                 if (newTransition != null) {
-                    if (transitions == null) {
-                        transitions = new ArrayList<>();
-                    }
                     transitions.add(newTransition);
                 }
             }
@@ -126,16 +120,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return transition;
     }
     public List<FlowElement> getFlowElements(JsonNode root) throws IOException {
-        List<FlowElement> flowElements = null;
+        List<FlowElement> flowElements = new ArrayList<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
                 FlowElement newFlowElement = getFlowElement(arrayElement);
                 if (newFlowElement != null) {
-                    if (flowElements == null) {
-                        flowElements = new ArrayList<>();
-                    }
                     flowElements.add(newFlowElement);
                 }
             }

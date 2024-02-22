@@ -40,8 +40,8 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
                 this.setFocusable(false);
 
             } else {
-                setText(paletteItem.getIkasanFlowElementViewHandler().getText());
-                setIcon(paletteItem.getIkasanFlowElementViewHandler().getDisplayIcon());
+                setText(paletteItem.getIkasanPaletteElementViewHandler().getText());
+                setIcon(paletteItem.getIkasanPaletteElementViewHandler().getDisplayIcon());
                 setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
                 if (isSelected) {

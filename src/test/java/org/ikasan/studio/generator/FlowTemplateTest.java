@@ -38,7 +38,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
-//        List<FlowElement> components = ikasanFlow.getFlowComponentList() ;
+//        List<FlowElement> components = ikasanFlow.getFlowElements() ;
 //        FlowElement component = FlowElement.createFlowElement(IkasanComponentTypeMeta.EVENT_GENERATING_CONSUMER, ikasanFlow);
 //        component.setComponentName("testEventGeneratingConsumer");
 //        components.add(component);
@@ -54,7 +54,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_ftpConsumer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -67,7 +67,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_ftpProducer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -80,7 +80,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_sftpConsumer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -93,7 +93,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_sftpProducer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -106,7 +106,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_ScheduledConsumer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -120,7 +120,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_devNullProducer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -133,7 +133,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_emailProducer() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -146,7 +146,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_objectMessageToXmlStringConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
@@ -159,7 +159,7 @@ public class FlowTemplateTest {
 //     */
 //    //@Test - suspend while this is being redeveloped
 //    public void testCreateFlowWith_XmlStringObjectMessageConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
