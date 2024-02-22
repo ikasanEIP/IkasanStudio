@@ -44,7 +44,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedFtpConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -57,7 +57,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedFtpProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -70,7 +70,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedSftpConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -83,7 +83,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedSftpProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -96,7 +96,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedLocalFileConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -109,7 +109,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedScheduledConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedScheduledConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedScheduledConsumerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -122,7 +122,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedJmsConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedSpringJmsConsumerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSpringJmsConsumerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -135,7 +135,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedJmsProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -148,7 +148,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedDevNullProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -161,7 +161,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedEmailProducerComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -174,7 +174,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedObjectMessageToXmlStringConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));
@@ -187,7 +187,7 @@ public class PropertiesTemplateTest {
 //     */
 //    @Test
 //    public void testCreateProperties_fullyPopulatedXmlStringObjectMessageConverterComponent() throws IOException {
-//        ikasanFlow.getFlowComponentList().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
+//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
 //
 //        String templateString = PropertiesTemplate.generateContents(testModule);
 //        Assert.assertThat(templateString, is(notNullValue()));

@@ -35,6 +35,7 @@ public class IkasanComponentMeta implements IkasanMeta {
     public static final String COMPONENT_TYPE = "componentType";
     public static final String IMPLEMENTING_CLASS = "implementingClass";
 
+    // Many of these attributes are used by FreeMarker templates so be careful if refactoring.
     String name;
     String helpText;
     String componentType;

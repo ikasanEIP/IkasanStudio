@@ -79,7 +79,7 @@ public class PalettePanel extends JPanel {
                 if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
                 }
-                paletteHelpTextArea.setText(PaletteItem.getIkasanFlowElementViewHandler().getHelpText());
+                paletteHelpTextArea.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
 

@@ -45,21 +45,21 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
 //        Assert.assertThat(flow1.getDescription(), is("Ftp to Jms"));
 //        Assert.assertThat(flow1.getComponentName(), is("sourceFlow"));
 //
-//        Assert.assertThat(flow1.getFlowComponentList().size(), is(3));
+//        Assert.assertThat(flow1.getFlowElements().size(), is(3));
 //
-//        FlowElement ftpConsumer = flow1.getFlowComponentList().get(0);
+//        FlowElement ftpConsumer = flow1.getFlowElements().get(0);
 //        Assert.assertThat(ftpConsumer.getComponentName(), is("Ftp Consumer"));
 //        Assert.assertThat(getConfiguredPropertyValues(ftpConsumer.getConfiguredProperties()),
 //                Matchers.is("AgeOfFiles->30,Chronological->true,Chunking->false,ClientID->null,ConfiguredResourceId->configuredResourceId,CronExpression->null," +
 //                        "Destructive->false,FilenamePattern->null,FilterDuplicates->true,FilterOnLastModifiedDate->true,MinAge->1l,Name->Ftp Consumer,Password->null," +
 //                        "RemoteHost->null,RemotePort->null,RenameOnSuccess->false,RenameOnSuccessExtension->.tmp,ScheduledJobGroupName->FtpToLogFlow,ScheduledJobName->FtpConsumer,SourceDirectory->null,Username->null"));
 //
-//        FlowElement payloadToMap = flow1.getFlowComponentList().get(1);
+//        FlowElement payloadToMap = flow1.getFlowElements().get(1);
 //        Assert.assertThat(payloadToMap.getComponentName(), is("Ftp Payload to Map Converter"));
 //        Assert.assertThat(getConfiguredPropertyValues(payloadToMap.getConfiguredProperties()),
 //                Matchers.is("Name->Ftp Payload to Map Converter"));
 //
-//        FlowElement jmsProducer = flow1.getFlowComponentList().get(2);
+//        FlowElement jmsProducer = flow1.getFlowElements().get(2);
 //        Assert.assertThat(jmsProducer.getComponentName(), is("Ftp Jms Producer"));
 //        Assert.assertThat(getConfiguredPropertyValues(jmsProducer.getConfiguredProperties()),
 //                Matchers.is("ConfiguredResourceId->ftpJmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null," +
@@ -70,19 +70,19 @@ public class PIPSIIkasanModelFmsFtpTest extends PIPSIIkasanModelAbstractTest {
 //        Assert.assertThat(flow2.getComponentName(), is("targetFlow"));
 //        Assert.assertThat(flow2.getDescription(), is("Receives Text Jms message and sends it to FTP as file"));
 //
-//        Assert.assertThat(flow2.getFlowComponentList().size(), is(3));
+//        Assert.assertThat(flow2.getFlowElements().size(), is(3));
 //
-//        FlowElement jmsConsumer = flow2.getFlowComponentList().get(0);
+//        FlowElement jmsConsumer = flow2.getFlowElements().get(0);
 //        Assert.assertThat(jmsConsumer.getComponentName(), is("Ftp Jms Consumer"));
 //        Assert.assertThat(getConfiguredPropertyValues(jmsConsumer.getConfiguredProperties()),
 //                Matchers.is("ConfiguredResourceId->ftpJmsConsumer,ConnectionFactory->consumerConnectionFactory,DestinationJndiName->ftp.private.jms.queue,Name->Ftp Jms Consumer"));
 //
-//        FlowElement mapToPayload = flow2.getFlowComponentList().get(1);
+//        FlowElement mapToPayload = flow2.getFlowElements().get(1);
 //        Assert.assertThat(mapToPayload.getComponentName(), is("MapMessage to FTP Payload Converter"));
 //        Assert.assertThat(getConfiguredPropertyValues(mapToPayload.getConfiguredProperties()),
 //                Matchers.is("Name->MapMessage to FTP Payload Converter"));
 //
-//        FlowElement ftpProdcuer = flow2.getFlowComponentList().get(2);
+//        FlowElement ftpProdcuer = flow2.getFlowElements().get(2);
 //        Assert.assertThat(ftpProdcuer.getComponentName(), is("Ftp Producer"));
 //        Assert.assertThat(getConfiguredPropertyValues(ftpProdcuer.getConfiguredProperties()),
 //                Matchers.is("ClientID->null,ConfiguredResourceId->ftpProducerConfiguration,Name->Ftp Producer,OutputDirectory->null,Overwrite->true,Password->null,RemoteHost->null,RemotePort->null,Username->null"));

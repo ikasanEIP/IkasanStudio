@@ -91,6 +91,7 @@ public class IkasanComponentPropertyMeta {
     private boolean userImplementedClass;
     private boolean setterProperty;
     private boolean userDefineResource;
+
     private String propertyConfigFileLabel;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default

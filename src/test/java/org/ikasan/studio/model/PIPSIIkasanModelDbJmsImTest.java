@@ -40,21 +40,21 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
 //            Assert.assertThat(flow1.getDescription(), is("Sample DB to JMS flow"));
 ////            Assert.assertThat(flow1.getOutput().getDescription(), is("jms.topic.test"));
 //
-////            Assert.assertThat(flow1.getFlowComponentList().size(), is(5));
+////            Assert.assertThat(flow1.getFlowElements().size(), is(5));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(0).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowElements().get(0).getConfiguredProperties()),
 //                    Matchers.is("ConfiguredResourceId->null,CronExpression->null,MessageProvider->personMessageProvider,Name->DB Consumer"));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(1).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowElements().get(1).getConfiguredProperties()),
 //                    is("BespokeClassName->MyFilter,Configuration->com.ikasan.sample.spring.boot.MyFilterConfiguration,FromType->List<Person>,IsConfiguredResource->true,Name->My Filter"));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(2).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowElements().get(2).getConfiguredProperties()),
 //                    is("Name->Split list"));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(3).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowElements().get(3).getConfiguredProperties()),
 //                    is("Name->Person to XML,ObjectClass->Person.class"));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowComponentList().get(4).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow1.getFlowElements().get(4).getConfiguredProperties()),
 //                    is("ConfiguredResourceId->null,ConnectionFactory->connectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null," +
 //                                    "ConnectionFactoryName->null,ConnectionFactoryPassword->null,ConnectionFactoryUsername->null,DeliveryMode->DeliveryMode.PERSISTENT," +
 //                                    "DeliveryPersistent->true,DestinationJndiName->jms.topic.test,ExplicitQosEnabled->true,MessageIdEnabled->true," +
@@ -83,16 +83,16 @@ public class PIPSIIkasanModelDbJmsImTest extends PIPSIIkasanModelAbstractTest {
 //            Assert.assertThat(flow2.getComponentName(), is("jmsToDbFlow"));
 //            Assert.assertThat(flow2.getDescription(), is("Sample JMS to DB flow"));
 //
-//            Assert.assertThat(flow2.getFlowComponentList().size(), is(3));
-//            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowComponentList().get(0).getConfiguredProperties()),
+//            Assert.assertThat(flow2.getFlowElements().size(), is(3));
+//            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowElements().get(0).getConfiguredProperties()),
 //                    is("AutoContentConversion->true,AutoSplitBatch->true,BatchMode->false,BatchSize->1,CacheLevel->CACHE_CONNECTION,ConcurrentConsumers->1," +
 //                            "ConnectionFactory->connectionFactory,DestinationJndiName->jms.topic.test,Durable->true,DurableSubscriptionName->testDurableSubscription," +
 //                            "MaxConcurrentConsumers->1,Name->JMS Consumer,PubSubDomain->false,SessionAcknowledgeMode->Session.SESSION_TRANSACTED,SessionTransacted->true"));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowComponentList().get(1).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowElements().get(1).getConfiguredProperties()),
 //                    is("ClassToBeBound->com.ikasan.sample.person.model.Person.class,Name->XML to Person"));
 //
-//            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowComponentList().get(2).getConfiguredProperties()),
+//            Assert.assertThat(getConfiguredPropertyValues(flow2.getFlowElements().get(2).getConfiguredProperties()),
 //                    is("Name->DB Producer"));
 //        }
 //    }

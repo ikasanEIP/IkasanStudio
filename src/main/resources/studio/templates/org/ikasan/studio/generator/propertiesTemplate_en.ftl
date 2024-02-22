@@ -35,8 +35,8 @@ datasource.password=sa
 datasource.driver-class-name=org.h2.Driver
 datasource.xadriver-class-name=org.h2.jdbcx.JdbcDataSource
 
-#datasource.url=jdbc:h2:tcp://localhost:${h2.db.port}/./${module.name}-db/esb;IFEXISTS=FALSE; COMPRESS=TRUE MAX OPERATION MEMORY=102400;CACHE_SIZE=16384;DB_CLOSE_ON_EXIT=FALSE
-datasource.url=jdbc:h2:tcp://localhost:${h2.db.port}/./${module.name}-db/esb;DB_CLOSE_DELAY=-1
+#datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/${r"${module.name}"}-db/esb;IFEXISTS=FALSE; COMPRESS=TRUE MAX OPERATION MEMORY=102400;CACHE_SIZE=16384;DB_CLOSE_ON_EXIT=FALSE
+datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
 datasource.dialect=org.hibernate.dialect.H2Dialect
 datasource.show-sql=false
 datasource.hbm2ddl.auto=none
@@ -44,9 +44,7 @@ datasource.validationQuery=select 1
 datasource.min.pool.size=8
 datasource.max.pool.size=25
 
-
 #datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-
 
 # Dashboard data extraction settings
 ikasan.dashboard.extract.enabled=false
@@ -60,17 +58,19 @@ ikasan.dashboard.extract.password=
 <#--properties for all components-->
 <#compress>
 <#list module.getFlows()![] as flow>
-    <#list flow.getFlowComponentList()![] as ikasanComponent>
-        <#if (ikasanComponent.getStandardConfiguredProperties())??>
-            <#list ikasanComponent.getStandardConfiguredProperties() as propKey, propValue>
-                <#if propValue.getMeta().getPropertyConfigFileLabel() != "" &&
+    <#list flow.getFlowElements()![] as ikasanElement>
+        <#if (ikasanElement.getStandardConfiguredProperties())??>
+            <#list ikasanElement.getStandardConfiguredProperties() as propKey, propValue>
+                <#if propValue.getMeta()?? &&
+                        propValue.getMeta().getPropertyConfigFileLabel()?? &&
+                        propValue.getMeta().getPropertyConfigFileLabel() != "" &&
                         propValue.getValue()?? &&
                         ! propValue.getMeta().getUserImplementedClass()>
 <#--                    ${StudioUtils.toJavaIdentifier(propValue.valueString)}-->
-<#--                    ${StudioUtils.getPropertyLabel(module, flow, ikasanComponent, propValue.meta.propertyConfigFileLabel)}=${propValue.getValue()}-->
-                    ${StudioUtils.getPropertyLabelPackageStyle(module, flow, ikasanComponent, propValue.meta.propertyConfigFileLabel)}=${propValue.getValue()}
-<#--                    <#if ikasanComponent.getJavaPackageName() != "">-->
-<#--                        ${flow.getJavaPackageName()}.${ikasanComponent.getJavaPackageName()}.${propValue.getMeta().propertyConfigFileLabel}=${propValue.getValue()}-->
+<#--                    ${StudioUtils.getPropertyLabel(module, flow, ikasanElement, propValue.meta.propertyConfigFileLabel)}=${propValue.getValue()}-->
+                    ${StudioUtils.getPropertyLabelPackageStyle(module, flow, ikasanElement, propValue.meta.propertyConfigFileLabel)}=${propValue.getValue()}
+<#--                    <#if ikasanElement.getJavaPackageName() != "">-->
+<#--                        ${flow.getJavaPackageName()}.${ikasanElement.getJavaPackageName()}.${propValue.getMeta().propertyConfigFileLabel}=${propValue.getValue()}-->
 <#--                    <#else>-->
 <#--                        ${flow.getJavaPackageName()}.${propValue.getMeta().propertyConfigFileLabel}=${propValue.getValue()}-->
 <#--                    </#if>-->

@@ -38,20 +38,20 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
 ////        Assert.assertThat(flow1.getComponentName(), is("JMS to JMS Flow"));
 ////        Assert.assertThat(flow1.getDescription(), is("Flow demonstrates usage of JMS Concumer and JMS Producer"));
 ////
-////        Assert.assertThat(flow1.getFlowComponentList().size(), is(3));
+////        Assert.assertThat(flow1.getFlowElements().size(), is(3));
 ////
-////        FlowElement jmsConsumer = flow1.getFlowComponentList().get(0);
+////        FlowElement jmsConsumer = flow1.getFlowElements().get(0);
 ////        Assert.assertThat(jmsConsumer.getComponentName(), is("JMS Consumer"));
 ////        Assert.assertThat(jmsConsumer.getConfiguredProperties().size(), is(5));
 ////        Assert.assertThat(getConfiguredPropertyValues(jmsConsumer.getConfiguredProperties()),
 ////                Matchers.is("AutoContentConversion->true,ConfiguredResourceId->jmsConsumer,ConnectionFactory->consumerConnectionFactory,DestinationJndiName->source,Name->JMS Consumer"));
 ////
-////        FlowElement exceptionGeneratingBroker = flow1.getFlowComponentList().get(1);
+////        FlowElement exceptionGeneratingBroker = flow1.getFlowElements().get(1);
 ////        Assert.assertThat(exceptionGeneratingBroker.getComponentName(), is("Exception Generating Broker"));
 ////        Assert.assertThat(getConfiguredPropertyValues(exceptionGeneratingBroker.getConfiguredProperties()),
 ////                Matchers.is("Name->Exception Generating Broker"));
 ////
-////        FlowElement jmsProducer = flow1.getFlowComponentList().get(2);
+////        FlowElement jmsProducer = flow1.getFlowElements().get(2);
 ////        Assert.assertThat(jmsProducer.getComponentName(), is("JMS Producer"));
 ////        Assert.assertThat(getConfiguredPropertyValues(jmsProducer.getConfiguredProperties()),
 ////                Matchers.is("ConfiguredResourceId->jmsProducer,ConnectionFactory->producerConnectionFactory,ConnectionFactoryJndiPropertyFactoryInitial->null,ConnectionFactoryName->null,ConnectionFactoryPassword->null," +

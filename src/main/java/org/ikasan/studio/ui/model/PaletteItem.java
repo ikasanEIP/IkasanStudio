@@ -8,7 +8,7 @@ import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 public class PaletteItem {
 //    FlowElement flowElement;
     private IkasanComponentMeta ikasanComponentMeta;
-    private IkasanPaletteElementViewHandler ikasanFlowElementViewHandler;
+    private IkasanPaletteElementViewHandler ikasanPaletteElementViewHandler;
     private boolean category = false;
 
     /**
@@ -18,7 +18,7 @@ public class PaletteItem {
     public PaletteItem(String categoryName) {
         this.ikasanComponentMeta = new IkasanComponentMeta();
         ikasanComponentMeta.setName(categoryName);
-        ikasanFlowElementViewHandler = new IkasanPaletteElementViewHandler(ikasanComponentMeta);
+        ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(ikasanComponentMeta);
         category = true;
     }
 
@@ -28,7 +28,7 @@ public class PaletteItem {
      */
     public PaletteItem(IkasanComponentMeta ikasanComponentMeta) {
         this.ikasanComponentMeta = ikasanComponentMeta;
-        this.ikasanFlowElementViewHandler = new IkasanPaletteElementViewHandler(ikasanComponentMeta);
+        this.ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(ikasanComponentMeta);
     }
 
 }
