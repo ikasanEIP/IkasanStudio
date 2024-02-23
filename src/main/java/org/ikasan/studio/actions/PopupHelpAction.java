@@ -15,10 +15,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class PopupHelpAction  implements ActionListener {
-   private String projectKey;
-   private IkasanElement component;
-   private MouseEvent mouseEvent;
-   private boolean webHelp;
+   private final String projectKey;
+   private final IkasanElement component;
+   private final MouseEvent mouseEvent;
+   private final boolean webHelp;
 
    public PopupHelpAction(String projectKey, IkasanElement component, MouseEvent mouseEvent, boolean webHelp) {
       this.projectKey = projectKey;

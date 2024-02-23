@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 import java.util.Properties;
 
 public class LaunchDashboardAction implements ActionListener {
-   private String projectKey;
+   private final String projectKey;
 
    public LaunchDashboardAction(String projectKey) {
    this.projectKey = projectKey;

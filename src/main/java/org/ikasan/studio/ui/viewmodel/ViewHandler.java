@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
 
@@ -7,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public abstract class ViewHandler {
+    private static final Logger LOG = Logger.getInstance("#ViewHandler");
     PsiClass classToNavigateTo;
     PsiJavaFile psiJavaFile;
     int offsetInclassToNavigateTo;
@@ -97,6 +99,9 @@ public abstract class ViewHandler {
     }
 
     public void setHeight(int height) {
+        if (height < 0) {
+            LOG.error("Height less than 0") ;
+        }
         this.height = height;
     }
 

@@ -14,7 +14,7 @@ import java.io.IOException;
 public class CanvasImportTransferHandler extends TransferHandler // implements Transferable
 {
     private static final Logger LOG = Logger.getInstance("#CanvasImportTransferHandler");
-    private static final DataFlavor flowElementFlavor = new DataFlavor(FlowElement.class, "IkasanFlowUIComponent");
+    private static final DataFlavor flowElementFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private final DesignerCanvas designerCanvas;
 
     public CanvasImportTransferHandler(DesignerCanvas designerCanvas) {
@@ -59,8 +59,8 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
             !(targetComponent instanceof DesignerCanvas)) {
             return false;
         }
-
         // Since the canvas is not a simple widget with built in drop handlers, we need to perform that ourselves.
+        // If the module has been properly initialised, we can drop ...
         if (!designerCanvas.getIkasanModule().hasUnsetMandatoryProperties()) {
             for(DataFlavor flavor : destinationSupportedflavors) {
                 // Anywhere on the canvas
@@ -110,8 +110,8 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         if (this.canImport(support)) {
             FlowElement flowElement = getDraggedComponent(support);
             if (flowElement != null) {
-                IkasanComponentMeta ikasanComponentType = flowElement.getIkasanComponentMeta();
-                return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanComponentType);
+                IkasanComponentMeta ikasanComponentMeta = flowElement.getIkasanComponentMeta();
+                return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, ikasanComponentMeta);
             }
         }
         return false;

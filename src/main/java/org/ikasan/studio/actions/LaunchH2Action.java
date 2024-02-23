@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 import java.util.Properties;
 
 public class LaunchH2Action implements ActionListener {
-   private String projectKey;
+   private final String projectKey;
 
    public LaunchH2Action(String projectKey) {
    this.projectKey = projectKey;
