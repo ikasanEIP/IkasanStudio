@@ -52,5 +52,4 @@ public class ModuleSerializer extends StdSerializer<Module> {
         }
         jsonGenerator.writeEndObject();
     }
-
 }

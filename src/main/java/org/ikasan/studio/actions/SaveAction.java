@@ -31,7 +31,6 @@ public class SaveAction implements ActionListener {
 
       String moduleName = Context.getIkasanModule(projectKey).getComponentName();
       String imageFileName = "ModuleDiagram-" + moduleName + (isMacNativSaveDialog ? ".png" : "");
-//      VirtualFileWrapper vf = dialog.save(null, imageFileName);
       VirtualFileWrapper vf = dialog.save(imageFileName);
 
       if (vf == null) {

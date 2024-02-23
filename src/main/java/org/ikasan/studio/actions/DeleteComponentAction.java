@@ -11,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class DeleteComponentAction implements ActionListener {
-   private String projectKey;
+   private final String projectKey;
    IkasanElement component;
 
    public DeleteComponentAction(String projectKey, IkasanElement component) {
@@ -21,16 +21,14 @@ public class DeleteComponentAction implements ActionListener {
 
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      if (component instanceof FlowElement) {
-         FlowElement ikasanFlowComponentToRemove = (FlowElement)component;
-         Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
+      if (component instanceof FlowElement ikasanFlowComponentToRemove) {
+          Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
          if (parentFlow != null) {
             parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
          }
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
-      } else if (component instanceof Flow) {
-         Flow ikasanFlowToRemove = (Flow)component;
-         Module ikasanModule = Context.getIkasanModule(projectKey);
+      } else if (component instanceof Flow ikasanFlowToRemove) {
+          Module ikasanModule = Context.getIkasanModule(projectKey);
          ikasanModule.getFlows().remove(ikasanFlowToRemove);
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       }

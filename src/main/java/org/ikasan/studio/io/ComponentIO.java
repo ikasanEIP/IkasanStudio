@@ -67,10 +67,9 @@ public class ComponentIO {
         if (inputStream == null) {
             throw new StudioException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
         }
-        final String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining());
-        return jsonString;
     }
 
     /**

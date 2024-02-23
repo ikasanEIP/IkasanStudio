@@ -3,27 +3,15 @@ package org.ikasan.studio.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.ReadonlyStatusHandler;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.sun.istack.NotNull;
-import org.ikasan.studio.generator.ApplicationTemplate;
-import org.ikasan.studio.generator.ModuleConfigTemplate;
-import org.ikasan.studio.generator.PropertiesTemplate;
-
-import java.util.Collections;
 
 public class StudioMaintenanceDebug extends AnAction
 {
-   private String projectKey;
-
-   public StudioMaintenanceDebug() {
+   public static final Logger LOG = Logger.getInstance("#StudioMaintenanceDebug");
+    public StudioMaintenanceDebug() {
       super();
 }
 
@@ -33,7 +21,6 @@ public class StudioMaintenanceDebug extends AnAction
     */
    public StudioMaintenanceDebug(String projectKey) {
       super();
-      this.projectKey = projectKey;
    }
 
    /**
@@ -51,114 +38,7 @@ public class StudioMaintenanceDebug extends AnAction
    @Override
    public void actionPerformed(@NotNull AnActionEvent ae)
    {
-      System.out.println("actionPerformed test");
-//      try {
-//         StudioUtils.readIkasanComponentProperties("/studio/componentDefinitions/BROKER_en_GB.csv");
-//      } catch (IOException e) {
-//         e.printStackTrace();
-//         log.error("XXXXXXXXXXXXXXXXXXXXXXXXXX can read configs");
-//      }
-
+      String text = "Any debug action can be placed here";
+      LOG.info(text);
    }
-
-   private void testModelUpdate(AnActionEvent ae) {
-//      VelocityUtilsShed.generateFromTemplate("ApplicationTemplate.vm", null);
-
-      final PsiFile file = ae.getData(LangDataKeys.PSI_FILE);
-      final Project project = ae.getProject();
-
-      if (file == null || project == null) {
-         return;
-      }
-
-      final VirtualFile virtualFile = file.getVirtualFile();
-      ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(Collections.singletonList(virtualFile));
-
-      final String clazzName = "MyFile";
-
-      CommandProcessor.getInstance().executeCommand(
-              project,
-              () -> ApplicationManager.getApplication().runWriteAction(
-                      () -> {
-                         ApplicationTemplate.create(project);
-                         ModuleConfigTemplate.create(project);
-                         //@todo check the file produced, if non produced, bring up messeage in Intillij Error messging window.
-                         PropertiesTemplate.create(project);
-                      }),
-              "Maintenance Debug Command",
-              "Undo group ID");
-   }
-
-   /**
-    * Get some key data about project so we can prove we can retrieve data
-    * @param ae supplied action event
-    * @return some data to be displayed in message box
-    */
-   protected String getKeyData(AnActionEvent ae) {
-
-////      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-////      CaretModel caretModel = editor.getCaretModel();
-//
-//      // get the psi file from the action event.
-//      PsiFile psiFile = ae.getData(CommonDataKeys.PSI_FILE);
-//      if(psiFile != null) {
-////         PIPSIIkasanModel pipsiIkasanModel = (PIPSIIkasanModel)Context.get("pipsiIkasanModel");
-//         PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
-//         IkasanModule ikasanModule = pipsiIkasanModel.buildIkasanModule(psiFile);
-//
-//         message.append(ikasanModule.toString());
-////         message.append(StudioPsiUtils.getSimpleFileData(file));
-//      }
-//
-//      message.append("looking for Module config = " + StudioPsiUtils.findClass(ae.getProject(), "ModuleConfigTemplate"));
-
-      //      StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
-//      StudioUIUtils.displayMessage(projectKey, getKeyData(ae));
-//      VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(ae.getProject(),StudioPsiUtils.JAVA_CODE);
-//      PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(ae.getProject()).createOrGetDirectory(sourceRoot);
-//      PsiDirectory bobDir = StudioPsiUtils.createPackage(baseDir, "bob");
-//      PsiFile newFile = StudioPsiUtils.createFileInDirectory(bobDir, "myFile", "Some text", ae.getProject());
-//      PsiDocumentManager documentManager = PsiDocumentManager.createFlowElement(ae.getProject());
-//      documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(newFile));
-//      StudioPsiUtils.
-//      if(caretModel.getCurrentCaret().hasSelection())
-//      {
-//         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
-//         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
-//      }
-
-      return "dummy"
-////      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-////      CaretModel caretModel = editor.getCaretModel();
-//
-//      // get the psi file from the action event.
-//      PsiFile psiFile = ae.getData(CommonDataKeys.PSI_FILE);
-//      if(psiFile != null) {
-////         PIPSIIkasanModel pipsiIkasanModel = (PIPSIIkasanModel)Context.get("pipsiIkasanModel");
-//         PIPSIIkasanModel pipsiIkasanModel = new PIPSIIkasanModel(projectKey);
-//         IkasanModule ikasanModule = pipsiIkasanModel.buildIkasanModule(psiFile);
-//
-//         message.append(ikasanModule.toString());
-////         message.append(StudioPsiUtils.getSimpleFileData(file));
-//      }
-//
-//      message.append("looking for Module config = " + StudioPsiUtils.findClass(ae.getProject(), "ModuleConfigTemplate"));
-              //      StudioPsiUtils.getAllSourceRootsForProject(ae.getProject());
-//      StudioUIUtils.displayMessage(projectKey, getKeyData(ae));
-//      VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(ae.getProject(),StudioPsiUtils.JAVA_CODE);
-//      PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(ae.getProject()).createOrGetDirectory(sourceRoot);
-//      PsiDirectory bobDir = StudioPsiUtils.createPackage(baseDir, "bob");
-//      PsiFile newFile = StudioPsiUtils.createFileInDirectory(bobDir, "myFile", "Some text", ae.getProject());
-//      PsiDocumentManager documentManager = PsiDocumentManager.createFlowElement(ae.getProject());
-//      documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(newFile));
-//      StudioPsiUtils.
-//      if(caretModel.getCurrentCaret().hasSelection())
-//      {
-//         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
-//         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
-//      }
-              ;
-   }
-
-
 }

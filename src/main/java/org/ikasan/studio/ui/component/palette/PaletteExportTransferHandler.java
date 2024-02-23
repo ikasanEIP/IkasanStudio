@@ -16,7 +16,7 @@ import java.io.IOException;
 public class PaletteExportTransferHandler extends TransferHandler // implements Transferable
 {
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
-    private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "IkasanFlowUIComponent");
+    private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
 
     // Source actions i.e. methods called for the source of the copy
@@ -54,8 +54,9 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     /**
      * This method is called repeatedly during a drag gesture and returns true if the area below the cursor can accept the
-     * transfer, or false if the transfer will be rejected. For example, if a user drags a color over a component that
-     * accepts only text, the canImport method for that component's TransferHandler should return false.
+     * transfer, or false if the transfer will be rejected.
+     * For example, a flow can be dropped anywhere on the canvas, so it will be true for the whole canvas but
+     * a component can only be dropped inside a flow, so it will be false until the mouse is over a flow.
      * @param targetComponent that the mouse is over that has registered this as its Transfer Handler.
      * @param destinationSupportedflavors
      * @return

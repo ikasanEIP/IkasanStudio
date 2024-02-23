@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class NavigateToCodeAction implements ActionListener {
-   private String projectKey;
+   private final String projectKey;
    IkasanElement component;
    boolean jumpToLine;
 
