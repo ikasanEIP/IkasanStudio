@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,7 +43,11 @@ public class ComponentPropertyEditBox {
             if (value != null) {
                 // Coming from a property this may not be the correct type yet
                 if (value instanceof String) {
-                    value = Integer.valueOf((String) value);
+                    if (((String) value).isEmpty()) {
+                        value = 0;
+                    } else {
+                        value = Integer.valueOf((String) value);
+                    }
                 }
                 propertyValueField.setValue(value);
             }
@@ -57,7 +60,11 @@ public class ComponentPropertyEditBox {
             if (value != null) {
                 // Defensive, just in case not set correctly
                 if (value instanceof String) {
-                    value = Boolean.valueOf((String) value);
+                    if (((String) value).isBlank()) {
+                        value = Boolean.FALSE;
+                    } else {
+                        value = Boolean.valueOf((String) value);
+                    }
                 }
 
                 if (value instanceof Boolean) {
@@ -210,11 +217,7 @@ public class ComponentPropertyEditBox {
                 result.add(new ValidationInfo(meta.getValidationMessage(), getOverridingInputField()));
             }
         }
-        if (result == null) {
-            return Collections.emptyList();
-        } else {
-            return result;
-        }
+        return result;
     }
 
 
@@ -227,7 +230,7 @@ public class ComponentPropertyEditBox {
 
         Object value = getValue();
         if (value instanceof String) {
-            if (((String) value).length() > 0) {
+            if (!((String) value).isEmpty()) {
                 hasValue = true;
             }
         } else {

@@ -3,6 +3,7 @@ package org.ikasan.studio.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
+import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
@@ -76,6 +77,16 @@ public class FlowElement extends IkasanElement {
 //        }
 //    }
 
+
+    /**
+     * Return the name of this component in a format that would be appropriate to be used as a java class name
+     * @return the class name format of the component name.
+     */
+    @JsonIgnore
+    @Override
+    public String getJavaClassName() {
+        return StudioUtils.toJavaClassName(getComponentName());
+    }
 
     @JsonIgnore
     public Flow getContainingFlow() {

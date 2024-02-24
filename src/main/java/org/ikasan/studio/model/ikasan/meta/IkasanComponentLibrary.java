@@ -81,13 +81,17 @@ public class IkasanComponentLibrary {
                 ikasanComponentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
                 ikasanComponentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 returnedIkasanComponentMetaMapByKey.put(componentName, ikasanComponentMeta);
-
                 ikasanComponentMetaMapByClass.put(getClassOrType(ikasanComponentMeta) , ikasanComponentMeta);
             }
             if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
                 LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
                         returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
                         mandatoryComponents + " so will be ignored");
+            }
+            if(ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
+                LOG.warn("WARNING: ikasanComponentMetaMapByClass & returnedIkasanComponentMetaMapByKey are different sizes. " +
+                        "Keys for returnedIkasanComponentMetaMapByKey [" + returnedIkasanComponentMetaMapByKey.keySet() + "]" +
+                        "Keys for ikasanComponentMetaMapByClass [" + ikasanComponentMetaMapByClass.keySet() + "]");
             }
 
             // @TODO consider synchronizedMap
@@ -99,12 +103,19 @@ public class IkasanComponentLibrary {
         return returnedIkasanComponentMetaMapByKey;
     }
 
+    /**
+     * Attempt to extract a key, give preference to implementing class, if undefined, fall back to componentType
+     * @param ikasanComponentMeta that we need the key for
+     * @return A string key to uniquely identify this meta
+     */
     private static String getClassOrType(IkasanComponentMeta ikasanComponentMeta) {
         String componentKey = ikasanComponentMeta.getImplementingClass();
 
-        if (componentKey != null && componentKey.contains("$")) {
-            // remove any inner class reference
-            componentKey = componentKey.split("$")[0];
+        if (componentKey != null && !componentKey.isBlank()) {
+            if (componentKey.contains("$")) {
+                // remove any inner class reference
+                componentKey = componentKey.split("\\$")[0];
+            }
         } else {
             // Rare scenario where there is no implementing class
             componentKey = ikasanComponentMeta.getComponentType();
@@ -127,7 +138,7 @@ public class IkasanComponentLibrary {
 
 
     /**
-     * Attempt to minimize the synchronized lock. We will guarentee the Map is valid and not in the process
+     * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
      * of being updated, but it is possible that by the time the consumer of this method returns, the map may have
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
@@ -140,7 +151,7 @@ public class IkasanComponentLibrary {
         return libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
     }
     /**
-     * Attempt to minimize the synchronized lock. We will guarentee the Map is valid and not in the process
+     * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
      * of being updated, but it is possible that by the time the consumer of this method returns, the map may have
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
@@ -169,7 +180,9 @@ public class IkasanComponentLibrary {
         Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByClassOrType(ikasanMetaDataPackVersion);
         IkasanComponentMeta ikasanComponentMeta = safeIkasanComponentMetaMap.get(implementingClass);
         if (ikasanComponentMeta == null) {
-            ikasanComponentMeta = safeIkasanComponentMetaMap.get(componentType);
+            LOG.error("Could not find mtea for implementingClass " + implementingClass);
+//            LOG.warn("could not find omponent Meta for implementing class " + implementingClass + " now trying componentType " + componentType);
+//            ikasanComponentMeta = safeIkasanComponentMetaMap.get(componentType);
         }
         return ikasanComponentMeta;
     }

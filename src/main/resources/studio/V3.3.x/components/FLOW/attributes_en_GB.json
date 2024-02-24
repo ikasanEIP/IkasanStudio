@@ -3,8 +3,8 @@
   "helpText": "The flow is the container for components and generally represents an atomic action.",
   "componentType": "org.ikasan.spec.flow.Flow",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
-  "implementingClass": "na",
-  "ikasanComponentFactoryMethod": "na",
+  "implementingClass": "",
+  "ikasanComponentFactoryMethod": "",
   "displayOrder": 1,
   "properties": {
     "name": {

@@ -52,7 +52,10 @@ public abstract class Generator {
             psiFile.delete();
         }
 
-        PsiJavaFile newPsiFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), content);
+        PsiJavaFile newPsiFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(
+                fileName,
+                FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION),
+                content);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         standardJavaFormatting(project, newPsiFile);
         newPsiFile = (PsiJavaFile)myPackage.add(newPsiFile);
