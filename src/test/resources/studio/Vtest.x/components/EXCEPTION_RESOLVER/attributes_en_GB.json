@@ -8,8 +8,8 @@
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
   "displayOrder": 5,
   "properties": {
-    "name": {
-      "propertyName": "ComponentName",
+    "componentName": {
+      "propertyName": "componentName",
       "mandatory": true,
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
     },

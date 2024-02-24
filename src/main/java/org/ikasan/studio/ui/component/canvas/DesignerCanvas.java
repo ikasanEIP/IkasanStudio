@@ -33,9 +33,9 @@ import java.util.List;
  * The main painting / design panel
  */
 public class DesignerCanvas extends JPanel {
+    private static final Logger LOG = Logger.getInstance("#DesignerCanvas");
     private boolean initialiseAllDimensions = true;
     private boolean drawGrid = false;
-    private static final Logger LOG = Logger.getInstance("#DesignerCanvas");
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
@@ -443,7 +443,7 @@ public class DesignerCanvas extends JPanel {
      */
     public boolean requestToAddComponent(int x, int y, IkasanComponentMeta ikasanComponentType) {
         Module ikasanModule = getIkasanModule();
-        if (x >= 0 && y >=0 && ikasanComponentType != null) {
+        if (x >= 0 && y >= 0) {
             IkasanElement ikasanComponent = getComponentAtXY(x,y);
             IkasanElement newComponent;
             // Add new component to existing flow
@@ -454,15 +454,18 @@ public class DesignerCanvas extends JPanel {
                 } else {
                     containingFlow = ((FlowElement)ikasanComponent).getContainingFlow();
                 }
-
                 if (!containingFlow.isValidToAdd(ikasanComponentType)) {
                     resetContextSensitiveHighlighting();
                     return false;
                 }
+                newComponent = null;
+                try {
 
-                newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
-                if (newComponent != null) {
-                    if (newComponent instanceof ExceptionResolver) {
+                    newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
+                } catch (Exception ex) {
+                    LOG.warn("ERROR: Intercept silent popup box failure, " + ex);
+                }
+                if (newComponent != null) {if (newComponent instanceof ExceptionResolver) {
                         containingFlow.setExceptionResolver((ExceptionResolver)newComponent);
                     } else {
                         insertNewComponentBetweenSurroundingPair(containingFlow, (FlowElement) newComponent, x, y);
@@ -478,7 +481,6 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.updateJsonModel();
             pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());

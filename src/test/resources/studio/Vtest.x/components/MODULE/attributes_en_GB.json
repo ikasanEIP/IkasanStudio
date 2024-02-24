@@ -2,8 +2,8 @@
   "name": "Module",
   "helpText": "The module is the container for all flows",
   "componentType": "org.ikasan.spec.module.Module",
-  "implementingClass": "na",
-  "ikasanComponentFactoryMethod": "na",
+  "implementingClass": "",
+  "ikasanComponentFactoryMethod": "",
   "jarDepedencies": [
     {
       "groupId": "org.ikasan",

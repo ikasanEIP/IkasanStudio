@@ -99,7 +99,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#list>
 <#-- Special case for message filter, set configuredResourceId to default -->
     <#if ikasanFlowComponent.type=="MESSAGE_FILTER" && ikasanFlowComponent.getProperty("IsConfiguredResource")?has_content && ikasanFlowComponent.getProperty("IsConfiguredResource").getValue() && (!ikasanFlowComponent.getProperty("ConfiguredResourceId")?has_content || !ikasanFlowComponent.getProperty("ConfiguredResourceId").getValue()?has_content)>
-        ${ikasanFlowComponent.getJavaVariableName()}.setConfiguredResourceId("${StudioUtils.toJavaIdentifier(module.name)}-${StudioUtils.toJavaIdentifier(flow.name)}-${StudioUtils.toJavaIdentifier(ikasanFlowComponent.name)}");
+        ${ikasanFlowComponent.getJavaVariableName()}.setConfiguredResourceId("${StudioUtils.toJavaIdentifier(module.name)}-${StudioUtils.toJavaIdentifier(flow.name)}-${StudioUtils.toJavaIdentifier(ikasanFlowComponent.componentName)}");
     </#if>
     <#if ikasanFlowComponent.type.bespokeClass>
         return ${ikasanFlowComponent.getJavaVariableName()};
