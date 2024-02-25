@@ -28,7 +28,7 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     public IkasanFlowExceptionResolverViewHandler(FlowElement flowElement) {
         this.flowElement = flowElement;
 //        if (flowElement != null) {
-//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(flowElement.getIkasanComponentMeta());
+//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(flowElement.getComponentMeta());
 //        } else {
 //            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
 //        }
@@ -93,7 +93,7 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     }
 
     public ImageIcon getCanvasIcon() {
-        return flowElement.getIkasanComponentMeta().getCanvasIcon();
+        return flowElement.getComponentMeta().getCanvasIcon();
     }
 
 //    public IkasanFlowUIComponentx getFlowElement() {

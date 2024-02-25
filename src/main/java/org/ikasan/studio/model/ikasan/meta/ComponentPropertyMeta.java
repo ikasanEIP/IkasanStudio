@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * Each Ikasan Component will have multiple properties e.g. name, description, configuredResourceID
  * This class holds the metadata about a single property e.g. 'description' - is i mandatory, what data type is it
  */
-public class IkasanComponentPropertyMeta {
+public class ComponentPropertyMeta {
     public static final String BESPOKE_CLASS_NAME = "bespokeClassName";         // Special meta for a bespoke class used as a property
     public static final String CONFIGURATION = "configuration";                 // Bean containing user defined, Ikasan maintained properties
     public static final String CONFIGURED_RESOURCE_INTERFACE = "configuredResource";   // Is the configuration exposed in the dashboard.
@@ -50,22 +50,22 @@ public class IkasanComponentPropertyMeta {
     public static final String FROM_CLASS = "fromClass";
     public static final String BESKPOKE_CLASS_NAME = "beskpokeClassName";
 
-    public static final IkasanComponentPropertyMeta STD_NAME_META_COMPONENT =
-            IkasanComponentPropertyMeta.builder()
+    public static final ComponentPropertyMeta STD_NAME_META_COMPONENT =
+            ComponentPropertyMeta.builder()
                     .propertyName(NAME)
                     .paramGroupNumber(1)
                     .mandatory(true)
                     .build();
 
-    public static final IkasanComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
-        IkasanComponentPropertyMeta.builder()
+    public static final ComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
+        ComponentPropertyMeta.builder()
             .propertyName(DESCRIPTION)
             .paramGroupNumber(1)
             .helpText("A more detailed description of the component that may assist in support.")
             .build();
 
-    public static final IkasanComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
-        IkasanComponentPropertyMeta.builder()
+    public static final ComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
+        ComponentPropertyMeta.builder()
             .propertyName(APPLICATION_PACKAGE_NAME)
             .paramGroupNumber(1)
             .mandatory(true)
@@ -73,8 +73,8 @@ public class IkasanComponentPropertyMeta {
             .build();
 
     // Special META to model the port number to be used to launch the app and part of its user driven config.
-    public static final IkasanComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
-            IkasanComponentPropertyMeta.builder()
+    public static final ComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
+            ComponentPropertyMeta.builder()
                     .propertyName(APPLICATION_PORT_NUMBER_NAME)
                     .paramGroupNumber(1)
                     .mandatory(true)

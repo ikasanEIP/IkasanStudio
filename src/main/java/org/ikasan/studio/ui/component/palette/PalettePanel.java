@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
@@ -100,22 +100,22 @@ public class PalettePanel extends JPanel {
     private java.util.List<PaletteItem> buildPalettItems() {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
 
-        Collection<IkasanComponentMeta> ikasanComponentMetaList = IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);
-        List<IkasanComponentMeta> displayOrder = ikasanComponentMetaList
+        Collection<ComponentMeta> componentMetaList = IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);
+        List<ComponentMeta> displayOrder = componentMetaList
             .stream()
             .filter(meta -> !meta.isModule())
             .sorted(Comparator
-                    .comparing(IkasanComponentMeta::getDisplayOrder)
-                    .thenComparing(IkasanComponentMeta::getName))
+                    .comparing(ComponentMeta::getDisplayOrder)
+                    .thenComparing(ComponentMeta::getName))
             .toList();
 
         String category = "";
-        for (IkasanComponentMeta ikasanComponentMeta : displayOrder) {
-            if (!category.equals(ikasanComponentMeta.getComponentType()) ) {
-                category = ikasanComponentMeta.getDisplayComponentType();
+        for (ComponentMeta componentMeta : displayOrder) {
+            if (!category.equals(componentMeta.getComponentType()) ) {
+                category = componentMeta.getDisplayComponentType();
                 paletteItems.add(new PaletteItem(category));
             }
-            paletteItems.add(new PaletteItem(ikasanComponentMeta));
+            paletteItems.add(new PaletteItem(componentMeta));
         }
         return paletteItems;
     }

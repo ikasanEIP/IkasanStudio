@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
 
 import javax.swing.*;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.TreeMap;
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
-public class IkasanComponentMeta implements IkasanMeta {
+public class ComponentMeta implements IkasanMeta {
     private static final String DEFAULT_README = "Readme.md";
     // Its assumed these types are so fundamental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
     public static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
@@ -41,6 +41,8 @@ public class IkasanComponentMeta implements IkasanMeta {
     String componentType;
     String implementingClass;
     String ikasanComponentFactoryMethod;
+    boolean usesBuilder;
+    String flowBuilderMethod;
     List<Dependency> jarDepedencies;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
@@ -54,19 +56,19 @@ public class IkasanComponentMeta implements IkasanMeta {
     @JsonIgnore
     ImageIcon canvasIcon;
 
-    Map<String, IkasanComponentPropertyMeta> properties;
+    Map<String, ComponentPropertyMeta> properties;
 
-    public IkasanComponentMeta() {}
+    public ComponentMeta() {}
 
     /**
      * Get a list of the mandatory properties for this component.
      * @return An ordered map of the mandatory properties for this component
      */
-    public Map<String, IkasanComponentProperty> getMandatoryInstanceProperties() {
-        Map<String, IkasanComponentProperty> mandatoryProperties = new TreeMap<>();
-        for (Map.Entry<String, IkasanComponentPropertyMeta> entry : properties.entrySet()) {
+    public Map<String, ComponentProperty> getMandatoryInstanceProperties() {
+        Map<String, ComponentProperty> mandatoryProperties = new TreeMap<>();
+        for (Map.Entry<String, ComponentPropertyMeta> entry : properties.entrySet()) {
             if (entry.getValue().isMandatory()) {
-                mandatoryProperties.put(entry.getKey(), new IkasanComponentProperty(entry.getValue()));
+                mandatoryProperties.put(entry.getKey(), new ComponentProperty(entry.getValue()));
             }
         }
         return mandatoryProperties;
@@ -76,7 +78,7 @@ public class IkasanComponentMeta implements IkasanMeta {
         return properties.keySet();
     }
 
-    public IkasanComponentPropertyMeta getMetadata(String propertyName) {
+    public ComponentPropertyMeta getMetadata(String propertyName) {
         return properties.get(propertyName);
     }
     public boolean isConsumer() {

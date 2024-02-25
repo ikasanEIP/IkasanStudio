@@ -1,9 +1,16 @@
 package org.ikasan.studio.generator;
 
+import org.ikasan.studio.TestFixtures;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class PropertiesTemplateTest {
@@ -12,31 +19,19 @@ public class PropertiesTemplateTest {
 
     @BeforeEach
     public void setUp() {
-//        testModule = TestFixtures.getIkasanModule();
-//        testModule.setComponentName("myModule");
-//        ikasanFlow = new Flow();
-//        ikasanFlow.setComponentName("newFlow1");
-//        testModule.addFlow(ikasanFlow);
+        testModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
     }
 
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/application_emptyFlow.properties
+     * @throws IOException if the template cant be generated
+     */
     @Test
-    public void dumbTest() {
-
-        System.out.println("Suspended till migration is complete");
+    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
+        String templateString = PropertiesTemplate.generateContents(testModule);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
     }
-    //@Test - suspend while this is being redeveloped
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_emptyFlow.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
-//        testModule.setPort("8090");
-//        testModule.setH2WebPortNumber("8091");
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties")));
-//    }
 //
 //    /**
 //     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedFtpConsumerComponent.properties

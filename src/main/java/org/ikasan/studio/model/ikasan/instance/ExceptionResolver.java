@@ -10,7 +10,7 @@ import java.util.Map;
  */
 
 public class ExceptionResolver extends FlowElement {
-    //@todo need to split IkasanComponent to nest ExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, IkasanComponentProperty> configuredProperties; level
+    //@todo need to split IkasanComponent to nest ExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, ComponentProperty> configuredProperties; level
     private Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();  // list of all the exceptions we catch / process
 
     /**

@@ -7,8 +7,8 @@ import org.ikasan.studio.model.ikasan.instance.FlowElement;
 
 import java.io.IOException;
 
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta.COMPONENT_TYPE;
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta.IMPLEMENTING_CLASS;
+import static org.ikasan.studio.model.ikasan.meta.ComponentMeta.COMPONENT_TYPE;
+import static org.ikasan.studio.model.ikasan.meta.ComponentMeta.IMPLEMENTING_CLASS;
 
 public class FlowElementSerializer extends StdSerializer<FlowElement> {
 
@@ -24,11 +24,11 @@ public class FlowElementSerializer extends StdSerializer<FlowElement> {
     }
 
     protected void serializePayload(FlowElement flowElement, JsonGenerator jsonGenerator) throws IOException {
-        IkasanElementSerializer ikasanElementSerializer = new IkasanElementSerializer();
-        ikasanElementSerializer.serializePayload(flowElement, jsonGenerator);
+        BasicElementSerializer basicElementSerializer = new BasicElementSerializer();
+        basicElementSerializer.serializePayload(flowElement, jsonGenerator);
 
         // This is metadata but used to identify the element
-        jsonGenerator.writeStringField(COMPONENT_TYPE, flowElement.getIkasanComponentMeta().getComponentType());
-        jsonGenerator.writeStringField(IMPLEMENTING_CLASS, flowElement.getIkasanComponentMeta().getImplementingClass());
+        jsonGenerator.writeStringField(COMPONENT_TYPE, flowElement.getComponentMeta().getComponentType());
+        jsonGenerator.writeStringField(IMPLEMENTING_CLASS, flowElement.getComponentMeta().getImplementingClass());
     }
 }

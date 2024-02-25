@@ -17,7 +17,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 
-public org.ikasan.spec.component.endpoint.Producer getTestDevNullProducer() {
+public org.ikasan.spec.component.endpoint.Producer getMyDevNullProducer() {
 return builderFactory.getComponentBuilder().devNullProducer()
 .build();
 }}

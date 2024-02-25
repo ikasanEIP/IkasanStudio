@@ -18,18 +18,18 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 @javax.annotation.Resource
-org.ikasan.studio.boot.newflow1.NewFlow1 newFlow1;
+org.ikasan.studio.boot.myflow1.MyFlow1 myFlow1;
 
 @org.springframework.context.annotation.Bean
 public org.ikasan.spec.module.Module myModule()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
-.withDescription("New Module, please provide description");
+.withDescription("My first module");
 
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 
 org.ikasan.spec.module.Module module = moduleBuilder
-.addFlow(newFlow1.getNewFlow1())
+.addFlow(myFlow1.getMyFlow1())
 .build();
 return module;
 }

@@ -21,7 +21,7 @@ public class PIPSIIkasanModelImsImTest extends PIPSIIkasanModelAbstractTest {
         // @TODO this will migrate to JSON test
         System.out.println("Suspended till migration is complete");
     }
-////        Module ikasanModule = Context.getIkasanModule(TEST_PROJECT_KEY);
+////        Module ikasanModule = Context.getMyFirstModuleIkasanModule(TEST_PROJECT_KEY);
 ////        final PsiClass moduleConfigClass = myJavaFacade.findClass("com.ikasan.sample.spring.boot.ModuleConfig", ProjectScope.getAllScope(myProject));
 ////        Assert.assertThat(moduleConfigClass, is(notNullValue()));
 ////        pipsiIkasanModel.setModuleConfigClazz(moduleConfigClass);

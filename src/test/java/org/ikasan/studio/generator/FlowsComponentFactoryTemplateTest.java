@@ -1,27 +1,51 @@
 package org.ikasan.studio.generator;
 
+import org.ikasan.studio.TestFixtures;
+import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class FlowsComponentFactoryTemplateTest {
-    Module ikasanModule ;
+    Module module;
 //    Flow ikasanFlow = new Flow();
-    private static String TEST_FLOW_NAME = "MyFlow1";
     private static String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @BeforeEach
     public void setUp() {
-//        ikasanModule = TestFixtures.getIkasanModule();
+        module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
+
 //        ikasanFlow = new Flow();
 //        ikasanFlow.setComponentName(TEST_FLOW_NAME);
 //        ikasanFlow.setDescription("MyFlowDescription");
     }
 
-    // @todo suspend which this is being redeveloped
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedDevNullProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_devNullProducerComponent() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+            .flowElements(Collections.singletonList(TestFixtures.getDevNullProducer()))
+            .build();
+        module.addFlow(flow);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedDevNullProducerComponent.java"), templateString);
+    }
+
+
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedCustomConverter.java
      * @throws IOException if the template cant be generated

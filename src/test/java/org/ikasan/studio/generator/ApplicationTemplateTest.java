@@ -1,13 +1,14 @@
 package org.ikasan.studio.generator;
 
+import org.ikasan.studio.TestFixtures;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ApplicationTemplateTest {
 
@@ -17,11 +18,11 @@ public class ApplicationTemplateTest {
      */
     @Test
     public void test_generateApplicationClass() throws IOException {
-        Module ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
 
         String templateString = ApplicationTemplate.generateContents(ikasanModule);
 
-        assertThat(templateString, is(notNullValue()));
-        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ApplicationTemplate.APPLICATION_CLASS_NAME + ".java")));
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ApplicationTemplate.APPLICATION_CLASS_NAME + ".java"), templateString);
     }
 }

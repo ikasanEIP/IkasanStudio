@@ -3,13 +3,14 @@ package org.ikasan.studio.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowDeserializer;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowSerializer;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +21,12 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 @EqualsAndHashCode(callSuper=false)
 @JsonSerialize(using = FlowSerializer.class)
 @JsonDeserialize(using = FlowDeserializer.class)
-public class Flow extends IkasanElement {
+public class Flow extends BasicElement {
+    private static final Logger LOG = Logger.getInstance("#BasicElement");
     // The fields of a Flow will need to be known for serialisation
-    public static final String CONSUMER = "consumer";
-    public static final String TRANSITIONS = "transitions";
-    public static final String FLOW_ELEMENTS = "flowElements";
+    public static final String CONSUMER_JSON_TAG = "consumer";
+    public static final String TRANSITIONS_TSON_TAG = "transitions";
+    public static final String FLOW_ELEMENTS_JSON_TAG = "flowElements";
 
     private FlowElement consumer;
     private List<Transition> transitions;
@@ -45,9 +47,16 @@ public class Flow extends IkasanElement {
                 List<Transition> transitions,
                 List<FlowElement> flowElements,
                 ExceptionResolver exceptionResolver,
-                String name) {
+                String name,
+                String description) {
         super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
-        this.consumer = consumer;
+        if (consumer != null) {
+            if (!consumer.getComponentMeta().isConsumer()) {
+                LOG.error("ERROR : Tried to set consumer on " + this + " with a flowElement that is not a consumer " + consumer + ", this will be ignored");
+            } else {
+                this.consumer = consumer;
+            }
+        }
         if (transitions != null) {
             // By default, Lombol uses immutable arrays
             this.transitions = new ArrayList<>(transitions);
@@ -64,6 +73,7 @@ public class Flow extends IkasanElement {
 
         this.exceptionResolver = exceptionResolver;
         super.setName(name);
+        super.setDescription(description);
     }
 
     public void addFlowComponent(FlowElement ikasanFlowComponent) {
@@ -81,7 +91,7 @@ public class Flow extends IkasanElement {
      * @param newComponent to br added
      * @return true if component valid to be added
      */
-    public boolean isValidToAdd(IkasanComponentMeta newComponent) {
+    public boolean isValidToAdd(ComponentMeta newComponent) {
         return newComponent == null ||
                 ((!hasConsumer() || !newComponent.isConsumer())) &&
                         (!hasProducer() || !newComponent.isProducer());
@@ -92,7 +102,7 @@ public class Flow extends IkasanElement {
      * @param newComponent to be added
      * @return reason why the component can not be added or empty string if there is no problem.
      */
-    public String issueCausedByAdding(IkasanComponentMeta newComponent) {
+    public String issueCausedByAdding(ComponentMeta newComponent) {
         String reason = "";
         if (hasConsumer() && newComponent.isConsumer()) {
             reason += "The flow cannot have more then one consumer";
@@ -127,12 +137,12 @@ public class Flow extends IkasanElement {
 
     public boolean hasConsumer() {
         return flowElements.stream()
-            .anyMatch(e->e.getIkasanComponentMeta().isConsumer());
+            .anyMatch(e->e.getComponentMeta().isConsumer());
     }
 
     public boolean hasProducer() {
         return flowElements.stream()
-            .anyMatch(e->e.getIkasanComponentMeta().isProducer());
+            .anyMatch(e->e.getComponentMeta().isProducer());
     }
 
     /**
@@ -143,12 +153,20 @@ public class Flow extends IkasanElement {
         return (exceptionResolver != null && exceptionResolver.isValid());
     }
 
-    @Override
-    public String toString() {
-        return "IkasanFlow{" +
-                "name='" + getComponentName() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", flowElements=" + flowElements +
-                '}';
+
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer
+     */
+    public List<FlowElement> ftlGetAllFlowElements() {
+        List<FlowElement> allFlowElements = new ArrayList<>();
+        if (consumer != null) {
+            allFlowElements.add(consumer);
+        }
+        if (flowElements != null && !flowElements.isEmpty()) {
+            allFlowElements.addAll(flowElements);
+        }
+        return allFlowElements;
     }
+
 }

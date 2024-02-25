@@ -5,6 +5,7 @@
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "_ikasanComponentFactoryMethod": "The custom converter is a user implemented class so has no factory as such",
   "ikasanComponentFactoryMethod": "",
+  "flowBuilderMethod": "converter",
   "displayOrder": 9,
   "properties": {
     "componentName": {

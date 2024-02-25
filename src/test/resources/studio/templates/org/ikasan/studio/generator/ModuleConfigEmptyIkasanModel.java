@@ -22,7 +22,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 public org.ikasan.spec.module.Module myModule()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
-.withDescription("New Module, please provide description");
+.withDescription("My first module");
 
 org.ikasan.builder.component.ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
 

@@ -35,8 +35,8 @@ public class IkasanComponentLibrary {
 
 
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
-    protected static Map<String, Map<String, IkasanComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
-    protected static Map<String, Map<String, IkasanComponentMeta>> libraryByVersionAndClassOrType = new HashMap<>(new HashMap<>());
+    protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
+    protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndClassOrType = new HashMap<>(new HashMap<>());
     private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(MODULE, FLOW, EXCEPTION_RESOLVER));
 
     /**
@@ -45,15 +45,15 @@ public class IkasanComponentLibrary {
      * At some point we may need to key this by project or version since all open projects will share this.
      * @param ikasanMetaDataPackVersion to search for components
      */
-    public static Map<String, IkasanComponentMeta> refreshComponentLibrary(final String ikasanMetaDataPackVersion) {
-        Map<String, IkasanComponentMeta> returnedIkasanComponentMetaMapByKey;
+    public static Map<String, ComponentMeta> refreshComponentLibrary(final String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
 
         if (libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion)) {
             LOG.warn("The pack for version " + ikasanMetaDataPackVersion + " has already been loaded, the attempt to reload it will be ignored");
             returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         } else {
             returnedIkasanComponentMetaMapByKey = new HashMap<>();
-            Map<String, IkasanComponentMeta> ikasanComponentMetaMapByClass = new HashMap<>();
+            Map<String, ComponentMeta> ikasanComponentMetaMapByClass = new HashMap<>();
 
             String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanMetaDataPackVersion + File.separator + "components";
             String[] componentDirectories = null;
@@ -77,11 +77,11 @@ public class IkasanComponentLibrary {
                             " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                     continue;
                 }
-                IkasanComponentMeta ikasanComponentMeta = (IkasanComponentMeta) ikasanMeta;
-                ikasanComponentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-                ikasanComponentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
-                returnedIkasanComponentMetaMapByKey.put(componentName, ikasanComponentMeta);
-                ikasanComponentMetaMapByClass.put(getClassOrType(ikasanComponentMeta) , ikasanComponentMeta);
+                ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
+                componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+                returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
+                ikasanComponentMetaMapByClass.put(getClassOrType(componentMeta) , componentMeta);
             }
             if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
                 LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
@@ -105,11 +105,11 @@ public class IkasanComponentLibrary {
 
     /**
      * Attempt to extract a key, give preference to implementing class, if undefined, fall back to componentType
-     * @param ikasanComponentMeta that we need the key for
+     * @param componentMeta that we need the key for
      * @return A string key to uniquely identify this meta
      */
-    private static String getClassOrType(IkasanComponentMeta ikasanComponentMeta) {
-        String componentKey = ikasanComponentMeta.getImplementingClass();
+    private static String getClassOrType(ComponentMeta componentMeta) {
+        String componentKey = componentMeta.getImplementingClass();
 
         if (componentKey != null && !componentKey.isBlank()) {
             if (componentKey.contains("$")) {
@@ -118,21 +118,21 @@ public class IkasanComponentLibrary {
             }
         } else {
             // Rare scenario where there is no implementing class
-            componentKey = ikasanComponentMeta.getComponentType();
+            componentKey = componentMeta.getComponentType();
         }
         return componentKey;
     }
 
-    public static IkasanComponentMeta getFLow(final String ikasanMetaDataPackVersion) {
+    public static ComponentMeta getFLow(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, FLOW);
     }
-    public static IkasanComponentMeta getModule(final String ikasanMetaDataPackVersion) {
+    public static ComponentMeta getModule(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, MODULE);
     }
-    public static IkasanExceptionResolutionMeta getExceptionResolver(final String ikasanMetaDataPackVersion) {
-        return (IkasanExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, EXCEPTION_RESOLVER);
+    public static ExceptionResolutionMeta getExceptionResolver(final String ikasanMetaDataPackVersion) {
+        return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, EXCEPTION_RESOLVER);
     }
-    public static IkasanComponentMeta getOnException(final String ikasanMetaDataPackVersion) {
+    public static ComponentMeta getOnException(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");
     }
 
@@ -143,8 +143,8 @@ public class IkasanComponentLibrary {
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    protected synchronized static Map<String, IkasanComponentMeta> geIkasanComponentMetaMapByKey(final String ikasanMetaDataPackVersion) {
-        Map<String, IkasanComponentMeta> ikasanComponentMetaMap = libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
+    protected synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByKey(final String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
             refreshComponentLibrary(ikasanMetaDataPackVersion);
         }
@@ -156,16 +156,16 @@ public class IkasanComponentLibrary {
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    protected synchronized static Map<String, IkasanComponentMeta> geIkasanComponentMetaMapByClassOrType(final String ikasanMetaDataPackVersion) {
-        Map<String, IkasanComponentMeta> ikasanComponentMetaMap = libraryByVersionAndClassOrType.get(ikasanMetaDataPackVersion);
+    protected synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByClassOrType(final String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndClassOrType.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
             refreshComponentLibrary(ikasanMetaDataPackVersion);
         }
         return libraryByVersionAndClassOrType.get(ikasanMetaDataPackVersion);
     }
 
-    public static IkasanComponentMeta getIkasanComponentByKey(String ikasanMetaDataPackVersion, String key) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
+    public static ComponentMeta getIkasanComponentByKey(String ikasanMetaDataPackVersion, String key) {
+        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         return safeIkasanComponentMetaMap.get(key);
     }
 
@@ -176,27 +176,27 @@ public class IkasanComponentLibrary {
      * @param componentType to be used is no implementing class is available for this component e.g. Module
      * @return the metadata that matches the name of the implmenting class provided, or null
      */
-    public static IkasanComponentMeta getIkasanComponentByClassOrType(String ikasanMetaDataPackVersion, String implementingClass, String componentType) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByClassOrType(ikasanMetaDataPackVersion);
-        IkasanComponentMeta ikasanComponentMeta = safeIkasanComponentMetaMap.get(implementingClass);
-        if (ikasanComponentMeta == null) {
+    public static ComponentMeta getIkasanComponentByClassOrType(String ikasanMetaDataPackVersion, String implementingClass, String componentType) {
+        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByClassOrType(ikasanMetaDataPackVersion);
+        ComponentMeta componentMeta = safeIkasanComponentMetaMap.get(implementingClass);
+        if (componentMeta == null) {
             LOG.error("Could not find mtea for implementingClass " + implementingClass);
 //            LOG.warn("could not find omponent Meta for implementing class " + implementingClass + " now trying componentType " + componentType);
-//            ikasanComponentMeta = safeIkasanComponentMetaMap.get(componentType);
+//            componentMeta = safeIkasanComponentMetaMap.get(componentType);
         }
-        return ikasanComponentMeta;
+        return componentMeta;
     }
 
     public static Set<String> getIkasanComponentNames(String ikasanMetaDataPackVersion) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
+        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         return safeIkasanComponentMetaMap.keySet();
     }
-    public static Collection<IkasanComponentMeta>  getIkasanComponentList(String ikasanMetaDataPackVersion) {
-        Map<String, IkasanComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
+    public static Collection<ComponentMeta>  getIkasanComponentList(String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         return safeIkasanComponentMetaMap.values();
     }
 
-    public static Map<String, IkasanComponentMeta> getIkasanComponents(String ikasanMetaDataPackVersion) {
+    public static Map<String, ComponentMeta> getIkasanComponents(String ikasanMetaDataPackVersion) {
         return geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
     }
 

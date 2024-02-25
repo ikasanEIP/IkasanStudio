@@ -8,10 +8,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.instance.serialization.IkasanElementDeserializer;
-import org.ikasan.studio.model.ikasan.instance.serialization.IkasanElementSerializer;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementDeserializer;
+import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementSerializer;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import java.util.Arrays;
@@ -24,23 +24,23 @@ import java.util.stream.Collectors;
  * To make the instance model flexible and driven by Ikasan Meta Pack, most attributes are contained within the properties map.
  * This does
  */
-@JsonSerialize(using = IkasanElementSerializer.class)
-@JsonDeserialize(using = IkasanElementDeserializer.class)
-public  class IkasanElement extends IkasanBaseElement {
+@JsonSerialize(using = BasicElementSerializer.class)
+@JsonDeserialize(using = BasicElementDeserializer.class)
+public  class BasicElement extends IkasanOject {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
 //    @JsonPropertyOrder(alphabetic = true)
     @JsonPropertyOrder({"componentName", "description"})
-    protected Map<String, IkasanComponentProperty> configuredProperties;
-    public IkasanElement() {}
+    protected Map<String, ComponentProperty> configuredProperties;
+    public BasicElement() {}
 
-    protected IkasanElement(IkasanComponentMeta componentMeta) {
+    protected BasicElement(ComponentMeta componentMeta) {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
         this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
     @Builder
-    protected IkasanElement(IkasanComponentMeta componentMeta, String description) {
+    protected BasicElement(ComponentMeta componentMeta, String description) {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
         setDescription(description);
@@ -52,7 +52,7 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return the component description
      */
     public String getComponentName() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME);
+        return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
     }
 
     /**
@@ -60,20 +60,20 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param name for the instance of this component.
      */
     public void setComponentName(String name) {
-//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
-        this.setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, name);
+//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
     }
     public void setName(String name) {
-//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
-        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, name);
+//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        this.setPropertyValue(ComponentPropertyMeta.NAME, name);
     }
     public void setVersion(String version) {
-//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
-        this.setPropertyValue(IkasanComponentPropertyMeta.VERSION, version);
+//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        this.setPropertyValue(ComponentPropertyMeta.VERSION, version);
     }
     public String getVersion() {
-//        this.setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
-        return (String)this.getPropertyValue(IkasanComponentPropertyMeta.VERSION);
+//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+        return (String)this.getPropertyValue(ComponentPropertyMeta.VERSION);
     }
 
     /**
@@ -82,7 +82,7 @@ public  class IkasanElement extends IkasanBaseElement {
      */
     @JsonIgnore
     public String getName() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.NAME);
+        return (String) getPropertyValue(ComponentPropertyMeta.NAME);
     }
 
 
@@ -91,7 +91,7 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return the component description
      */
     public String getDescription() {
-        return (String) getPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION);
+        return (String) getPropertyValue(ComponentPropertyMeta.DESCRIPTION);
     }
 
     /**
@@ -99,8 +99,8 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param description for the component
      */
     public void setDescription(String description) {
-//        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
-        this.setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, description);
+//        this.setPropertyValue(ComponentPropertyMeta.DESCRIPTION, ComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
+        this.setPropertyValue(ComponentPropertyMeta.DESCRIPTION, description);
     }
 
     /**
@@ -119,11 +119,11 @@ public  class IkasanElement extends IkasanBaseElement {
 
 
     @JsonIgnore
-    public IkasanComponentProperty getProperty(String key) {
+    public ComponentProperty getProperty(String key) {
         return configuredProperties.get(key);
     }
 //    @JsonIgnore
-//    public IkasanComponentProperty getProperty(String key) {
+//    public ComponentProperty getProperty(String key) {
 //        return configuredProperties.get(key);
 //    }
 //    @JsonIgnore
@@ -137,8 +137,8 @@ public  class IkasanElement extends IkasanBaseElement {
 //    }
     @JsonIgnore
     public Object getPropertyValue(String key) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-        return ikasanComponentProperty != null ? ikasanComponentProperty.getValue() : null;
+        ComponentProperty componentProperty = configuredProperties.get(key);
+        return componentProperty != null ? componentProperty.getValue() : null;
     }
 
 
@@ -158,9 +158,9 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-        if (ikasanComponentProperty != null) {
-            ikasanComponentProperty.setValue(value);
+        ComponentProperty componentProperty = configuredProperties.get(key);
+        if (componentProperty != null) {
+            componentProperty.setValue(value);
         } else {
             LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
         }
@@ -172,13 +172,13 @@ public  class IkasanElement extends IkasanBaseElement {
 //     * @param properyMeta for the property
 //     * @param value for the property
 //     */
-//    public void setPropertyValue(String key, IkasanComponentPropertyMeta properyMeta, Object value) {
-//        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
+//    public void setPropertyValue(String key, ComponentPropertyMeta properyMeta, Object value) {
+//        ComponentProperty ikasanComponentProperty = configuredProperties.get(key);
 //        if (ikasanComponentProperty != null) {
 //            ikasanComponentProperty.setValue(value);
 //        } else {
-//            LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getIkasanComponentMeta() + " this property will be ignored.");
-////            configuredProperties.put(key, new IkasanComponentProperty(properyMeta, value));
+//            LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getComponentMeta() + " this property will be ignored.");
+////            configuredProperties.put(key, new ComponentProperty(properyMeta, value));
 //        }
 //    }
 
@@ -189,7 +189,7 @@ public  class IkasanElement extends IkasanBaseElement {
 //     */
 //    public void setPropertyValue(String key, Object value) {
 //        // If we are stating a string key on its own, assume its the simple version.
-//        configuredProperties.put(key, new IkasanComponentProperty( value));
+//        configuredProperties.put(key, new ComponentProperty( value));
 //    }
 
     /**
@@ -198,17 +198,17 @@ public  class IkasanElement extends IkasanBaseElement {
      * @param value for the property
      */
     public void setPropertyValue(String key, Object value) {
-        IkasanComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-        if (ikasanComponentProperty != null) {
-            ikasanComponentProperty.setValue(value);
+        ComponentProperty componentProperty = configuredProperties.get(key);
+        if (componentProperty != null) {
+            componentProperty.setValue(value);
         } else {
-            IkasanComponentPropertyMeta properyMeta = getIkasanComponentMeta().getMetadata(key);
+            ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
 
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropetyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
-                configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentMeta().getMetadata(key), value));
+                configuredProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
             }
         }
     }
@@ -222,7 +222,7 @@ public  class IkasanElement extends IkasanBaseElement {
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    public Map<String, IkasanComponentProperty> getConfiguredProperties() {
+    public Map<String, ComponentProperty> getConfiguredProperties() {
         return configuredProperties;
     }
 
@@ -231,7 +231,7 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return User Implemented class properties
      */
     @JsonIgnore
-    public List<IkasanComponentProperty> getUserImplementedClassProperties() {
+    public List<ComponentProperty> getUserImplementedClassProperties() {
         return configuredProperties.values().stream()
             .filter(x -> x.getMeta().isUserImplementedClass())
             .collect(Collectors.toList());
@@ -249,11 +249,11 @@ public  class IkasanElement extends IkasanBaseElement {
      * @return the Map of standard properties for this component.
      */
     @JsonIgnore
-    public Map<String, IkasanComponentProperty> getStandardConfiguredProperties() {
-        Map<String, IkasanComponentProperty> standardProperties = new HashedMap();
+    public Map<String, ComponentProperty> getStandardConfiguredProperties() {
+        Map<String, ComponentProperty> standardProperties = new HashedMap();
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
-            for (Map.Entry<String, IkasanComponentProperty> entry : configuredProperties.entrySet()) {
-                if (! IkasanComponentPropertyMeta.NAME.equals(entry.getKey()) && !(IkasanComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
+            for (Map.Entry<String, ComponentProperty> entry : configuredProperties.entrySet()) {
+                if (! ComponentPropertyMeta.NAME.equals(entry.getKey()) && !(ComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
                 }
             }
@@ -261,10 +261,10 @@ public  class IkasanElement extends IkasanBaseElement {
         return standardProperties;
     }
 
-    public void addAllProperties(Map<String, IkasanComponentProperty> newProperties) {
+    public void addAllProperties(Map<String, ComponentProperty> newProperties) {
         configuredProperties.putAll(newProperties);
     }
-    public void addComponentProperty(String key, IkasanComponentProperty value) {
+    public void addComponentProperty(String key, ComponentProperty value) {
         configuredProperties.put(key, value);
     }
 
@@ -290,7 +290,7 @@ public  class IkasanElement extends IkasanBaseElement {
     public String toString() {
         return "IkasanComponent{" +
                 "properties=" + configuredProperties +
-                ", type=" + ikasanComponentMeta +
+                ", type=" + componentMeta +
                 '}';
     }
 }

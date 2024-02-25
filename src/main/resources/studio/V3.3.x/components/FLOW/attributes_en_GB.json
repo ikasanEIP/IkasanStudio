@@ -4,6 +4,7 @@
   "componentType": "org.ikasan.spec.flow.Flow",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
+  "usesBuilder" : true,
   "ikasanComponentFactoryMethod": "",
   "displayOrder": 1,
   "properties": {

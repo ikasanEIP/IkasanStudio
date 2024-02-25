@@ -5,14 +5,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowElementSerializer;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
  */
 @JsonSerialize(using = FlowElementSerializer.class)
-public class FlowElement extends IkasanElement {
+public class FlowElement extends BasicElement {
     @JsonIgnore
     private final Flow containingFlow;
 
@@ -23,14 +23,14 @@ public class FlowElement extends IkasanElement {
 //     * @param name of the element
 //     * @param description of the element
 //     */
-//    protected FlowElement(IkasanComponentMeta componentMeta, Flow parent, String name, String description) {
+//    protected FlowElement(ComponentMeta componentMeta, Flow parent, String name, String description) {
 //        super (componentMeta);
 //        this.parent = parent;
 //        if (name != null) {
-//            setPropertyValue(IkasanComponentPropertyMeta.NAME, IkasanComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
+//            setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
 //        }
 //        if (description != null) {
-//            setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, IkasanComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
+//            setPropertyValue(ComponentPropertyMeta.DESCRIPTION, ComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
 //        }
 //        this.viewHandler = ViewHandlerFactory.getInstance(this);
 //    }
@@ -39,23 +39,23 @@ public class FlowElement extends IkasanElement {
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
      * @param containingFlow flow that contains this element
      */
-    public FlowElement(IkasanComponentMeta type, Flow containingFlow) {
+    public FlowElement(ComponentMeta type, Flow containingFlow) {
         super (type);
 
-        setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, "");
-        setPropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "");
+        setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, "");
+        setPropertyValue(ComponentPropertyMeta.DESCRIPTION, "");
         this.containingFlow = containingFlow;
     }
 
     @Builder (builderMethodName = "flowElementBuilder")
-    protected FlowElement(Flow containingFlow, IkasanComponentMeta componentMeta, String componentName, String description) {
+    protected FlowElement(Flow containingFlow, ComponentMeta componentMeta, String componentName, String description) {
         super(componentMeta, description);
-        setPropertyValue(IkasanComponentPropertyMeta.COMPONENT_NAME, componentName);
+        setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, componentName);
         this.containingFlow = containingFlow;
 //        this.viewHandler = ViewHandlerFactory.getInstance(this);
     }
 //    public static FlowElement getDummyFlowElement() {
-//        return new FlowElement(IkasanComponentMeta.builder().build(), null);
+//        return new FlowElement(ComponentMeta.builder().build(), null);
 //    }
 
 //
@@ -67,9 +67,9 @@ public class FlowElement extends IkasanElement {
 //     * @param description of the element
 //     * @todo maybe this should be in a factory, not in this class
 //     */
-//    public static FlowElement createFlowElement(IkasanComponentMeta type, Flow parent, String name, String description) {
+//    public static FlowElement createFlowElement(ComponentMeta type, Flow parent, String name, String description) {
 //        if (type.isBespokeClass()) {
-//            return new IkasanFlowBeskpokeElement(type, parent, name, description, false);
+//            return new FlowBeskpokeElement(type, parent, name, description, false);
 //        } else if (type.isExceptionResolver()) {
 //            return new ExceptionResolver(parent);
 //        } else {
@@ -96,7 +96,7 @@ public class FlowElement extends IkasanElement {
     @Override
     public String toString() {
         return "IkasanFlowComponent {" +
-                ", flowComponent='" + getIkasanComponentMeta() + '\'' +
+                ", flowComponent='" + getComponentMeta() + '\'' +
                 ", name='" + getComponentName() + '\'' +
                 ", properties=" + configuredProperties +
                 '}';
@@ -109,7 +109,7 @@ public class FlowElement extends IkasanElement {
 //    public String getDestinationName() {
 //        String destinationName = "";
 //        if (ikasanComponentTypeMeta.isJms()) {
-//            IkasanComponentProperty destination = this.getProperty("DestinationJndiName");
+//            ComponentProperty destination = this.getProperty("DestinationJndiName");
 //            if (destination != null && destination.getValue() != null) {
 //                    destinationName = destination.getValueString();
 //            }

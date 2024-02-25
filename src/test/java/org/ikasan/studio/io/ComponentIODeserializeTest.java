@@ -6,13 +6,13 @@ import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.Transition;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.*;
+import static org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -21,7 +21,7 @@ class ComponentIODeserializeTest {
 
     @Test
     public void testModuleMetaDeserialise() throws StudioException {
-        IkasanComponentMeta component = (IkasanComponentMeta)ComponentIO.deserializeMetaComponent("studio/Vtest.x/components/MODULE/attributes_en_GB.json");
+        ComponentMeta component = (ComponentMeta)ComponentIO.deserializeMetaComponent("studio/Vtest.x/components/MODULE/attributes_en_GB.json");
         Dependency firstDependency = new Dependency();
         firstDependency.setArtifactId("ikasan-connector-base");
         firstDependency.setGroupId("org.ikasan");
@@ -32,7 +32,6 @@ class ComponentIODeserializeTest {
             () -> assertEquals(firstDependency.toString(), component.getJarDepedencies().get(0).toString())
         );
     }
-
 
     @Test
     public void testModuleInstanceDeserialise() throws StudioException {
@@ -50,13 +49,13 @@ class ComponentIODeserializeTest {
             () -> assertEquals("A to B convert", module.getName()),
             () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
-            () -> assertEquals("1", module.getH2PortNumber()),
-            () -> assertEquals("2", module.getH2WebPortNumber()),
-            () -> assertEquals("3", module.getPort()),
+            () -> assertEquals("8092", module.getH2PortNumber()),
+            () -> assertEquals("8093", module.getH2WebPortNumber()),
+            () -> assertEquals("8091", module.getPort()),
 
             () -> assertEquals(1, flows.size()),
-            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
-            () -> assertEquals("Flow1", flow1.getName()),
+            () -> assertEquals(2, flow1.getConfiguredProperties().size()),
+            () -> assertEquals("MyFlow1", flow1.getName()),
 
             () -> assertEquals(2, eventGeneratingConsumer.getConfiguredProperties().size()),
 
@@ -70,9 +69,9 @@ class ComponentIODeserializeTest {
             () -> assertEquals("My Custom Converter", transition.get(0).getTo()),
 
             () -> assertEquals(5, customConverter.getConfiguredProperties().size()),
-            () -> assertEquals("Custom Converter", customConverter.getIkasanComponentMeta().getName()),
-            () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getIkasanComponentMeta().getComponentType()),
-            () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getIkasanComponentMeta().getImplementingClass()),
+            () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
+            () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
+            () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getComponentMeta().getImplementingClass()),
             () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESKPOKE_CLASS_NAME).getValue()),
             () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("The Custom Converter Description", customConverter.getDescription()),
@@ -81,9 +80,9 @@ class ComponentIODeserializeTest {
             () -> Assertions.assertNotNull(customConverter.getViewHandler()),
 
             () -> assertEquals(2, devNullProducer.getConfiguredProperties().size()),
-            () -> assertEquals("Dev Null Producer", devNullProducer.getIkasanComponentMeta().getName()),
-            () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getIkasanComponentMeta().getComponentType()),
-            () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getIkasanComponentMeta().getImplementingClass()),
+            () -> assertEquals("Dev Null Producer", devNullProducer.getComponentMeta().getName()),
+            () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getComponentMeta().getComponentType()),
+            () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getComponentMeta().getImplementingClass()),
             () -> assertEquals("My DevNull Producer", devNullProducer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("The DevNull Description", devNullProducer.getDescription()),
             () -> Assertions.assertNotNull(devNullProducer.getViewHandler())

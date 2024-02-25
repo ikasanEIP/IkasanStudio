@@ -1,7 +1,7 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,17 +9,17 @@ import java.util.List;
 /**
  * Holds the value of a property
  */
-public class IkasanComponentProperty {
+public class ComponentProperty {
     private Object value;
     @JsonIgnore
-    private IkasanComponentPropertyMeta meta;
+    private ComponentPropertyMeta meta;
 
-    public IkasanComponentProperty(IkasanComponentPropertyMeta meta, Object value) {
+    public ComponentProperty(ComponentPropertyMeta meta, Object value) {
         this.meta = meta;
         this.value = value;
     }
 
-    public IkasanComponentProperty(IkasanComponentPropertyMeta meta) {
+    public ComponentProperty(ComponentPropertyMeta meta) {
         this(meta, null);
     }
 
@@ -89,11 +89,11 @@ public class IkasanComponentProperty {
 //    }
 
     @JsonIgnore
-    public IkasanComponentPropertyMeta getMeta() {
+    public ComponentPropertyMeta getMeta() {
         return meta;
     }
 
-    public void setMeta(IkasanComponentPropertyMeta meta) {
+    public void setMeta(ComponentPropertyMeta meta) {
         this.meta = meta;
     }
 
@@ -103,7 +103,7 @@ public class IkasanComponentProperty {
 
     @Override
     public String toString() {
-        return "IkasanComponentProperty{" +
+        return "ComponentProperty{" +
                 "value=" + value +
                 ", meta=" + meta +
                 '}';
@@ -128,11 +128,11 @@ public class IkasanComponentProperty {
      * @param metaList of properties suitable for this component
      * @return a list of properties that this instance could poses
      */
-    public static List<IkasanComponentProperty> generateIkasanComponentPropertyList(List<IkasanComponentPropertyMeta> metaList) {
-        List<IkasanComponentProperty> propertyList = new ArrayList<>();
+    public static List<ComponentProperty> generateIkasanComponentPropertyList(List<ComponentPropertyMeta> metaList) {
+        List<ComponentProperty> propertyList = new ArrayList<>();
         if (metaList != null && !metaList.isEmpty()) {
-            for(IkasanComponentPropertyMeta meta : metaList) {
-                propertyList.add(new IkasanComponentProperty(meta));
+            for(ComponentPropertyMeta meta : metaList) {
+                propertyList.add(new ComponentProperty(meta));
             }
         }
         return propertyList;

@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,14 +11,14 @@ import java.awt.*;
  */
 public class IkasanPaletteElementViewHandler extends ViewHandler {
     private static final Logger LOG = Logger.getInstance("#IkasanPaletteElementViewHandler");
-    IkasanComponentMeta ikasanComponentMeta;
+    ComponentMeta componentMeta;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
-     * @param ikasanComponentMeta for the view handler
+     * @param componentMeta for the view handler
      */
-    public IkasanPaletteElementViewHandler(IkasanComponentMeta ikasanComponentMeta) {
-        this.ikasanComponentMeta = ikasanComponentMeta;
+    public IkasanPaletteElementViewHandler(ComponentMeta componentMeta) {
+        this.componentMeta = componentMeta;
     }
 
     public int paintComponent(JPanel canvas, Graphics g, int topX, int topY){
@@ -30,20 +30,20 @@ public class IkasanPaletteElementViewHandler extends ViewHandler {
     }
 
     public String getText() {
-        return ikasanComponentMeta.getName();
+        return componentMeta.getName();
     }
     public String getHelpText() {
-        return ikasanComponentMeta.getHelpText();
+        return componentMeta.getHelpText();
     }
 
     public ImageIcon getDisplayIcon() {
-        return ikasanComponentMeta.getSmallIcon();
+        return componentMeta.getSmallIcon();
     }
 
     @Override
     public String toString() {
         return "IkasanPaletteElementViewHandler{" +
-                "ikasanComponentMeta=" + ikasanComponentMeta +
+                "componentMeta=" + componentMeta +
                 '}';
     }
 }
