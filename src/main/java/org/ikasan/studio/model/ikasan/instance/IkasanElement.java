@@ -14,6 +14,7 @@ import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -205,7 +206,7 @@ public  class IkasanElement extends IkasanBaseElement {
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
 
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored." + thread.getStackTrace());
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getIkasanComponentMeta().getPropetyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
                 configuredProperties.put(key, new IkasanComponentProperty(getIkasanComponentMeta().getMetadata(key), value));
             }
@@ -273,7 +274,7 @@ public  class IkasanElement extends IkasanBaseElement {
      */
     @JsonIgnore
     public String getJavaClassName() {
-        return StudioUtils.toJavaClassName(getComponentName());
+        return StudioUtils.toJavaClassName(getName());
     }
 
     /**

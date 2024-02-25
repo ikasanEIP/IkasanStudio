@@ -28,7 +28,7 @@ public class Flow extends IkasanElement {
 
     private FlowElement consumer;
     private List<Transition> transitions;
-    private List<FlowElement> flowElements = new ArrayList<>();
+    private List<FlowElement> flowElements;
     private ExceptionResolver exceptionResolver;
 //    String configurationId;
 //    String flowStartupType;
@@ -36,6 +36,8 @@ public class Flow extends IkasanElement {
     private FlowElement output;
     public Flow() {
         super (IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
+        transitions = new ArrayList<>();
+        flowElements = new ArrayList<>();
     }
     @Builder(builderMethodName = "flowBuilder")
     public Flow(
@@ -47,12 +49,13 @@ public class Flow extends IkasanElement {
         super(IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
         this.consumer = consumer;
         if (transitions != null) {
-            this.transitions = transitions;
+            // By default, Lombol uses immutable arrays
+            this.transitions = new ArrayList<>(transitions);
         } else {
             this.transitions = new ArrayList<>();
         }
         if (flowElements != null) {
-            this.flowElements = flowElements;
+            this.flowElements = new ArrayList<>(flowElements);;
         } else {
             if (this.flowElements == null) {
                 this.flowElements = new ArrayList<>();

@@ -1,5 +1,6 @@
 package org.ikasan.studio.model.ikasan.instance.serialization;
 
+import com.esotericsoftware.minlog.Log;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,10 +14,9 @@ import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.ikasan.studio.model.ikasan.instance.serialization.SerializerUtils.getTypedValue;
 import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.*;
@@ -62,10 +62,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
     public Flow getFlow(JsonNode jsonNode) throws IOException {
         Flow flow = null;
-
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             flow = new Flow();
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+            Map<String, FlowElement> flowElementsMap = null;
 
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
@@ -75,14 +75,55 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 } else if (Flow.TRANSITIONS.equals(fieldName)) {
                     flow.setTransitions(getTransitions(field.getValue()));
                 } else if (Flow.FLOW_ELEMENTS.equals(fieldName)) {
-                    flow.setFlowElements(getFlowElements(field.getValue()));
+                    flowElementsMap = getFlowElements(field.getValue());
                 } else {
                     Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);
                 }
             }
+            flow.setFlowElements(orderFlowElementsByTransitions(flow, flowElementsMap));
+            // Now we need to sort the elements.
         }
         return flow;
+    }
+
+    /**
+     * The transitions attribute is used to protect the order of flow element when the flow is serialised
+     * This method will return the flow elements in the order dictated by the transitions attribute
+     * @param flow to be updated
+     * @param flowElementsMap containing componentName -> flowElement
+     * @return A list of flow elements in the order dictated by the transitions attribute
+     */
+    protected List<FlowElement> orderFlowElementsByTransitions(Flow flow, Map<String, FlowElement> flowElementsMap) {
+        List<FlowElement> sortedFlowElements = new ArrayList<>();
+        if (!flow.getTransitions().isEmpty()) {
+            Map<String, Transition> transitionsMap = flow.getTransitions().stream()
+                    .collect(Collectors.toMap(Transition::getFrom, Function.identity()));
+            Set<String> toKeys  = flow.getTransitions().stream()
+                    .map(Transition::getTo)
+                    .collect(Collectors.toSet());
+            Set<String> fromKeys = new HashSet<>(transitionsMap.keySet());
+            // this shouls leave 1 element, that has a from but never a to i.e. the start of the chain
+            fromKeys.removeAll(toKeys);
+            Optional<String> startKey = fromKeys.stream().findFirst();
+            if (startKey.isEmpty()) {
+                Log.warn("ERROR: Could not find the start of the transition chain " + flow.getTransitions());
+            } else {
+                Transition transition = transitionsMap.get(startKey.get());
+                // If we have a consumer, first flowElement is consumer, so skip
+                if (flow.getConsumer() == null) {
+                    sortedFlowElements.add(flowElementsMap.get(transition.getFrom()));
+                }
+                sortedFlowElements.add(flowElementsMap.get(transition.getTo()));
+
+                Transition next = transitionsMap.get(transition.getTo());
+                while (next != null) {
+                    sortedFlowElements.add(flowElementsMap.get(next.getTo()));
+                    next = transitionsMap.get(next.getTo());
+                }
+            }
+        }
+        return sortedFlowElements;
     }
 
     public List<Transition> getTransitions(JsonNode root) {
@@ -119,19 +160,19 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
         return transition;
     }
-    public List<FlowElement> getFlowElements(JsonNode root) throws IOException {
-        List<FlowElement> flowElements = new ArrayList<>();
+    public Map<String, FlowElement> getFlowElements(JsonNode root) throws IOException {
+        Map<String, FlowElement> flowElementsMap = new HashMap<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
                 FlowElement newFlowElement = getFlowElement(arrayElement);
                 if (newFlowElement != null) {
-                    flowElements.add(newFlowElement);
+                    flowElementsMap.put(newFlowElement.getComponentName(), newFlowElement);
                 }
             }
         }
-        return flowElements;
+        return flowElementsMap;
     }
 
     public FlowElement getFlowElement(JsonNode jsonNode) throws IOException {
