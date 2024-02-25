@@ -64,10 +64,10 @@ class ComponentIODeserializeTest {
             () -> assertEquals("The Event Generating Consumer Description", eventGeneratingConsumer.getDescription()),
             () -> Assertions.assertNotNull(eventGeneratingConsumer.getViewHandler()),
 
-            () -> assertEquals(1, transition.size()),
-            () -> assertEquals("My Transition", transition.get(0).getName()),
-            () -> assertEquals("My Custom Converter", transition.get(0).getFrom()),
-            () -> assertEquals("My DevNull Producer", transition.get(0).getTo()),
+            () -> assertEquals(2, transition.size()),
+            () -> assertEquals("default", transition.get(0).getName()),
+            () -> assertEquals("My Event Generating Consumer", transition.get(0).getFrom()),
+            () -> assertEquals("My Custom Converter", transition.get(0).getTo()),
 
             () -> assertEquals(5, customConverter.getConfiguredProperties().size()),
             () -> assertEquals("Custom Converter", customConverter.getIkasanComponentMeta().getName()),
@@ -113,7 +113,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals("Flow1", flow1.getName()),
 
             () -> Assertions.assertNull(elements),
-            () -> Assertions.assertNull(transition)
+            () -> Assertions.assertTrue(transition.isEmpty())
         );
     }
 }

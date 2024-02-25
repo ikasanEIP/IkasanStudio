@@ -128,7 +128,7 @@ class ComponentIOSerializeTest {
         return Flow.flowBuilder()
                 .name("Flow1")
                 .consumer(eventGeneratingConsumer)
-                .flowElements(Arrays.asList(customConverter,devNullProducer))
+                .flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer)))
                 .transitions(Collections.singletonList(transition))
                 .build();
     }
