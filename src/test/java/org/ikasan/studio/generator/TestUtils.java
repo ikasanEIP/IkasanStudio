@@ -2,7 +2,7 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.util.text.StringUtil;
 import org.apache.commons.io.IOUtils;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 public class TestUtils {
 
     public static String getFileAsString (String filenamePath) throws IOException {
+        System.out.println("Reading file " + filenamePath);
         InputStream in = TestUtils.class.getResourceAsStream(filenamePath);
-        String expectedString = StringUtil.convertLineSeparators(IOUtils.toString(in, StandardCharsets.UTF_8));
-        return expectedString;
+        return StringUtil.convertLineSeparators(IOUtils.toString(in, StandardCharsets.UTF_8));
     }
 
-    public static String getConfiguredPropertyValues(Map<String, IkasanComponentProperty> configuredProperties) {
+    public static String getConfiguredPropertyValues(Map<String, ComponentProperty> configuredProperties) {
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
             TreeSet<String> keys = new TreeSet<>(configuredProperties.keySet());
 

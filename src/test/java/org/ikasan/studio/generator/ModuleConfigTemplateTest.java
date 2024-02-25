@@ -1,27 +1,30 @@
 package org.ikasan.studio.generator;
 
-import junit.framework.TestCase;
-import org.junit.jupiter.api.Disabled;
+import org.ikasan.studio.TestFixtures;
+import org.ikasan.studio.model.ikasan.instance.Flow;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
-public class ModuleConfigTemplateTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+public class ModuleConfigTemplateTest {
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/ModuleConfigEmptyIkasanModel.java
      * @throws IOException if the template cant be generated
      */
     @Test
-    @Disabled
     public void testCreateModuleWith_emptyIkasanModel() throws IOException {
-        System.out.println("Wait till refector");
-//        Module ikasanModule = TestFixtures.getIkasanModule();
-//        ikasanModule.setDescription("New Module, please provide description");
-//
-//        String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
-//        assertThat(templateString, is(notNullValue()));
-//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java")));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
+
+        String templateString = ModuleConfigTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java"), templateString);
     }
 
     /**
@@ -29,18 +32,12 @@ public class ModuleConfigTemplateTest extends TestCase {
      * @throws IOException if the template cant be generated
      */
     @Test
-    @Disabled
     public void testCreateModuleWith_oneFlow() throws IOException {
-        System.out.println("Wait till refector");
+        Flow flow1 = TestFixtures.getUnbuiltFlow().build();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(flow1));
 
-//        Module ikasanModule = TestFixtures.getIkasanModule();
-//        ikasanModule.setDescription("New Module, please provide description");
-//        Flow ikasanFlow = new Flow();
-//        ikasanFlow.setComponentName("newFlow1");
-//        ikasanModule.addFlow(ikasanFlow);
-//
-//        String templateString = ModuleConfigTemplate.generateContents(ikasanModule);
-//        assertThat(templateString, is(notNullValue()));
-//        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java")));
+        String templateString = ModuleConfigTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java"), templateString);
     }
 }

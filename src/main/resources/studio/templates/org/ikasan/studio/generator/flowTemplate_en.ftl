@@ -38,9 +38,9 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 </#list>)
 </#if>
 
-<#list flow.flowComponentList![] as ikasanFlowComponent>
-    .${ikasanFlowComponent.type.elementCategory.associatedMethodName}("${ikasanFlowComponent.componentName}",
-    componentFactory.get${ikasanFlowComponent.getJavaClassName()}())
+<#list flow.ftlGetAllFlowElements()![] as flowElements>
+    .${flowElements.componentMeta.flowBuilderMethod}("${flowElements.componentName}",
+    componentFactory.get${flowElements.getJavaClassName()}())
 </#list>
 </#compress>
 

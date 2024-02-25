@@ -5,10 +5,10 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.instance.IkasanElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanFlowBeskpokeElement;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.model.ikasan.instance.FlowBeskpokeElement;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
@@ -50,8 +50,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             processEditedFlowComponents();
             // This will force a regeneration of the component
             if (beskpokeComponentOverrideCheckBox.isSelected()) {
-                if (getSelectedComponent() instanceof IkasanFlowBeskpokeElement) {
-                    ((IkasanFlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
+                if (getSelectedComponent() instanceof FlowBeskpokeElement) {
+                    ((FlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
                 }
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
@@ -104,18 +104,18 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             int mandatoryTabley = 0;
             int regenerateTabley = 0;
             int optionalTabley = 0;
-            if (getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME) != null) {
+            if (getSelectedComponent().getProperty(ComponentPropertyMeta.NAME) != null) {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
-                        getSelectedComponent().getProperty(IkasanComponentPropertyMeta.NAME), gc, mandatoryTabley++));
+                        getSelectedComponent().getProperty(ComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
-            if (!getSelectedComponent().getIkasanComponentMeta().getProperties().isEmpty()) {
-                for (Map.Entry<String, IkasanComponentPropertyMeta> entry : getSelectedComponent().getIkasanComponentMeta().getProperties().entrySet()) {
+            if (!getSelectedComponent().getComponentMeta().getProperties().isEmpty()) {
+                for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getProperties().entrySet()) {
                     String key = entry.getKey();
-                    if (!key.equals(IkasanComponentPropertyMeta.NAME)) {
-                        IkasanComponentProperty property = getSelectedComponent().getProperty(key);
+                    if (!key.equals(ComponentPropertyMeta.NAME)) {
+                        ComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component
-                            property = new IkasanComponentProperty((getSelectedComponent()).getIkasanComponentMeta().getMetadata(key));
+                            property = new ComponentProperty((getSelectedComponent()).getComponentMeta().getMetadata(key));
                         }
                         if (property.getMeta().isMandatory()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
@@ -132,7 +132,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         }
                     }
                 }
-                if (!componentInitialisation && getSelectedComponent().getIkasanComponentMeta().isBespokeClass()) {
+                if (!componentInitialisation && getSelectedComponent().getComponentMeta().isBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
             }
@@ -157,7 +157,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
 
-            if (!componentInitialisation && !getSelectedComponent().getIkasanComponentMeta().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
+            if (!componentInitialisation && !getSelectedComponent().getComponentMeta().isBespokeClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
             }
         }
@@ -218,7 +218,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param tabley is used to convey the row number
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
-    private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, IkasanComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
+    private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(componentProperty, componentInitialisation);
 
         if (componentProperty.causesUserCodeRegeneration() && !componentInitialisation) {
@@ -292,13 +292,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     @Override
-    protected IkasanElement getSelectedComponent() {
-        return (IkasanElement)super.getSelectedComponent();
+    protected BasicElement getSelectedComponent() {
+        return (BasicElement)super.getSelectedComponent();
     }
 
     @Override
-    protected IkasanElement getComponentDefaults() {
-        return (IkasanElement)super.getComponentDefaults();
+    protected BasicElement getComponentDefaults() {
+        return (BasicElement)super.getComponentDefaults();
     }
 
     @Override
@@ -322,16 +322,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (componentPropertyEditBoxList != null) {
             for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
                 if (componentPropertyEditBox.propertyValueHasChanged()) {
-                    if (getSelectedComponent() instanceof IkasanFlowBeskpokeElement) {
-                        ((IkasanFlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
+                    if (getSelectedComponent() instanceof FlowBeskpokeElement) {
+                        ((FlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
                     }
                     // Property has been unset e.g. a boolean
                     if (!componentPropertyEditBox.editBoxHasValue()) {
                         getSelectedComponent().removeProperty(componentPropertyEditBox.getPropertyKey());
                     } else { // update existing
-                        IkasanComponentProperty ikasanComponentProperty = componentPropertyEditBox.updateValueObjectWithEnteredValues();
+                        ComponentProperty componentProperty = componentPropertyEditBox.updateValueObjectWithEnteredValues();
                         // If its new this will insert, existing will just overwrite.
-                        getSelectedComponent().addComponentProperty(componentPropertyEditBox.getPropertyKey(), ikasanComponentProperty);
+                        getSelectedComponent().addComponentProperty(componentPropertyEditBox.getPropertyKey(), componentProperty);
                     }
                 }
             }

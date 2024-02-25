@@ -21,16 +21,16 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanLookup.EXCEPTION_RESOLVE
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
-public class IkasanExceptionResolutionMeta extends IkasanComponentMeta {
+public class ExceptionResolutionMeta extends ComponentMeta {
     List<String> exceptionsCaught;
     List<ExceptionAction> actionList;
     private static final Map<String, String> STANDARD_EXCEPTIONS = EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
-    private static final Logger LOG = Logger.getInstance("#IkasanExceptionResolutionMeta");
+    private static final Logger LOG = Logger.getInstance("#ExceptionResolutionMeta");
 
     /**
      * Though this is currently a static class, we expose its instance creation to make it more accessible to the template library
      */
-    public IkasanExceptionResolutionMeta() {}
+    public ExceptionResolutionMeta() {}
 
     public static List<String> getStandardExceptionsList() {
         return new ArrayList<>(STANDARD_EXCEPTIONS.keySet());
@@ -41,7 +41,7 @@ public class IkasanExceptionResolutionMeta extends IkasanComponentMeta {
 //        return ON_EXCEPTION.hasProperty(action);
     }
 
-    public static List<IkasanComponentPropertyMeta> getPropertyMetaListForAction(String action) {
+    public static List<ComponentPropertyMeta> getPropertyMetaListForAction(String action) {
         LOG.error("Not yet implemented");
         return null;
 //        return ON_EXCEPTION.getMetadataList(action);

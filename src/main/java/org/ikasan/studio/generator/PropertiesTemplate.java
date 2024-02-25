@@ -7,6 +7,7 @@ import org.ikasan.studio.model.ikasan.instance.Module;
 import java.util.Map;
 
 public class PropertiesTemplate extends Generator {
+    public static final String MODULE_PROPERTIES_FILENAME = "application";
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";
     private static final String MODULE_PROPERTIES_FTL = "propertiesTemplate.ftl";
 

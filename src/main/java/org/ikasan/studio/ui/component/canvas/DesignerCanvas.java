@@ -9,7 +9,7 @@ import org.ikasan.studio.Pair;
 import org.ikasan.studio.model.StudioPsiUtils;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.*;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
@@ -92,8 +92,8 @@ public class DesignerCanvas extends JPanel {
                 if (propertiesDialogue.showAndGet()) {
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.updateJsonModel();
-//                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
-                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getIkasanComponentMeta().getJarDepedencies());
+//                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getComponentMeta().getJarDepedencies());
                     disableStart();
                 }
             }
@@ -127,7 +127,7 @@ public class DesignerCanvas extends JPanel {
     private void mouseClickAction(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
-        IkasanElement mouseSelectedComponent = getComponentAtXY(x, y);
+        BasicElement mouseSelectedComponent = getComponentAtXY(x, y);
 
           // Right click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
@@ -161,7 +161,7 @@ public class DesignerCanvas extends JPanel {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.updateJsonModel();
-                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getIkasanComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getComponentMeta().getJarDepedencies());
                 }
             } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
@@ -188,7 +188,7 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY of the current pointer
      */
     private void mouseMoveAction(int mouseX, int mouseY) {
-        IkasanElement mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
+        BasicElement mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (mouseSelectedComponent instanceof Flow && ((Flow)mouseSelectedComponent).getFlowIntegrityStatus() != null) {
             this.setToolTipText(((Flow)mouseSelectedComponent).getFlowIntegrityStatus());
         } else {
@@ -202,7 +202,7 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY at the start of the drag
      */
     private void mouseDragAction(int mouseX, int mouseY) {
-        IkasanElement mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
+        BasicElement mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         LOG.trace("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
         if (mouseSelectedComponent instanceof FlowElement) {
@@ -237,7 +237,7 @@ public class DesignerCanvas extends JPanel {
      * If we are on the  canvas and not any flow, set the module as the selected component
      * @param component currently pointed to by the mouse.
      */
-    public void setSelectedComponent(IkasanElement component) {
+    public void setSelectedComponent(BasicElement component) {
         Module ikasanModule = getIkasanModule();
         deSelectAllCompnentsAndFlows();
         // Set selected
@@ -279,9 +279,9 @@ public class DesignerCanvas extends JPanel {
      * @param ypos of the mouse click
      * @return the ikasan component (flows component, flow, module) currently selected.
      */
-    public IkasanElement getComponentAtXY(int xpos, int ypos) {
+    public BasicElement getComponentAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
-        IkasanElement ikasanComponent = null;
+        BasicElement ikasanComponent = null;
         if (ikasanModule != null) {
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
@@ -309,9 +309,9 @@ public class DesignerCanvas extends JPanel {
      * @param ypos of the mouse click
      * @return the ikasan component (flows component, flow, module) currently selected.
      */
-    public IkasanElement getFlowExceptionResolverAtXY(int xpos, int ypos) {
+    public BasicElement getFlowExceptionResolverAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
-        IkasanElement ikasanComponent;
+        BasicElement ikasanComponent;
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
                 .filter(Flow::hasExceptionResolver)
@@ -336,9 +336,9 @@ public class DesignerCanvas extends JPanel {
      * @param ypos of the mouse click
      * @return the ikasan component (flows component, flow, module) currently selected.
      */
-    public IkasanElement getFlowAtXY(int xpos, int ypos) {
+    public BasicElement getFlowAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
-        IkasanElement ikasanComponent ;
+        BasicElement ikasanComponent ;
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
                 .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
@@ -364,7 +364,7 @@ public class DesignerCanvas extends JPanel {
      */
     public void componentDraggedToFlowAction(int mouseX, int mouseY, final FlowElement flowElement) {
         if (flowElement != null) {
-            final IkasanElement targetComponent = getComponentAtXY(mouseX, mouseY);
+            final BasicElement targetComponent = getComponentAtXY(mouseX, mouseY);
             Flow targetFlow = null;
             FlowElement targetFlowComponent;
 
@@ -377,7 +377,7 @@ public class DesignerCanvas extends JPanel {
 
             if (targetFlow != null) {
                 IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
-                String issue = targetFlow.issueCausedByAdding(flowElement.getIkasanComponentMeta());
+                String issue = targetFlow.issueCausedByAdding(flowElement.getComponentMeta());
                 if (issue.isEmpty()) {
                     if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
                         ikasanFlowViewHandler.setFlowReceptiveMode();
@@ -441,11 +441,11 @@ public class DesignerCanvas extends JPanel {
      * @param ikasanComponentType to be added
      * @return true of we managed to add the component.
      */
-    public boolean requestToAddComponent(int x, int y, IkasanComponentMeta ikasanComponentType) {
+    public boolean requestToAddComponent(int x, int y, ComponentMeta ikasanComponentType) {
         Module ikasanModule = getIkasanModule();
         if (x >= 0 && y >= 0) {
-            IkasanElement ikasanComponent = getComponentAtXY(x,y);
-            IkasanElement newComponent;
+            BasicElement ikasanComponent = getComponentAtXY(x,y);
+            BasicElement newComponent;
             // Add new component to existing flow
             if (ikasanComponent instanceof FlowElement || ikasanComponent instanceof Flow) {
                 Flow containingFlow;
@@ -460,7 +460,6 @@ public class DesignerCanvas extends JPanel {
                 }
                 newComponent = null;
                 try {
-
                     newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
                 } catch (Exception ex) {
                     LOG.warn("ERROR: Intercept silent popup box failure, " + ex);
@@ -468,7 +467,11 @@ public class DesignerCanvas extends JPanel {
                 if (newComponent != null) {if (newComponent instanceof ExceptionResolver) {
                         containingFlow.setExceptionResolver((ExceptionResolver)newComponent);
                     } else {
-                        insertNewComponentBetweenSurroundingPair(containingFlow, (FlowElement) newComponent, x, y);
+                        if (newComponent.getComponentMeta().isConsumer()) {
+                            containingFlow.setConsumer((FlowElement) newComponent);
+                        } else {
+                            insertNewComponentBetweenSurroundingPair(containingFlow, (FlowElement) newComponent, x, y);
+                        }
                     }
                 } else {
                     return false;
@@ -483,7 +486,7 @@ public class DesignerCanvas extends JPanel {
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.updateJsonModel();
-            pipsiIkasanModel.generateSourceFromModel(ikasanModule.getIkasanComponentMeta().getJarDepedencies());
+            pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentMeta().getJarDepedencies());
             StudioPsiUtils.generateModelFromJSON(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();
@@ -499,7 +502,7 @@ public class DesignerCanvas extends JPanel {
      * @param containingFlow that will hold this component
      * @return the fully populated component or null if the action was cancelled.
      */
-    private FlowElement createViableFlowComponent(IkasanComponentMeta ikasanComponentType, Flow containingFlow) {
+    private FlowElement createViableFlowComponent(ComponentMeta ikasanComponentType, Flow containingFlow) {
         FlowElement newComponent = FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver(newComponent);
@@ -513,7 +516,7 @@ public class DesignerCanvas extends JPanel {
      * @param newComponent to be included in panel
      * @return the populated component or null if the action was cancelled.
      */
-    private IkasanElement createViableComponent(IkasanElement newComponent) {
+    private BasicElement createViableComponent(BasicElement newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
             // Add new component
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
@@ -535,7 +538,7 @@ public class DesignerCanvas extends JPanel {
      * @param newComponent to be included in panel
      * @return the populated component or null if the action was cancelled.
      */
-    private IkasanElement createExceptionResolver(IkasanElement newComponent) {
+    private BasicElement createExceptionResolver(BasicElement newComponent) {
         if (newComponent.hasUnsetMandatoryProperties()) {
 
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
@@ -560,7 +563,7 @@ public class DesignerCanvas extends JPanel {
      * @param x location of the drop
      * @param y location of the drop
      */
-    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, IkasanComponentMeta ikasanComponentType, int x, int y) {
+    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, ComponentMeta ikasanComponentType, int x, int y) {
         // insert new component between surrounding pari
         Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
         List<FlowElement> components = containingFlow.getFlowElements() ;

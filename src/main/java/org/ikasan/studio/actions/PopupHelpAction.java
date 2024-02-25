@@ -4,7 +4,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.IkasanElement;
+import org.ikasan.studio.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
@@ -16,11 +16,11 @@ import java.awt.event.MouseEvent;
 
 public class PopupHelpAction  implements ActionListener {
    private final String projectKey;
-   private final IkasanElement component;
+   private final BasicElement component;
    private final MouseEvent mouseEvent;
    private final boolean webHelp;
 
-   public PopupHelpAction(String projectKey, IkasanElement component, MouseEvent mouseEvent, boolean webHelp) {
+   public PopupHelpAction(String projectKey, BasicElement component, MouseEvent mouseEvent, boolean webHelp) {
       this.projectKey = projectKey;
       this.component = component;
       this.mouseEvent = mouseEvent;
@@ -30,9 +30,9 @@ public class PopupHelpAction  implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
       final IkasanFlowComponentViewHandler viewHandler = (IkasanFlowComponentViewHandler) component.getViewHandler();
       if (webHelp) {
-         BrowserUtil.browse(viewHandler.getFlowElement().getIkasanComponentMeta().getWebHelpURL());
+         BrowserUtil.browse(viewHandler.getFlowElement().getComponentMeta().getWebHelpURL());
       } else {
-         JTextArea jTextArea = new JTextArea(viewHandler.getFlowElement().getIkasanComponentMeta().getHelpText());
+         JTextArea jTextArea = new JTextArea(viewHandler.getFlowElement().getComponentMeta().getHelpText());
          jTextArea.setLineWrap(true);
          JComponent helpPanel = new JPanel(new BorderLayout());
          helpPanel.add(jTextArea, BorderLayout.CENTER);

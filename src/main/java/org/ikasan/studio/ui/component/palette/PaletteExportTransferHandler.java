@@ -39,8 +39,8 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             JList paletteList = (JList)sourceComponent;
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
             IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(
-                    FlowElementFactory.createFlowElement(item.getIkasanComponentMeta(), null));
-            Image dragImage = item.getIkasanComponentMeta().getSmallIcon().getImage();
+                    FlowElementFactory.createFlowElement(item.getComponentMeta(), null));
+            Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);
             }

@@ -1,14 +1,11 @@
 package org.ikasan.studio;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
+import org.ikasan.studio.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.IkasanElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.meta.Element;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -212,8 +209,8 @@ public class StudioUtils {
     }
 
 
-    public static Map<String, IkasanComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
-        Map<String, IkasanComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
+    public static Map<String, ComponentPropertyMeta> readIkasanComponentProperties(String propertiesFile) {
+        Map<String, ComponentPropertyMeta> componentProperties = new LinkedHashMap<>();
         String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
         Set<String> propertyConfigLabels = new HashSet<>();
@@ -292,24 +289,24 @@ public class StudioUtils {
 
                     // XXXXX try JSON deserialise here
 
-                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = IkasanComponentPropertyMeta.builder().build();
-//                    IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(
+                    ComponentPropertyMeta componentPropertyMeta = ComponentPropertyMeta.builder().build();
+//                    ComponentPropertyMeta componentPropertyMeta = new ComponentPropertyMeta(
 //                            paramGroupNumber, causesUserCodeRegeneration, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
 //                            propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
 //                    if (parentPropertyName != null) {
                         // Parent child relationship
 //                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName, paramGroupNumber);
 //                        IkasanComponentPropertyMetaKey parentKey = new IkasanComponentPropertyMetaKey(parentPropertyName);
-//                        IkasanComponentPropertyMeta parent = componentProperties.get(parentKey);
+//                        ComponentPropertyMeta parent = componentProperties.get(parentKey);
 //                        if (parent == null) {
-//                            componentProperties.put(parentKey, new IkasanComponentPropertyMeta(newKey, ikasanComponentPropertyMeta));
+//                            componentProperties.put(parentKey, new ComponentPropertyMeta(newKey, componentPropertyMeta));
 //                        }
 //                        else {
-//                            parent.addSubProperty(newKey, ikasanComponentPropertyMeta);
+//                            parent.addSubProperty(newKey, componentPropertyMeta);
 //                        }
 //                    } else {
                         // Simple scenario
-                        componentProperties.put(newKey, ikasanComponentPropertyMeta);
+                        componentProperties.put(newKey, componentPropertyMeta);
 //                    }
                 }
             } catch (IOException ioe) {
@@ -321,19 +318,19 @@ public class StudioUtils {
         return componentProperties;
     }
 
-    protected Element deserializeElement(String elementPath) throws IOException {
-        LOG.info("Loading " + elementPath);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        // Below prevents comments in JSON from causing issues.
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(elementPath);
-        String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining());
-        return objectMapper.readValue(jsonString, Element.class);
-    }
+//    protected Element deserializeElement(String elementPath) throws IOException {
+//        LOG.info("Loading " + elementPath);
+//
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        // Below prevents comments in JSON from causing issues.
+//        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+//
+//        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(elementPath);
+//        String jsonString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+//                .lines()
+//                .collect(Collectors.joining());
+//        return objectMapper.readValue(jsonString, Element.class);
+//    }
 
 
     private static final int ARTIFACT_ID_INDEX = 0;
@@ -438,7 +435,7 @@ public class StudioUtils {
      * @param template to be updated
      * @return A string representing a property
      */
-    public static String getPropertyLabelPackageStyle(Module module, Flow flow, IkasanElement component, String template) {
+    public static String getPropertyLabelPackageStyle(Module module, Flow flow, BasicElement component, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
@@ -454,7 +451,7 @@ public class StudioUtils {
         return propertyLabel;
     }
 
-    public static String getPropertyLabelVariableStyle(Module module, Flow flow, IkasanElement component, String template) {
+    public static String getPropertyLabelVariableStyle(Module module, Flow flow, BasicElement component, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {

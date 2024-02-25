@@ -15,15 +15,15 @@ public class FlowsBespokeComponentTemplateTest {
         String clazzName = "MyConverter";
 
         // Wait till refactor
-//        Module ikasanModule = TestFixtures.getIkasanModule();
+//        Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule();
 //        ikasanModule.addFlow(new Flow());
 //        Flow newFlow = ikasanModule.getFlows().get(0);
 //        FlowElement ikasanFlowComponent = FlowElement.createFlowElement(IkasanComponentMetax.CUSTOM_CONVERTER, newFlow);
-//        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.NAME, "bespokeVarName");
-//        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
-//        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
-//        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.FROM_TYPE, "java.lang.String");
-//        ikasanFlowComponent.updatePropertyValue(IkasanComponentPropertyMeta.TO_TYPE, "java.lang.Integer");
+//        ikasanFlowComponent.updatePropertyValue(ComponentPropertyMeta.NAME, "bespokeVarName");
+//        ikasanFlowComponent.updatePropertyValue(ComponentPropertyMeta.DESCRIPTION, "Beskpoke conversion");
+//        ikasanFlowComponent.updatePropertyValue(ComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
+//        ikasanFlowComponent.updatePropertyValue(ComponentPropertyMeta.FROM_TYPE, "java.lang.String");
+//        ikasanFlowComponent.updatePropertyValue(ComponentPropertyMeta.TO_TYPE, "java.lang.Integer");
 //
 //        newFlow.addFlowComponent(ikasanFlowComponent);
 //        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanFlowComponent);

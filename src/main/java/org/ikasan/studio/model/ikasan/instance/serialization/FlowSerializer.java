@@ -23,14 +23,14 @@ public class FlowSerializer extends StdSerializer<Flow> {
     }
 
     protected void serializePayload(Flow flow, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        IkasanElementSerializer ikasanElementSerializer = new IkasanElementSerializer();
+        BasicElementSerializer basicElementSerializer = new BasicElementSerializer();
         FlowElementSerializer flowElementSerializer = new FlowElementSerializer();
 
         // The properties for the flow itself
-        ikasanElementSerializer.serializePayload(flow, jsonGenerator);
+        basicElementSerializer.serializePayload(flow, jsonGenerator);
 
         if (flow.getConsumer() != null) {
-            jsonGenerator.writeFieldName(Flow.CONSUMER);
+            jsonGenerator.writeFieldName(Flow.CONSUMER_JSON_TAG);
             jsonGenerator.writeStartObject();
             flowElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
             jsonGenerator.writeEndObject();
@@ -56,11 +56,11 @@ public class FlowSerializer extends StdSerializer<Flow> {
 
         if (flow.getTransitions() != null && !flow.getTransitions().isEmpty()) {
             // Since transitions are simple pojos, we can use the default serialiser
-            serializerProvider.defaultSerializeField(Flow.TRANSITIONS, flow.getTransitions(), jsonGenerator);
+            serializerProvider.defaultSerializeField(Flow.TRANSITIONS_TSON_TAG, flow.getTransitions(), jsonGenerator);
         }
 
         if (flow.getFlowElements() != null && !flow.getFlowElements().isEmpty()) {
-            jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS);
+            jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS_JSON_TAG);
             for (FlowElement flowElement : flow.getFlowElements()) {
                 jsonGenerator.writeStartObject();
                 flowElementSerializer.serializePayload(flowElement, jsonGenerator);
@@ -69,7 +69,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
             jsonGenerator.writeEndArray();
         }
 
-        ikasanElementSerializer.serializePayload(flow.getExceptionResolver(), jsonGenerator);
+        basicElementSerializer.serializePayload(flow.getExceptionResolver(), jsonGenerator);
     }
 
     /**

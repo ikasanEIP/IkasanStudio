@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
@@ -23,10 +23,10 @@ public class ComponentPropertyEditBox {
     private boolean causesUserCodeRegeneration = false;
     private JCheckBox regenerateSourceCheckBox;
     private JLabel regenerateLabel;
-    private final IkasanComponentPropertyMeta meta;
-    private final IkasanComponentProperty componentProperty;
+    private final ComponentPropertyMeta meta;
+    private final ComponentProperty componentProperty;
 
-    public ComponentPropertyEditBox(IkasanComponentProperty componentProperty, boolean componentInitialisation) {
+    public ComponentPropertyEditBox(ComponentProperty componentProperty, boolean componentInitialisation) {
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
@@ -243,7 +243,7 @@ public class ComponentPropertyEditBox {
     /**
      * Usually the final step of edit, update the original value object with the entered data
      */
-    public IkasanComponentProperty updateValueObjectWithEnteredValues() {
+    public ComponentProperty updateValueObjectWithEnteredValues() {
         componentProperty.setValue(getValue());
         return componentProperty;
     }
@@ -273,13 +273,13 @@ public class ComponentPropertyEditBox {
     public JCheckBox getRegenerateSourceCheckBox() { return regenerateSourceCheckBox; }
     public JLabel getRegenerateLabel() { return regenerateLabel; }
 
-    public IkasanComponentPropertyMeta getMeta() {
+    public ComponentPropertyMeta getMeta() {
         return meta;
     }
     public boolean isMandatory() {
         return meta.isMandatory();
     }
-    public IkasanComponentProperty getComponentProperty() {
+    public ComponentProperty getComponentProperty() {
         return componentProperty;
     }
 }

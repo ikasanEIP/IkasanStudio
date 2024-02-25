@@ -14,9 +14,9 @@ public class FlowsBespokePropertyTemplateTest {
         String clazzName = "MyBespokeClassForProperty";
 
         // Wait till refactor
-//        IkasanComponentPropertyMeta ikasanComponentPropertyMeta = new IkasanComponentPropertyMeta(1, false, false, true, true, false,
+//        ComponentPropertyMeta ikasanComponentPropertyMeta = new ComponentPropertyMeta(1, false, false, true, true, false,
 //                "MessageProviderPostProcessor", null, String.class, "org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor", null, null, null, null);
-//        IkasanComponentProperty ikasanComponentProperty = new IkasanComponentProperty(ikasanComponentPropertyMeta, clazzName);
+//        ComponentProperty ikasanComponentProperty = new ComponentProperty(ikasanComponentPropertyMeta, clazzName);
 //
 //        String templateString = FlowsBespokePropertyTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, clazzName, ikasanComponentProperty, "");
 //

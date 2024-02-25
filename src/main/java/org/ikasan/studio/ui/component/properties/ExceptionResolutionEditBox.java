@@ -1,11 +1,11 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
-import org.ikasan.studio.model.ikasan.instance.IkasanComponentProperty;
+import org.ikasan.studio.model.ikasan.meta.ExceptionResolutionMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanExceptionResolutionMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class ExceptionResolutionEditBox {
 
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
-        List<String> currentExceptions = IkasanExceptionResolutionMeta.getStandardExceptionsList();
+        List<String> currentExceptions = ExceptionResolutionMeta.getStandardExceptionsList();
         this.exceptionJComboBox = new JComboBox(currentExceptions.toArray());
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
@@ -52,7 +52,7 @@ public class ExceptionResolutionEditBox {
             actionJComboBox.setSelectedItem(currentAction);
             if (!exceptionResolution.getParams().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
-                for (IkasanComponentProperty property : exceptionResolution.getParams()) {
+                for (ComponentProperty property : exceptionResolution.getParams()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
@@ -71,9 +71,9 @@ public class ExceptionResolutionEditBox {
         String actionSelected = (String)actionJComboBox.getSelectedItem();
         if (actionSelected != null && ! actionSelected.equals(currentAction)) {
             actionParamEditBoxList = new ArrayList<>();
-            for (IkasanComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
+            for (ComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
                 if (!propertyMeta.isVoid()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new IkasanComponentProperty(propertyMeta), this.componentInitialisation);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new ComponentProperty(propertyMeta), this.componentInitialisation);
                     actionParamEditBoxList.add(actionParam);
                 }
             }
@@ -95,7 +95,7 @@ public class ExceptionResolutionEditBox {
         exceptionResolution.setExceptionsCaught(theException);
         exceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
-            List<IkasanComponentProperty> newActionParams = new ArrayList<>();
+            List<ComponentProperty> newActionParams = new ArrayList<>();
             exceptionResolution.setParams(newActionParams);
             for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
                 newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());
@@ -208,7 +208,7 @@ public class ExceptionResolutionEditBox {
             result.add(new ValidationInfo("The exception " + exceptionJComboBox.getSelectedItem() + " already has an assigned action, change the exception or cancel"));
         } else if (actionJComboBox.getSelectedItem() == null) {
             result.add(new ValidationInfo("An action must be chosen"));
-        } else if (!IkasanExceptionResolutionMeta.isValidAction((String) actionJComboBox.getSelectedItem())) {
+        } else if (!ExceptionResolutionMeta.isValidAction((String) actionJComboBox.getSelectedItem())) {
             result.add(new ValidationInfo("The action " + actionJComboBox.getSelectedItem() + " is not recognised"));
         } else {
             // By now the action params should have been set (if there are any)

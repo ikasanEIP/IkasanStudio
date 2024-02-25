@@ -4,6 +4,7 @@
   "componentType": "org.ikasan.spec.module.Module",
   "implementingClass": "",
   "ikasanComponentFactoryMethod": "",
+  "usesBuilder" : true,
   "jarDepedencies": [
     {
       "groupId": "org.ikasan",
@@ -62,7 +63,8 @@
     },
     "applicationPackageName": {
       "propertyName": "applicationPackageName",
-      "helpText": "The java package name for the generated module code."
+      "helpText": "The java package name for the new module.",
+      "mandatory": true
     },
     "port": {
       "propertyName": "port",

@@ -35,7 +35,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
         this.flowElement = flowElement;
         if (flowElement != null) {
             flow = new Flow();
-//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getIkasanComponentMeta());
+//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getComponentMeta());
 //        } else {
 //            ikasanFlowUIComponent = IkasanComponentLibrary.UNKNOWN
         }
@@ -99,7 +99,7 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     }
 
     public ImageIcon getCanvasIcon() {
-        return flowElement.getIkasanComponentMeta().getCanvasIcon();
+        return flowElement.getComponentMeta().getCanvasIcon();
     }
 
     @Override

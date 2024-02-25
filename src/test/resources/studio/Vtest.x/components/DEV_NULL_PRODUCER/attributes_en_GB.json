@@ -4,7 +4,9 @@
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl",
-  "ikasanComponentFactoryMethod": "getComponentBuilder().devNullProducer()",
+  "ikasanComponentFactoryMethod": "devNullProducer",
+  "usesBuilder" : true,
+  "flowBuilderMethod": "producer",
   "displayOrder": 9,
   "properties": {
     "componentName": {

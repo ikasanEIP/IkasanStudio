@@ -15,7 +15,7 @@ public class ViewHandlerFactory {
         if (component != null) {
             if (component instanceof PaletteItem) {
 //            if (component instanceof FlowElement) {
-                returnViewHandler =  new IkasanPaletteElementViewHandler(((PaletteItem) component).getIkasanComponentMeta());
+                returnViewHandler =  new IkasanPaletteElementViewHandler(((PaletteItem) component).getComponentMeta());
             } else if (component instanceof Module) {
                 returnViewHandler =  new IkasanModuleViewHandler((Module) component);
             } else if (component instanceof Flow) {

@@ -1,5 +1,6 @@
 package org.ikasan.studio.generator;
 
+import org.ikasan.studio.TestFixtures;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -21,7 +23,7 @@ public class FlowsMessageFilterTemplateTest {
     @Test
     @Disabled
     public void testCreateWith_fullyPopulatedFilterComponent() throws IOException {
-        Module ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
         newFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFilterComponent(newFlow));
@@ -37,7 +39,7 @@ public class FlowsMessageFilterTemplateTest {
     @Test
     @Disabled
     public void testCreateWith_minimumPopulatedFilterComponent() throws IOException {
-        Module ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
         newFlow.getFlowElements().add(TestFixtures.getMinimumPopulatedFilterComponent(newFlow));
@@ -53,7 +55,7 @@ public class FlowsMessageFilterTemplateTest {
     @Test
     @Disabled
     public void testCreateWith_filterComponentConfiguredResourceIDButNoIsConfiguredResource() throws IOException {
-        Module ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
 
@@ -69,7 +71,7 @@ public class FlowsMessageFilterTemplateTest {
     @Test
     @Disabled
     public void testCreateWith_filterComponentIsConfiguredResourceButNoConfiguredResourceID() throws IOException {
-        Module ikasanModule = TestFixtures.getIkasanModule();
+        Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
         ikasanModule.addFlow(new Flow());
         Flow newFlow = ikasanModule.getFlows().get(0);
 

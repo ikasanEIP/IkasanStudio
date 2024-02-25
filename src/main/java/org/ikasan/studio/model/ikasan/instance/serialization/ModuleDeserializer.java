@@ -10,16 +10,17 @@ import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.Transition;
+import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentMeta;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.ikasan.studio.generator.Generator.FLOWS_TAG;
 import static org.ikasan.studio.model.ikasan.instance.serialization.SerializerUtils.getTypedValue;
-import static org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta.*;
+import static org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta.*;
 
 public class ModuleDeserializer extends StdDeserializer<Module> {
     public ModuleDeserializer() {
@@ -35,7 +36,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         while(fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
             String   fieldName  = field.getKey();
-            if ("flows".equals(fieldName)) {
+            if (FLOWS_TAG.equals(fieldName)) {
                 module.setFlows(getFlows(field.getValue()));
             } else {
                 Object value = getTypedValue(field);
@@ -70,11 +71,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String   fieldName  = field.getKey();
-                if (Flow.CONSUMER.equals(fieldName)) {
+                if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
                     flow.setConsumer(getFlowElement(field.getValue()));
-                } else if (Flow.TRANSITIONS.equals(fieldName)) {
+                } else if (Flow.TRANSITIONS_TSON_TAG.equals(fieldName)) {
                     flow.setTransitions(getTransitions(field.getValue()));
-                } else if (Flow.FLOW_ELEMENTS.equals(fieldName)) {
+                } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
                     flowElementsMap = getFlowElements(field.getValue());
                 } else {
                     Object value = getTypedValue(field);
@@ -179,22 +180,22 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         FlowElement flowElement = null;
         // Possibly just open/close brackets
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
-            String implementingClass = jsonNode.get(IkasanComponentMeta.IMPLEMENTING_CLASS) != null ? jsonNode.get(IkasanComponentMeta.IMPLEMENTING_CLASS).asText() : null;
-            String componentType = jsonNode.get(IkasanComponentMeta.COMPONENT_TYPE) != null ? jsonNode.get(IkasanComponentMeta.COMPONENT_TYPE).asText() : null;
+            String implementingClass = jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS) != null ? jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS).asText() : null;
+            String componentType = jsonNode.get(ComponentMeta.COMPONENT_TYPE) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE).asText() : null;
 
-            IkasanComponentMeta ikasanComponentMeta = IkasanComponentLibrary.getIkasanComponentByClassOrType(
+            ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByClassOrType(
                     IkasanComponentLibrary.STD_IKASAN_PACK, implementingClass, componentType);
-            if (ikasanComponentMeta == null) {
+            if (componentMeta == null) {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
             }
-            flowElement = FlowElement.flowElementBuilder().componentMeta(ikasanComponentMeta).build();
+            flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).build();
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
 
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String fieldName = field.getKey();
-                if (IkasanComponentMeta.IMPLEMENTING_CLASS.equals(fieldName) ||
-                        IkasanComponentMeta.COMPONENT_TYPE.equals(fieldName)) {
+                if (ComponentMeta.IMPLEMENTING_CLASS.equals(fieldName) ||
+                        ComponentMeta.COMPONENT_TYPE.equals(fieldName)) {
                     // these special components are actually meta and captured above, used to identify the component.
                     continue;
                 }

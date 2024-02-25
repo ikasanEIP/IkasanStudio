@@ -2,11 +2,11 @@ package org.ikasan.studio.generator;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiJavaFile;
+import org.ikasan.studio.model.ikasan.instance.FlowBeskpokeElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanFlowBeskpokeElement;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentPropertyMeta;
+import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.util.Map;
 
@@ -24,8 +24,8 @@ public class FlowsBespokeComponentTemplate extends Generator {
                 FlowsBespokePropertyTemplate.create(project, ikasanModule, ikasanFlow, component);
             }
 
-            if (component instanceof IkasanFlowBeskpokeElement && ((IkasanFlowBeskpokeElement)component).isOverrideEnabled()) {
-                String clazzName = (String)component.getProperty(IkasanComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
+            if (component instanceof FlowBeskpokeElement && ((FlowBeskpokeElement)component).isOverrideEnabled()) {
+                String clazzName = (String)component.getProperty(ComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
                 createSourceFile(clazzName, component, project, ikasanModule, ikasanFlow);
 //                String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
 //                String templateString = generateContents(newPackageName, component);
@@ -36,7 +36,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
 //                component.getViewHandler().setPsiJavaFile(newFile);
             }
 
-            if (component.getProperty(IkasanComponentPropertyMeta.CONFIGURATION) != null) {
+            if (component.getProperty(ComponentPropertyMeta.CONFIGURATION) != null) {
 
             }
 
@@ -46,15 +46,15 @@ public class FlowsBespokeComponentTemplate extends Generator {
     private static void createSourceFile(String newClassName, FlowElement component, Project project, Module ikasanModule, Flow ikasanFlow) {
         String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
         String templateString = generateContents(newPackageName, component);
-        boolean overwriteClassIfExists = ((IkasanFlowBeskpokeElement)component).isOverrideEnabled();
+        boolean overwriteClassIfExists = ((FlowBeskpokeElement)component).isOverrideEnabled();
         PsiJavaFile newFile = createJavaSourceFile(project, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
-        ((IkasanFlowBeskpokeElement)component).setOverrideEnabled(false);
+        ((FlowBeskpokeElement)component).setOverrideEnabled(false);
 
         component.getViewHandler().setPsiJavaFile(newFile);
     }
 
     protected static String generateContents(String packageName, FlowElement ikasanFlowComponent) {
-        String templateName = ikasanFlowComponent.getIkasanComponentMeta().getName().toLowerCase() + "Template.ftl";
+        String templateName = ikasanFlowComponent.getComponentMeta().getName().toLowerCase() + "Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(COMPONENT_TAG, ikasanFlowComponent);

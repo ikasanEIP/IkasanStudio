@@ -6,6 +6,8 @@
   "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
   "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
+  "usesBuilder" : true,
+  "flowBuilderMethod": "withExceptionResolver",
   "displayOrder": 5,
   "properties": {
     "componentName": {

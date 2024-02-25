@@ -2,7 +2,7 @@ package org.ikasan.studio.actions;
 
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.StudioPsiUtils;
-import org.ikasan.studio.model.ikasan.instance.IkasanElement;
+import org.ikasan.studio.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.Module;
@@ -12,9 +12,9 @@ import java.awt.event.ActionListener;
 
 public class DeleteComponentAction implements ActionListener {
    private final String projectKey;
-   IkasanElement component;
+   BasicElement component;
 
-   public DeleteComponentAction(String projectKey, IkasanElement component) {
+   public DeleteComponentAction(String projectKey, BasicElement component) {
       this.projectKey = projectKey;
       this.component = component;
    }

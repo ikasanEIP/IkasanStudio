@@ -33,11 +33,11 @@ public class ModuleSerializer extends StdSerializer<Module> {
 
     @Override
     public void serialize(Module module, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        IkasanElementSerializer ikasanElementSerializer = new IkasanElementSerializer();
+        BasicElementSerializer basicElementSerializer = new BasicElementSerializer();
 
         jsonGenerator.writeStartObject();
         // First, the module fields
-        ikasanElementSerializer.serializePayload(module, jsonGenerator);
+        basicElementSerializer.serializePayload(module, jsonGenerator);
 
         // Now Flows
         if (module.getFlows() != null && !module.getFlows().isEmpty()) {
