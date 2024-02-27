@@ -1,7 +1,7 @@
 package org.ikasan.studio;
 
-import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 
@@ -38,7 +38,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getDevNullProducer() {
-        ComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "DEV_NULL_PRODUCER");
+        ComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Dev Null Producer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(devNullProducerMeta)
                 .componentName("My DevNull Producer")
@@ -47,7 +47,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getCustomConverter() {
-        ComponentMeta customConverterMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "CUSTOM_CONVERTER");
+        ComponentMeta customConverterMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Custom Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(customConverterMeta)
                 .componentName("My Custom Converter")
@@ -59,7 +59,7 @@ public class TestFixtures {
         return flowElement;
     }
     public static FlowElement getEventGeneratingConsumer() {
-        ComponentMeta eventGeneratingConsumerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "EVENT_GENERATING_CONSUMER");
+        ComponentMeta eventGeneratingConsumerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Event Generating Consumer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(eventGeneratingConsumerMeta)
                 .componentName("My Event Generating Consumer")

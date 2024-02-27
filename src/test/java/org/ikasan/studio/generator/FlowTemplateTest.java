@@ -16,8 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class FlowTemplateTest {
     Module module;
-    Flow flow = new Flow();
-    private static String TEST_FLOW_NAME = "MyFlow1";
+    private static final String TEST_FLOW_NAME = "MyFlow1";
 
     @BeforeEach
     public void setUp() {
@@ -33,10 +32,30 @@ public class FlowTemplateTest {
      */
     @Disabled
     @Test
-    public void testCreateFlowWith_oneFlow() throws IOException {
+    public void testCreateFlowWith_oneFlow() {
 //        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
 //        assertThat(templateString, is(notNullValue()));
 //        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedEventGeneratingConsumer.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getEventGeneratingConsumer()))
+                .build();
+        module.addFlow(flow);
+
+//        List<FlowElement> components = flow.getFlowElements() ;
+//        FlowElement component = TestFixtures.getDevNullProducer();
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);
+
     }
 
     /**
@@ -56,25 +75,7 @@ public class FlowTemplateTest {
     }
 
 
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1EventGeneratingConsumer.java
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
-//        Flow flow = TestFixtures.getUnbuiltFlow()
-//                .flowElements(Collections.singletonList(TestFixtures.getDevNullProducer()))
-//                .build();
-//        module.addFlow(flow);
-//
-////        List<FlowElement> components = flow.getFlowElements() ;
-////        FlowElement component = TestFixtures.getDevNullProducer();
-//
-//        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
-//        assertNotNull(templateString);
-//        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "EventGeneratingConsumer.java"), templateString);
-//
-//    }
+
 //
 //    /**
 //     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpConsumerComponent.java

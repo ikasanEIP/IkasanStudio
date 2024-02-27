@@ -21,7 +21,7 @@ class ComponentIODeserializeTest {
 
     @Test
     public void testModuleMetaDeserialise() throws StudioException {
-        ComponentMeta component = (ComponentMeta)ComponentIO.deserializeMetaComponent("studio/Vtest.x/components/MODULE/attributes_en_GB.json");
+        ComponentMeta component = (ComponentMeta)ComponentIO.deserializeMetaComponent("studio/Vtest.x/components/Module/attributes_en_GB.json");
         Dependency firstDependency = new Dependency();
         firstDependency.setArtifactId("ikasan-connector-base");
         firstDependency.setGroupId("org.ikasan");

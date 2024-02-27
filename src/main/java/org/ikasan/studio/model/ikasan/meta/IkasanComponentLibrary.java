@@ -1,7 +1,6 @@
 package org.ikasan.studio.model.ikasan.meta;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.io.ComponentIO;
@@ -25,19 +24,14 @@ public class IkasanComponentLibrary {
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
     private static final String LARGE_ICON_NAME = "large.png";
-    public static final String FLOW = "FLOW";
-    public static final String FLOW_NAME = "Flow";
-    public static final String MODULE = "MODULE";
-    public static final String MODULE_NAME = "Module";
-    public static final String EXCEPTION_RESOLVER = "EXCEPTION_RESOLVER";
-    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
+
     private static final Logger LOG = Logger.getInstance("#IkasanComponentLibrary");
 
 
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
     protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
     protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndClassOrType = new HashMap<>(new HashMap<>());
-    private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(MODULE, FLOW, EXCEPTION_RESOLVER));
+    private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(ComponentType.Module.toString(), ComponentType.Flow.toString(), "Exception Resolver"));
 
     /**
      * Refresh the component library.
@@ -65,7 +59,6 @@ public class IkasanComponentLibrary {
 
             assert componentDirectories != null;
             for (String componentDirectory : componentDirectories) {
-                final String componentName = FileNameUtils.getBaseName(componentDirectory);
                 IkasanMeta ikasanMeta;
 
                 try {
@@ -78,6 +71,7 @@ public class IkasanComponentLibrary {
                     continue;
                 }
                 ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
+                final String componentName = componentMeta.getName();
                 componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
                 componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
@@ -124,13 +118,13 @@ public class IkasanComponentLibrary {
     }
 
     public static ComponentMeta getFLow(final String ikasanMetaDataPackVersion) {
-        return getIkasanComponentByKey(ikasanMetaDataPackVersion, FLOW);
+        return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.Flow.toString());
     }
     public static ComponentMeta getModule(final String ikasanMetaDataPackVersion) {
-        return getIkasanComponentByKey(ikasanMetaDataPackVersion, MODULE);
+        return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.Module.toString());
     }
     public static ExceptionResolutionMeta getExceptionResolver(final String ikasanMetaDataPackVersion) {
-        return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, EXCEPTION_RESOLVER);
+        return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.ExceptionResolver.toString());
     }
     public static ComponentMeta getOnException(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");
