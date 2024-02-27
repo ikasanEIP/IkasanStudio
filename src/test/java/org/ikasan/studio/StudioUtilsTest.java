@@ -10,16 +10,22 @@ import java.util.TreeSet;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StudioUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] expectedDirs = new String[]{"studio/Vtest.x/components/CUSTOM_CONVERTER, studio/Vtest.x/components/DEV_NULL_PRODUCER, studio/Vtest.x/components/EVENT_GENERATING_CONSUMER, studio/Vtest.x/components/EXCEPTION_RESOLVER, studio/Vtest.x/components/FLOW, studio/Vtest.x/components/MODULE"};
+        String[] expectedDirs = new String[]{"studio/Vtest.x/components/CustomConverter, studio/Vtest.x/components/DevNullProducer, studio/Vtest.x/components/EventGeneratingConsumer, studio/Vtest.x/components/ExceptionResolver, studio/Vtest.x/components/Flow, studio/Vtest.x/components/Module"};
         String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
         Set<String> expectedDirsSorted = new TreeSet<>(List.of(expectedDirs)) ;
         Set<String> actualDirsSorted = new TreeSet<>(List.of(actualDirs)) ;
-        assertThat(actualDirs.length, is(6));
-        assertThat(actualDirsSorted.toString(), is(expectedDirsSorted.toString()));
+
+        assertAll(
+                "Check the module contains the expected values",
+                () -> assertEquals(6, actualDirs.length),
+                () -> assertEquals(expectedDirsSorted.toString(), actualDirsSorted.toString())
+        );
     }
     @Test
     public void test_get_last_token_with_multiple_tokens() {

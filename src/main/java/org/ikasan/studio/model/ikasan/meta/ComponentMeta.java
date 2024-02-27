@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import static org.ikasan.studio.model.ikasan.meta.ComponentType.*
+        ;
 
 @Data
 @SuperBuilder
@@ -23,19 +25,15 @@ import java.util.TreeMap;
 @AllArgsConstructor
 public class ComponentMeta implements IkasanMeta {
     private static final String DEFAULT_README = "Readme.md";
-    // Its assumed these types are so fundamental they will not change, if they do they need to be instantiated from the Ikasan Version Pack
-    public static final String CONSUMER_TYPE = "org.ikasan.spec.component.endpoint.Consumer";
-    public static final String PRODUCER_TYPE = "org.ikasan.spec.component.endpoint.Producer";
-    public static final String EXCEPTION_RESOLVER_TYPE = "org.ikasan.exceptionResolver.ExceptionResolver";
-    public static final String FLOW_TYPE = "org.ikasan.spec.flow.Flow";
-    public static final String MODULE_TYPE = "org.ikasan.spec.module.Module";
+//    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
+    public static final String FLOW_NAME = "Flow";
 
     public static final String NAME = "name";
     public static final String HELP_TEXT = "helpText";
     public static final String COMPONENT_TYPE = "componentType";
     public static final String IMPLEMENTING_CLASS = "implementingClass";
 
-    // Many of these attributes are used by FreeMarker templates so be careful if refactoring.
+    // DO NOT RENAME - Will affect model.json
     String name;
     String helpText;
     String componentType;
@@ -82,19 +80,19 @@ public class ComponentMeta implements IkasanMeta {
         return properties.get(propertyName);
     }
     public boolean isConsumer() {
-        return CONSUMER_TYPE.equals(componentType);
+        return Consumer.classType.equals(componentType);
     }
     public boolean isProducer() {
-        return PRODUCER_TYPE.equals(componentType);
+        return Producer.classType.equals(componentType);
     }
     public boolean isFlow() {
-        return FLOW_TYPE.equals(componentType);
+        return Flow.classType.equals(componentType);
     }
     public boolean isModule() {
-        return MODULE_TYPE.equals(componentType);
+        return Module.classType.equals(componentType);
     }
     public boolean isExceptionResolver() {
-        return EXCEPTION_RESOLVER_TYPE.equals(componentType);
+        return ExceptionResolver.classType.equals(componentType);
     }
 
     public String getDisplayComponentType() {

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class FlowsComponentFactoryTemplateTest {
     Module module;
 //    Flow ikasanFlow = new Flow();
-    private static String TEST_COMPONENT_FACTORY = "ComponentFactory";
+    private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @BeforeEach
     public void setUp() {
@@ -28,6 +28,22 @@ public class FlowsComponentFactoryTemplateTest {
 //        ikasanFlow.setDescription("MyFlowDescription");
     }
 
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumer.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_eventGeneratingConsumerComponent() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+            .flowElements(Collections.singletonList(TestFixtures.getEventGeneratingConsumer()))
+            .build();
+        module.addFlow(flow);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedEventGeneratingConsumer.java"), templateString);
+    }
 
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedDevNullProducerComponent.java
@@ -52,7 +68,7 @@ public class FlowsComponentFactoryTemplateTest {
      */
     @Test
     @Disabled
-    public void testCreateFlowWith_bespokeComponent() throws IOException {
+    public void testCreateFlowWith_bespokeComponent()  {
 //        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedCustomConverterComponent(ikasanFlow));
 //
 //        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, ikasanModule, ikasanFlow);
