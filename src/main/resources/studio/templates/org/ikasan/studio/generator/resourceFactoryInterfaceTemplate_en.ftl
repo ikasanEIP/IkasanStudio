@@ -10,7 +10,7 @@ package ${studioPackageTag};
 public interface ResourceFactory
 {
 <#compress>
-    <#list flow.ftlGetAllFlowElements()![] as flowElements>
+    <#list flow.ftlGetConsumerAndFlowElements()![] as flowElements>
         <#list flowElements.getStandardConfiguredProperties() as propKey, propValue>
             <#if propValue.meta.userDefineResource>
                 ${propValue.meta.usageDataType} get${StudioUtils.toJavaIdentifier(propValue.valueString)};

@@ -49,9 +49,6 @@ public class FlowTemplateTest {
                 .build();
         module.addFlow(flow);
 
-//        List<FlowElement> components = flow.getFlowElements() ;
-//        FlowElement component = TestFixtures.getDevNullProducer();
-
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);

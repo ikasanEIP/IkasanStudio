@@ -39,14 +39,14 @@ public class PIPSIIkasanModel {
     /**
      * An update has been made to the diagram so we need to reverse this into the code.
      */
-    public void generateSourceFromModel() {
-        generateSourceFromModel(null);
+    public void generateSourceFromModelInstance() {
+        generateSourceFromModelInstance(null);
     }
 
     /**
      * An update has been made to the diagram, so we need to reverse this into the code.
      */
-    public void generateSourceFromModel(List<Dependency> newDependencies) {
+    public void generateSourceFromModelInstance(List<Dependency> newDependencies) {
         Project project = Context.getProject(projectKey);
         CommandProcessor.getInstance().executeCommand(
                 project,
@@ -104,7 +104,7 @@ public class PIPSIIkasanModel {
                 });
     }
 
-    public void updateJsonModel() {
+    public void generateJsonFromModelInstance() {
         Project project = Context.getProject(projectKey);
         CommandProcessor.getInstance().executeCommand(
                 project,

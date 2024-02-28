@@ -91,9 +91,9 @@ public class DesignerCanvas extends JPanel {
                         componentPropertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-                    pipsiIkasanModel.updateJsonModel();
-//                    pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentMeta().getJarDepedencies());
-                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateJsonFromModelInstance();
+//                    pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDepedencies());
                     disableStart();
                 }
             }
@@ -160,8 +160,8 @@ public class DesignerCanvas extends JPanel {
                 if (propertiesDialogue.showAndGet()) {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-                    pipsiIkasanModel.updateJsonModel();
-                    pipsiIkasanModel.generateSourceFromModel(getIkasanModule().getComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateJsonFromModelInstance();
+                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDepedencies());
                 }
             } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
@@ -244,7 +244,7 @@ public class DesignerCanvas extends JPanel {
         if (component instanceof FlowElement) {
             ikasanModule.getFlows()
                     .stream()
-                    .flatMap(x -> x.getFlowElements().stream())
+                    .flatMap(x -> x.ftlGetConsumerAndFlowElements().stream())
                     .filter(x -> x.equals(component))
                     .peek(x -> x.getViewHandler().setAlreadySelected(true));
         } else if (component instanceof Flow) {
@@ -267,7 +267,7 @@ public class DesignerCanvas extends JPanel {
         ikasanModule.getFlows()
                 .stream()
                 .peek(x -> x.getViewHandler().setAlreadySelected(false))
-                .flatMap(x -> x.getFlowElements().stream())
+                .flatMap(x -> x.ftlGetConsumerAndFlowElements().stream())
                 .filter(x -> x.getViewHandler().isAlreadySelected())
                 .peek(x -> x.getViewHandler().setAlreadySelected(false));
     }
@@ -285,7 +285,7 @@ public class DesignerCanvas extends JPanel {
         if (ikasanModule != null) {
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
-                    .flatMap(x -> x.getFlowElements().stream())
+                    .flatMap(x -> x.ftlGetConsumerAndFlowElements().stream())
                     .filter(x -> x.getViewHandler().getLeftX() <= xpos && x.getViewHandler().getRightX() >= xpos && x.getViewHandler().getTopY() <= ypos && x.getViewHandler().getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
@@ -421,7 +421,7 @@ public class DesignerCanvas extends JPanel {
 
         if (ikasanModule != null) {
             for (Flow flow : ikasanModule.getFlows()) {
-                for (FlowElement ikasanFlowComponent : flow.getFlowElements()) {
+                for (FlowElement ikasanFlowComponent : flow.ftlGetConsumerAndFlowElements()) {
                     Proximity draggedToComponent = Proximity.getRelativeProximity(dragged, ikasanFlowComponent.getViewHandler().getCentrePoint(), proximityDetect);
                     if (draggedToComponent == Proximity.LEFT) {
                         surroundingComponents.setLeft(ikasanFlowComponent);
@@ -485,9 +485,9 @@ public class DesignerCanvas extends JPanel {
                 }
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.updateJsonModel();
-            pipsiIkasanModel.generateSourceFromModel(ikasanModule.getComponentMeta().getJarDepedencies());
-            StudioPsiUtils.generateModelFromJSON(projectKey, false);
+            pipsiIkasanModel.generateJsonFromModelInstance();
+            pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDepedencies());
+            StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();
             return true;
@@ -556,28 +556,28 @@ public class DesignerCanvas extends JPanel {
     }
 
 
-    /**
-     * Now we have validated it is OK to add the component, insert it at the drag point
-     * @param containingFlow holding the new component
-     * @param ikasanComponentType to be added
-     * @param x location of the drop
-     * @param y location of the drop
-     */
-    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, ComponentMeta ikasanComponentType, int x, int y) {
-        // insert new component between surrounding pari
-        Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
-        List<FlowElement> components = containingFlow.getFlowElements() ;
-        int numberOfComponents = components.size();
-        for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
-            if (components.get(ii).equals(surroundingComponents.getRight())) {
-                components.add(ii, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
-                break;
-            } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                components.add(ii+1, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
-                break;
-            }
-        }
-    }
+//    /**
+//     * Now we have validated it is OK to add the component, insert it at the drag point
+//     * @param containingFlow holding the new component
+//     * @param ikasanComponentType to be added
+//     * @param x location of the drop
+//     * @param y location of the drop
+//     */
+//    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, ComponentMeta ikasanComponentType, int x, int y) {
+//        // insert new component between surrounding pari
+//        Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
+//        List<FlowElement> components = containingFlow.getFlowElements() ;
+//        int numberOfComponents = components.size();
+//        for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
+//            if (components.get(ii).equals(surroundingComponents.getRight())) {
+//                components.add(ii, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
+//                break;
+//            } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
+//                components.add(ii+1, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
+//                break;
+//            }
+//        }
+//    }
 
     /**
      * Now we have validated it is OK to add the component, insert it at the drag point
@@ -587,20 +587,24 @@ public class DesignerCanvas extends JPanel {
      * @param y location of the drop
      */
     private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, FlowElement ikasanFlowComponent, int x, int y) {
-        // insert new component between surrounding pari
-        Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
-        List<FlowElement> components = containingFlow.getFlowElements() ;
-        int numberOfComponents = components.size();
-        if (numberOfComponents == 0) {
-            components.add(ikasanFlowComponent);
+        if (ikasanFlowComponent.getComponentMeta().isConsumer()) {
+            containingFlow.setConsumer(ikasanFlowComponent);
         } else {
-            for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
-                if (components.get(ii).equals(surroundingComponents.getRight())) {
-                    components.add(ii, ikasanFlowComponent);
-                    break;
-                } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                    components.add(ii+1, ikasanFlowComponent);
-                    break;
+            // insert new component between surrounding pair
+            Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
+            List<FlowElement> components = containingFlow.getFlowElements() ;
+            int numberOfComponents = components.size();
+            if (numberOfComponents == 0) {
+                components.add(ikasanFlowComponent);
+            } else {
+                for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
+                    if (components.get(ii).equals(surroundingComponents.getRight())) {
+                        components.add(ii, ikasanFlowComponent);
+                        break;
+                    } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
+                        components.add(ii+1, ikasanFlowComponent);
+                        break;
+                    }
                 }
             }
         }

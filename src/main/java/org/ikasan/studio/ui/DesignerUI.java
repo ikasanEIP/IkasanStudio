@@ -69,7 +69,7 @@ public class DesignerUI {
             DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
                 // @TODO MODEL
-                StudioPsiUtils.generateModelFromJSON(projectKey, false);
+                StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
             }
         });
     }

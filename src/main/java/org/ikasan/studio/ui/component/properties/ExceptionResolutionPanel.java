@@ -47,10 +47,10 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         if (dataHasChanged()) {
             processEditedFlowComponents();
             // @TODO below line needs changing to model contaxt
-//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModel();
+//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance();
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.updateJsonModel();
-            pipsiIkasanModel.generateSourceFromModel();
+            pipsiIkasanModel.generateJsonFromModelInstance();
+            pipsiIkasanModel.generateSourceFromModelInstance();
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
         } else {
