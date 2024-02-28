@@ -16,7 +16,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
-<#list flow.ftlGetAllFlowElements()![] as flowElement>
+<#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
     <#if flowElement.componentMeta.bespokeClass>
 <#--    <#if flowElement.componentMeta.bespokeClass  || !flowElement.componentMeta.usesBuilder>-->
         @javax.annotation.Resource
@@ -58,7 +58,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 </#compress>
 
 <#compress>
-    <#list flow.ftlGetAllFlowElements()![] as flowElement>
+    <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
     <#-- todo - move this to above section -->
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.meta.isUserImplementedClass()>
@@ -75,7 +75,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 <#compress>
-<#list flow.ftlGetAllFlowElements()![] as flowElement>
+<#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilder>
         return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()

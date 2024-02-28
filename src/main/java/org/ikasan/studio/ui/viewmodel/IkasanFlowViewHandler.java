@@ -113,7 +113,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
         if (flow.hasExceptionResolver()) {
             flow.getExceptionResolver().getViewHandler().paintComponent(canvas, g, -1, -1);
         }
-        List<FlowElement> flowElementList = flow.getFlowElements();
+        List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
         int flowSize = flowElementList.size();
         StudioUIUtils.setLine(g, 2f);
 
@@ -184,8 +184,8 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
-        if (!flow.getFlowElements().isEmpty()) {
-            for (FlowElement ikasanFlowComponent : flow.getFlowElements()) {
+        if (!flow.ftlGetConsumerAndFlowElements().isEmpty()) {
+            for (FlowElement ikasanFlowComponent : flow.ftlGetConsumerAndFlowElements()) {
                 ikasanFlowComponent.getViewHandler().initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                 currentX += ikasanFlowComponent.getViewHandler().getWidth() + FLOW_X_SPACING;
             }
@@ -206,7 +206,7 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     private void setWidthHeights(Graphics graphics, int newTopY) {
-        if (!flow.getFlowElements().isEmpty()) {
+        if (!flow.ftlGetConsumerAndFlowElements().isEmpty()) {
             setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
         } else {
@@ -220,18 +220,18 @@ public class IkasanFlowViewHandler extends ViewHandler {
     }
 
     public int getFlowElementsTopY() {
-        return flow.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getTopY()).min().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> x.getViewHandler().getTopY()).min().orElse(0);
     }
 
     public int getFlowElementsLeftX() {
-        return flow.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> x.getViewHandler().getLeftX()).min().orElse(0);
     }
 
     public int getFlowElementsRightX() {
-        return flow.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> x.getViewHandler().getRightX()).max().orElse(0);
     }
     public int getFlowElementsBottomY() {
-        return flow.getFlowElements().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> x.getViewHandler().getBottomY()).max().orElse(0);
     }
 
     public void setFlowReceptiveMode() {

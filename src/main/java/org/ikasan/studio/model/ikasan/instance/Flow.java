@@ -82,7 +82,11 @@ public class Flow extends BasicElement {
 
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
         if (ikasanFlowComponentToBeRemoved != null && ! flowElements.isEmpty()) {
-            getFlowElements().remove(ikasanFlowComponentToBeRemoved);
+            if (ikasanFlowComponentToBeRemoved.getComponentMeta().isConsumer()) {
+                setConsumer(null);
+            } else {
+                getFlowElements().remove(ikasanFlowComponentToBeRemoved);
+            }
         }
     }
 
@@ -155,6 +159,19 @@ public class Flow extends BasicElement {
 
 
     /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer
+     */
+    public List<FlowElement> ftlGetConsumerAndFlowElements() {
+        List<FlowElement> allFlowElements = new ArrayList<>();
+        if (consumer != null) {
+            allFlowElements.add(consumer);
+        }
+        if (flowElements != null && !flowElements.isEmpty()) {
+            allFlowElements.addAll(flowElements);
+        }
+        return allFlowElements;
+    }    /**
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer
      */

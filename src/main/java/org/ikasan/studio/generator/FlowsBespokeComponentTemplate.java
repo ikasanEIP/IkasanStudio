@@ -19,7 +19,7 @@ import java.util.Map;
 public class FlowsBespokeComponentTemplate extends Generator {
 
     public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow) {
-        for (FlowElement component : ikasanFlow.getFlowElements()) {
+        for (FlowElement component : ikasanFlow.ftlGetConsumerAndFlowElements()) {
             if (component.hasUserImplementedClass()) {
                 FlowsBespokePropertyTemplate.create(project, ikasanModule, ikasanFlow, component);
             }

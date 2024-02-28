@@ -125,7 +125,7 @@ public class StudioPsiUtils {
 
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static void generateModelFromJSON(String projectKey, boolean assumeModuleConfigClass) {
+    public static void generateModelInstanceFromJSON(String projectKey, boolean assumeModuleConfigClass) {
         PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(Context.getProject(projectKey));
         if (jsonModelPsiFile != null) {
 //        Module ikasanModule = Context.getIkasanModule(projectKey);
@@ -293,9 +293,9 @@ public class StudioPsiUtils {
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         // @TODO MODEL
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-        pipsiIkasanModel.updateJsonModel();
-        pipsiIkasanModel.generateSourceFromModel();
-        StudioPsiUtils.generateModelFromJSON(projectKey, false);
+        pipsiIkasanModel.generateJsonFromModelInstance();
+        pipsiIkasanModel.generateSourceFromModelInstance();
+        StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
