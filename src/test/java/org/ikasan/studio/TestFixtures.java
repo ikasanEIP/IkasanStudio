@@ -12,9 +12,16 @@ import java.util.List;
 
 import static org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta.*;
 
+/**
+ * Some of these text fixtures will be exported to the Meta Pack project
+ *
+ * Ideally the Ikasan Packs should be loosely coupled with the IDE so that most
+ * of the knoweldge and detail of what each pack support comes from the pack, not the IDE.
+ */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
     public static final String TEST_IKASAN_PACK = "Vtest.x";
+    public static final String V3_3_IKASAN_PACK = "V3.3.x";
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
 
@@ -38,18 +45,33 @@ public class TestFixtures {
     }
 
     public static FlowElement getDevNullProducer() {
-        ComponentMeta devNullProducerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Dev Null Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Dev Null Producer");
         return FlowElement.flowElementBuilder()
-                .componentMeta(devNullProducerMeta)
+                .componentMeta(meta)
                 .componentName("My DevNull Producer")
                 .description("The DevNull Description")
                 .build();
     }
 
+    public static FlowElement getLoggingProducer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Logging Producer");
+
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Logging Producer")
+                .description("The Logging Description")
+                .build();
+        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("regExpPattern", "this");
+        flowElement.setPropertyValue("replacementText", "that");
+        flowElement.setPropertyValue("logEveryNth", 2);
+        return flowElement;
+    }
+
     public static FlowElement getCustomConverter() {
-        ComponentMeta customConverterMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Custom Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Custom Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
-                .componentMeta(customConverterMeta)
+                .componentMeta(meta)
                 .componentName("My Custom Converter")
                 .description("The Custom Converter Description")
                 .build();
@@ -59,9 +81,9 @@ public class TestFixtures {
         return flowElement;
     }
     public static FlowElement getEventGeneratingConsumer() {
-        ComponentMeta eventGeneratingConsumerMeta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Event Generating Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKey(TEST_IKASAN_PACK, "Event Generating Consumer");
         return FlowElement.flowElementBuilder()
-                .componentMeta(eventGeneratingConsumerMeta)
+                .componentMeta(meta)
                 .componentName("My Event Generating Consumer")
                 .description("The Event Generating Consumer Description")
                 .build();

@@ -24,37 +24,43 @@ import static org.ikasan.studio.model.ikasan.meta.ComponentType.*
 @Jacksonized
 @AllArgsConstructor
 public class ComponentMeta implements IkasanMeta {
-    private static final String DEFAULT_README = "Readme.md";
-//    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
-    public static final String FLOW_NAME = "Flow";
 
-    public static final String NAME = "name";
-    public static final String HELP_TEXT = "helpText";
+    private static final String DEFAULT_README = "Readme.md";
     public static final String COMPONENT_TYPE = "componentType";
+    public static final String FLOW_NAME = "Flow";
+    public static final String HELP_TEXT = "helpText";
     public static final String IMPLEMENTING_CLASS = "implementingClass";
+    public static final String NAME = "name";
+//    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
 
     // DO NOT RENAME - Will affect model.json
     String name;
-    String helpText;
+
+    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    boolean bespokeClass;
+
     String componentType;
-    String implementingClass;
-    String ikasanComponentFactoryMethod;
-    boolean usesBuilder;
+    int displayOrder;
     String flowBuilderMethod;
+    String helpText;
+    String ikasanComponentFactoryMethod;
+    String implementingClass;
+    Map<String, ComponentPropertyMeta> properties;
+    boolean usesBuilder;
     List<Dependency> jarDepedencies;
+
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     String webHelpURL = DEFAULT_README;
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
-    boolean bespokeClass;
-    int displayOrder;
 
     @JsonIgnore
     ImageIcon smallIcon;
     @JsonIgnore
     ImageIcon canvasIcon;
 
-    Map<String, ComponentPropertyMeta> properties;
+    boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftlocation
+    String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
+    String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
 
     public ComponentMeta() {}
 

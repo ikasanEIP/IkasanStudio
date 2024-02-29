@@ -2,6 +2,7 @@ package org.ikasan.studio.model.ikasan.meta;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioException;
+import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.io.ComponentIO;
 
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class aggregates all the defined Ikasan components
@@ -164,6 +166,20 @@ public class IkasanComponentLibrary {
     }
 
     /**
+     * Invoked getIkasanComponentByKey and throws StudioRuntimeException if the meta is not found
+     * @param ikasanMetaDataPackVersion to search
+     * @param key of the component for which we want meta
+     * @return the meta for the supplied component key
+     */
+    public static ComponentMeta getIkasanComponentByKeyMandatory(String ikasanMetaDataPackVersion, String key) {
+        ComponentMeta componentMeta = getIkasanComponentByKey(ikasanMetaDataPackVersion, key);
+        if (componentMeta == null) {
+            throw new StudioRuntimeException("Meta cant be null");
+        }
+        return componentMeta;
+    }
+
+    /**
      * Some use cases, including deserialisation, will need to match the metadata given an implementing class
      * @param ikasanMetaDataPackVersion of the IkasanMetaPack
      * @param implementingClass to be searched for
@@ -188,6 +204,10 @@ public class IkasanComponentLibrary {
     public static Collection<ComponentMeta>  getIkasanComponentList(String ikasanMetaDataPackVersion) {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         return safeIkasanComponentMetaMap.values();
+    }
+    public static Collection<ComponentMeta>  getPaletteComponentList(String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
+        return safeIkasanComponentMetaMap.values().stream().filter(x -> !x.isEndpoint).collect(Collectors.toList());
     }
 
     public static Map<String, ComponentMeta> getIkasanComponents(String ikasanMetaDataPackVersion) {

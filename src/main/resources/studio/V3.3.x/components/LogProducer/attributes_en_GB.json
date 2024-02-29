@@ -26,12 +26,12 @@
     "replacementText": {
       "propertyName": "replacementText",
       "setterProperty": true,
-      "helpText": "Replace the matching text with the following string."
+      "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText."
     },
     "regExpPattern": {
       "propertyName": "regExpPattern",
       "setterProperty": true,
-      "helpText": "Only display logs matching this text."
+      "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText."
     },
     "logEveryNth": {
       "propertyName": "logEveryNth",

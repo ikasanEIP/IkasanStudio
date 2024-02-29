@@ -51,12 +51,15 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         LOG.debug("paintComponent invoked");
-        // here we ket the components decide x,y
+        // here we get the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);
     }
 
     private void paintFlowchartSymbol(JPanel canvas, Graphics g) {
+        if ( getLeftX() < -10 ) {
+            LOG.error("X was negative !!");
+        }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
     }
 
@@ -82,7 +85,16 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
         setLeftX(x);
         setTopY(y);
         setWidth(getCanvasIcon().getIconWidth());
+
+        if (getWidth() < -10) {
+            LOG.error("Width set to negative " + getWidth());
+        }
         // this has the side effect of setting the correct height.
+
+        LOG.warn("initialiseDimensions leftX" + getLeftX() + " topY" + getTopY() + " for component " + flowElement);
+        if (getLeftX() < -10) {
+            LOG.error("X was negative !!");
+        }
         paintSymbolText(graphics, PaintMode.DIMENSION_ONLY);
     }
 

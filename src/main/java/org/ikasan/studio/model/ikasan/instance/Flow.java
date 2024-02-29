@@ -35,7 +35,8 @@ public class Flow extends BasicElement {
 //    String configurationId;
 //    String flowStartupType;
 //    String flowStartupComment;
-    private FlowElement output;
+    private FlowElement inputEndPoint;      // e.g. The queue symbol leading into a flow
+    private FlowElement outputEndPoint;     // e.g. the Document symbo outside the end of a flow
     public Flow() {
         super (IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
         transitions = new ArrayList<>();
@@ -64,7 +65,7 @@ public class Flow extends BasicElement {
             this.transitions = new ArrayList<>();
         }
         if (flowElements != null) {
-            this.flowElements = new ArrayList<>(flowElements);;
+            this.flowElements = new ArrayList<>(flowElements);
         } else {
             if (this.flowElements == null) {
                 this.flowElements = new ArrayList<>();

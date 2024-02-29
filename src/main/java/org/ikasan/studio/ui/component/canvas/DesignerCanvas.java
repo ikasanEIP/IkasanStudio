@@ -274,7 +274,7 @@ public class DesignerCanvas extends JPanel {
 
     /**
      * Given the x and y coords, return the ikasan elements that resides at that x,y.
-     * This will either be an ikasan flows component, an ikasan flow or the whol module.
+     * This will either be an ikasan flows component, an ikasan flow or the whole module.
      * @param xpos of the mouse click
      * @param ypos of the mouse click
      * @return the ikasan component (flows component, flow, module) currently selected.

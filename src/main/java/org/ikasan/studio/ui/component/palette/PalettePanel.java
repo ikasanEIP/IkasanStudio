@@ -100,7 +100,7 @@ public class PalettePanel extends JPanel {
     private java.util.List<PaletteItem> buildPalettItems() {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
 
-        Collection<ComponentMeta> componentMetaList = IkasanComponentLibrary.getIkasanComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);
+        Collection<ComponentMeta> componentMetaList = IkasanComponentLibrary.getPaletteComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);
         List<ComponentMeta> displayOrder = componentMetaList
             .stream()
             .filter(meta -> !meta.isModule())
