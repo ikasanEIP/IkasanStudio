@@ -56,7 +56,7 @@ public abstract class ViewHandler {
 
     /**
      * Get the y position for the bottom of the component
-     * @return
+     * @return y position for the bottom of the component
      */
     public int getBottomY() {
         return getTopY() + getHeight();
@@ -64,7 +64,7 @@ public abstract class ViewHandler {
 
     /**
      * Get the x position of the right hand side of the component
-     * @return
+     * @return x position of the right hand side of the component
      */
     public int getRightX() {
         return leftX + width;
@@ -83,6 +83,9 @@ public abstract class ViewHandler {
     }
 
     public void setLeftX(int leftX) {
+        if (leftX < -10) {
+            LOG.error("Left X being set to a -ve of " + leftX);
+        }
         this.leftX = leftX;
     }
 
@@ -91,6 +94,10 @@ public abstract class ViewHandler {
     }
 
     public void setWidth(int width) {
+        if (width < -10) {
+            LOG.error("Left X being set to a -ve of " + width);
+        }
+
         this.width = width;
     }
 

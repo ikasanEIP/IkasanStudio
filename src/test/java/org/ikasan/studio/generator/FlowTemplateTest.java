@@ -28,7 +28,6 @@ public class FlowTemplateTest {
 
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1OneFlow.java
-     * @throws IOException if the template cant be generated
      */
     @Disabled
     @Test
@@ -69,6 +68,22 @@ public class FlowTemplateTest {
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedDevNullProducerComponent.java"), templateString);
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedLoggingProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_logProducer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+            .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer()))
+            .build();
+        module.addFlow(flow);
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedLoggingProducerComponent.java"), templateString);
     }
 
 

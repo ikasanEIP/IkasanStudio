@@ -126,21 +126,22 @@ public class IkasanFlowViewHandler extends ViewHandler {
             }
         }
 
+        // This section draws the symbold before the start and after the end of the flow to represent the input/output boxes.
         if (flowSize > 1) {
-            // Paint the first component
-            if (flow.getConsumer() != null) {
+            // The input symbol, typically a queue gets painted before the flow start
+            if (flow.getInputEndPoint() != null) {
                 ViewHandler first = flowElementList.get(0).getViewHandler();
-                ViewHandler vh = flow.getConsumer().getViewHandler();
-                vh.setWidth(first.getWidth());
-                vh.setTopY(first.getTopY());
-                vh.setLeftX(first.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - vh.getWidth());
-                vh.paintComponent(canvas, g, -1, -1);
-                drawConnector(g, vh, first);
+                ViewHandler inputSymbolvh = flow.getInputEndPoint().getViewHandler();
+                inputSymbolvh.setWidth(first.getWidth());
+                inputSymbolvh.setTopY(first.getTopY());
+                inputSymbolvh.setLeftX(first.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - inputSymbolvh.getWidth());
+                inputSymbolvh.paintComponent(canvas, g, -1, -1);
+                drawConnector(g, inputSymbolvh, first);
             }
-            // Paint the last component
-            if (flow.getOutput() != null) {
+            // The output symbol, typically gets painted after the flow right edge.
+            if (flow.getOutputEndPoint() != null) {
                 ViewHandler last = flowElementList.get(flowSize-1).getViewHandler();
-                ViewHandler vh = flow.getOutput().getViewHandler();
+                ViewHandler vh = flow.getOutputEndPoint().getViewHandler();
                 vh.setWidth(last.getWidth());
                 vh.setTopY(last.getTopY());
                 vh.setLeftX(last.getLeftX() + vh.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
@@ -184,8 +185,9 @@ public class IkasanFlowViewHandler extends ViewHandler {
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
-        if (!flow.ftlGetConsumerAndFlowElements().isEmpty()) {
-            for (FlowElement ikasanFlowComponent : flow.ftlGetConsumerAndFlowElements()) {
+        List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
+        if (!flowElementList.isEmpty()) {
+            for (FlowElement ikasanFlowComponent : flowElementList) {
                 ikasanFlowComponent.getViewHandler().initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                 currentX += ikasanFlowComponent.getViewHandler().getWidth() + FLOW_X_SPACING;
             }
