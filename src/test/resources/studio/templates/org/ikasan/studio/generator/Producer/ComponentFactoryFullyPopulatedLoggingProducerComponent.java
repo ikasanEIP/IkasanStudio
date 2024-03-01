@@ -14,10 +14,13 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@javax.annotation.Resource
-co.uk.test.myflow1.myConverter myCustomConverter;
 
 
-public org.ikasan.spec.component.transformation.Converter getMyCustomConverter() {
-return myCustomConverter;
+
+public org.ikasan.spec.component.endpoint.Producer getMyLoggingProducer() {
+return builderFactory.getComponentBuilder().logProducer()
+.setRegExpPattern(this)
+.setReplacementText(that)
+.setLogEveryNth(2)
+.build();
 }}

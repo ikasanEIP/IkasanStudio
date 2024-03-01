@@ -67,6 +67,15 @@ public class StudioUtils {
     }
 
     /**
+     * Like camel case but starts with upper case letter
+     * @param input to be changed
+     * @return pascal case version of input
+     */
+    public static String toPascalClassName(final String input) {
+        return toJavaClassName(input);
+    }
+
+    /**
      * Convert the supplied string so that it confirms to the naming rules for java classnames
      * @param input string to be converted
      * @return the input string in the form of a java classname

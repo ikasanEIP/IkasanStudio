@@ -4,8 +4,8 @@
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "_ikasanComponentFactoryMethod": "The custom converter is a user implemented class so has no factory as such",
-  "ikasanComponentFactoryMethod": "",
   "flowBuilderMethod": "converter",
+  "bespokeClass": "true",
   "displayOrder": 9,
   "properties": {
     "componentName": {
@@ -17,8 +17,8 @@
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support ."
     },
-    "beskpokeClassName": {
-      "propertyName": "beskpokeClassName",
+    "bespokeClassName": {
+      "propertyName": "bespokeClassName",
       "helpText": "The name of the class that contain the custom conversion."
     },
     "fromClass": {

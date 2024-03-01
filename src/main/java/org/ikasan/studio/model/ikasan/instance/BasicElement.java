@@ -82,7 +82,12 @@ public  class BasicElement extends IkasanOject {
      */
     @JsonIgnore
     public String getName() {
-        return (String) getPropertyValue(ComponentPropertyMeta.NAME);
+        if (this instanceof Flow || this instanceof Module) {
+            return (String) getPropertyValue(ComponentPropertyMeta.NAME);
+        } else {
+            // to compily wil JSON, all flow elements use component name not name
+            return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
+        }
     }
 
 

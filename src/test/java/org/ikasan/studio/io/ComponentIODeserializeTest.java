@@ -72,7 +72,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getComponentMeta().getImplementingClass()),
-            () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESKPOKE_CLASS_NAME).getValue()),
+            () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESPOKE_CLASS_NAME).getValue()),
             () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("The Custom Converter Description", customConverter.getDescription()),
             () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_CLASS).getValue()),

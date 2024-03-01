@@ -14,7 +14,6 @@ import static org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta.*;
 
 /**
  * Some of these text fixtures will be exported to the Meta Pack project
- *
  * Ideally the Ikasan Packs should be loosely coupled with the IDE so that most
  * of the knoweldge and detail of what each pack support comes from the pack, not the IDE.
  */
@@ -77,7 +76,7 @@ public class TestFixtures {
                 .build();
         flowElement.setPropertyValue(FROM_CLASS, "java.lang.String");
         flowElement.setPropertyValue(TO_CLASS, "java.lang.Integer");
-        flowElement.setPropertyValue(BESKPOKE_CLASS_NAME, "myConverter");
+        flowElement.setPropertyValue(BESPOKE_CLASS_NAME, "myConverter");
         return flowElement;
     }
     public static FlowElement getEventGeneratingConsumer() {
