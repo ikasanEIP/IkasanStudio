@@ -23,6 +23,7 @@ public abstract class Generator {
     public static final String STUDIO_PACKAGE_TAG = "studioPackageTag";
     public static final String CLASS_NAME_TAG = "className";
     public static final String COMPONENT_TAG = "component";
+    public static final String FLOW_ELEMENT_TAG = "flowElement";
     public static final String INTERFACE_NAME_TAG = "interfaceName";
     public static final String PREFIX_TAG = "prefix";
     public static final String PROPERTIES_TAG = "properties";

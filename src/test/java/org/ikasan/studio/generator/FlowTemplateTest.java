@@ -37,8 +37,9 @@ public class FlowTemplateTest {
 //        assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "OneFlow.java")));
     }
 
+    //  ------------------------------- CONSUMERS ----------------------------------
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedEventGeneratingConsumer.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedEventGeneratingConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -51,9 +52,28 @@ public class FlowTemplateTest {
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);
-
     }
 
+    // ------------------------------------- CONVERTERS -------------------------------------
+    //  ------------------------------- CONSUMERS ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedCustomConverterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_customConverter() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getCustomConverter()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedCustomConverterComponent.java"), templateString);
+    }
+
+
+    // ------------------------------------- PRODUCERS -------------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedDevNullProducerComponent.java
      * @throws IOException if the template cant be generated
@@ -75,7 +95,7 @@ public class FlowTemplateTest {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_logProducer() throws IOException {
+    public void testCreateFlowWith_loggingProducer() throws IOException {
         Flow flow = TestFixtures.getUnbuiltFlow()
             .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer()))
             .build();

@@ -48,7 +48,6 @@ public class ComponentPropertyMeta {
     public static final String TO_CLASS = "toClass";
     public static final String FROM = "from";
     public static final String FROM_CLASS = "fromClass";
-    public static final String BESKPOKE_CLASS_NAME = "beskpokeClassName";
 
     public static final ComponentPropertyMeta STD_NAME_META_COMPONENT =
             ComponentPropertyMeta.builder()
@@ -91,6 +90,7 @@ public class ComponentPropertyMeta {
     private boolean userImplementedClass;
     private boolean setterProperty;
     private boolean userDefineResource;
+    private boolean bespokeClass;
 
     private String propertyConfigFileLabel;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
