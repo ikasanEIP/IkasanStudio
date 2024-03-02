@@ -21,10 +21,6 @@ public class FlowsComponentFactoryTemplateTest {
     @BeforeEach
     public void setUp() {
         module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
-
-//        ikasanFlow = new Flow();
-//        ikasanFlow.setComponentName(TEST_FLOW_NAME);
-//        ikasanFlow.setDescription("MyFlowDescription");
     }
 
 

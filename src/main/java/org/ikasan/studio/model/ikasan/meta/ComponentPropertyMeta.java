@@ -45,9 +45,7 @@ public class ComponentPropertyMeta {
     // List of all known properties any components could have
     public static final String CONFIGURATION_ID = "configurationId";
     public static final String TO = "to";
-    public static final String TO_CLASS = "toClass";
     public static final String FROM = "from";
-    public static final String FROM_CLASS = "fromClass";
 
     public static final ComponentPropertyMeta STD_NAME_META_COMPONENT =
             ComponentPropertyMeta.builder()
