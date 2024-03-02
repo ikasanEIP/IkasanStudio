@@ -40,14 +40,20 @@ public class ComponentMeta implements IkasanMeta {
     boolean bespokeClass;
 
     String componentType;
+    String defaultValue;
     int displayOrder;
+
+    boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftlocation
+    String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
+    String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
+
     String flowBuilderMethod;
     String helpText;
     String ikasanComponentFactoryMethod;
     String implementingClass;
+    List<Dependency> jarDepedencies;
     Map<String, ComponentPropertyMeta> properties;
     boolean usesBuilder;
-    List<Dependency> jarDepedencies;
 
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
@@ -58,9 +64,6 @@ public class ComponentMeta implements IkasanMeta {
     @JsonIgnore
     ImageIcon canvasIcon;
 
-    boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftlocation
-    String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
-    String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
 
     public ComponentMeta() {}
 

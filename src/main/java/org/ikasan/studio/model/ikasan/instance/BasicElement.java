@@ -247,6 +247,11 @@ public  class BasicElement extends IkasanOject {
             .stream()
             .anyMatch(x -> x.getMeta().isUserImplementedClass());
     }
+    public boolean hasBespokeClass() {
+        return configuredProperties.values()
+            .stream()
+            .anyMatch(x -> x.getMeta().isBespokeClass());
+    }
 
     /**
      * ** Used in FTL **

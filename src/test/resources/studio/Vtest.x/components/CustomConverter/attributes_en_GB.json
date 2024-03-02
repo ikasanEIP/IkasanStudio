@@ -21,13 +21,15 @@
       "propertyName": "bespokeClassName",
       "helpText": "The name of the class that contain the custom conversion."
     },
-    "fromClass": {
-      "propertyName": "fromClass",
-      "helpText": "The type of data we expect to come into the converter."
+    "fromType": {
+      "propertyName": "fromType",
+      "helpText": "The type of data we expect to come into the converter. This can be any Java class.",
+      "defaultValue": "java.lang.String"
     },
-    "toClass": {
-      "propertyName": "toClass",
-      "helpText": "The type of data we expect to be the output of the the converter."
+    "toType": {
+      "propertyName": "toType",
+      "helpText": "The type of data we expect to be the output of the the converter. This can be any Java class.",
+      "defaultValue": "java.lang.String"
     }
   }
 }

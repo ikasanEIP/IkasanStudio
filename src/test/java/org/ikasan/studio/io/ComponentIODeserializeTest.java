@@ -75,8 +75,8 @@ class ComponentIODeserializeTest {
             () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESPOKE_CLASS_NAME).getValue()),
             () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("The Custom Converter Description", customConverter.getDescription()),
-            () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_CLASS).getValue()),
-            () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_CLASS).getValue()),
+            () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_TYPE).getValue()),
+            () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_TYPE).getValue()),
             () -> Assertions.assertNotNull(customConverter.getViewHandler()),
 
             () -> assertEquals(2, devNullProducer.getConfiguredProperties().size()),

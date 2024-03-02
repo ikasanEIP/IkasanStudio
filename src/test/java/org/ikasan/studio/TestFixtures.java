@@ -74,8 +74,8 @@ public class TestFixtures {
                 .componentName("My Custom Converter")
                 .description("The Custom Converter Description")
                 .build();
-        flowElement.setPropertyValue(FROM_CLASS, "java.lang.String");
-        flowElement.setPropertyValue(TO_CLASS, "java.lang.Integer");
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
         flowElement.setPropertyValue(BESPOKE_CLASS_NAME, "myConverter");
         return flowElement;
     }

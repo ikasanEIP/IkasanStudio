@@ -21,6 +21,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
 
     public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow) {
         for (FlowElement component : ikasanFlow.ftlGetConsumerAndFlowElements()) {
+//            if (component.hasUserImplementedClass() || component.hasBespokeClass()) {
             if (component.hasUserImplementedClass()) {
                 FlowsBespokePropertyTemplate.create(project, ikasanModule, ikasanFlow, component);
             }
@@ -53,7 +54,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
         String templateName = StudioUtils.toJavaIdentifier(flowElement.getComponentMeta().getName()) + "Template.ftl";
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
-        configs.put(COMPONENT_TAG, flowElement);
+        configs.put(FLOW_ELEMENT_TAG, flowElement);
         return FreemarkerUtils.generateFromTemplate(templateName, configs);
     }
 }
