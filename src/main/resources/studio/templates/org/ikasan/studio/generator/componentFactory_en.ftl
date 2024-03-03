@@ -17,10 +17,10 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
 <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
-    <#if flowElement.componentMeta.bespokeClass>
-<#--    <#if flowElement.componentMeta.bespokeClass  || !flowElement.componentMeta.usesBuilder>-->
+    <#if flowElement.componentMeta.generatesBespokeClass>
+<#--    <#if flowElement.componentMeta.generatesBespokeClass  || !flowElement.componentMeta.usesBuilder>-->
         @javax.annotation.Resource
-        <#if flowElement.componentMeta.bespokeClass>
+        <#if flowElement.componentMeta.generatesBespokeClass>
         ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${flowElement.getPropertyValue('bespokeClassName')} ${flowElement.getJavaVariableName()};
 <#--        <#else>-->
 <#--        ${flowElement.componentMeta.componentType} ${flowElement.getJavaVariableName()};-->
@@ -86,16 +86,16 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
-                <#if flowElement.componentMeta.bespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.bespokeClass>;</#if>
+                <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.bespokeClass>;</#if>
             <#else>
                 <#if propValue.meta.userImplementedClass>
-                    <#if flowElement.componentMeta.bespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.bespokeClass>;</#if>
+                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.bespokeClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType == "java.lang.String">
-                        <#if flowElement.componentMeta.bespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.bespokeClass>;</#if>
+                        <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.bespokeClass>;</#if>
                     <#else>
-                    <#if flowElement.componentMeta.bespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${propValue.valueString})
-                        <#if flowElement.componentMeta.bespokeClass>;</#if>
+                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${propValue.valueString})
+                        <#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                     </#if>
                 </#if>
             </#if>
@@ -105,7 +105,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioUtils.toJavaIdentifier(module.name)}-${StudioUtils.toJavaIdentifier(flow.name)}-${StudioUtils.toJavaIdentifier(flowElement.componentName)}");
     </#if>
-    <#if flowElement.componentMeta.bespokeClass>
+    <#if flowElement.componentMeta.generatesBespokeClass>
         return ${flowElement.getJavaVariableName()};
     <#elseif !flowElement.componentMeta.usesBuilder>
         return new ${flowElement.componentMeta.ikasanComponentFactoryMethod}();

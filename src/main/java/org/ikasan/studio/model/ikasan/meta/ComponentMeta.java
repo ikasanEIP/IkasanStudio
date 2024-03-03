@@ -48,6 +48,7 @@ public class ComponentMeta implements IkasanMeta {
     String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
 
     String flowBuilderMethod;
+    boolean generatesBespokeClass;
     String helpText;
     String ikasanComponentFactoryMethod;
     String implementingClass;

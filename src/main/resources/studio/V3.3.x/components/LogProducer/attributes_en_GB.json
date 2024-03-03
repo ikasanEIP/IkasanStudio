@@ -1,6 +1,7 @@
 {
   "name": "Logging Producer",
   "helpText": "Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "builder": "",
@@ -8,7 +9,7 @@
   "usesBuilder" : true,
   "ikasanComponentFactoryMethod": "logProducer",
   "flowBuilderMethod": "producer",
-  "displayOrder": 3,
+  "displayOrder": 9,
   "properties": {
     "componentName": {
       "propertyName": "componentName",

@@ -26,8 +26,13 @@ public class FlowsBespokeComponentTemplate extends Generator {
                 FlowsBespokePropertyTemplate.create(project, ikasanModule, ikasanFlow, component);
             }
 
-            if (component instanceof FlowBeskpokeElement && ((FlowBeskpokeElement)component).isOverrideEnabled()) {
-                String clazzName = (String)component.getProperty(ComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
+            if (component instanceof FlowBeskpokeElement && ((FlowBeskpokeElement)component).isOverwiteEnabled()) {
+                String userInput = (String)component.getProperty(ComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
+                String clazzName = StudioUtils.toJavaClassName(userInput);
+                // @ToDo maybe this should be validation at point of input
+                if (! userInput.equals(clazzName)) {
+                    component.setPropertyValue(ComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
+                }
                 createSourceFile(clazzName, component, project, ikasanModule, ikasanFlow);
 //                String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
 //                String templateString = generateContents(newPackageName, component);
@@ -43,9 +48,9 @@ public class FlowsBespokeComponentTemplate extends Generator {
     private static void createSourceFile(String newClassName, FlowElement component, Project project, Module ikasanModule, Flow ikasanFlow) {
         String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
         String templateString = generateContents(newPackageName, component);
-        boolean overwriteClassIfExists = ((FlowBeskpokeElement)component).isOverrideEnabled();
+        boolean overwriteClassIfExists = ((FlowBeskpokeElement)component).isOverwiteEnabled();
         PsiJavaFile newFile = createJavaSourceFile(project, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
-        ((FlowBeskpokeElement)component).setOverrideEnabled(false);
+        ((FlowBeskpokeElement)component).setOverwiteEnabled(false);
 
         component.getViewHandler().setPsiJavaFile(newFile);
     }

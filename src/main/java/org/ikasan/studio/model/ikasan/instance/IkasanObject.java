@@ -10,7 +10,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandler;
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  */
 @Data
-public class IkasanOject {
+public class IkasanObject {
     // The view handler has a number of circular dependencies to be avoided.
     @JsonIgnore
     protected ViewHandler viewHandler;
@@ -18,9 +18,9 @@ public class IkasanOject {
     @JsonIgnore
     protected ComponentMeta componentMeta;
 
-    public IkasanOject() {}
+    public IkasanObject() {}
 
-    protected IkasanOject(ComponentMeta componentMeta) {
+    protected IkasanObject(ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
     }
 }

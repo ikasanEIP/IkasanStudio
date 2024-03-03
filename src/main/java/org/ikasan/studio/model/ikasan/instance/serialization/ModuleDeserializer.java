@@ -6,10 +6,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.instance.Transition;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 
@@ -188,7 +186,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             if (componentMeta == null) {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
             }
-            flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).build();
+            if (componentMeta.isBespokeClass()) {
+                flowElement = FlowBeskpokeElement.flowElementBuilder().componentMeta(componentMeta).build();
+            } else {
+                flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).build();
+            }
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
 
             while (fields.hasNext()) {
