@@ -1,6 +1,7 @@
 {
   "name": "Exception Resolver",
   "helpText": "Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/hospital/Readme.md",
   "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
   "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
   "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
@@ -8,7 +9,7 @@
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
   "usesBuilder" : true,
   "flowBuilderMethod": "withExceptionResolver",
-  "displayOrder": 5,
+  "displayOrder": 10,
   "properties": {
     "componentName": {
       "propertyName": "componentName",

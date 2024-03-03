@@ -88,7 +88,6 @@ public class ComponentPropertyMeta {
     private boolean userImplementedClass;
     private boolean setterProperty;
     private boolean userDefineResource;
-    private boolean bespokeClass;
 
     private String propertyConfigFileLabel;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.

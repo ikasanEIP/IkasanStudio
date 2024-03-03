@@ -464,7 +464,8 @@ public class DesignerCanvas extends JPanel {
                 } catch (Exception ex) {
                     LOG.warn("ERROR: Intercept silent popup box failure, " + ex);
                 }
-                if (newComponent != null) {if (newComponent instanceof ExceptionResolver) {
+                if (newComponent != null) {
+                    if (newComponent instanceof ExceptionResolver) {
                         containingFlow.setExceptionResolver((ExceptionResolver)newComponent);
                     } else {
                         if (newComponent.getComponentMeta().isConsumer()) {

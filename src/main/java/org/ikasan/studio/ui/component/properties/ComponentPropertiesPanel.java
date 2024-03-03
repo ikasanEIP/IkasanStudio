@@ -51,7 +51,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // This will force a regeneration of the component
             if (beskpokeComponentOverrideCheckBox.isSelected()) {
                 if (getSelectedComponent() instanceof FlowBeskpokeElement) {
-                    ((FlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
+                    ((FlowBeskpokeElement)getSelectedComponent()).setOverwiteEnabled(true);
                 }
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
@@ -132,7 +132,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         }
                     }
                 }
-                if (!componentInitialisation && getSelectedComponent().getComponentMeta().isBespokeClass()) {
+                if (!componentInitialisation && getSelectedComponent().getComponentMeta().isGeneratesBespokeClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(mandatoryPropertiesEditorPanel, gc, mandatoryTabley++);
                 }
             }
@@ -323,7 +323,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
                 if (componentPropertyEditBox.propertyValueHasChanged()) {
                     if (getSelectedComponent() instanceof FlowBeskpokeElement) {
-                        ((FlowBeskpokeElement)getSelectedComponent()).setOverrideEnabled(true);
+                        ((FlowBeskpokeElement)getSelectedComponent()).setOverwiteEnabled(true);
                     }
                     // Property has been unset e.g. a boolean
                     if (!componentPropertyEditBox.editBoxHasValue()) {

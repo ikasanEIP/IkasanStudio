@@ -6,7 +6,7 @@ import org.ikasan.studio.Context;
 import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.IkasanOject;
+import org.ikasan.studio.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
 import javax.swing.*;
@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String OK_BUTTON_TEXT = "Update Code";
-    private transient IkasanOject selectedComponent;
-    private transient IkasanOject componentDefaults;
+    private transient IkasanObject selectedComponent;
+    private transient IkasanObject componentDefaults;
     protected String projectKey;
     protected boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
@@ -123,7 +123,7 @@ public abstract class PropertiesPanel extends JPanel {
      * External actors will update the component to be exposed / displayed.
      * @param selectedComponent that now needs to be updated.
      */
-    public void updateTargetComponent(IkasanOject selectedComponent) {
+    public void updateTargetComponent(IkasanObject selectedComponent) {
         this.selectedComponent = selectedComponent;
         if (! componentInitialisation) {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
@@ -132,7 +132,7 @@ public abstract class PropertiesPanel extends JPanel {
         redrawPanel();
     }
 
-    public void setTargetComponent(IkasanOject selectedComponent) {
+    public void setTargetComponent(IkasanObject selectedComponent) {
         this.selectedComponent = selectedComponent;
         if (! componentInitialisation) {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
@@ -177,11 +177,11 @@ public abstract class PropertiesPanel extends JPanel {
      */
     public abstract JComponent getFirstFocusField();
 
-    protected IkasanOject getSelectedComponent() {
+    protected IkasanObject getSelectedComponent() {
         return selectedComponent;
     }
 
-    protected IkasanOject getComponentDefaults() {
+    protected IkasanObject getComponentDefaults() {
         return componentDefaults;
     }
 

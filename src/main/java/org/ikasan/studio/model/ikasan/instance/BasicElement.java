@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementDeserializer;
@@ -26,7 +28,9 @@ import java.util.stream.Collectors;
  */
 @JsonSerialize(using = BasicElementSerializer.class)
 @JsonDeserialize(using = BasicElementDeserializer.class)
-public  class BasicElement extends IkasanOject {
+@Data
+@EqualsAndHashCode(callSuper=true)
+public  class BasicElement extends IkasanObject {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
 //    @JsonPropertyOrder(alphabetic = true)
@@ -247,11 +251,11 @@ public  class BasicElement extends IkasanOject {
             .stream()
             .anyMatch(x -> x.getMeta().isUserImplementedClass());
     }
-    public boolean hasBespokeClass() {
-        return configuredProperties.values()
-            .stream()
-            .anyMatch(x -> x.getMeta().isBespokeClass());
-    }
+//    public boolean hasBespokeClass() {
+//        return configuredProperties.values()
+//            .stream()
+//            .anyMatch(x -> x.getMeta().isGeneratesBespokeClass());
+//    }
 
     /**
      * ** Used in FTL **

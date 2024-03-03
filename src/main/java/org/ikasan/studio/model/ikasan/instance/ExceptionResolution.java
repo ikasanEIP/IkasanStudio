@@ -9,10 +9,11 @@ import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class ExceptionResolution extends IkasanOject {
+public class ExceptionResolution extends IkasanObject {
 //    private static final ExceptionResolutionMeta IKASAN_EXCEPTION_RESOLUTION_META = new ExceptionResolutionMeta();
     @JsonIgnore
 ExceptionResolver parent;
@@ -51,10 +52,6 @@ ExceptionResolver parent;
     }
     @JsonIgnore
     public List<ComponentProperty> getParams() {
-        if (params == null) {
-            return Collections.emptyList();
-        } else {
-            return params;
-        }
+        return Objects.requireNonNullElse(params, Collections.emptyList());
     }
 }
