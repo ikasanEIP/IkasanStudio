@@ -1,6 +1,7 @@
 {
   "name": "Exception Resolver",
   "helpText": "Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/hospital/Readme.md",
   "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
   "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
   "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
@@ -8,7 +9,7 @@
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
   "usesBuilder" : true,
   "flowBuilderMethod": "withExceptionResolver",
-  "displayOrder": 5,
+  "displayOrder": 10,
   "properties": {
     "componentName": {
       "propertyName": "componentName",
@@ -20,13 +21,13 @@
       "helpText": "A more detailed description of the component that may assist in support.."
     }},
   "exceptionsCaught" : [
-    "org.ikasan.spec.component.transformation.TransformationException.class",
-    "org.ikasan.spec.component.splitting.SplitterException.class",
-    "org.ikasan.spec.component.routing.RouterException.class",
-    "org.ikasan.spec.component.endpoint.EndpointException.class",
     "javax.jms.JMSException.class",
     "javax.resource.ResourceException.class",
-    "org.ikasan.spec.component.filter.FilterException.class"
+    "org.ikasan.spec.component.endpoint.EndpointException.class",
+    "org.ikasan.spec.component.filter.FilterException.class",
+    "org.ikasan.spec.component.routing.RouterException.class",
+    "org.ikasan.spec.component.splitting.SplitterException.class",
+    "org.ikasan.spec.component.transformation.TransformationException.class"
   ],
   "actionList" : [
     {

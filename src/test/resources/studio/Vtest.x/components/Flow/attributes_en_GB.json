@@ -1,6 +1,7 @@
 {
   "name": "Flow",
   "helpText": "The flow is the container for components and generally represents an atomic action.",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "componentType": "org.ikasan.spec.flow.Flow",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",

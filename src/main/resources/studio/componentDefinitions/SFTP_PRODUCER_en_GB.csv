@@ -1,11 +1,11 @@
-# propertyName|paramGroupNumber|causesUserCodeRegeneration|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|affectsBespokeClass|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|validationMessage|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
 #
 # propertyName - Name of the property, used on input screens and to generate variable names
 # paramGroup - Aggregates parameters
-# causesUserCodeRegeneration - Causes the user part of the package structure to be regenerated so much be confirmed before being actioned
+# affectsBespokeClass - Causes the user part of the package structure to be regenerated so much be confirmed before being actioned
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
 # isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
 # isSetterProperty - This property is for use in the component factory setter

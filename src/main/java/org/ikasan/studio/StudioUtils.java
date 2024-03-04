@@ -245,7 +245,7 @@ public class StudioUtils {
                         LOG.warn("Error trying to parse paramGroupNumber=" + split[PARAM_GROUP_NUMBER] + " config line " + line + "will be ignored, please remove from " + propertiesFile + " or correct it ");
                         continue;
                     }
-                    boolean causesUserCodeRegeneration = Boolean.parseBoolean(split[CAUSES_USER_CODE_REGENRATION_INDEX]);
+                    boolean affectsBespokeClass = Boolean.parseBoolean(split[CAUSES_USER_CODE_REGENRATION_INDEX]);
                     String propertyName = split[PROPERTY_NAME_INDEX];
                     String parentPropertyName = null;
                     // Check to see if this property has sub properties
@@ -300,7 +300,7 @@ public class StudioUtils {
 
                     ComponentPropertyMeta componentPropertyMeta = ComponentPropertyMeta.builder().build();
 //                    ComponentPropertyMeta componentPropertyMeta = new ComponentPropertyMeta(
-//                            paramGroupNumber, causesUserCodeRegeneration, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
+//                            paramGroupNumber, affectsBespokeClass, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
 //                            propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
 //                    if (parentPropertyName != null) {
                         // Parent child relationship

@@ -6,7 +6,8 @@ import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import javax.swing.*;
-import java.awt.event.ItemEvent;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,16 +21,16 @@ public class ComponentPropertyEditBox {
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
-    private boolean causesUserCodeRegeneration = false;
-    private JCheckBox regenerateSourceCheckBox;
-    private JLabel regenerateLabel;
+    private boolean affectsBespokeClass = false;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
+    EditBoxContainer parent;
 
-    public ComponentPropertyEditBox(ComponentProperty componentProperty, boolean componentInitialisation) {
+    public ComponentPropertyEditBox(ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer parent) {
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
+        this.parent = parent;
         Object value = componentProperty.getValue();
         if (componentInitialisation && value == null) {
             value = componentProperty.getDefaultValue();
@@ -51,12 +52,27 @@ public class ComponentPropertyEditBox {
                 }
                 propertyValueField.setValue(value);
             }
+            propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    parent.editBoxChangeListener();
+                }
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    parent.editBoxChangeListener();
+                }
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    parent.editBoxChangeListener();
+                }
+            });
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // BOOLEAN INPUT
             propertyBooleanFieldTrue = new JCheckBox();
             propertyBooleanFieldFalse = new JCheckBox();
             propertyBooleanFieldTrue.setBackground(JBColor.WHITE);
             propertyBooleanFieldFalse.setBackground(JBColor.WHITE);
+
             if (value != null) {
                 // Defensive, just in case not set correctly
                 if (value instanceof String) {
@@ -79,11 +95,13 @@ public class ComponentPropertyEditBox {
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
                 }
+                parent.editBoxChangeListener();
             });
             propertyBooleanFieldFalse.addActionListener(e -> {
                 if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
                     propertyBooleanFieldTrue.setSelected(false);
                 }
+                parent.editBoxChangeListener();
             });
         }
         else {
@@ -93,44 +111,51 @@ public class ComponentPropertyEditBox {
             if (value != null) {
                 propertyValueField.setText(value.toString());
             }
+            propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    parent.editBoxChangeListener();
+                }
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    parent.editBoxChangeListener();
+                }
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    parent.editBoxChangeListener();
+                }
+            });
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if (componentProperty.causesUserCodeRegeneration() && !componentInitialisation) {
-            causesUserCodeRegeneration = true;
-            regenerateLabel = new JLabel("Regenerate");
-            regenerateSourceCheckBox = new JCheckBox();
-            regenerateSourceCheckBox.addItemListener( ie -> {
-                if (propertyValueField != null) {
-                    propertyValueField.setEditable(ie.getStateChange() == ItemEvent.SELECTED);
-                    propertyValueField.setEnabled(ie.getStateChange() == ItemEvent.SELECTED);
-                } else if (propertyBooleanFieldTrue != null) {
-                    propertyBooleanFieldTrue.setEnabled(ie.getStateChange() == ItemEvent.SELECTED);
-                    propertyBooleanFieldFalse.setEnabled(ie.getStateChange() == ItemEvent.SELECTED);
-                }
-            });
-            regenerateSourceCheckBox.setBackground(JBColor.WHITE);
-
+        if (componentProperty.affectsBespokeClass() && !componentInitialisation) {
+            affectsBespokeClass = true;
             // Cant edit unless the regenerateSource is selected
-            disableRegeneratingFields();
+            controlFieldsAffectingBespokeClass(false);
         }
     }
 
-    /**
-     * User can only select override box if a valid value has been supplied.
-     */
-    public void disableRegeneratingFields() {
-        if (causesUserCodeRegeneration) {
-            regenerateSourceCheckBox.setSelected(false);
+    public void controlFieldsAffectingBespokeClass(boolean enable) {
+        if (affectsBespokeClass) {
             if (propertyValueField != null) {
-                propertyValueField.setEditable(false);
-                propertyValueField.setEnabled(false);
+                propertyValueField.setEditable(enable);
+                propertyValueField.setEnabled(enable);
+                // If the regegenrate code is disabled, reset the input boxes
+                if (!enable && propertyValueHasChanged()) {
+                    propertyValueField.setValue(componentProperty.getValue());
+                }
             } else if (propertyBooleanFieldTrue != null) {
-                propertyBooleanFieldTrue.setEnabled(false);
-                propertyBooleanFieldFalse.setEnabled(false);
+                propertyBooleanFieldTrue.setEnabled(enable);
+                propertyBooleanFieldFalse.setEnabled(enable);
+                if (!enable && propertyValueHasChanged()) {
+                    Boolean oldValue = (Boolean)componentProperty.getValue();
+                    propertyBooleanFieldTrue.setSelected(oldValue);
+                    propertyBooleanFieldFalse.setSelected(!oldValue);
+                }
             }
         }
     }
+
 
     /**
      * For a simple property, the key IS the property name.
@@ -207,13 +232,15 @@ public class ComponentPropertyEditBox {
     protected java.util.List<ValidationInfo> doValidateAll() {
         //@todo setup once in class and clear down
         List<ValidationInfo> result = new ArrayList<>();
+        // 1. force population of mandatory properties
         if (meta.isMandatory() &&
-            !isBooleanProperty() &&
-            inputfieldIsUnset()) {
+                !isBooleanProperty() &&
+                inputfieldIsUnset()) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
         }
+        // 2. Apply a regex valiudation pattern as defined in the component's meta pack definition
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
-            if (! meta.getValidationPattern().matcher((String)getValue()).matches()) {
+            if (!meta.getValidationPattern().matcher((String) getValue()).matches()) {
                 result.add(new ValidationInfo(meta.getValidationMessage(), getOverridingInputField()));
             }
         }
@@ -225,7 +252,7 @@ public class ComponentPropertyEditBox {
      * Determine if the edit box has a valid value
      * @return true if the editbox has a non-whitespace / real value.
      */
-    public boolean editBoxHasValue() {
+    boolean editBoxHasValue() {
         boolean hasValue = false;
 
         Object value = getValue();
@@ -256,13 +283,9 @@ public class ComponentPropertyEditBox {
         Object currentValue = componentProperty.getValue();
         Object enteredValue = getValue();
         return ((currentValue == null && editBoxHasValue()) ||
-                (currentValue != null && !currentValue.equals(enteredValue)) ||
-                (causesUserCodeRegenerationAndHasPermissionToRegenerate() && editBoxHasValue()) );
+                (currentValue != null && !currentValue.equals(enteredValue)));
     }
 
-    public boolean causesUserCodeRegenerationAndHasPermissionToRegenerate() {
-        return causesUserCodeRegeneration && regenerateSourceCheckBox != null && regenerateSourceCheckBox.isSelected();
-    }
 
     public JLabel getPropertyTitleField() {
         return propertyTitleField;
@@ -270,8 +293,6 @@ public class ComponentPropertyEditBox {
     public JFormattedTextField getOverridingInputField() {
         return propertyValueField;
     }
-    public JCheckBox getRegenerateSourceCheckBox() { return regenerateSourceCheckBox; }
-    public JLabel getRegenerateLabel() { return regenerateLabel; }
 
     public ComponentPropertyMeta getMeta() {
         return meta;
@@ -281,5 +302,9 @@ public class ComponentPropertyEditBox {
     }
     public ComponentProperty getComponentProperty() {
         return componentProperty;
+    }
+
+    public boolean isAffectsBespokeClass() {
+        return affectsBespokeClass;
     }
 }

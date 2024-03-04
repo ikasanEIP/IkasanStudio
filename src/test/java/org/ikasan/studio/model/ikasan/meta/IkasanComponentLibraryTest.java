@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeSet;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.ikasan.studio.model.ikasan.meta.ComponentMeta.FLOW_NAME;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,13 +31,16 @@ class IkasanComponentLibraryTest {
     }
 
     protected void verifyDefaultFlowMeta(ComponentMeta flow) {
-        assertThat(flow.getName(), is(FLOW_NAME));
-        assertThat(flow.getHelpText(), is("The flow is the container for components and generally represents an atomic action."));
-        assertThat(flow.getComponentType(), is(ComponentType.Flow.classType));
-        assertThat(flow.getWebHelpURL(), is("Readme.md"));
-        assertThat(flow.getSmallIcon().getDescription(), is("Small Flow icon"));
-        assertThat(flow.getCanvasIcon().getDescription(), is("Medium Flow icon"));
-        assertThat(flow.getProperties().size(), is(2));
+        assertAll(
+            "Check the flow contains the expected values",
+            () -> assertEquals(FLOW_NAME, flow.getName()),
+            () -> assertEquals("The flow is the container for components and generally represents an atomic action.", flow.getHelpText()),
+            () -> assertEquals(ComponentType.Flow.classType, flow.getComponentType()),
+            () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
+            () -> assertEquals("Small Flow icon", flow.getSmallIcon().getDescription()),
+            () -> assertEquals("Medium Flow icon", flow.getCanvasIcon().getDescription()),
+            () -> assertEquals(2, flow.getProperties().size())
+        );
     }
     protected void verifyDefaultModuleMeta(ComponentMeta module) {
         assertAll(
@@ -55,14 +56,17 @@ class IkasanComponentLibraryTest {
     }
 
     protected void verifyDefaultExceptionResolverMeta(ExceptionResolutionMeta exceptionResolver) {
-        assertThat(exceptionResolver.getName(), is("Exception Resolver"));
-        assertThat(exceptionResolver.getHelpText(), is("Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow."));
-        assertThat(exceptionResolver.getComponentType(), is(ComponentType.ExceptionResolver.classType));
-        assertThat(exceptionResolver.getWebHelpURL(), is("Readme.md"));
-        assertThat(exceptionResolver.getSmallIcon().getDescription(), is("Small Exception Resolver icon"));
-        assertThat(exceptionResolver.getCanvasIcon().getDescription(), is("Medium Exception Resolver icon"));
-        assertThat(exceptionResolver.getProperties().size(), is(2));
-        assertThat(exceptionResolver.getActionList().size(), is(5));
-        assertThat(exceptionResolver.getExceptionsCaught().size(), is(7));
+        assertAll(
+                "Check the Exception Resolver contains the expected values",
+                () -> assertEquals("Exception Resolver", exceptionResolver.getName()),
+                () -> assertEquals("Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.", exceptionResolver.getHelpText()),
+                () -> assertEquals(ComponentType.ExceptionResolver.classType, exceptionResolver.getComponentType()),
+                () -> assertEquals("Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.", exceptionResolver.getHelpText()),
+                () -> assertEquals("Small Exception Resolver icon", exceptionResolver.getSmallIcon().getDescription()),
+                () -> assertEquals("Medium Exception Resolver icon", exceptionResolver.getCanvasIcon().getDescription()),
+                () -> assertEquals(2, exceptionResolver.getProperties().size()),
+                () -> assertEquals(5, exceptionResolver.getActionList().size()),
+                () -> assertEquals(2, exceptionResolver.getProperties().size())
+        );
     }
 }

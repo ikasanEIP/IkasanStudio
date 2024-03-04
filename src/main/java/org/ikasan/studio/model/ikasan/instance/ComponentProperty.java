@@ -97,8 +97,8 @@ public class ComponentProperty {
         this.meta = meta;
     }
 
-    public boolean causesUserCodeRegeneration() {
-        return Boolean.TRUE.equals(getMeta().isCausesUserCodeRegeneration());
+    public boolean affectsBespokeClass() {
+        return Boolean.TRUE.equals(getMeta().isAffectsBespokeClass());
     }
 
     @Override

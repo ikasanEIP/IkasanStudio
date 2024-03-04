@@ -1,12 +1,13 @@
 {
   "name": "Custom Converter",
   "helpText": "The main responsibility of a converter is to convert from one form to another. The purpose of this converter is to support any type of transformation required, implemented by a bespoke converter class.",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "_ikasanComponentFactoryMethod": "The custom converter is a user implemented class so has no factory as such",
   "flowBuilderMethod": "converter",
   "generatesBespokeClass": "true",
-  "displayOrder": 9,
+  "displayOrder": 4,
   "properties": {
     "componentName": {
       "propertyName": "componentName",
@@ -15,21 +16,34 @@
     },
     "description": {
       "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support ."
+      "helpText": "A more detailed description of the component that may assist in support .",
+      "mandatory": true
     },
     "bespokeClassName": {
       "propertyName": "bespokeClassName",
-      "helpText": "The name of the class that contain the custom conversion."
+      "affectsBespokeClass": "true",
+      "helpText": "The name of the class that contain the custom conversion.",
+      "mandatory": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
     },
     "fromType": {
       "propertyName": "fromType",
+      "affectsBespokeClass": "true",
+      "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to come into the converter. This can be any Java class.",
-      "defaultValue": "java.lang.String"
+      "mandatory": true,
+      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
     },
     "toType": {
       "propertyName": "toType",
+      "affectsBespokeClass": "true",
+      "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to be the output of the the converter. This can be any Java class.",
-      "defaultValue": "java.lang.String"
+      "mandatory": true,
+      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
     }
   }
 }

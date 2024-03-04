@@ -83,30 +83,30 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     private Integer paramGroupNumber = 1;
-    private boolean causesUserCodeRegeneration;
+    private boolean affectsBespokeClass;
     private boolean mandatory;
     private boolean userImplementedClass;
     private boolean setterProperty;
     private boolean userDefineResource;
 
     private String propertyConfigFileLabel;
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private Class propertyDataType = java.lang.String.class;
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String usageDataType = "";
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private String validation = "";
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    private String validation = "";         // The String representation of the regexp valudation pattern
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private String validationMessage = "";
-    private Pattern validationPattern;
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    private String validationMessage = "";  // Message to be displayed when the object fails validation
+    private Pattern validationPattern;      // Set internally when first got, if validation attribute exists, this is the compiled pattern
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private Object defaultValue = "";
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String helpText = "";
     private String componentType;
@@ -116,7 +116,8 @@ public class ComponentPropertyMeta {
         return propertyDataType == null;
     }
 
-    public  void setPropertyDataType(String dataType) {
+
+    public void setPropertyDataType(String dataType) {
         if (dataType != null && !dataType.isEmpty()) {
             try {
                 propertyDataType = Class.forName(dataType);
@@ -125,9 +126,16 @@ public class ComponentPropertyMeta {
             }
         }
     }
-    public void setValidation(String validation) {
-        if (validation != null && !validation.isEmpty()) {
+
+
+    /**
+     * Patterns are expensive, so only generate one when we need it but share the same one thereafter.
+     * @return
+     */
+    public Pattern getValidationPattern() {
+        if (validationPattern == null && validation != null && !validation.isBlank()) {
             this.validationPattern = Pattern.compile(validation);
         }
+        return validationPattern;
     }
 }
