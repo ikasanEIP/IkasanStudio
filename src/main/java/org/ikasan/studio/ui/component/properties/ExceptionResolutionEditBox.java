@@ -15,7 +15,7 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ExceptionResolutionEditBox {
+public class ExceptionResolutionEditBox implements EditBoxContainer {
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
     private final JComboBox<String> exceptionJComboBox;
@@ -53,7 +53,7 @@ public class ExceptionResolutionEditBox {
             if (!exceptionResolution.getParams().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
                 for (ComponentProperty property : exceptionResolution.getParams()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation, null);
                     actionParamEditBoxList.add(actionParam);
                 }
             }
@@ -73,7 +73,7 @@ public class ExceptionResolutionEditBox {
             actionParamEditBoxList = new ArrayList<>();
             for (ComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
                 if (!propertyMeta.isVoid()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new ComponentProperty(propertyMeta), this.componentInitialisation);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new ComponentProperty(propertyMeta), this.componentInitialisation, null);
                     actionParamEditBoxList.add(actionParam);
                 }
             }
@@ -239,5 +239,10 @@ public class ExceptionResolutionEditBox {
 
     public JLabel getParamsTitleField() {
         return paramsTitleField;
+    }
+
+    @Override
+    public void editBoxChangeListener() {
+
     }
 }

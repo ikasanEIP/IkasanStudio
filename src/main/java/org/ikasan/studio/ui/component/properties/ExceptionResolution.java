@@ -10,7 +10,7 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ExceptionResolution {
+public class ExceptionResolution implements EditBoxContainer {
     ExceptionResolverEditBox parent;
     private final JLabel exceptionField = new JLabel();
     private final JLabel actionField = new JLabel();
@@ -39,7 +39,7 @@ public class ExceptionResolution {
                 !exceptionResolution.getParams().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
             for (ComponentProperty property : exceptionResolution.getParams()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, componentInitialisation);
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, componentInitialisation, this);
                 actionParamEditBoxList.add(actionParam);
             }
         }
@@ -87,5 +87,10 @@ public class ExceptionResolution {
 
     public JButton getDeleteButton() {
         return deleteButton;
+    }
+
+    @Override
+    public void editBoxChangeListener() {
+
     }
 }

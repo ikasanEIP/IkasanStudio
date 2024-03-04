@@ -26,19 +26,19 @@
     },
     "replacementText": {
       "propertyName": "replacementText",
-      "setterProperty": true,
-      "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText."
+      "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText.",
+      "setterProperty": true
     },
     "regExpPattern": {
       "propertyName": "regExpPattern",
-      "setterProperty": true,
-      "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText."
+      "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText.",
+      "setterProperty": true
     },
     "logEveryNth": {
       "propertyName": "logEveryNth",
-      "setterProperty": true,
+      "helpText": "Only display every 'nth' log message.",
       "propertyDataType": "java.lang.Long",
-      "helpText": "Only display every 'nth' log message."
+      "setterProperty": true
     }
   }
 }

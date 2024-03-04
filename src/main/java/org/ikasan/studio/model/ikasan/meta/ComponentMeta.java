@@ -36,9 +36,6 @@ public class ComponentMeta implements IkasanMeta {
     // DO NOT RENAME - Will affect model.json
     String name;
 
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
-    boolean bespokeClass;
-
     String componentType;
     String defaultValue;
     int displayOrder;

@@ -27,12 +27,7 @@ public class FlowsBespokeComponentTemplate extends Generator {
             }
 
             if (component instanceof FlowBeskpokeElement && ((FlowBeskpokeElement)component).isOverwiteEnabled()) {
-                String userInput = (String)component.getProperty(ComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
-                String clazzName = StudioUtils.toJavaClassName(userInput);
-                // @ToDo maybe this should be validation at point of input
-                if (! userInput.equals(clazzName)) {
-                    component.setPropertyValue(ComponentPropertyMeta.BESPOKE_CLASS_NAME, clazzName);
-                }
+                String clazzName = (String)component.getProperty(ComponentPropertyMeta.BESPOKE_CLASS_NAME).getValue();
                 createSourceFile(clazzName, component, project, ikasanModule, ikasanFlow);
 //                String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
 //                String templateString = generateContents(newPackageName, component);

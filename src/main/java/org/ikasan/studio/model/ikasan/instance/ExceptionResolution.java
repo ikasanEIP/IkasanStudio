@@ -26,13 +26,6 @@ ExceptionResolver parent;
         this.parent = parent;
     }
 
-//    public static ExceptionResolutionMeta getMeta() {
-//        return IKASAN_EXCEPTION_RESOLUTION_META;
-//    }
-    public static ExceptionResolutionMeta getMeta() {
-        return null;
-    }
-
     /**
      * Getter for the parent of this resolution, note JsonIgnore to prevent circular dependency.
      */

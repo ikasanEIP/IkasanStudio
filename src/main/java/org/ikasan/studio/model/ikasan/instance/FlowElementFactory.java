@@ -9,7 +9,7 @@ public class FlowElementFactory {
      * @param parent flow that contains this element
      */
     public static FlowElement createFlowElement(ComponentMeta type, Flow parent) {
-        if (type.isBespokeClass()) {
+        if (type.isGeneratesBespokeClass()) {
             return new FlowBeskpokeElement(type, parent, false);
         } else if (type.isExceptionResolver()) {
             return new ExceptionResolver(parent);

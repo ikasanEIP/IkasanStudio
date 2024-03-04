@@ -186,7 +186,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             if (componentMeta == null) {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
             }
-            if (componentMeta.isBespokeClass()) {
+            if (componentMeta.isGeneratesBespokeClass()) {
                 flowElement = FlowBeskpokeElement.flowElementBuilder().componentMeta(componentMeta).build();
             } else {
                 flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).build();

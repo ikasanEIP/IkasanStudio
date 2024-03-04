@@ -2,15 +2,16 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.model.ikasan.instance.Flow;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -20,10 +21,10 @@ public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String OK_BUTTON_TEXT = "Update Code";
     private transient IkasanObject selectedComponent;
-    private transient IkasanObject componentDefaults;
+//    private transient IkasanObject componentDefaults;
     protected String projectKey;
     protected boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
-    private JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
+    private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private transient PropertiesDialogue propertiesDialogue;
 
     protected JButton okButton;
@@ -36,19 +37,19 @@ public abstract class PropertiesPanel extends JPanel {
         this.projectKey = projectKey ;
         this.componentInitialisation = componentInitialisation;
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(JBColor.WHITE);
 
         if (! componentInitialisation) {
             JPanel propertiesHeaderPanel = new JPanel();
-            propertiesHeaderLabel.setBorder(new EmptyBorder(12,0,12,0));
+            propertiesHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
             propertiesHeaderPanel.add(propertiesHeaderLabel);
-            propertiesHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            propertiesHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
             add(propertiesHeaderPanel, BorderLayout.NORTH);
         }
 
         JPanel propertiesBodyPanel = new JPanel(new BorderLayout());
-        propertiesBodyPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        propertiesBodyPanel.setBackground(Color.WHITE);
+        propertiesBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+        propertiesBodyPanel.setBackground(JBColor.WHITE);
 
         // Palette editor mode, add an OK button at the bottom.
         if (! componentInitialisation) {
@@ -63,7 +64,7 @@ public abstract class PropertiesPanel extends JPanel {
             );
             JPanel footerPanel = new JPanel();
             footerPanel.add(okButton);
-            footerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            footerPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
             add(footerPanel, BorderLayout.SOUTH);
         }
 
@@ -72,8 +73,8 @@ public abstract class PropertiesPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);
-        scrollPane.setBackground(Color.WHITE);
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBackground(JBColor.WHITE);
+        scrollPane.getViewport().setBackground(JBColor.WHITE);
         add(propertiesBodyPanel, BorderLayout.CENTER);
         setFocusOnFirstComponent();
     }
@@ -181,9 +182,9 @@ public abstract class PropertiesPanel extends JPanel {
         return selectedComponent;
     }
 
-    protected IkasanObject getComponentDefaults() {
-        return componentDefaults;
-    }
+//    protected IkasanObject getComponentDefaults() {
+//        return componentDefaults;
+//    }
 
     protected abstract List<ValidationInfo> doValidateAll();
     public abstract void processEditedFlowComponents();

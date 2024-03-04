@@ -86,13 +86,13 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
-                <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.bespokeClass>;</#if>
+                <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
             <#else>
                 <#if propValue.meta.userImplementedClass>
-                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.bespokeClass>;</#if>
+                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType == "java.lang.String">
-                        <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.bespokeClass>;</#if>
+                        <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                     <#else>
                     <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${propValue.valueString})
                         <#if flowElement.componentMeta.generatesBespokeClass>;</#if>
