@@ -27,8 +27,8 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
-.consumer("testSftpConsumer",
-componentFactory.getTestSftpConsumer())
+.consumer("My Scheduled Consumer",
+componentFactory.getMyScheduledConsumer())
 .build();
 return myFlow1;
 }

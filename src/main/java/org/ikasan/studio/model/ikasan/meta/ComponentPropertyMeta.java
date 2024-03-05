@@ -50,21 +50,18 @@ public class ComponentPropertyMeta {
     public static final ComponentPropertyMeta STD_NAME_META_COMPONENT =
             ComponentPropertyMeta.builder()
                     .propertyName(NAME)
-                    .paramGroupNumber(1)
                     .mandatory(true)
                     .build();
 
     public static final ComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
         ComponentPropertyMeta.builder()
             .propertyName(DESCRIPTION)
-            .paramGroupNumber(1)
             .helpText("A more detailed description of the component that may assist in support.")
             .build();
 
     public static final ComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
         ComponentPropertyMeta.builder()
             .propertyName(APPLICATION_PACKAGE_NAME)
-            .paramGroupNumber(1)
             .mandatory(true)
             .helpText("The base java package for your application.")
             .build();
@@ -73,29 +70,45 @@ public class ComponentPropertyMeta {
     public static final ComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
             ComponentPropertyMeta.builder()
                     .propertyName(APPLICATION_PORT_NUMBER_NAME)
-                    .paramGroupNumber(1)
                     .mandatory(true)
                     .helpText("The port number that the running application will use locally.")
                     .build();
 
     @JsonKey
     private String propertyName;
-    @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
-    @Builder.Default
-    private Integer paramGroupNumber = 1;
-    private boolean affectsBespokeClass;
-    private boolean mandatory;
-    private boolean userImplementedClass;
-    private boolean setterProperty;
-    private boolean userDefineResource;
 
-    private String propertyConfigFileLabel;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private Class propertyDataType = java.lang.String.class;
+    private boolean affectsBespokeClass=false;  // A change to this property would result in an update to the bespoke class
+    private String componentType;               // Features in the serialised model.json, the interface or short form type for the property
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private String usageDataType = "";
+    private Object defaultValue = "";       // Default value e.g. displayed when property is created.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private String helpText = "";           // Describes the property, typically popping up on tooltips.
+
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean mandatory=false;        // The value must be supplied for the component to be valid
+    private String propertyConfigFileLabel; // Identifies the spring injected property name
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private Class propertyDataType = java.lang.String.class;    // Of the property
+    @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean setterProperty=false;   // The component features in the component factory setter
+    private String standardBuilderMethod;
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private String usageDataType = "";      // The interface od properties that are classes i.e. a user implemented class that must implement this interface
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean userDefineResource=false;       // The user will define the details of the resource within the ResourceFactory.
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean userImplementedClass=false;     // The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String validation = "";         // The String representation of the regexp valudation pattern
@@ -103,14 +116,6 @@ public class ComponentPropertyMeta {
     @Builder.Default
     private String validationMessage = "";  // Message to be displayed when the object fails validation
     private Pattern validationPattern;      // Set internally when first got, if validation attribute exists, this is the compiled pattern
-    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
-    @Builder.Default
-    private Object defaultValue = "";
-    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
-    @Builder.Default
-    private String helpText = "";
-    private String componentType;
-    private String standardBuilderMethod;
 
     public boolean isVoid() {
         return propertyDataType == null;
@@ -130,7 +135,7 @@ public class ComponentPropertyMeta {
 
     /**
      * Patterns are expensive, so only generate one when we need it but share the same one thereafter.
-     * @return
+     * @return a compiled Pattern
      */
     public Pattern getValidationPattern() {
         if (validationPattern == null && validation != null && !validation.isBlank()) {

@@ -54,8 +54,24 @@ public class FlowTemplateTest {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);
     }
 
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedScheduledConsumerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_scheduledConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getScheduledConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedScheduledConsumerComponent.java"), templateString);
+    }
+
+
     // ------------------------------------- CONVERTERS -------------------------------------
-    //  ------------------------------- CONSUMERS ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedCustomConverterComponent.java
      * @throws IOException if the template cant be generated
