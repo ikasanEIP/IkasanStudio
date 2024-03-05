@@ -19,7 +19,7 @@ public class FlowsBespokeComponentTemplateTest {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateWith_Converter() throws IOException {
+    public void testCreateWith_Converter() {
         String clazzName = "MyConverter";
 
         // Wait till refactor
@@ -40,7 +40,6 @@ public class FlowsBespokeComponentTemplateTest {
     }
     Module module;
     //    Flow ikasanFlow = new Flow();
-    private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @BeforeEach
     public void setUp() {
@@ -50,17 +49,12 @@ public class FlowsBespokeComponentTemplateTest {
 
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumer.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_customConverterComponent() throws IOException {
-//        Flow flow = TestFixtures.getUnbuiltFlow()
-//                .flowElements(Collections.singletonList(TestFixtures.getCustomConverter()))
-//                .build();
-//        module.addFlow(flow);
         FlowElement flowElement = TestFixtures.getCustomConverter();
-        flowElement.getConfiguredProperties().values();
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MyConverter.java"), templateString);

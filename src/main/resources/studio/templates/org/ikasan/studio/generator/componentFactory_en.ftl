@@ -30,7 +30,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 <#--    <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>-->
-<#--        <#if propValue.meta.userImplementedClass>-->
+<#--        <#if propValue.meta.isUserImplementedClass()>-->
 <#--            @javax.annotation.Resource-->
 <#--            ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};-->
 <#--        </#if>-->
@@ -88,7 +88,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
                 <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
             <#else>
-                <#if propValue.meta.userImplementedClass>
+                <#if propValue.meta.isUserImplementedClass()>
                     <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType == "java.lang.String">

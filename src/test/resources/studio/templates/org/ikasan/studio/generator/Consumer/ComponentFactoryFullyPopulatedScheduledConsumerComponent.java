@@ -14,34 +14,32 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
-java.lang.String myFlow1FtpConsumerCronexpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.scheduled.consumer.cron-expression}")
+java.lang.String myFlow1ScheduledConsumerCronexpression;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory myEventFactory;
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.spec.management.ManagedResourceRecoveryManager orgIkasanMyflowMyManagedResourceRecoveryManager;
 @javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
+org.ikasan.spec.event.ManagedEventIdentifierService orgIkasanMyflowMyEventService;
 @javax.annotation.Resource
-org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
+org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 
-public org.ikasan.spec.component.endpoint.Consumer getTestScheduledConsumer() {
+public org.ikasan.spec.component.endpoint.Consumer getMyScheduledConsumer() {
 return builderFactory.getComponentBuilder().scheduledConsumer()
-.setEventFactory(myEventFactory)
-.setMessageProvider(myMessageProviderClass)
 .setCriticalOnStartup(true)
-.setConfiguration(myConfigurationClass)
-.setScheduledJobName("myScheduledJobName")
 .setEager(true)
-.setCronExpression(myFlow1FtpConsumerCronexpression)
-.setMaxEagerCallbacks(1)
-.setScheduledJobGroupName("myScheduledJobGroupName")
-.setTimezone("UTC")
+.setConfiguration(orgIkasanMyflowConfiguration)
+.setTimezone(UTC)
+.setConfiguredResourceId(bob)
 .setIgnoreMisfire(true)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
+.setCronExpression(myFlow1ScheduledConsumerCronexpression)
+.setMessageProvider(orgIkasanMyflowMyMessageProvider)
+.setMaxEagerCallbacks(10)
+.setManagedResourceRecoveryManager(orgIkasanMyflowMyManagedResourceRecoveryManager)
+.setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
+.setEventFactory(orgIkasanMyflowMyEventFactory)
 .build();
 }}

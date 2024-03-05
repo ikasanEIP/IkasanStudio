@@ -26,7 +26,7 @@ public class FlowsComponentFactoryTemplateTest {
 
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumer.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -38,7 +38,23 @@ public class FlowsComponentFactoryTemplateTest {
 
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedEventGeneratingConsumer.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedScheduledConsumerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_scheduledConsumerComponent() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+            .flowElements(Collections.singletonList(TestFixtures.getScheduledConsumer()))
+            .build();
+        module.addFlow(flow);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedScheduledConsumerComponent.java"), templateString);
     }
 
 
