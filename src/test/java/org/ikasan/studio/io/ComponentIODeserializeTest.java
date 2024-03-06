@@ -57,10 +57,9 @@ class ComponentIODeserializeTest {
             () -> assertEquals(2, flow1.getConfiguredProperties().size()),
             () -> assertEquals("MyFlow1", flow1.getName()),
 
-            () -> assertEquals(2, eventGeneratingConsumer.getConfiguredProperties().size()),
+            () -> assertEquals(1, eventGeneratingConsumer.getConfiguredProperties().size()),
 
             () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
-            () -> assertEquals("The Event Generating Consumer Description", eventGeneratingConsumer.getDescription()),
             () -> Assertions.assertNotNull(eventGeneratingConsumer.getViewHandler()),
 
             () -> assertEquals(2, transition.size()),
@@ -68,23 +67,21 @@ class ComponentIODeserializeTest {
             () -> assertEquals("My Event Generating Consumer", transition.get(0).getFrom()),
             () -> assertEquals("My Custom Converter", transition.get(0).getTo()),
 
-            () -> assertEquals(5, customConverter.getConfiguredProperties().size()),
+            () -> assertEquals(4, customConverter.getConfiguredProperties().size()),
             () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getComponentMeta().getImplementingClass()),
             () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESPOKE_CLASS_NAME).getValue()),
             () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
-            () -> assertEquals("The Custom Converter Description", customConverter.getDescription()),
             () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_TYPE).getValue()),
             () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_TYPE).getValue()),
             () -> Assertions.assertNotNull(customConverter.getViewHandler()),
 
-            () -> assertEquals(2, devNullProducer.getConfiguredProperties().size()),
+            () -> assertEquals(1, devNullProducer.getConfiguredProperties().size()),
             () -> assertEquals("Dev Null Producer", devNullProducer.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getComponentMeta().getImplementingClass()),
             () -> assertEquals("My DevNull Producer", devNullProducer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
-            () -> assertEquals("The DevNull Description", devNullProducer.getDescription()),
             () -> Assertions.assertNotNull(devNullProducer.getViewHandler())
         );
     }

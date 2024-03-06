@@ -240,16 +240,16 @@ public  class BasicElement extends IkasanObject {
      * @return User Implemented class properties
      */
     @JsonIgnore
-    public List<ComponentProperty> getUserImplementedClassProperties() {
+    public List<ComponentProperty> getUserSuppliedClassProperties() {
         return configuredProperties.values().stream()
-            .filter(x -> x.getMeta().isUserImplementedClass())
+            .filter(x -> x.getMeta().isUserSuppliedClass())
             .collect(Collectors.toList());
     }
 
-    public boolean hasUserImplementedClass() {
+    public boolean hasUserSuppliedClass() {
         return configuredProperties.values()
             .stream()
-            .anyMatch(x -> x.getMeta().isUserImplementedClass());
+            .anyMatch(x -> x.getMeta().isUserSuppliedClass());
     }
 //    public boolean hasBespokeClass() {
 //        return configuredProperties.values()

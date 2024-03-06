@@ -1,4 +1,4 @@
-# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserImplementedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
+# propertyName|paramGroupNumber|paramNumber|isConfigMandatory|isUserSuppliedClass|isSetterProperty|isUserDefineResource|propertyConfigFileLabel|propertyDataType|usageDataType|validation|defaultValue - dataType must be string or an object that support Object.value(String)|helpText
 #
 # Note: 1. First row must be the column  headings so that edit as table works in intellij
 #       2. Every component is assumed to have name and description so they do not need to be included here
@@ -7,7 +7,7 @@
 # paramGroup - Aggregates parameters
 # paramNumber - Within the group
 # isConfigMandatory - Mandatory for the component to be deemed to be complete
-# isUserImplementedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+# isUserSuppliedClass - The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
 # isSetterProperty - This property is for use in the component factory setter
 # isUserDefineResource - The user will define the details of the resource within the ResourceFactory.
 # propertyConfigFileLabel - Identifies the spring injected property name. If a property does not have a propertyConfigFileLabel it is assumed that the property will not be environment specific i.e. not spring injected
@@ -26,4 +26,4 @@ Total|1|1|false|false|true||my.test.total|java.lang.Integer||||2|Total descripti
 Total|1|1|false|false|true|||java.lang.Integer|||||This should be ignored as a duplicate
 Xx|1|1|false|false|true||my.test.total|java.lang.Integer|||||This should be ignored as a duplicate propertyConfiLabel
 Other|1|1|false|false|true|||java.lang.Integer|||||Total description
-UserImplementedClass|1|1|true|true|true|true||java.lang.Object|||||This type of class will be implemented by the user, typically implementing an Ikasan interface
+UserSuppliedClass|1|1|true|true|true|true||java.lang.Object|||||This type of class will be implemented by the user, typically implementing an Ikasan interface

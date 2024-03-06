@@ -39,21 +39,6 @@ public class FlowElement extends BasicElement {
         this.containingFlow = containingFlow;
     }
 
-//    /**
-//     * Return the name of this component in a format that would be appropriate to be used as a java class name
-//     * @return the class name format of the component name.
-//     */
-//    @JsonIgnore
-//    @Override
-//    public String getJavaClassName() {
-//        return StudioUtils.toJavaClassName(getComponentName());
-//    }
-//
-//    @JsonIgnore
-//    public Flow getContainingFlow() {
-//        return containingFlow;
-//    }
-
     @Override
     public String toString() {
         return "IkasanFlowComponent {" +

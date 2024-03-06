@@ -52,20 +52,25 @@ public class ComponentPropertyEditBox {
                 }
                 propertyValueField.setValue(value);
             }
-            propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    parent.editBoxChangeListener();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    parent.editBoxChangeListener();
-                }
-                @Override
-                public void changedUpdate(DocumentEvent e) {
-                    parent.editBoxChangeListener();
-                }
-            });
+            if (!componentInitialisation) {
+                propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        parent.editBoxChangeListener();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        parent.editBoxChangeListener();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        parent.editBoxChangeListener();
+                    }
+                });
+            }
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // BOOLEAN INPUT
             propertyBooleanFieldTrue = new JCheckBox();
@@ -111,20 +116,25 @@ public class ComponentPropertyEditBox {
             if (value != null) {
                 propertyValueField.setText(value.toString());
             }
-            propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    parent.editBoxChangeListener();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    parent.editBoxChangeListener();
-                }
-                @Override
-                public void changedUpdate(DocumentEvent e) {
-                    parent.editBoxChangeListener();
-                }
-            });
+
+            if (!componentInitialisation) {
+                propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        parent.editBoxChangeListener();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        parent.editBoxChangeListener();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        parent.editBoxChangeListener();
+                    }
+                });
+            }
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 

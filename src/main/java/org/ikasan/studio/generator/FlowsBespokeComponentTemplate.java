@@ -21,8 +21,8 @@ public class FlowsBespokeComponentTemplate extends Generator {
 
     public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow) {
         for (FlowElement component : ikasanFlow.ftlGetConsumerAndFlowElements()) {
-//            if (component.hasUserImplementedClass() || component.hasBespokeClass()) {
-            if (component.hasUserImplementedClass()) {
+//            if (component.hasUserSuppliedClass() || component.hasBespokeClass()) {
+            if (component.hasUserSuppliedClass()) {
                 FlowsBespokePropertyTemplate.create(project, ikasanModule, ikasanFlow, component);
             }
 

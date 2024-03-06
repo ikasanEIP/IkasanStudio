@@ -107,7 +107,7 @@ public class ComponentPropertyMeta {
     private boolean userDefineResource=false;       // The user will define the details of the resource within the ResourceFactory.
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean userImplementedClass=false;     // The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+    private boolean userSuppliedClass=false;     // The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default

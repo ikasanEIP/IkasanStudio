@@ -13,7 +13,7 @@ import java.util.Map;
 public class FlowsBespokePropertyTemplate extends Generator {
 
     public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow, FlowElement component) {
-        for (ComponentProperty property : component.getUserImplementedClassProperties()) {
+        for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
             String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
             String prefix = GeneratorUtils.getUniquePrefix(ikasanModule, ikasanFlow, component);

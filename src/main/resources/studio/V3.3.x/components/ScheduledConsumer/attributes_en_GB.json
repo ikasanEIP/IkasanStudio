@@ -15,10 +15,6 @@
       "mandatory": true,
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
-    },
     "cronExpression": {
       "propertyName": "cronExpression",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
@@ -30,8 +26,7 @@
       "propertyName": "configuration",
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
       "setterProperty": true,
-      "userImplementedClass": true,
-      "mandatory": true,
+      "userSuppliedClass": true,
       "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -57,7 +52,7 @@
       "propertyName": "eventFactory",
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint.",
       "setterProperty": true,
-      "userImplementedClass": true,
+      "userSuppliedClass": true,
       "usageDataType":"org.ikasan.spec.event.EventFactory",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -72,7 +67,7 @@
       "propertyName": "managedEventIdentifierService",
       "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer.",
       "setterProperty": true,
-      "userImplementedClass": true,
+      "userSuppliedClass": true,
       "usageDataType":"org.ikasan.spec.event.ManagedEventIdentifierService",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -81,7 +76,7 @@
       "propertyName": "managedResourceRecoveryManager",
       "helpText": "Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager.",
       "setterProperty": true,
-      "userImplementedClass": true,
+      "userSuppliedClass": true,
       "usageDataType":"org.ikasan.spec.management.ManagedResourceRecoveryManager",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -96,7 +91,7 @@
       "propertyName": "messageProvider",
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.",
       "setterProperty": true,
-      "userImplementedClass": true,
+      "userSuppliedClass": true,
       "usageDataType":"org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."

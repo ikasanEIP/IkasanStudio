@@ -22,13 +22,13 @@ public class DeleteComponentAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       if (component instanceof FlowElement ikasanFlowComponentToRemove) {
-          Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
+         Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
          if (parentFlow != null) {
             parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
          }
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       } else if (component instanceof Flow ikasanFlowToRemove) {
-          Module ikasanModule = Context.getIkasanModule(projectKey);
+         Module ikasanModule = Context.getIkasanModule(projectKey);
          ikasanModule.getFlows().remove(ikasanFlowToRemove);
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       }
