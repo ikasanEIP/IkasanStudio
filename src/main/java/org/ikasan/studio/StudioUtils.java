@@ -274,7 +274,7 @@ public class StudioUtils {
                     }
 
                     boolean isMandatory = Boolean.parseBoolean(split[MANDATORY_INDEX]);
-                    boolean isUserImplementedClass = Boolean.parseBoolean(split[USER_IMPLEMENTED_CLASS_INDEX]);
+                    boolean isUserSuppliedClass = Boolean.parseBoolean(split[USER_IMPLEMENTED_CLASS_INDEX]);
                     boolean isSetterProperty = Boolean.parseBoolean(split[SETTER_PROPERTY_INDEX]);
                     boolean isUserDefinedResource = Boolean.parseBoolean(split[USER_DEFINED_RESOURCE_INDEX]);
 
@@ -300,7 +300,7 @@ public class StudioUtils {
 
                     ComponentPropertyMeta componentPropertyMeta = ComponentPropertyMeta.builder().build();
 //                    ComponentPropertyMeta componentPropertyMeta = new ComponentPropertyMeta(
-//                            paramGroupNumber, affectsBespokeClass, isMandatory, isUserImplementedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
+//                            paramGroupNumber, affectsBespokeClass, isMandatory, isUserSuppliedClass, isSetterProperty, isUserDefinedResource, propertyName, propertyConfigLabel,
 //                            propertyDataType, usageDataType, validation, validationMessage, defaultValue, split[HELP_INDEX]);
 //                    if (parentPropertyName != null) {
                         // Parent child relationship

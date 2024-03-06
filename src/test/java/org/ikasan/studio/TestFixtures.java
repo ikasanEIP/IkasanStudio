@@ -49,7 +49,6 @@ public class TestFixtures {
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Event Generating Consumer")
-                .description("The Event Generating Consumer Description")
                 .build();
     }
     public static FlowElement getScheduledConsumer() {
@@ -57,7 +56,6 @@ public class TestFixtures {
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Scheduled Consumer")
-                .description("The Scheduled Consumer Description")
                 .build();
         flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
         flowElement.setPropertyValue("configuration", "org.ikasan.myflow.configuration");
@@ -82,7 +80,6 @@ public class TestFixtures {
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Custom Converter")
-                .description("The Custom Converter Description")
                 .build();
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
@@ -96,7 +93,6 @@ public class TestFixtures {
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My DevNull Producer")
-                .description("The DevNull Description")
                 .build();
     }
 
@@ -106,7 +102,6 @@ public class TestFixtures {
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Logging Producer")
-                .description("The Logging Description")
                 .build();
         flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
         flowElement.setPropertyValue("regExpPattern", "this");

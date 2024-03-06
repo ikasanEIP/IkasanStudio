@@ -14,9 +14,23 @@
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
+    "endpointEventProvider": {
+      "propertyName": "endpointEventProvider",
+      "helpText": "Set the endpoint event provider for this event consumer.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.component.endpoint.consumer.api.spec.EndpointEventProvider",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the endpoint event provider bean."
+    },
+    "managedEventIdentifierService": {
+      "propertyName": "managedEventIdentifierService",
+      "helpText": "Set the ManagedEventIdentifierService for this endpoint event provider.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.spec.event.ManagedEventIdentifierService",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the endpoint event provider bean."
     }
   }
 }

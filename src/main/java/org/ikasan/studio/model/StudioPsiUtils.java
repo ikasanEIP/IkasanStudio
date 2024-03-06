@@ -295,7 +295,7 @@ public class StudioPsiUtils {
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateJsonFromModelInstance();
         pipsiIkasanModel.generateSourceFromModelInstance();
-        StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+//        StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }

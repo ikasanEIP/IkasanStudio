@@ -70,11 +70,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String   fieldName  = field.getKey();
                 if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
-                    flow.setConsumer(getFlowElement(field.getValue()));
+                    flow.setConsumer(getFlowElement(field.getValue(), flow));
                 } else if (Flow.TRANSITIONS_TSON_TAG.equals(fieldName)) {
                     flow.setTransitions(getTransitions(field.getValue()));
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
-                    flowElementsMap = getFlowElements(field.getValue());
+                    flowElementsMap = getFlowElements(field.getValue(), flow);
                 } else {
                     Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);
@@ -159,13 +159,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
         return transition;
     }
-    public Map<String, FlowElement> getFlowElements(JsonNode root) throws IOException {
+    public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow) throws IOException {
         Map<String, FlowElement> flowElementsMap = new HashMap<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
-                FlowElement newFlowElement = getFlowElement(arrayElement);
+                FlowElement newFlowElement = getFlowElement(arrayElement, containingFlow);
                 if (newFlowElement != null) {
                     flowElementsMap.put(newFlowElement.getComponentName(), newFlowElement);
                 }
@@ -174,7 +174,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return flowElementsMap;
     }
 
-    public FlowElement getFlowElement(JsonNode jsonNode) throws IOException {
+    public FlowElement getFlowElement(JsonNode jsonNode, Flow containingFlow) throws IOException {
         FlowElement flowElement = null;
         // Possibly just open/close brackets
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
@@ -187,9 +187,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
             }
             if (componentMeta.isGeneratesBespokeClass()) {
-                flowElement = FlowBeskpokeElement.flowElementBuilder().componentMeta(componentMeta).build();
+                flowElement = FlowBeskpokeElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
             } else {
-                flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).build();
+                flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
             }
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
 

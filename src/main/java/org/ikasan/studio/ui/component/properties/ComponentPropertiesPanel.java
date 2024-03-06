@@ -133,7 +133,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                             // This property has not yet been set for the component
                             property = new ComponentProperty((getSelectedComponent()).getComponentMeta().getMetadata(key));
                         }
-                        if (property.getMeta().isUserImplementedClass() || property.getMeta().isAffectsBespokeClass()) {
+                        if (property.getMeta().isUserSuppliedClass() || property.getMeta().isAffectsBespokeClass()) {
                             componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
                                     regeneratingPropertiesEditorPanel,
                                     property, gc, regenerateTabley++));

@@ -30,7 +30,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 <#--    <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>-->
-<#--        <#if propValue.meta.isUserImplementedClass()>-->
+<#--        <#if propValue.meta.isUserSuppliedClass()>-->
 <#--            @javax.annotation.Resource-->
 <#--            ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};-->
 <#--        </#if>-->
@@ -64,7 +64,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
     <#-- todo - move this to above section -->
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
-        <#if propValue.meta.isUserImplementedClass()>
+        <#if propValue.meta.isUserSuppliedClass()>
             @javax.annotation.Resource
             <#if propValue.meta.usageDataType == "configurationDefined">
                 ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${propValue.valueString} ${StudioUtils.toJavaIdentifier(propValue.valueString)};
@@ -88,7 +88,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
                 <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
             <#else>
-                <#if propValue.meta.isUserImplementedClass()>
+                <#if propValue.meta.isUserSuppliedClass()>
                     <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType == "java.lang.String">
