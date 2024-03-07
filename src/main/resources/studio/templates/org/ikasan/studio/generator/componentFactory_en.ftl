@@ -91,11 +91,10 @@ org.ikasan.builder.BuilderFactory builderFactory;
                 <#if propValue.meta.isUserSuppliedClass()>
                     <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                 <#else>
-                    <#if propValue.meta.usageDataType == "java.lang.String">
+                    <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
                         <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
                     <#else>
-                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${propValue.valueString})
-                        <#if flowElement.componentMeta.generatesBespokeClass>;</#if>
+                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalClassName(propValue.meta.propertyName)}(${propValue.valueString})<#if flowElement.componentMeta.generatesBespokeClass>;x</#if>
                     </#if>
                 </#if>
             </#if>

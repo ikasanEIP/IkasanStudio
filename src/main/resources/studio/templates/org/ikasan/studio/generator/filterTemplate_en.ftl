@@ -9,12 +9,12 @@ package ${studioPackageTag};
 
 @org.springframework.stereotype.Component
 
-public class ${component.getPropertyValue("BespokeClassName")} implements org.ikasan.spec.component.filter.Filter<${component.getPropertyValue("FromType")}><#if component.getPropertyValue("IsConfiguredResource")?has_content && component.getPropertyValue("IsConfiguredResource")>, org.ikasan.spec.configuration.ConfiguredResource<${component.getPropertyValue("Configuration")}><#elseif component.getPropertyValue("Configuration")?has_content>, org.ikasan.spec.configuration.Configured<${component.getPropertyValue("Configuration")}></#if>
+public class ${flowElement.getPropertyValue("bespokeClassName")} implements org.ikasan.spec.flowElement.filter.Filter<${flowElement.getPropertyValue("fromType")}><#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>, org.ikasan.spec.configuration.ConfiguredResource<${flowElement.getPropertyValue("cConfiguration")}><#elseif flowElement.getPropertyValue("configuration")?has_content>, org.ikasan.spec.configuration.Configured<${flowElement.getPropertyValue("configuration")}></#if>
 {
-<#if component.getPropertyValue("Configuration")??>
-${component.getPropertyValue("Configuration")} configuration;
+<#if flowElement.getPropertyValue("configuration")??>
+${flowElement.getPropertyValue("configuration")} configuration;
 </#if>
-<#if component.getPropertyValue("IsConfiguredResource")?has_content && component.getPropertyValue("IsConfiguredResource")>
+<#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>
 String configurationId;
 </#if>
 /**
@@ -27,7 +27,7 @@ String configurationId;
 * @return Message or null.
 * @throws FilterException
 */
-public ${component.getPropertyValue("FromType")} filter(${component.getPropertyValue("FromType")} message) throws org.ikasan.spec.component.filter.FilterException
+public ${flowElement.getPropertyValue("fromType")} filter(${flowElement.getPropertyValue("fromType")} message) throws org.ikasan.spec.flowElement.filter.FilterException
 {
 if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter
@@ -38,7 +38,7 @@ else {
 return null;
 }
 }
-<#if component.getPropertyValue("IsConfiguredResource")?has_content && component.getPropertyValue("IsConfiguredResource")>
+<#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>
 
 @Override
 public String getConfiguredResourceId() {
@@ -50,15 +50,15 @@ public void setConfiguredResourceId(String id) {
 this.configurationId = id;
 }
 </#if>
-<#if component.getPropertyValue("Configuration")??>
+<#if flowElement.getPropertyValue("configuration")??>
 
 @Override
-public ${component.getPropertyValue("Configuration")} getConfiguration() {
+public ${flowElement.getPropertyValue("configuration")} getConfiguration() {
 return configuration;
 }
 
 @Override
-public void setConfiguration(${component.getPropertyValue("Configuration")} configuration) {
+public void setConfiguration(${flowElement.getPropertyValue("configuration")} configuration) {
 this.configuration = configuration;
 }
 </#if>

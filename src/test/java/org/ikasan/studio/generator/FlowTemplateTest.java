@@ -70,6 +70,22 @@ public class FlowTemplateTest {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedScheduledConsumerComponent.java"), templateString);
     }
 
+    // ------------------------------------- FILTER -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMessageFilterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_messageFilter() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getMessageFilter()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
+    }
 
     // ------------------------------------- CONVERTERS -------------------------------------
     /**

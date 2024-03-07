@@ -15,12 +15,12 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @javax.annotation.Resource
-org.myApp.myflow1.MyMessageFilter testFilterComponent;
+co.uk.test.myflow1.myFilter myMessageFilter;
 @javax.annotation.Resource
-org.myApp.myflow1.MyConfigurationClass myConfigurationClass;
+co.uk.test.myflow1.MyConfigurationClass myConfigurationClass;
 
-public org.ikasan.spec.component.filter.Filter getTestFilterComponent() {
-testFilterComponent.setConfiguration(myConfigurationClass);
-testFilterComponent.setConfiguredResourceId("MyConfiguredResourceId");
-return testFilterComponent;
+public org.ikasan.spec.component.filter.Filter getMyMessageFilter() {
+myMessageFilter.setConfiguration(myConfigurationClass);
+myMessageFilter.setConfiguredResourceId("MyResourceID");
+return myMessageFilter;
 }}

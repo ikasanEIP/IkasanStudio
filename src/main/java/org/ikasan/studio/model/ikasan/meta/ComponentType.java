@@ -12,7 +12,7 @@ public enum ComponentType
     Consumer("org.ikasan.spec.component.endpoint.Consumer"),
     Converter("org.ikasan.spec.component.transformation.Converter"),
     ExceptionResolver("org.ikasan.exceptionResolver.ExceptionResolver"),
-    Filer("org.ikasan.spec.component.filter.Filter"),
+    Filter("org.ikasan.spec.component.filter.Filter"),
     Flow("org.ikasan.spec.flow.Flow"),
     Module("org.ikasan.spec.module.Module"),
     Producer("org.ikasan.spec.component.endpoint.Producer"),

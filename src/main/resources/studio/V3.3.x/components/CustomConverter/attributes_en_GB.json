@@ -16,9 +16,9 @@
     },
     "bespokeClassName": {
       "propertyName": "bespokeClassName",
-      "bespokeClass": "true",
+      "bespokeFtlTemplate": "converterTemplate.ftl",
       "affectsBespokeClass": "true",
-      "helpText": "The name of the class that contain the custom conversion.",
+      "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
       "mandatory": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."

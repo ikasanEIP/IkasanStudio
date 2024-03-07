@@ -86,6 +86,21 @@ public class TestFixtures {
         flowElement.setPropertyValue(BESPOKE_CLASS_NAME, "myConverter");
         return flowElement;
     }
+    // ------------------------- Filters -------------------------
+
+    public static FlowElement getMessageFilter() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Message Filter");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Message Filter")
+                .build();
+        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
+        flowElement.setPropertyValue(BESPOKE_CLASS_NAME, "myFilter");
+        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResource", true);
+        return flowElement;
+    }
 
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() {
@@ -129,27 +144,27 @@ public class TestFixtures {
                 .build();
     }
 
-    /**
-     * Create a fully populated FILTER
-     * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
-     *
-     * @return a FullyPopulatedCustomConverter
-     */
-    public static FlowElement getFullyPopulatedFilterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElementFactory.createFlowElement(null, null);
-
-//FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
-        component.setComponentName("testFilterComponent");
-
-        // Mandatory properties
-        component.setPropertyValue("BespokeClassName", "MyMessageFilter");
-        component.setPropertyValue("FromType", java.lang.String.class);
-        component.setPropertyValue("Configuration", "MyConfigurationClass");
-        component.setPropertyValue("ConfiguredResourceId", "MyConfiguredResourceId");
-        component.setPropertyValue("Description", "Test description");
-        component.setPropertyValue("IsConfiguredResource", true);
-        return component;
-    }
+//    /**
+//     * Create a fully populated FILTER
+//     * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
+//     *
+//     * @return a FullyPopulatedCustomConverter
+//     */
+//    public static FlowElement getFullyPopulatedFilterComponent(Flow ikasanFlow) {
+//        FlowElement component = FlowElementFactory.createFlowElement(null, null);
+//
+////FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
+//        component.setComponentName("testFilterComponent");
+//
+//        // Mandatory properties
+//        component.setPropertyValue("bespokeClassName", "MyMessageFilter");
+//        component.setPropertyValue("fromType", java.lang.String.class);
+//        component.setPropertyValue("configuration", "MyConfigurationClass");
+//        component.setPropertyValue("configuredResourceId", "MyConfiguredResourceId");
+//        component.setPropertyValue("description", "Test description");
+//        component.setPropertyValue("configuredResource", true);
+//        return component;
+//    }
 
     /**
      * Create a fully populated FILTER
