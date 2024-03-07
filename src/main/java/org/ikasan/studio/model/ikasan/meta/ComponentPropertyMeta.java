@@ -77,6 +77,7 @@ public class ComponentPropertyMeta {
     @JsonKey
     private String propertyName;
 
+    private String bespokeFtlTemplate;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean affectsBespokeClass=false;  // A change to this property would result in an update to the bespoke class

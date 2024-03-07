@@ -25,7 +25,7 @@ public class FlowsBespokeComponentTemplateTest {
 
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumerComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyConverter.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -34,5 +34,17 @@ public class FlowsBespokeComponentTemplateTest {
         String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MyConverter.java"), templateString);
+    }
+    //  ------------------------------- FILTERS ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/MessageFilter.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_messageFilterComponent() throws IOException {
+        FlowElement flowElement = TestFixtures.getMessageFilter();
+        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MessageFilter.java"), templateString);
     }
 }

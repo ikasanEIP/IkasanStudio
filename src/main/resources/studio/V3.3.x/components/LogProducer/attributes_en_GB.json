@@ -22,7 +22,9 @@
     },
     "configuredResourceId": {
       "propertyName": "configuredResourceId",
-      "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration."
+      "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration.",
+      "setterProperty": true,
+      "usageDataType":"java.lang.String"
     },
     "replacementText": {
       "propertyName": "replacementText",
