@@ -16,7 +16,11 @@ public class PaletteItem {
      * @param categoryName to be displayed
      */
     public PaletteItem(String categoryName) {
-        this.componentMeta = new ComponentMeta();
+        this.componentMeta = ComponentMeta.builder()
+            .name(categoryName)
+            .componentType("dummy")
+            .implementingClass("dummy")
+            .build();
         componentMeta.setName(categoryName);
         ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(componentMeta);
         category = true;

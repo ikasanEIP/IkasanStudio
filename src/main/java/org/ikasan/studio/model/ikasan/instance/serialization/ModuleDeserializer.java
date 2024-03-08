@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.*;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
 
@@ -180,9 +180,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             String implementingClass = jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS) != null ? jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS).asText() : null;
             String componentType = jsonNode.get(ComponentMeta.COMPONENT_TYPE) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE).asText() : null;
+            String additionalKey = jsonNode.get(ComponentMeta.ADDITIONAL_KEY) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE).asText() : null;
 
-            ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByClassOrType(
-                    IkasanComponentLibrary.STD_IKASAN_PACK, implementingClass, componentType);
+            ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
+                    IkasanComponentLibrary.STD_IKASAN_PACK, implementingClass, componentType, additionalKey);
             if (componentMeta == null) {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
             }

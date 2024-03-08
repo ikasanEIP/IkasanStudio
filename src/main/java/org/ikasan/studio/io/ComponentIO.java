@@ -37,7 +37,7 @@ public class ComponentIO {
         try {
             ikasanMeta = MAPPER.readValue(jsonString, IkasanMeta.class);
         } catch (JsonProcessingException e) {
-            throw new StudioException("The serialised data in [" + path + "] could not be read due to " + e.getMessage(), e);
+            throw new StudioException("The serialised data in [" + path + "] could not be read due to [" + e.getMessage() + "]", e);
         }
         return ikasanMeta;
     }

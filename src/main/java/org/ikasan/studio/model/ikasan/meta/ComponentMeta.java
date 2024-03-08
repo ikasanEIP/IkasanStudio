@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import static org.ikasan.studio.model.ikasan.meta.ComponentType.*
-        ;
+
+import static org.ikasan.studio.model.ikasan.meta.ComponentType.*;
 
 @Data
 @SuperBuilder
@@ -25,8 +25,9 @@ import static org.ikasan.studio.model.ikasan.meta.ComponentType.*
 @AllArgsConstructor
 public class ComponentMeta implements IkasanMeta {
 
-    private static final String DEFAULT_README = "Readme.md";
+    public static final String ADDITIONAL_KEY = "additionalKey";
     public static final String COMPONENT_TYPE = "componentType";
+    private static final String DEFAULT_README = "Readme.md";
     public static final String FLOW_NAME = "Flow";
     public static final String HELP_TEXT = "helpText";
     public static final String IMPLEMENTING_CLASS = "implementingClass";
@@ -34,33 +35,37 @@ public class ComponentMeta implements IkasanMeta {
 //    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
 
     // DO NOT RENAME - Will affect model.json
-    String name;
+    @lombok.NonNull
+    private String name;
+    private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer
 
-    String componentType;
-    String defaultValue;
-    int displayOrder;
+    @lombok.NonNull
+    private String componentType;
+    private String defaultValue;
+    private int displayOrder;
 
-    boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftlocation
-    String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
-    String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
+    private boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftlocation
+    private String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
+    private String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
 
-    String flowBuilderMethod;
-    boolean generatesBespokeClass;
-    String helpText;
-    String ikasanComponentFactoryMethod;
-    String implementingClass;
-    List<Dependency> jarDepedencies;
-    Map<String, ComponentPropertyMeta> properties;
-    boolean usesBuilder;
+    private String flowBuilderMethod;
+    private boolean generatesBespokeClass;
+    private String helpText;
+    private String ikasanComponentFactoryMethod;
+    @lombok.NonNull
+    private String implementingClass;
+    private List<Dependency> jarDepedencies;
+    private Map<String, ComponentPropertyMeta> properties;
+    private boolean usesBuilder;
 
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
-    String webHelpURL = DEFAULT_README;
+    private String webHelpURL = DEFAULT_README;
 
     @JsonIgnore
-    ImageIcon smallIcon;
+    private ImageIcon smallIcon;
     @JsonIgnore
-    ImageIcon canvasIcon;
+    private ImageIcon canvasIcon;
 
 
     public ComponentMeta() {}
@@ -103,7 +108,7 @@ public class ComponentMeta implements IkasanMeta {
     }
 
     public String getDisplayComponentType() {
-        if (componentType != null && componentType.contains(".")) {
+        if (componentType.contains(".")) {
             return componentType.substring(componentType.lastIndexOf('.') + 1).trim();
         } else {
             return "";
