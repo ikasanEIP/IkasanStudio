@@ -1,27 +1,30 @@
 package org.ikasan.studio.ui.component.properties;
 
+import lombok.Data;
+
 import javax.swing.*;
 
+@Data
 public class ComponentInput {
-    private boolean isBooleanInput;
+    private boolean booleanInput;
     private JCheckBox trueBox;
     private JCheckBox falseBox;
     private JFormattedTextField propertyValueField;
 
     public ComponentInput(JCheckBox trueBox, JCheckBox falseBox) {
-        isBooleanInput = true;
+        booleanInput = true;
         this.trueBox = trueBox;
         this.falseBox = falseBox;
     }
 
     public ComponentInput(JFormattedTextField propertyValueField) {
-        isBooleanInput = false;
+        booleanInput = false;
         this.propertyValueField = propertyValueField;
     }
 
     public JComponent getFirstFocusComponent() {
-        JComponent firstComponent = null ;
-        if (isBooleanInput) {
+        JComponent firstComponent;
+        if (booleanInput) {
             firstComponent = trueBox;
         } else {
             firstComponent = propertyValueField;
@@ -39,37 +42,5 @@ public class ComponentInput {
         if (propertyValueField != null) {
             propertyValueField.setEnabled(enabled);
         }
-    }
-
-    public boolean isBooleanInput() {
-        return isBooleanInput;
-    }
-
-    public void setBooleanInput(boolean booleanInput) {
-        isBooleanInput = booleanInput;
-    }
-
-    public JCheckBox getTrueBox() {
-        return trueBox;
-    }
-
-    public void setTrueBox(JCheckBox trueBox) {
-        this.trueBox = trueBox;
-    }
-
-    public JCheckBox getFalseBox() {
-        return falseBox;
-    }
-
-    public void setFalseBox(JCheckBox falseBox) {
-        this.falseBox = falseBox;
-    }
-
-    public JFormattedTextField getPropertyValueField() {
-        return propertyValueField;
-    }
-
-    public void setPropertyValueField(JFormattedTextField propertyValueField) {
-        this.propertyValueField = propertyValueField;
     }
 }

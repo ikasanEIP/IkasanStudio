@@ -128,15 +128,8 @@ public class StudioPsiUtils {
     public static void generateModelInstanceFromJSON(String projectKey, boolean assumeModuleConfigClass) {
         PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(Context.getProject(projectKey));
         if (jsonModelPsiFile != null) {
-//        Module ikasanModule = Context.getIkasanModule(projectKey);
-//
-//        PsiDirectory modelDirectory = getModelDirectory(Context.getProject(projectKey));
-//
-//
-//        PsiFile psiFile = modelDirectory.findFile(Context.JSON_MODEL_FILE) ;
-//        if (psiFile != null ) {
             String json = jsonModelPsiFile.getText();
-            Module newModule = null;
+            Module newModule;
             try {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, Context.JSON_MODEL_FULL_PATH);
             } catch (StudioException e) {
@@ -148,15 +141,6 @@ public class StudioPsiUtils {
         } else {
             LOG.warn("Could not read the model.json");
         }
-//        ikasanModule.reset();
-//        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-//        if (pipsiIkasanModel.getModuleConfigClazz() == null || !pipsiIkasanModel.getModuleConfigClazz().isValid() ) {
-//            updatePIPSIIkasanModelWithModuleConfigClazz(projectKey, assumeModuleConfigClass);
-//        }
-//        if (pipsiIkasanModel.getModuleConfigClazz() != null && pipsiIkasanModel.getModuleConfigClazz().isValid()) {
-//            pipsiIkasanModel.updateIkasanModule();
-//        }
-//        ikasanModule.resetRegenratePermissions();
     }
 
 
