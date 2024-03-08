@@ -7,8 +7,7 @@ import org.ikasan.studio.model.ikasan.instance.FlowElement;
 
 import java.io.IOException;
 
-import static org.ikasan.studio.model.ikasan.meta.ComponentMeta.COMPONENT_TYPE;
-import static org.ikasan.studio.model.ikasan.meta.ComponentMeta.IMPLEMENTING_CLASS;
+import static org.ikasan.studio.model.ikasan.meta.ComponentMeta.*;
 
 public class FlowElementSerializer extends StdSerializer<FlowElement> {
 
@@ -30,5 +29,8 @@ public class FlowElementSerializer extends StdSerializer<FlowElement> {
         // This is metadata but used to identify the element
         jsonGenerator.writeStringField(COMPONENT_TYPE, flowElement.getComponentMeta().getComponentType());
         jsonGenerator.writeStringField(IMPLEMENTING_CLASS, flowElement.getComponentMeta().getImplementingClass());
+        if (flowElement.getComponentMeta().getAdditionalKey() != null) {
+            jsonGenerator.writeStringField(ADDITIONAL_KEY, flowElement.getComponentMeta().getAdditionalKey());
+        }
     }
 }

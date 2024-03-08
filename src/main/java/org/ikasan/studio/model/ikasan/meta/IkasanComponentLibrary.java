@@ -32,7 +32,7 @@ public class IkasanComponentLibrary {
 
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
     protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
-    protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndClassOrType = new HashMap<>(new HashMap<>());
+    protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndDeserialisationKey = new HashMap<>(new HashMap<>());
     private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(ComponentType.Module.toString(), ComponentType.Flow.toString(), "Exception Resolver"));
 
     /**
@@ -77,7 +77,7 @@ public class IkasanComponentLibrary {
                 componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
                 componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
-                ikasanComponentMetaMapByClass.put(getClassOrType(componentMeta) , componentMeta);
+                ikasanComponentMetaMapByClass.put(getDeserialisationKey(componentMeta) , componentMeta);
             }
             if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
                 LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
@@ -93,31 +93,43 @@ public class IkasanComponentLibrary {
             // @TODO consider synchronizedMap
             synchronized (IkasanComponentLibrary.class) {
                 libraryByVersionAndKey.put(ikasanMetaDataPackVersion, returnedIkasanComponentMetaMapByKey);
-                libraryByVersionAndClassOrType.put(ikasanMetaDataPackVersion, ikasanComponentMetaMapByClass);
+                libraryByVersionAndDeserialisationKey.put(ikasanMetaDataPackVersion, ikasanComponentMetaMapByClass);
             }
         }
         return returnedIkasanComponentMetaMapByKey;
     }
 
-    /**
-     * Attempt to extract a key, give preference to implementing class, if undefined, fall back to componentType
-     * @param componentMeta that we need the key for
-     * @return A string key to uniquely identify this meta
-     */
-    private static String getClassOrType(ComponentMeta componentMeta) {
-        String componentKey = componentMeta.getImplementingClass();
 
-        if (componentKey != null && !componentKey.isBlank()) {
-            if (componentKey.contains("$")) {
+    /**
+     * When reading Module flows from JSON we have only implementingClass and componentType in the standard Ikasan
+     * 'module.json'. This is insufficient to uniquely identify some components e.g. Local File Consumer so an
+     * additional key is also provided (usually the component name). Most of the time the additional key is not provided
+     * @param implementingClass of the component
+     * @param componentType of the component
+     * @param additionalKey of the component (usually the component name, only needed if the above 2 are not unique)
+     * @return A unique key used to access
+     */
+    public static String getDeserialisationKey(String implementingClass, String componentType, String additionalKey) {
+        StringBuilder metaDataDeserialisationKey = new StringBuilder();
+        if (implementingClass != null && !implementingClass.isBlank()) {
+            if (implementingClass.contains("$")) {
                 // remove any inner class reference
-                componentKey = componentKey.split("\\$")[0];
+                implementingClass = implementingClass.split("\\$")[0];
             }
-        } else {
-            // Rare scenario where there is no implementing class
-            componentKey = componentMeta.getComponentType();
+            metaDataDeserialisationKey.append(implementingClass).append("-");
         }
-        return componentKey;
+        if (componentType != null && !componentType.isBlank()) {
+            metaDataDeserialisationKey.append(componentType).append("-");
+        }
+        if (additionalKey != null && !additionalKey.isBlank()) {
+            metaDataDeserialisationKey.append(additionalKey);
+        }
+        return metaDataDeserialisationKey.toString();
     }
+    public static String getDeserialisationKey(ComponentMeta componentMeta) {
+        return getDeserialisationKey(componentMeta.getImplementingClass(), componentMeta.getComponentType(), componentMeta.getAdditionalKey());
+    }
+
 
     public static ComponentMeta getFLow(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.Flow.toString());
@@ -146,18 +158,20 @@ public class IkasanComponentLibrary {
         }
         return libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
     }
+
     /**
      * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
      * of being updated, but it is possible that by the time the consumer of this method returns, the map may have
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    protected synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByClassOrType(final String ikasanMetaDataPackVersion) {
-        Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndClassOrType.get(ikasanMetaDataPackVersion);
+    protected synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByDeserialisationKey(final String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndDeserialisationKey.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
             refreshComponentLibrary(ikasanMetaDataPackVersion);
+            ikasanComponentMetaMap = libraryByVersionAndDeserialisationKey.get(ikasanMetaDataPackVersion);
         }
-        return libraryByVersionAndClassOrType.get(ikasanMetaDataPackVersion);
+        return ikasanComponentMetaMap;
     }
 
     public static ComponentMeta getIkasanComponentByKey(String ikasanMetaDataPackVersion, String key) {
@@ -184,17 +198,12 @@ public class IkasanComponentLibrary {
      * @param ikasanMetaDataPackVersion of the IkasanMetaPack
      * @param implementingClass to be searched for
      * @param componentType to be used is no implementing class is available for this component e.g. Module
+     * @param additionalKey to be used is no implementing class is available for this component e.g. Module
      * @return the metadata that matches the name of the implmenting class provided, or null
      */
-    public static ComponentMeta getIkasanComponentByClassOrType(String ikasanMetaDataPackVersion, String implementingClass, String componentType) {
-        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByClassOrType(ikasanMetaDataPackVersion);
-        ComponentMeta componentMeta = safeIkasanComponentMetaMap.get(implementingClass);
-        if (componentMeta == null) {
-            LOG.error("Could not find mtea for implementingClass " + implementingClass);
-//            LOG.warn("could not find omponent Meta for implementing class " + implementingClass + " now trying componentType " + componentType);
-//            componentMeta = safeIkasanComponentMetaMap.get(componentType);
-        }
-        return componentMeta;
+    public static ComponentMeta getIkasanComponentByDeserialisationKey(String ikasanMetaDataPackVersion, String implementingClass, String componentType, String additionalKey) {
+        Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByDeserialisationKey(ikasanMetaDataPackVersion);
+        return safeIkasanComponentMetaMap.get(getDeserialisationKey(implementingClass, componentType, additionalKey));
     }
 
     public static Set<String> getIkasanComponentNames(String ikasanMetaDataPackVersion) {
@@ -207,7 +216,7 @@ public class IkasanComponentLibrary {
     }
     public static Collection<ComponentMeta>  getPaletteComponentList(String ikasanMetaDataPackVersion) {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
-        return safeIkasanComponentMetaMap.values().stream().filter(x -> !x.isEndpoint).collect(Collectors.toList());
+        return safeIkasanComponentMetaMap.values().stream().filter(x -> !x.isEndpoint()).collect(Collectors.toList());
     }
 
     public static Map<String, ComponentMeta> getIkasanComponents(String ikasanMetaDataPackVersion) {

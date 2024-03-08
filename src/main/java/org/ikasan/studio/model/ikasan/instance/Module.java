@@ -23,7 +23,7 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 
 /**
  * This class holds all the information about the ikasan module flow.
- * Its a deliberate decision not to use components from within the ikasan framework itself in an attempt to insulate
+ * It's a deliberate decision not to use components from within the ikasan framework itself in an attempt to insulate
  * from any changes to ikasan or componentDependencies on any particular ikasan version.
  */
 
@@ -64,7 +64,7 @@ public class Module extends BasicElement {
         setH2DbPortNumber(h2PortNumber);
         setH2WebPortNumber(h2WebPortNumber);
         if (flows == null) {
-            flows = new ArrayList<>();
+            this.flows = new ArrayList<>();
         } else {
             this.flows = flows;
         }
@@ -79,7 +79,6 @@ public class Module extends BasicElement {
     }
     @JsonIgnore
     public void setApplicationPackageName(String applicationPackageName) {
-//        this.setPropertyValue(ComponentPropertyMeta.APPLICATION_PACKAGE_NAME, ComponentPropertyMeta.STD_PACKAGE_NAME_META_COMPONENT, applicationPackageName);
         this.setPropertyValue(ComponentPropertyMeta.APPLICATION_PACKAGE_NAME, applicationPackageName);
     }
     public String getPort() {
@@ -87,7 +86,6 @@ public class Module extends BasicElement {
     }
     @JsonIgnore
     public void setPort(String portNumber) {
-//        this.setPropertyValue(ComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, ComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, portNumber);
         this.setPropertyValue(ComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME, portNumber);
     }
     public String getH2PortNumber() {
@@ -95,7 +93,6 @@ public class Module extends BasicElement {
     }
     @JsonIgnore
     public void setH2DbPortNumber(String portNumber) {
-//        this.setPropertyValue(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, portNumber);
         this.setPropertyValue(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, portNumber);
     }
     public String getH2WebPortNumber() {
@@ -103,8 +100,6 @@ public class Module extends BasicElement {
     }
     @JsonIgnore
     public void setH2WebPortNumber(String portNumber) {
-//        this.setPropertyValue(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, ComponentPropertyMeta.STD_PORT_NUMBER_META_COMPONENT, portNumber);
         this.setPropertyValue(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, portNumber);
     }
-
 }

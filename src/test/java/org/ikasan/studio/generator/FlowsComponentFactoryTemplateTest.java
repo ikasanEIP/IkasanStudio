@@ -42,6 +42,22 @@ public class FlowsComponentFactoryTemplateTest {
     }
 
     /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedLocalFileConsumerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_localFileConsumerComponent() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+            .flowElements(Collections.singletonList(TestFixtures.getLocalFileConsumer()))
+            .build();
+        module.addFlow(flow);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedLocalFileConsumerComponent.java"), templateString);
+    }
+
+    /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedScheduledConsumerComponent.java
      * @throws IOException if the template cant be generated
      */
@@ -65,7 +81,6 @@ public class FlowsComponentFactoryTemplateTest {
      */
     @Test
     public void testCreateFlowWith_messageFilterComponent() throws IOException {
-        Class myClass = java.lang.String.class;
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .flowElements(Collections.singletonList(TestFixtures.getMessageFilter()))
                 .build();

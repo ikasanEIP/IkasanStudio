@@ -1,0 +1,14 @@
+{
+  "name": "BadComponent",
+  "helpText": "The module is the container for all flows",
+  "implementingClass": "SomeClass",
+  "ikasanComponentFactoryMethod": "",
+  "usesBuilder" : true,
+  "jarDepedencies": [
+
+  ],
+  "properties": {
+
+  }
+}
+

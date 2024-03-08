@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta.*;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ComponentIODeserializeTest {
     //@NEXT EventGeneratingConsumer replicated
@@ -31,6 +30,41 @@ class ComponentIODeserializeTest {
             () -> assertEquals(8, component.getJarDepedencies().size()),
             () -> assertEquals(firstDependency.toString(), component.getJarDepedencies().get(0).toString())
         );
+    }
+
+    @Test
+    public void testMissingNameAttributesCausesError() {
+        StudioException thrown = assertThrowsExactly(
+            StudioException.class,
+            () ->  ComponentIO.deserializeMetaComponent("studio/Vtest.x/BadComponentMeta/no_name_attributes_en_GB.json")
+        );
+
+        assertTrue(thrown.getMessage().contains(
+            "The serialised data in [studio/Vtest.x/BadComponentMeta/no_name_attributes_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
+                "Incorrect exception message, was [" + thrown.getMessage() + "]");
+    }
+    @Test
+    public void testMissingTypeAttributesCausesError() {
+        StudioException thrown = assertThrowsExactly(
+            StudioException.class,
+            () ->  ComponentIO.deserializeMetaComponent("studio/Vtest.x/BadComponentMeta/no_type_attributes_en_GB.json")
+        );
+
+        assertTrue(thrown.getMessage().contains(
+            "The serialised data in [studio/Vtest.x/BadComponentMeta/no_type_attributes_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: componentType is marked non-null but is null"),
+                "Incorrect exception message, was [" + thrown.getMessage() + "]");
+    }
+
+    @Test
+    public void testMissingImplementingClassAttributesCausesError() {
+        StudioException thrown = assertThrowsExactly(
+            StudioException.class,
+            () ->  ComponentIO.deserializeMetaComponent("studio/Vtest.x/BadComponentMeta/no_implementing_class_attributes_en_GB.json")
+        );
+
+        assertTrue(thrown.getMessage().contains(
+            "The serialised data in [studio/Vtest.x/BadComponentMeta/no_implementing_class_attributes_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: implementingClass is marked non-null but is null"),
+                "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 
     @Test

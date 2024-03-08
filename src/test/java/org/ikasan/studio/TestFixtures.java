@@ -51,6 +51,37 @@ public class TestFixtures {
                 .componentName("My Event Generating Consumer")
                 .build();
     }
+
+    public static FlowElement getLocalFileConsumer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Local File Consumer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Local File Consumer")
+                .build();
+        flowElement.setPropertyValue("configuration", "org.ikasan.myflow.configuration");
+        flowElement.setPropertyValue("configuredResourceId", "bob");
+        flowElement.setPropertyValue("criticalOnStartup", true);
+        flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
+        flowElement.setPropertyValue("directoryDepth", 1);
+        flowElement.setPropertyValue("eager", true);
+        flowElement.setPropertyValue("encoding", "UTF-8");
+        flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");
+        flowElement.setPropertyValue("filenames", "{'myFile','anotherFile'}");
+        flowElement.setPropertyValue("ignoreFileRenameWhilstScanning", true);
+        flowElement.setPropertyValue("ignoreMisfire", true);
+        flowElement.setPropertyValue("includeHeader", true);
+        flowElement.setPropertyValue("includeTrailer", true);
+        flowElement.setPropertyValue("logMatchedFilenames", true);
+        flowElement.setPropertyValue("managedEventIdentifierService", "org.ikasan.myflow.myEventService");
+        flowElement.setPropertyValue("maxEagerCallbacks", 1);
+        flowElement.setPropertyValue("messageProvider", "org.ikasan.myflow.myMessageProvider");
+        flowElement.setPropertyValue("messageProviderPostProcessor", "org.ikasan.myflow.myMssageProviderPostProcessor");
+        flowElement.setPropertyValue("sortAscending", true);
+        flowElement.setPropertyValue("sortByModifiedDateTime", true);
+        flowElement.setPropertyValue("timezone", "UTC");
+        return flowElement;
+    }
+
     public static FlowElement getScheduledConsumer() {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Scheduled Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
@@ -143,45 +174,4 @@ public class TestFixtures {
                 .transitions(Collections.singletonList(transition))
                 .build();
     }
-
-//    /**
-//     * Create a fully populated FILTER
-//     * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
-//     *
-//     * @return a FullyPopulatedCustomConverter
-//     */
-//    public static FlowElement getFullyPopulatedFilterComponent(Flow ikasanFlow) {
-//        FlowElement component = FlowElementFactory.createFlowElement(null, null);
-//
-////FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
-//        component.setComponentName("testFilterComponent");
-//
-//        // Mandatory properties
-//        component.setPropertyValue("bespokeClassName", "MyMessageFilter");
-//        component.setPropertyValue("fromType", java.lang.String.class);
-//        component.setPropertyValue("configuration", "MyConfigurationClass");
-//        component.setPropertyValue("configuredResourceId", "MyConfiguredResourceId");
-//        component.setPropertyValue("description", "Test description");
-//        component.setPropertyValue("configuredResource", true);
-//        return component;
-//    }
-
-    /**
-     * Create a fully populated FILTER
-     * See resources/studio/componentDefinitions/MESSAGE_FILTER_en_GB.csv
-     *
-     * @return a FullyPopulatedCustomConverter
-     */
-    public static FlowElement getMinimumPopulatedFilterComponent(Flow ikasanFlow) {
-        FlowElement component = FlowElementFactory.createFlowElement(null, null);
-
-//FlowElement component = FlowElement.createFlowElement(IkasanComponentMetax.MESSAGE_FILTER, ikasanFlow);
-        component.setComponentName("testFilterComponent");
-
-        // Mandatory properties
-        component.setPropertyValue("BespokeClassName", "MyMessageFilter");
-        component.setPropertyValue("FromType", java.lang.String.class);
-        return component;
-    }
-
 }

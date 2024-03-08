@@ -14,42 +14,43 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("#{${myflow1.file.consumer.filenames}}")
-java.util.List<String> myFlow1FileConsumerFilenames;
 @org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
 java.lang.String myFlow1FileConsumerCronexpression;
+@org.springframework.beans.factory.annotation.Value("#{${myflow1.file.consumer.filenames}}")
+java.util.List<String> myFlow1FileConsumerFilenames;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory myEventFactoryClassName;
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor myMessageProviderPostProcessor;
+org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor orgIkasanMyflowMyMssageProviderPostProcessor;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.spec.event.ManagedEventIdentifierService orgIkasanMyflowMyEventService;
 @javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
+org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 
-public org.ikasan.spec.component.endpoint.Consumer getTestLocalFileConsumer() {
-return builderFactory.getComponentBuilder().fileConsumer()
-.setEventFactory(myEventFactoryClassName)
-.setMessageProvider(myMessageProviderClass)
-.setMessageProviderPostProcessor(myMessageProviderPostProcessor)
+public org.ikasan.spec.component.endpoint.Consumer getMyLocalFileConsumer() {
+return builderFactory.getComponentBuilder().eventGeneratingConsumer()
 .setCriticalOnStartup(true)
-.setSortByModifiedDateTime(12)
-.setConfiguration(myConfigurationClass)
-.setScheduledJobName("myScheduledJobName")
-.setFilenames(myFlow1FileConsumerFilenames)
 .setEager(true)
-.setSortAscending(true)
-.setCronExpression(myFlow1FileConsumerCronexpression)
-.setMaxEagerCallbacks(1)
+.setConfiguration(orgIkasanMyflowConfiguration)
+.setTimezone(UTC)
 .setDirectoryDepth(1)
-.setScheduledJobGroupName("myScheduledJobGroupName")
-.setTimezone("GMT")
-.setEncoding("UTF-8")
+.setConfiguredResourceId("bob")
+.setLogMatchedFilenames(true)
 .setIgnoreFileRenameWhilstScanning(true)
+.setEncoding(UTF-8)
+.setSortByModifiedDateTime(true)
 .setIgnoreMisfire(true)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setMessageProvider(orgIkasanMyflowMyMessageProvider)
+.setCronExpression(myFlow1FileConsumerCronexpression)
+.setSortAscending(true)
+.setFilenames(myFlow1FileConsumerFilenames)
+.setMessageProviderPostProcessor(orgIkasanMyflowMyMssageProviderPostProcessor)
+.setIncludeTrailer(true)
+.setMaxEagerCallbacks(1)
+.setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
+.setEventFactory(orgIkasanMyflowMyEventFactory)
+.setIncludeHeader(true)
 .build();
 }}
