@@ -54,6 +54,23 @@ public class FlowTemplateTest {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);
     }
 
+    //  ------------------------------- CONSUMERS ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedFtpConsumerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_ftpConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getFtpConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_FLOW_NAME + "FullyPopulatedFtpConsumerComponent.java"), templateString);
+    }
+
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedLocalFileConsumerComponent.java
      * @throws IOException if the template cant be generated

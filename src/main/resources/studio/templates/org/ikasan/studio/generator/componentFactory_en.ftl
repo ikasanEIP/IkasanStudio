@@ -81,7 +81,11 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilder>
-        return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
+        <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
+            return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
+        <#else>
+            return builderFactory.getComponentBuilder().${StudioUtils.toJavaIdentifier(flowElement.name)}()
+        </#if>
     </#if>
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
@@ -100,6 +104,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
             </#if>
         </#if>
     </#list>
+
 <#-- Special case for message filter, set configuredResourceId to default -->
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioUtils.toJavaIdentifier(module.name)}-${StudioUtils.toJavaIdentifier(flow.name)}-${StudioUtils.toJavaIdentifier(flowElement.componentName)}");
