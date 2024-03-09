@@ -52,6 +52,67 @@ public class TestFixtures {
                 .build();
     }
 
+    public static FlowElement getFtpConsumer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "FTP Consumer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My FTP Consumer")
+                .build();
+        // Mandatory properties
+        flowElement.setPropertyValue("cronExpression", "*/5 * * * * ?");
+        flowElement.setPropertyValue("filenamePattern", "*Test.txt");
+        flowElement.setPropertyValue("password", "secret");
+        flowElement.setPropertyValue("remoteHost", "myRemortHost");
+        flowElement.setPropertyValue("remotePort", "1024");
+        flowElement.setPropertyValue("sourceDirectory", "/test/source/directory/");
+        flowElement.setPropertyValue("username", "myLoginName");
+
+        // Optional properties
+        flowElement.setPropertyValue("active", true);
+        flowElement.setPropertyValue("ageOfFiles", 10);
+        flowElement.setPropertyValue("checksum", true);
+        flowElement.setPropertyValue("chronological", true);
+        flowElement.setPropertyValue("chunkSize", 1048577);
+        flowElement.setPropertyValue("chunking", true);
+        flowElement.setPropertyValue("cleanupJournalOnComplete", true);
+        flowElement.setPropertyValue("clientID", "myClientId");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("connectionTimeout", 600001);
+        flowElement.setPropertyValue("dataTimeout", 300001);
+        flowElement.setPropertyValue("destructive", true);
+        flowElement.setPropertyValue("ftps", true);
+        flowElement.setPropertyValue("filterDuplicates", true);
+        flowElement.setPropertyValue("filterOnFilename", true);
+        flowElement.setPropertyValue("filterOnLastModifiedDate", true);
+        flowElement.setPropertyValue("ftpsIsImplicit", true);
+        flowElement.setPropertyValue("ftpsKeyStoreFilePassword", "myFtpsKeyStoreFilePassword");
+        flowElement.setPropertyValue("ftpsKeyStoreFilePath", "/test/ftps/keystore");
+        flowElement.setPropertyValue("ftpsPort", 987);
+        flowElement.setPropertyValue("ftpsProtocol", "SSL");
+        flowElement.setPropertyValue("ignoreMisfire",  true);
+        flowElement.setPropertyValue("isRecursive", true);
+        flowElement.setPropertyValue("managedEventIdentifierService", "myManagedEventIdentifierServiceClass");
+        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
+        flowElement.setPropertyValue("maxEagerCallbacks", 1);
+        flowElement.setPropertyValue("maxRetryAttempts", 10);
+        flowElement.setPropertyValue("maxRows", 11);
+        flowElement.setPropertyValue("messageProvider", "myMessageProviderClass");
+        flowElement.setPropertyValue("minAge", 12);
+        flowElement.setPropertyValue("moveOnSuccessNewPath", "/test/move/on/success");
+        flowElement.setPropertyValue("moveOnSuccess", true);
+        flowElement.setPropertyValue("passwordFilePath", "/test/password/file/path");
+        flowElement.setPropertyValue("renameOnSuccessExtension", "newExtension");
+        flowElement.setPropertyValue("renameOnSuccess", true);
+        flowElement.setPropertyValue("scheduledJobGroupName",  "myScheduledJobGroupName");
+        flowElement.setPropertyValue("scheduledJobName", "myScheduledJobName");
+        flowElement.setPropertyValue("socketTimeout", 22);
+        flowElement.setPropertyValue("sourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
+        flowElement.setPropertyValue("systemKey", "mySystemKey");
+        flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        return flowElement;
+    }
+
     public static FlowElement getLocalFileConsumer() {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Local File Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()

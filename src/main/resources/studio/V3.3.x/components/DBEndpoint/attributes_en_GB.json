@@ -1,6 +1,7 @@
 {
   "name": "DB Endpoint",
   "componentType": "DBEndpoint",
+  "implementingClass" : "DBEndpoint",
   "helpText": "The endpoint appears either before the start of a flow or after the end of a flow.",
   "isEndpoint": true
 }
