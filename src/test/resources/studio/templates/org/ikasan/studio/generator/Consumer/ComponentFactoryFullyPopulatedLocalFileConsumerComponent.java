@@ -30,7 +30,7 @@ org.ikasan.spec.event.ManagedEventIdentifierService orgIkasanMyflowMyEventServic
 org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyLocalFileConsumer() {
-return builderFactory.getComponentBuilder().eventGeneratingConsumer()
+return builderFactory.getComponentBuilder().localFileConsumer()
 .setCriticalOnStartup(true)
 .setEager(true)
 .setConfiguration(orgIkasanMyflowConfiguration)

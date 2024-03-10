@@ -18,7 +18,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 public org.ikasan.spec.component.endpoint.Producer getMyLoggingProducer() {
-return builderFactory.getComponentBuilder().logProducer()
+return builderFactory.getComponentBuilder().loggingProducer()
 .setRegExpPattern(this)
 .setConfiguredResourceId("MyResourceID")
 .setReplacementText(that)

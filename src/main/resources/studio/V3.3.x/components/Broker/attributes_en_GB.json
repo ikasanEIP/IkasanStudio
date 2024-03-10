@@ -7,7 +7,6 @@
   "_ikasanComponentFactoryMethod": "The broker is a user implemented class so has no factory as such",
   "ikasanComponentFactoryMethod": "",
   "usesBuilder" : true,
-  "flowBuilderMethod": "broker",
   "displayOrder": 9,
   "properties": {
     "componentName": {

@@ -5,7 +5,6 @@
   "componentType": "org.ikasan.spec.component.endpoint.Consumer",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
-  "ikasanComponentFactoryMethod": "scheduledConsumer",
   "usesBuilder" : true,
   "flowBuilderMethod": "consumer",
   "displayOrder": 2,
