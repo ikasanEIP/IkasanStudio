@@ -5,7 +5,6 @@
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
   "componentType": "org.ikasan.spec.component.endpoint.Consumer",
-  "ikasanComponentFactoryMethod": "eventGeneratingConsumer",
   "usesBuilder" : true,
   "flowBuilderMethod": "consumer",
   "displayOrder": 2,

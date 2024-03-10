@@ -4,7 +4,6 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/hospital/Readme.md",
   "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
   "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
-  "ikasanComponentFactoryMethod" : "eventGeneratingConsumer",
   "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
   "usesBuilder" : true,

@@ -38,7 +38,7 @@ org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecov
 org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyFTPConsumer() {
-return builderFactory.getComponentBuilder().myFTPConsumer()
+return builderFactory.getComponentBuilder().ftpConsumer()
 .setClientID(myClientId)
 .setFilterOnFilename(true)
 .setRemoteHost(myFlow1FtpConsumerRemotehost)

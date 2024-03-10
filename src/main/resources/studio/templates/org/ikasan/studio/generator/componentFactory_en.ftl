@@ -84,7 +84,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
         <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
             return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
         <#else>
-            return builderFactory.getComponentBuilder().${StudioUtils.toJavaIdentifier(flowElement.name)}()
+            return builderFactory.getComponentBuilder().${StudioUtils.toJavaIdentifier(flowElement.componentMeta.name)}()
         </#if>
     </#if>
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>

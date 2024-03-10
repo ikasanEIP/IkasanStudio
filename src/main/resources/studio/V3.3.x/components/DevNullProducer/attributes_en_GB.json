@@ -5,7 +5,6 @@
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl",
-  "ikasanComponentFactoryMethod": "devNullProducer",
   "usesBuilder" : true,
   "flowBuilderMethod": "producer",
   "displayOrder": 9,

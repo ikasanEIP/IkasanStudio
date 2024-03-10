@@ -7,7 +7,6 @@
   "builder": "",
   "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
   "usesBuilder" : true,
-  "ikasanComponentFactoryMethod": "logProducer",
   "flowBuilderMethod": "producer",
   "displayOrder": 9,
   "properties": {
