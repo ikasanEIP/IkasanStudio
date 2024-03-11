@@ -112,6 +112,62 @@ public class TestFixtures {
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
         return flowElement;
     }
+    public static FlowElement getSftpConsumer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "SFTP Consumer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My SFTP Consumer")
+                .build();
+        // Mandatory properties
+        flowElement.setPropertyValue("cronExpression", "*/5 * * * * ?");
+        flowElement.setPropertyValue("filenamePattern", "*Test.txt");
+        flowElement.setPropertyValue("password", "secret");
+        flowElement.setPropertyValue("remoteHost", "myRemortHost");
+        flowElement.setPropertyValue("remotePort", "1024");
+        flowElement.setPropertyValue("sourceDirectory", "/test/source/directory/");
+        flowElement.setPropertyValue("username", "myLoginName");
+
+        // Optional properties
+        flowElement.setPropertyValue("ageOfFiles", 10);
+        flowElement.setPropertyValue("checksum", true);
+        flowElement.setPropertyValue("chronological", true);
+        flowElement.setPropertyValue("chunkSize", 1048577);
+        flowElement.setPropertyValue("chunking", true);
+        flowElement.setPropertyValue("cleanupJournalOnComplete", true);
+        flowElement.setPropertyValue("clientID", "myClientId");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("connectionTimeout", 600001);
+        flowElement.setPropertyValue("criticalOnStartup", true);
+        flowElement.setPropertyValue("dataTimeout", 300001);
+        flowElement.setPropertyValue("destructive", true);
+        flowElement.setPropertyValue("eager", true);
+        flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");
+
+        flowElement.setPropertyValue("ignoreMisfire",  true);
+        flowElement.setPropertyValue("isRecursive", true);
+        flowElement.setPropertyValue("knownHostFilename", "~/.ssh/known_hosts");
+        flowElement.setPropertyValue("managedEventIdentifierService", "myManagedEventIdentifierServiceClass");
+        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
+        flowElement.setPropertyValue("maxEagerCallbacks", 1);
+        flowElement.setPropertyValue("maxRetryAttempts", 10);
+        flowElement.setPropertyValue("maxRows", 11);
+        flowElement.setPropertyValue("messageProvider", "myMessageProviderClass");
+        flowElement.setPropertyValue("minAge", 12);
+        flowElement.setPropertyValue("moveOnSuccessNewPath", "/test/move/on/success");
+        flowElement.setPropertyValue("moveOnSuccess", true);
+        flowElement.setPropertyValue("renameOnSuccessExtension", "newExtension");
+        flowElement.setPropertyValue("renameOnSuccess", true);
+        flowElement.setPropertyValue("preferredKeyExchangeAlgorithm", "DFS");
+        flowElement.setPropertyValue("privateKeyFilename", "~/.ssh/meyfile.jks");
+        flowElement.setPropertyValue("scheduledJobGroupName",  "myScheduledJobGroupName");
+        flowElement.setPropertyValue("scheduledJobName", "myScheduledJobName");
+        flowElement.setPropertyValue("sourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
+        flowElement.setPropertyValue("systemKey", "mySystemKey");
+        flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        flowElement.setPropertyValue("timeZone", "UTC");
+        return flowElement;
+    }
 
     public static FlowElement getLocalFileConsumer() {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Local File Consumer");
