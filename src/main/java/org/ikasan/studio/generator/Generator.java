@@ -15,8 +15,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.model.StudioPsiUtils;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public abstract class Generator {
     private static final Logger LOG = Logger.getInstance("#Generator");
@@ -124,7 +124,7 @@ public abstract class Generator {
      * @return The String to Object map used to populate templates.
      */
     protected static Map<String, Object> getBasicTemplateConfigs() {
-        Map<String, Object> configs = new HashMap<>();
+        Map<String, Object> configs = new TreeMap<>();
         configs.put(STUDIO_BASE_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         return configs;
     }

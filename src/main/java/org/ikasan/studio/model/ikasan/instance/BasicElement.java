@@ -8,7 +8,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.collections.map.HashedMap;
 import org.ikasan.studio.StudioUtils;
 import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementDeserializer;
 import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementSerializer;
@@ -19,6 +18,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -251,11 +251,6 @@ public  class BasicElement extends IkasanObject {
             .stream()
             .anyMatch(x -> x.getMeta().isUserSuppliedClass());
     }
-//    public boolean hasBespokeClass() {
-//        return configuredProperties.values()
-//            .stream()
-//            .anyMatch(x -> x.getMeta().isGeneratesBespokeClass());
-//    }
 
     /**
      * ** Used in FTL **
@@ -264,7 +259,7 @@ public  class BasicElement extends IkasanObject {
      */
     @JsonIgnore
     public Map<String, ComponentProperty> getStandardConfiguredProperties() {
-        Map<String, ComponentProperty> standardProperties = new HashedMap();
+        Map<String, ComponentProperty> standardProperties = new TreeMap<>();
         if (configuredProperties != null && !configuredProperties.isEmpty()) {
             for (Map.Entry<String, ComponentProperty> entry : configuredProperties.entrySet()) {
                 if (! ComponentPropertyMeta.NAME.equals(entry.getKey()) && !(ComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {

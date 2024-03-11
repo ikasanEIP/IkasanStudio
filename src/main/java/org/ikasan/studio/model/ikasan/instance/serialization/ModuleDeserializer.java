@@ -160,7 +160,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return transition;
     }
     public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow) throws IOException {
-        Map<String, FlowElement> flowElementsMap = new HashMap<>();
+        Map<String, FlowElement> flowElementsMap = new TreeMap<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {

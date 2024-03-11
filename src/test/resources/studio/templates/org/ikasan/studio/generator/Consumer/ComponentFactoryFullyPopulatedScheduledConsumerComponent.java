@@ -19,27 +19,27 @@ java.lang.String myFlow1ScheduledConsumerCronexpression;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
-@javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager orgIkasanMyflowMyManagedResourceRecoveryManager;
+org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService orgIkasanMyflowMyEventService;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
+org.ikasan.spec.management.ManagedResourceRecoveryManager orgIkasanMyflowMyManagedResourceRecoveryManager;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyScheduledConsumer() {
 return builderFactory.getComponentBuilder().scheduledConsumer()
-.setCriticalOnStartup(true)
-.setEager(true)
 .setConfiguration(orgIkasanMyflowConfiguration)
-.setTimezone(UTC)
 .setConfiguredResourceId("bob")
-.setIgnoreMisfire(true)
+.setCriticalOnStartup(true)
 .setCronExpression(myFlow1ScheduledConsumerCronexpression)
-.setMessageProvider(orgIkasanMyflowMyMessageProvider)
-.setMaxEagerCallbacks(10)
-.setManagedResourceRecoveryManager(orgIkasanMyflowMyManagedResourceRecoveryManager)
-.setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
+.setEager(true)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
+.setIgnoreMisfire(true)
+.setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
+.setManagedResourceRecoveryManager(orgIkasanMyflowMyManagedResourceRecoveryManager)
+.setMaxEagerCallbacks(10)
+.setMessageProvider(orgIkasanMyflowMyMessageProvider)
+.setTimezone(UTC)
 .build();
 }}

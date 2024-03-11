@@ -21,36 +21,36 @@ java.util.List<String> myFlow1FileConsumerFilenames;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
-@javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor orgIkasanMyflowMyMssageProviderPostProcessor;
+org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService orgIkasanMyflowMyEventService;
 @javax.annotation.Resource
-org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
+@javax.annotation.Resource
+org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor orgIkasanMyflowMyMssageProviderPostProcessor;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyLocalFileConsumer() {
 return builderFactory.getComponentBuilder().localFileConsumer()
-.setCriticalOnStartup(true)
-.setEager(true)
 .setConfiguration(orgIkasanMyflowConfiguration)
-.setTimezone(UTC)
-.setDirectoryDepth(1)
 .setConfiguredResourceId("bob")
-.setLogMatchedFilenames(true)
-.setIgnoreFileRenameWhilstScanning(true)
-.setEncoding(UTF-8)
-.setSortByModifiedDateTime(true)
-.setIgnoreMisfire(true)
-.setMessageProvider(orgIkasanMyflowMyMessageProvider)
+.setCriticalOnStartup(true)
 .setCronExpression(myFlow1FileConsumerCronexpression)
-.setSortAscending(true)
-.setFilenames(myFlow1FileConsumerFilenames)
-.setMessageProviderPostProcessor(orgIkasanMyflowMyMssageProviderPostProcessor)
-.setIncludeTrailer(true)
-.setMaxEagerCallbacks(1)
-.setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
+.setDirectoryDepth(1)
+.setEager(true)
+.setEncoding(UTF-8)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
+.setFilenames(myFlow1FileConsumerFilenames)
+.setIgnoreFileRenameWhilstScanning(true)
+.setIgnoreMisfire(true)
 .setIncludeHeader(true)
+.setIncludeTrailer(true)
+.setLogMatchedFilenames(true)
+.setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
+.setMaxEagerCallbacks(1)
+.setMessageProvider(orgIkasanMyflowMyMessageProvider)
+.setMessageProviderPostProcessor(orgIkasanMyflowMyMssageProviderPostProcessor)
+.setSortAscending(true)
+.setSortByModifiedDateTime(true)
+.setTimezone(UTC)
 .build();
 }}

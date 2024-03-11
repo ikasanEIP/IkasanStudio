@@ -14,65 +14,89 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
-java.lang.String myFlow1FtpConsumerRemotehost;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password}")
-java.lang.String myFlow1FtpConsumerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
+java.lang.String myFlow1FtpConsumerCronexpression;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
 java.lang.Integer myFlow1FtpConsumerFtpsport;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
 java.lang.Integer myFlow1FtpConsumerFtpsprotocol;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.source-directory}")
-java.lang.String myFlow1FtpConsumerSourcedirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
-java.lang.String myFlow1FtpConsumerRemoteport;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
 java.lang.Integer myFlow1FtpConsumerMaxretryattempts;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
-java.lang.String myFlow1FtpConsumerCronexpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.move-on-success-new-path}")
+java.lang.String myFlow1FtpConsumerMoveonsuccessnewpath;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password}")
+java.lang.String myFlow1FtpConsumerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password-filepath}")
+java.lang.String myFlow1FtpConsumerPasswordfilepath;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
+java.lang.String myFlow1FtpConsumerRemotehost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
+java.lang.String myFlow1FtpConsumerRemoteport;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.source-directory}")
+java.lang.String myFlow1FtpConsumerSourcedirectory;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
+java.lang.String myFlow1FtpConsumerSystemkey;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
+org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
+@javax.annotation.Resource
 org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
-org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
+org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+@javax.annotation.Resource
+org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
+@javax.annotation.Resource
+org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyFTPConsumer() {
 return builderFactory.getComponentBuilder().ftpConsumer()
+.setActive(true)
+.setAgeOfFiles(10)
+.setChecksum(true)
+.setChronological(true)
+.setChunkSize(1048577)
+.setChunking(true)
+.setCleanupJournalOnComplete(true)
 .setClientID(myClientId)
-.setFilterOnFilename(true)
-.setRemoteHost(myFlow1FtpConsumerRemotehost)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setIgnoreMisfire(true)
-.setFilterOnLastModifiedDate(true)
-.setMaxRows(11)
-.setPassword(myFlow1FtpConsumerPassword)
-.setFilterDuplicates(true)
-.setChunking(true)
-.setFtpsPort(myFlow1FtpConsumerFtpsport)
-.setChecksum(true)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
 .setConnectionTimeout(600001)
-.setFtpsKeyStoreFilePath(/test/ftps/keystore)
-.setFtpsKeyStoreFilePassword(myFtpsKeyStoreFilePassword)
-.setFtps(true)
-.setCleanupJournalOnComplete(true)
-.setFtpsProtocol(myFlow1FtpConsumerFtpsprotocol)
-.setChunkSize(1048577)
-.setSourceDirectory(myFlow1FtpConsumerSourcedirectory)
-.setRemotePort(myFlow1FtpConsumerRemoteport)
-.setActive(true)
-.setDestructive(true)
-.setMaxRetryAttempts(myFlow1FtpConsumerMaxretryattempts)
 .setCronExpression(myFlow1FtpConsumerCronexpression)
 .setDataTimeout(300001)
-.setMaxRows(12)
-.setAgeOfFiles(10)
-.setMaxEagerCallbacks(1)
+.setDestructive(true)
+.setFilterDuplicates(true)
+.setFilterOnFilename(true)
 .setFilterOnLastModifiedDate(true)
-.setChronological(true)
+.setFtps(true)
 .setFtpsIsImplicit(true)
+.setFtpsKeyStoreFilePassword(myFtpsKeyStoreFilePassword)
+.setFtpsKeyStoreFilePath(/test/ftps/keystore)
+.setFtpsPort(myFlow1FtpConsumerFtpsport)
+.setFtpsProtocol(myFlow1FtpConsumerFtpsprotocol)
+.setIgnoreMisfire(true)
+.setIsRecursive(true)
+.setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
+.setMaxEagerCallbacks(1)
+.setMaxRetryAttempts(myFlow1FtpConsumerMaxretryattempts)
+.setMaxRows(11)
+.setMessageProvider(myMessageProviderClass)
+.setMaxRows(12)
+.setMoveOnSuccess(true)
+.setMoveOnSuccessNewPath(myFlow1FtpConsumerMoveonsuccessnewpath)
+.setPassword(myFlow1FtpConsumerPassword)
+.setPasswordFilePath(myFlow1FtpConsumerPasswordfilepath)
+.setRemoteHost(myFlow1FtpConsumerRemotehost)
+.setRemotePort(myFlow1FtpConsumerRemoteport)
+.setRenameOnSuccess(true)
+.setRenameOnSuccessExtension(newExtension)
+.setScheduledJobGroupName(myScheduledJobGroupName)
+.setScheduledJobName(myScheduledJobName)
+.setSocketTimeout(22)
+.setSourceDirectory(myFlow1FtpConsumerSourcedirectory)
+.setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
+.setSystemKey(myFlow1FtpConsumerSystemkey)
+.setTransactionManager(myTransactionManagerClass)
 .build();
 }}

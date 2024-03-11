@@ -11,10 +11,7 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
 import javax.swing.*;
 import java.nio.file.FileSystems;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import static freemarker.template.Configuration.VERSION_2_3_31;
 
@@ -75,7 +72,7 @@ public enum Context {
     }
 
     private static synchronized void putProjectCache(String projectKey, String key, Object value) {
-        perProjectCache.putIfAbsent(projectKey, new HashMap<>());
+        perProjectCache.putIfAbsent(projectKey, new TreeMap<>());
         perProjectCache.get(projectKey).put(key, value);
 
         // We should always make sure the options cache is available.
