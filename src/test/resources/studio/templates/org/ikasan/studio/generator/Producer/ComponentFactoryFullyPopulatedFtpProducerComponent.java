@@ -14,63 +14,54 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.remote-host}")
-java.lang.String myFlow1FtpProducerRemotehost;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.clientID}")
-java.lang.String myFlow1FtpProducerClientID;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
+java.lang.Integer myFlow1FtpConsumerFtpsPort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
+java.lang.Integer myFlow1FtpConsumerFtpsProtocol;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
+java.lang.Integer myFlow1FtpConsumerMaxRetryAttempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.outputDirectory}")
 java.lang.String myFlow1FtpProducerOutputDirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.remote-port}")
-java.lang.Integer myFlow1FtpProducerRemoteport;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.max-retry-attempts}")
-java.lang.Integer myFlow1FtpProducerMaxretryattempts;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.ftps-protocol}")
-java.lang.String myFlow1FtpProducerFtpsprotocol;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.system-key}")
-java.lang.String myFlow1FtpProducerSystemkey;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.username}")
-java.lang.String myFlow1FtpProducerUsername;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.password}")
-java.lang.String myFlow1FtpProducerPassword;
-@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.ftps-port}")
-java.lang.Integer myFlow1FtpProducerFtpsport;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password}")
+java.lang.String myFlow1FtpConsumerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
+java.lang.String myFlow1FtpConsumerRemoteHost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
+java.lang.String myFlow1FtpConsumerRemotePort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
+java.lang.String myFlow1FtpConsumerSystemKey;
 @javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
-@javax.annotation.Resource
-org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration myConfigurationClass;
+org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
-public org.ikasan.spec.component.endpoint.Producer getTestFtpProducer() {
-return builderFactory.getComponentBuilder().ftpProducer()
-.setRemoteHost(myFlow1FtpProducerRemotehost)
-.setCreateParentDirectory(true)
-.setChecksumDelivered(true)
-.setClientID(myFlow1FtpProducerClientID)
-.setDataTimeout(300001)
-.setFtpsKeyStoreFilePath("/test/ftps/keystore")
-.setOutputDirectory(myFlow1FtpProducerOutputDirectory)
-.setFTPS(true)
-.setRemotePort(myFlow1FtpProducerRemoteport)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
-.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setMaxRetryAttempts(myFlow1FtpProducerMaxretryattempts)
-.setFtpsProtocol(myFlow1FtpProducerFtpsprotocol)
-.setSocketTimeout(22)
+public org.ikasan.spec.component.endpoint.Producer getMyFTPProducer() {
+return builderFactory.getComponentBuilder().ftpConsumer()
 .setActive(true)
-.setCriticalOnStartup(true)
+.setChecksumDelivered(true)
+.setCleanupJournalOnComplete(true)
+.setClientID(myClientId)
 .setConfiguration(myConfigurationClass)
-.setUnzip(true)
-.setOverwrite(true)
-.setSystemKey(myFlow1FtpProducerSystemkey)
-.setRenameExtension("newExtension")
-.setUsername(myFlow1FtpProducerUsername)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setCreateParentDirectory(true)
+.setCriticalOnStartup(true)
+.setDataTimeout(300001)
+.setFtps(true)
 .setFtpsIsImplicit(true)
 .setFtpsKeyStoreFilePassword("myFtpsKeyStoreFilePassword")
-.setCleanupJournalOnComplete(true)
-.setPassword(myFlow1FtpProducerPassword)
+.setFtpsKeyStoreFilePath("/test/ftps/keystore")
+.setFtpsPort(myFlow1FtpConsumerFtpsPort)
+.setFtpsProtocol(myFlow1FtpConsumerFtpsProtocol)
+.setMaxRetryAttempts(myFlow1FtpConsumerMaxRetryAttempts)
+.setOutputDirectory(myFlow1FtpProducerOutputDirectory)
+.setOverwrite(true)
+.setPassword(myFlow1FtpConsumerPassword)
+.setRemoteHost(myFlow1FtpConsumerRemoteHost)
+.setRemotePort(myFlow1FtpConsumerRemotePort)
+.setRenameExtension(tmp)
+.setSocketTimeout(22)
+.setSystemKey(myFlow1FtpConsumerSystemKey)
 .setTransactionManager(myTransactionManagerClass)
-.setTempFileName("myTempFileName")
-.setFtpsPort(myFlow1FtpProducerFtpsport)
+.setUnzip(true)
 .build();
 }}

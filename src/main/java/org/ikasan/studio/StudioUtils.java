@@ -67,11 +67,12 @@ public class StudioUtils {
     }
 
     /**
+     * Used by FTL, don't assume unused.
      * Like camel case but starts with upper case letter
      * @param input to be changed
      * @return pascal case version of input
      */
-    public static String toPascalClassName(final String input) {
+    public static String toPascalCase(final String input) {
         return toJavaClassName(input);
     }
 
@@ -418,7 +419,7 @@ public class StudioUtils {
                     defaultValue = defaultValueAsString;
                 } else {
 //                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", null);
-                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", new Class[]{String.class});
+                    Method methodToFind = dataTypeOfProperty.getMethod("valueOf", String.class);
                     defaultValue = methodToFind.invoke(defaultValue, defaultValueAsString);
                 }
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
@@ -460,6 +461,16 @@ public class StudioUtils {
         return propertyLabel;
     }
 
+    /**
+     * ** Used by FTL ***
+     * The supplied string template e.g. __flow.ftp.consumer.cron-expression, replacing meta tags so that the final
+     * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
+     * @param module in scope that might relate to this property
+     * @param flow in scope that might relate to this property
+     * @param component in scope that might relate to this property
+     * @param template to be updated
+     * @return A string representing a property
+     */
     public static String getPropertyLabelVariableStyle(Module module, Flow flow, BasicElement component, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
@@ -472,6 +483,8 @@ public class StudioUtils {
             if (component != null ) {
                 propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, component.getJavaVariableName());
             }
+            // By replacing _ with space, we should get UpperCase after the space, and space removed.
+            propertyLabel = propertyLabel.replace("-", " ");
         }
         return StudioUtils.toJavaIdentifier(propertyLabel);
     }

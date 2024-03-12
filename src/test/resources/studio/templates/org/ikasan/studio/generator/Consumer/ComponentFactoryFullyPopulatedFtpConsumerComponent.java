@@ -15,27 +15,27 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
-java.lang.String myFlow1FtpConsumerCronexpression;
+java.lang.String myFlow1FtpConsumerCronExpression;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
-java.lang.Integer myFlow1FtpConsumerFtpsport;
+java.lang.Integer myFlow1FtpConsumerFtpsPort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
-java.lang.Integer myFlow1FtpConsumerFtpsprotocol;
+java.lang.Integer myFlow1FtpConsumerFtpsProtocol;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
-java.lang.Integer myFlow1FtpConsumerMaxretryattempts;
+java.lang.Integer myFlow1FtpConsumerMaxRetryAttempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.move-on-success-new-path}")
-java.lang.String myFlow1FtpConsumerMoveonsuccessnewpath;
+java.lang.String myFlow1FtpConsumerMoveOnSuccessNewPath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password}")
 java.lang.String myFlow1FtpConsumerPassword;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password-filepath}")
-java.lang.String myFlow1FtpConsumerPasswordfilepath;
+java.lang.String myFlow1FtpConsumerPasswordFilepath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
-java.lang.String myFlow1FtpConsumerRemotehost;
+java.lang.String myFlow1FtpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
-java.lang.String myFlow1FtpConsumerRemoteport;
+java.lang.String myFlow1FtpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.source-directory}")
-java.lang.String myFlow1FtpConsumerSourcedirectory;
+java.lang.String myFlow1FtpConsumerSourceDirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
-java.lang.String myFlow1FtpConsumerSystemkey;
+java.lang.String myFlow1FtpConsumerSystemKey;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -62,7 +62,7 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setConnectionTimeout(600001)
-.setCronExpression(myFlow1FtpConsumerCronexpression)
+.setCronExpression(myFlow1FtpConsumerCronExpression)
 .setDataTimeout(300001)
 .setDestructive(true)
 .setFilterDuplicates(true)
@@ -72,31 +72,31 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setFtpsIsImplicit(true)
 .setFtpsKeyStoreFilePassword(myFtpsKeyStoreFilePassword)
 .setFtpsKeyStoreFilePath(/test/ftps/keystore)
-.setFtpsPort(myFlow1FtpConsumerFtpsport)
-.setFtpsProtocol(myFlow1FtpConsumerFtpsprotocol)
+.setFtpsPort(myFlow1FtpConsumerFtpsPort)
+.setFtpsProtocol(myFlow1FtpConsumerFtpsProtocol)
 .setIgnoreMisfire(true)
 .setIsRecursive(true)
 .setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
 .setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMaxEagerCallbacks(1)
-.setMaxRetryAttempts(myFlow1FtpConsumerMaxretryattempts)
+.setMaxRetryAttempts(myFlow1FtpConsumerMaxRetryAttempts)
 .setMaxRows(11)
 .setMessageProvider(myMessageProviderClass)
 .setMaxRows(12)
 .setMoveOnSuccess(true)
-.setMoveOnSuccessNewPath(myFlow1FtpConsumerMoveonsuccessnewpath)
+.setMoveOnSuccessNewPath(myFlow1FtpConsumerMoveOnSuccessNewPath)
 .setPassword(myFlow1FtpConsumerPassword)
-.setPasswordFilePath(myFlow1FtpConsumerPasswordfilepath)
-.setRemoteHost(myFlow1FtpConsumerRemotehost)
-.setRemotePort(myFlow1FtpConsumerRemoteport)
+.setPasswordFilePath(myFlow1FtpConsumerPasswordFilepath)
+.setRemoteHost(myFlow1FtpConsumerRemoteHost)
+.setRemotePort(myFlow1FtpConsumerRemotePort)
 .setRenameOnSuccess(true)
 .setRenameOnSuccessExtension(newExtension)
 .setScheduledJobGroupName(myScheduledJobGroupName)
 .setScheduledJobName(myScheduledJobName)
 .setSocketTimeout(22)
-.setSourceDirectory(myFlow1FtpConsumerSourcedirectory)
+.setSourceDirectory(myFlow1FtpConsumerSourceDirectory)
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
-.setSystemKey(myFlow1FtpConsumerSystemkey)
+.setSystemKey(myFlow1FtpConsumerSystemKey)
 .setTransactionManager(myTransactionManagerClass)
 .build();
 }}

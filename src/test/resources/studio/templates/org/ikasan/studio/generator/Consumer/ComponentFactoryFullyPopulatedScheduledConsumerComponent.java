@@ -15,7 +15,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.scheduled.consumer.cron-expression}")
-java.lang.String myFlow1ScheduledConsumerCronexpression;
+java.lang.String myFlow1ScheduledConsumerCronExpression;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
@@ -32,7 +32,7 @@ return builderFactory.getComponentBuilder().scheduledConsumer()
 .setConfiguration(orgIkasanMyflowConfiguration)
 .setConfiguredResourceId("bob")
 .setCriticalOnStartup(true)
-.setCronExpression(myFlow1ScheduledConsumerCronexpression)
+.setCronExpression(myFlow1ScheduledConsumerCronExpression)
 .setEager(true)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
 .setIgnoreMisfire(true)

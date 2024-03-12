@@ -259,6 +259,44 @@ public class TestFixtures {
                 .build();
     }
 
+    public static FlowElement getFtpProducer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "FTP Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My FTP Producer")
+                .build();
+
+        flowElement.setPropertyValue("active", true);
+        flowElement.setPropertyValue("checksumDelivered", true);
+        flowElement.setPropertyValue("cleanupJournalOnComplete", true);
+        flowElement.setPropertyValue("clientID", "myClientId");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("createParentDirectory", true);
+        flowElement.setPropertyValue("criticalOnStartup", true);
+        flowElement.setPropertyValue("dataTimeout", 300001);
+        flowElement.setPropertyValue("ftps", true);
+        flowElement.setPropertyValue("ftpsIsImplicit", true);
+        flowElement.setPropertyValue("ftpsKeyStoreFilePassword", "myFtpsKeyStoreFilePassword");
+        flowElement.setPropertyValue("ftpsKeyStoreFilePath", "/test/ftps/keystore");
+        flowElement.setPropertyValue("ftpsPort", 987);
+        flowElement.setPropertyValue("ftpsProtocol", "SSL");
+        flowElement.setPropertyValue("maxRetryAttempts", 10);
+        flowElement.setPropertyValue("outputDirectory", "/tmp/output");
+        flowElement.setPropertyValue("overwrite", true);
+        flowElement.setPropertyValue("password", "secret");
+        flowElement.setPropertyValue("remoteHost", "myRemortHost");
+        flowElement.setPropertyValue("remotePort", "1024");
+        flowElement.setPropertyValue("renameExtension", "tmp");
+        flowElement.setPropertyValue("socketTimeout", 22);
+        flowElement.setPropertyValue("systemKey", "mySystemKey");
+        flowElement.setPropertyValue("tempFileName", "myTempFiilename");
+        flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        flowElement.setPropertyValue("unzip", true);
+        flowElement.setPropertyValue("username", "myLoginName");
+        return flowElement;
+    }
+
     public static FlowElement getLoggingProducer() {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Logging Producer");
 
