@@ -15,7 +15,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
-java.lang.String myFlow1FileConsumerCronexpression;
+java.lang.String myFlow1FileConsumerCronExpression;
 @org.springframework.beans.factory.annotation.Value("#{${myflow1.file.consumer.filenames}}")
 java.util.List<String> myFlow1FileConsumerFilenames;
 @javax.annotation.Resource
@@ -34,7 +34,7 @@ return builderFactory.getComponentBuilder().localFileConsumer()
 .setConfiguration(orgIkasanMyflowConfiguration)
 .setConfiguredResourceId("bob")
 .setCriticalOnStartup(true)
-.setCronExpression(myFlow1FileConsumerCronexpression)
+.setCronExpression(myFlow1FileConsumerCronExpression)
 .setDirectoryDepth(1)
 .setEager(true)
 .setEncoding(UTF-8)

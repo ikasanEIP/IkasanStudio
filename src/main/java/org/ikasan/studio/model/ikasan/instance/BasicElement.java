@@ -64,19 +64,15 @@ public  class BasicElement extends IkasanObject {
      * @param name for the instance of this component.
      */
     public void setComponentName(String name) {
-//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
         this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
     }
     public void setName(String name) {
-//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
         this.setPropertyValue(ComponentPropertyMeta.NAME, name);
     }
     public void setVersion(String version) {
-//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
         this.setPropertyValue(ComponentPropertyMeta.VERSION, version);
     }
     public String getVersion() {
-//        this.setPropertyValue(ComponentPropertyMeta.NAME, ComponentPropertyMeta.STD_NAME_META_COMPONENT, name);
         return (String)this.getPropertyValue(ComponentPropertyMeta.VERSION);
     }
 
@@ -108,7 +104,6 @@ public  class BasicElement extends IkasanObject {
      * @param description for the component
      */
     public void setDescription(String description) {
-//        this.setPropertyValue(ComponentPropertyMeta.DESCRIPTION, ComponentPropertyMeta.STD_DESCRIPTION_META_COMPONENT, description);
         this.setPropertyValue(ComponentPropertyMeta.DESCRIPTION, description);
     }
 
@@ -131,35 +126,13 @@ public  class BasicElement extends IkasanObject {
     public ComponentProperty getProperty(String key) {
         return configuredProperties.get(key);
     }
-//    @JsonIgnore
-//    public ComponentProperty getProperty(String key) {
-//        return configuredProperties.get(key);
-//    }
-//    @JsonIgnore
-//    public Object getPropertyValue(String key) {
-//        return getPropertyValue(key);
-//    }
-//
-//    @JsonIgnore
-//    public Object getPropertyValue(String key, int parameterGroup, int parameterNumber) {
-//        return getPropertyValue(new IkasanComponentPropertyMetaKey(key, parameterGroup, parameterNumber));
-//    }
+
     @JsonIgnore
     public Object getPropertyValue(String key) {
         ComponentProperty componentProperty = configuredProperties.get(key);
         return componentProperty != null ? componentProperty.getValue() : null;
     }
 
-
-
-//    /**
-//     * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
-//     * @param key of the data to be updated
-//     * @param value for the updated property
-//     */
-//    public void updatePropertyValue(String key, Object value) {
-//        updatePropertyValue(key, value);
-//    }
 
     /**
      * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
@@ -175,31 +148,6 @@ public  class BasicElement extends IkasanObject {
         }
     }
 
-//    /**
-//     * This setter should be used if we think the property might not already be set but will require the correct meta data
-//     * @param key of the property to be updated
-//     * @param properyMeta for the property
-//     * @param value for the property
-//     */
-//    public void setPropertyValue(String key, ComponentPropertyMeta properyMeta, Object value) {
-//        ComponentProperty ikasanComponentProperty = configuredProperties.get(key);
-//        if (ikasanComponentProperty != null) {
-//            ikasanComponentProperty.setValue(value);
-//        } else {
-//            LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " with value [" + value + "] but no such meta data exists for " + getComponentMeta() + " this property will be ignored.");
-////            configuredProperties.put(key, new ComponentProperty(properyMeta, value));
-//        }
-//    }
-
-//    /**
-//     * This setter should be used if we think the property might not already be set but will require the correct meta data
-//     * @param key of the property to be updated
-//     * @param value for the property
-//     */
-//    public void setPropertyValue(String key, Object value) {
-//        // If we are stating a string key on its own, assume its the simple version.
-//        configuredProperties.put(key, new ComponentProperty( value));
-//    }
 
     /**
      * This setter should be used if we think the property might not already be set but will require the correct meta data
@@ -267,6 +215,7 @@ public  class BasicElement extends IkasanObject {
                 }
             }
         }
+
         return standardProperties;
     }
 

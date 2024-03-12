@@ -12,7 +12,7 @@ import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
 @org.springframework.stereotype.Component
-public class ${StudioUtils.toPascalClassName(flowElement.getPropertyValue('bespokeClassName'))} implements Converter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
+public class ${StudioUtils.toPascalCase(flowElement.getPropertyValue('bespokeClassName'))} implements Converter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
 {
 public ${flowElement.getPropertyValue('toType')} convert(${flowElement.getPropertyValue('fromType')} payload) throws TransformationException
 {
