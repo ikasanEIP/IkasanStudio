@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
@@ -38,8 +39,8 @@ public class PalettePanel extends JPanel {
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
         paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
-        JList<PaletteItem> paletteList;
-        paletteList = new JList(buildPaletteItems().toArray());
+        JBList<PaletteItem> paletteList;
+        paletteList = new JBList(buildPaletteItems().toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
@@ -109,7 +110,7 @@ public class PalettePanel extends JPanel {
 
         String category = "";
         for (ComponentMeta componentMeta : displayOrder) {
-            if (!category.equals(componentMeta.getComponentType()) ) {
+            if (!category.equals(componentMeta.getDisplayComponentType()) ) {
                 category = componentMeta.getDisplayComponentType();
                 paletteItems.add(new PaletteItem(category));
             }
