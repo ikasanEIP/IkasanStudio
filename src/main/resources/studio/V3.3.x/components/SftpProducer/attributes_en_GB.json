@@ -10,7 +10,7 @@
   "flowBuilderMethod": "producer",
   "endpointKey": "FTP Endpoint",
   "endpointTextKey": "remoteHost",
-  "displayOrder": 2,
+  "displayOrder": 9,
   "properties": {
     "componentName": {
       "propertyName": "componentName",

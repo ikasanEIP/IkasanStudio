@@ -7,7 +7,7 @@
   "_ikasanComponentFactoryMethod": "The custom converter is a user implemented class so has no factory as such",
   "flowBuilderMethod": "filter",
   "generatesUserImplementedClass": "true",
-  "displayOrder": 9,
+  "displayOrder": 5,
   "properties": {
     "componentName": {
       "propertyName": "componentName",

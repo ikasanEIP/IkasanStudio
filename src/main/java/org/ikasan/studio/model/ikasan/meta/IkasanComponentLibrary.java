@@ -215,7 +215,9 @@ public class IkasanComponentLibrary {
     }
     public static Collection<ComponentMeta>  getPaletteComponentList(String ikasanMetaDataPackVersion) {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
-        return safeIkasanComponentMetaMap.values().stream().filter(x -> !x.isEndpoint()).collect(Collectors.toList());
+        return safeIkasanComponentMetaMap.values().stream()
+                .filter(x -> !x.isEndpoint())
+                .collect(Collectors.toList());
     }
 
     public static Map<String, ComponentMeta> getIkasanComponents(String ikasanMetaDataPackVersion) {
