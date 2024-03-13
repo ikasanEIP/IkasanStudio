@@ -15,9 +15,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Light tests reuse a project from the previous test run when possible, they are quicker and therefore advised
- *
+ * </p>
  * https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html
- *
+ * </p>
  * Before executing each test, the project instance will be reused if the test case returns the same project descriptor
  * as the previous one or recreated if the descriptor is different (equals() = false).
  * Note - LightJavaCodeInsightFixtureTestCase forces Junit4
@@ -37,22 +37,6 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
         super.setUp();
     }
 
-
-//    @Test
-//    public void test_findFirstMethodByReturnType_finds_file() {
-//        // Note getTestDataPath() is overriding LightJavaCodeInsightFixtureTestCase
-//        myFixture.copyDirectoryToProject("ikasanStandardSampleApps/general", "src/");
-//
-//        PsiMethod methodFound = StudioPsiUtils.findFirstMethodByReturnType(myFixture.getProject(), "org.ikasan.spec.module.Module");
-//
-//        assertThat(methodFound, is(notNullValue()));
-//        assertThat(methodFound.getName(), is("getModule"));
-//
-//        PsiJavaFile javaFile = (PsiJavaFile) methodFound.getContainingFile();
-//        assertThat(javaFile.toString(), is("PsiJavaFile:ModuleConfig.java"));
-//        assertThat(javaFile.getPackageName(), is("com.ikasan.studio.example"));
-//        assertThat(javaFile.getFileType().getDescription(), is("Java"));
-//    }
 
     @Test
     public void test_createPackage_StandardPackage() {
@@ -90,7 +74,7 @@ public class StudioPsiStudioUtilsLightTests extends LightJavaCodeInsightFixtureT
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(myProject,"src");
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
 
-        // This may be an asynch call but example tests in Intellij community indicate it is safe to assume it completes
+        // This may be an async call but example tests in Intellij community indicate it is safe to assume it completes
         // before the end of the method i.e. we can assert the results.
         CommandProcessor.getInstance().executeCommand(
             getProject(),

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class FlowsBespokeComponentTemplateTest {
+public class FlowsUserImplementedComponentTemplateTest {
 
     Module module;
     //    Flow ikasanFlow = new Flow();
@@ -31,7 +31,7 @@ public class FlowsBespokeComponentTemplateTest {
     @Test
     public void testCreateFlowWith_customConverterComponent() throws IOException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
-        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MyConverter.java"), templateString);
     }
@@ -43,7 +43,7 @@ public class FlowsBespokeComponentTemplateTest {
     @Test
     public void testCreateFlowWith_messageFilterComponent() throws IOException {
         FlowElement flowElement = TestFixtures.getMessageFilter();
-        String templateString = FlowsBespokeComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MessageFilter.java"), templateString);
     }

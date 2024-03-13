@@ -6,7 +6,7 @@
   "implementingClass": "org.ikasan.spec.component.filter.Filter.Custom",
   "_ikasanComponentFactoryMethod": "The custom converter is a user implemented class so has no factory as such",
   "flowBuilderMethod": "filter",
-  "generatesBespokeClass": "true",
+  "generatesUserImplementedClass": "true",
   "displayOrder": 9,
   "properties": {
     "componentName": {
@@ -14,24 +14,14 @@
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
     },
-    "bespokeClassName": {
-      "propertyName": "bespokeClassName",
-      "bespokeFtlTemplate": "filterTemplate.ftl",
-      "affectsBespokeClass": "true",
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "userImplementClassFtlTemplate": "filterTemplate.ftl",
+      "affectsUserImplementedClass": "true",
       "helpText": "The name of the class that contain the custom filter, the IDE will create a template for this class, the user  must provide the implementation.",
       "mandatory": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
-    },
-    "fromType": {
-      "propertyName": "fromType",
-      "affectsBespokeClass": "true",
-      "defaultValue": "java.lang.String",
-      "helpText": "The type of data we expect to come into the filter. This can be any Java class.",
-      "mandatory": true,
-      "usageDataType":"java.lang.Class",
-      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the filter."
     },
     "configuration": {
       "propertyName": "configuration",
@@ -44,7 +34,7 @@
     },
     "configuredResource": {
       "propertyName": "configuredResource",
-      "affectsBespokeClass": "true",
+      "affectsUserImplementedClass": "true",
       "helpText": "Allow the Configuration to be exposed in the Ikasan console.",
       "usageDataType":"java.lang.Boolean"
     },
@@ -53,6 +43,16 @@
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
       "usageDataType":"java.lang.String"
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The type of data we expect to come into the filter. This can be any Java class.",
+      "mandatory": true,
+      "usageDataType":"java.lang.Class",
+      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the filter."
     }
   }
 }

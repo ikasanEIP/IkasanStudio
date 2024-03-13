@@ -9,7 +9,7 @@ public class GeneratorUtils {
     // Enforce as utility class
     private GeneratorUtils() {}
 
-    public static String getBespokePackageName(Module ikasanModule, Flow ikasanFlow) {
+    public static String getUserImplementedClassesPackageName(Module ikasanModule, Flow ikasanFlow) {
         return ikasanModule.getApplicationPackageName() + "." + ikasanFlow.getJavaPackageName();
     }
 

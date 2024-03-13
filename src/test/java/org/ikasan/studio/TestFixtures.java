@@ -14,11 +14,11 @@ import static org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta.*;
 /**
  * Some of these text fixtures will be exported to the Meta Pack project
  * Ideally the Ikasan Packs should be loosely coupled with the IDE so that most
- * of the knoweldge and detail of what each pack support comes from the pack, not the IDE.
+ * of the knowledge and detail of what each pack support comes from the pack, not the IDE.
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String TEST_IKASAN_PACK = "Vtest.x";    // Ideall we should use this test pack but for conveniance for now use V3_3_IKASAN_PACK
+    public static final String TEST_IKASAN_PACK = "Vtest.x";    // Ideally we should use this test pack but for convenience for now use V3_3_IKASAN_PACK
     public static final String V3_3_IKASAN_PACK = "V3.3.x";
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
@@ -231,7 +231,7 @@ public class TestFixtures {
                 .build();
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
-        flowElement.setPropertyValue(BESPOKE_CLASS_NAME, "myConverter");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myConverter");
         return flowElement;
     }
     // ------------------------- Filters -------------------------
@@ -243,7 +243,7 @@ public class TestFixtures {
                 .componentName("My Message Filter")
                 .build();
         flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
-        flowElement.setPropertyValue(BESPOKE_CLASS_NAME, "myFilter");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myFilter");
         flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResource", true);
@@ -281,6 +281,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("ftpsKeyStoreFilePath", "/test/ftps/keystore");
         flowElement.setPropertyValue("ftpsPort", 987);
         flowElement.setPropertyValue("ftpsProtocol", "SSL");
+        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         flowElement.setPropertyValue("maxRetryAttempts", 10);
         flowElement.setPropertyValue("outputDirectory", "/tmp/output");
         flowElement.setPropertyValue("overwrite", true);
@@ -292,6 +293,37 @@ public class TestFixtures {
         flowElement.setPropertyValue("systemKey", "mySystemKey");
         flowElement.setPropertyValue("tempFileName", "myTempFiilename");
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        flowElement.setPropertyValue("unzip", true);
+        flowElement.setPropertyValue("username", "myLoginName");
+        return flowElement;
+    }
+
+    public static FlowElement getSftpProducer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "SFTP Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My SFTP Producer")
+                .build();
+
+        flowElement.setPropertyValue("checksumDelivered", true);
+        flowElement.setPropertyValue("cleanupChunks", true);
+        flowElement.setPropertyValue("cleanupJournalOnComplete", true);
+        flowElement.setPropertyValue("clientID", "myClientId");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("createParentDirectory", true);
+        flowElement.setPropertyValue("criticalOnStartup", true);
+        flowElement.setPropertyValue("knownHostFilename", "~/.ssh/knownhosts");
+        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
+        flowElement.setPropertyValue("maxRetryAttempts", 10);
+        flowElement.setPropertyValue("outputDirectory", "/tmp/output");
+        flowElement.setPropertyValue("password", "secret");
+        flowElement.setPropertyValue("preferredKeyExchangeAlgorithm", "DFS");
+        flowElement.setPropertyValue("privateKeyFilename", "~/.ssh/meyfile.jks");
+        flowElement.setPropertyValue("remoteHost", "myRemortHost");
+        flowElement.setPropertyValue("remotePort", "1024");
+        flowElement.setPropertyValue("renameExtension", "tmp");
+        flowElement.setPropertyValue("tempFileName", "myTempFiilename");
         flowElement.setPropertyValue("unzip", true);
         flowElement.setPropertyValue("username", "myLoginName");
         return flowElement;

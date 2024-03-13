@@ -1,7 +1,7 @@
 # Meta Data and Instance Data
 
 ## Ikasan MetaData Pack
-The pack provides plugin style suppport for 
+The pack provides plugin style support for 
 
 * A specific version of Ikasan.
 * An alternative implementation e.g. raw component based, template based, Spring or non Spring based
@@ -12,7 +12,7 @@ The pack consists of
 * Meta data for each component supported
 
 For each component or meta component or user defined aggregate components, the pck will provide
-* The icons for the pallete and canvas
+* The icons for the palette and canvas
 * Metadata describing the component
 * Metadata (e.g. type, help, default value, optionality, name) for each property that the component supports
 
@@ -23,7 +23,7 @@ For each component or meta component or user defined aggregate components, the p
 
 ## Ikasan Instance Data Model
 * The instance data reflects an actual implementation of an Ikasan module including flows and fow elements
-* The instance data model is created based on the properties maps provided by the MetaData model as a result, if we wish to serialise and deserialise JSON that resembles the structure used by the dashboard, we need customer serialisation to map the instance data into the flat and explicit name / values we see in the dashboard JSON
+* The instance data model is created based on the properties maps provided by the MetaData model as a result, if we wish to serialise and deserialize JSON that resembles the structure used by the dashboard, we need customer serialisation to map the instance data into the flat and explicit name / values we see in the dashboard JSON
 
 
 

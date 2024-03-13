@@ -46,7 +46,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
             processEditedFlowComponents();
-            // @TODO below line needs changing to model contaxt
+            // @TODO below line needs changing to model context
 //            Context.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance();
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
@@ -143,7 +143,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         }
 
         // Add the params to the display panels.
-        // The the panels even if empty so we can update subsequently.
+        // The panels even if empty, so we can update subsequently.
         addToScrollPanelContent(mandatoryPropertiesEditorPanel, "Mandatory Properties", JBColor.RED, 1);
         addToScrollPanelContent(optionalPropertiesEditorPanel, "Optional Properties", JBColor.LIGHT_GRAY, 2);
     }
@@ -220,9 +220,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
     /**
      * Ensure the fields are valid and the exception / action combo does not already exist.
-     *
+     * -
      * This Object holds the metadata for the object
-     *
+     * -
      * @return a list of ValidationInfo that will only be populated if there are validation errors on the form.
      */
     protected List<ValidationInfo> doValidateAll() {

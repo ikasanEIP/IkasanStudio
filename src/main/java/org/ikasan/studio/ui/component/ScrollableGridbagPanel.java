@@ -6,13 +6,13 @@ import java.awt.*;
 /**
  * This class implements the Scrollable interface so that we can use a JPanel containing a gridPanel can be used
  * within a scrollpane in a similar way to JTable, JList and friends.
- *
+ * </p>
  * It is recommended to use a border layout to ensure normal scrollbar functionality.
- *
+ * </p>
  * Once the gridbag JPanel is created and populated, simply add it to this panel.
- *
+ * </p>
  * It is assumed this panel will be added to a scrollpane e.g.
- *
+ * </p>
  * JScrollPane scroll = new JScrollPane(new ScrollableGridbagPanel(gridBagJPanel));
  */
 public class ScrollableGridbagPanel extends JPanel implements Scrollable {
@@ -125,7 +125,7 @@ public class ScrollableGridbagPanel extends JPanel implements Scrollable {
     /**
      * Do we care if the viewport is higher than the contained panel e.g.
      * Do we want the contained panel to stretch
-     *
+     * </p>
      * Returns {@code true} if this {@code JPanel} is displayed in a
      * {@code JViewport} and the viewport is taller than the list's
      * preferred height, or if the layout orientation is {@code VERTICAL_WRAP}
@@ -146,7 +146,7 @@ public class ScrollableGridbagPanel extends JPanel implements Scrollable {
     /**
      * Do we care if the viewport is wider than the contained panel e.g.
      * Do we want the contained panel to stretch
-     *
+     * </p>
      * Returns {@code true} if this {@code JPanel} is displayed in a
      * {@code JViewport} and the viewport is wider than the JPanel's
      * preferred width (i.e. we may want the panel within to stretch so we must inform the
@@ -162,7 +162,6 @@ public class ScrollableGridbagPanel extends JPanel implements Scrollable {
      * @see Scrollable#getScrollableTracksViewportWidth
      */
     public boolean getScrollableTracksViewportWidth() {
-        return getParent() != null ? getParent().getSize().width > getPreferredSize().width
-                : true;
+        return getParent() == null || getParent().getSize().width > getPreferredSize().width;
     }
 }

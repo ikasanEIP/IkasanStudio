@@ -56,7 +56,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
 
         if (flow.getTransitions() != null && !flow.getTransitions().isEmpty()) {
             // Since transitions are simple pojos, we can use the default serialiser
-            serializerProvider.defaultSerializeField(Flow.TRANSITIONS_TSON_TAG, flow.getTransitions(), jsonGenerator);
+            serializerProvider.defaultSerializeField(Flow.TRANSITIONS_JSON_TAG, flow.getTransitions(), jsonGenerator);
         }
 
         if (flow.getFlowElements() != null && !flow.getFlowElements().isEmpty()) {

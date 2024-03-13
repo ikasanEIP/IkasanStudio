@@ -1,13 +1,11 @@
 package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.ikasan.studio.model.ikasan.instance.serialization.FlowDeserializer;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowSerializer;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
@@ -20,23 +18,19 @@ import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKA
 @Data
 @EqualsAndHashCode(callSuper=false)
 @JsonSerialize(using = FlowSerializer.class)
-@JsonDeserialize(using = FlowDeserializer.class)
 public class Flow extends BasicElement {
     private static final Logger LOG = Logger.getInstance("#BasicElement");
     // The fields of a Flow will need to be known for serialisation
     public static final String CONSUMER_JSON_TAG = "consumer";
-    public static final String TRANSITIONS_TSON_TAG = "transitions";
+    public static final String TRANSITIONS_JSON_TAG = "transitions";
     public static final String FLOW_ELEMENTS_JSON_TAG = "flowElements";
 
     private FlowElement consumer;
     private List<Transition> transitions;
     private List<FlowElement> flowElements;
     private ExceptionResolver exceptionResolver;
-//    String configurationId;
-//    String flowStartupType;
-//    String flowStartupComment;
     private FlowElement inputEndPoint;      // e.g. The queue symbol leading into a flow
-    private FlowElement outputEndPoint;     // e.g. the Document symbo outside the end of a flow
+    private FlowElement outputEndPoint;     // e.g. the Document symbol outside the end of a flow
     public Flow() {
         super (IkasanComponentLibrary.getFLow(STD_IKASAN_PACK));
         transitions = new ArrayList<>();
@@ -59,7 +53,7 @@ public class Flow extends BasicElement {
             }
         }
         if (transitions != null) {
-            // By default, Lombol uses immutable arrays
+            // By default, Lombok uses immutable arrays
             this.transitions = new ArrayList<>(transitions);
         } else {
             this.transitions = new ArrayList<>();
@@ -172,19 +166,5 @@ public class Flow extends BasicElement {
             allFlowElements.addAll(flowElements);
         }
         return allFlowElements;
-    }    /**
-     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
-     * @return A list of all non-null flow elements, including the consumer
-     */
-    public List<FlowElement> ftlGetAllFlowElements() {
-        List<FlowElement> allFlowElements = new ArrayList<>();
-        if (consumer != null) {
-            allFlowElements.add(consumer);
-        }
-        if (flowElements != null && !flowElements.isEmpty()) {
-            allFlowElements.addAll(flowElements);
-        }
-        return allFlowElements;
     }
-
 }

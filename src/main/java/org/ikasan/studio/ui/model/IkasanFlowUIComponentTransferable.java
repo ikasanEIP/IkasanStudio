@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class IkasanFlowUIComponentTransferable implements Serializable, Transferable {
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
-    private FlowElement flowElement ;
+    private final FlowElement flowElement ;
 
     public IkasanFlowUIComponentTransferable(FlowElement flowElement) {
         this.flowElement = flowElement;

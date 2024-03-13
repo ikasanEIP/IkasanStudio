@@ -29,9 +29,8 @@ public class Navigator {
             if (fileEditors.length > 0)
             {
                 FileEditor fileEditor = fileEditors [0];
-                if (fileEditor instanceof NavigatableFileEditor)
+                if (fileEditor instanceof NavigatableFileEditor navigatableFileEditor)
                 {
-                    NavigatableFileEditor navigatableFileEditor = (NavigatableFileEditor) fileEditor;
                     Navigatable descriptor = new OpenFileDescriptor (Context.getProject(projectKey), virtualFile, classToNavigateTo.getTextOffset ());
                     navigatableFileEditor.navigateTo (descriptor);
                 }
@@ -55,9 +54,8 @@ public class Navigator {
             if (fileEditors.length > 0)
             {
                 FileEditor fileEditor = fileEditors [0];
-                if (fileEditor instanceof NavigatableFileEditor)
+                if (fileEditor instanceof NavigatableFileEditor navigatableFileEditor)
                 {
-                    NavigatableFileEditor navigatableFileEditor = (NavigatableFileEditor) fileEditor;
                     Navigatable descriptor = new OpenFileDescriptor (Context.getProject(projectKey), virtualFile, offset);
                     navigatableFileEditor.navigateTo (descriptor);
                 }

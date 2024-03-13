@@ -22,13 +22,13 @@ public abstract class PropertiesPanel extends JPanel {
     private static final String OK_BUTTON_TEXT = "Update Code";
     private transient IkasanObject selectedComponent;
 //    private transient IkasanObject componentDefaults;
-    protected String projectKey;
-    protected boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
+    protected final String projectKey;
+    protected final boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private transient PropertiesDialogue propertiesDialogue;
 
     protected JButton okButton;
-    protected ScrollableGridbagPanel propertiesEditorScrollingContainer;
+    protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JPanel propertiesEditorPanel = new JPanel();
     private boolean dataValid = true;
 
@@ -96,7 +96,7 @@ public abstract class PropertiesPanel extends JPanel {
         }
     }
     /**
-     * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
+     * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
      */
     protected abstract void doOKAction();
 
@@ -111,11 +111,7 @@ public abstract class PropertiesPanel extends JPanel {
         } else if (selectedComponent instanceof Flow) {
             propertyType = "Flow " + PROPERTIES_TAG;
         } else if (selectedComponent instanceof FlowElement) {
-            if (selectedComponent != null) {
-                propertyType = selectedComponent.getComponentMeta().getName() + " " + PROPERTIES_TAG;
-            } else {
-                propertyType = "Component " + PROPERTIES_TAG;
-            }
+            propertyType = selectedComponent.getComponentMeta().getName() + " " + PROPERTIES_TAG;
         }
         return propertyType;
     }
@@ -181,10 +177,6 @@ public abstract class PropertiesPanel extends JPanel {
     protected IkasanObject getSelectedComponent() {
         return selectedComponent;
     }
-
-//    protected IkasanObject getComponentDefaults() {
-//        return componentDefaults;
-//    }
 
     protected abstract List<ValidationInfo> doValidateAll();
     public abstract void processEditedFlowComponents();

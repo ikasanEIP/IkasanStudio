@@ -27,8 +27,8 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
-.producer("testSftpProducer",
-componentFactory.getTestSftpProducer())
+.producer("My SFTP Producer",
+componentFactory.getMySFTPProducer())
 .build();
 return myFlow1;
 }

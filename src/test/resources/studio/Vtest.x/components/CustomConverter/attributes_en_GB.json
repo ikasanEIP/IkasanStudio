@@ -6,7 +6,7 @@
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "_ikasanComponentFactoryMethod": "The custom converter is a user implemented class so has no factory as such",
   "flowBuilderMethod": "converter",
-  "generatesBespokeClass": "true",
+  "generatesUserImplementedClass": "true",
   "displayOrder": 4,
   "properties": {
     "componentName": {
@@ -19,9 +19,9 @@
       "helpText": "A more detailed description of the component that may assist in support .",
       "mandatory": true
     },
-    "bespokeClassName": {
-      "propertyName": "bespokeClassName",
-      "affectsBespokeClass": "true",
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "affectsUserImplementedClass": "true",
       "helpText": "The name of the class that contain the custom conversion.",
       "mandatory": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
@@ -29,7 +29,7 @@
     },
     "fromType": {
       "propertyName": "fromType",
-      "affectsBespokeClass": "true",
+      "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to come into the converter. This can be any Java class.",
       "mandatory": true,
@@ -38,7 +38,7 @@
     },
     "toType": {
       "propertyName": "toType",
-      "affectsBespokeClass": "true",
+      "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to be the output of the the converter. This can be any Java class.",
       "mandatory": true,

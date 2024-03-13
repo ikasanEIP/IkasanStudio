@@ -22,19 +22,14 @@ public abstract class Generator {
     private static final Logger LOG = Logger.getInstance("#Generator");
     public static final String STUDIO_PACKAGE_TAG = "studioPackageTag";
     public static final String CLASS_NAME_TAG = "className";
-    public static final String COMPONENT_TAG = "component";
     public static final String FLOW_ELEMENT_TAG = "flowElement";
     public static final String INTERFACE_NAME_TAG = "interfaceName";
     public static final String PREFIX_TAG = "prefix";
-    public static final String PROPERTIES_TAG = "properties";
     public static final String FLOWS_TAG = "flows";
     public static final String FLOW_TAG = "flow";
     public static final String MODULE_TAG = "module";
-    public static final String FLOW_NAME_TAG = "flowName";
     public static final String STUDIO_BASE_PACKAGE_TAG = "studioBasePackage";
     public static final String STUDIO_BOOT_PACKAGE = "org.ikasan.studio.boot";
-    public static final String STUDIO_BESPOKE_PACKAGE = "org.user";
-    public static final String STUDIO_COMPONENT_PACKAGE = "org.ikasan.studio.component";
 
     // Enforce Utility class.
     protected Generator() {}
@@ -93,12 +88,9 @@ public abstract class Generator {
             }
             String fileType = FilenameUtils.getExtension(fileNameWithExtension);
             psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileNameWithExtension, FileTypeManager.getInstance().getFileTypeByExtension(fileType), content);
-            // When you add the file to the directory, you need the resulting psiFilem not the one you sent in.
+            // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
             psiFile = (PsiFile)directory.add(psiFile);
             standardPropertiesFormatting(project, psiFile);
-//            // Required post edit steps
-//            PsiDocumentManager documentManager = PsiDocumentManager.createFlowElement(project);
-//            documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
             if (focus) {
                 psiFile.navigate(true); // Open the newly created file
             }

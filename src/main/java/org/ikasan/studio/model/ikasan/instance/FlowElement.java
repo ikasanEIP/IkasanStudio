@@ -2,9 +2,7 @@ package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.ikasan.studio.model.ikasan.instance.serialization.FlowElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
@@ -28,13 +26,12 @@ public class FlowElement extends BasicElement {
         super (type);
 
         setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, "");
-        setPropertyValue(ComponentPropertyMeta.DESCRIPTION, "");
         this.containingFlow = containingFlow;
     }
 
     @Builder (builderMethodName = "flowElementBuilder")
-    protected FlowElement(Flow containingFlow, ComponentMeta componentMeta, String componentName, String description) {
-        super(componentMeta, description);
+    protected FlowElement(Flow containingFlow, ComponentMeta componentMeta, String componentName) {
+        super(componentMeta);
         setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, componentName);
         this.containingFlow = containingFlow;
     }

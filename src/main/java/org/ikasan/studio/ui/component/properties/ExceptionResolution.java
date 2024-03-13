@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import lombok.Data;
 import org.ikasan.studio.model.ikasan.instance.ComponentProperty;
 
 import javax.swing.*;
@@ -10,16 +11,15 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
+@Data
 public class ExceptionResolution implements EditBoxContainer {
-    ExceptionResolverEditBox parent;
-    private final JLabel exceptionField = new JLabel();
     private final JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
     private final org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution;
     private final JButton deleteButton = new JButton("DEL");
+    JLabel exceptionField = new JLabel();
 
     public ExceptionResolution(ExceptionResolverEditBox parent, org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution, boolean componentInitialisation) {
-        this.parent = parent;
         this.exceptionResolution = exceptionResolution;
 
         String theException = exceptionResolution.getExceptionsCaught();
@@ -54,8 +54,7 @@ public class ExceptionResolution implements EditBoxContainer {
     }
 
     /**
-     * actionParams will only have elements if an action has been chosen the requires params.
-     * @return
+     * @return actionParams will only have elements if an action has been chosen the requirements params.
      */
     public boolean actionHasParams() {
         return !actionParamEditBoxList.isEmpty();
@@ -65,32 +64,13 @@ public class ExceptionResolution implements EditBoxContainer {
         return actionParamEditBoxList;
     }
 
-//    /**
-//     * Validate the selected values
-//     * @return a non-empty ValidationInfo list if there are validation errors
-//     */
-//    protected List<ValidationInfo> doValidateAll() {
-//        return  Collections.emptyList();
-//    }
-
     public org.ikasan.studio.model.ikasan.instance.ExceptionResolution getIkasanExceptionResolution() {
         return exceptionResolution;
     }
 
-    public JLabel getExceptionField() {
-        return exceptionField;
-    }
-
-    public JLabel getActionField() {
-        return actionField;
-    }
-
-    public JButton getDeleteButton() {
-        return deleteButton;
-    }
 
     @Override
     public void editBoxChangeListener() {
-
+        // deliberately blank
     }
 }

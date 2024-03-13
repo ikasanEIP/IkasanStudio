@@ -1,11 +1,13 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import com.intellij.ui.JBColor;
 import org.ikasan.studio.Context;
 import org.ikasan.studio.actions.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 
 public class CanvasPanel extends JPanel {
     public CanvasPanel(String projectKey) {
@@ -28,7 +30,7 @@ public class CanvasPanel extends JPanel {
         gridCheckBox.setSelected(false);
         gridCheckBox.addItemListener(e -> {
             DesignerCanvas designerCanvas = Context.getDesignerCanvas(projectKey);
-            designerCanvas.setDrawGrid(e.getStateChange() == 1);
+            designerCanvas.setDrawGrid(e.getStateChange() == ItemEvent.SELECTED);
             designerCanvas.repaint();
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
@@ -37,7 +39,7 @@ public class CanvasPanel extends JPanel {
         JPanel canvasHeaderPanel = new JPanel();
         canvasHeaderPanel.add(canvasHeaderTitlePanel);
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
-        canvasHeaderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        canvasHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         Context.setCanvasTextArea(projectKey, canvasTextArea);
         canvasTextArea.setLineWrap(true);
 

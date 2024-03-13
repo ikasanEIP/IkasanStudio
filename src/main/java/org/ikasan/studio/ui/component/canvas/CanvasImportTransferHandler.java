@@ -24,7 +24,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     /**
      * This method is called repeatedly during a drag and drop operation to allow the developer to configure properties of, and to return
      * the acceptability of transfers; with a return value of {@code true} indicating that the transfer represented by the given
-     * {@code TransferSupport} (which contains all of the details of the transfer) is acceptable at the current time, and a value of {@code false}
+     * {@code TransferSupport} (which contains all the details of the transfer) is acceptable at the current time, and a value of {@code false}
      * rejecting the transfer.
      * <p>
      * For those components that automatically display a drop location during drag and drop, accepting the transfer, by default, tells them to show
@@ -59,7 +59,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
             !(targetComponent instanceof DesignerCanvas)) {
             return false;
         }
-        // Since the canvas is not a simple widget with built in drop handlers, we need to perform that ourselves.
+        // Since the canvas is not a simple widget with built-in drop handlers, we need to perform that ourselves.
         // If the module has been properly initialised, we can drop ...
         if (!designerCanvas.getIkasanModule().hasUnsetMandatoryProperties()) {
             for(DataFlavor flavor : destinationSupportedflavors) {

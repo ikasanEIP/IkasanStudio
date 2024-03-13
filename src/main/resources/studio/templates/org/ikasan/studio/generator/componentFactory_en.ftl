@@ -17,25 +17,13 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
 <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
-    <#if flowElement.componentMeta.generatesBespokeClass>
-<#--    <#if flowElement.componentMeta.generatesBespokeClass  || !flowElement.componentMeta.usesBuilder>-->
+    <#if flowElement.componentMeta.generatesUserImplementedClass>
         @javax.annotation.Resource
-        <#if flowElement.componentMeta.generatesBespokeClass>
-        ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${flowElement.getPropertyValue('bespokeClassName')} ${flowElement.getJavaVariableName()};
-<#--        <#else>-->
-<#--        ${flowElement.componentMeta.componentType} ${flowElement.getJavaVariableName()};-->
+        <#if flowElement.componentMeta.generatesUserImplementedClass>
+        ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${flowElement.getPropertyValue('userImplementedClassName')} ${flowElement.getJavaVariableName()};
         </#if>
     <#else>
     </#if>
-
-
-<#--    <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>-->
-<#--        <#if propValue.meta.isUserSuppliedClass()>-->
-<#--            @javax.annotation.Resource-->
-<#--            ${propValue.meta.usageDataType} ${StudioUtils.toJavaIdentifier(propValue.valueString)};-->
-<#--        </#if>-->
-<#--    </#list>-->
-    <#-- Properties defined within the properties file-->
 
     <#list flowElement.getStandardConfiguredProperties()![] as propKey, componentProperty>
         <#if componentProperty.meta.propertyConfigFileLabel?? && componentProperty.value??>
@@ -90,15 +78,15 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
-                <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
+                <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}(${StudioUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#else>
                 <#if propValue.meta.isUserSuppliedClass()>
-                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
+                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}(${StudioUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
-                        <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.generatesBespokeClass>;</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     <#else>
-                    <#if flowElement.componentMeta.generatesBespokeClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}(${propValue.valueString})<#if flowElement.componentMeta.generatesBespokeClass>;x</#if>
+                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioUtils.toPascalCase(propValue.meta.propertyName)}(${propValue.valueString})<#if flowElement.componentMeta.generatesUserImplementedClass>;x</#if>
                     </#if>
                 </#if>
             </#if>
@@ -109,7 +97,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioUtils.toJavaIdentifier(module.name)}-${StudioUtils.toJavaIdentifier(flow.name)}-${StudioUtils.toJavaIdentifier(flowElement.componentName)}");
     </#if>
-    <#if flowElement.componentMeta.generatesBespokeClass>
+    <#if flowElement.componentMeta.generatesUserImplementedClass>
         return ${flowElement.getJavaVariableName()};
     <#elseif !flowElement.componentMeta.usesBuilder>
         return new ${flowElement.componentMeta.ikasanComponentFactoryMethod}();

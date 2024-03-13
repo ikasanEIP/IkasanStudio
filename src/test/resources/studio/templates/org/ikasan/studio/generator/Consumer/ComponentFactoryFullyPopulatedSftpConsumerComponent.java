@@ -16,6 +16,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.cron-expression}")
 java.lang.String myFlow1SftpConsumerCronExpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.filename-pattern}")
+java.lang.String myFlow1SftpConsumerFilenamePattern;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.known-hosts-filename}")
 java.lang.String myFlow1SftpConsumerKnownHostsFilename;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.max-retry-attempts}")
@@ -36,6 +38,8 @@ java.lang.String myFlow1SftpConsumerRemotePort;
 java.lang.String myFlow1SftpConsumerSourceDirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.system-key}")
 java.lang.String myFlow1SftpConsumerSystemKey;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
+java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -52,7 +56,7 @@ org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMySFTPConsumer() {
-return builderFactory.getComponentBuilder().sftpConsumer()
+return builderFactory.getComponentBuilder().sFTPConsumer()
 .setAgeOfFiles(10)
 .setChecksum(true)
 .setChronological(true)
@@ -69,6 +73,7 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setDestructive(true)
 .setEager(true)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
+.setFilenamePattern(myFlow1SftpConsumerFilenamePattern)
 .setIgnoreMisfire(true)
 .setIsRecursive(true)
 .setKnownHostFilename(myFlow1SftpConsumerKnownHostsFilename)
@@ -93,5 +98,6 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
 .setSystemKey(myFlow1SftpConsumerSystemKey)
 .setTransactionManager(myTransactionManagerClass)
+.setUsername(myFlow1SftpConsumerUsername)
 .build();
 }}

@@ -13,7 +13,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
     public static final int FLOW_Y_START_POINT = 100;
-    Module model;
+    private final Module model;
 
     /**
      * @param model for the view handler
@@ -30,7 +30,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
 
         for (Flow ikasanFlow : model.getFlows()) {
-            // remember initialise has already set x,y but we may be dealing with component move
+            // remember initialise has already set x,y, but we may be dealing with component move
             if (currentY == 0 ) {
                 currentY = ikasanFlow.getViewHandler().getTopY();
             } else {
@@ -42,7 +42,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
         return currentY;
     }
 
-    // Might revert to cetralised model but that will require double initialise.
+    // Might revert to centralised model but that will require double initialise.
     private int getFlowXStartPoint() {
         return FLOW_X_START_POINT;
     }
@@ -64,7 +64,7 @@ public class IkasanModuleViewHandler extends ViewHandler {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, model.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         for(Flow ikasanFlow : model.getFlows()) {
-            // intialise width/height to maximum, it will be adjusted down after reset
+            // initialise width/height to maximum, it will be adjusted down after reset
             ikasanFlow.getViewHandler().initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
             minimumTopY = ikasanFlow.getViewHandler().getBottomY();
             minimumTopY += FLOW_VERTICAL_SPACING;

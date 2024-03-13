@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class PojoDeserialisationTest {
+class PojoDeserializationTest {
     @Test
     public void testWhenValidJsonPresented_ThenJavaObjectIsPopulatedWithExpectedDefaults() throws JsonProcessingException, StudioException {
         MyGenericClass myGenericClass = PojoDeserialisation.deserializePojo("genericpojo.json",
-                new TypeReference<GenericPojo<MyGenericClass>>() {
+                new TypeReference<>() {
                 });
 
         MatcherAssert.assertThat(myGenericClass.field1String, is("This is expected"));

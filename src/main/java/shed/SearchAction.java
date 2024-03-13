@@ -13,7 +13,7 @@ public class SearchAction extends AnAction
 {
    /**
     * Convert selected text to a URL friendly string.
-    * @param e
+    * @param e the event
     */
    @Override
    public void actionPerformed(AnActionEvent e)
@@ -45,7 +45,7 @@ public class SearchAction extends AnAction
 
    /**
     * Only make this action visible when text is selected.
-    * @param e
+    * @param e the event
     */
    @Override
    public void update(AnActionEvent e)

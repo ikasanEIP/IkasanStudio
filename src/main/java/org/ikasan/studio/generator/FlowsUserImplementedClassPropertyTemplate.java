@@ -10,11 +10,11 @@ import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.util.Map;
 
-public class FlowsBespokePropertyTemplate extends Generator {
+public class FlowsUserImplementedClassPropertyTemplate extends Generator {
 
     public static void create(final Project project, final Module ikasanModule, final Flow ikasanFlow, FlowElement component) {
         for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
-            String newPackageName = GeneratorUtils.getBespokePackageName(ikasanModule, ikasanFlow);
+            String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(ikasanModule, ikasanFlow);
             String clazzName = StudioUtils.toJavaClassName(property.getValueString());
             String prefix = GeneratorUtils.getUniquePrefix(ikasanModule, ikasanFlow, component);
             String templateString = generateContents(newPackageName, clazzName, property, prefix);

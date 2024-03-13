@@ -15,23 +15,17 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
     public static final int HORIZONTAL_PAD = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 15;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 42;
-    int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
-    int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
+    private final int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
+    private final int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
-//    IkasanFlowUIComponentx ikasanFlowUIComponent;
     FlowElement flowElement;
 
     /**
-     * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
+     * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flowElement for view handler
      */
     public IkasanFlowExceptionResolverViewHandler(FlowElement flowElement) {
         this.flowElement = flowElement;
-//        if (flowElement != null) {
-//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(flowElement.getComponentMeta());
-//        } else {
-//            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getUNKNOWN();
-//        }
     }
 
 
@@ -42,20 +36,12 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
      */
     public static int getXOffsetFromRight(int xOffsetFromRight) {
         int newX = xOffsetFromRight - FLOWCHART_SYMBOL_DEFAULT_WIDTH - HORIZONTAL_PAD;
-        if (newX > 0) {
-            return newX;
-        } else {
-            return 0;
-        }
+        return Math.max(newX, 0);
     }
 
     public static int getYOffsetFromTop(int yOffsetFromTop) {
         int newY = yOffsetFromTop + VERTICAL_PAD;
-        if (newY > 0) {
-            return newY;
-        } else {
-            return 0;
-        }
+        return Math.max(newY, 0);
     }
 
     /**
@@ -64,7 +50,7 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
      * @param g Swing graphics class
      * @param minimumTopY top y of the component, sometimes we need to supply this, otherwise -1 will allow viewHandler to
      *             determine
-     * @return
+     * @return topY + symbole height
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         LOG.debug("paintComponent invoked");
@@ -94,16 +80,5 @@ public class IkasanFlowExceptionResolverViewHandler extends ViewHandler {
 
     public ImageIcon getCanvasIcon() {
         return flowElement.getComponentMeta().getCanvasIcon();
-    }
-
-//    public IkasanFlowUIComponentx getFlowElement() {
-//        return ikasanFlowUIComponent;
-//    }
-
-    @Override
-    public String toString() {
-        return "IkasanFlowComponentViewHandler{" +
-//                "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
-                '}';
     }
 }

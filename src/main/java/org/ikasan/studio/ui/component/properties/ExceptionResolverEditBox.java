@@ -14,15 +14,15 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolverEditBox {
-    private ExceptionResolverPanel resolverPanel;
-    private String projectKey;
-    private JLabel exceptionTitleField;
-    private JLabel actionTitleField;
-    private JLabel paramsTitleField;
-    private JButton addButton;
-    private List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList = new ArrayList<>();
-    private boolean componentInitialisation;
-    private ExceptionResolver exceptionResolver;
+    private final ExceptionResolverPanel resolverPanel;
+    private final String projectKey;
+    private final JLabel exceptionTitleField;
+    private final JLabel actionTitleField;
+    private final JLabel paramsTitleField;
+    private final JButton addButton;
+    private final List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList = new ArrayList<>();
+    private final boolean componentInitialisation;
+    private final ExceptionResolver exceptionResolver;
     private boolean hasChanged = false;
 
     public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, ExceptionResolver exceptionResolver, boolean componentInitialisation) {
@@ -93,7 +93,7 @@ public class ExceptionResolverEditBox {
     }
 
     /**
-     * Determine if the data entered differs from the value object (ikasanExceptionResoluition)
+     * Determine if the data entered differs from the value object (ikasanExceptionResolution)
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {

@@ -14,6 +14,8 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.clientID}")
+java.lang.String myFlow1FtpProducerClientID;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
 java.lang.Integer myFlow1FtpConsumerFtpsPort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
@@ -30,17 +32,21 @@ java.lang.String myFlow1FtpConsumerRemoteHost;
 java.lang.String myFlow1FtpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
 java.lang.String myFlow1FtpConsumerSystemKey;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")
+java.lang.String myFlow1FtpConsumerUsername;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+@javax.annotation.Resource
+org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyFTPProducer() {
-return builderFactory.getComponentBuilder().ftpConsumer()
+return builderFactory.getComponentBuilder().fTPProducer()
 .setActive(true)
 .setChecksumDelivered(true)
 .setCleanupJournalOnComplete(true)
-.setClientID(myClientId)
+.setClientID(myFlow1FtpProducerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setCreateParentDirectory(true)
@@ -52,6 +58,7 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setFtpsKeyStoreFilePath("/test/ftps/keystore")
 .setFtpsPort(myFlow1FtpConsumerFtpsPort)
 .setFtpsProtocol(myFlow1FtpConsumerFtpsProtocol)
+.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMaxRetryAttempts(myFlow1FtpConsumerMaxRetryAttempts)
 .setOutputDirectory(myFlow1FtpProducerOutputDirectory)
 .setOverwrite(true)
@@ -61,7 +68,9 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setRenameExtension(tmp)
 .setSocketTimeout(22)
 .setSystemKey(myFlow1FtpConsumerSystemKey)
+.setTempFileName("myTempFiilename")
 .setTransactionManager(myTransactionManagerClass)
 .setUnzip(true)
+.setUsername(myFlow1FtpConsumerUsername)
 .build();
 }}

@@ -8,23 +8,25 @@ import org.ikasan.studio.StudioUtils;
  */
 public enum ComponentType
 {
-    Broker("org.ikasan.spec.component.endpoint.Broker"),
-    Consumer("org.ikasan.spec.component.endpoint.Consumer"),
-    Converter("org.ikasan.spec.component.transformation.Converter"),
-    ExceptionResolver("org.ikasan.exceptionResolver.ExceptionResolver"),
-    Filter("org.ikasan.spec.component.filter.Filter"),
-    Flow("org.ikasan.spec.flow.Flow"),
-    Module("org.ikasan.spec.module.Module"),
-    Producer("org.ikasan.spec.component.endpoint.Producer"),
-    Router("Router"),
-    Splitter("org.ikasan.spec.component.splitting.Splitter"),
-    Translater ("Translater"),
-    Other ("Other");
+    Broker("Broker", "org.ikasan.spec.component.endpoint.Broker"),
+    Consumer("Consumer","org.ikasan.spec.component.endpoint.Consumer"),
+    Converter("Converter","org.ikasan.spec.component.transformation.Converter"),
+    ExceptionResolver("Exception Resolver","org.ikasan.exceptionResolver.ExceptionResolver"),
+    Filter("Filter","org.ikasan.spec.component.filter.Filter"),
+    Flow("Flow","org.ikasan.spec.flow.Flow"),
+    Module("Module","org.ikasan.spec.module.Module"),
+    Producer("Producer","org.ikasan.spec.component.endpoint.Producer"),
+    Router("Router","Router"),
+    Splitter("Splitter","org.ikasan.spec.component.splitting.Splitter"),
+    Translater ("Trasnlator","Translater"),
+    Other ("Other","Other");
 
     public final String classType;
-    
-    ComponentType(String classType) {
+    public final String name;
+
+    ComponentType(String name, String classType) {
         this.classType = classType;
+        this.name = name;
     }
 
     /**
@@ -53,5 +55,9 @@ public enum ComponentType
             }
         }
         return Other;
+    }
+
+    public final String getName() {
+        return this.name;
     }
 }

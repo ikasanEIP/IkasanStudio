@@ -24,8 +24,6 @@ public class DesignCanvasContextMenu {
         menu.add(createWebHelpTextItem(projectKey, "Web help", component, mouseEvent));
         menu.add(createNavigateToCode(projectKey, "Jump to code", component, false));
         menu.add(createNavigateToCode(projectKey, "Jump to code line", component, true));
-//        menu.add(createEnableDebug("Switch on debug"));
-//        menu.add(createEnableTrace("Switch on trace"));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
@@ -85,17 +83,5 @@ public class DesignCanvasContextMenu {
         item.addActionListener(new NavigateToCodeAction(projectKey, component, jumpToLine));
         return item;
     }
-
-//    private static JMenuItem createEnableDebug(String label) {
-//        JMenuItem item = new JMenuItem(label);
-//        item.addActionListener(e -> LogManager.getRootLogger().setLevel(Level.DEBUG));
-//        return item;
-//    }
-//
-//    private static JMenuItem createEnableTrace(String label) {
-//        JMenuItem item = new JMenuItem(label);
-//        item.addActionListener(e -> LogManager.getRootLogger().setLevel(Level.TRACE));
-//        return item;
-//    }
 }
 

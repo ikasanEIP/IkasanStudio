@@ -1,7 +1,7 @@
 package org.ikasan.studio.generate;
 
 /**
- * Generate the whole projet from the meta model and the current version of Ikasan
+ * Generate the whole project from the metamodel and the current version of Ikasan
  */
 public class Project {
 

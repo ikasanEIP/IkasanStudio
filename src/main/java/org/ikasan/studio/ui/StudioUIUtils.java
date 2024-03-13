@@ -10,9 +10,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Studion UI StudioUtils.
- */
 public class StudioUIUtils {
 
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
@@ -23,8 +20,7 @@ public class StudioUIUtils {
     private static final Logger LOG = Logger.getInstance("#StudioUIUtils");
 
     public static void setLine(Graphics g, float width) {
-        if (g instanceof Graphics2D) {
-            Graphics2D g2d = (Graphics2D)g;
+        if (g instanceof Graphics2D g2d) {
             g2d.setStroke(new BasicStroke(width));
         }
     }
@@ -143,8 +139,8 @@ public class StudioUIUtils {
      */
     public static int drawCenteredStringFromMiddleCentre(Graphics g, PaintMode paintMode, String text, int centerX, int centerY, int maxWidth, Font font) {
         int stringHeight = StudioUIUtils.getTextHeight(g);
-        int intialY = centerY - (stringHeight / 2);
-        return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, intialY, maxWidth, font);
+        int initialY = centerY - (stringHeight / 2);
+        return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, initialY, maxWidth, font);
     }
 
     public static List<String> splitStringIntoMultipleRows(String text, int numberOfRows) {

@@ -18,10 +18,10 @@ import java.util.List;
 public class ExceptionResolutionEditBox implements EditBoxContainer {
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
-    private final JComboBox<String> exceptionJComboBox;
+    private final JComboBox exceptionJComboBox;
     private final JLabel actionTitleField;
     private String currentAction = null;
-    private final JComboBox<String> actionJComboBox;
+    private final JComboBox actionJComboBox;
     private final JLabel paramsTitleField;
     private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
     private final boolean componentInitialisation;
@@ -121,7 +121,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
                 hasValue = true;
             } else {
 
-                // Either all mandatory fields have value, or at least 1 non mandatory field has value
+                // Either all mandatory fields have value, or at least 1 non-mandatory field has value
                 boolean nonMandatoryHasValue = false;
                 boolean hasNonMandatory = false;
                 boolean mandatoryHasValue = true;
@@ -145,7 +145,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     }
 
     /**
-     * Determine if the data entered differs from the value object (ikasanExceptionResoluition)
+     * Determine if the data entered differs from the value object (ikasanExceptionResolution)
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
@@ -182,8 +182,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     }
 
     /**
-     * actionParams will only have elements if an action has been chosen the requires params.
-     * @return
+     * @return actionParams will only have elements if an action has been chosen.
      */
     public boolean actionHasParams() {
         return !actionParamEditBoxList.isEmpty();

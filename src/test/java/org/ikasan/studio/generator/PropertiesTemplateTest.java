@@ -8,185 +8,216 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class PropertiesTemplateTest {
-    Module testModule;
+    Module module;
     Flow ikasanFlow;
 
     @BeforeEach
     public void setUp() {
-        testModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
+        module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
     }
 
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/application_emptyFlow.properties
+     * See also application_emptyFlow.properties
      * @throws IOException if the template cant be generated
      */
     @Test
     public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
-        String templateString = PropertiesTemplate.generateContents(testModule);
+        String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
     }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedFtpConsumerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedFtpConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpConsumerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedFtpProducerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedFtpProducerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedFtpProducerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedSftpConsumerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedSftpConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpConsumerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedSftpProducerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedSftpProducerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSftpProducerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpProducerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedLocalFileConsumerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedLocalFileConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedLocalFileConsumerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedScheduledConsumerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedScheduledConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedScheduledConsumerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedScheduledConsumerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedSpringJmsConsumerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedJmsConsumerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedSpringJmsConsumerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSpringJmsConsumerComponent.properties")));
-//    }
-//
-//     /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedJmsProducerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedJmsProducerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedJmsProducerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedJmsProducerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedDevNullProducerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedDevNullProducerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedDevNullProducerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedDevNullProducerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedEmailProducerComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedEmailProducerComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedEmailProducerComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEmailProducerComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedObjectMessageToXmlStringConverterComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedObjectMessageToXmlStringConverterComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties")));
-//    }
-//
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/application_fullyPopulatedXmlStringObjectMessageConverterComponent.properties
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateProperties_fullyPopulatedXmlStringObjectMessageConverterComponent() throws IOException {
-//        ikasanFlow.getFlowElements().add(TestFixtures.getFullyPopulatedXmlStringObjectMessageConverterComponent(ikasanFlow));
-//
-//        String templateString = PropertiesTemplate.generateContents(testModule);
-//        Assert.assertThat(templateString, is(notNullValue()));
-//        Assert.assertThat(templateString, is(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedXmlStringObjectMessageConverterComponent.properties")));
-//    }
+    
+    //  ------------------------------- CONSUMERS ----------------------------------
+    /**
+     * See also application_fullyPopulatedEventGeneratingConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getEventGeneratingConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEventGeneratingConsumerComponent.properties"), templateString);
+    }
+
+    //  ------------------------------- CONSUMERS ----------------------------------
+    /**
+     * See also application_fullyPopulatedFtpConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_ftpConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getFtpConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties"), templateString);
+    }
+
+    //  ------------------------------- CONSUMERS ----------------------------------
+    /**
+     * See also application_fullyPopulatedSftpConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_sftpConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getSftpConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties"), templateString);
+    }
+
+
+    /**
+     * See also application_fullyPopulatedLocalFileConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_localFileConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getLocalFileConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedScheduledConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_scheduledConsumer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getScheduledConsumer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedScheduledConsumerComponent.properties"), templateString);
+    }
+
+    // ------------------------------------- FILTER -------------------------------------
+    /**
+     * See also application_fullyPopulatedMessageFilterComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_messageFilter() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getMessageFilter()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedMessageFilterComponent.properties"), templateString);
+    }
+
+    // ------------------------------------- CONVERTERS -------------------------------------
+    /**
+     * See also application_fullyPopulatedCustomConverterComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_customConverter() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getCustomConverter()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
+    }
+
+
+    // ------------------------------------- PRODUCERS -------------------------------------
+    /**
+     * See also application_fullyPopulatedDevNullProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_devNullProducer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getDevNullProducer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedDevNullProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedFtpProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_ftpProducer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getFtpProducer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedSftpProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_SftpProducer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getSftpProducer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedLoggingProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_loggingProducer() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer()))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLoggingProducerComponent.properties"), templateString);
+    }
+
+
 
 }

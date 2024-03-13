@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 
 public class DeleteComponentAction implements ActionListener {
    private final String projectKey;
-   BasicElement component;
+   private final BasicElement component;
 
    public DeleteComponentAction(String projectKey, BasicElement component) {
       this.projectKey = projectKey;

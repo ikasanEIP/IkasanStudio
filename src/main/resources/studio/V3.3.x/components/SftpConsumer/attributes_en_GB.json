@@ -10,7 +10,6 @@
   "flowBuilderMethod": "consumer",
   "endpointKey": "FTP Endpoint",
   "endpointTextKey": "remoteHost",
-  "ikasanComponentFactoryMethod": "sftpConsumer",
   "displayOrder": 2,
   "properties": {
     "componentName": {
@@ -120,8 +119,8 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
-    "filenames": {
-      "propertyName": "filenames",
+    "filenamePattern": {
+      "propertyName": "filenamePattern",
       "helpText": "Regular expression for matching file names to be transported.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.filename-pattern",
@@ -301,8 +300,8 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the transaction manager bean."
     },
-    "userName": {
-      "propertyName": "userName",
+    "username": {
+      "propertyName": "username",
       "helpText": "User name used to login to SFTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.username",

@@ -21,10 +21,10 @@ public class ComponentPropertyEditBox {
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
-    private boolean affectsBespokeClass = false;
+    private boolean affectsUserImplementedClass = false;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
-    EditBoxContainer parent;
+    final EditBoxContainer parent;
 
     public ComponentPropertyEditBox(ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer parent) {
         this.componentProperty = componentProperty;
@@ -138,19 +138,19 @@ public class ComponentPropertyEditBox {
         }
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
-        if (componentProperty.affectsBespokeClass() && !componentInitialisation) {
-            affectsBespokeClass = true;
+        if (componentProperty.affectsUserImplementedClass() && !componentInitialisation) {
+            affectsUserImplementedClass = true;
             // Cant edit unless the regenerateSource is selected
-            controlFieldsAffectingBespokeClass(false);
+            controlFieldsAffectingUserImplementedClass(false);
         }
     }
 
-    public void controlFieldsAffectingBespokeClass(boolean enable) {
-        if (affectsBespokeClass) {
+    public void controlFieldsAffectingUserImplementedClass(boolean enable) {
+        if (affectsUserImplementedClass) {
             if (propertyValueField != null) {
                 propertyValueField.setEditable(enable);
                 propertyValueField.setEnabled(enable);
-                // If the regegenrate code is disabled, reset the input boxes
+                // If the regenerate code is disabled, reset the input boxes
                 if (!enable && propertyValueHasChanged()) {
                     propertyValueField.setValue(componentProperty.getValue());
                 }
@@ -248,7 +248,7 @@ public class ComponentPropertyEditBox {
                 inputfieldIsUnset()) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
         }
-        // 2. Apply a regex valiudation pattern as defined in the component's meta pack definition
+        // 2. Apply a regex validation pattern as defined in the component's meta pack definition
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
             if (!meta.getValidationPattern().matcher((String) getValue()).matches()) {
                 result.add(new ValidationInfo(meta.getValidationMessage(), getOverridingInputField()));
@@ -314,7 +314,7 @@ public class ComponentPropertyEditBox {
         return componentProperty;
     }
 
-    public boolean isAffectsBespokeClass() {
-        return affectsBespokeClass;
+    public boolean isAffectsUserImplementedClass() {
+        return affectsUserImplementedClass;
     }
 }

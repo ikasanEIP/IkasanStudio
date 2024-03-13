@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * This class holds the metadata about a single property e.g. 'description' - is i mandatory, what data type is it
  */
 public class ComponentPropertyMeta {
-    public static final String BESPOKE_CLASS_NAME = "bespokeClassName";         // Special meta for a bespoke class used as a property
+    public static final String USER_IMPLEMENTED_CLASS_NAME = "userImplementedClassName";         // Special meta for a user implemented class used as a property
     public static final String CONFIGURATION = "configuration";                 // Bean containing user defined, Ikasan maintained properties
     public static final String CONFIGURED_RESOURCE_INTERFACE = "configuredResource";   // Is the configuration exposed in the dashboard.
     public static final String IS_CONFIGURED_RESOURCE = "isConfiguredResource";   // Is the configuration exposed in the dashboard.
@@ -38,7 +38,7 @@ public class ComponentPropertyMeta {
     public static final String H2_WEB_PORT_NUMBER_NAME = "h2WebPortNumber";
     public static final String H2_PORT_NUMBER_KEY = "h2.db.port";
 
-    // Special META for package parent of the users bespoke packages, a little like a pom group
+    // Special META for package parent of the users own packages, a little like a pom group
     public static final String APPLICATION_PACKAGE_NAME = "applicationPackageName";
     public static final String APPLICATION_PACKAGE_KEY = "module.package";
 
@@ -77,10 +77,10 @@ public class ComponentPropertyMeta {
     @JsonKey
     private String propertyName;
 
-    private String bespokeFtlTemplate;
+    private String userImplementClassFtlTemplate;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean affectsBespokeClass=false;  // A change to this property would result in an update to the bespoke class
+    private boolean affectsUserImplementedClass=false;  // A change to this property should result in an update to the user implemnted class
     private String componentType;               // Features in the serialised model.json, the interface or short form type for the property
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -108,11 +108,11 @@ public class ComponentPropertyMeta {
     private boolean userDefineResource=false;       // The user will define the details of the resource within the ResourceFactory.
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean userSuppliedClass=false;     // The user will define a beskpoke class that implements the interface, we will generate the spring property but leave implementation to client code.
+    private boolean userSuppliedClass=false;     // The user will define their own class that implements the interface, we will generate the spring property but leave implementation to client code.
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private String validation = "";         // The String representation of the regexp valudation pattern
+    private String validation = "";         // The String representation of the regexp validation pattern
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String validationMessage = "";  // Message to be displayed when the object fails validation

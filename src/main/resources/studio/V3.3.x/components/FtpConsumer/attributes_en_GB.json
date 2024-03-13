@@ -10,7 +10,6 @@
   "flowBuilderMethod": "consumer",
   "endpointKey": "FTP Endpoint",
   "endpointTextKey": "remoteHost",
-  "ikasanComponentFactoryMethod": "ftpConsumer",
   "displayOrder": 2,
   "properties": {
     "componentName": {
@@ -105,8 +104,8 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "filenames": {
-      "propertyName": "filenames",
+    "filenamePattern": {
+      "propertyName": "filenamePattern",
       "helpText": "Regular expression for matching file names to be transported.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.filename-pattern",
@@ -334,8 +333,8 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the transaction manager bean."
     },
-    "userName": {
-      "propertyName": "userName",
+    "username": {
+      "propertyName": "username",
       "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.username",

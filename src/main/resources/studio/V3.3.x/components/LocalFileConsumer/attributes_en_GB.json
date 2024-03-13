@@ -22,15 +22,6 @@
       "mandatory": true,
       "propertyConfigFileLabel":"__flow.file.consumer.cron-expression"
     },
-    "filenames": {
-      "propertyName": "filenames",
-      "defaultValue":"{'myFile','anotherFile'}",
-      "helpText": "The list of filenames to consume, the files are assumed to be in the same directory as the running ikasan application or one of its subdirectories.",
-      "mandatory": true,
-      "propertyConfigFileLabel":"__flow.file.consumer.filenames",
-      "setterProperty": true,
-      "usageDataType":"java.util.List<String>"
-    },
     "configuration": {
       "propertyName": "configuration",
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
@@ -79,6 +70,15 @@
       "usageDataType":"org.ikasan.spec.event.EventFactory",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "filenames": {
+      "propertyName": "filenames",
+      "defaultValue":"{'myFile','anotherFile'}",
+      "helpText": "The list of filenames to consume, the files are assumed to be in the same directory as the running ikasan application or one of its subdirectories.",
+      "mandatory": true,
+      "propertyConfigFileLabel":"__flow.file.consumer.filenames",
+      "setterProperty": true,
+      "usageDataType":"java.util.List<String>"
     },
     "ignoreFileRenameWhilstScanning": {
       "propertyName": "ignoreFileRenameWhilstScanning",

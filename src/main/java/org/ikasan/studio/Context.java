@@ -24,7 +24,6 @@ public enum Context {
     INSTANCE;
     public static final String JAVA_FILE_EXTENSION = "java";
     public static final String JSON_FILE_EXTENSION = "json";
-    public static final String PROPERTIES_FILE_EXTENSION = "properties";
     public static final String XML_FILE_EXTENSION = "xml";
 
     private static final String CANVAS_PANEL = "canvasPanel";
@@ -36,7 +35,6 @@ public enum Context {
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
-    private static final String JSON_IKASAN_MODEL = "jsonIkasanModel";
     private static final String POM = "pom";
 
     public static final String JSON_MODEL_PARENT_DIR = "main";
@@ -44,7 +42,6 @@ public enum Context {
     public static final String JSON_MODEL_DIR =
             JSON_MODEL_PARENT_DIR + FileSystems.getDefault().getSeparator() +
                     JSON_MODEL_SUB_DIR;
-    public static final String JSON_MODEL_FILE = "model";
     public static final String JSON_MODEL_FILE_WITH_EXTENSION = "model"  + "." + JSON_FILE_EXTENSION;
     public static final String JSON_MODEL_FULL_PATH =
             JSON_MODEL_DIR +  FileSystems.getDefault().getSeparator() +
@@ -89,11 +86,6 @@ public enum Context {
         }
         return null;
     }
-
-    public static Set<String> getProjectKeys() {
-        return perProjectCache.keySet();
-    }
-
     public static Options getOptions(String projectKey) {
         return (Options)getProjectCache(projectKey, OPTIONS);
     }

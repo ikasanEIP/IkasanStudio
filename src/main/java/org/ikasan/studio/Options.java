@@ -7,7 +7,7 @@ public class Options {
     private static final String HINT_TIPS = "HINT_TIPS";
     private static final String AUTO_RELOAD_MAVEN = "AUTO_RELOAD_MAVEN";
 
-    private Map<String, Object> applicationOptions;
+    private final Map<String, Object> applicationOptions;
 
     public Options() {
         // set defaults
