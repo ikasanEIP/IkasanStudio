@@ -59,20 +59,13 @@ ikasan.dashboard.extract.password=
 <#list module.getFlows()![] as flow>
     <#list flow.ftlGetConsumerAndFlowElements()![] as basicElement>
         <#if (basicElement.getStandardConfiguredProperties())??>
-            <#list basicElement.getStandardConfiguredProperties() as propKey, propValue>
-                <#if propValue.getMeta()?? &&
-                        propValue.getMeta().getPropertyConfigFileLabel()?? &&
-                        propValue.getMeta().getPropertyConfigFileLabel() != "" &&
-                        propValue.getValue()?? &&
-                        ! propValue.getMeta().getUserSuppliedClass()>
-<#--                    ${StudioUtils.toJavaIdentifier(propValue.valueString)}-->
-<#--                    ${StudioUtils.getPropertyLabel(module, flow, basicElement, propValue.meta.propertyConfigFileLabel)}=${propValue.getValue()}-->
-                    ${StudioUtils.getPropertyLabelPackageStyle(module, flow, basicElement, propValue.meta.propertyConfigFileLabel)}=${propValue.getValue()}
-<#--                    <#if basicElement.getJavaPackageName() != "">-->
-<#--                        ${flow.getJavaPackageName()}.${basicElement.getJavaPackageName()}.${propValue.getMeta().propertyConfigFileLabel}=${propValue.getValue()}-->
-<#--                    <#else>-->
-<#--                        ${flow.getJavaPackageName()}.${propValue.getMeta().propertyConfigFileLabel}=${propValue.getValue()}-->
-<#--                    </#if>-->
+            <#list basicElement.getStandardConfiguredProperties() as componentPropertyName, componentProperty>
+                <#if componentProperty?? && componentProperty.getMeta()?? &&
+                        componentProperty.getMeta().getPropertyConfigFileLabel()?? &&
+                        componentProperty.getMeta().getPropertyConfigFileLabel() != "" &&
+                        componentProperty.getValue()?? &&
+                        !componentProperty.getMeta().isUserSuppliedClass()>
+                    ${StudioUtils.getPropertyLabelPackageStyle(module, flow, basicElement, componentProperty.meta.propertyConfigFileLabel)}=${componentProperty.getValue()}
                 </#if>
             </#list>
         </#if>

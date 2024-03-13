@@ -3,10 +3,12 @@ package org.ikasan.studio.ui.viewmodel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
+import lombok.Data;
 
 import javax.swing.*;
 import java.awt.*;
 
+@Data
 public abstract class ViewHandler {
     private static final Logger LOG = Logger.getInstance("#ViewHandler");
     PsiClass classToNavigateTo;
@@ -70,27 +72,11 @@ public abstract class ViewHandler {
         return leftX + width;
     }
 
-    public int getTopY() {
-        return topY;
-    }
-
-    public void setTopY(int topY) {
-        this.topY = topY;
-    }
-
-    public int getLeftX() {
-        return leftX;
-    }
-
     public void setLeftX(int leftX) {
         if (leftX < -10) {
             LOG.error("Left X being set to a -ve of " + leftX);
         }
         this.leftX = leftX;
-    }
-
-    public int getWidth() {
-        return width;
     }
 
     public void setWidth(int width) {
@@ -99,10 +85,6 @@ public abstract class ViewHandler {
         }
 
         this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
     }
 
     public void setHeight(int height) {
@@ -118,24 +100,6 @@ public abstract class ViewHandler {
 
     public void setAlreadySelected(boolean alreadySelected) {
         isAlreadySelected = alreadySelected;
-    }
-
-    public void setClassToNavigateTo(PsiClass classToNavigateTo) {
-        this.classToNavigateTo = classToNavigateTo;
-    }
-    public PsiClass getClassToNavigateTo() {
-        return classToNavigateTo;
-    }
-
-    public int getOffsetInclassToNavigateTo() {
-        return offsetInclassToNavigateTo;
-    }
-
-    public void setOffsetInclassToNavigateTo(int offsetInclassToNavigateTo) {
-        this.offsetInclassToNavigateTo = offsetInclassToNavigateTo;
-    }
-    public PsiJavaFile getPsiJavaFile() {
-        return psiJavaFile;
     }
 
     public void setPsiJavaFile(PsiJavaFile psiJavaFile) {

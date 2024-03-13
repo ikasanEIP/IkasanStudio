@@ -14,37 +14,14 @@ import java.awt.*;
  * The popup wrapper for the Properties panel.
  */
 public class PropertiesDialogue extends DialogWrapper {
-    PropertiesPanel propertiesPanel;
-    Component parentComponent;
-
-//    /**
-//     * Popup Modal window to support entry of properties.
-//     *
-//     * The main purpose is to force the developer to enter mandatory properties when a component is first dragged
-//     * onto the canvas. This solves a number of issues and is much more efficient then drag and fix later.
-//     *
-//     * @todo maybe use this in non modal form for the in-canvas properties editing.
-//     *
-//     * @param project currently being worked upon
-//     * @param parentComponent of this popup
-//     * @param propertiesPanel to display and have entries taken on.
-//     */
-//    public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel, boolean modal) {
-//        super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
-//        propertiesPanel.setPropertiesDialogue(this);
-//        this.propertiesPanel = propertiesPanel;
-//        this.parentComponent = parentComponent;
-//        init();  // which calls createCenterPanel() below so make sure any state is initialised first.
-//        setTitle(propertiesPanel.getPropertiesPanelTitle());
-//        setOKButtonText(propertiesPanel.getOKButtonText());
-//        setModal(modal);
-//    }
+    private final PropertiesPanel propertiesPanel;
+    private final Component parentComponent;
 
     /**
      * Popup Modal window to support entry of properties.
-     *
+     * </p>
      * The main purpose is to force the developer to enter mandatory properties when a component is first dragged
-     * onto the canvas. This solves a number of issues and is much more efficient then drag and fix later.
+     * onto the canvas. This solves a number of issues and is much more efficient than drag and fix later.
      *
      * @todo maybe use this in non modal form for the in-canvas properties editing.
      *
@@ -104,7 +81,7 @@ public class PropertiesDialogue extends DialogWrapper {
 
     /**
      * Override parent version to set focus to properties component
-     * @return
+     * @return component to focus
      */
     @Nullable
     @Override

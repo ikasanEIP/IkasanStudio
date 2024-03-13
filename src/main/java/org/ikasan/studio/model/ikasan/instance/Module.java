@@ -18,6 +18,7 @@ import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary.STD_IKASAN_PACK;
 
@@ -63,11 +64,7 @@ public class Module extends BasicElement {
         setPort(port);
         setH2DbPortNumber(h2PortNumber);
         setH2WebPortNumber(h2WebPortNumber);
-        if (flows == null) {
-            this.flows = new ArrayList<>();
-        } else {
-            this.flows = flows;
-        }
+        this.flows = Objects.requireNonNullElseGet(flows, ArrayList::new);
     }
 
     public boolean addFlow(Flow ikasanFlow) {

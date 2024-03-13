@@ -11,7 +11,7 @@ import java.awt.*;
  */
 public class IkasanPaletteElementViewHandler extends ViewHandler {
     private static final Logger LOG = Logger.getInstance("#IkasanPaletteElementViewHandler");
-    ComponentMeta componentMeta;
+    private final ComponentMeta componentMeta;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.

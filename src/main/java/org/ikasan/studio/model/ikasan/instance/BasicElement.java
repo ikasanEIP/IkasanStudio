@@ -2,14 +2,12 @@ package org.ikasan.studio.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.ikasan.studio.StudioUtils;
-import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementDeserializer;
 import org.ikasan.studio.model.ikasan.instance.serialization.BasicElementSerializer;
 import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.model.ikasan.meta.ComponentPropertyMeta;
@@ -27,13 +25,11 @@ import java.util.stream.Collectors;
  * This does
  */
 @JsonSerialize(using = BasicElementSerializer.class)
-@JsonDeserialize(using = BasicElementDeserializer.class)
 @Data
 @EqualsAndHashCode(callSuper=true)
 public  class BasicElement extends IkasanObject {
     @JsonIgnore
     private static final Logger LOG = Logger.getInstance("#IkasanComponent");
-//    @JsonPropertyOrder(alphabetic = true)
     @JsonPropertyOrder({"componentName", "description"})
     protected Map<String, ComponentProperty> configuredProperties;
     public BasicElement() {}
@@ -135,7 +131,7 @@ public  class BasicElement extends IkasanObject {
 
 
     /**
-     * Set the value of the (existing) property. Properties have associated meta data so we can't just add values.
+     * Set the value of the (existing) property. Properties have associated metadata so we can't just add values.
      * @param key of the data to be updated
      * @param value for the updated property
      */
@@ -150,7 +146,7 @@ public  class BasicElement extends IkasanObject {
 
 
     /**
-     * This setter should be used if we think the property might not already be set but will require the correct meta data
+     * This setter should be used if we think the property might not already be set but will require the correct metadata
      * @param key of the property to be updated
      * @param value for the property
      */
@@ -163,7 +159,7 @@ public  class BasicElement extends IkasanObject {
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
 
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropetyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
+                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
                 configuredProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
             }

@@ -92,8 +92,8 @@ public class DesignerCanvas extends JPanel {
                 if (propertiesDialogue.showAndGet()) {
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
-//                    pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDepedencies());
-                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDepedencies());
+//                    pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDependencies());
+                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDependencies());
                     disableStart();
                 }
             }
@@ -110,7 +110,7 @@ public class DesignerCanvas extends JPanel {
         this.remove(startButton);
     }
 
-//    public void updatIkasanModel(Module module) {
+//    public void updateIkasanModel(Module module) {
 //        this.ikasanModule = module;
 //        if (ikasanModule.getName() != null) {
 //            disableStart();
@@ -161,7 +161,7 @@ public class DesignerCanvas extends JPanel {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
-                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDepedencies());
+                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDependencies());
                 }
             } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
@@ -232,14 +232,14 @@ public class DesignerCanvas extends JPanel {
 
     /**
      * We have clicked on the canvas.
-     * If we are on a flow component, set that that the selected component
+     * If we are on a flow component, set the selected component
      * If we are on a flow but not over a flow component, make the flow the selected component
      * If we are on the  canvas and not any flow, set the module as the selected component
      * @param component currently pointed to by the mouse.
      */
     public void setSelectedComponent(BasicElement component) {
         Module ikasanModule = getIkasanModule();
-        deSelectAllCompnentsAndFlows();
+        deSelectAllComponentsAndFlows();
         // Set selected
         if (component instanceof FlowElement) {
             ikasanModule.getFlows()
@@ -261,7 +261,7 @@ public class DesignerCanvas extends JPanel {
     /**
      * Ensure everything is deselected.
      */
-    private void deSelectAllCompnentsAndFlows() {
+    private void deSelectAllComponentsAndFlows() {
         Module ikasanModule = getIkasanModule();
         ikasanModule.getViewHandler().setAlreadySelected(false);
         ikasanModule.getFlows()
@@ -487,7 +487,7 @@ public class DesignerCanvas extends JPanel {
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDepedencies());
+            pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDependencies());
             StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();
@@ -555,30 +555,6 @@ public class DesignerCanvas extends JPanel {
         }
         return newComponent;
     }
-
-
-//    /**
-//     * Now we have validated it is OK to add the component, insert it at the drag point
-//     * @param containingFlow holding the new component
-//     * @param ikasanComponentType to be added
-//     * @param x location of the drop
-//     * @param y location of the drop
-//     */
-//    private void insertNewComponentBetweenSurroundingPair(Flow containingFlow, ComponentMeta ikasanComponentType, int x, int y) {
-//        // insert new component between surrounding pari
-//        Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
-//        List<FlowElement> components = containingFlow.getFlowElements() ;
-//        int numberOfComponents = components.size();
-//        for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
-//            if (components.get(ii).equals(surroundingComponents.getRight())) {
-//                components.add(ii, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
-//                break;
-//            } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-//                components.add(ii+1, FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow));
-//                break;
-//            }
-//        }
-//    }
 
     /**
      * Now we have validated it is OK to add the component, insert it at the drag point
@@ -668,47 +644,7 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-//    public void saveAsSvg(File file, boolean useTransparentBackground) {
-//        DOMImplementation domImplementation = GenericDOMImplementation.getDOMImplementation();
-//        Document document = domImplementation.createDocument("http://www.w3.org/2000/svg", "svg", null);
-//        SVGGraphics2D svgGraphics2D = new SVGGraphics2D(document);
-//
-//        if (!useTransparentBackground) {
-//            svgGraphics2D.setColor(JBColor.WHITE);
-//            svgGraphics2D.fillRect(0, 0, getWidth(), getHeight());
-//        }
-//        paint(svgGraphics2D);
-//
-//        try {
-//            svgGraphics2D.stream(file.getAbsolutePath(), true);
-//            StudioUIUtils.displayMessage(projectKey, "Saved file to " + file.getAbsolutePath());
-//        } catch (SVGGraphics2DIOException se) {
-//            StudioUIUtils.displayErrorMessage(projectKey, "Could not save SVG image to file " + file.getAbsolutePath());
-//            LOG.warn("Error saving SVG image to file " + file.getAbsolutePath(), se);
-//        }
-//    }
-
     public Module getIkasanModule() {
         return Context.getIkasanModule(projectKey);
     }
-//    private void navigateToSource(@NotNull PsiElement classToNavigateTo, int offset)
-//    {
-//        PsiFile containingFile = classToNavigateTo.getContainingFile ();
-//        VirtualFile virtualFile = containingFile.getVirtualFile ();
-//        if (virtualFile != null)
-//        {
-//            FileEditorManager manager = FileEditorManager.createFlowElement (Context.getProject());
-//            FileEditor[] fileEditors = manager.openFile (virtualFile, true);
-//            if (fileEditors.length > 0)
-//            {
-//                FileEditor fileEditor = fileEditors [0];
-//                if (fileEditor instanceof NavigatableFileEditor)
-//                {
-//                    NavigatableFileEditor navigatableFileEditor = (NavigatableFileEditor) fileEditor;
-//                    Navigatable descriptor = new OpenFileDescriptor (Context.getProject(), virtualFile, offset);
-//                    navigatableFileEditor.navigateTo (descriptor);
-//                }
-//            }
-//        }
-//    }
 }

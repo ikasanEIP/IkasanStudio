@@ -71,7 +71,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 String   fieldName  = field.getKey();
                 if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
                     flow.setConsumer(getFlowElement(field.getValue(), flow));
-                } else if (Flow.TRANSITIONS_TSON_TAG.equals(fieldName)) {
+                } else if (Flow.TRANSITIONS_JSON_TAG.equals(fieldName)) {
                     flow.setTransitions(getTransitions(field.getValue()));
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
                     flowElementsMap = getFlowElements(field.getValue(), flow);
@@ -102,7 +102,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     .map(Transition::getTo)
                     .collect(Collectors.toSet());
             Set<String> fromKeys = new HashSet<>(transitionsMap.keySet());
-            // this shouls leave 1 element, that has a from but never a to i.e. the start of the chain
+            // this should leave 1 element, that has a from but never a to i.e. the start of the chain
             fromKeys.removeAll(toKeys);
             Optional<String> startKey = fromKeys.stream().findFirst();
             if (startKey.isEmpty()) {
@@ -187,11 +187,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             if (componentMeta == null) {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
             }
-            if (componentMeta.isGeneratesBespokeClass()) {
-                flowElement = FlowBeskpokeElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
+            if (componentMeta.isGeneratesUserImplementedClass()) {
+                flowElement = FlowUserImplementedElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
             } else {
                 flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
             }
+
+
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
 
             while (fields.hasNext()) {

@@ -8,6 +8,6 @@ package org.ikasan;
 */
 
 @org.springframework.stereotype.Component
-public class MyBespokeClassForProperty implements org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor
+public class MyUserImplementedClassForProperty implements org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor
 {
 }

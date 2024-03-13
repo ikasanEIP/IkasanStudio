@@ -9,7 +9,7 @@ package ${studioPackageTag};
 
 @org.springframework.stereotype.Component
 
-public class ${flowElement.getPropertyValue("bespokeClassName")} implements org.ikasan.spec.flowElement.filter.Filter<${flowElement.getPropertyValue("fromType")}><#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>, org.ikasan.spec.configuration.ConfiguredResource<${flowElement.getPropertyValue("cConfiguration")}><#elseif flowElement.getPropertyValue("configuration")?has_content>, org.ikasan.spec.configuration.Configured<${flowElement.getPropertyValue("configuration")}></#if>
+public class ${flowElement.getPropertyValue("userImplementedClassName")} implements org.ikasan.spec.flowElement.filter.Filter<${flowElement.getPropertyValue("fromType")}><#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>, org.ikasan.spec.configuration.ConfiguredResource<${flowElement.getPropertyValue("cConfiguration")}><#elseif flowElement.getPropertyValue("configuration")?has_content>, org.ikasan.spec.configuration.Configured<${flowElement.getPropertyValue("configuration")}></#if>
 {
 <#if flowElement.getPropertyValue("configuration")??>
 ${flowElement.getPropertyValue("configuration")} configuration;

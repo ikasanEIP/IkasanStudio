@@ -16,6 +16,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
 java.lang.String myFlow1FtpConsumerCronExpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.filename-pattern}")
+java.lang.String myFlow1FtpConsumerFilenamePattern;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
 java.lang.Integer myFlow1FtpConsumerFtpsPort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
@@ -36,6 +38,8 @@ java.lang.String myFlow1FtpConsumerRemotePort;
 java.lang.String myFlow1FtpConsumerSourceDirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
 java.lang.String myFlow1FtpConsumerSystemKey;
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")
+java.lang.String myFlow1FtpConsumerUsername;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -50,7 +54,7 @@ org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyFTPConsumer() {
-return builderFactory.getComponentBuilder().ftpConsumer()
+return builderFactory.getComponentBuilder().fTPConsumer()
 .setActive(true)
 .setAgeOfFiles(10)
 .setChecksum(true)
@@ -65,6 +69,7 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setCronExpression(myFlow1FtpConsumerCronExpression)
 .setDataTimeout(300001)
 .setDestructive(true)
+.setFilenamePattern(myFlow1FtpConsumerFilenamePattern)
 .setFilterDuplicates(true)
 .setFilterOnFilename(true)
 .setFilterOnLastModifiedDate(true)
@@ -98,5 +103,6 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
 .setSystemKey(myFlow1FtpConsumerSystemKey)
 .setTransactionManager(myTransactionManagerClass)
+.setUsername(myFlow1FtpConsumerUsername)
 .build();
 }}

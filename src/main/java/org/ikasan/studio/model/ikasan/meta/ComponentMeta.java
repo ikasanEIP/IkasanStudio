@@ -44,17 +44,17 @@ public class ComponentMeta implements IkasanMeta {
     private String defaultValue;
     private int displayOrder;
 
-    private boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftlocation
+    private boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftp location
     private String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
-    private String endpointTextKey; // The name of the property in the real componnet that the endpoint will display as text e.g. queuename
+    private String endpointTextKey; // The name of the property in the real component that the endpoint will display as text e.g. queuename
 
     private String flowBuilderMethod;
-    private boolean generatesBespokeClass;
+    private boolean generatesUserImplementedClass;
     private String helpText;
     private String ikasanComponentFactoryMethod;
     @lombok.NonNull
     private String implementingClass;
-    private List<Dependency> jarDepedencies;
+    private List<Dependency> jarDependencies;
     private Map<String, ComponentPropertyMeta> properties;
     private boolean usesBuilder;
 
@@ -84,7 +84,7 @@ public class ComponentMeta implements IkasanMeta {
         return mandatoryProperties;
     }
 
-    public Set<String> getPropetyKeys() {
+    public Set<String> getPropertyKeys() {
         return properties.keySet();
     }
 

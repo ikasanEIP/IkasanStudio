@@ -13,11 +13,11 @@ import java.util.Set;
 
 /**
  * Used to model the top level pom for the project
- *
+ * </p>
  * As new components are added that might have specific dependencies, the top level pom needs to be updated
  * For efficiency, we only flush the IDE with the new pom (quite expensive) WHEN there are new changes.
- *
- * Typically, this objecy is thrown away once its dirty and re-read anew (to safeguard against simultaneous updates)
+ * </p>
+ * Typically, this object is thrown away once its dirty and re-read anew (to safeguard against simultaneous updates)
  */
 public class IkasanPomModel {
     public static final String MAVEN_COMPILER_TARGET = "maven.compiler.target";
@@ -25,7 +25,7 @@ public class IkasanPomModel {
 
     Model model;
     PsiFile pomPsiFile;
-    Set<String> dependencyKeys = new HashSet<>(); // Allows us to track what dependencies have already been set
+    private final Set<String> dependencyKeys = new HashSet<>(); // Allows us to track what dependencies have already been set
 
     boolean isDirty = false;
     public IkasanPomModel() {
@@ -53,7 +53,7 @@ public class IkasanPomModel {
     }
 
     /**
-     * Add in the new dependency (and set the instance to dirty) only if the dependancy is not already added.
+     * Add in the new dependency (and set the instance to dirty) only if the dependency is not already added.
      * @param newDependency to add
      * @return true if the dependency did not already exist in the pom
      */

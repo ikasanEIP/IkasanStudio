@@ -33,19 +33,18 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     @Override
     public Transferable createTransferable(JComponent sourceComponent) {
-        if (sourceComponent instanceof JList &&
+        if (sourceComponent instanceof JList paletteList &&
                 ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem &&
                 ! ((PaletteItem)((JList)sourceComponent).getSelectedValue()).isCategory()) {
-            JList paletteList = (JList)sourceComponent;
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
-            IkasanFlowUIComponentTransferable newTranferrable = new IkasanFlowUIComponentTransferable(
+            IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(
                     FlowElementFactory.createFlowElement(item.getComponentMeta(), null));
             Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);
             }
 
-            return newTranferrable;
+            return newTransferable;
         }
 
         return null;
@@ -59,30 +58,13 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
      * a component can only be dropped inside a flow, so it will be false until the mouse is over a flow.
      * @param targetComponent that the mouse is over that has registered this as its Transfer Handler.
      * @param destinationSupportedflavors
-     * @return
+     * @return false all the time currently
      */
     @Override
-    public boolean canImport(JComponent targetComponent, DataFlavor destinationSupportedflavors[]) {
-//        log.trace("can Import check " + targetComponent);
-//        if (!(targetComponent instanceof DesignerCanvas)) {
-//            log.trace("exit due to wrong component " + targetComponent);
-//            return false;
-//        }
-//
-//        System.out.println("On the canvas");
-//        for(DataFlavor flavor : destinationSupportedflavors) {
-//            if (flavor.equals(ikasanFlowUIComponentFlavor)) {
-//                // OK seems we maybe can drop here or can we
-//                return true;
-//            }
-//        }
-        // Cant impot anything to the Pallette
+    public boolean canImport(JComponent targetComponent, DataFlavor[] destinationSupportedflavors) {
+        // This is the TransferHandler used while hovvering over the Palette itself, we don't want to (currently) import - always false.
         return false;
     }
-// maybe the other would mean we could have different classes from source and destination, not sure.
-//public boolean canImport(TransferHandler.TransferSupport support) {
-//    return support.getComponent() instanceof JComponent ? this.canImport((JComponent)support.getComponent(), support.getDataFlavors()) : false;
-//}
 
     @Override
     public boolean importData(TransferHandler.TransferSupport support) {
@@ -94,15 +76,14 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     /**
      * This method is called on a successful drop (or paste) and initiates the transfer of data to the target component.
      * This method returns true if the import was successful and false otherwise.
-     * @param targetComponent under the mouse that has registered as being able to recieve this flavor of component.
+     * @param targetComponent under the mouse that has registered as being able to receive this flavor of component.
      * @param t the data object being dragged.
-     * @return
+     * @return true if the import was a success
      */
     @Override
     public boolean importData(JComponent targetComponent, Transferable t) {
 
         if (targetComponent instanceof JPanel) {
-            JPanel jpanel = (JPanel) targetComponent;
             if (t.isDataFlavorSupported(ikasanFlowUIComponentFlavor)) {
                 try {
                     IkasanFlowUIComponentTransferable ikasanFlowUIComponent = (IkasanFlowUIComponentTransferable) t.getTransferData(ikasanFlowUIComponentFlavor);

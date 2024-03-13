@@ -1,11 +1,11 @@
 {
-  "name": "FTP Producer",
+  "name": "SFTP Producer",
   "helpText": "Ending component of the flow, or a route in the flow. This producer allows delivery of a file to remote (S)FTP server. The producer is under pined with persistent store which saves meta information about the deliver files.",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
-  "additionalKey": "FTP Producer",
+  "additionalKey": "SFTP Producer",
   "usesBuilder": true,
   "flowBuilderMethod": "producer",
   "endpointKey": "FTP Endpoint",
@@ -17,21 +17,15 @@
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
     },
-    "active": {
-      "propertyName": "active",
-      "helpText": "Optional only available on FTP consumer. Default(False) Flag indicating whether the FTP connection is active or passive.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "ageOfFiles": {
-      "propertyName": "ageOfFiles",
-      "helpText": "Default(-1) file filter related option expressed in days. Given that meta data of processed files is being collected on every successful file consumptions, the ageOfFiles option relates to housekeeping of the meta information. On every successful file consumption as part of postcommit process file (S)FTP consumer will attempt to delete records older than ageOfFiles records from file filter persistence table. The operation is skipped when ageOfFiles=-1.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
     "checksumDelivered": {
       "propertyName": "checksumDelivered",
       "helpText": "Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "cleanupChunks": {
+      "propertyName": "cleanupChunks",
+      "helpText": "Default(true) Flag indicating whether chunk file information persisted in DB should be removed by producer after successful file delivery aka. successful file assembling from chunks.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -44,7 +38,7 @@
     "clientID": {
       "propertyName": "clientID",
       "helpText": "File filter related option identifying consumer. clientId is stored as part of the meta information persisted about the processed file.",
-      "propertyConfigFileLabel": "__flow.ftp.producer.clientID",
+      "propertyConfigFileLabel": "__flow.sftp.producer.clientID",
       "setterProperty": true
     },
     "configuration": {
@@ -80,49 +74,12 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "dataTimeout": {
-      "propertyName": "dataTimeout",
-      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
-    "ftps": {
-      "propertyName": "ftps",
-      "helpText": "Optional only available on FTP consumer. Default(false) used to determine if connection is using FTPs.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "ftpsIsImplicit": {
-      "propertyName": "ftpsIsImplicit",
-      "helpText": "Default(True) Flag indicating whether to include last modified date of the file when persisting meta information about processed file and whether to use the last modified date for filtering. If filterOnFilename=true and filterOnLastModifiedDate=false any modifications to the fileswould not be detected and file wouldn\u0092t be reprocessed.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "ftpsKeyStoreFilePassword": {
-      "propertyName": "ftpsKeyStoreFilePassword",
-      "helpText": "Optional only available on FTP consumer. Only applicable when FTPS=true.",
+    "knownHostFilename": {
+      "propertyName": "knownHostFilename",
+      "helpText": "The location of the known hosts file.",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.known-hosts-filename",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
-    },
-    "ftpsKeyStoreFilePath": {
-      "propertyName": "ftpsKeyStoreFilePath",
-      "helpText": "Optional only available on FTP consumer. Only applicable when FTPS=true.",
-      "setterProperty": true,
-      "usageDataType": "java.lang.String"
-    },
-    "ftpsPort": {
-      "propertyName": "ftpsPort",
-      "helpText": "Optional only available on FTP consumer. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer",
-      "propertyConfigFileLabel": "__flow.ftp.consumer.ftps-port"
-    },
-    "ftpsProtocol": {
-      "propertyName": "ftpsProtocol",
-      "helpText": "Optional only available on FTP consumer. Default('SSL') only applicable when FTPS=true. The protocol used for remote FTPs connection.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer",
-      "propertyConfigFileLabel": "__flow.ftp.consumer.ftps-protocol"
     },
     "managedResourceRecoveryManager": {
       "propertyName": "managedResourceRecoveryManager",
@@ -138,7 +95,7 @@
       "helpText": "Default(3) internal (S)FTP connector retry count.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
-      "propertyConfigFileLabel": "__flow.ftp.consumer.max-retry-attempts"
+      "propertyConfigFileLabel": "__flow.sftp.consumer.max-retry-attempts"
     },
     "outputDirectory": {
       "propertyName": "outputDirectory",
@@ -146,27 +103,33 @@
       "helpText": "Remote directory where to deliver the file.",
       "setterProperty": true,
       "propertyDataType": "java.lang.String",
-      "propertyConfigFileLabel": "__flow.ftp.producer.outputDirectory"
-    },
-    "overwrite": {
-      "propertyName": "overwrite",
-      "helpText": "Default(false) Flag indicating whether the remote file can be overwritten on remote server.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
+      "propertyConfigFileLabel": "__flow.sftp.producer.outputDirectory"
     },
     "password": {
       "propertyName": "password",
       "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.",
       "mandatory": true,
-      "propertyConfigFileLabel": "__flow.ftp.consumer.password",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.password",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
+    },
+    "preferredKeyExchangeAlgorithm": {
+      "propertyName": "preferredKeyExchangeAlgorithm",
+      "helpText": "The key algorithm.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.preferred-key-exchange-algorithm"
+    },
+    "privateKeyFilename": {
+      "propertyName": "privateKeyFilename",
+      "helpText": "Flename for the private key.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.private-key-filename"
     },
     "remoteHost": {
       "propertyName": "remoteHost",
       "helpText": "Default('localhost') host name of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
-      "propertyConfigFileLabel": "__flow.ftp.consumer.remote-host",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.remote-host",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
@@ -174,7 +137,7 @@
       "propertyName": "remotePort",
       "helpText": "Default(22) port of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
-      "propertyConfigFileLabel": "__flow.ftp.consumer.remote-port",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.remote-port",
       "setterProperty": true,
       "usageDataType": "java.lang.Integer"
     },
@@ -184,33 +147,11 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "socketTimeout": {
-      "propertyName": "socketTimeout",
-      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
-    "systemKey": {
-      "propertyName": "systemKey",
-      "helpText": "Optional only available on FTP consumer.",
-      "setterProperty": true,
-      "usageDataType": "java.lang.String",
-      "propertyConfigFileLabel": "__flow.ftp.consumer.system-key"
-    },
     "tempFileName": {
       "propertyName": "tempFileName",
       "helpText": "Temporary filename to use for incomplete transfer.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
-    },
-    "transactionManager": {
-      "propertyName": "transactionManager",
-      "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
-      "setterProperty": true,
-      "userSuppliedClass": true,
-      "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
-      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the transaction manager bean."
     },
     "unzip": {
       "propertyName": "unzip",
@@ -222,7 +163,7 @@
       "propertyName": "username",
       "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
       "mandatory": true,
-      "propertyConfigFileLabel": "__flow.ftp.consumer.username",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.username",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     }

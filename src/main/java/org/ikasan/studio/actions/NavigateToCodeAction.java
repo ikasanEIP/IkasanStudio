@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 
 public class NavigateToCodeAction implements ActionListener {
    private final String projectKey;
-   BasicElement component;
+   private final BasicElement component;
    boolean jumpToLine;
 
    public NavigateToCodeAction(String projectKey, BasicElement component, boolean jumpToLine) {

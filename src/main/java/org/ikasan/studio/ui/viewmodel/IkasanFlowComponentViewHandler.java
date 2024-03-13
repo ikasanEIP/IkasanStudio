@@ -21,14 +21,14 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
-    Flow flow;
-    FlowElement flowElement;
+    private Flow flow;
+    private final FlowElement flowElement;
 
     public FlowElement getFlowElement() {
         return flowElement;
     }
     /**
-     * The model can be null e.g. for a pallette item, once dragged onto a canvas, the model would be populated.
+     * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flowElement for the vie handler
      */
     public IkasanFlowComponentViewHandler(FlowElement flowElement) {
@@ -91,9 +91,8 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
         }
         // this has the side effect of setting the correct height.
 
-        LOG.warn("initialiseDimensions leftX" + getLeftX() + " topY" + getTopY() + " for component " + flowElement);
         if (getLeftX() < -10) {
-            LOG.error("X was negative !!");
+            LOG.error("initialiseDimensions leftX" + getLeftX() + " topY" + getTopY() + " for component " + flowElement + "X was negative !!");
         }
         paintSymbolText(graphics, PaintMode.DIMENSION_ONLY);
     }
@@ -132,16 +131,5 @@ public class IkasanFlowComponentViewHandler extends ViewHandler {
     @Override
     public Point getBottomConnectorPoint() {
         return new Point(getLeftX() + (flowchartSymbolWidth/2), getTopY() + flowchartSymbolHeight);
-    }
-
-//    public IkasanFlowUIComponent getFlowElement() {
-//        return ikasanFlowUIComponent;
-//    }
-
-    @Override
-    public String toString() {
-        return "IkasanFlowComponentViewHandler{" +
-//                "ikasanFlowUIComponent=" + ikasanFlowUIComponent +
-                '}';
     }
 }

@@ -27,14 +27,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Heavy tests create a new project for each test, where possible use lightwieght
+ * Heavy tests create a new project for each test, where possible use lightweight
  * <a href="https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html">See Jetbrains Documentation</a>
- * NOTE JavaPsiTestCase provided by Intellij is still JUNI3 !
+ * NOTE JavaPsiTestCase provided by Intellij is still JUNIT3 !
  */
 public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     private VirtualFile myTestProjectRoot;
-    private final String TEST_PROJECT = "testproject";
-    protected final static String TEST_PROJECT_KEY = "testproject";
     private final static String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
 
     /**
@@ -49,20 +47,9 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         String root = getTestDataPath() + TEST_DATA_DIR;
-//        myTestProjectRoot = createTestProjectStructure(root);
         PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
-        // this will set the test root to be within the windows temp directory, it will also mean this is cleared down
-        // between tests.
-//        myTestProjectRoot = createTestProjectStructure();
         myTestProjectRoot = createTestProjectStructure(root);
-//        myFixture.copyDirectoryToProject("general", "src/");
-//        IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
-//        LightProjectDescriptor descriptor = new LightProjectDescriptor();
-//        TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder = factory.createLightFixtureBuilder(descriptor);
-//        IdeaProjectTestFixture fixture = fixtureBuilder.getFixture();
-//        JavaCodeInsightTestFixture javaFixture =
-//                JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(fixture, new LightTempDirTestFixtureImpl(true));
-//        javaFixture.setUp();
+
     }
 
     @Override
@@ -71,54 +58,17 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         super.tearDown();
     }
 
-//    @Test
-//    public void test_createPackage_StandardPackage() {
-//        PsiDirectory baseDir = createPackageFixture("org.test");
-//        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-//        assertThat(psiJavaDirectory.length, is(2));
-//        assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
-//        assertThat(psiJavaDirectory[1].getComponentName(), is("test"));
-//    }
 
     private PsiDirectory createPackageFixture(String packageName) {
-//        Project myProject = myFixture.getProject();
         VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(myProject, StudioPsiUtils.JAVA_CODE);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
-        ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
-            @Override
-            public void run() {
-                StudioPsiUtils.createPackage(baseDir, packageName);
-            }
-        }, "Name of the Command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION));
+        ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject,
+                () -> StudioPsiUtils.createPackage(baseDir, packageName), "Name of the Command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION));
         return baseDir;
     }
 
-//    @Test
-//    public void test_createPackage() {
-//        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootContaining(myProject,StudioPsiUtils.JAVA_CODE);
-//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createOrGetDirectory(sourceRoot);
-//        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-//            @Override
-//            public void run() {
-//                CommandProcessor.createFlowElement().executeCommand(myProject, new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        StudioPsiUtils.createPackage(baseDir, "org.test");
-//                    }
-//                }, "Name of the command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION);
-//            }
-//        });
-//
-//        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
-//        assertThat(psiJavaDirectory.length, is(3));
-//        assertThat(psiJavaDirectory[0].getComponentName(), is("com"));
-//        assertThat(psiJavaDirectory[0].getComponentName(), is("org"));
-//        assertThat(psiJavaDirectory[0].getComponentName(), is("test"));
-//    }
-
-
     //public static void addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
-    public void test_addDependancies_adds_provided_dependancies_and_default_dependencies() {
+    public void test_addDependencies_adds_provided_dependencies_and_default_dependencies() {
 
         // The test fixtures set the project name to be the test method name
         String testProjectKey = myProject.getName();
@@ -141,20 +91,13 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
 
         WriteCommandAction.runWriteCommandAction(
                 myProject,
-                () -> {
-                    StudioPsiUtils.pomAddDependancies(testProjectKey, newDependencies);
-                }
+                () -> StudioPsiUtils.pomAddDependencies(testProjectKey, newDependencies)
         );
 
         IkasanPomModel updatedPom = StudioPsiUtils.pomLoad(myProject) ;
         assertThat(updatedPom.hasDependency(dependency), is(true));
         assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_SOURCE), is("1.8"));
         assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_TARGET), is("1.8"));
-
-
-//        IkasanPomModel.getModel().getProperties();
-//        String taget = properties.getProperty("maven.compiler.target");
-//        String target = properties.getProperty("maven.compiler.source");
     }
 
     public void test_findFile() {
@@ -169,17 +112,13 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
     public void test_createFile1() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
         PsiFile myFile = StudioPsiUtils.createFile1("bob.java", "public class Bob {} ", myProject);
-//        System.out.println("My file was " + myFile.getText());
-//        StudioPsiUtils.getAllSourceRootsForProject(myProject);
-//        PsiDirectory.
     }
 
     public static void ideas(PsiFile psiFile, Project project) {
-//        ******
         // We must use this to unit test utils that update the psiFile, the util below will ensure the update is correct and consistent.
         PsiTestUtil.checkFileStructure(psiFile);
 
-        // Dont create individual whitespace nodes from test, intead use the formatter
+        // Dont create individual whitespace nodes from test, instead use the formatter
         // Its normally done automatically at the end of every command, it can also be called explicitly using
         CodeStyleManager.getInstance(project).reformat(psiFile);
         // IMPORTS /// Instead of declaring imports, insert fully qualified names into the code then call shortenClassReferences()
@@ -188,12 +127,6 @@ public class StudioPsiStudioUtilsHeavyTests extends JavaPsiTestCase {
         // Once finished altering the psi document, we need to call the postProcessing (formatting) and commit method
         PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
         documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
-
-
-//        PsiDirectory baseDir = PsiDirectoryFactory.createFlowElement(myProject).createOrGetDirectory(project.getBaseDir());
-
-        //JavaDirectoryService.createClass(PsiDirectory dir, String name) // allows you to create a java class in a a given directory.
-        //JavaDirectoryService.createClass(PsiDirectory dir, String name, String templateName)  -- allows to create a java cla
     }
 
 }

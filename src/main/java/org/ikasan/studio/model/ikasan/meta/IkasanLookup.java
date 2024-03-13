@@ -29,12 +29,12 @@ public enum IkasanLookup {
     private static final int LOOKUP_NAME = 0;
     private static final int LOOKUP_VALUE = 1;
     private static final int NUMBER_OF_CONFIGS = 2;
-    public static final String COMPONENT_DEFINTIONS_DIR = "/studio/lookup/";
+    public static final String COMPONENT_DEFINITIONS_DIR = "/studio/lookup/";
 
     public Map<String, String> readIkasanLookups(String propertiesFile) {
         Map<String, String> lookup = new TreeMap<>();
 
-        String propertiesFileName = COMPONENT_DEFINTIONS_DIR + propertiesFile + "_en_GB.csv";
+        String propertiesFileName = COMPONENT_DEFINITIONS_DIR + propertiesFile + "_en_GB.csv";
         InputStream is = StudioUtils.class.getResourceAsStream(propertiesFileName);
         if (is != null) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
@@ -59,24 +59,4 @@ public enum IkasanLookup {
         }
         return lookup;
     }
-
-//    /**
-//     * Given the supplied className, attempt to find a lookup that matches, otherwise return the supplied string
-//     * @param className to lookup
-//     * @return the fully qualified lookup or the input string if nothing was found
-//     */
-//    public String parseClass(String className) {
-//        String fullyQualifiedClass = className;
-//        if (className != null &&
-//            className.chars().filter(c -> c == '.').count() <2 &&
-//            className.contains(".class")) {
-//            String lookup = this.getDisplayAndValuePairs().get(className.replace(".class", ""));
-//            if (lookup != null) {
-//                fullyQualifiedClass = lookup;
-//            } else {
-//                fullyQualifiedClass = this.getDisplayAndValuePairs().values().stream().filter(x -> x.endsWith(className)).findFirst().orElse(fullyQualifiedClass);
-//            }
-//        }
-//        return fullyQualifiedClass;
-//    }
 }

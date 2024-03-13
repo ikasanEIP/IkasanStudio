@@ -25,14 +25,13 @@ public class IkasanComponentLibrary {
 
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
-    private static final String LARGE_ICON_NAME = "large.png";
 
     private static final Logger LOG = Logger.getInstance("#IkasanComponentLibrary");
 
 
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
-    protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
-    protected static Map<String, Map<String, ComponentMeta>> libraryByVersionAndDeserialisationKey = new HashMap<>(new HashMap<>());
+    protected static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
+    protected static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndDeserialisationKey = new HashMap<>(new HashMap<>());
     private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(ComponentType.Module.toString(), ComponentType.Flow.toString(), "Exception Resolver"));
 
     /**
@@ -138,7 +137,7 @@ public class IkasanComponentLibrary {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.Module.toString());
     }
     public static ExceptionResolutionMeta getExceptionResolver(final String ikasanMetaDataPackVersion) {
-        return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.ExceptionResolver.toString());
+        return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentType.ExceptionResolver.getName());
     }
     public static ComponentMeta getOnException(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");

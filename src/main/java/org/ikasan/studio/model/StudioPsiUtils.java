@@ -42,61 +42,6 @@ public class StudioPsiUtils {
     // Enforce utility nature upon class
     private StudioPsiUtils() {}
 
-//    public static String getSimpleFileData(PsiFile file) {
-//        StringBuilder message = new StringBuilder();
-//        if(file != null)
-//        {
-//            message.append("File name was [" + file.getName() +"]\n");
-//            message.append("File was [" + file +"]\n");
-//            Language lang = file.getLanguage();
-//            message.append("Language was [" + lang.getDisplayName().toLowerCase() +"]");
-//        }
-//        return message.toString();
-//    }
-
-//    /**
-//     * Remove the start and end quotes from a String to prevent double quoting.
-//     * @param value to be examined
-//     * @return the string with the start and end quites removed if there were any present
-//     */
-//    public static String stripStartAndEndQuotes(String value) {
-//        if (value != null && !value.isEmpty()) {
-//            if (value.startsWith("\"")) {
-//                value = value.substring(1);
-//            }
-//            if (value.endsWith("\"")) {
-//                value = value.substring(0,value.length()-1);
-//            }
-//        }
-//        return value;
-//    }
-//
-//    public static String findClassFile(Project project, String className) {
-//        PsiFile[] files = FilenameIndex.getFilesByName(project, className, GlobalSearchScope.projectScope(project));
-//        return Arrays.stream(files).map(x->"looking for file " + className + ", found [" + x.getName() +"]").collect(Collectors.joining(","));
-//    }
-//
-//    /**
-//     * Attempt to load in all files ending in properties
-//     * @TODO we could scope this to the JAVA root to avoid catching test properties.
-//     * @param project to load the files file
-//     * @return a java Properties instance
-//     */
-//    public static Properties getApplicationProperties(Project project) {
-//        Properties properties = new Properties();
-//
-//        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(FileTypeManager.getInstance().getFileTypeByExtension(Context.PROPERTIES_FILE_EXTENSION), GlobalSearchScope.projectScope(project));
-//        for (VirtualFile virtualFile : virtualFiles) {
-//            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-//            try {
-//                properties.load(new StringReader(psiFile.getText()));
-//            } catch (IOException e) {
-//                LOG.warn("Problems loading in application properties " + e);
-//            }
-//        }
-//        return properties;
-//    }
-
     /**
      * Load the content of the major pom
      * @param project currently being worked on
@@ -149,7 +94,7 @@ public class StudioPsiUtils {
      * @param projectKey for the project being worked on
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
-    public static void pomAddDependancies(String projectKey, List<Dependency> newDependencies) {
+    public static void pomAddDependencies(String projectKey, List<Dependency> newDependencies) {
         IkasanPomModel pom;
         if (newDependencies != null && !newDependencies.isEmpty()) {
             Project project = Context.getProject(projectKey);
@@ -178,20 +123,12 @@ public class StudioPsiUtils {
     }
 
     public static void pomSave(final Project project, final IkasanPomModel pom) {
-
         String pomAsString = pom.getModelAsString();
-//        MavenXpp3Writer writer = new MavenXpp3Writer();
-//        StringWriter pomStringWriter = new StringWriter();
-//        try {
-//            writer.write(pomStringWriter, pom.getModel());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
         // Always need to re-get the PsiFile since a reload might have disposed previous handle.
         PsiFile currentPomPsiFile = pomGetTopLevel(project);
 
-        PsiDirectory containtingDirectory = currentPomPsiFile.getContainingDirectory();
+        PsiDirectory containingDirectory = currentPomPsiFile.getContainingDirectory();
         String fileName = currentPomPsiFile.getName();
 
         // Delete the old POM file
@@ -199,26 +136,15 @@ public class StudioPsiUtils {
             currentPomPsiFile.delete();
         }
 
-//        pom.setPomPsiFile(pomGetTopLevel(project));
-//        PsiDirectory containtingDirectory = pom.getPomPsiFile().getContainingDirectory();
-//        String fileName = pom.getPomPsiFile().getComponentName();
-//
-//        // Delete the old POM file
-//        if (pom.getPomPsiFile() != null) {
-//            pom.getPomPsiFile().delete();
-//            pom.setPomPsiFile(null);
-//        }
-
         XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.XML_FILE_EXTENSION), pomAsString);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
-        newPomFile = (XmlFile)containtingDirectory.add(newPomFile);
+        newPomFile = (XmlFile)containingDirectory.add(newPomFile);
         CodeStyleManager.getInstance(project).reformat(newPomFile);
-//        pom.setPomPsiFile(newPomFile);
     }
 
 
     /**
-     * Attempt to get the top level pom for the prject
+     * Attempt to get the top level pom for the project
      * @param project to be searched
      * @return A PsiFile handle to the pom or null
      */
@@ -260,16 +186,12 @@ public class StudioPsiUtils {
             message.append(myFile.getName());
         }
         long t2 = System.currentTimeMillis();
-
-        // Mehtod 2 has now been deprecated.
-//        message.append("] method 2 found [");
-//        PsiFile[] files = FilenameIndex.getFilesByName(project, filename, GlobalSearchScope.projectScope(project));
-//        for (PsiFile myFile : files) {
-//            message.append("" + myFile.getName() +"] ");
-//        }
         long t3 = System.currentTimeMillis();
 
-        message.append("] method 1 = " + (t2-t1) + " ms method 2 = " + (t3-t2));
+        message.append("] method 1 = ")
+                .append(t2-t1)
+                .append(" ms method 2 = ")
+                .append(t3-t2);
         return message.toString();
     }
 
@@ -279,27 +201,9 @@ public class StudioPsiUtils {
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateJsonFromModelInstance();
         pipsiIkasanModel.generateSourceFromModelInstance();
-//        StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
-
-//    public static String dumpProject(Project project) {
-//        StringBuilder dump = new StringBuilder();
-//        dump.append("** All class names **");
-//        String[] classNames = PsiShortNamesCache.getInstance(project).getAllClassNames();
-//        dump.append(classNames);
-//        dump.append("** All field names **");
-//        String[] fieldNames = PsiShortNamesCache.getInstance(project).getAllFieldNames();
-//        dump.append(fieldNames);
-//        dump.append("** All file names **");
-//        String[] fileNames = PsiShortNamesCache.getInstance(project).getAllFileNames();
-//        dump.append(fileNames);
-//        dump.append("** All method names **");
-//        String[] methodNames = PsiShortNamesCache.getInstance(project).getAllMethodNames();
-//        dump.append(methodNames);
-//        return dump.toString();
-//    }
 
     public static void getAllSourceRootsForProject(Project project) {
         String projectName = project.getName();
@@ -308,10 +212,10 @@ public class StudioPsiUtils {
         LOG.info("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
     }
 
-    public static String JAVA_CODE = "main/java";
-    public static String JAVA_RESOURCES = "main/resources";
+    public static final String JAVA_CODE = "main/java";
+    public static final String JAVA_RESOURCES = "main/resources";
 
-    public static String JAVA_TESTS = "test";
+    public static final String JAVA_TESTS = "test";
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
      * @param project to work on
@@ -338,31 +242,22 @@ public class StudioPsiUtils {
         } else {
             VirtualFile contentRoot = contentRootVFiles[0];
             jsonModel = getFileFromPath(project, contentRootVFiles[0], "src/" + Context.JSON_MODEL_FULL_PATH);
-//            targetDir = getDirectory(project, contentRoot, "src/" + Context.JSON_MODEL_DIR);
-
-//            PsiDirectoryFactory.getInstance(project).createDirectory(contentRoot);
-////            PsiDirectory contentDir = PsiDirectoryFactory.getInstance(project).createDirectory(contentRoot);
-//            targetDir = PsiDirectoryFactory.getInstance(project).createDirectory(contentRoot);
-// VirtualFileManager.getInstance().findFileByUrl("file://" + localPath);
-//            PsiDirectory srcDir = StudioPsiUtils.createOrGetDirectory(contentDir, "src", createIfNotExists);
-//            PsiDirectory mainDir = StudioPsiUtils.createOrGetDirectory(srcDir, Context.JSON_MODEL_PARENT_DIR, createIfNotExists);
-//            targetDir = StudioPsiUtils.createOrGetDirectory(mainDir, Context.JSON_MODEL_SUB_DIR, createIfNotExists);
         }
         return jsonModel;
     }
 
     public static PsiFile getFileFromPath(final Project project, VirtualFile root, String filePath) {
-        PsiFile retunrFile = null;
+        PsiFile returnFile = null;
 
         if (root != null && filePath != null && filePath.length() > 1) {
             String fileName = FilenameUtils.getName(filePath);
             String directoryPath = FilenameUtils.getFullPathNoEndSeparator(filePath);
             PsiDirectory psiDirectory = getDirectory(project, root, directoryPath);
             if (psiDirectory != null) {
-                retunrFile = psiDirectory.findFile(fileName);
+                returnFile = psiDirectory.findFile(fileName);
             }
         }
-        return retunrFile;
+        return returnFile;
     }
 
     public static PsiDirectory getDirectory(final Project project, VirtualFile root, String target) {
@@ -411,21 +306,17 @@ public class StudioPsiUtils {
      * @param parent directory to contain the new directory
      * @param newDirectoryName to be created
      * @return the directory created or a handle to the existing directory if it exists
-     * @throws IncorrectOperationException
      */
-    public static PsiDirectory createOrGetDirectory(PsiDirectory parent, String newDirectoryName)
-            throws IncorrectOperationException {
+    public static PsiDirectory createOrGetDirectory(PsiDirectory parent, String newDirectoryName) {
         PsiDirectory newDirectory = null;
-        if (parent != null || newDirectoryName != null) {
-            Boolean alreadyExists = false;
+        if (parent != null && newDirectoryName != null) {
+            boolean alreadyExists = false;
 
-            if (newDirectoryName != null) {
-                for (PsiDirectory subdirectoryOfParent : parent.getSubdirectories()) {
-                    if (subdirectoryOfParent.getName().equalsIgnoreCase(newDirectoryName)) {
-                        newDirectory = subdirectoryOfParent;
-                        alreadyExists = true;
-                        break;
-                    }
+            for (PsiDirectory subdirectoryOfParent : parent.getSubdirectories()) {
+                if (subdirectoryOfParent.getName().equalsIgnoreCase(newDirectoryName)) {
+                    newDirectory = subdirectoryOfParent;
+                    alreadyExists = true;
+                    break;
                 }
             }
             // doesn't exist, create it.
@@ -437,15 +328,11 @@ public class StudioPsiUtils {
         return newDirectory;
     }
 
-
-
-
-
     /**
      * Create the directories for the supplied package name, returning the handle to the leaf directory
      * @param sourceRootDir that contains the package
      * @param qualifiedPackage i.e. dotted notation
-     * @return parent directory of pacjage
+     * @return parent directory of package
      */
     public static PsiDirectory createPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
             throws IncorrectOperationException {

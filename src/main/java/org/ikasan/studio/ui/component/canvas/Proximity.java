@@ -12,15 +12,15 @@ public enum Proximity {
 
     /**
      * Return the proximity of A relative to B i.e. is B to the LEFT of A or to the RIGHT of A
-     * @param a
-     * @param b
-     * @param proximityDetection
-     * @return
+     * @param a the first point
+     * @param b the point we are looking to identify as relativve
+     * @param proximityDetection how far to look
+     * @return the proximity of A relative to B i.e. is B to the LEFT of A or to the RIGHT of A
      */
     public static Proximity getRelativeProximity(Point a, Point b, Pair<Integer, Integer> proximityDetection) {
         Proximity returnProximity = Proximity.NONE;
-        Integer deltaX = a.x - b.x ;
-        Integer deltaY = a.y - b.y ;
+        int deltaX = a.x - b.x ;
+        int deltaY = a.y - b.y ;
         if (Math.abs(deltaX) < proximityDetection.getX() && Math.abs(deltaY) < proximityDetection.getY()) {
             if (deltaX > 0)  {
                 returnProximity = Proximity.LEFT;

@@ -18,13 +18,11 @@ import java.util.List;
 public class PalettePanel extends JPanel {
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
 
-    private final PaletteExportTransferHandler paletteExportTransferHandler;
-
     public PalettePanel() {
         super();
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
-        this.paletteExportTransferHandler = new PaletteExportTransferHandler();
+        PaletteExportTransferHandler paletteExportTransferHandler = new PaletteExportTransferHandler();
 
         // Header
         JLabel paletteHeaderLabel =  new JLabel("Palette");
@@ -41,7 +39,7 @@ public class PalettePanel extends JPanel {
         paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
         JList<PaletteItem> paletteList;
-        paletteList = new JList(buildPalettItems().toArray());
+        paletteList = new JList(buildPaletteItems().toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
@@ -75,7 +73,7 @@ public class PalettePanel extends JPanel {
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
                 PaletteItem PaletteItem = paletteList.getSelectedValue();
-                // Only do this if its the first time, otherwise it might get annoying.
+                // Only do this if it's the first time, otherwise it might get annoying.
                 if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
                 }
@@ -97,7 +95,7 @@ public class PalettePanel extends JPanel {
      * Create a list of all known ikasan components
      * @return a list of all known ikasan components
      */
-    private java.util.List<PaletteItem> buildPalettItems() {
+    private java.util.List<PaletteItem> buildPaletteItems() {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
 
         Collection<ComponentMeta> componentMetaList = IkasanComponentLibrary.getPaletteComponentList(IkasanComponentLibrary.STD_IKASAN_PACK);

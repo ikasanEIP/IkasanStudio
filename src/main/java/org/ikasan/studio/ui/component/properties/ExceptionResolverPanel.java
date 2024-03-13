@@ -35,7 +35,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     }
 
     /**
-     * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
+     * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
      */
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model

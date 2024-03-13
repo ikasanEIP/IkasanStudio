@@ -37,7 +37,7 @@ ExceptionResolver parent;
     /**
      * Expose the property meta for a given action.
      * @param action to search for
-     * @return a list if the properties meta data for this action, or an empty list if none exist.
+     * @return a list if the properties metadata for this action, or an empty list if none exist.
      */
     @JsonIgnore
     public static List<ComponentPropertyMeta> getMetaForActionParams(String action) {

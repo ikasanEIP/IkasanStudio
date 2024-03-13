@@ -1,7 +1,5 @@
 package org.ikasan.studio.ui;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -10,15 +8,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SUISUtilsTest {
-
-    @BeforeEach
-    public void setUp() throws Exception {
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-    }
-
     @Test
     public void test_splitStringIntoMultipleRows_simple_split() {
         List<String> actual = StudioUIUtils.splitStringIntoMultipleRows("the fat cat", 3);

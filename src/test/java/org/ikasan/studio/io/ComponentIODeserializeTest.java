@@ -27,8 +27,8 @@ class ComponentIODeserializeTest {
         firstDependency.setVersion("3.1.0");
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(8, component.getJarDepedencies().size()),
-            () -> assertEquals(firstDependency.toString(), component.getJarDepedencies().get(0).toString())
+            () -> assertEquals(8, component.getJarDependencies().size()),
+            () -> assertEquals(firstDependency.toString(), component.getJarDependencies().get(0).toString())
         );
     }
 
@@ -68,7 +68,7 @@ class ComponentIODeserializeTest {
     }
 
     @Test
-    public void testModuleInstanceDeserialise() throws StudioException {
+    public void testModuleInstanceDeserialize() throws StudioException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
         List<Flow> flows = module.getFlows();
         Flow flow1 = flows.get(0);
@@ -105,7 +105,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getComponentMeta().getImplementingClass()),
-            () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(BESPOKE_CLASS_NAME).getValue()),
+            () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(USER_IMPLEMENTED_CLASS_NAME).getValue()),
             () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_TYPE).getValue()),
             () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_TYPE).getValue()),
@@ -121,7 +121,7 @@ class ComponentIODeserializeTest {
     }
 
     @Test
-    public void testModuleInstanceDeserialiseIsRobustNotFailingWithEmptyElements() throws StudioException {
+    public void testModuleInstanceDeserializeIsRobustNotFailingWithEmptyElements() throws StudioException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_with_empty_elements.json");
         List<Flow> flows = module.getFlows();
         Flow flow1 = flows.get(0);

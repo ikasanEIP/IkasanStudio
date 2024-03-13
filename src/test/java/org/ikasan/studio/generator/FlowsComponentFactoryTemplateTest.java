@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class FlowsComponentFactoryTemplateTest {
     Module module;
-//    Flow ikasanFlow = new Flow();
     private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @BeforeEach
@@ -173,6 +172,22 @@ public class FlowsComponentFactoryTemplateTest {
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedFtpProducerComponent.java"), templateString);
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedSftpProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_sftpProducerComponent() throws IOException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+            .flowElements(Collections.singletonList(TestFixtures.getSftpProducer()))
+            .build();
+        module.addFlow(flow);
+
+        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(TEST_COMPONENT_FACTORY + "FullyPopulatedSftpProducerComponent.java"), templateString);
     }
 
     /**

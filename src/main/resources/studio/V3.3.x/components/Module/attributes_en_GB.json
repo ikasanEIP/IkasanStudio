@@ -5,7 +5,7 @@
   "implementingClass": "",
   "ikasanComponentFactoryMethod": "",
   "usesBuilder" : true,
-  "jarDepedencies": [
+  "jarDependencies": [
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-connector-base",

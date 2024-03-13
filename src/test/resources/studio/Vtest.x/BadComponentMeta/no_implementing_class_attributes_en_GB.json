@@ -4,7 +4,7 @@
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "ikasanComponentFactoryMethod": "",
   "usesBuilder" : true,
-  "jarDepedencies": [
+  "jarDependencies": [
 
   ],
   "properties": {

@@ -25,12 +25,12 @@ public class SaveAction implements ActionListener {
       boolean transparentBackground = false ; // cant get this to work for now.
 //      String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
       String[] extensions = transparentBackground ? new String[]{"png"} : new String[]{"png", "jpg",};
-      boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
+      boolean isMacNativeSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
       FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as Image", "Choose the destination to save the image", extensions);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
 
       String moduleName = Context.getIkasanModule(projectKey).getComponentName();
-      String imageFileName = "ModuleDiagram-" + moduleName + (isMacNativSaveDialog ? ".png" : "");
+      String imageFileName = "ModuleDiagram-" + moduleName + (isMacNativeSaveDialog ? ".png" : "");
       VirtualFileWrapper vf = dialog.save(imageFileName);
 
       if (vf == null) {
@@ -42,7 +42,7 @@ public class SaveAction implements ActionListener {
       if (imageFormat.trim().isEmpty()) {
           imageFormat = "png";
       }
-// SVG has temporary compatibility problems with Intellij Verifyer.
+// SVG has temporary compatibility problems with Intellij Verify.
 //      if ("svg".equals(imageFormat)) {
 //         Context.getDesignerCanvas(projectKey).saveAsSvg(file, transparentBackground);
 //      } else {
