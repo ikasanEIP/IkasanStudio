@@ -39,8 +39,8 @@ public class ComponentMeta implements IkasanMeta {
     private String name;
     private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer
 
-    @lombok.NonNull
     private String componentType;
+    private String componentShortType;  // The componentType is a FQN to be persisted to module.json, this is the short form, using in logic.
     private String defaultValue;
     private int displayOrder;
 

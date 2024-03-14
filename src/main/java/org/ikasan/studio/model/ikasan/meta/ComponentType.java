@@ -1,7 +1,5 @@
 package org.ikasan.studio.model.ikasan.meta;
 
-import org.ikasan.studio.StudioUtils;
-
 /**
  * The component types are so fundament to Ikasan, we can include them here, if ever they change between
  * versions we will need to re-work using the version meta pack.
@@ -29,19 +27,19 @@ public enum ComponentType
         this.name = name;
     }
 
-    /**
-     * Given a classTypeString, try to match it against a ComponentType
-     * @param classTypeString to search
-     * @return the ComponentType or found or Other
-     */
-    public static ComponentType parseClassType(String classTypeString) {
-        for (ComponentType componentType : ComponentType.values()) {
-            if (componentType.classType.equals(classTypeString) || StudioUtils.getLastToken("\\.", componentType.classType).equals(classTypeString)) {
-                return componentType;
-            }
-        }
-        return Other;
-    }
+//    /**
+//     * Given a classTypeString, try to match it against a ComponentType
+//     * @param classTypeString to search
+//     * @return the ComponentType or found or Other
+//     */
+//    public static ComponentType parseClassType(String classTypeString) {
+//        for (ComponentType componentType : ComponentType.values()) {
+//            if (componentType.classType.equals(classTypeString) || StudioUtils.getLastToken("\\.", componentType.classType).equals(classTypeString)) {
+//                return componentType;
+//            }
+//        }
+//        return Other;
+//    }
 
     /**
      * Given a stringContainingComponentType, try to match it against a ComponentType

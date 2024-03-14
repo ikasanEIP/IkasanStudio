@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IkasanComponentLibraryTest {
     public static final String TEST_IKASAN_PACK = "Vtest.x";
+//    public static final String TEST_IKASAN_PACK = "V4.0.x";
+//    public static final String TEST_IKASAN_PACK = "V3.3.x";
     @Test
     void testThatDeserializationPopulatesTheIkasanComponentLibrary() {
         IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);

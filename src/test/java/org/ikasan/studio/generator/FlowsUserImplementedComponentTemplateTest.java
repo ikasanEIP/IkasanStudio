@@ -2,7 +2,6 @@ package org.ikasan.studio.generator;
 
 import org.ikasan.studio.TestFixtures;
 import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,10 +11,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class FlowsUserImplementedComponentTemplateTest {
-
-    Module module;
-    //    Flow ikasanFlow = new Flow();
+public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
 
     @BeforeEach
     public void setUp() {
@@ -31,9 +27,10 @@ public class FlowsUserImplementedComponentTemplateTest {
     @Test
     public void testCreateFlowWith_customConverterComponent() throws IOException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
+        flowElement.getComponentMeta().getComponentShortType();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MyConverter.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyConverter.java"), templateString);
     }
     //  ------------------------------- FILTERS ----------------------------------
     /**
@@ -45,6 +42,6 @@ public class FlowsUserImplementedComponentTemplateTest {
         FlowElement flowElement = TestFixtures.getMessageFilter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( "MessageFilter.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"MessageFilter.java"), templateString);
     }
 }

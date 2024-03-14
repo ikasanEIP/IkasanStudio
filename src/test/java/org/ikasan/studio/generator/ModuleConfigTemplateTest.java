@@ -24,7 +24,7 @@ public class ModuleConfigTemplateTest {
 
         String templateString = ModuleConfigTemplate.generateContents(module);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java"), templateString);
     }
 
     /**
@@ -38,6 +38,6 @@ public class ModuleConfigTemplateTest {
 
         String templateString = ModuleConfigTemplate.generateContents(module);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java"), templateString);
     }
 }

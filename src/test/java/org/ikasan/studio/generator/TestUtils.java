@@ -14,8 +14,10 @@ import java.util.stream.Collectors;
 public class TestUtils {
 
     public static String getFileAsString (String filenamePath) throws IOException {
-        System.out.println("Reading file " + filenamePath);
         InputStream in = TestUtils.class.getResourceAsStream(filenamePath);
+        if (in == null) {
+            System.out.println("Could not read file " + filenamePath);
+        }
         return StringUtil.convertLineSeparators(IOUtils.toString(in, StandardCharsets.UTF_8));
     }
 
@@ -30,4 +32,6 @@ public class TestUtils {
         }
         return "";
     }
+
+
 }

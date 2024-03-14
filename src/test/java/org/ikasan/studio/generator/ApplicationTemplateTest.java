@@ -23,6 +23,6 @@ public class ApplicationTemplateTest {
         String templateString = ApplicationTemplate.generateContents(ikasanModule);
 
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ApplicationTemplate.APPLICATION_CLASS_NAME + ".java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ikasanModule, ApplicationTemplate.APPLICATION_CLASS_NAME + ".java"), templateString);
     }
 }

@@ -20,7 +20,7 @@ class ComponentIODeserializeTest {
 
     @Test
     public void testModuleMetaDeserialise() throws StudioException {
-        ComponentMeta component = (ComponentMeta)ComponentIO.deserializeMetaComponent("studio/Vtest.x/components/Module/attributes_en_GB.json");
+        ComponentMeta component = (ComponentMeta)ComponentIO.deserializeMetaComponent("studio/Vtest.x/library/Module/components/Module/attributes_en_GB.json");
         Dependency firstDependency = new Dependency();
         firstDependency.setArtifactId("ikasan-connector-base");
         firstDependency.setGroupId("org.ikasan");
@@ -41,17 +41,6 @@ class ComponentIODeserializeTest {
 
         assertTrue(thrown.getMessage().contains(
             "The serialised data in [studio/Vtest.x/BadComponentMeta/no_name_attributes_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
-                "Incorrect exception message, was [" + thrown.getMessage() + "]");
-    }
-    @Test
-    public void testMissingTypeAttributesCausesError() {
-        StudioException thrown = assertThrowsExactly(
-            StudioException.class,
-            () ->  ComponentIO.deserializeMetaComponent("studio/Vtest.x/BadComponentMeta/no_type_attributes_en_GB.json")
-        );
-
-        assertTrue(thrown.getMessage().contains(
-            "The serialised data in [studio/Vtest.x/BadComponentMeta/no_type_attributes_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: componentType is marked non-null but is null"),
                 "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 
