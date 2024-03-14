@@ -9,6 +9,7 @@ import org.ikasan.studio.model.ikasan.instance.Module;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -182,25 +183,32 @@ public class StudioUtils {
      * @throws IOException if there were issues
      */
     public static String[] getDirectories(final String dir) throws URISyntaxException, IOException {
-        final URI uri = Objects.requireNonNull(StudioUtils.class.getClassLoader().getResource(dir)).toURI();
-        Path myPath;
         String[] directoriesNames = new String[0];
-        if (uri.getScheme().equals("jar")) {
-            // The newFileSystem must remain open for Intellij
-            FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
-            myPath = fileSystem.getPath(dir);
-            // The walk must remain open for Intellij
-            Set<String> directories = Files.walk(myPath, 1)
-                    .filter(Files::isDirectory)
-                    .map(Path::toString)
-                    .filter(string -> ! string.endsWith(dir))
-                    .collect(Collectors.toSet());
-            directoriesNames = directories.toArray(String[]::new);
+
+        URL url = StudioUtils.class.getClassLoader().getResource(dir);
+        if (url == null) {
+            LOG.warn("WARNING: Could not find any directory " + dir);
         } else {
-            File file = new File(uri);
-            String[] fileList = file.list((current, name) -> new File(current, name).isDirectory());
-            if (fileList != null) {
-                directoriesNames = Arrays.stream(fileList).map(theFile -> dir + File.separator + theFile).toArray(String[]::new);
+            final URI uri = url.toURI();
+            Path myPath;
+            directoriesNames = new String[0];
+            if (uri.getScheme().equals("jar")) {
+                // The newFileSystem must remain open for Intellij
+                FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
+                myPath = fileSystem.getPath(dir);
+                // The walk must remain open for Intellij
+                Set<String> directories = Files.walk(myPath, 1)
+                        .filter(Files::isDirectory)
+                        .map(Path::toString)
+                        .filter(string -> !string.endsWith(dir))
+                        .collect(Collectors.toSet());
+                directoriesNames = directories.toArray(String[]::new);
+            } else {
+                File file = new File(uri);
+                String[] fileList = file.list((current, name) -> new File(current, name).isDirectory());
+                if (fileList != null) {
+                    directoriesNames = Arrays.stream(fileList).map(theFile -> dir + File.separator + theFile).toArray(String[]::new);
+                }
             }
         }
         return directoriesNames;

@@ -1,0 +1,35 @@
+{
+  "name": "Event Generating Consumer",
+  "helpText": "Consumers provide the 'glue' between the entry into the flow and the underlying technology generating the event. In order to create your own consumer you need to implement Consumer Interface.",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
+  "usesBuilder" : true,
+  "flowBuilderMethod": "consumer",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
+      "mandatory": true
+    },
+    "endpointEventProvider": {
+      "propertyName": "endpointEventProvider",
+      "helpText": "Set the endpoint event provider for this event consumer.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.component.endpoint.consumer.api.spec.EndpointEventProvider",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the endpoint event provider bean."
+    },
+    "managedEventIdentifierService": {
+      "propertyName": "managedEventIdentifierService",
+      "helpText": "Set the ManagedEventIdentifierService for this endpoint event provider.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.spec.event.ManagedEventIdentifierService",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the endpoint event provider bean."
+    }
+  }
+}
+

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ComponentMeta.class),
+        @JsonSubTypes.Type(value = ComponentTypeMeta.class),
         @JsonSubTypes.Type(value = ExceptionResolutionMeta.class, name = "Exception Resolver")
 })
 

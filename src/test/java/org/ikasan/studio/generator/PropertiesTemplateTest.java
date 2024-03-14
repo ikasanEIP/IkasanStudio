@@ -1,22 +1,18 @@
 package org.ikasan.studio.generator;
 
 import org.ikasan.studio.TestFixtures;
-import org.ikasan.studio.model.ikasan.instance.Flow;
-import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.instance.FlowElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-public class PropertiesTemplateTest {
-    Module module;
-    Flow ikasanFlow;
+public class PropertiesTemplateTest extends GeneratorTests {
 
     @BeforeEach
     public void setUp() {
@@ -31,7 +27,7 @@ public class PropertiesTemplateTest {
     public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
     }
     
     //  ------------------------------- CONSUMERS ----------------------------------
@@ -41,14 +37,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getEventGeneratingConsumer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEventGeneratingConsumerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getEventGeneratingConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEventGeneratingConsumerComponent.properties"), templateString);
     }
 
     //  ------------------------------- CONSUMERS ----------------------------------
@@ -58,14 +49,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_ftpConsumer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getFtpConsumer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getFtpConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties"), templateString);
     }
 
     //  ------------------------------- CONSUMERS ----------------------------------
@@ -75,14 +61,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_sftpConsumer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getSftpConsumer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getSftpConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties"), templateString);
     }
 
 
@@ -92,14 +73,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_localFileConsumer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getLocalFileConsumer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getLocalFileConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
     }
 
     /**
@@ -108,14 +84,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_scheduledConsumer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getScheduledConsumer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedScheduledConsumerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getScheduledConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedScheduledConsumerComponent.properties"), templateString);
     }
 
     // ------------------------------------- FILTER -------------------------------------
@@ -125,14 +96,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_messageFilter() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getMessageFilter()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedMessageFilterComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getMessageFilter();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedMessageFilterComponent.properties"), templateString);
     }
 
     // ------------------------------------- CONVERTERS -------------------------------------
@@ -142,14 +108,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_customConverter() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getCustomConverter()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getCustomConverter();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
     }
 
 
@@ -160,14 +121,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_devNullProducer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getDevNullProducer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedDevNullProducerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getDevNullProducer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedDevNullProducerComponent.properties"), templateString);
     }
 
     /**
@@ -176,14 +132,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_ftpProducer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getFtpProducer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getFtpProducer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties"), templateString);
     }
 
     /**
@@ -192,14 +143,9 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_SftpProducer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getSftpProducer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpProducerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getSftpProducer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpProducerComponent.properties"), templateString);
     }
 
     /**
@@ -208,15 +154,11 @@ public class PropertiesTemplateTest {
      */
     @Test
     public void testCreateFlowWith_loggingProducer() throws IOException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer()))
-                .build();
-        module.addFlow(flow);
-
-        String templateString = PropertiesTemplate.generateContents(module);
-        assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLoggingProducerComponent.properties"), templateString);
+        FlowElement flowElement = TestFixtures.getLoggingProducer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLoggingProducerComponent.properties"), templateString);
     }
+
 
 
 

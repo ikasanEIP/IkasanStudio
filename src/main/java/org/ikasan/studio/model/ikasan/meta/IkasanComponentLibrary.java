@@ -47,43 +47,9 @@ public class IkasanComponentLibrary {
             LOG.warn("The pack for version " + ikasanMetaDataPackVersion + " has already been loaded, the attempt to reload it will be ignored");
             returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         } else {
-            returnedIkasanComponentMetaMapByKey = new HashMap<>();
-            Map<String, ComponentMeta> ikasanComponentMetaMapByClass = new HashMap<>();
-
-            String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanMetaDataPackVersion + File.separator + "components";
-            String[] componentDirectories = null;
-            try {
-                componentDirectories = StudioUtils.getDirectories(baseDirectory);
-            } catch (URISyntaxException | IOException e) {
-                LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
-            }
-
-            assert componentDirectories != null;
-            for (String componentDirectory : componentDirectories) {
-                IkasanMeta ikasanMeta;
-
-                try {
-                    ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
-
-                } catch (StudioException e) {
-                    LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
-                            " there was an error generating the details for component " + componentDirectory +
-                            " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
-                    continue;
-                }
-                ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
-                final String componentName = componentMeta.getName();
-                componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
-                returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
-                ikasanComponentMetaMapByClass.put(getDeserialisationKey(componentMeta) , componentMeta);
-            }
-            if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
-                LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
-                        returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
-                        mandatoryComponents + " so will be ignored");
-            }
-            if(ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
+            returnedIkasanComponentMetaMapByKey = loadMetapack(ikasanMetaDataPackVersion);
+            Map<String, ComponentMeta> ikasanComponentMetaMapByClass = generateDeserialisationKeyedMeta(returnedIkasanComponentMetaMapByKey);
+            if (ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
                 LOG.warn("WARNING: ikasanComponentMetaMapByClass & returnedIkasanComponentMetaMapByKey are different sizes. " +
                         "Keys for returnedIkasanComponentMetaMapByKey [" + returnedIkasanComponentMetaMapByKey.keySet() + "]" +
                         "Keys for ikasanComponentMetaMapByClass [" + ikasanComponentMetaMapByClass.keySet() + "]");
@@ -96,6 +62,96 @@ public class IkasanComponentLibrary {
             }
         }
         return returnedIkasanComponentMetaMapByKey;
+    }
+
+    /**
+     * Refresh the component library.
+     * By making this protected, we intend to limit that only the test can state an alternate root
+     * At some point we may need to key this by project or version since all open projects will share this.
+     * @param ikasanMetaDataPackVersion to search for components
+     */
+    public static Map<String, ComponentMeta> loadMetapack(final String ikasanMetaDataPackVersion) {
+        Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
+        returnedIkasanComponentMetaMapByKey = new HashMap<>();
+
+        String baseDirectory = RESOURCE_BASE_BASE_DIR + ikasanMetaDataPackVersion + File.separator + "library";
+        // The structure of the Meta-Pack directory is
+        // 1:  'Category'/'typpe-meta'
+        // 0:n 'Category'/'Component'
+        // e.g. Consumer/type-meta_en_GB.json, Consumer/EventGeneratingConsumer, Consumer/FtpConsumer ...
+
+        String[] componentTypeDirectories = getSubdirectories(baseDirectory);
+        assert componentTypeDirectories != null;
+        for (String componentTypeDirectory : componentTypeDirectories) {
+            ComponentTypeMeta componentTypeMeta;
+            try {
+                componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/type-meta_en_GB.json");
+            } catch (StudioException e) {
+                LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
+                        " there was an error generating the details for component " + componentTypeDirectory +
+                        " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
+                continue;
+            }
+            String[] componentDirectories = getSubdirectories(componentTypeDirectory + File.separator + "components");
+
+            for (String componentDirectory : componentDirectories) {
+                IkasanMeta ikasanMeta;
+                try {
+                    ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
+                } catch (StudioException e) {
+                    LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
+                            " there was an error generating the details for component " + componentDirectory +
+                            " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
+                    continue;
+                }
+                ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
+                componentMeta.setComponentType(componentTypeMeta.getComponentType());
+                componentMeta.setComponentShortType(componentTypeMeta.getComponentShortType());
+                componentMeta.setDisplayOrder(componentTypeMeta.getDisplayOrder());
+
+                final String componentName = componentMeta.getName();
+                componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+                returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
+            }
+        }
+        if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
+            LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
+                    returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
+                    mandatoryComponents + " so will be ignored");
+        }
+        return returnedIkasanComponentMetaMapByKey;
+    }
+
+    private static String[] getSubdirectories(String baseDirectory) {
+        String[] componentTypeDirectories = null;
+        try {
+            componentTypeDirectories = StudioUtils.getDirectories(baseDirectory);
+        } catch (URISyntaxException | IOException e) {
+            LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
+        }
+        return componentTypeDirectories;
+    }
+
+    /**
+     * For most internal operations on componentMeta, the name of the component is used e.f. 'FTP Consumer',
+     * When we need to deserialize a module.json, the 'names' of the components are not contained, instead we need to use
+     * other peices of data in the module.json to identify components i.e. using a deserialization key.
+     * This method creates a map into componentMeta using the deserialization key.
+     * @param ikasanComponentMetaMap keyed by component name
+     * @return  the provided meta map, keyed by 'deserialization attributes'
+     */
+
+    private static Map<String, ComponentMeta> generateDeserialisationKeyedMeta(Map<String, ComponentMeta> ikasanComponentMetaMap) {
+        Map<String, ComponentMeta> deserialsiationMetaMap = new HashMap<>();
+        if (ikasanComponentMetaMap != null && !ikasanComponentMetaMap.isEmpty()) {
+            deserialsiationMetaMap = ikasanComponentMetaMap.values().stream()
+                .collect(Collectors.toMap(
+                        IkasanComponentLibrary::getDeserialisationKey, componentMeta -> componentMeta
+                ));
+        }
+
+        return deserialsiationMetaMap;
     }
 
 

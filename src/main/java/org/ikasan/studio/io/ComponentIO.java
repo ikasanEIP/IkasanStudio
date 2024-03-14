@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.model.ikasan.instance.Module;
+import org.ikasan.studio.model.ikasan.meta.ComponentTypeMeta;
 import org.ikasan.studio.model.ikasan.meta.IkasanMeta;
 
 import java.io.BufferedReader;
@@ -21,6 +22,24 @@ public class ComponentIO {
     static {
         MAPPER
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
+    /*
+     * Deserialize the ComponentTypeMeta at the given path.
+     * @param path to the file containing the JSON to deserializes
+     * @return an ComponentTypeMeta object representing the deserialized class
+     * @throws StudioException  to wrap JsonProcessingException
+     */
+    public static ComponentTypeMeta deserializeComponentTypeMeta(final String path) throws StudioException {
+        final String jsonString = getJsonFromFile(path);
+
+        ComponentTypeMeta componentTypeMeta;
+        try {
+            componentTypeMeta = MAPPER.readValue(jsonString, ComponentTypeMeta.class);
+        } catch (JsonProcessingException e) {
+            throw new StudioException("The serialised data in [" + path + "] could not be read due to [" + e.getMessage() + "]", e);
+        }
+        return componentTypeMeta;
     }
 
     /*

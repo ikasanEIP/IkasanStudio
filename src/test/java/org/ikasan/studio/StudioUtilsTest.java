@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class StudioUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] expectedDirs = new String[]{"studio/Vtest.x/components/CustomConverter, studio/Vtest.x/components/DevNullProducer, studio/Vtest.x/components/EventGeneratingConsumer, studio/Vtest.x/components/ExceptionResolver, studio/Vtest.x/components/Flow, studio/Vtest.x/components/Module"};
-        String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/components");
+        String[] expectedDirs = new String[]{"studio/Vtest.x/library/Consumer, studio/Vtest.x/library/Converter, studio/Vtest.x/library/ExceptionResolver, studio/Vtest.x/library/Flow, studio/Vtest.x/library/Module, studio/Vtest.x/library/Producer"};
+        String[] actualDirs = StudioUtils.getDirectories("studio/Vtest.x/library");
         Set<String> expectedDirsSorted = new TreeSet<>(List.of(expectedDirs)) ;
         Set<String> actualDirsSorted = new TreeSet<>(List.of(actualDirs)) ;
 
