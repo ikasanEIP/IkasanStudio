@@ -1,8 +1,8 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.Context;
-import org.ikasan.studio.actions.*;
+import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
 import java.awt.*;

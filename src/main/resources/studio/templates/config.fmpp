@@ -1,5 +1,0 @@
-removeExtensions: ftl
-dataRoot: .
-data: {
-  properties: json(data.json, UTF-8)
-}
