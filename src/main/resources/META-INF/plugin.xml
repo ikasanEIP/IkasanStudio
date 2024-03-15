@@ -28,7 +28,7 @@
 
     <actions>
         <action id="Studio.Search.Editor"
-                class="org.ikasan.studio.actions.StudioMaintenanceDebug"
+                class="org.ikasan.studio.ui.actions.StudioMaintenanceDebug"
                 text="Studio Maintenance Debug"
                 icon="/studio/icons/squid13x13.svg"
                 description="Invoke services to assist in the debugging of an issue">

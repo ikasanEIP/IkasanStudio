@@ -3,7 +3,9 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.Context;
+import org.ikasan.studio.build.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,6 +26,14 @@ public class StudioUIUtils {
             g2d.setStroke(new BasicStroke(width));
         }
     }
+
+    public static AbstractViewHandler getViewHandler(BasicElement basicElement) {
+        if (basicElement.getViewHandler() == null) {
+            basicElement.setViewHandler(ViewHandlerFactory.getInstance(basicElement));
+        }
+        return (AbstractViewHandler)basicElement.getViewHandler();
+    }
+
 
     public static Font getBoldFont(Graphics g) {
         return new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize());

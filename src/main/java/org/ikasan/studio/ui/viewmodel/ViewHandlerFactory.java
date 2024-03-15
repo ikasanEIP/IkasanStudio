@@ -1,8 +1,10 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.ikasan.instance.*;
+import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.build.model.ikasan.instance.Flow;
+import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.build.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 public class ViewHandlerFactory {
@@ -10,25 +12,25 @@ public class ViewHandlerFactory {
     // Static class
     private ViewHandlerFactory() {}
 
-    public static ViewHandler getInstance(Object component) {
-        ViewHandler returnViewHandler = null ;
+    public static AbstractViewHandler getInstance(Object component) {
+        AbstractViewHandler returnAbstractViewHandler = null ;
         if (component != null) {
             if (component instanceof PaletteItem) {
 //            if (component instanceof FlowElement) {
-                returnViewHandler =  new IkasanPaletteElementViewHandler(((PaletteItem) component).getComponentMeta());
+                returnAbstractViewHandler =  new IkasanPaletteElementAbstractViewHandler(((PaletteItem) component).getComponentMeta());
             } else if (component instanceof Module) {
-                returnViewHandler =  new IkasanModuleViewHandler((Module) component);
+                returnAbstractViewHandler =  new IkasanModuleAbstractViewHandler((Module) component);
             } else if (component instanceof Flow) {
-                returnViewHandler =  new IkasanFlowViewHandler((Flow) component);
+                returnAbstractViewHandler =  new IkasanFlowAbstractViewHandler((Flow) component);
             } else if (component instanceof FlowElement) {
-                returnViewHandler =  new IkasanFlowComponentViewHandler((org.ikasan.studio.model.ikasan.instance.FlowElement) component);
+                returnAbstractViewHandler =  new IkasanFlowComponentAbstractViewHandler((FlowElement) component);
             } else if (component instanceof ExceptionResolver) {
-                returnViewHandler =  new IkasanFlowExceptionResolverViewHandler((ExceptionResolver) component);
+                returnAbstractViewHandler =  new IkasanFlowExceptionResolverAbstractViewHandler((ExceptionResolver) component);
             }
         }
-        if (returnViewHandler == null) {
+        if (returnAbstractViewHandler == null) {
             LOG.error("View handler returned null for component " + component);
         }
-        return returnViewHandler;
+        return returnAbstractViewHandler;
     }
 }

@@ -3,14 +3,13 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.Module;
-import org.ikasan.studio.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
-import org.ikasan.studio.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import javax.swing.*;
 import java.awt.*;

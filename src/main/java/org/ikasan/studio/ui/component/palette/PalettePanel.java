@@ -3,8 +3,8 @@ package org.ikasan.studio.ui.component.palette;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.build.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.build.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;

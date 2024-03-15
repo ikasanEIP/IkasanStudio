@@ -1,9 +1,9 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.Context;
-import org.ikasan.studio.model.ikasan.instance.ExceptionResolution;
-import org.ikasan.studio.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolver;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class ExceptionResolverEditBox {
         this.paramsTitleField = new JLabel("Params");
 
         if (exceptionResolver.getIkasanExceptionResolutionMap() != null) {
-            for (org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution : exceptionResolver.getIkasanExceptionResolutionMap().values()) {
+            for (ExceptionResolution exceptionResolution : exceptionResolver.getIkasanExceptionResolutionMap().values()) {
                 exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, exceptionResolution, componentInitialisation));
             }
         }
@@ -46,7 +46,7 @@ public class ExceptionResolverEditBox {
         );
     }
 
-    public void doDelete(org.ikasan.studio.model.ikasan.instance.ExceptionResolution exceptionResolution) {
+    public void doDelete(ExceptionResolution exceptionResolution) {
         if (exceptionResolutionList != null) {
             if (exceptionResolutionList.removeIf(item -> exceptionResolution.equals(item.getIkasanExceptionResolution()))) {
                 hasChanged = true;
@@ -58,7 +58,7 @@ public class ExceptionResolverEditBox {
 
     private void doAdd() {
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
-        ExceptionResolution newResolution = new org.ikasan.studio.model.ikasan.instance.ExceptionResolution(exceptionResolver);
+        ExceptionResolution newResolution = new ExceptionResolution(exceptionResolver);
         exceptionResolutionPanel.updateTargetComponent(newResolution);
         PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                 Context.getProject(projectKey),

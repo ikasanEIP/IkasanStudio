@@ -1,8 +1,8 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.build.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 
 import javax.swing.*;
