@@ -17,6 +17,6 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 
-public org.ikasan.spec.component.transformation.Converter getMyObjectToObjectconverter() {
+public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToObjectConverter() {
 return new org.ikasan.component.converter.jms.ObjectMessageToObjectConverter();
 }}

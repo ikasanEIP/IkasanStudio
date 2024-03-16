@@ -1,6 +1,12 @@
 {
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "displayOrder": 4,
-  "componentShortType": "Converter"
-
+  "componentShortType": "Converter",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-component-converter",
+      "version": "3.1.0"
+    }
+    ]
 }
