@@ -7,17 +7,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.psi.PsiJavaFile;
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.build.StudioBuildUtils;
-import org.ikasan.studio.build.generator.*;
-import org.ikasan.studio.build.model.ikasan.instance.*;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
-import org.ikasan.studio.build.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.Context;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import java.util.List;
 
-import static org.ikasan.studio.build.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
+import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
 import static org.ikasan.studio.ui.model.StudioPsiUtils.createJsonModelFile;
 
 /**

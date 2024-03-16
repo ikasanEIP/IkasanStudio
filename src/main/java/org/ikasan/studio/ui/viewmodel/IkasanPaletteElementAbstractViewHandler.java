@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.build.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 
 import javax.swing.*;
 import java.awt.*;

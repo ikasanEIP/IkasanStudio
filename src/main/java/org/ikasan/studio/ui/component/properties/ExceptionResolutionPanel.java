@@ -5,7 +5,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;

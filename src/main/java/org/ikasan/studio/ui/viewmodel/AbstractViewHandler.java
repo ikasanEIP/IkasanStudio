@@ -4,7 +4,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
 import lombok.Data;
-import org.ikasan.studio.build.model.ikasan.instance.ViewHandler;
+import org.ikasan.studio.core.model.ikasan.instance.ViewHandler;
 
 import javax.swing.*;
 import java.awt.*;

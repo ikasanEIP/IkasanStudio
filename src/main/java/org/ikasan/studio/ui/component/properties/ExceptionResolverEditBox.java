@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolution;
-import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 
 import javax.swing.*;
 import java.util.ArrayList;

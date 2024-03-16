@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.build.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;

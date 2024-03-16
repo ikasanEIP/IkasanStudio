@@ -17,7 +17,7 @@ import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.build.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.core.model.ikasan.IkasanPomModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

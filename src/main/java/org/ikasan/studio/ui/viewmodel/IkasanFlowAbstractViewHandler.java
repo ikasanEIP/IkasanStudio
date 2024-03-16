@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.build.model.ikasan.instance.Flow;
-import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 

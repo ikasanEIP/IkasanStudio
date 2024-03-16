@@ -5,10 +5,10 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.build.model.ikasan.instance.Flow;
-import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.build.model.ikasan.instance.IkasanObject;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
 import javax.swing.*;

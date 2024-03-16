@@ -2,8 +2,8 @@ package org.ikasan.studio.ui;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
-import org.ikasan.studio.build.model.ikasan.IkasanPomModel;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;

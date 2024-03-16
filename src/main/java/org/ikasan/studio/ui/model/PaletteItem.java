@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.model;
 
 import lombok.Data;
-import org.ikasan.studio.build.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementAbstractViewHandler;
 
 @Data

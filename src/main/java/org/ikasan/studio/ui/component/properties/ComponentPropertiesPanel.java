@@ -5,10 +5,10 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.build.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.build.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.build.model.ikasan.instance.FlowUserImplementedElement;
-import org.ikasan.studio.build.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
