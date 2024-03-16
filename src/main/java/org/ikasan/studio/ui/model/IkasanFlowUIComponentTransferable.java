@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.model;
 
-import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.datatransfer.DataFlavor;

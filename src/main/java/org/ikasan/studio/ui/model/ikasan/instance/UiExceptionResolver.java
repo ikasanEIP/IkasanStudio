@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.model.ikasan.instance;
 
-import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 

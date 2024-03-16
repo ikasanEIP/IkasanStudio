@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import org.ikasan.studio.Navigator;
-import org.ikasan.studio.build.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import java.awt.event.ActionEvent;

@@ -1,10 +1,10 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.build.model.ikasan.instance.ExceptionResolver;
-import org.ikasan.studio.build.model.ikasan.instance.Flow;
-import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 public class ViewHandlerFactory {

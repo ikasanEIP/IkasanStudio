@@ -2,9 +2,9 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.build.io.ComponentIO;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import java.awt.event.ActionEvent;

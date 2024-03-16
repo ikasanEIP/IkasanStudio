@@ -1,8 +1,8 @@
 package org.ikasan.studio.ui.model.ikasan.instance;
 
 import lombok.Builder;
-import org.ikasan.studio.build.model.ikasan.instance.Flow;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 

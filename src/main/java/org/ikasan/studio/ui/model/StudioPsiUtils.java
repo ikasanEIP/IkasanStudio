@@ -17,9 +17,9 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.ikasan.studio.build.model.ModelUtils;
-import org.ikasan.studio.build.model.ikasan.IkasanPomModel;
-import org.ikasan.studio.build.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ModelUtils;
+import org.ikasan.studio.core.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.Context;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
@@ -33,8 +33,8 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.ikasan.studio.build.model.ikasan.IkasanPomModel.MAVEN_COMPILER_SOURCE;
-import static org.ikasan.studio.build.model.ikasan.IkasanPomModel.MAVEN_COMPILER_TARGET;
+import static org.ikasan.studio.core.model.ikasan.IkasanPomModel.MAVEN_COMPILER_SOURCE;
+import static org.ikasan.studio.core.model.ikasan.IkasanPomModel.MAVEN_COMPILER_TARGET;
 
 public class StudioPsiUtils {
     private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");

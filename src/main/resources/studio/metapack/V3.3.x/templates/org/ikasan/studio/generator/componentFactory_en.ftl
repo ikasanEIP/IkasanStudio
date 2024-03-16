@@ -1,4 +1,4 @@
-<#assign StudioBuildUtils=statics['org.ikasan.studio.build.StudioBuildUtils']>
+<#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
 package ${studioPackageTag};
 
 /**

@@ -3,7 +3,7 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.build.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 

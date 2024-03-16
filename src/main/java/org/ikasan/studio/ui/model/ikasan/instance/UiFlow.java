@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.model.ikasan.instance;
 
-import org.ikasan.studio.build.model.ikasan.instance.Flow;
-import org.ikasan.studio.build.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
 
 import java.util.ArrayList;
