@@ -1,14 +1,13 @@
-package org.ikasan.studio.core.model.ikasan;
+package org.ikasan.studio.core.model.ikasan.instance;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.ikasan.studio.core.model.ModelUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Used to model the top level pom for the project
@@ -23,18 +22,15 @@ public class IkasanPomModel {
     public static final String MAVEN_COMPILER_SOURCE = "maven.compiler.source";
 
     Model model;
-//    PsiFile pomPsiFile;
-    private final Set<String> dependencyKeys = new HashSet<>(); // Allows us to track what dependencies have already been set
+    private Set<String> dependencyKeys = new HashSet<>(); // Allows us to track what dependencies have already been set
 
     boolean isDirty = false;
     public IkasanPomModel() {
     }
 
-//    public IkasanPomModel(Model model, PsiFile pomPsiFile) {
     public IkasanPomModel(Model model) {
         this.model = model;
-//        this.pomPsiFile = pomPsiFile;
-        updateDependencyKeys();
+        resetKeys(model.getDependencies());
     }
 
     /**
@@ -57,17 +53,36 @@ public class IkasanPomModel {
      * @param newDependency to add
      * @return true if the dependency did not already exist in the pom
      */
-    public boolean addDependency(Dependency newDependency) {
-        if (! hasDependency(newDependency)) {
-            model.addDependency(newDependency);
-            dependencyKeys.add(newDependency.getManagementKey());
+    public boolean checkIfDependancyAlreadyExists(Dependency newDependency) {
+        if (!dependencyKeys.contains(getKey(newDependency))) {
+            List<Dependency> newRawList = model.getDependencies();
+            newRawList.add(newDependency);
+            updateModeAndDependencyKeys(newRawList);
             isDirty = true;
         }
         return isDirty;
     }
 
     public boolean hasDependency(Dependency newDependency) {
-        return newDependency != null && dependencyKeys.contains(newDependency.getManagementKey());
+        return newDependency != null && dependencyKeys.contains(getKey(newDependency));
+    }
+
+    /**
+     * Check if the dependencies are already known.
+     * @param newDependencies to check
+     * @return true if all the provided jar dependenies are already in IkasanPomModel
+     */
+    public boolean hasDependency(Collection<Dependency> newDependencies) {
+        boolean hasDependency = true;
+        if (newDependencies != null && !newDependencies.isEmpty()) {
+            for (Dependency dependency : newDependencies) {
+                if (!hasDependency(dependency)) {
+                    hasDependency = false;
+                    break;
+                }
+            }
+        }
+        return hasDependency;
     }
 
     /**
@@ -91,13 +106,24 @@ public class IkasanPomModel {
         return model.getProperties().getProperty(key);
     }
 
-    private void updateDependencyKeys() {
-        if (model != null) {
-            List<Dependency> dependencyList = model.getDependencies();
-            for (Dependency dependency : dependencyList) {
-                dependencyKeys.add(dependency.getManagementKey());
-            }
+    private void updateModeAndDependencyKeys(List<Dependency> rawDependencies) {
+        if (rawDependencies != null) {
+            Set<Dependency> sortedUniqueDependencies = ModelUtils.getAllUniqueSortedDependenciesSet(rawDependencies);
+            List<Dependency> dependencyListUniqueSorted = new ArrayList<>(sortedUniqueDependencies);
+            model.setDependencies(dependencyListUniqueSorted);
+            resetKeys(dependencyListUniqueSorted);
         }
+    }
+
+    private void resetKeys(Collection<Dependency> dependencies) {
+        dependencyKeys.clear();
+        for(Dependency dependency : dependencies) {
+            dependencyKeys.add(getKey(dependency));
+        }
+    }
+
+    private String getKey(Dependency dependency) {
+        return dependency.getGroupId()+":"+dependency.getArtifactId()+":"+dependency.getVersion();
     }
 
     public boolean isDirty() {

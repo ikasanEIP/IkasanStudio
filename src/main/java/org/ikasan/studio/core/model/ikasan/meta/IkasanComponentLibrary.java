@@ -108,8 +108,12 @@ public class IkasanComponentLibrary {
                 componentMeta.setComponentType(componentTypeMeta.getComponentType());
                 componentMeta.setComponentShortType(componentTypeMeta.getComponentShortType());
                 componentMeta.setDisplayOrder(componentTypeMeta.getDisplayOrder());
-                if (componentMeta.getJarDependencies() == null &&  componentTypeMeta.getJarDependencies() != null) {
-                    componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
+                if (componentTypeMeta.getJarDependencies() != null) {
+                    if (componentMeta.getJarDependencies() == null) {
+                        componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
+                    } else {
+                        componentMeta.getJarDependencies().addAll(componentTypeMeta.getJarDependencies());
+                    }
                 }
 
                 final String componentName = componentMeta.getName();

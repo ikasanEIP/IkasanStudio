@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.maven.model.Dependency;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -23,5 +23,5 @@ public class ComponentTypeMeta {
     @lombok.NonNull
     String componentShortType;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
-    private List<Dependency> jarDependencies;
+    private Set<Dependency> jarDependencies;
 }

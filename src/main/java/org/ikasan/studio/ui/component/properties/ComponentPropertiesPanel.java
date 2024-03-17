@@ -63,7 +63,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance();
+            pipsiIkasanModel.generateSourceFromModelInstance3(false);
             Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             Context.getDesignerCanvas(projectKey).repaint();
             disablePermissionToOverwriteUserImplementedClass();

@@ -21,7 +21,7 @@ public class ModelRebuildAction implements ActionListener {
    public void actionPerformed(ActionEvent actionEvent) {
       // @TODO MODEL
       PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
-      pipsiIkasanModel.generateSourceFromModelInstance();
+      pipsiIkasanModel.generateSourceFromModelInstance3(false);
       StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
 
       Module module = Context.getIkasanModule(projectKey);

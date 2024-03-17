@@ -93,7 +93,7 @@ public class DesignerCanvas extends JPanel {
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
 //                    pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDependencies());
-                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDependencies());
+                    pipsiIkasanModel.generateSourceFromModelInstance3(true);
                     disableStart();
                 }
             }
@@ -161,7 +161,7 @@ public class DesignerCanvas extends JPanel {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
-                    pipsiIkasanModel.generateSourceFromModelInstance(getIkasanModule().getComponentMeta().getJarDependencies());
+                    pipsiIkasanModel.generateSourceFromModelInstance3(true);
                 }
             } else {
                 Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
@@ -487,7 +487,7 @@ public class DesignerCanvas extends JPanel {
             }
             PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDependencies());
+            pipsiIkasanModel.generateSourceFromModelInstance3(true);
             StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
             initialiseAllDimensions = true;
             this.repaint();

@@ -18,7 +18,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.core.model.ModelUtils;
-import org.ikasan.studio.core.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.Context;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
@@ -28,13 +28,13 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.ikasan.studio.core.model.ikasan.IkasanPomModel.MAVEN_COMPILER_SOURCE;
-import static org.ikasan.studio.core.model.ikasan.IkasanPomModel.MAVEN_COMPILER_TARGET;
+import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_SOURCE;
+import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_TARGET;
 
 public class StudioPsiUtils {
     private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
@@ -47,24 +47,21 @@ public class StudioPsiUtils {
      * @param project currently being worked on
      * @return the studio representation of the POM
      */
-    public static IkasanPomModel pomLoad(Project project) {
-        IkasanPomModel pom = Context.getPom(project.getName());
-        if (pom == null) {
+    public static IkasanPomModel pomLoadFromVirtualDisk(Project project) {
+        IkasanPomModel ikasanPomModel = null;
             Model model;
             PsiFile pomPsiFile = pomGetTopLevel(project);
             if (pomPsiFile != null) {
                 try (Reader reader = new StringReader(pomPsiFile.getText())) {
                     MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
                     model = xpp3Reader.read(reader);
-//                    pom = new IkasanPomModel(model, pomPsiFile);
-                    pom = new IkasanPomModel(model);
-                    Context.setPom(project.getName(), pom);
+                    ikasanPomModel = new IkasanPomModel(model);
+                    Context.setIkasanPomModel(project.getName(), ikasanPomModel);
                 } catch (IOException | XmlPullParserException ex) {
-                    LOG.warn("Unable to load project pom", ex);
+                    LOG.warn("Unable to load project ikasanPomModel", ex);
                 }
             }
-        }
-        return pom;
+        return ikasanPomModel;
     }
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
@@ -85,36 +82,52 @@ public class StudioPsiUtils {
      * @param projectKey for the project being worked on
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
-    public static void pomAddDependencies(String projectKey, List<Dependency> newDependencies) {
-        IkasanPomModel pom;
+    public static void checkForDependencyChangesAndSaveIfChanged(String projectKey, Set<Dependency> newDependencies) {
+        IkasanPomModel ikasanPomModel;
         if (newDependencies != null && !newDependencies.isEmpty()) {
             Project project = Context.getProject(projectKey);
-            pom = pomLoad(project); // Have to load each time because might have been independently updated.
+            ikasanPomModel = pomLoadFromVirtualDisk(project); // Have to load each time because might have been independently updated.
 
-            if (pom != null) {
+            if (ikasanPomModel != null) {
                 for (Dependency newDependency : newDependencies) {
-                    pom.addDependency(newDependency);
+                    ikasanPomModel.checkIfDependancyAlreadyExists(newDependency);
                 }
             }
-            pomAddStandardProperties(pom);
-            if (pom.isDirty()) {
-                pomSave(project, pom);
+            pomAddStandardProperties(ikasanPomModel);
+            if (ikasanPomModel.isDirty()) {
+                pomSaveToVirtualDisk(project, ikasanPomModel);
 //            ProjectManager.createFlowElement().reloadProject(project);
             }
         }
     }
 
     /**
-     * Add in the standard properties for the pom, based on project level config e.g. JDK
-     * @param pom is the root level pom to be updated
+     * Add the new dependencies IF they are not already in the pom
+     * @param projectKey for the project being worked on
      */
-    private static void pomAddStandardProperties(IkasanPomModel pom) {
-        pom.addProperty(MAVEN_COMPILER_TARGET, "1.8");
-        pom.addProperty(MAVEN_COMPILER_SOURCE, "1.8");
+    public static boolean haveJarDependenciesChanged(String projectKey) {
+        Project project = Context.getProject(projectKey);
+        Module module = Context.getIkasanModule(project.getName());
+        IkasanPomModel ikasanPomModel = Context.getIkasanPomModel(projectKey);
+        return !ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies());
     }
 
-    public static void pomSave(final Project project, final IkasanPomModel pom) {
-        String pomAsString = pom.getModelAsString();
+    /**
+     * Add in the standard properties for the ikasanPomModel, based on project level config e.g. JDK
+     * @param ikasanPomModel is the root level ikasanPomModel to be updated
+     */
+    private static void pomAddStandardProperties(IkasanPomModel ikasanPomModel) {
+        ikasanPomModel.addProperty(MAVEN_COMPILER_TARGET, "1.8");
+        ikasanPomModel.addProperty(MAVEN_COMPILER_SOURCE, "1.8");
+    }
+
+    /**
+     * Persist IkasanPomModel back to virtual disk, typically done if something was added to IkasanPomModel
+     * @param project that the pom model belongs to
+     * @param ikasanPomModel to save
+     */
+    public static void pomSaveToVirtualDisk(final Project project, final IkasanPomModel ikasanPomModel) {
+        String pomAsString = ikasanPomModel.getModelAsString();
 
         // Always need to re-get the PsiFile since a reload might have disposed previous handle.
         PsiFile currentPomPsiFile = pomGetTopLevel(project);
@@ -269,7 +282,7 @@ public class StudioPsiUtils {
         // @TODO MODEL
         PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateJsonFromModelInstance();
-        pipsiIkasanModel.generateSourceFromModelInstance();
+        pipsiIkasanModel.generateSourceFromModelInstance3(false);
         Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         Context.getDesignerCanvas(projectKey).repaint();
     }
