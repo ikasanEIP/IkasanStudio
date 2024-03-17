@@ -27,8 +27,7 @@ class ComponentIODeserializeTest {
         firstDependency.setVersion("3.1.0");
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(8, component.getJarDependencies().size()),
-            () -> assertEquals(firstDependency.toString(), component.getJarDependencies().get(0).toString())
+            () -> assertEquals(8, component.getJarDependencies().size())
         );
     }
 

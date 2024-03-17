@@ -9,13 +9,13 @@ import com.intellij.psi.PsiJavaFile;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.*;
-import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.Context;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
 import static org.ikasan.studio.ui.model.StudioPsiUtils.createJsonModelFile;
@@ -44,24 +44,72 @@ public class PIPSIIkasanModel {
         return Context.getProject(projectKey);
     }
 
+
     /**
-     * An update has been made to the diagram, so we need to reverse this into the code.
+     * An update has been made to the diagram, so we need to reflect this into the code.
+     * @param checkForJarChanges Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
      */
-    public void generateSourceFromModelInstance() {
-        generateSourceFromModelInstance(null);
+    public void generateSourceFromModelInstance3(Boolean checkForJarChanges) {
+        Boolean dependenciesHaveChanged = false;
+        Project project = Context.getProject(projectKey);
+        Module module = Context.getIkasanModule(project.getName());
+        IkasanPomModel ikasanPomModel = Context.getIkasanPomModel(projectKey);
+        if (!ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies())) {
+            dependenciesHaveChanged = true;
+        }
+        generateSourceFromModelInstance2(dependenciesHaveChanged);
+    }
+
+    /**
+     * An update has been made to the diagram, so we need to reflect this into the code.
+     * @param dependenciesHaveChanged Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
+     */
+    public void generateSourceFromModelInstance2(Boolean dependenciesHaveChanged) {
+        Project project = Context.getProject(projectKey);
+        Module module = Context.getIkasanModule(project.getName());
+        CommandProcessor.getInstance().executeCommand(
+                project,
+                () -> ApplicationManager.getApplication().runWriteAction(
+                        () -> {
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + Context.getIkasanModule(projectKey));
+                            if (dependenciesHaveChanged) {
+                                // We have checked the in-memory model, below will also verify from the on-disk model.
+                                StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, module.getAllUniqueSortedJarDependencies());
+                            }
+                            //@todo start making below conditional on state changed.
+                            saveApplication(project, module);
+                            saveFlow(project, module);
+                            saveModuleConfig(project, module);
+                            savePropertiesConfig(project, module);
+
+                            LOG.info("End ApplicationManager.getApplication().runWriteAction - source from model");
+                        }),
+                "Generate Source from Flow Diagram",
+                "Undo group ID");
+        ApplicationManager.getApplication().runReadAction(
+                () -> {
+                    LOG.info("ApplicationManager.getApplication().runReadAction");
+                    // reloadProject needed to re-read POM, must not be done till addDependancies
+                    // fully complete, hence in next executeCommand block
+                    if (dependenciesHaveChanged && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+//                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+                        ProjectManager.getInstance().reloadProject(project);
+                    }
+                    LOG.info("End ApplicationManager.getApplication().runReadAction");
+                });
     }
 
     /**
      * An update has been made to the diagram, so we need to reverse this into the code.
      */
-    public void generateSourceFromModelInstance(List<Dependency> newDependencies) {
+    public void generateSourceFromModelInstance(Set<Dependency> newDependencies) {
         Project project = Context.getProject(projectKey);
         CommandProcessor.getInstance().executeCommand(
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
                             LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + Context.getIkasanModule(projectKey));
-                            StudioPsiUtils.pomAddDependencies(projectKey, newDependencies);
+                            StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, newDependencies);
                             //@todo start making below conditional on state changed.
                             Module module = Context.getIkasanModule(project.getName());
                             saveApplication(project, module);

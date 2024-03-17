@@ -42,7 +42,6 @@ class PojoDeserializationTest {
 
         MatcherAssert.assertThat(myGenericClass.getField1Map().get("key1").getField1SubclassString(), is("value1"));
         MatcherAssert.assertThat(myGenericClass.getField1Map().get("key2").getField1SubclassString(), is("value2"));
-
     }
 
     @Test

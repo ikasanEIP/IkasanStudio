@@ -16,12 +16,12 @@ import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.ui.Context;
-import org.ikasan.studio.core.model.ikasan.IkasanPomModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -74,9 +74,9 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
         String testProjectKey = myProject.getName();
 
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
-        IkasanPomModel ikasanPomModel = StudioPsiUtils.pomLoad(myProject) ;
+        IkasanPomModel ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(myProject) ;
         Context.setProject(testProjectKey, myProject);
-        Context.setPom(testProjectKey, ikasanPomModel);
+        Context.setIkasanPomModel(testProjectKey, ikasanPomModel);
 
         Dependency dependency = new Dependency();
         dependency.setType("jar");
@@ -86,15 +86,17 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
 
         assertThat(ikasanPomModel.hasDependency(dependency), is(false));
 
-        List<Dependency> newDependencies = new ArrayList<>();
+        Set<Dependency> newDependencies = new HashSet<>();
+        newDependencies.add(dependency);
+        // Deliberatley add twice to ensure we de-duplicate
         newDependencies.add(dependency);
 
         WriteCommandAction.runWriteCommandAction(
-                myProject,
-                () -> StudioPsiUtils.pomAddDependencies(testProjectKey, newDependencies)
+            myProject,
+            () -> StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(testProjectKey, newDependencies)
         );
 
-        IkasanPomModel updatedPom = StudioPsiUtils.pomLoad(myProject) ;
+        IkasanPomModel updatedPom = StudioPsiUtils.pomLoadFromVirtualDisk(myProject) ;
         assertThat(updatedPom.hasDependency(dependency), is(true));
         assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_SOURCE), is("1.8"));
         assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_TARGET), is("1.8"));

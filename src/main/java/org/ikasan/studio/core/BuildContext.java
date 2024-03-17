@@ -5,6 +5,7 @@ import freemarker.template.Version;
 
 import static freemarker.template.Configuration.VERSION_2_3_31;
 
+
 public enum BuildContext {
     INSTANCE;
     BuildContext() {
@@ -15,6 +16,7 @@ public enum BuildContext {
         freemarkerConfiguration.setWhitespaceStripping(true);
     }
 
+    // @todo needs to be version configurable
     public static final String FREEMARKER_TEMPLATE_PATH = "/studio/metapack/V3.3.x/templates/org/ikasan/studio/generator/";
     public static final String FREEMARKER_OUTPUT_PATH = "/studio/templates/org/ikasan/studio/generator/";
     private final Configuration freemarkerConfiguration ;

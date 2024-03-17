@@ -109,8 +109,11 @@ public class PropertiesTemplateTest extends GeneratorTests {
     @Test
     public void testCreateFlowWith_customConverter() throws IOException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
+        assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
+        // The Converter requires a new jar dependency
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
     }
 
     /**
@@ -120,8 +123,11 @@ public class PropertiesTemplateTest extends GeneratorTests {
     @Test
     public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
+        assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToObjectConverterComponent.properties"), templateString);
+        // The Converter requires a new jar dependency
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
     }
 
 

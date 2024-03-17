@@ -10,14 +10,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * This class holds all the information about the ikasan module flow.
@@ -94,4 +94,51 @@ public class Module extends BasicElement {
     public void setH2WebPortNumber(String portNumber) {
         this.setPropertyValue(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, portNumber);
     }
+//
+//    /**
+//     * Get the sorted set of all Jar dependencies for the module and all its components
+//     * The set will be sorted on groupId, artifactID and version.
+//     * The set will be de-duplicated based on groupId, artifactID and version.
+//     * @return a set of jar Dependencies for the module
+//     */
+//    public Set<Dependency> getAllJarDependencies2() {
+//        SortedSet<Dependency> allJarDepedenciesSorted =  new TreeSet<>(Comparator.comparing(Dependency::getGroupId).thenComparing(Dependency::getArtifactId).thenComparing(Dependency::getVersion));
+//        Map<String, Dependency> allJarDepedencies =  new TreeMap<>();
+//        this.getComponentMeta().getJarDependencies().stream().forEach(
+//            dep -> allJarDepedencies.put(dep.getGroupId()+dep.getArtifactId()+dep.getVersion(), dep)
+//        );
+//
+//         for(Flow flow : this.getFlows()) {
+//            for (FlowElement flowElement : flow.ftlGetConsumerAndFlowElements()) {
+//                if (flowElement.getComponentMeta().getJarDependencies() != null) {
+//                    flowElement.getComponentMeta().getJarDependencies().forEach(
+//                            dep -> allJarDepedencies.put(dep.getGroupId() + dep.getArtifactId() + dep.getVersion(), dep)
+//                    );
+//                }
+//            }
+//        }
+//        allJarDepedenciesSorted.addAll(allJarDepedencies.values());
+//        return allJarDepedenciesSorted;
+//    }
+
+    /**
+     * Get the sorted set of all Jar dependencies for the module and all its components
+     * The set will be sorted on groupId, artifactID and version.
+     * The set will be de-duplicated based on groupId, artifactID and version.
+     * @return a set of jar Dependencies for the module
+     */
+    public Set<Dependency> getAllUniqueSortedJarDependencies() {
+        Set<Dependency> allJarDepedencies = new HashSet<>(this.getComponentMeta().getJarDependencies());
+
+         for(Flow flow : this.getFlows()) {
+             for (FlowElement flowElement : flow.ftlGetConsumerAndFlowElements()) {
+                 if (flowElement.getComponentMeta().getJarDependencies() != null) {
+                     allJarDepedencies.addAll(flowElement.getComponentMeta().getJarDependencies());
+                 }
+             }
+        }
+        return ModelUtils.getAllUniqueSortedDependenciesSet(allJarDepedencies);
+    }
+
+
 }

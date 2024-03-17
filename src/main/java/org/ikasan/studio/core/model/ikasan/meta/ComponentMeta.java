@@ -12,7 +12,6 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 import javax.swing.*;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -58,7 +57,7 @@ public class ComponentMeta implements IkasanMeta {
     @lombok.NonNull
     private String implementingClass;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
-    private List<Dependency> jarDependencies;
+    private Set<Dependency> jarDependencies;
     private Map<String, ComponentPropertyMeta> properties;
     private boolean usesBuilder;
     private boolean useImplementingClass;

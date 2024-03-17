@@ -2,10 +2,11 @@ package org.ikasan.studio.ui;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
-import org.ikasan.studio.core.model.ikasan.IkasanPomModel;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
@@ -35,7 +36,7 @@ public enum Context {
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
-    private static final String POM = "pom";
+    private static final String IKASAN_POM_MODEL = "ikasanPomModel";
 
     public static final String JSON_MODEL_PARENT_DIR = "main";
     public static final String JSON_MODEL_SUB_DIR = "model";
@@ -72,12 +73,16 @@ public enum Context {
         return (Options)getProjectCache(projectKey, OPTIONS);
     }
 
-    public static IkasanPomModel getPom(String projectKey) {
-        return (IkasanPomModel)getProjectCache(projectKey, POM);
+    public static IkasanPomModel getIkasanPomModel(String projectKey) {
+        IkasanPomModel ikasanPomModel = (IkasanPomModel)getProjectCache(projectKey, IKASAN_POM_MODEL);
+        if (ikasanPomModel == null) {
+            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(getProject(projectKey));
+        }
+        return ikasanPomModel;
     }
 
-    public static void setPom(String projectKey, IkasanPomModel pom) {
-        putProjectCache(projectKey, POM, pom);
+    public static void setIkasanPomModel(String projectKey, IkasanPomModel pom) {
+        putProjectCache(projectKey, IKASAN_POM_MODEL, pom);
     }
 
     public static Project getProject(String projectKey) {
