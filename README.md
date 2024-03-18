@@ -65,8 +65,15 @@ UI
 * Integrate 'advanced config' concept to reduce noise in UI
 * Sort out icons with correct scalling and transparency to support standard Intellj themes
 * Update UI look and feel for all modes of Intellij themes
-* Videos and help wiki
 * Eclipse, Vaaden, Javascript based IDE
 
 CI
 * Determine how / what output from the build process are integrated into standard M processing.
+* Solution for artefact storage issue
+
+Other
+* Videos
+* Help wiki
+* Demos
+* Jira ?
+* Public Forum for self-help (stack overflow sub-site)
