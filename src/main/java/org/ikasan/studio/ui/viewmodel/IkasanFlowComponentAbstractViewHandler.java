@@ -32,12 +32,6 @@ public class IkasanFlowComponentAbstractViewHandler extends AbstractViewHandler 
      */
     public IkasanFlowComponentAbstractViewHandler(FlowElement flowElement) {
         this.flowElement = flowElement;
-//        if (flowElement != null) {
-//            flow = new Flow();
-////            ikasanFlowUIComponent = IkasanFlowUIComponentFactory.getInstance().getIkasanFlowUIComponentFromType(model.getComponentMeta());
-////        } else {
-////            ikasanFlowUIComponent = IkasanComponentLibrary.UNKNOWN
-//        }
     }
 
     /**
@@ -62,6 +56,12 @@ public class IkasanFlowComponentAbstractViewHandler extends AbstractViewHandler 
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
     }
 
+    /**
+     * Draw the text for the symbol on the screen
+     * @param g graphics object
+     * @param paintMode if DIMENSION_ONLY, don't actually paint, just get dimentions
+     * @return the bottom for the painted text
+     */
     private int paintSymbolText(Graphics g, PaintMode paintMode) {
         flowchartSymbolHeight = getCanvasIcon().getIconHeight();
         flowchartSymbolWidth = getCanvasIcon().getIconWidth();

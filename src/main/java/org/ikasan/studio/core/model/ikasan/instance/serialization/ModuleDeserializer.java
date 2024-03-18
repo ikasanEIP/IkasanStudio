@@ -182,7 +182,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             String implementingClass = jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS) != null ? jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS).asText() : null;
             String componentType = jsonNode.get(ComponentMeta.COMPONENT_TYPE) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE).asText() : null;
-            String additionalKey = jsonNode.get(ComponentMeta.ADDITIONAL_KEY) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE).asText() : null;
+            String additionalKey = jsonNode.get(ComponentMeta.ADDITIONAL_KEY) != null ? jsonNode.get(ComponentMeta.ADDITIONAL_KEY).asText() : null;
 
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
                     IkasanComponentLibrary.STD_IKASAN_PACK, implementingClass, componentType, additionalKey);

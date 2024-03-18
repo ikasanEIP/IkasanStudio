@@ -8,13 +8,13 @@ public class FlowElementFactory {
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
      * @param parent flow that contains this element
      */
-    public static FlowElement createFlowElement(ComponentMeta type, Flow parent) {
+    public static FlowElement createFlowElement(ComponentMeta type, Flow parent, String componentName) {
         if (type.isGeneratesUserImplementedClass()) {
             return new FlowUserImplementedElement(type, parent, false);
         } else if (type.isExceptionResolver()) {
             return new ExceptionResolver(parent);
         } else {
-            return FlowElement.flowElementBuilder().componentMeta(type).containingFlow(parent).build();
+            return FlowElement.flowElementBuilder().componentMeta(type).containingFlow(parent).componentName(componentName).build();
         }
     }
 }

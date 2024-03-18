@@ -13,13 +13,13 @@ public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
     public static final int FLOW_Y_START_POINT = 100;
-    private final Module model;
+    private final Module module;
 
     /**
-     * @param model for the view handler
+     * @param module for the view handler
      */
-    public IkasanModuleAbstractViewHandler(Module model) {
-        this.model = model;
+    public IkasanModuleAbstractViewHandler(Module module) {
+        this.module = module;
     }
 
     @Override
@@ -27,9 +27,9 @@ public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
         int currentY = 0;
         LOG.debug("paintComponent invoked");
 
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, model.getName(),10,10, StudioUIUtils.getBoldFont(g));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, module.getName(),10,10, StudioUIUtils.getBoldFont(g));
 
-        for (Flow ikasanFlow : model.getFlows()) {
+        for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set x,y, but we may be dealing with component move
             if (currentY == 0 ) {
                 currentY = StudioUIUtils.getViewHandler(ikasanFlow).getTopY();
@@ -61,9 +61,9 @@ public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
         setTopY(topy);
         setWidth(width);
         setHeight(height);
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, model.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
-        for(Flow ikasanFlow : model.getFlows()) {
+        for(Flow ikasanFlow : module.getFlows()) {
             // initialise width/height to maximum, it will be adjusted down after reset
             StudioUIUtils.getViewHandler(ikasanFlow).initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
             minimumTopY = StudioUIUtils.getViewHandler(ikasanFlow).getBottomY();

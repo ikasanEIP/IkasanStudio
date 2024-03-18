@@ -504,7 +504,7 @@ public class DesignerCanvas extends JPanel {
      * @return the fully populated component or null if the action was cancelled.
      */
     private FlowElement createViableFlowComponent(ComponentMeta ikasanComponentType, Flow containingFlow) {
-        FlowElement newComponent = FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow);
+        FlowElement newComponent = FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow, null);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver(newComponent);
         } else {

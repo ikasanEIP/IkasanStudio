@@ -80,6 +80,14 @@ public class StudioUIUtils {
         return metrics.stringWidth(text);
     }
 
+    /**
+     * Draw the text string on the screen at thhe given co-ords
+     * @param g graphics object
+     * @param text to display
+     * @param leftX for the text position
+     * @param topY for the text position
+     * @param font for the text
+     */
     public static void drawStringLeftAlignedFromTopLeft(Graphics g, String text, int leftX, int topY, Font font) {
         Font origFont = g.getFont();
         if (font != null) {

@@ -2,8 +2,12 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 
@@ -107,42 +111,31 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         if (flow.hasExceptionResolver()) {
             StudioUIUtils.getViewHandler(flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
         }
-        List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
-        int flowSize = flowElementList.size();
+        List<FlowElement> flowAndConseumerElementList = flow.ftlGetConsumerAndFlowElements();
+        int flowSize = flowAndConseumerElementList.size();
         StudioUIUtils.setLine(g, 2f);
 
         // Paint any components between the first and the last
         for (int index=0; index < flowSize; index ++) {
-            FlowElement flowElement = flowElementList.get(index);
+            FlowElement flowElement = flowAndConseumerElementList.get(index);
             StudioUIUtils.getViewHandler(flowElement).paintComponent(canvas, g, -1, -1);
             if (index < flowSize-1) {
-                drawConnector(g, StudioUIUtils.getViewHandler(flowElement), StudioUIUtils.getViewHandler(flowElementList.get(index+1)));
+                drawConnector(g, StudioUIUtils.getViewHandler(flowElement), StudioUIUtils.getViewHandler(flowAndConseumerElementList.get(index+1)));
             }
         }
 
         // This section draws the symbold before the start and after the end of the flow to represent the input/output boxes.
         if (flowSize > 1) {
             // The input symbol, typically a queue gets painted before the flow start
-            // @TDOD use a UI utils to determine this each time of render.
-//            if (flow.getInputEndPoint() != null) {
-//                AbstractViewHandler first = flowElementList.get(0).getViewHandler();
-//                AbstractViewHandler inputSymbolvh = flow.getInputEndPoint().getViewHandler();
-//                inputSymbolvh.setWidth(first.getWidth());
-//                inputSymbolvh.setTopY(first.getTopY());
-//                inputSymbolvh.setLeftX(first.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - inputSymbolvh.getWidth());
-//                inputSymbolvh.paintComponent(canvas, g, -1, -1);
-//                drawConnector(g, inputSymbolvh, first);
-//            }
-//            // The output symbol, typically gets painted after the flow right edge.
-//            if (flow.getOutputEndPoint() != null) {
-//                AbstractViewHandler last = flowElementList.get(flowSize-1).getViewHandler();
-//                AbstractViewHandler vh = flow.getOutputEndPoint().getViewHandler();
-//                vh.setWidth(last.getWidth());
-//                vh.setTopY(last.getTopY());
-//                vh.setLeftX(last.getLeftX() + vh.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-//                vh.paintComponent(canvas, g, -1, -1);
-//                drawConnector(g, last, vh);
-//            }
+            displayEndpointIfExists(canvas, g, flow.getConsumer());
+            // A flow might have multiple producers
+            List<FlowElement> flowElementList = flow.getFlowElements();
+            if (flowElementList != null && !flowElementList.isEmpty()) {
+                List <FlowElement> producers = flowElementList.stream().filter(f->f.getComponentMeta().isProducer()).toList();
+                for (FlowElement producer : producers) {
+                    displayEndpointIfExists(canvas, g, producer);
+                }
+            }
         }
         StudioUIUtils.setLine(g,1f);
 
@@ -150,6 +143,42 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         StudioUIUtils.paintWarningPopup(g, warningX, warningY, canvas.getX() + canvas.getWidth(), canvas.getY() + canvas.getHeight(), warningText);
         return getBottomY();
     }
+
+    private void displayEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
+
+        if (targetFlowElement != null) {
+            String endpointComponentName = targetFlowElement.getComponentMeta().getEndpointKey();
+            if (endpointComponentName != null) {
+                // Get the text to be displayed under the endpoint symbol
+                String endpointTextKey = targetFlowElement.getComponentMeta().getEndpointTextKey();
+                ComponentProperty propertyValueToDisplay = targetFlowElement.getConfiguredProperties().get(endpointTextKey);
+                String endpointText = "";
+                if (propertyValueToDisplay != null) {
+                    endpointText = propertyValueToDisplay.getValueString();
+                }
+
+                // Create the endpoint symbol instance
+                ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(IkasanComponentLibrary.STD_IKASAN_PACK, endpointComponentName);
+                FlowElement endpointFlowElement = FlowElementFactory.createFlowElement(endpointComponentMeta, flow, endpointText);
+
+                // Position and draw the endpoint
+                AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(targetFlowElement);
+                AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(endpointFlowElement);
+                endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
+                endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
+                if (targetFlowElement.getComponentMeta().isConsumer()) {
+                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+                    endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                    drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+                } else {
+                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                    endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                    drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
+                }
+            }
+        }
+    }
+
 
     private void drawConnector(Graphics g, AbstractViewHandler start, AbstractViewHandler end) {
         g.drawLine(

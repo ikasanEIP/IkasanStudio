@@ -12,6 +12,7 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 import javax.swing.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -58,7 +59,8 @@ public class ComponentMeta implements IkasanMeta {
     private String implementingClass;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private Set<Dependency> jarDependencies;
-    private Map<String, ComponentPropertyMeta> properties;
+    @Builder.Default
+    private Map<String, ComponentPropertyMeta> properties = new HashMap<>();
     private boolean usesBuilder;
     private boolean useImplementingClass;
 
@@ -80,9 +82,11 @@ public class ComponentMeta implements IkasanMeta {
      */
     public Map<String, ComponentProperty> getMandatoryInstanceProperties() {
         Map<String, ComponentProperty> mandatoryProperties = new TreeMap<>();
-        for (Map.Entry<String, ComponentPropertyMeta> entry : properties.entrySet()) {
-            if (entry.getValue().isMandatory()) {
-                mandatoryProperties.put(entry.getKey(), new ComponentProperty(entry.getValue()));
+        if (properties != null) {
+            for (Map.Entry<String, ComponentPropertyMeta> entry : properties.entrySet()) {
+                if (entry.getValue().isMandatory()) {
+                    mandatoryProperties.put(entry.getKey(), new ComponentProperty(entry.getValue()));
+                }
             }
         }
         return mandatoryProperties;

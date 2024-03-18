@@ -24,7 +24,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     /**
      * For PaletteExportTransferHandler we only want to copy a component onto the design window, not link or move
      * @param sourceComponent the sourceComponent
-     * @return
+     * @return COPY if the transfer property can be found, otherwise returns
      */
     @Override
     public int getSourceActions(JComponent sourceComponent) {
@@ -38,7 +38,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                 ! ((PaletteItem)((JList)sourceComponent).getSelectedValue()).isCategory()) {
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
             IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(
-                    FlowElementFactory.createFlowElement(item.getComponentMeta(), null));
+                    FlowElementFactory.createFlowElement(item.getComponentMeta(), null, null));
             Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);
@@ -57,7 +57,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
      * For example, a flow can be dropped anywhere on the canvas, so it will be true for the whole canvas but
      * a component can only be dropped inside a flow, so it will be false until the mouse is over a flow.
      * @param targetComponent that the mouse is over that has registered this as its Transfer Handler.
-     * @param destinationSupportedflavors
+     * @param destinationSupportedflavors flavors that the target can handle
      * @return false all the time currently
      */
     @Override
