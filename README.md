@@ -42,18 +42,41 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
 [docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+## High livel design / motivations
+Offering is split into 3 artefects with independant lifecycles
 
-Notes
-Over time move some items from auto generation e,g. pom into the generation into build by IDE to speed it up.
+### Core (org.ikasan.studio.core)
+* Contains the model.json (de)serialisation
+* Framework for code generation (ftl supplied by code pack), 
+* Framework for unit test support for metapack, abstract support for metapack
 
-Distinguish between the Ikansan Platform metadata (standard on per Ikasan version basis) and meta data for current model.
+### Metapack (resources/studio/metapack) - depdends on Core
+* One per supported Ikasan Version
+* Reduces the number of updates to the core (UI) plugin, the metapack can be added to (almost) any version of the plugin
+* Distribution / exposed via web / repo / something
+* Component Library - Encapsulates the Components properties, meta information, helptext, icons and ftl for a version of Ikasan, or an 'approach to auto-generation implementation', or user created components / code practice. 
+* End user encouraged to create their own, only official metapacks are 'supported'
 
-High level tasks
-* Extract the 'core' part into standard maven project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github)
-* Create builder for non-UI code regeneration, integrate into maven
-* Add in all Ikasan standard components to meta pack with associated free marker templates
-* Add in aggregate components with associated free marker templates
+### UI (org.ikasan.studio.ui) - Depends on Core and Metapackbs
+* Business driver is cost saving resulting from standard coding of components, reduced build times, reduced migration between versions of Ikasan, reduced complexity in legacy code base
+* The UI should be easy to use, intuitive, dumb down usage for junior / mid tier devs
+* Abstracted to be driven from the content of a meta pack
+* Support for multiple simultaneous metapacks
+
+## Epics / major stories
+
+Core
+* Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github)
+* Create builder / Maven integration for non-UI code regeneration, integrate into maven
+* Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI)
+* Parameterise meta pack version in build
+* Explore DB driven configuration
+
+Metapack(s)
 * Add 'advanced config' tag for use in UI
+* Add in all Ikasan standard components to meta pack with associated free marker templates
+* Split out metapack with its unit tests into seperate module with depedenct on code
+* Add in aggregate components with associated free marker templates
 * Add metapacks for Ikasan V4.x
 
 UI
@@ -66,6 +89,9 @@ UI
 * Sort out icons with correct scalling and transparency to support standard Intellj themes
 * Update UI look and feel for all modes of Intellij themes
 * Eclipse, Vaaden, Javascript based IDE
+* Data exchange / XML mmapping of payload
+* Parameterise meta pack version in model startup
+* Explore DB driven configuration
 
 CI
 * Determine how / what output from the build process are integrated into standard M processing.
