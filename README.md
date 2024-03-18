@@ -47,3 +47,26 @@ Notes
 Over time move some items from auto generation e,g. pom into the generation into build by IDE to speed it up.
 
 Distinguish between the Ikansan Platform metadata (standard on per Ikasan version basis) and meta data for current model.
+
+High level tasks
+* Extract the 'core' part into standard maven project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github)
+* Create builder for non-UI code regeneration, integrate into maven
+* Add in all Ikasan standard components to meta pack with associated free marker templates
+* Add in aggregate components with associated free marker templates
+* Add 'advanced config' tag for use in UI
+* Add metapacks for Ikasan V4.x
+
+UI
+* Code to support user implemented and user supplied classes - integration into model.json
+* Validate current methods to run from UI
+* Component deletion handling
+* Debug mode, Message flow debug using wiretap
+* Robustness tests
+* Integrate 'advanced config' concept to reduce noise in UI
+* Sort out icons with correct scalling and transparency to support standard Intellj themes
+* Update UI look and feel for all modes of Intellij themes
+* Videos and help wiki
+* Eclipse, Vaaden, Javascript based IDE
+
+CI
+* Determine how / what output from the build process are integrated into standard M processing.
