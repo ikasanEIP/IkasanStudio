@@ -47,19 +47,20 @@ Offering is split into 3 artefects with independant lifecycles
 
 ### Core (org.ikasan.studio.core)
 * Contains the model.json (de)serialisation
-* Framework for code generation (ftl supplied by code pack), 
-* Framework for unit test support for metapack, abstract support for metapack
+* Framework for code generation (ftl supplied by meta pack), 
+* Framework for unit test support for meta pack, abstract support for meta pack
 
 ### Metapack (resources/studio/metapack) - depdends on Core
-* One per supported Ikasan Version
+* One per supported Ikasan version
 * Reduces the number of updates to the core (UI) plugin, the metapack can be added to (almost) any version of the plugin
 * Distribution / exposed via web / repo / something
 * Component Library - Encapsulates the Components properties, meta information, helptext, icons and ftl for a version of Ikasan, or an 'approach to auto-generation implementation', or user created components / code practice. 
+* Provides extensive unit testing to self certify
 * End user encouraged to create their own, only official metapacks are 'supported'
 
 ### UI (org.ikasan.studio.ui) - Depends on Core and Metapackbs
 * Business driver is cost saving resulting from standard coding of components, reduced build times, reduced migration between versions of Ikasan, reduced complexity in legacy code base
-* The UI should be easy to use, intuitive, dumb down usage for junior / mid tier devs
+* The UI should be easy to use, intuitive, dumb down usage for junior / mid-tier devs
 * Abstracted to be driven from the content of a meta pack
 * Support for multiple simultaneous metapacks
 
@@ -69,13 +70,16 @@ Core
 * Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github)
 * Create builder / Maven integration for non-UI code regeneration, integrate into maven
 * Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI)
-* Parameterise meta pack version in build
+* Parameterize meta pack version in build
 * Explore DB driven configuration
 
-Metapack(s)
+Meta pack(s)
+* Migrate remaining part done 2023 components
+* Remove old lookup mechanism
+* Verify Exception resolver
 * Add 'advanced config' tag for use in UI
 * Add in all Ikasan standard components to meta pack with associated free marker templates
-* Split out metapack with its unit tests into seperate module with depedenct on code
+* Split out metapack with its unit tests into seperate module with dependent on code
 * Add in aggregate components with associated free marker templates
 * Add metapacks for Ikasan V4.x
 
@@ -86,6 +90,7 @@ UI
 * Debug mode, Message flow debug using wiretap
 * Robustness tests
 * Integrate 'advanced config' concept to reduce noise in UI
+* Support archetype to build the project, maybe partially implemented projects.
 * Sort out icons with correct scalling and transparency to support standard Intellj themes
 * Update UI look and feel for all modes of Intellij themes
 * Eclipse, Vaaden, Javascript based IDE

@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public  class BasicElement extends IkasanObject {
     @JsonIgnore
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
+    private static final com.intellij.openapi.diagnostic.Logger LOGI = com.intellij.openapi.diagnostic.Logger.getInstance("#BasicElement");
     @JsonPropertyOrder({"componentName", "description"})
     protected Map<String, ComponentProperty> configuredProperties;
     public BasicElement() {}
@@ -151,7 +152,7 @@ public  class BasicElement extends IkasanObject {
             ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
-                LOG.warn("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
+                LOG.error("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
                 configuredProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
             }
