@@ -201,6 +201,55 @@ public class TestFixtures {
         return flowElement;
     }
 
+    public static FlowElement getSpringJmsConsumer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Spring JMS Consumer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My JSpring JMS Consumer")
+                .build();
+
+        flowElement.setPropertyValue("autoContentConversion", true);
+        flowElement.setPropertyValue("autoSplitBatch", true);
+        flowElement.setPropertyValue("batchMode", true);
+        flowElement.setPropertyValue("batchSize", 1);
+        flowElement.setPropertyValue("cacheLevel", 1);
+        flowElement.setPropertyValue("concurrentConsumers", 2);
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
+        flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityPrincipal", "myConnectionFactoryJndiPropertySecurityPrincipal");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyUrlPkgPrefixes", "myConnectionFactoryJndiPropertyUrlPkgPrefixes");
+        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
+        flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
+        flowElement.setPropertyValue("connectionPassword", "myConnectionPassword");
+        flowElement.setPropertyValue("connectionUsername", "myConnectionUsername");
+        flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
+        flowElement.setPropertyValue("destinationJndiProperties", "myDestinationJndiProperties");
+        flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        flowElement.setPropertyValue("destinationJndiPropertyUrlPkgPrefixes", "org.myapp");
+        flowElement.setPropertyValue("durable", true);
+        flowElement.setPropertyValue("durableSubscriptionName", "myDurableSubscription");
+        flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");
+        flowElement.setPropertyValue("managedIdentifierService", "org.ikasan.spec.event.ManagedRelatedEventIdentifierService");
+        flowElement.setPropertyValue("maxConcurrentConsumers", 1000L);
+        flowElement.setPropertyValue("messageProvider", "myMessageProviderClass");
+        flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
+        flowElement.setPropertyValue("receiveTimeout", 1000L);
+        flowElement.setPropertyValue("sessionAcknowledgeMode", 1);
+        flowElement.setPropertyValue("sessionAcknowledgeMode", "AUTO_ACKNOWLEDGE");
+        flowElement.setPropertyValue("sessionTransacted", true);
+        flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        return flowElement;
+    }
+
     public static FlowElement getScheduledConsumer() {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Scheduled Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
@@ -269,6 +318,46 @@ public class TestFixtures {
                 .build();
     }
 
+    public static FlowElement getEmailProducer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Email Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Email Producer")
+                .build();
+
+        flowElement.setPropertyValue("bccRecipient", "myBccRecipient");
+        flowElement.setPropertyValue("bccRecipients", "{'bcc1','bcc2'}");
+        flowElement.setPropertyValue("ccRecipient", "myCcRecipient");
+        flowElement.setPropertyValue("ccRecipients"," {'cc1','cc2'}");
+        flowElement.setPropertyValue("configuration", "myConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("criticalOnStartup", true);
+        flowElement.setPropertyValue("emailBody", "myEmailBody");
+        flowElement.setPropertyValue("emailFormat", "html");
+        flowElement.setPropertyValue("extendedMailSessionProperties", "key1value1key2value2");
+        flowElement.setPropertyValue("from", "FromAddress");
+        flowElement.setPropertyValue("hasAttachments", true);
+        flowElement.setPropertyValue("mailDebug", true);
+        flowElement.setPropertyValue("mailMimeAddressStrict", true);
+        flowElement.setPropertyValue("mailPassword", "myMailPassword");
+        flowElement.setPropertyValue("mailPopClass", "myMailPopClass");
+        flowElement.setPropertyValue("mailPopPort", 100);
+        flowElement.setPropertyValue("mailPopUser", "myMailPopUser");
+        flowElement.setPropertyValue("mailRuntimeEnvironment", "myMailRuntimeEnvironment");
+        flowElement.setPropertyValue("mailSmtpClass", "myMailSmtpClass");
+        flowElement.setPropertyValue("mailSmtpHost", "myMailSmtpHost");
+        flowElement.setPropertyValue("mailSmtpPort", 101);
+        flowElement.setPropertyValue("mailSmtpUser", "myMailSmtpUser");
+        flowElement.setPropertyValue("mailStoreProtocol", "myMailStoreProtocol");
+        flowElement.setPropertyValue("mailSubject", "myMailSubject");
+        flowElement.setPropertyValue("mailhost", "myMailhostAddress");
+        flowElement.setPropertyValue("toRecipient", "myToRecipient");
+        flowElement.setPropertyValue("toRecipients", "{'to1','to2'}");
+        flowElement.setPropertyValue("transportProtocol", "myTransportProtocol");
+        flowElement.setPropertyValue("user", "myUser");
+        return flowElement;
+    }
+
     public static FlowElement getFtpProducer() {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "FTP Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
@@ -305,6 +394,53 @@ public class TestFixtures {
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
         flowElement.setPropertyValue("unzip", true);
         flowElement.setPropertyValue("username", "myLoginName");
+        return flowElement;
+    }
+
+    public static FlowElement getJmsProducer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "JMS Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My JMS Producer")
+                .build();
+
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
+        flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityPrincipal", "myConnectionFactoryJndiPropertySecurityPrincipal");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyUrlPkgPrefixes", "myConnectionFactoryJndiPropertyUrlPkgPrefixes");
+        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
+        flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
+        flowElement.setPropertyValue("connectionPassword", "myConnectionPassword");
+        flowElement.setPropertyValue("connectionUsername", "myConnectionUsername");
+        flowElement.setPropertyValue("deliveryMode", 1);
+        flowElement.setPropertyValue("deliveryPersistent", true);
+        flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
+        flowElement.setPropertyValue("destinationJndiProperties", "myDestinationJndiProperties");
+        flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        flowElement.setPropertyValue("destinationJndiPropertyUrlPkgPrefixes", "org.myapp");
+        flowElement.setPropertyValue("explicitQosEnabled", true);
+        flowElement.setPropertyValue("messageConverter", "myMessageConverter");
+        flowElement.setPropertyValue("messageIdEnabled", true);
+        flowElement.setPropertyValue("messageTimestampEnabled", true);
+        flowElement.setPropertyValue("postProcessor", "myPostProcessor");
+        flowElement.setPropertyValue("priority", 1);
+        flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
+        flowElement.setPropertyValue("pubSubNoLocal", true);
+        flowElement.setPropertyValue("receiveTimeout", 1000L);
+        flowElement.setPropertyValue("sessionAcknowledgeMode", 1);
+        flowElement.setPropertyValue("sessionAcknowledgeMode", "AUTO_ACKNOWLEDGE");
+        flowElement.setPropertyValue("sessionTransacted", true);
+        flowElement.setPropertyValue("timeToLive", 100L);
+        flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
         return flowElement;
     }
 

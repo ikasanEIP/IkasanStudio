@@ -100,7 +100,6 @@
       "defaultValue": ".",
       "helpText": "Remote directory where to deliver the file.",
       "setterProperty": true,
-      "propertyDataType": "java.lang.String",
       "propertyConfigFileLabel": "__flow.sftp.producer.outputDirectory"
     },
     "password": {

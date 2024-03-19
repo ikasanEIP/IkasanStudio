@@ -27,8 +27,8 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
-.producer("My Email Producer",
-componentFactory.getMyEmailProducer())
+.consumer("My JSpring JMS Consumer",
+componentFactory.getMyJSpringJMSConsumer())
 .build();
 return myFlow1;
 }
