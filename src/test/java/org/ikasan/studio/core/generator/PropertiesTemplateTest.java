@@ -98,6 +98,17 @@ public class PropertiesTemplateTest extends GeneratorTests {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSpringJmsConsumerComponent.properties"), templateString);
     }
 
+    /**
+     * See also application_fullyPopulatedBasicAmqSpringJmsConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException {
+        FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedBasicAmqSpringJmsConsumerComponent.properties"), templateString);
+    }
+
 
     // ------------------------------------- FILTER -------------------------------------
     /**
@@ -136,6 +147,20 @@ public class PropertiesTemplateTest extends GeneratorTests {
         assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToObjectConverterComponent.properties"), templateString);
+        // The Converter requires a new jar dependency
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
+    }
+
+    /**
+     * See also application_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException {
+        FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
+        assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
         assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
     }
@@ -184,6 +209,17 @@ public class PropertiesTemplateTest extends GeneratorTests {
         FlowElement flowElement = TestFixtures.getJmsProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedJmsProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedBasicAmqJmsProducerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_basicAmqJmsProducer() throws IOException {
+        FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedBasicAmqJmsProducerComponent.properties"), templateString);
     }
 
     /**

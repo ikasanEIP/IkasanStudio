@@ -47,7 +47,7 @@ org.ikasan.spec.event.ManagedRelatedEventIdentifierService orgIkasanSpecEventMan
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
-myTransactionManagerClass;
+org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyJSpringJMSConsumer() {
 return builderFactory.getComponentBuilder().springJMSConsumer()
@@ -86,7 +86,7 @@ return builderFactory.getComponentBuilder().springJMSConsumer()
 .setMessageProvider(myMessageProviderClass)
 .setPubSubDomain(myPubSubDomain)
 .setReceiveTimeout(1000)
-.setSessionAcknowledgeMode(AUTO_ACKNOWLEDGE)
+.setSessionAcknowledgeMode(1)
 .setSessionTransacted(true)
 .setTransactionManager(myTransactionManagerClass)
 .build();

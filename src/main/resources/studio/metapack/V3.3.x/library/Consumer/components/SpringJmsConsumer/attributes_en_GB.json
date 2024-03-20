@@ -7,7 +7,7 @@
   "additionalKey": "Spring JMS Consumer",
   "usesBuilder": true,
   "flowBuilderMethod": "consumer",
-  "endpointKey": "JMS Endpoint",
+  "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
   "properties": {
     "componentName": {
@@ -261,7 +261,7 @@
       "propertyName": "transactionManager",
       "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
       "setterProperty": true,
-      "propertyDataType": "org.springframework.transaction.jta.JtaTransactionManager",
+      "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
       "userSuppliedClass": true
     }
   }

@@ -88,6 +88,17 @@ public class FlowTemplateTest extends GeneratorTests {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedSpringJmsConsumerComponent.java"), templateString);
     }
 
+  /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedBasicAmqSpringJmsConsumerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException {
+        FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBasicAmqSpringJmsConsumerComponent.java"), templateString);
+    }
+
     // ------------------------------------- FILTER -------------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMessageFilterComponent.java
@@ -121,6 +132,17 @@ public class FlowTemplateTest extends GeneratorTests {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedObjectMessageToObjectConverterComponent.java"), templateString);
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedObjectMessageToXmlStringConverterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException {
+        FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java"), templateString);
     }
 
 
@@ -167,6 +189,17 @@ public class FlowTemplateTest extends GeneratorTests {
         FlowElement flowElement = TestFixtures.getJmsProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedJmsProducerComponent.java"), templateString);
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedBasicAmqJmsProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_basicAmqJmsProducer() throws IOException {
+        FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBasicAmqJmsProducerComponent.java"), templateString);
     }
 
     /**

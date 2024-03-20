@@ -159,21 +159,25 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
 
                 // Create the endpoint symbol instance
                 ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(IkasanComponentLibrary.STD_IKASAN_PACK, endpointComponentName);
-                FlowElement endpointFlowElement = FlowElementFactory.createFlowElement(endpointComponentMeta, flow, endpointText);
-
-                // Position and draw the endpoint
-                AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(targetFlowElement);
-                AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(endpointFlowElement);
-                endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
-                endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
-                if (targetFlowElement.getComponentMeta().isConsumer()) {
-                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
-                    endpointViewHandler.paintComponent(canvas, g, -1, -1);
-                    drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+                if (endpointComponentMeta == null) {
+                    LOG.warn("Expected to find endpoint named " + endpointComponentName + " but none were found, endpoint rendering will be skipped");
                 } else {
-                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-                    endpointViewHandler.paintComponent(canvas, g, -1, -1);
-                    drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
+                    FlowElement endpointFlowElement = FlowElementFactory.createFlowElement(endpointComponentMeta, flow, endpointText);
+
+                    // Position and draw the endpoint
+                    AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(targetFlowElement);
+                    AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(endpointFlowElement);
+                    endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
+                    endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
+                    if (targetFlowElement.getComponentMeta().isConsumer()) {
+                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                        drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+                    } else {
+                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                        drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
+                    }
                 }
             }
         }
@@ -212,7 +216,11 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
-                StudioUIUtils.getViewHandler(ikasanFlowComponent).initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
+                AbstractViewHandler viewHandler = StudioUIUtils.getViewHandler(ikasanFlowComponent);
+                if (viewHandler == null) {
+                    LOG.error("Request for a view handler should always succeed");
+                }
+                viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                 currentX += StudioUIUtils.getViewHandler(ikasanFlowComponent).getWidth() + FLOW_X_SPACING;
             }
         }

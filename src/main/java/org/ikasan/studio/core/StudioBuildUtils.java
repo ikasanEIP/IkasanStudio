@@ -1,20 +1,20 @@
 package org.ikasan.studio.core;
 
-import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
 import java.nio.file.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -214,7 +214,8 @@ public class StudioBuildUtils {
                 File file = new File(uri);
                 String[] fileList = file.list((current, name) -> new File(current, name).isDirectory());
                 if (fileList != null) {
-                    directoriesNames = Arrays.stream(fileList).map(theFile -> dir + File.separator + theFile).toArray(String[]::new);
+//                    directoriesNames = Arrays.stream(fileList).map(theFile -> dir + File.separator + theFile).toArray(String[]::new);
+                    directoriesNames = Arrays.stream(fileList).map(theFile -> dir + "/" + theFile).toArray(String[]::new);
                 }
             }
         }
@@ -227,66 +228,66 @@ public class StudioBuildUtils {
     private static final int NUMBER_OF_DEPENDENCY_CONFIGS = 3;
     public static final String COMPONENT_DEPENDENCIES_DIR = "/studio/componentDependencies/";
 
-    /**
-     * Look for csv files in /studio/componentDependencies and load the Maven dependencies (jar dependencies) for that
-     * component e.g. BASIC.csv holds all the basic Ikasan dependencies
-     * artifactid,           groupid,   versionid
-     * ikasan-connector-base,org.ikasan,3.1.0
-     * ikasan-eip-standalone,org.ikasan,3.1.0
-     * so the Map is of Dependency.getManagementKey() -> Dependency
-     *
-     * @param propertiesFile one of the properties files to be read
-     * @return the growing list of dependencies, including the properties file provided.
-     */
-    public static Map<String, Dependency> readIkasanComponentDependencies(String propertiesFile) {
-
-        Map<String, Dependency> dependencies = new TreeMap<>() ;        // Map of Dependency.getManagementKey() -> Dependency
-
-        String propertiesFileName = COMPONENT_DEPENDENCIES_DIR + propertiesFile + ".csv";
-        InputStream is = StudioBuildUtils.class.getResourceAsStream(propertiesFileName);
-
-        Set<String> artifactIds = new HashSet<>();
-        if (is != null) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (line.startsWith("#") || line.isEmpty()) {
-                        continue;
-                    }
-                    String[] split = line.split(",");
-                    if (split.length != NUMBER_OF_DEPENDENCY_CONFIGS) {
-                        LOG.warn("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS +
-                                ", was " + split.length + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
-                        continue;
-                    }
-
-                    final String artifactId = split[ARTIFACT_ID_INDEX];
-                    String groupId = split[GROUP_ID_INDEX];
-                    String version = split[VERSION_INDEX];
-
-                    if (artifactId.isEmpty() || groupId.isEmpty() || version.isEmpty()) {
-                        LOG.warn("The dependency is not fully configured, artifactId=" + artifactId + ", groupId=" + groupId + ",version=" + version + " so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
-                    } else if (artifactIds.contains(artifactId)) {
-                        LOG.warn("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
-                    } else {
-                        artifactIds.add(artifactId);
-                        Dependency dependency = new Dependency();
-                        dependency.setType("jar");
-                        dependency.setArtifactId(artifactId);
-                        dependency.setGroupId(groupId);
-                        dependency.setVersion(version);
-
-                        dependencies.put(dependency.getManagementKey(), dependency);
-                    }
-                }
-            } catch (IOException ioe) {
-                LOG.warn("Could not read the dependency properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
-            }
-        } else {
-            LOG.warn("Could not open the dependency properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
-        }
-        return dependencies;
-    }
+//    /**
+//     * Look for csv files in /studio/componentDependencies and load the Maven dependencies (jar dependencies) for that
+//     * component e.g. BASIC.csv holds all the basic Ikasan dependencies
+//     * artifactid,           groupid,   versionid
+//     * ikasan-connector-base,org.ikasan,3.1.0
+//     * ikasan-eip-standalone,org.ikasan,3.1.0
+//     * so the Map is of Dependency.getManagementKey() -> Dependency
+//     *
+//     * @param propertiesFile one of the properties files to be read
+//     * @return the growing list of dependencies, including the properties file provided.
+//     */
+//    public static Map<String, Dependency> readIkasanComponentDependencies(String propertiesFile) {
+//
+//        Map<String, Dependency> dependencies = new TreeMap<>() ;        // Map of Dependency.getManagementKey() -> Dependency
+//
+//        String propertiesFileName = COMPONENT_DEPENDENCIES_DIR + propertiesFile + ".csv";
+//        InputStream is = StudioBuildUtils.class.getResourceAsStream(propertiesFileName);
+//
+//        Set<String> artifactIds = new HashSet<>();
+//        if (is != null) {
+//            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+//                String line;
+//                while ((line = br.readLine()) != null) {
+//                    if (line.startsWith("#") || line.isEmpty()) {
+//                        continue;
+//                    }
+//                    String[] split = line.split(",");
+//                    if (split.length != NUMBER_OF_DEPENDENCY_CONFIGS) {
+//                        LOG.warn("An incorrect dependency config has been supplied, incorrect number of configs (should be " + NUMBER_OF_DEPENDENCY_CONFIGS +
+//                                ", was " + split.length + "), please remove from " + propertiesFile + " or fix, the line was [" + line+ "]");
+//                        continue;
+//                    }
+//
+//                    final String artifactId = split[ARTIFACT_ID_INDEX];
+//                    String groupId = split[GROUP_ID_INDEX];
+//                    String version = split[VERSION_INDEX];
+//
+//                    if (artifactId.isEmpty() || groupId.isEmpty() || version.isEmpty()) {
+//                        LOG.warn("The dependency is not fully configured, artifactId=" + artifactId + ", groupId=" + groupId + ",version=" + version + " so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+//                    } else if (artifactIds.contains(artifactId)) {
+//                        LOG.warn("A property of this propertyConfigLabel already exists so it will be ignored " + line + " please remove from " + propertiesFile + " or correct it ");
+//                    } else {
+//                        artifactIds.add(artifactId);
+//                        Dependency dependency = new Dependency();
+//                        dependency.setType("jar");
+//                        dependency.setArtifactId(artifactId);
+//                        dependency.setGroupId(groupId);
+//                        dependency.setVersion(version);
+//
+//                        dependencies.put(dependency.getManagementKey(), dependency);
+//                    }
+//                }
+//            } catch (IOException ioe) {
+//                LOG.warn("Could not read the dependency properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+//            }
+//        } else {
+//            LOG.warn("Could not open the dependency properties file for " + propertiesFileName + ". This is a non-fatal issues but should be rectified.");
+//        }
+//        return dependencies;
+//    }
 
     private static final String SUBSTITUTION_PREFIX = "__";
     private static final String SUBSTITUTION_PREFIX_FLOW = SUBSTITUTION_PREFIX + "flow";

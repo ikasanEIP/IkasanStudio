@@ -27,8 +27,8 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
-.converter("My Object Message To XML String Converter",
-componentFactory.getMyObjectMessageToXMLStringConverter())
+.consumer("My Basic AMQ JSpring JMS Consumer",
+componentFactory.getMyBasicAMQJSpringJMSConsumer())
 .build();
 return myFlow1;
 }
