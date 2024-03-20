@@ -23,6 +23,7 @@ import static org.ikasan.studio.core.model.ikasan.instance.serialization.Seriali
 
 public class ModuleDeserializer extends StdDeserializer<Module> {
     private static final Logger LOG = LoggerFactory.getLogger(ModuleDeserializer.class);
+    private static final com.intellij.openapi.diagnostic.Logger ILOG = com.intellij.openapi.diagnostic.Logger.getInstance("#ModelRebuildAction");
     public ModuleDeserializer() {
         super(Module.class);
     }
@@ -108,23 +109,40 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             fromKeys.removeAll(toKeys);
             Optional<String> startKey = fromKeys.stream().findFirst();
             if (startKey.isEmpty()) {
+                ILOG.warn("ERROR: Could not find the start of the transition chain " + flow.getTransitions());
                 LOG.warn("ERROR: Could not find the start of the transition chain " + flow.getTransitions());
             } else {
                 Transition transition = transitionsMap.get(startKey.get());
-                // If we have a consumer, first flowElement is consumer, so skip
+                // If no consumer, first from should be added (remeber, flowElements list excludes the consumer)
                 if (flow.getConsumer() == null) {
-                    sortedFlowElements.add(flowElementsMap.get(transition.getFrom()));
+                    addIfNotNull(sortedFlowElements, flowElementsMap, transition.getFrom());
                 }
-                sortedFlowElements.add(flowElementsMap.get(transition.getTo()));
-
+                addIfNotNull(sortedFlowElements, flowElementsMap, transition.getTo());
                 Transition next = transitionsMap.get(transition.getTo());
                 while (next != null) {
-                    sortedFlowElements.add(flowElementsMap.get(next.getTo()));
+                    addIfNotNull(sortedFlowElements, flowElementsMap, next.getTo());
                     next = transitionsMap.get(next.getTo());
                 }
             }
         }
         return sortedFlowElements;
+    }
+
+    /**
+     * In user testing, devs removed components but forgot to update the transitions
+     * We can be robust here, still use the name of the removed component to daisychain onto the next component,
+     * just don't add the missing component into the flowElement list
+     * @param sortedFlowElements to be updateed if the found flow element is not null
+     * @param flowElementsMap containing the components known to this flow
+     * @param componentName to be added
+     */
+    private void addIfNotNull(List<FlowElement> sortedFlowElements, Map<String, FlowElement> flowElementsMap, String componentName) {
+        FlowElement flowElement = flowElementsMap.get(componentName);
+        if (flowElement != null) {
+            sortedFlowElements.add(flowElement);
+        } else {
+            LOG.warn("The component named " + componentName + " was present in a transition but was not defined in the flow, known components are [" + flowElementsMap.keySet() + "], assuming it was removed without updating the transition");
+        }
     }
 
     public List<Transition> getTransitions(JsonNode root) {
@@ -187,7 +205,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
                     IkasanComponentLibrary.STD_IKASAN_PACK, implementingClass, componentType, additionalKey);
             if (componentMeta == null) {
-                throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " or componentType " + componentType);
+                throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " componentType " + componentType + " additionalKey " +additionalKey);
             }
             if (componentMeta.isGeneratesUserImplementedClass()) {
                 flowElement = FlowUserImplementedElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
@@ -202,7 +220,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String fieldName = field.getKey();
                 if (ComponentMeta.IMPLEMENTING_CLASS.equals(fieldName) ||
-                        ComponentMeta.COMPONENT_TYPE.equals(fieldName)) {
+                    ComponentMeta.COMPONENT_TYPE.equals(fieldName) ||
+                    ComponentMeta.ADDITIONAL_KEY.equals(fieldName)) {
                     // these special components are actually meta and captured above, used to identify the component.
                     continue;
                 }

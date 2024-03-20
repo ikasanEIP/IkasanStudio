@@ -351,7 +351,8 @@ public class StudioPsiUtils {
     public static PsiDirectory getDirectory(PsiDirectory root, String target) {
         PsiDirectory returnDirectory = root;
         if (root != null && target != null && !target.isEmpty()) {
-            String[] subDirs = target.split(Pattern.quote(File.separator));
+//            String[] subDirs = target.split(Pattern.quote(File.separator));
+            String[] subDirs = target.split(Pattern.quote("/"));
             for(String dir : subDirs) {
                 returnDirectory = returnDirectory.findSubdirectory(dir);
                 if (returnDirectory == null) {

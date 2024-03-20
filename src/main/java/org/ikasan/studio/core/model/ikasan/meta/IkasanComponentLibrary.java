@@ -7,7 +7,6 @@ import org.ikasan.studio.core.io.ComponentIO;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -74,7 +73,8 @@ public class IkasanComponentLibrary {
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
         returnedIkasanComponentMetaMapByKey = new HashMap<>();
 
-        String baseDirectory = METAPACK_BASE_BASE_DIR + ikasanMetaDataPackVersion + File.separator + "library";
+//        String baseDirectory = METAPACK_BASE_BASE_DIR + ikasanMetaDataPackVersion + File.separator + "library";
+        String baseDirectory = METAPACK_BASE_BASE_DIR + ikasanMetaDataPackVersion + "/library";
         // The structure of the Meta-Pack directory is
         // 1:  'Category'/'typpe-meta'
         // 0:n 'Category'/'Component'
@@ -92,7 +92,8 @@ public class IkasanComponentLibrary {
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                 continue;
             }
-            String[] componentDirectories = getSubdirectories(componentTypeDirectory + File.separator + "components");
+//            String[] componentDirectories = getSubdirectories(componentTypeDirectory + File.separator + "components");
+            String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
 
             for (String componentDirectory : componentDirectories) {
                 IkasanMeta ikasanMeta;
@@ -117,8 +118,10 @@ public class IkasanComponentLibrary {
                 }
 
                 final String componentName = componentMeta.getName();
-                componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+//                componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+//                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
             }
         }

@@ -244,9 +244,32 @@ public class TestFixtures {
         flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
         flowElement.setPropertyValue("receiveTimeout", 1000L);
         flowElement.setPropertyValue("sessionAcknowledgeMode", 1);
-        flowElement.setPropertyValue("sessionAcknowledgeMode", "AUTO_ACKNOWLEDGE");
+        flowElement.setPropertyValue("sessionAcknowledgeModeName", "AUTO_ACKNOWLEDGE");
         flowElement.setPropertyValue("sessionTransacted", true);
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        return flowElement;
+    }
+
+    public static FlowElement getBasicAmqSpringJmsConsumer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Basic AMQ Spring JMS Consumer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Basic AMQ JSpring JMS Consumer")
+                .build();
+
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
+        flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
+        flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
+        flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
+        flowElement.setPropertyValue("sessionTransacted", true);
         return flowElement;
     }
 
@@ -293,6 +316,32 @@ public class TestFixtures {
                 .componentName("My Object Message To Object Converter")
                 .build();
     }
+
+    public static FlowElement getObjectMessageToXmlStringtConverter() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Object Message To XML String Converter");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Object Message To XML String Converter")
+                .build();
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("fastFailOnConfigurationLoad", true);
+        flowElement.setPropertyValue("namespacePrefix", "myNamespacePrefix");
+        flowElement.setPropertyValue("namespaceURI", "myNamespaceURI");
+        flowElement.setPropertyValue("noNamespaceSchema", true);
+        flowElement.setPropertyValue("objectClass", String.class);
+        flowElement.setPropertyValue("objectClasses", "{'String.class','String.class'}");
+        flowElement.setPropertyValue("rootClassName", "java.lang.String");
+        flowElement.setPropertyValue("rootName", "myRootName");
+        flowElement.setPropertyValue("routeOnValidationException", true);
+        flowElement.setPropertyValue("schema", "mySchema");
+        flowElement.setPropertyValue("schemaLocation", "http://foo.com/domain example.xsd");
+        flowElement.setPropertyValue("useNamespacePrefix", true);
+        flowElement.setPropertyValue("validate", true);
+        flowElement.setPropertyValue("xmlAdapterMap", "myXmlAdapterMap");
+        return flowElement;
+    }
+
     // ------------------------- Filters -------------------------
 
     public static FlowElement getMessageFilter() {
@@ -437,10 +486,33 @@ public class TestFixtures {
         flowElement.setPropertyValue("pubSubNoLocal", true);
         flowElement.setPropertyValue("receiveTimeout", 1000L);
         flowElement.setPropertyValue("sessionAcknowledgeMode", 1);
-        flowElement.setPropertyValue("sessionAcknowledgeMode", "AUTO_ACKNOWLEDGE");
+        flowElement.setPropertyValue("sessionAcknowledgeModeName", "AUTO_ACKNOWLEDGE");
         flowElement.setPropertyValue("sessionTransacted", true);
         flowElement.setPropertyValue("timeToLive", 100L);
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        return flowElement;
+    }
+
+    public static FlowElement getBasicAmqJmsProducer() {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "JMS Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My JMS Producer")
+                .build();
+
+        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
+        flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
+        flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
+        flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
+        flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
+        flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
+        flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
+        flowElement.setPropertyValue("sessionTransacted", true);
         return flowElement;
     }
 

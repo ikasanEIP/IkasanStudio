@@ -3,7 +3,7 @@
     <name>IkasanStudio</name>
     <vendor email="davidhilton68@gmail.com" url="http://www.ikasan.org">Ikasan</vendor>
 
-    <description>Ikasan Studio is an IDE tool to help Ikansan developer create and maintain new Ikasan flows.</description>
+    <description>Ikasan Studio is an IDE tool for the Ikasan Enterprise Service Bus</description>
 
     <!-- Product and plugin compatibility requirements -->
     <!-- https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html -->

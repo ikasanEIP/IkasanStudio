@@ -68,15 +68,18 @@
     },
     "port": {
       "propertyName": "port",
-      "helpText": "The http port to be used by the blue console for this module."
+      "helpText": "The http port to be used by the blue console for this module.",
+      "defaultValue": "12450"
     },
     "h2DbPortNumber": {
       "propertyName": "h2DbPortNumber",
-      "helpText": "The port to be used by the embedded H2 database."
+      "helpText": "The port to be used by the embedded H2 database.",
+      "defaultValue": "12451"
     },
     "h2WebPortNumber": {
       "propertyName": "h2WebPortNumber",
-      "helpText": "The port to be used by the embedded H2 database to expose its web interface."
+      "helpText": "The port to be used by the embedded H2 database to expose its web interface.",
+      "defaultValue": "12452"
     }
   }
 }

@@ -88,6 +88,17 @@ public class FlowsComponentFactoryTemplateTest extends GeneratorTests {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedSpringJmsConsumerComponent.java"), templateString);
     }
 
+   /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedBasicAmqSpringJmsConsumerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_BasicAmqSpringJmsConsumerComponent() throws IOException {
+        FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer();
+        String templateString = generateFlowsComponentFactoryTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedBasicAmqSpringJmsConsumerComponent.java"), templateString);
+    }
+
 
     // ------------------------------------- FILTERS -------------------------------------
     /**
@@ -125,6 +136,17 @@ public class FlowsComponentFactoryTemplateTest extends GeneratorTests {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToObjectConverterComponent.java"), templateString);
     }
 
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedObjectMessageToXmlStringConverterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_objectMessageToXmlStringConverterComponent() throws IOException {
+        FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
+        String templateString = generateFlowsComponentFactoryTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java"), templateString);
+    }
+
 
     // ------------------------------------- PRODUCERS -------------------------------------
     /**
@@ -158,6 +180,18 @@ public class FlowsComponentFactoryTemplateTest extends GeneratorTests {
         FlowElement flowElement = TestFixtures.getJmsProducer();
         String templateString = generateFlowsComponentFactoryTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedJmsProducerComponent.java"), templateString);
+    }
+
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedBasicAmqJmsProducerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_basicAmqJmsProducerComponent() throws IOException {
+        FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer();
+        String templateString = generateFlowsComponentFactoryTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedBasicAmqJmsProducerComponent.java"), templateString);
     }
 
     /**

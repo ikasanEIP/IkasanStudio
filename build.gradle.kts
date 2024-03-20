@@ -12,9 +12,7 @@ fun environment(key: String) = providers.environmentVariable(key)
 
 
 plugins {
-
     id("java")  // Java support
-    
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.gradleIntelliJPlugin) // Gradle IntelliJ Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
@@ -35,25 +33,23 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
 
     implementation("org.freemarker:freemarker:2.3.32")
-    implementation("org.ikasan:ikasan-eip-standalone:3.3.3")
-    implementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
-    implementation("org.ikasan:ikasan-h2-standalone-persistence:3.3.3")
+//    implementation("org.ikasan:ikasan-eip-standalone:3.3.3")
+//    implementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
+//    implementation("org.ikasan:ikasan-h2-standalone-persistence:3.3.3")
 
     testImplementation("org.freemarker:freemarker:2.3.32")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
-    testImplementation("org.ikasan:ikasan-eip-standalone:3.3.3")
-    testImplementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
-    testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.3.3")
-    testImplementation("org.ikasan:ikasan-component-converter:3.3.3")
-    testImplementation("org.ikasan:ikasan-test-endpoint:3.3.3")
+//    testImplementation("org.ikasan:ikasan-eip-standalone:3.3.3")
+//    testImplementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
+//    testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.3.3")
+//    testImplementation("org.ikasan:ikasan-component-converter:3.3.3")
+//    testImplementation("org.ikasan:ikasan-test-endpoint:3.3.3")
     testImplementation("org.ikasan:ikasan-test:3.3.3")
     compileOnly ("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     testCompileOnly("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
-
-
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.

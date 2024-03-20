@@ -20,23 +20,22 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 @javax.annotation.Resource
 java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter> myXmlAdapterMap;
 
-public org.ikasan.spec.component.transformation.Converter get() {
-return builderFactory.getComponentBuilder().objectToXmlStringConverter()
-.setRouteOnValidationException(true)
-.setValidate(true)
-.setSchemaLocation("http://foo.com/domain example.xsd")
+public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToXMLStringConverter() {
 .setConfiguration(myConfigurationClass)
-.setObjectClass(String.class)
-.setNamespaceURI("myNamespaceURI")
-.setNoNamespaceSchema(true)
-.setRootClassName("java.lang.String")
-.setObjectClasses({'String.class','String.class'})
-.setUseNamespacePrefix(true)
-.setRootName("myRootName")
-.setFastFailOnConfigurationLoad(true)
-.setNamespacePrefix("myNamespacePrefix")
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
+.setFastFailOnConfigurationLoad(true)
+.setNamespacePrefix(myNamespacePrefix)
+.setNamespaceURI(myNamespaceURI)
+.setNoNamespaceSchema(true)
+.setObjectClasses(class java.lang.String)
+.setObjectClasses({'String.class','String.class'})
+.setRootClassName(java.lang.String)
+.setRootName(myRootName)
+.setRouteOnValidationException(true)
+.setSchema(mySchema)
+.setSchemaLocation(http://foo.com/domain example.xsd)
+.setUseNamespacePrefix(true)
+.setValidate(true)
 .setXmlAdapterMap(myXmlAdapterMap)
-.setSchema("mySchema")
-.build();
+return new org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder();
 }}
