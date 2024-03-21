@@ -1,10 +1,11 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
@@ -12,6 +13,8 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.List;
+
+import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
@@ -40,21 +43,26 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
     /**
-     * This method is invoked when we have checked its OK to process the panel i.e. all items are valid
+     * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
      */
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
+            IKASAN_NOTIFICATION_GROUP
+                .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
             processEditedFlowComponents();
             // @TODO below line needs changing to model context
-//            Context.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(false);
-            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+//            UiContext.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(false);
+            PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3(false);
-            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-            Context.getDesignerCanvas(projectKey).repaint();
+            UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+            UiContext.getDesignerCanvas(projectKey).repaint();
         } else {
-            LOG.info("Data has not changed in Exception Resolution, code will not be updated");
+            IKASAN_NOTIFICATION_GROUP
+                .createNotification("Data has not changed in Exception Resolution, code will not be updated.", NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
         }
     }
 

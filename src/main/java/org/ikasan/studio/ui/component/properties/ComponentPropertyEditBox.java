@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 public class ComponentPropertyEditBox {
     private final JLabel propertyTitleField;
+    private ComboBox<Object> propertyChoiceValueField;
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
@@ -37,7 +39,11 @@ public class ComponentPropertyEditBox {
         }
 
         // @todo we can have all types of components with rich pattern matching validation
-        if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
+        if (meta.getChoices() != null) {
+            propertyChoiceValueField = new ComboBox<>();
+            meta.getChoices().stream()
+                .forEach( choice -> propertyChoiceValueField.addItem(choice));
+        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.propertyValueField = new JFormattedTextField(amountFormat);
@@ -145,9 +151,22 @@ public class ComponentPropertyEditBox {
         }
     }
 
+    /**
+     * UperImplementedClasses are classes that Studio will create the stub for, with the intention that the
+     * user will complete the implementation.
+     * When some properties are set, those values might affect a UserImplementedClass, so we only
+     * enable those fields when the user explicit elects to do so
+     * @param enable any fields that are tagged as affecting user implemented classes.
+     */
     public void controlFieldsAffectingUserImplementedClass(boolean enable) {
         if (affectsUserImplementedClass) {
-            if (propertyValueField != null) {
+            if (propertyChoiceValueField != null) {
+                propertyChoiceValueField.setEnabled(enable);
+                // If the regenerate code is disabled, reset the input boxes
+                if (!enable && propertyValueHasChanged()) {
+                    propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
+                }
+            } else if (propertyValueField != null) {
                 propertyValueField.setEditable(enable);
                 propertyValueField.setEnabled(enable);
                 // If the regenerate code is disabled, reset the input boxes
@@ -173,14 +192,19 @@ public class ComponentPropertyEditBox {
      */
     public String getPropertyKey() { return componentProperty.getMeta().getPropertyName(); }
 
-    public boolean isBooleanProperty() {
-        return propertyBooleanFieldTrue != null;
+    public boolean isChoiceProperty() {
+        return propertyChoiceValueField != null;
+    }
+   public boolean isBooleanProperty() {
+        return propertyChoiceValueField != null;
     }
 
     public ComponentInput getInputField() {
         ComponentInput componentInput = null;
         if (meta.getPropertyDataType() == null && meta.getUsageDataType() == null) {
             ; // there is no value to enter, just a label to display
+        } else if (isChoiceProperty()) {
+            componentInput = new ComponentInput(propertyChoiceValueField);
         } else if (isBooleanProperty()) {
             componentInput = new ComponentInput(propertyBooleanFieldTrue, propertyBooleanFieldFalse);
         } else {
@@ -195,7 +219,9 @@ public class ComponentPropertyEditBox {
      */
     public Object getValue() {
         Object returnValue = null;
-        if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+        if (isChoiceProperty()) {
+            propertyChoiceValueField.getSelectedItem();
+        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // It is possible neither are current selected i.e. the property is unset
             if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {
                 returnValue = true;

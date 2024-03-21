@@ -1,14 +1,16 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.Context;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
@@ -18,6 +20,9 @@ import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
+import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
@@ -52,8 +57,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         // If the user has selected the checkbox, that indicates they wish to force a re-write
 
         if (userImplementedComponentOverwriteCheckBox == null) {
-            LOG.warn("Call to doOKAction but userImplementedComponentOverwriteCheckBox was null");
+            IKASAN_NOTIFICATION_GROUP
+                .createNotification("Update is not allowed unless overwrite box is ticked.", NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
         } else if (dataHasChanged()) {
+            IKASAN_NOTIFICATION_GROUP
+                .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
             processEditedFlowComponents();
             // This will force a regeneration of the component
             if (userImplementedComponentOverwriteCheckBox.isSelected()) {
@@ -61,14 +71,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                     ((FlowUserImplementedElement)getSelectedComponent()).setOverwriteEnabled(true);
                 }
             }
-            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3(false);
-            Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-            Context.getDesignerCanvas(projectKey).repaint();
+            UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+            UiContext.getDesignerCanvas(projectKey).repaint();
             disablePermissionToOverwriteUserImplementedClass();
         } else {
-            LOG.info("Data hasn't changed, ignoring OK action");
+            IKASAN_NOTIFICATION_GROUP
+                .createNotification("Data hasn't changed, ignoring OK action.", NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
         }
     }
 
@@ -115,11 +127,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             int mandatoryTabley = 0;
             int regenerateTabley = 0;
             int optionalTabley = 0;
+            if (getSelectedComponent().getComponentMeta().isModule()) {
+                // Always refresh the list of choosable metapacks
+                getSelectedComponent().getComponentMeta().getProperties().get(VERSION).setChoices(IkasanComponentLibrary.getMetapackList());
+            }
+
             if (getSelectedComponent().getProperty(ComponentPropertyMeta.NAME) != null) {
                 componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
                         getSelectedComponent().getProperty(ComponentPropertyMeta.NAME), gc, mandatoryTabley++));
             }
             if (!getSelectedComponent().getComponentMeta().getProperties().isEmpty()) {
+                if (!componentInitialisation && getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass()) {
+                    addOverrideCheckBoxToPropertiesEditPanel(regeneratingPropertiesEditorPanel, gc, regenerateTabley++);
+                }
                 for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getProperties().entrySet()) {
                     String key = entry.getKey();
                     if (!key.equals(ComponentPropertyMeta.NAME)) {
@@ -143,9 +163,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                         }
                     }
                 }
-                if (!componentInitialisation && getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass()) {
-                    addOverrideCheckBoxToPropertiesEditPanel(regeneratingPropertiesEditorPanel, gc, regenerateTabley++);
-                }
             }
 
             GridBagConstraints gc1 = new GridBagConstraints();
@@ -160,7 +177,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             }
 
             if (regenerateTabley > 0) {
-                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "Code Regenerating Properties", JBColor.ORANGE, gc1);
+                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "User Code Regenerating Properties", JBColor.ORANGE, gc1);
             }
 
             if (optionalTabley > 0) {
@@ -211,11 +228,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      * @param tabley is used to convey the row number
      */
     private void addOverrideCheckBoxToPropertiesEditPanel(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley) {
-        JLabel overrideLabel = new JLabel("Regenerate User Implemented Stubs");
+        JLabel overrideLabel = new JLabel("Allow Update");
+        overrideLabel.setFont(new Font(overrideLabel.getFont().getName(), Font.BOLD, overrideLabel.getFont().getSize()));
         overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this user implemented class");
         userImplementedComponentOverwriteCheckBox = new JCheckBox();
-        userImplementedComponentOverwriteCheckBox.addItemListener(ie -> controlFieldsThatAffectUserImplementedClass(ie.getStateChange() == ItemEvent.SELECTED)
-        );
+        userImplementedComponentOverwriteCheckBox.addItemListener(
+            ie -> controlFieldsThatAffectUserImplementedClass(ie.getStateChange() == ItemEvent.SELECTED));
         userImplementedComponentOverwriteCheckBox.setBackground(JBColor.WHITE);
         addLabelAndSimpleInput(propertiesEditorPanel, gc, tabley, overrideLabel, userImplementedComponentOverwriteCheckBox);
     }

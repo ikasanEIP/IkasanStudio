@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 public class IkasanComponentLibrary {
     private static final String RESOURCE_BASE_BASE_DIR = "studio/";
     private static final String METAPACK_BASE_BASE_DIR = "studio/metapack/";
-    private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR +"icons/";
-    private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR +"unknown/";
+    private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR + "icons/";
+    private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
     public static final String STD_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
 
     private static final String SMALL_ICON_NAME = "small.png";
@@ -37,6 +37,7 @@ public class IkasanComponentLibrary {
      * Refresh the component library.
      * By making this protected, we intend to limit that only the test can state an alternate root
      * At some point we may need to key this by project or version since all open projects will share this.
+     *
      * @param ikasanMetaDataPackVersion to search for components
      */
     public static Map<String, ComponentMeta> refreshComponentLibrary(final String ikasanMetaDataPackVersion) {
@@ -67,13 +68,13 @@ public class IkasanComponentLibrary {
      * Refresh the component library.
      * By making this protected, we intend to limit that only the test can state an alternate root
      * At some point we may need to key this by project or version since all open projects will share this.
+     *
      * @param ikasanMetaDataPackVersion to search for components
      */
     public static Map<String, ComponentMeta> loadMetapack(final String ikasanMetaDataPackVersion) {
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
         returnedIkasanComponentMetaMapByKey = new HashMap<>();
 
-//        String baseDirectory = METAPACK_BASE_BASE_DIR + ikasanMetaDataPackVersion + File.separator + "library";
         String baseDirectory = METAPACK_BASE_BASE_DIR + ikasanMetaDataPackVersion + "/library";
         // The structure of the Meta-Pack directory is
         // 1:  'Category'/'typpe-meta'
@@ -131,6 +132,18 @@ public class IkasanComponentLibrary {
                     mandatoryComponents + " so will be ignored");
         }
         return returnedIkasanComponentMetaMapByKey;
+    }
+
+    /**
+     * List all metapack installed.
+     */
+    public static List<String> getMetapackList() {
+        String[] directroies = getSubdirectories(METAPACK_BASE_BASE_DIR);
+        if (directroies != null) {
+            return Arrays.asList(directroies);
+        } else {
+            return Collections.EMPTY_LIST;
+        }
     }
 
     private static String[] getSubdirectories(String baseDirectory) {

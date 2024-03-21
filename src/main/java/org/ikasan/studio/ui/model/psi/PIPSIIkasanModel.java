@@ -12,7 +12,7 @@ import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import java.util.Set;
@@ -41,7 +41,7 @@ public class PIPSIIkasanModel {
     }
 
     protected Project getProject() {
-        return Context.getProject(projectKey);
+        return UiContext.getProject(projectKey);
     }
 
 
@@ -51,9 +51,9 @@ public class PIPSIIkasanModel {
      */
     public void generateSourceFromModelInstance3(Boolean checkForJarChanges) {
         Boolean dependenciesHaveChanged = false;
-        Project project = Context.getProject(projectKey);
-        Module module = Context.getIkasanModule(project.getName());
-        IkasanPomModel ikasanPomModel = Context.getIkasanPomModel(projectKey);
+        Project project = UiContext.getProject(projectKey);
+        Module module = UiContext.getIkasanModule(project.getName());
+        IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);
         if (!ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies())) {
             dependenciesHaveChanged = true;
         }
@@ -65,13 +65,13 @@ public class PIPSIIkasanModel {
      * @param dependenciesHaveChanged Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
      */
     public void generateSourceFromModelInstance2(Boolean dependenciesHaveChanged) {
-        Project project = Context.getProject(projectKey);
-        Module module = Context.getIkasanModule(project.getName());
+        Project project = UiContext.getProject(projectKey);
+        Module module = UiContext.getIkasanModule(project.getName());
         CommandProcessor.getInstance().executeCommand(
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
-                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + Context.getIkasanModule(projectKey));
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + UiContext.getIkasanModule(projectKey));
                             if (dependenciesHaveChanged) {
                                 // We have checked the in-memory model, below will also verify from the on-disk model.
                                 StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, module.getAllUniqueSortedJarDependencies());
@@ -91,8 +91,8 @@ public class PIPSIIkasanModel {
                     LOG.info("ApplicationManager.getApplication().runReadAction");
                     // reloadProject needed to re-read POM, must not be done till addDependancies
                     // fully complete, hence in next executeCommand block
-                    if (dependenciesHaveChanged && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
-//                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+                    if (dependenciesHaveChanged && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+//                    if (newDependencies != null && !newDependencies.isEmpty() && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
                     }
                     LOG.info("End ApplicationManager.getApplication().runReadAction");
@@ -103,15 +103,15 @@ public class PIPSIIkasanModel {
      * An update has been made to the diagram, so we need to reverse this into the code.
      */
     public void generateSourceFromModelInstance(Set<Dependency> newDependencies) {
-        Project project = Context.getProject(projectKey);
+        Project project = UiContext.getProject(projectKey);
         CommandProcessor.getInstance().executeCommand(
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
-                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + Context.getIkasanModule(projectKey));
+                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + UiContext.getIkasanModule(projectKey));
                             StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, newDependencies);
                             //@todo start making below conditional on state changed.
-                            Module module = Context.getIkasanModule(project.getName());
+                            Module module = UiContext.getIkasanModule(project.getName());
                             saveApplication(project, module);
                             saveFlow(project, module);
                             saveModuleConfig(project, module);
@@ -126,7 +126,7 @@ public class PIPSIIkasanModel {
                     LOG.info("ApplicationManager.getApplication().runReadAction");
                     // reloadProject needed to re-read POM, must not be done till addDependancies
                     // fully complete, hence in next executeCommand block
-                    if (newDependencies != null && !newDependencies.isEmpty() && Context.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+                    if (newDependencies != null && !newDependencies.isEmpty() && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
                     }
                     LOG.info("End ApplicationManager.getApplication().runReadAction");
@@ -134,16 +134,16 @@ public class PIPSIIkasanModel {
     }
 
     public void generateJsonFromModelInstance() {
-        Project project = Context.getProject(projectKey);
+        Project project = UiContext.getProject(projectKey);
         CommandProcessor.getInstance().executeCommand(
                 project,
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
                             LOG.info("Start ApplicationManager.getApplication().runWriteAction - json from model");
-                            String templateString = ModelTemplate.create(Context.getIkasanModule(project.getName()));
+                            String templateString = ModelTemplate.create(UiContext.getIkasanModule(project.getName()));
                             createJsonModelFile(project, templateString);
                             LOG.info("End ApplicationManager.getApplication().runWriteAction - json from model");
-                            LOG.info("model now" + Context.getIkasanModule(projectKey));
+                            LOG.info("model now" + UiContext.getIkasanModule(projectKey));
                         }),
                 "Generate JSON from Flow Diagram",
                 "Undo group ID");

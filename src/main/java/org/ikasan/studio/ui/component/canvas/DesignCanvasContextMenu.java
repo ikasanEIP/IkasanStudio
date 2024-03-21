@@ -68,7 +68,7 @@ public class DesignCanvasContextMenu {
 
     private static JMenuItem createLaunchDashboardMenuItem(String projectKey, String label) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new LaunchDashboardAction(projectKey));
+        item.addActionListener(new LaunchBlueAction(projectKey));
         return item;
     }
 

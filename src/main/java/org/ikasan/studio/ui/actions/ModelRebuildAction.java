@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -20,14 +20,14 @@ public class ModelRebuildAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       // @TODO MODEL
-      PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+      PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
       pipsiIkasanModel.generateSourceFromModelInstance3(false);
       StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
 
-      Module module = Context.getIkasanModule(projectKey);
+      Module module = UiContext.getIkasanModule(projectKey);
       LOG.info("ikasan module was " + ComponentIO.toJson(module));
 
-      Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-      Context.getDesignerCanvas(projectKey).repaint();
+      UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+      UiContext.getDesignerCanvas(projectKey).repaint();
    }
 }

@@ -26,6 +26,11 @@
 <!--                  topic="com.intellij.openapi.application.ApplicationActivationListener"/>-->
 <!--    </applicationListeners>-->
 
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="Ikasan Studio" displayType="BALLOON"/>
+<!--        <postStartupActivity implementation="com.github.cameltooling.idea.CamelPluginStartup"/>-->
+    </extensions>
+
     <actions>
         <action id="Studio.Search.Editor"
                 class="org.ikasan.studio.ui.actions.StudioMaintenanceDebug"

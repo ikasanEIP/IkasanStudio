@@ -43,13 +43,13 @@ public class StudioUIUtils {
     }
 
     public static void displayErrorMessage(String projectKey, String message) {
-        JTextArea canvasTextArea = Context.getCanvasTextArea(projectKey);
+        JTextArea canvasTextArea = UiContext.getCanvasTextArea(projectKey);
         canvasTextArea.setForeground(JBColor.RED);
         canvasTextArea.setText(message);
     }
 
     public static void displayMessage(String projectKey, String message) {
-        JTextArea canvasTextArea = Context.getCanvasTextArea(projectKey);
+        JTextArea canvasTextArea = UiContext.getCanvasTextArea(projectKey);
         canvasTextArea.setForeground(JBColor.BLACK);
         canvasTextArea.setText(message);
     }

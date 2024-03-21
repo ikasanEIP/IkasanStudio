@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
@@ -15,21 +15,21 @@ public class CanvasPanel extends JPanel {
         JTextArea canvasTextArea = new JTextArea();
 
         DesignerCanvas canvasPanel = new DesignerCanvas(projectKey);
-        Context.setDesignerCanvas(projectKey, canvasPanel);
+        UiContext.setDesignerCanvas(projectKey, canvasPanel);
 
         JPanel canvasHeaderButtonPanel = new JPanel();
 
-        addButtonsToPanel(canvasHeaderButtonPanel, "Blue", new LaunchDashboardAction(projectKey));
-        addButtonsToPanel(canvasHeaderButtonPanel, "H2", new LaunchH2Action(projectKey));
-        addButtonsToPanel(canvasHeaderButtonPanel, "Refresh", new ModelRefreshAction(projectKey));
-        addButtonsToPanel(canvasHeaderButtonPanel, "Rebuild", new ModelRebuildAction(projectKey));
-        addButtonsToPanel(canvasHeaderButtonPanel, "Save", new SaveAction(projectKey));
-        addButtonsToPanel(canvasHeaderButtonPanel, "Debug", new DebugAction(projectKey));
+        addButtonsToPanel(canvasHeaderButtonPanel, "Blue", new LaunchBlueAction(projectKey), "Start the blue consolein a browser");
+        addButtonsToPanel(canvasHeaderButtonPanel, "H2", new LaunchH2Action(projectKey), "Start the H2 console in a browser");
+        addButtonsToPanel(canvasHeaderButtonPanel, "Refresh", new ModelRefreshAction(projectKey), "Refresh the in memory module definition from the JSON");
+        addButtonsToPanel(canvasHeaderButtonPanel, "Rebuild", new ModelRebuildAction(projectKey), "Rebuild the code from the in memory module definition");
+        addButtonsToPanel(canvasHeaderButtonPanel, "Save", new SaveAction(projectKey), "Save the module drawing as an image file");
+        addButtonsToPanel(canvasHeaderButtonPanel, "Debug", new DebugAction(projectKey), "Dump information to log files");
 
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
         gridCheckBox.addItemListener(e -> {
-            DesignerCanvas designerCanvas = Context.getDesignerCanvas(projectKey);
+            DesignerCanvas designerCanvas = UiContext.getDesignerCanvas(projectKey);
             designerCanvas.setDrawGrid(e.getStateChange() == ItemEvent.SELECTED);
             designerCanvas.repaint();
         });
@@ -40,7 +40,7 @@ public class CanvasPanel extends JPanel {
         canvasHeaderPanel.add(canvasHeaderTitlePanel);
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
         canvasHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
-        Context.setCanvasTextArea(projectKey, canvasTextArea);
+        UiContext.setCanvasTextArea(projectKey, canvasTextArea);
         canvasTextArea.setLineWrap(true);
 
         setLayout(new BorderLayout());
@@ -48,9 +48,10 @@ public class CanvasPanel extends JPanel {
         add(canvasPanel, BorderLayout.CENTER);
     }
 
-    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al) {
+    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al, String tooltip) {
         JButton newButton = new JButton(title);
         newButton.addActionListener(al);
+        newButton.setToolTipText(tooltip);
         canvasHeaderButtonPanel.add(newButton);
     }
 }

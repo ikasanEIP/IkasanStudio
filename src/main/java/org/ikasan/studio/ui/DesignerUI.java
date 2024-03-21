@@ -15,7 +15,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Create all onscreen components and register inter-thread communication components with Context
+ * Create all onscreen components and register inter-thread communication components with UiContext
  */
 public class DesignerUI {
     private final String projectKey;
@@ -30,24 +30,24 @@ public class DesignerUI {
     public DesignerUI(ToolWindow toolWindow, Project project) {
         this.project = project;
         this.projectKey = project.getName();
-        Context.setProject(projectKey, project);
-        if (Context.getIkasanModule(projectKey) == null) {
+        UiContext.setProject(projectKey, project);
+        if (UiContext.getIkasanModule(projectKey) == null) {
             // This will serve as a dummy till the File system load completes.
-            Context.setIkasanModule(projectKey, new Module());
+            UiContext.setIkasanModule(projectKey, new Module());
         }
-        if (Context.getPipsiIkasanModel(projectKey) == null) {
-            Context.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
+        if (UiContext.getPipsiIkasanModel(projectKey) == null) {
+            UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
 
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
-        Context.setPropertiesPanel(projectKey, componentPropertiesPanel);
+        UiContext.setPropertiesPanel(projectKey, componentPropertiesPanel);
 
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 componentPropertiesPanel,
                 new CanvasPanel(projectKey));
         propertiesAndCanvasSplitPane.setDividerSize(3);
         propertiesAndCanvasSplitPane.setDividerLocation(0.4);
-        Context.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);
+        UiContext.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);
 
         mainJPanel.setLayout(new BorderLayout());
         mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
@@ -65,7 +65,7 @@ public class DesignerUI {
     public void initialiseIkasanModel() {
         DumbService dumbService = DumbService.getInstance(project);
         dumbService.runWhenSmart(() -> {
-            DesignerCanvas canvasPanel = Context.getDesignerCanvas(projectKey);
+            DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
                 // @TODO MODEL
                 StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
