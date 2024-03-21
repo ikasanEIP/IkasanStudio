@@ -24,5 +24,4 @@ public enum BuildContext {
     public static Configuration getFeemarkerConfig() {
         return INSTANCE.freemarkerConfiguration;
     }
-
 }

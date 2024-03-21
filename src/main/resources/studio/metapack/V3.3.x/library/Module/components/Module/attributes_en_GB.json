@@ -2,6 +2,7 @@
   "name": "Module",
   "helpText": "The module is the container for all flows",
   "componentType": "org.ikasan.spec.module.Module",
+  "generatesUserImplementedClass": true,
   "implementingClass": "",
   "ikasanComponentFactoryMethod": "",
   "usesBuilder" : true,
@@ -50,10 +51,13 @@
   "properties": {
     "version": {
       "propertyName": "version",
+      "choices": [ "V1.3.x" ],
+      "affectsUserImplementedClass": true,
       "helpText": "The ikasan version used to build this module."
     },
     "name": {
       "propertyName": "name",
+      "affectsUserImplementedClass": true,
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
       "mandatory": true
     },
@@ -63,23 +67,27 @@
     },
     "applicationPackageName": {
       "propertyName": "applicationPackageName",
+      "affectsUserImplementedClass": true,
       "helpText": "The java package name for the new module.",
       "mandatory": true
     },
     "port": {
       "propertyName": "port",
       "helpText": "The http port to be used by the blue console for this module.",
-      "defaultValue": "12450"
+      "defaultValue": "12450",
+      "mandatory": true
     },
     "h2DbPortNumber": {
       "propertyName": "h2DbPortNumber",
       "helpText": "The port to be used by the embedded H2 database.",
-      "defaultValue": "12451"
+      "defaultValue": "12451",
+      "mandatory": true
     },
     "h2WebPortNumber": {
       "propertyName": "h2WebPortNumber",
       "helpText": "The port to be used by the embedded H2 database to expose its web interface.",
-      "defaultValue": "12452"
+      "defaultValue": "12452",
+      "mandatory": true
     }
   }
 }

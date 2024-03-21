@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 
@@ -18,7 +18,7 @@ public class DebugAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        Module module = Context.getIkasanModule(projectKey);
+        Module module = UiContext.getIkasanModule(projectKey);
         LOG.info("ikasan module was " + ComponentIO.toJson(module));
     }
 }

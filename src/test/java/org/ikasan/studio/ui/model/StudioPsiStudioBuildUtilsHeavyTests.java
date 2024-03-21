@@ -17,7 +17,7 @@ import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -75,8 +75,8 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
 
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
         IkasanPomModel ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(myProject) ;
-        Context.setProject(testProjectKey, myProject);
-        Context.setIkasanPomModel(testProjectKey, ikasanPomModel);
+        UiContext.setProject(testProjectKey, myProject);
+        UiContext.setIkasanPomModel(testProjectKey, ikasanPomModel);
 
         Dependency dependency = new Dependency();
         dependency.setType("jar");

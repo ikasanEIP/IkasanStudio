@@ -8,7 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -25,14 +25,14 @@ public class Navigator {
         VirtualFile virtualFile = containingFile.getVirtualFile ();
         if (virtualFile != null)
         {
-            FileEditorManager manager = FileEditorManager.getInstance (Context.getProject(projectKey));
+            FileEditorManager manager = FileEditorManager.getInstance (UiContext.getProject(projectKey));
             FileEditor[] fileEditors = manager.openFile (virtualFile, true);
             if (fileEditors.length > 0)
             {
                 FileEditor fileEditor = fileEditors [0];
                 if (fileEditor instanceof NavigatableFileEditor navigatableFileEditor)
                 {
-                    Navigatable descriptor = new OpenFileDescriptor (Context.getProject(projectKey), virtualFile, classToNavigateTo.getTextOffset ());
+                    Navigatable descriptor = new OpenFileDescriptor (UiContext.getProject(projectKey), virtualFile, classToNavigateTo.getTextOffset ());
                     navigatableFileEditor.navigateTo (descriptor);
                 }
             }
@@ -50,14 +50,14 @@ public class Navigator {
         VirtualFile virtualFile = containingFile.getVirtualFile ();
         if (virtualFile != null)
         {
-            FileEditorManager manager = FileEditorManager.getInstance (Context.getProject(projectKey));
+            FileEditorManager manager = FileEditorManager.getInstance (UiContext.getProject(projectKey));
             FileEditor[] fileEditors = manager.openFile (virtualFile, true);
             if (fileEditors.length > 0)
             {
                 FileEditor fileEditor = fileEditors [0];
                 if (fileEditor instanceof NavigatableFileEditor navigatableFileEditor)
                 {
-                    Navigatable descriptor = new OpenFileDescriptor (Context.getProject(projectKey), virtualFile, offset);
+                    Navigatable descriptor = new OpenFileDescriptor (UiContext.getProject(projectKey), virtualFile, offset);
                     navigatableFileEditor.navigateTo (descriptor);
                 }
             }

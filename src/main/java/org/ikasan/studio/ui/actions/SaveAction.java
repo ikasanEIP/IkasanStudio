@@ -8,7 +8,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,7 +29,7 @@ public class SaveAction implements ActionListener {
       FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as Image", "Choose the destination to save the image", extensions);
       FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
 
-      String moduleName = Context.getIkasanModule(projectKey).getComponentName();
+      String moduleName = UiContext.getIkasanModule(projectKey).getComponentName();
       String imageFileName = "ModuleDiagram-" + moduleName + (isMacNativeSaveDialog ? ".png" : "");
       VirtualFileWrapper vf = dialog.save(imageFileName);
 
@@ -44,9 +44,9 @@ public class SaveAction implements ActionListener {
       }
 // SVG has temporary compatibility problems with Intellij Verify.
 //      if ("svg".equals(imageFormat)) {
-//         Context.getDesignerCanvas(projectKey).saveAsSvg(file, transparentBackground);
+//         UiContext.getDesignerCanvas(projectKey).saveAsSvg(file, transparentBackground);
 //      } else {
-         Context.getDesignerCanvas(projectKey).saveAsImage(file, imageFormat, transparentBackground);
+         UiContext.getDesignerCanvas(projectKey).saveAsImage(file, imageFormat, transparentBackground);
 //      }
    }
 }

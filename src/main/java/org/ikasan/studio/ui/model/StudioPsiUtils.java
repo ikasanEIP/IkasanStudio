@@ -20,10 +20,9 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -56,7 +55,7 @@ public class StudioPsiUtils {
                     MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
                     model = xpp3Reader.read(reader);
                     ikasanPomModel = new IkasanPomModel(model);
-                    Context.setIkasanPomModel(project.getName(), ikasanPomModel);
+                    UiContext.setIkasanPomModel(project.getName(), ikasanPomModel);
                 } catch (IOException | XmlPullParserException ex) {
                     LOG.warn("Unable to load project ikasanPomModel", ex);
                 }
@@ -66,11 +65,11 @@ public class StudioPsiUtils {
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
     public static void generateModelInstanceFromJSON(String projectKey, boolean assumeModuleConfigClass) {
-        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(Context.getProject(projectKey));
+        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(UiContext.getProject(projectKey));
         if (jsonModelPsiFile != null) {
             String json = jsonModelPsiFile.getText();
-            Module newModule = ModelUtils.generateModuleInstanceFromString(json, Context.JSON_MODEL_FULL_PATH);
-            Context.setIkasanModule(projectKey, newModule);
+            Module newModule = ModelUtils.generateModuleInstanceFromString(json, UiContext.JSON_MODEL_FULL_PATH);
+            UiContext.setIkasanModule(projectKey, newModule);
         } else {
             LOG.warn("Could not read the model.json");
         }
@@ -85,7 +84,7 @@ public class StudioPsiUtils {
     public static void checkForDependencyChangesAndSaveIfChanged(String projectKey, Set<Dependency> newDependencies) {
         IkasanPomModel ikasanPomModel;
         if (newDependencies != null && !newDependencies.isEmpty()) {
-            Project project = Context.getProject(projectKey);
+            Project project = UiContext.getProject(projectKey);
             ikasanPomModel = pomLoadFromVirtualDisk(project); // Have to load each time because might have been independently updated.
 
             if (ikasanPomModel != null) {
@@ -106,9 +105,9 @@ public class StudioPsiUtils {
      * @param projectKey for the project being worked on
      */
     public static boolean haveJarDependenciesChanged(String projectKey) {
-        Project project = Context.getProject(projectKey);
-        Module module = Context.getIkasanModule(project.getName());
-        IkasanPomModel ikasanPomModel = Context.getIkasanPomModel(projectKey);
+        Project project = UiContext.getProject(projectKey);
+        Module module = UiContext.getIkasanModule(project.getName());
+        IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);
         return !ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies());
     }
 
@@ -140,7 +139,7 @@ public class StudioPsiUtils {
             currentPomPsiFile.delete();
         }
 
-        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(Context.XML_FILE_EXTENSION), pomAsString);
+        XmlFile newPomFile = (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(fileName, FileTypeManager.getInstance().getFileTypeByExtension(UiContext.XML_FILE_EXTENSION), pomAsString);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         newPomFile = (XmlFile)containingDirectory.add(newPomFile);
         CodeStyleManager.getInstance(project).reformat(newPomFile);
@@ -167,7 +166,7 @@ public class StudioPsiUtils {
         PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
 //        @NotNull com.intellij.openapi.module.Module[] module = ModuleManager.getInstance(project).getModules();
 //        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createOrGetDirectory(project.getBaseDir());
-        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION), text);
+        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(UiContext.JAVA_FILE_EXTENSION), text);
     }
 
     private static void standardJavaFormatting(final Project project, final PsiFile psiFile) {
@@ -191,7 +190,7 @@ public class StudioPsiUtils {
 
         PsiJavaFile newPsiFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(
                 fileName,
-                FileTypeManager.getInstance().getFileTypeByExtension(Context.JAVA_FILE_EXTENSION),
+                FileTypeManager.getInstance().getFileTypeByExtension(UiContext.JAVA_FILE_EXTENSION),
                 content);
         // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
         standardJavaFormatting(project, newPsiFile);
@@ -209,8 +208,8 @@ public class StudioPsiUtils {
     }
 
     public static PsiFile createJsonModelFile(final Project project, final String content) {
-        return createFile(project, Context.JSON_MODEL_PARENT_DIR, Context.JSON_MODEL_SUB_DIR,
-                Context.JSON_MODEL_FILE_WITH_EXTENSION, content, false);
+        return createFile(project, UiContext.JSON_MODEL_PARENT_DIR, UiContext.JSON_MODEL_SUB_DIR,
+                UiContext.JSON_MODEL_FILE_WITH_EXTENSION, content, false);
     }
 
     public static PsiFile createResourceFile(final Project project, final String subDir, final  String fileNameWithExtension, final String content, boolean focus) {
@@ -280,11 +279,11 @@ public class StudioPsiUtils {
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         // @TODO MODEL
-        PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+        PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateJsonFromModelInstance();
         pipsiIkasanModel.generateSourceFromModelInstance3(false);
-        Context.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-        Context.getDesignerCanvas(projectKey).repaint();
+        UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
+        UiContext.getDesignerCanvas(projectKey).repaint();
     }
 
     public static void getAllSourceRootsForProject(Project project) {
@@ -323,7 +322,7 @@ public class StudioPsiUtils {
             LOG.warn("Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
         } else {
             VirtualFile contentRoot = contentRootVFiles[0];
-            jsonModel = getFileFromPath(project, contentRootVFiles[0], "src/" + Context.JSON_MODEL_FULL_PATH);
+            jsonModel = getFileFromPath(project, contentRootVFiles[0], "src/" + UiContext.JSON_MODEL_FULL_PATH);
         }
         return jsonModel;
     }

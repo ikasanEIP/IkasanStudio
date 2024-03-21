@@ -1,13 +1,16 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
@@ -61,10 +64,13 @@ public class ExceptionResolverEditBox {
         ExceptionResolution newResolution = new ExceptionResolution(exceptionResolver);
         exceptionResolutionPanel.updateTargetComponent(newResolution);
         PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-                Context.getProject(projectKey),
-                Context.getDesignerCanvas(projectKey),
+                UiContext.getProject(projectKey),
+                UiContext.getDesignerCanvas(projectKey),
                 exceptionResolutionPanel);
         if (propertiesDialogue.showAndGet()) {
+            IKASAN_NOTIFICATION_GROUP
+                .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
             exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
             hasChanged = true;
             resolverPanel.populatePropertiesEditorPanel();

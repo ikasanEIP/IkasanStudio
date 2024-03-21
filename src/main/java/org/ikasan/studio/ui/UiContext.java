@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
@@ -13,16 +15,16 @@ import javax.swing.*;
 import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.TreeMap;
 
 /**
- * The Context allows all the independent parts of the UI to collaborate with each other.
- * Anything can be placed in the Context, some things are so important that they will have their own getters
+ * The UiContext allows all the independent parts of the UI to collaborate with each other.
+ * Anything can be placed in the UiContext, some things are so important that they will have their own getters
  * just for convenience.
  */
-public enum Context {
+public enum UiContext {
     INSTANCE;
+    public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio");
     public static final String JAVA_FILE_EXTENSION = "java";
     public static final String JSON_FILE_EXTENSION = "json";
     public static final String XML_FILE_EXTENSION = "xml";
@@ -93,13 +95,13 @@ public enum Context {
         putProjectCache(projectKey, PROJECT, project);
     }
 
-    public static void setApplicationProperties(String projectKey, Properties properties) {
-        putProjectCache(projectKey, APPLICATION_PROPERTIES, properties);
-    }
-
-    public static Properties getApplicationProperties(String projectKey) {
-        return (Properties) getProjectCache(projectKey, APPLICATION_PROPERTIES);
-    }
+//    public static void setApplicationProperties(String projectKey, Properties properties) {
+//        putProjectCache(projectKey, APPLICATION_PROPERTIES, properties);
+//    }
+//
+//    public static Properties getApplicationProperties(String projectKey) {
+//        return (Properties) getProjectCache(projectKey, APPLICATION_PROPERTIES);
+//    }
 
     public static void setDesignerCanvas(String projectKey, DesignerCanvas designerCanvas) {
         putProjectCache(projectKey, CANVAS_PANEL, designerCanvas);

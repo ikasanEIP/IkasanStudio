@@ -8,7 +8,7 @@ import org.ikasan.studio.Pair;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
@@ -44,7 +44,7 @@ public class DesignerCanvas extends JPanel {
 
     public DesignerCanvas(String projectKey) {
         this.projectKey = projectKey;
-//        ikasanModule = Context.getIkasanModule(projectKey);
+//        ikasanModule = UiContext.getIkasanModule(projectKey);
         setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         setBackground(JBColor.WHITE);
         addMouseListener(new MouseAdapter() {
@@ -68,7 +68,7 @@ public class DesignerCanvas extends JPanel {
                 mouseDragAction(e.getX(),e.getY());
             }
         });
-        if (Context.getOptions(projectKey).isHintsEnabled()) {
+        if (UiContext.getOptions(projectKey).isHintsEnabled()) {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
@@ -86,11 +86,11 @@ public class DesignerCanvas extends JPanel {
 //                componentPropertiesPanel.updateTargetComponent(ikasanModule);
                 componentPropertiesPanel.updateTargetComponent(getIkasanModule());
                 PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-                        Context.getProject(projectKey),
-                        Context.getDesignerCanvas(projectKey),
+                        UiContext.getProject(projectKey),
+                        UiContext.getDesignerCanvas(projectKey),
                         componentPropertiesPanel);
                 if (propertiesDialogue.showAndGet()) {
-                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                    PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
 //                    pipsiIkasanModel.generateSourceFromModelInstance(ikasanModule.getComponentMeta().getJarDependencies());
                     pipsiIkasanModel.generateSourceFromModelInstance3(true);
@@ -154,17 +154,17 @@ public class DesignerCanvas extends JPanel {
                 ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
                 exceptionResolverPanel.updateTargetComponent(mouseSelectedComponent);
                 PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-                        Context.getProject(projectKey),
-                        Context.getDesignerCanvas(projectKey),
+                        UiContext.getProject(projectKey),
+                        UiContext.getDesignerCanvas(projectKey),
                         exceptionResolverPanel);
                 if (propertiesDialogue.showAndGet()) {
                     //@TODO MODEL
-                    PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+                    PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
                     pipsiIkasanModel.generateSourceFromModelInstance3(true);
                 }
             } else {
-                Context.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
+                UiContext.getPropertiesPanel(projectKey).updateTargetComponent(mouseSelectedComponent);
             }
         }
     }
@@ -485,7 +485,7 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-            PIPSIIkasanModel pipsiIkasanModel = Context.getPipsiIkasanModel(projectKey);
+            PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3(true);
             StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
@@ -523,8 +523,8 @@ public class DesignerCanvas extends JPanel {
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
             componentPropertiesPanel.updateTargetComponent(newComponent);
             PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-                    Context.getProject(projectKey),
-                    Context.getDesignerCanvas(projectKey),
+                    UiContext.getProject(projectKey),
+                    UiContext.getDesignerCanvas(projectKey),
                     componentPropertiesPanel);
             if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
@@ -545,8 +545,8 @@ public class DesignerCanvas extends JPanel {
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
             exceptionResolverPanel.updateTargetComponent(newComponent);
             PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-                    Context.getProject(projectKey),
-                    Context.getDesignerCanvas(projectKey),
+                    UiContext.getProject(projectKey),
+                    UiContext.getDesignerCanvas(projectKey),
                     exceptionResolverPanel);
             if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
@@ -645,6 +645,6 @@ public class DesignerCanvas extends JPanel {
     }
 
     public Module getIkasanModule() {
-        return Context.getIkasanModule(projectKey);
+        return UiContext.getIkasanModule(projectKey);
     }
 }

@@ -3,7 +3,7 @@ package org.ikasan.studio.ui.actions;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
-import org.ikasan.studio.ui.Context;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentAbstractViewHandler;
@@ -37,7 +37,7 @@ public class PopupHelpAction  implements ActionListener {
          JComponent helpPanel = new JPanel(new BorderLayout());
          helpPanel.add(jTextArea, BorderLayout.CENTER);
 
-         DesignerCanvas designerCanvas = Context.getDesignerCanvas(projectKey);
+         DesignerCanvas designerCanvas = UiContext.getDesignerCanvas(projectKey);
          int minWidth = Math.max(designerCanvas.getWidth() > 0 ? designerCanvas.getWidth() / 3 : 200, 200);
          int minHeight = Math.max(designerCanvas.getHeight() > 0 ? designerCanvas.getHeight() / 5 : 200, 200);
 

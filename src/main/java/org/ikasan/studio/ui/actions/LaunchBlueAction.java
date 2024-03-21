@@ -11,26 +11,28 @@ import java.awt.event.ActionListener;
 
 import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
-public class LaunchH2Action implements ActionListener {
-   private static final Logger LOG = Logger.getInstance("#LaunchH2Action");
+public class LaunchBlueAction implements ActionListener {
+   private static final Logger LOG = Logger.getInstance("#LaunchBlueAction");
    private final String projectKey;
-   public LaunchH2Action(String projectKey) {
+
+   public LaunchBlueAction(String projectKey) {
    this.projectKey = projectKey;
 }
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
+
+
       Module module = UiContext.getIkasanModule(projectKey);
       if (module != null) {
          IKASAN_NOTIFICATION_GROUP
-              .createNotification("Sent request to your browser to launch the H2 console.", NotificationType.INFORMATION)
-              .notify(UiContext.getProject(projectKey));
-
-         BrowserUtil.browse("http:localhost:" + module.getH2WebPortNumber() + "/login.do");
+            .createNotification("Sent request to your browser to launch the blue console.", NotificationType.INFORMATION)
+            .notify(UiContext.getProject(projectKey));
+         BrowserUtil.browse("http:localhost:" + (module.getPort() != null ? module.getPort() : "8080") + "/" + module.getName().toLowerCase());
       } else {
          IKASAN_NOTIFICATION_GROUP
-              .createNotification("H2 console can't be launched unless module is defined.", NotificationType.INFORMATION)
-              .notify(UiContext.getProject(projectKey));
-
+            .createNotification("Blue console can't be launched unless module is defined.", NotificationType.INFORMATION)
+            .notify(UiContext.getProject(projectKey));
       }
+
    }
 }
