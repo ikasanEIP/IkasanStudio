@@ -14,6 +14,7 @@ public class GeneratorTests {
 
     public String generatePropertiesTemplateString(FlowElement flowElement) {
         Flow flow = TestFixtures.getUnbuiltFlow()
+                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))
                 .build();
         module.addFlow(flow);
@@ -25,6 +26,7 @@ public class GeneratorTests {
 
     public String generateFlowTemplateString(FlowElement flowElement) {
         Flow flow = TestFixtures.getUnbuiltFlow()
+                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))
                 .build();
         module.addFlow(flow);
@@ -36,6 +38,7 @@ public class GeneratorTests {
 
     public String generateFlowsComponentFactoryTemplateString(FlowElement flowElement) {
         Flow flow = TestFixtures.getUnbuiltFlow()
+                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))
                 .build();
         module.addFlow(flow);

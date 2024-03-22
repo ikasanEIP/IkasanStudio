@@ -22,13 +22,15 @@
   * Core developers are focused on enhancements to the core code
   * Opportunities for daily improvement via CI against the core libraries.
   * Localised payload transformation analysis assists with production issue replication and resolution.
+* Migration
+  * The json model creates a layer of abstraction between the business 'application' and the underlying version of Ikasan, once standard meta-packs have been written, upgrading or downgrading versions of Ikasan can be a simple as a drop-down chooser.
 * Transparency
   * The business and IT can collaborate quickly on the model generation.
   * The model diagram forms part of the delivery, by definition will always be upto date.
 * Cost of ownership
   * Corporate coding standards and implementation standards enforced by the auto-generated code.
   * Consistency in implementation reduces support costs.
-  * Upgrades between versions of Ikasan greatly simplified via json (not Java) as the source code model, reducing legacy friction.
+  * Upgrades between versions of Ikasan greatly simplified via json (not Java) as the source code model, reducing legacy friction and therefore legacy support costs.
   * Improvements and bug fixes to core Ikasan features can be applied with reduced / no alteration to the module configuration / bespoke code.
   * Localised developer testing and debugging reduces the reliance on expensive centralised server resource
 * Flexibility 
@@ -57,7 +59,7 @@ Offering is split into 3 artefects with independant lifecycles
 * The UI should be easy to use, intuitive, dumb down usage for junior / mid-tier devs
 * Abstracted to be driven from the content of a meta pack
 * Support for multiple simultaneous metapacks
-
+* Resilient and defensive, the UI needs to accommodate developer errors (misconfigured flows or metapacks) without resulting in serious errors in the IDE (Intellij are very keen to expose even slightly wonky plugins). Where possible the IDE should recover misconfiguration and inform the user via popup / message baloons.
 ## Epics / major stories
 
 Core

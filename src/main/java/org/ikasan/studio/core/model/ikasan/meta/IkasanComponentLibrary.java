@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.meta;
 
+import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -18,10 +19,12 @@ import java.util.stream.Collectors;
  */
 public class IkasanComponentLibrary {
     private static final String RESOURCE_BASE_BASE_DIR = "studio/";
-    private static final String METAPACK_BASE_BASE_DIR = "studio/metapack/";
+    private static final String METAPACK_BASE_BASE_DIR = "studio/metapack";
     private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR + "icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
-    public static final String STD_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
+    public static final String DEFAULT_IKASAN_PACK = "default";  // Short term convenience, long term this must be pak driven
+    public static final String DUMMY_IKASAN_PACK = "dummy";  // used when the UI first loads, has no elements.
+//    public static final String STD_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
 
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
@@ -41,10 +44,13 @@ public class IkasanComponentLibrary {
      * @param ikasanMetaDataPackVersion to search for components
      */
     public static Map<String, ComponentMeta> refreshComponentLibrary(final String ikasanMetaDataPackVersion) {
+        if (ikasanMetaDataPackVersion == null) {
+            LOG.error("ikasanMetaDataPackVersion was set to null which is not allowed");
+        }
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
 
         if (libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion)) {
-            LOG.warn("The pack for version " + ikasanMetaDataPackVersion + " has already been loaded, the attempt to reload it will be ignored");
+//            LOG.warn("The pack for version " + ikasanMetaDataPackVersion + " has already been loaded, the attempt to reload it will be ignored");
             returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         } else {
             returnedIkasanComponentMetaMapByKey = loadMetapack(ikasanMetaDataPackVersion);
@@ -72,10 +78,13 @@ public class IkasanComponentLibrary {
      * @param ikasanMetaDataPackVersion to search for components
      */
     public static Map<String, ComponentMeta> loadMetapack(final String ikasanMetaDataPackVersion) {
+        if (ikasanMetaDataPackVersion == null || ikasanMetaDataPackVersion.isEmpty()) {
+            LOG.error("ikasanMetaDataPackVersion should not be null");
+        }
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
         returnedIkasanComponentMetaMapByKey = new HashMap<>();
 
-        String baseDirectory = METAPACK_BASE_BASE_DIR + ikasanMetaDataPackVersion + "/library";
+        String baseDirectory = METAPACK_BASE_BASE_DIR + "/" + ikasanMetaDataPackVersion + "/library";
         // The structure of the Meta-Pack directory is
         // 1:  'Category'/'typpe-meta'
         // 0:n 'Category'/'Component'
@@ -119,9 +128,7 @@ public class IkasanComponentLibrary {
                 }
 
                 final String componentName = componentMeta.getName();
-//                componentMeta.setSmallIcon(getImageIcon(componentDirectory + File.separator + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
                 componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-//                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + File.separator + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
                 returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
             }
@@ -140,7 +147,8 @@ public class IkasanComponentLibrary {
     public static List<String> getMetapackList() {
         String[] directroies = getSubdirectories(METAPACK_BASE_BASE_DIR);
         if (directroies != null) {
-            return Arrays.asList(directroies);
+
+            return Arrays.stream(directroies).map(path -> FilenameUtils.getName(path)).collect(Collectors.toList());
         } else {
             return Collections.EMPTY_LIST;
         }
@@ -209,16 +217,16 @@ public class IkasanComponentLibrary {
     }
 
 
-    public static ComponentMeta getFLow(final String ikasanMetaDataPackVersion) {
+    public static ComponentMeta getFLowComponentMeta(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.FLOW_NAME);
     }
-    public static ComponentMeta getModule(final String ikasanMetaDataPackVersion) {
+    public static ComponentMeta getModuleComponentMeta(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.MODULE_NAME);
     }
-    public static ExceptionResolutionMeta getExceptionResolver(final String ikasanMetaDataPackVersion) {
+    public static ExceptionResolutionMeta getExceptionResolverMeta(final String ikasanMetaDataPackVersion) {
         return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.EXCEPTION_RESOLVER_NAME);
     }
-    public static ComponentMeta getOnException(final String ikasanMetaDataPackVersion) {
+    public static ComponentMeta getOnExceptionComponentMeta(final String ikasanMetaDataPackVersion) {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");
     }
 

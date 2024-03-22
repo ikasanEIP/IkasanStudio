@@ -6,10 +6,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.intellij.openapi.diagnostic.Logger;
+import lombok.*;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
@@ -33,25 +31,29 @@ import java.util.*;
 @JsonDeserialize(using = ModuleDeserializer.class)
 
 public class Module extends BasicElement {
+    public static final Logger LOG = Logger.getInstance("Module");
     @JsonPropertyOrder(alphabetic = true)
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     private List<Flow> flows;
 
-    public Module() {
-        super (IkasanComponentLibrary.getModule(IkasanComponentLibrary.STD_IKASAN_PACK), null);
+    public Module(String metaPackVersion) {
+        super (IkasanComponentLibrary.getModuleComponentMeta(metaPackVersion), null);
         flows = new ArrayList<>();
     }
 
-    @Builder (builderMethodName = "moduleBuilder")
-    public Module(String name,
-                  String description,
-                  String version,
-                  String applicationPackageName,
-                  String port,
-                  String h2PortNumber,
-                  String h2WebPortNumber,
-                  List<Flow> flows) {
-        super (IkasanComponentLibrary.getModule(IkasanComponentLibrary.STD_IKASAN_PACK), description);
+    @Builder(builderMethodName = "moduleBuilder")
+    public Module(
+            @NonNull
+            String name,
+            String description,
+            @NonNull
+            String version,
+            String applicationPackageName,
+            String port,
+            String h2PortNumber,
+            String h2WebPortNumber,
+            List<Flow> flows) {
+        super (IkasanComponentLibrary.getModuleComponentMeta(version), description);
 
         setVersion(version);
         setName(name);
@@ -94,32 +96,16 @@ public class Module extends BasicElement {
     public void setH2WebPortNumber(String portNumber) {
         this.setPropertyValue(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, portNumber);
     }
-//
-//    /**
-//     * Get the sorted set of all Jar dependencies for the module and all its components
-//     * The set will be sorted on groupId, artifactID and version.
-//     * The set will be de-duplicated based on groupId, artifactID and version.
-//     * @return a set of jar Dependencies for the module
-//     */
-//    public Set<Dependency> getAllJarDependencies2() {
-//        SortedSet<Dependency> allJarDepedenciesSorted =  new TreeSet<>(Comparator.comparing(Dependency::getGroupId).thenComparing(Dependency::getArtifactId).thenComparing(Dependency::getVersion));
-//        Map<String, Dependency> allJarDepedencies =  new TreeMap<>();
-//        this.getComponentMeta().getJarDependencies().stream().forEach(
-//            dep -> allJarDepedencies.put(dep.getGroupId()+dep.getArtifactId()+dep.getVersion(), dep)
-//        );
-//
-//         for(Flow flow : this.getFlows()) {
-//            for (FlowElement flowElement : flow.ftlGetConsumerAndFlowElements()) {
-//                if (flowElement.getComponentMeta().getJarDependencies() != null) {
-//                    flowElement.getComponentMeta().getJarDependencies().forEach(
-//                            dep -> allJarDepedencies.put(dep.getGroupId() + dep.getArtifactId() + dep.getVersion(), dep)
-//                    );
-//                }
-//            }
-//        }
-//        allJarDepedenciesSorted.addAll(allJarDepedencies.values());
-//        return allJarDepedenciesSorted;
-//    }
+
+    @JsonIgnore
+    public String getMetaVersion() {
+        String version = (String) getPropertyValue(ComponentPropertyMeta.VERSION);
+        if (version == null) {
+            Thread thread = Thread.currentThread();
+            LOG.error("SERIOUS ERROR - to getMetaVersion but it was null");
+        }
+        return version;
+    }
 
     /**
      * Get the sorted set of all Jar dependencies for the module and all its components
@@ -139,6 +125,4 @@ public class Module extends BasicElement {
         }
         return ModelUtils.getAllUniqueSortedDependenciesSet(allJarDepedencies);
     }
-
-
 }

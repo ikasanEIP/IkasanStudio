@@ -118,7 +118,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
     private void updateExceptionAndAction() {
         exceptionActionEditorPanel.removeAll();
-        exceptionResolutionEditBox = new ExceptionResolutionEditBox(this, getSelectedComponent(), componentInitialisation);
+        exceptionResolutionEditBox = new ExceptionResolutionEditBox(projectKey,this, getSelectedComponent(), componentInitialisation);
         GridBagConstraints gc = new GridBagConstraints();
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = JBUI.insets(3, 4);

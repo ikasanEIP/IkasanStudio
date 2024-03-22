@@ -7,6 +7,7 @@ import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.component.palette.PalettePanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
@@ -34,6 +35,7 @@ public enum UiContext {
     private static final String APPLICATION_PROPERTIES = "applicationProperties";
     private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
+    private static final String PALETTE_PANEL = "palettePanel";
     private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
@@ -124,6 +126,12 @@ public enum UiContext {
     }
     public static ComponentPropertiesPanel getPropertiesPanel(String projectKey) {
         return (ComponentPropertiesPanel) getProjectCache(projectKey, PROPERTIES_PANEL);
+    }
+    public static void setPalettePanel(String projectKey, PalettePanel palettePanel) {
+        putProjectCache(projectKey, PALETTE_PANEL, palettePanel);
+    }
+    public static PalettePanel getPalettePanel(String projectKey) {
+        return (PalettePanel) getProjectCache(projectKey, PALETTE_PANEL);
     }
 
     public static void setCanvasTextArea(String projectKey, JTextArea canvasTextArea) {

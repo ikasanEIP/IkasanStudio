@@ -44,6 +44,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         super(projectKey, componentInitialisation);
     }
 
+    /**
+     *
+     */
     @Override
     public void editBoxChangeListener() {
         LOG.info("editBoxChangeListener has data changed " + dataHasChanged());
@@ -64,6 +67,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             IKASAN_NOTIFICATION_GROUP
                 .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
                 .notify(UiContext.getProject(projectKey));
+            // If the meta version has changed, we need to rerender the screen
+            boolean metaPackChanged = false;
+            if (getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION)) {
+                metaPackChanged = true;
+            }
             processEditedFlowComponents();
             // This will force a regeneration of the component
             if (userImplementedComponentOverwriteCheckBox.isSelected()) {
@@ -74,6 +82,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3(false);
+            if (metaPackChanged) {
+//                UiContext.getPalettePanel(projectKey).initialisePanel();
+                UiContext.getPalettePanel(projectKey).resetPallette();
+            }
+
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
             disablePermissionToOverwriteUserImplementedClass();
@@ -129,7 +142,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             int optionalTabley = 0;
             if (getSelectedComponent().getComponentMeta().isModule()) {
                 // Always refresh the list of choosable metapacks
-                getSelectedComponent().getComponentMeta().getProperties().get(VERSION).setChoices(IkasanComponentLibrary.getMetapackList());
+                List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
+                if (installedMetapacks != null && ! installedMetapacks.isEmpty()) {
+                    getSelectedComponent().getComponentMeta().getProperties().get(VERSION).setChoices(installedMetapacks);
+                }
             }
 
             if (getSelectedComponent().getProperty(ComponentPropertyMeta.NAME) != null) {
@@ -337,6 +353,26 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         }
         return modelUpdated;
     }
+
+    /**
+     * Determine if the named property has changed
+     * @return true if the named property has changed
+     */
+    public boolean propertyHasChanged(String propertyNameToSearchFor) {
+        boolean propertyHasChanged = false;
+        if (componentPropertyEditBoxList != null) {
+            for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
+                if (componentPropertyEditBox.getMeta().getPropertyName().equals(propertyNameToSearchFor)) {
+                    if (componentPropertyEditBox.propertyValueHasChanged()) {
+                        propertyHasChanged = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return propertyHasChanged;
+    }
+
 
     /**
      * Check to see if any new values have been entered, update the model and return true if that is the case.

@@ -20,15 +20,16 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String TEST_IKASAN_PACK = "Vtest.x";    // Ideally we should use this test pack but for convenience for now use V3_3_IKASAN_PACK
-    public static final String V3_3_IKASAN_PACK = "V3.3.x";
+//    public static final String TEST_IKASAN_PACK = "Vtest.x";
+    public static final String TEST_IKASAN_PACK = "V3.3.x";
+//    public static final String V3_IKASAN_PACK = "V3.3.x";
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
     public static final String TEST_CRON_EXPRESSION = "0 0/1 * * * ?";
 
     public static Module getMyFirstModuleIkasanModule(List<Flow> flows) {
         return Module.moduleBuilder()
-                .version("1.3")
+                .version(TEST_IKASAN_PACK)
                 .name("A to B convert")
                 .description("My first module")
                 .applicationPackageName("co.uk.test")
@@ -41,13 +42,14 @@ public class TestFixtures {
 
     public static Flow.FlowBuilder getUnbuiltFlow() {
         return Flow.flowBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
                 .description(TEST_FLOW_DESCRIPTION)
                 .name(TEST_FLOW_NAME);
     }
 
     // -------------------------- Consumers -------------------------
     public static FlowElement getEventGeneratingConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Event Generating Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Event Generating Consumer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Event Generating Consumer")
@@ -55,7 +57,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getFtpConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "FTP Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "FTP Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My FTP Consumer")
@@ -115,7 +117,7 @@ public class TestFixtures {
         return flowElement;
     }
     public static FlowElement getSftpConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "SFTP Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "SFTP Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My SFTP Consumer")
@@ -172,7 +174,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getLocalFileConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Local File Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Local File Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Local File Consumer")
@@ -202,7 +204,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getSpringJmsConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Spring JMS Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Spring JMS Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My JSpring JMS Consumer")
@@ -251,7 +253,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getBasicAmqSpringJmsConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Basic AMQ Spring JMS Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Basic AMQ Spring JMS Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Basic AMQ JSpring JMS Consumer")
@@ -274,7 +276,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getScheduledConsumer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Scheduled Consumer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Scheduled Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Scheduled Consumer")
@@ -298,7 +300,7 @@ public class TestFixtures {
     // ------------------------- Converters -------------------------
 
     public static FlowElement getCustomConverter() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Custom Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Custom Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Custom Converter")
@@ -310,7 +312,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getObjectMessageToObjectConverter() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Object Message To Object Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Object Message To Object Converter");
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Object Message To Object Converter")
@@ -318,7 +320,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getObjectMessageToXmlStringtConverter() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Object Message To XML String Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Object Message To XML String Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Object Message To XML String Converter")
@@ -345,7 +347,7 @@ public class TestFixtures {
     // ------------------------- Filters -------------------------
 
     public static FlowElement getMessageFilter() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Message Filter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Message Filter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Message Filter")
@@ -360,7 +362,7 @@ public class TestFixtures {
 
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Dev Null Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Dev Null Producer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My DevNull Producer")
@@ -368,7 +370,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getEmailProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Email Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Email Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Email Producer")
@@ -408,7 +410,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getFtpProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "FTP Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "FTP Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My FTP Producer")
@@ -447,7 +449,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getJmsProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "JMS Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "JMS Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My JMS Producer")
@@ -494,7 +496,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getBasicAmqJmsProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "JMS Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "JMS Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My JMS Producer")
@@ -517,7 +519,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getSftpProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "SFTP Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "SFTP Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My SFTP Producer")
@@ -548,7 +550,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getLoggingProducer() {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(V3_3_IKASAN_PACK, "Logging Producer");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Logging Producer");
 
         FlowElement flowElement = FlowElement.flowElementBuilder()
                 .componentMeta(meta)

@@ -3,13 +3,12 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,10 +30,10 @@ public class DesignerUI {
         this.project = project;
         this.projectKey = project.getName();
         UiContext.setProject(projectKey, project);
-        if (UiContext.getIkasanModule(projectKey) == null) {
-            // This will serve as a dummy till the File system load completes.
-            UiContext.setIkasanModule(projectKey, new Module());
-        }
+//        if (UiContext.getIkasanModule(projectKey) == null) {
+//            // This will serve as a dummy till the File system load completes.
+////            UiContext.setIkasanModule(projectKey, new Module(DUMMY_IKASAN_PACK));
+//        }
         if (UiContext.getPipsiIkasanModel(projectKey) == null) {
             UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
@@ -51,7 +50,7 @@ public class DesignerUI {
 
         mainJPanel.setLayout(new BorderLayout());
         mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
-        mainJPanel.add(new PalettePanel(), BorderLayout.EAST);
+//        mainJPanel.add(new PalettePanel(), BorderLayout.EAST);
     }
 
     public JPanel getContent() {
@@ -69,7 +68,15 @@ public class DesignerUI {
             if (canvasPanel != null) {
                 // @TODO MODEL
                 StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+                PalettePanel palettePanel = new PalettePanel(projectKey);
+                palettePanel.initialisePanel();
+                UiContext.setPalettePanel(projectKey, palettePanel);
+                mainJPanel.add(palettePanel, BorderLayout.EAST);
             }
         });
+    }
+
+    public void resetPallete() {
+        mainJPanel.add(new PalettePanel(projectKey), BorderLayout.EAST);
     }
 }
