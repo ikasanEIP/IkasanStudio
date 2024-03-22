@@ -14,11 +14,13 @@ public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
     public static final int FLOW_X_START_POINT = 150;
     public static final int FLOW_Y_START_POINT = 100;
     private final Module module;
+    private String projectKey;
 
     /**
      * @param module for the view handler
      */
-    public IkasanModuleAbstractViewHandler(Module module) {
+    public IkasanModuleAbstractViewHandler(String projectKey, Module module) {
+        this.projectKey = projectKey;
         this.module = module;
     }
 
@@ -32,11 +34,11 @@ public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
         for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set x,y, but we may be dealing with component move
             if (currentY == 0 ) {
-                currentY = StudioUIUtils.getViewHandler(ikasanFlow).getTopY();
+                currentY = StudioUIUtils.getViewHandler(projectKey, ikasanFlow).getTopY();
             } else {
                 currentY += FLOW_VERTICAL_SPACING;
             }
-            currentY = StudioUIUtils.getViewHandler(ikasanFlow).paintComponent(canvas, g, -1, currentY);
+            currentY = StudioUIUtils.getViewHandler(projectKey, ikasanFlow).paintComponent(canvas, g, -1, currentY);
         }
 
         return currentY;
@@ -65,8 +67,8 @@ public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
         int minimumTopY = FLOW_Y_START_POINT;
         for(Flow ikasanFlow : module.getFlows()) {
             // initialise width/height to maximum, it will be adjusted down after reset
-            StudioUIUtils.getViewHandler(ikasanFlow).initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
-            minimumTopY = StudioUIUtils.getViewHandler(ikasanFlow).getBottomY();
+            StudioUIUtils.getViewHandler(projectKey, ikasanFlow).initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
+            minimumTopY = StudioUIUtils.getViewHandler(projectKey, ikasanFlow).getBottomY();
             minimumTopY += FLOW_VERTICAL_SPACING;
         }
     }

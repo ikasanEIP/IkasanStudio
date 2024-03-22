@@ -9,6 +9,8 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,15 @@ public class ComponentPropertyEditBox {
             propertyChoiceValueField = new ComboBox<>();
             meta.getChoices().stream()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
+            if (componentProperty.getValue() != null) {
+                propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
+            }
+            propertyChoiceValueField.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    parent.editBoxChangeListener();
+                }
+            });
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
@@ -60,17 +71,15 @@ public class ComponentPropertyEditBox {
             }
             if (!componentInitialisation) {
                 propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
-
+                    // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
                         parent.editBoxChangeListener();
                     }
-
                     @Override
                     public void removeUpdate(DocumentEvent e) {
                         parent.editBoxChangeListener();
                     }
-
                     @Override
                     public void changedUpdate(DocumentEvent e) {
                         parent.editBoxChangeListener();
@@ -125,16 +134,15 @@ public class ComponentPropertyEditBox {
 
             if (!componentInitialisation) {
                 propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                    // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
                         parent.editBoxChangeListener();
                     }
-
                     @Override
                     public void removeUpdate(DocumentEvent e) {
                         parent.editBoxChangeListener();
                     }
-
                     @Override
                     public void changedUpdate(DocumentEvent e) {
                         parent.editBoxChangeListener();
@@ -220,7 +228,7 @@ public class ComponentPropertyEditBox {
     public Object getValue() {
         Object returnValue = null;
         if (isChoiceProperty()) {
-            propertyChoiceValueField.getSelectedItem();
+            returnValue = propertyChoiceValueField.getSelectedItem();
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // It is possible neither are current selected i.e. the property is unset
             if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {

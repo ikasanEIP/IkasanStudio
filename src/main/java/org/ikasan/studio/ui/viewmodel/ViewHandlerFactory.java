@@ -12,16 +12,16 @@ public class ViewHandlerFactory {
     // Static class
     private ViewHandlerFactory() {}
 
-    public static AbstractViewHandler getInstance(Object component) {
+    public static AbstractViewHandler getInstance(String projectKey, Object component) {
         AbstractViewHandler returnAbstractViewHandler = null ;
         if (component != null) {
             if (component instanceof PaletteItem) {
 //            if (component instanceof FlowElement) {
                 returnAbstractViewHandler =  new IkasanPaletteElementAbstractViewHandler(((PaletteItem) component).getComponentMeta());
             } else if (component instanceof Module) {
-                returnAbstractViewHandler =  new IkasanModuleAbstractViewHandler((Module) component);
+                returnAbstractViewHandler =  new IkasanModuleAbstractViewHandler(projectKey, (Module) component);
             } else if (component instanceof Flow) {
-                returnAbstractViewHandler =  new IkasanFlowAbstractViewHandler((Flow) component);
+                returnAbstractViewHandler =  new IkasanFlowAbstractViewHandler(projectKey, (Flow) component);
             } else if (component instanceof FlowElement) {
                 returnAbstractViewHandler =  new IkasanFlowComponentAbstractViewHandler((FlowElement) component);
             } else if (component instanceof ExceptionResolver) {

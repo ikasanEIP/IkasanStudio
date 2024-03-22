@@ -20,11 +20,11 @@ public class NavigateToCodeAction implements ActionListener {
 
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      if (StudioUIUtils.getViewHandler(component).getOffsetInclassToNavigateTo() != 0 && jumpToLine) {
-         StudioUIUtils.displayMessage(projectKey, "Jumpt to offset " + StudioUIUtils.getViewHandler(component).getOffsetInclassToNavigateTo());
-         Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(component).getClassToNavigateTo(), StudioUIUtils.getViewHandler(component).getOffsetInclassToNavigateTo());
+      if (StudioUIUtils.getViewHandler(projectKey, component).getOffsetInclassToNavigateTo() != 0 && jumpToLine) {
+         StudioUIUtils.displayMessage(projectKey, "Jumpt to offset " + StudioUIUtils.getViewHandler(projectKey, component).getOffsetInclassToNavigateTo());
+         Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(projectKey, component).getClassToNavigateTo(), StudioUIUtils.getViewHandler(projectKey, component).getOffsetInclassToNavigateTo());
       } else {
-         Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(component).getClassToNavigateTo());
+         Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(projectKey, component).getClassToNavigateTo());
       }
    }
 }

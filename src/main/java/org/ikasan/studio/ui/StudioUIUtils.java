@@ -27,12 +27,12 @@ public class StudioUIUtils {
         }
     }
 
-    public static AbstractViewHandler getViewHandler(BasicElement basicElement) {
+    public static AbstractViewHandler getViewHandler(String projectKey, BasicElement basicElement) {
         if (basicElement == null) {
             LOG.error("BasicElement should never be null");
         }
         if (basicElement.getViewHandler() == null) {
-            basicElement.setViewHandler(ViewHandlerFactory.getInstance(basicElement));
+            basicElement.setViewHandler(ViewHandlerFactory.getInstance(projectKey, basicElement));
         }
         return (AbstractViewHandler)basicElement.getViewHandler();
     }

@@ -17,8 +17,8 @@ public class ExceptionResolver extends FlowElement {
      * Create an ExceptionResolver
      * @param parent flow that contains this exceptions resolver
      */
-    protected ExceptionResolver(Flow parent) {
-        super(parent, IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK), null);
+    protected ExceptionResolver(String metapackVersion, Flow parent) {
+        super(parent, IkasanComponentLibrary.getExceptionResolverMeta(metapackVersion), null);
     }
 
     public Map<String, ExceptionResolution> getIkasanExceptionResolutionMap() {

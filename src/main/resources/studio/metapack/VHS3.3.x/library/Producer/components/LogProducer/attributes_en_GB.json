@@ -1,0 +1,45 @@
+{
+  "name": "Logging Producer",
+  "builder": "",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "flowBuilderMethod": "producer",
+  "helpText": "Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A",
+  "ikasanComponentFactoryMethod": "logProducer",
+  "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
+  "usesBuilder" : true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
+      "mandatory": true
+    },
+    "configuredResourceId": {
+      "propertyName": "configuredResourceId",
+      "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration.",
+      "setterProperty": true,
+      "usageDataType":"java.lang.String"
+    },
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    },
+    "logEveryNth": {
+      "propertyName": "logEveryNth",
+      "helpText": "Only display every 'nth' log message.",
+      "propertyDataType": "java.lang.Long",
+      "setterProperty": true
+    },
+    "replacementText": {
+      "propertyName": "replacementText",
+      "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText.",
+      "setterProperty": true
+    },
+    "regExpPattern": {
+      "propertyName": "regExpPattern",
+      "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText.",
+      "setterProperty": true
+    }
+  }
+}
+

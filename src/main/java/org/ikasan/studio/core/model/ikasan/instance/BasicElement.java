@@ -34,7 +34,9 @@ public  class BasicElement extends IkasanObject {
     protected Map<String, ComponentProperty> configuredProperties;
     public BasicElement() {}
 
-    protected BasicElement(ComponentMeta componentMeta, String description) {
+    protected BasicElement(
+            ComponentMeta componentMeta,
+            String description) {
         super(componentMeta);
         this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
         setDescription(description);

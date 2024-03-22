@@ -6,6 +6,7 @@ import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolutionMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolutionEditBox implements EditBoxContainer {
+    private final String projectKey;
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
     private final JComboBox exceptionJComboBox;
@@ -27,7 +29,8 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     private final boolean componentInitialisation;
     private final ExceptionResolution exceptionResolution;
 
-    public ExceptionResolutionEditBox(ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
+    public ExceptionResolutionEditBox(String projectKey, ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
+        this.projectKey = projectKey;
         this.resolutionPanel = resolutionPanel;
         this.exceptionResolution = exceptionResolution;
         this.componentInitialisation = componentInitialisation;
@@ -38,7 +41,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         this.exceptionJComboBox = new JComboBox(currentExceptions.toArray());
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
-        this.actionJComboBox = new JComboBox(IkasanComponentLibrary.getExceptionResolver(IkasanComponentLibrary.STD_IKASAN_PACK).getActionList().toArray());
+        this.actionJComboBox = new JComboBox(IkasanComponentLibrary.getExceptionResolverMeta(UiContext.getIkasanModule(projectKey).getMetaVersion()).getActionList().toArray());
         if (exceptionResolution.getExceptionsCaught() != null) {
             // There might be a bespoke exception already set
             if (!currentExceptions.contains(exceptionResolution.getExceptionsCaught())) {

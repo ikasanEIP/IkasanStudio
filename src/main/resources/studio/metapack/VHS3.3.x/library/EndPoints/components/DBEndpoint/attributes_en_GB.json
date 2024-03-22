@@ -1,0 +1,14 @@
+{
+  "name": "DB Endpoint",
+  "implementingClass" : "DBEndpoint",
+  "helpText": "The endpoint appears either before the start of a flow or after the end of a flow.",
+  "isEndpoint": true,
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "For an endpoint, this will be used to display information about the endpoint e.g. the host, DB name, Filename etc. Typically this is decided by the Flow Element that the enpoint belongs to, see 'endpointTextKey'",
+      "mandatory": true
+    }
+  }
+}
+

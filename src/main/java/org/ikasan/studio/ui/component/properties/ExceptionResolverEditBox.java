@@ -61,7 +61,7 @@ public class ExceptionResolverEditBox {
 
     private void doAdd() {
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
-        ExceptionResolution newResolution = new ExceptionResolution(exceptionResolver);
+        ExceptionResolution newResolution = new ExceptionResolution(projectKey, exceptionResolver);
         exceptionResolutionPanel.updateTargetComponent(newResolution);
         PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                 UiContext.getProject(projectKey),

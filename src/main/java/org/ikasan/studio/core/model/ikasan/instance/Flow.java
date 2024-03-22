@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
@@ -33,19 +34,29 @@ public class Flow extends BasicElement {
      * Used primarily during deserialization.
      */
     public Flow() {
-        super (IkasanComponentLibrary.getFLow(IkasanComponentLibrary.STD_IKASAN_PACK), null);
+        super (IkasanComponentLibrary.getFLowComponentMeta(IkasanComponentLibrary.DEFAULT_IKASAN_PACK), null);
+        LOG.error("Parameterless version of flow called");
+        transitions = new ArrayList<>();
+        flowElements = new ArrayList<>();
+    }
+
+    public Flow(String metapackVersion) {
+        super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         transitions = new ArrayList<>();
         flowElements = new ArrayList<>();
     }
 
     @Builder(builderMethodName = "flowBuilder")
-    public Flow(FlowElement consumer,
+    public Flow(
+                @NonNull
+                String metapackVersion,
+                FlowElement consumer,
                 List<Transition> transitions,
                 List<FlowElement> flowElements,
                 ExceptionResolver exceptionResolver,
                 String name,
                 String description) {
-        super(IkasanComponentLibrary.getFLow(IkasanComponentLibrary.STD_IKASAN_PACK), null);
+        super(IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         if (consumer != null) {
             if (!consumer.getComponentMeta().isConsumer()) {
                 LOG.error("ERROR : Tried to set consumer on " + this + " with a flowElement that is not a consumer " + consumer + ", this will be ignored");

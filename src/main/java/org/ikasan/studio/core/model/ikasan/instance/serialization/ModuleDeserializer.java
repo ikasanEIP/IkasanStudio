@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.generator.Generator.FLOWS_TAG;
 import static org.ikasan.studio.core.model.ikasan.instance.serialization.SerializerUtils.getTypedValue;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
+import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.DEFAULT_IKASAN_PACK;
 
 public class ModuleDeserializer extends StdDeserializer<Module> {
     private static final Logger LOG = LoggerFactory.getLogger(ModuleDeserializer.class);
@@ -30,30 +33,59 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
     @Override
     public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        Module module = new Module();
-
         JsonNode jsonNode = jp.getCodec().readTree(jp);
+        String metapackVersion = DEFAULT_IKASAN_PACK;
+        JsonNode versionNode = jsonNode.get(VERSION);
+        if (versionNode != null) {
+            metapackVersion = ((TextNode) versionNode).asText();
+        } else {
+            LOG.warn("The metapackVersion of the module was not stated, using default metapackVersion");
+        }
+
+        Module module = new Module(metapackVersion);
         Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
         while(fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
-            String   fieldName  = field.getKey();
+            String fieldName  = field.getKey();
             if (FLOWS_TAG.equals(fieldName)) {
-                module.setFlows(getFlows(field.getValue()));
+                module.setFlows(getFlows(field.getValue(), metapackVersion));
             } else {
-                Object value = getTypedValue(field);
-                module.setPropertyValue(fieldName, value);
+                if (fieldName != null && fieldName.equals(VERSION)) {
+                    module.setPropertyValue(fieldName, metapackVersion);
+                } else {
+                    Object value = getTypedValue(field);
+                    module.setPropertyValue(fieldName, value);
+                }
             }
         }
         return module;
     }
 
-    public List<Flow> getFlows(JsonNode root) throws IOException {
+//    /**
+//     * The top priority is to get the Ikasan meta-Pack version, that is required to choose the correct components
+//     * @return The version of the meta pack used for this module.
+//     */
+//    private String getIkasanVersion(JsonParser jp) throws IOException {
+//        JsonNode jsonNode = jp.getCodec().readTree(jp);
+//        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+//        while(fields.hasNext()) {
+//            Map.Entry<String, JsonNode> field = fields.next();
+//            String fieldName  = field.getKey();
+//
+//            if (fieldName != null && fieldName.equals(VERSION)) {
+//                return (String)getTypedValue(field);
+//            }
+//        }
+//        return null;
+//    }
+
+    public List<Flow> getFlows(JsonNode root, String metapackVersion) throws IOException {
         List<Flow> flows = new ArrayList<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
-                Flow newFlow = getFlow(arrayElement);
+                Flow newFlow = getFlow(arrayElement, metapackVersion);
                 if (newFlow != null) {
                     flows.add(newFlow);
                 }
@@ -62,10 +94,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return flows;
     }
 
-    public Flow getFlow(JsonNode jsonNode) throws IOException {
+    public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws IOException {
         Flow flow = null;
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
-            flow = new Flow();
+            flow = new Flow(metapackVersion);
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
             Map<String, FlowElement> flowElementsMap = null;
 
@@ -73,11 +105,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String   fieldName  = field.getKey();
                 if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
-                    flow.setConsumer(getFlowElement(field.getValue(), flow));
+                    flow.setConsumer(getFlowElement(field.getValue(), flow, metapackVersion));
                 } else if (Flow.TRANSITIONS_JSON_TAG.equals(fieldName)) {
                     flow.setTransitions(getTransitions(field.getValue()));
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
-                    flowElementsMap = getFlowElements(field.getValue(), flow);
+                    flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
                 } else {
                     Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);
@@ -179,13 +211,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
         return transition;
     }
-    public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow) throws IOException {
+    public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow, String metapackVersion) throws IOException {
         Map<String, FlowElement> flowElementsMap = new TreeMap<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
-                FlowElement newFlowElement = getFlowElement(arrayElement, containingFlow);
+                FlowElement newFlowElement = getFlowElement(arrayElement, containingFlow, metapackVersion);
                 if (newFlowElement != null) {
                     flowElementsMap.put(newFlowElement.getComponentName(), newFlowElement);
                 }
@@ -194,7 +226,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return flowElementsMap;
     }
 
-    public FlowElement getFlowElement(JsonNode jsonNode, Flow containingFlow) throws IOException {
+    public FlowElement getFlowElement(JsonNode jsonNode, Flow containingFlow, String metapackVersion) throws IOException {
         FlowElement flowElement = null;
         // Possibly just open/close brackets
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
@@ -203,7 +235,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             String additionalKey = jsonNode.get(ComponentMeta.ADDITIONAL_KEY) != null ? jsonNode.get(ComponentMeta.ADDITIONAL_KEY).asText() : null;
 
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
-                    IkasanComponentLibrary.STD_IKASAN_PACK, implementingClass, componentType, additionalKey);
+                    metapackVersion, implementingClass, componentType, additionalKey);
             if (componentMeta == null) {
                 throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " componentType " + componentType + " additionalKey " +additionalKey);
             }

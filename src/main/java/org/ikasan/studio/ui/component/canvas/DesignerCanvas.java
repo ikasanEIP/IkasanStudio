@@ -44,7 +44,6 @@ public class DesignerCanvas extends JPanel {
 
     public DesignerCanvas(String projectKey) {
         this.projectKey = projectKey;
-//        ikasanModule = UiContext.getIkasanModule(projectKey);
         setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         setBackground(JBColor.WHITE);
         addMouseListener(new MouseAdapter() {
@@ -139,16 +138,16 @@ public class DesignerCanvas extends JPanel {
         } // Double click -> go to source
         else if (mouseSelectedComponent != null && me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
-            if (StudioUIUtils.getViewHandler(mouseSelectedComponent).getOffsetInclassToNavigateTo() != 0) {
-                Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(mouseSelectedComponent).getClassToNavigateTo(), StudioUIUtils.getViewHandler(mouseSelectedComponent).getOffsetInclassToNavigateTo());
+            if (StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent).getOffsetInclassToNavigateTo() != 0) {
+                Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent).getClassToNavigateTo(), StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent).getOffsetInclassToNavigateTo());
             } else {
-                if (StudioUIUtils.getViewHandler(mouseSelectedComponent).getClassToNavigateTo() != null) {
-                    Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(mouseSelectedComponent).getClassToNavigateTo());
+                if (StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent).getClassToNavigateTo() != null) {
+                    Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent).getClassToNavigateTo());
                 }
             }
         } // Single click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
-                 (mouseSelectedComponent != null && !StudioUIUtils.getViewHandler(mouseSelectedComponent).isAlreadySelected())) {
+                 (mouseSelectedComponent != null && !StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent).isAlreadySelected())) {
             setSelectedComponent(mouseSelectedComponent);
             if (mouseSelectedComponent instanceof ExceptionResolver) {
                 ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
@@ -207,7 +206,7 @@ public class DesignerCanvas extends JPanel {
 
         if (mouseSelectedComponent instanceof FlowElement) {
             screenChanged = true;
-            AbstractViewHandler vh = StudioUIUtils.getViewHandler(mouseSelectedComponent);
+            AbstractViewHandler vh = StudioUIUtils.getViewHandler(projectKey, mouseSelectedComponent);
             LOG.trace("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
                     "] Generator selected [" + mouseSelectedComponent.getComponentName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
 
@@ -246,14 +245,14 @@ public class DesignerCanvas extends JPanel {
                     .stream()
                     .flatMap(x -> x.ftlGetConsumerAndFlowElements().stream())
                     .filter(x -> x.equals(component))
-                    .peek(x -> StudioUIUtils.getViewHandler(x).setAlreadySelected(true));
+                    .peek(x -> StudioUIUtils.getViewHandler(projectKey, x).setAlreadySelected(true));
         } else if (component instanceof Flow) {
             ikasanModule.getFlows()
                     .stream()
                     .filter(x -> x.equals(component))
-                    .peek(x -> StudioUIUtils.getViewHandler(x).setAlreadySelected(true));
+                    .peek(x -> StudioUIUtils.getViewHandler(projectKey, x).setAlreadySelected(true));
         } else {
-            StudioUIUtils.getViewHandler(ikasanModule).setAlreadySelected(true);
+            StudioUIUtils.getViewHandler(projectKey, ikasanModule).setAlreadySelected(true);
         }
     }
 
@@ -263,13 +262,13 @@ public class DesignerCanvas extends JPanel {
      */
     private void deSelectAllComponentsAndFlows() {
         Module ikasanModule = getIkasanModule();
-        StudioUIUtils.getViewHandler(ikasanModule).setAlreadySelected(false);
+        StudioUIUtils.getViewHandler(projectKey, ikasanModule).setAlreadySelected(false);
         ikasanModule.getFlows()
                 .stream()
-                .peek(x -> StudioUIUtils.getViewHandler(x).setAlreadySelected(false))
+                .peek(x -> StudioUIUtils.getViewHandler(projectKey, x).setAlreadySelected(false))
                 .flatMap(x -> x.ftlGetConsumerAndFlowElements().stream())
-                .filter(x -> StudioUIUtils.getViewHandler(x).isAlreadySelected())
-                .peek(x -> StudioUIUtils.getViewHandler(x).setAlreadySelected(false));
+                .filter(x -> StudioUIUtils.getViewHandler(projectKey, x).isAlreadySelected())
+                .peek(x -> StudioUIUtils.getViewHandler(projectKey, x).setAlreadySelected(false));
     }
 
     /**
@@ -286,7 +285,7 @@ public class DesignerCanvas extends JPanel {
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
                     .flatMap(x -> x.ftlGetConsumerAndFlowElements().stream())
-                    .filter(x -> StudioUIUtils.getViewHandler(x).getLeftX() <= xpos && StudioUIUtils.getViewHandler(x).getRightX() >= xpos && StudioUIUtils.getViewHandler(x).getTopY() <= ypos && StudioUIUtils.getViewHandler(x).getBottomY() >= ypos)
+                    .filter(x -> StudioUIUtils.getViewHandler(projectKey, x).getLeftX() <= xpos && StudioUIUtils.getViewHandler(projectKey, x).getRightX() >= xpos && StudioUIUtils.getViewHandler(projectKey, x).getTopY() <= ypos && StudioUIUtils.getViewHandler(projectKey, x).getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
         }
@@ -315,10 +314,10 @@ public class DesignerCanvas extends JPanel {
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
                 .filter(Flow::hasExceptionResolver)
-                .filter(x -> StudioUIUtils.getViewHandler(x.getExceptionResolver()).getLeftX() <= xpos &&
-                        StudioUIUtils.getViewHandler(x.getExceptionResolver()).getRightX() >= xpos &&
-                        StudioUIUtils.getViewHandler(x.getExceptionResolver()).getTopY() <= ypos &&
-                        StudioUIUtils.getViewHandler(x.getExceptionResolver()).getBottomY() >= ypos)
+                .filter(x -> StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getLeftX() <= xpos &&
+                        StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getRightX() >= xpos &&
+                        StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getTopY() <= ypos &&
+                        StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getBottomY() >= ypos)
                 .findFirst()
                 .orElse(null);
 
@@ -341,7 +340,7 @@ public class DesignerCanvas extends JPanel {
         BasicElement ikasanComponent ;
         ikasanComponent = ikasanModule.getFlows()
                 .stream()
-                .filter(x -> StudioUIUtils.getViewHandler(x).getLeftX() <= xpos && StudioUIUtils.getViewHandler(x).getRightX() >= xpos && StudioUIUtils.getViewHandler(x).getTopY() <= ypos && StudioUIUtils.getViewHandler(x).getBottomY() >= ypos)
+                .filter(x -> StudioUIUtils.getViewHandler(projectKey, x).getLeftX() <= xpos && StudioUIUtils.getViewHandler(projectKey, x).getRightX() >= xpos && StudioUIUtils.getViewHandler(projectKey, x).getTopY() <= ypos && StudioUIUtils.getViewHandler(projectKey, x).getBottomY() >= ypos)
                 .findFirst()
                 .orElse(null);
 
@@ -399,9 +398,9 @@ public class DesignerCanvas extends JPanel {
         Module ikasanModule = getIkasanModule();
         boolean redrawNeeded = ikasanModule.getFlows()
                 .stream()
-                .anyMatch(x -> ! ((IkasanFlowAbstractViewHandler)StudioUIUtils.getViewHandler(x)).isFlowNormalMode());
+                .anyMatch(x -> ! ((IkasanFlowAbstractViewHandler)StudioUIUtils.getViewHandler(projectKey, x)).isFlowNormalMode());
 
-        ikasanModule.getFlows().forEach(x -> ((IkasanFlowAbstractViewHandler)StudioUIUtils.getViewHandler(x)).setFlowNormalMode());
+        ikasanModule.getFlows().forEach(x -> ((IkasanFlowAbstractViewHandler)StudioUIUtils.getViewHandler(projectKey, x)).setFlowNormalMode());
         if (redrawNeeded) {
             this.repaint();
         }
@@ -422,7 +421,7 @@ public class DesignerCanvas extends JPanel {
         if (ikasanModule != null) {
             for (Flow flow : ikasanModule.getFlows()) {
                 for (FlowElement ikasanFlowComponent : flow.ftlGetConsumerAndFlowElements()) {
-                    Proximity draggedToComponent = Proximity.getRelativeProximity(dragged, StudioUIUtils.getViewHandler(ikasanFlowComponent).getCentrePoint(), proximityDetect);
+                    Proximity draggedToComponent = Proximity.getRelativeProximity(dragged, StudioUIUtils.getViewHandler(projectKey, ikasanFlowComponent).getCentrePoint(), proximityDetect);
                     if (draggedToComponent == Proximity.LEFT) {
                         surroundingComponents.setLeft(ikasanFlowComponent);
                     } else if (draggedToComponent == Proximity.RIGHT || draggedToComponent == Proximity.CENTER) {
@@ -504,7 +503,7 @@ public class DesignerCanvas extends JPanel {
      * @return the fully populated component or null if the action was cancelled.
      */
     private FlowElement createViableFlowComponent(ComponentMeta ikasanComponentType, Flow containingFlow) {
-        FlowElement newComponent = FlowElementFactory.createFlowElement(ikasanComponentType, containingFlow, null);
+        FlowElement newComponent = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), ikasanComponentType, containingFlow, null);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver(newComponent);
         } else {
@@ -596,7 +595,7 @@ public class DesignerCanvas extends JPanel {
         LOG.debug("paintComponent invoked");
         super.paintComponent(g);
         if (initialiseAllDimensions && ikasanModule != null) {
-            StudioUIUtils.getViewHandler(ikasanModule).initialiseDimensions(g, 0,0, this.getWidth(), this.getHeight());
+            StudioUIUtils.getViewHandler(projectKey, ikasanModule).initialiseDimensions(g, 0,0, this.getWidth(), this.getHeight());
                 initialiseAllDimensions = false;
         }
 
@@ -604,7 +603,7 @@ public class DesignerCanvas extends JPanel {
             if (ikasanModule.hasUnsetMandatoryProperties()) {
                 enableStart();
             }
-            StudioUIUtils.getViewHandler(ikasanModule).paintComponent(this, g, -1, -1);
+            StudioUIUtils.getViewHandler(projectKey, ikasanModule).paintComponent(this, g, -1, -1);
         } else {
             LOG.warn("Model not set");
         }

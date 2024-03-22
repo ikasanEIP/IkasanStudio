@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.palette;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 import org.ikasan.studio.ui.model.PaletteItem;
 
@@ -18,9 +19,13 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
+    private String projectKey;
 
     // Source actions i.e. methods called for the source of the copy
 
+    public void PalettePanel(String projectKey) {
+        this.projectKey = projectKey;
+    }
     /**
      * For PaletteExportTransferHandler we only want to copy a component onto the design window, not link or move
      * @param sourceComponent the sourceComponent
@@ -37,8 +42,13 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                 ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem &&
                 ! ((PaletteItem)((JList)sourceComponent).getSelectedValue()).isCategory()) {
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
+
+            if (UiContext.getIkasanModule(projectKey) == null) {
+                LOG.warn("Module should never be null");
+            }
+
             IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(
-                    FlowElementFactory.createFlowElement(item.getComponentMeta(), null, null));
+                    FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), item.getComponentMeta(), null, null));
             Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);

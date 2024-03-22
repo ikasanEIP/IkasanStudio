@@ -21,8 +21,8 @@ ExceptionResolver parent;
     String theAction;
     List<ComponentProperty> params;
 
-    public ExceptionResolution(ExceptionResolver parent) {
-        super(IkasanComponentLibrary.getOnException(IkasanComponentLibrary.STD_IKASAN_PACK));
+    public ExceptionResolution(String metapackVersion, ExceptionResolver parent) {
+        super(IkasanComponentLibrary.getOnExceptionComponentMeta(metapackVersion));
         this.parent = parent;
     }
 

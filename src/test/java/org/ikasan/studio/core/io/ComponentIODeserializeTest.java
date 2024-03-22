@@ -67,7 +67,7 @@ class ComponentIODeserializeTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals("1.3", module.getVersion()),
+            () -> assertEquals("V3.3.x", module.getVersion()),
             () -> assertEquals("A to B convert", module.getName()),
             () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
@@ -121,7 +121,7 @@ class ComponentIODeserializeTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals("1.3", module.getVersion()),
+            () -> assertEquals("V3.3.x", module.getVersion()),
             () -> assertEquals("A to B convert", module.getName()),
             () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
@@ -137,4 +137,43 @@ class ComponentIODeserializeTest {
             () -> Assertions.assertTrue(transition.isEmpty())
         );
     }
+
+    @Test
+    public void testModuleInstanceDeserializeIsRobustNoVersion() throws StudioBuildException {
+        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_no_version.json");
+        List<Flow> flows = module.getFlows();
+        Flow flow1 = flows.get(0);
+        FlowElement elements = flow1.getConsumer();
+        List<Transition> transition = flow1.getTransitions();
+
+        assertAll(
+            "Check the module contains the expected values",
+            () -> assertEquals("V3.3.x", module.getVersion()),
+            () -> assertEquals("A to B convert", module.getName()),
+            () -> assertEquals("My first module", module.getDescription()),
+            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
+            () -> assertEquals("1", module.getH2PortNumber()),
+            () -> assertEquals("2", module.getH2WebPortNumber()),
+            () -> assertEquals("3", module.getPort()),
+
+            () -> assertEquals(1, flows.size()),
+            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
+            () -> assertEquals("Flow1", flow1.getName()),
+
+            () -> Assertions.assertNull(elements),
+            () -> Assertions.assertTrue(transition.isEmpty())
+        );
+    }
+//
+//    @Test
+//    public void testMissingNameAttributesCausesError() {
+//        StudioBuildException thrown = assertThrowsExactly(
+//                StudioBuildException.class,
+//                () ->  ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/BadComponentMeta/no_name_attributes_en_GB.json")
+//        );
+//
+//        assertTrue(thrown.getMessage().contains(
+//                        "The serialised data in [studio/metapack/Vtest.x/BadComponentMeta/no_name_attributes_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
+//                "Incorrect exception message, was [" + thrown.getMessage() + "]");
+//    }
 }

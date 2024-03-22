@@ -10,6 +10,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +22,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
 public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
+    private String projectKey;
     public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
@@ -38,7 +40,8 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flow for view handler
      */
-    public IkasanFlowAbstractViewHandler(Flow flow) {
+    public IkasanFlowAbstractViewHandler(String projectKey, Flow flow) {
+        this.projectKey = projectKey;
         this.flow = flow;
     }
 
@@ -109,7 +112,7 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         }
         paintFlowBox(g);
         if (flow.hasExceptionResolver()) {
-            StudioUIUtils.getViewHandler(flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
+            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
         }
         List<FlowElement> flowAndConseumerElementList = flow.ftlGetConsumerAndFlowElements();
         int flowSize = flowAndConseumerElementList.size();
@@ -118,9 +121,9 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         // Paint any components between the first and the last
         for (int index=0; index < flowSize; index ++) {
             FlowElement flowElement = flowAndConseumerElementList.get(index);
-            StudioUIUtils.getViewHandler(flowElement).paintComponent(canvas, g, -1, -1);
+            StudioUIUtils.getViewHandler(projectKey, flowElement).paintComponent(canvas, g, -1, -1);
             if (index < flowSize-1) {
-                drawConnector(g, StudioUIUtils.getViewHandler(flowElement), StudioUIUtils.getViewHandler(flowAndConseumerElementList.get(index+1)));
+                drawConnector(g, StudioUIUtils.getViewHandler(projectKey, flowElement), StudioUIUtils.getViewHandler(projectKey, flowAndConseumerElementList.get(index+1)));
             }
         }
 
@@ -158,15 +161,15 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
                 }
 
                 // Create the endpoint symbol instance
-                ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(IkasanComponentLibrary.STD_IKASAN_PACK, endpointComponentName);
+                ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
                 if (endpointComponentMeta == null) {
                     LOG.warn("Expected to find endpoint named " + endpointComponentName + " but none were found, endpoint rendering will be skipped");
                 } else {
-                    FlowElement endpointFlowElement = FlowElementFactory.createFlowElement(endpointComponentMeta, flow, endpointText);
+                    FlowElement endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, flow, endpointText);
 
                     // Position and draw the endpoint
-                    AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(targetFlowElement);
-                    AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(endpointFlowElement);
+                    AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(projectKey, targetFlowElement);
+                    AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(projectKey, endpointFlowElement);
                     endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
                     endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
                     if (targetFlowElement.getComponentMeta().isConsumer()) {
@@ -216,17 +219,17 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
-                AbstractViewHandler viewHandler = StudioUIUtils.getViewHandler(ikasanFlowComponent);
+                AbstractViewHandler viewHandler = StudioUIUtils.getViewHandler(projectKey, ikasanFlowComponent);
                 if (viewHandler == null) {
                     LOG.error("Request for a view handler should always succeed");
                 }
                 viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
-                currentX += StudioUIUtils.getViewHandler(ikasanFlowComponent).getWidth() + FLOW_X_SPACING;
+                currentX += StudioUIUtils.getViewHandler(projectKey, ikasanFlowComponent).getWidth() + FLOW_X_SPACING;
             }
         }
         setWidthHeights(graphics, newTopY);
         if (flow.hasExceptionResolver()) {
-            StudioUIUtils.getViewHandler(flow.getExceptionResolver()).initialiseDimensions(graphics,
+            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).initialiseDimensions(graphics,
                     IkasanFlowExceptionResolverAbstractViewHandler.getXOffsetFromRight(getRightX()),
                     IkasanFlowExceptionResolverAbstractViewHandler.getYOffsetFromTop(getTopY()),
                     -1, -1);
@@ -254,18 +257,18 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
     }
 
     public int getFlowElementsTopY() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(x).getTopY()).min().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getTopY()).min().orElse(0);
     }
 
     public int getFlowElementsLeftX() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(x).getLeftX()).min().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getLeftX()).min().orElse(0);
     }
 
     public int getFlowElementsRightX() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(x).getRightX()).max().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getRightX()).max().orElse(0);
     }
     public int getFlowElementsBottomY() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(x).getBottomY()).max().orElse(0);
+        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getBottomY()).max().orElse(0);
     }
 
     public void setFlowReceptiveMode() {
