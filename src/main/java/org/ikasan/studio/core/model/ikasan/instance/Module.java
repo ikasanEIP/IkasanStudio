@@ -43,7 +43,6 @@ public class Module extends BasicElement {
 
     @Builder(builderMethodName = "moduleBuilder")
     public Module(
-            @NonNull
             String name,
             String description,
             @NonNull

@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.model;
 
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,10 +15,10 @@ import java.io.Serializable;
 public class IkasanFlowUIComponentTransferable implements Serializable, Transferable {
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
-    private final FlowElement flowElement ;
+    private final BasicElement ikasanBasicElement;
 
-    public IkasanFlowUIComponentTransferable(FlowElement flowElement) {
-        this.flowElement = flowElement;
+    public IkasanFlowUIComponentTransferable(BasicElement ikasanBasicElement) {
+        this.ikasanBasicElement = ikasanBasicElement;
     }
 
     // Transferable
@@ -35,8 +36,8 @@ public class IkasanFlowUIComponentTransferable implements Serializable, Transfer
     public boolean isDataFlavorSupported(DataFlavor flavor) {
         return ikasanFlowUIComponentFlavor.equals(flavor);
     }
-    public FlowElement getFlowElement() {
-        return flowElement;
+    public BasicElement getIkasanBasicElement() {
+        return ikasanBasicElement;
     }
 
 }

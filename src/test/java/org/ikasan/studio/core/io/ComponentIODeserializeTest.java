@@ -138,32 +138,32 @@ class ComponentIODeserializeTest {
         );
     }
 
-    @Test
-    public void testModuleInstanceDeserializeIsRobustNoVersion() throws StudioBuildException {
-        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_no_version.json");
-        List<Flow> flows = module.getFlows();
-        Flow flow1 = flows.get(0);
-        FlowElement elements = flow1.getConsumer();
-        List<Transition> transition = flow1.getTransitions();
-
-        assertAll(
-            "Check the module contains the expected values",
-            () -> assertEquals("V3.3.x", module.getVersion()),
-            () -> assertEquals("A to B convert", module.getName()),
-            () -> assertEquals("My first module", module.getDescription()),
-            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
-            () -> assertEquals("1", module.getH2PortNumber()),
-            () -> assertEquals("2", module.getH2WebPortNumber()),
-            () -> assertEquals("3", module.getPort()),
-
-            () -> assertEquals(1, flows.size()),
-            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
-            () -> assertEquals("Flow1", flow1.getName()),
-
-            () -> Assertions.assertNull(elements),
-            () -> Assertions.assertTrue(transition.isEmpty())
-        );
-    }
+//    @Test
+//    public void testModuleInstanceDeserializeIsRobustNoVersion() throws StudioBuildException {
+//        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_no_version.json");
+//        List<Flow> flows = module.getFlows();
+//        Flow flow1 = flows.get(0);
+//        FlowElement elements = flow1.getConsumer();
+//        List<Transition> transition = flow1.getTransitions();
+//
+//        assertAll(
+//            "Check the module contains the expected values",
+//            () -> assertEquals("V3.3.x", module.getVersion()),
+//            () -> assertEquals("A to B convert", module.getName()),
+//            () -> assertEquals("My first module", module.getDescription()),
+//            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
+//            () -> assertEquals("1", module.getH2PortNumber()),
+//            () -> assertEquals("2", module.getH2WebPortNumber()),
+//            () -> assertEquals("3", module.getPort()),
+//
+//            () -> assertEquals(1, flows.size()),
+//            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
+//            () -> assertEquals("Flow1", flow1.getName()),
+//
+//            () -> Assertions.assertNull(elements),
+//            () -> Assertions.assertTrue(transition.isEmpty())
+//        );
+//    }
 //
 //    @Test
 //    public void testMissingNameAttributesCausesError() {

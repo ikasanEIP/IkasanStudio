@@ -71,7 +71,7 @@ public class StudioPsiUtils {
             Module newModule = ModelUtils.generateModuleInstanceFromString(json, UiContext.JSON_MODEL_FULL_PATH);
             UiContext.setIkasanModule(projectKey, newModule);
         } else {
-            LOG.warn("Could not read the model.json");
+            LOG.info("Could not read the model.json, this is probably a new project");
         }
     }
 
@@ -281,7 +281,7 @@ public class StudioPsiUtils {
         // @TODO MODEL
         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateJsonFromModelInstance();
-        pipsiIkasanModel.generateSourceFromModelInstance3(false);
+        pipsiIkasanModel.generateSourceFromModelInstance3();
         UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         UiContext.getDesignerCanvas(projectKey).repaint();
     }

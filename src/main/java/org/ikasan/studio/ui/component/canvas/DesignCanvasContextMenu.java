@@ -13,17 +13,17 @@ public class DesignCanvasContextMenu {
     // Enforce as utility clASS
     private DesignCanvasContextMenu () {}
 
-    public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement component) {
+    public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
-        menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", component));
+        menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", ikasanBasicElement));
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
         menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
         menu.add(createLaunchH2MenuItem(projectKey, "Launch H2"));
-        menu.add(createHelpTextItem(projectKey, "Description", component, mouseEvent));
-        menu.add(createWebHelpTextItem(projectKey, "Web help", component, mouseEvent));
-        menu.add(createNavigateToCode(projectKey, "Jump to code", component, false));
-        menu.add(createNavigateToCode(projectKey, "Jump to code line", component, true));
+        menu.add(createHelpTextItem(projectKey, "Description", ikasanBasicElement, mouseEvent));
+        menu.add(createWebHelpTextItem(projectKey, "Web help", ikasanBasicElement, mouseEvent));
+        menu.add(createNavigateToCode(projectKey, "Jump to code", ikasanBasicElement, false));
+        menu.add(createNavigateToCode(projectKey, "Jump to code line", ikasanBasicElement, true));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
@@ -36,21 +36,21 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, event.getX(), event.getY());
     }
 
-    private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, BasicElement component) {
+    private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new DeleteComponentAction(projectKey, component));
+        item.addActionListener(new DeleteComponentAction(projectKey, ikasanBasicElement));
         return item;
     }
 
-    private static JMenuItem createHelpTextItem(String projectKey, String label, BasicElement component, MouseEvent mouseEvent) {
+    private static JMenuItem createHelpTextItem(String projectKey, String label, BasicElement ikasanBasicElement, MouseEvent mouseEvent) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new PopupHelpAction(projectKey, component, mouseEvent, false));
+        item.addActionListener(new PopupHelpAction(projectKey, ikasanBasicElement, mouseEvent, false));
         return item;
     }
 
-    private static JMenuItem createWebHelpTextItem(String projectKey, String label, BasicElement component, MouseEvent mouseEvent) {
+    private static JMenuItem createWebHelpTextItem(String projectKey, String label, BasicElement ikasanBasicElement, MouseEvent mouseEvent) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new PopupHelpAction(projectKey, component, mouseEvent, true));
+        item.addActionListener(new PopupHelpAction(projectKey, ikasanBasicElement, mouseEvent, true));
         return item;
     }
 
@@ -78,9 +78,9 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    private static JMenuItem createNavigateToCode(String projectKey, String label, BasicElement component, boolean jumpToLine) {
+    private static JMenuItem createNavigateToCode(String projectKey, String label, BasicElement ikasanBasicElement, boolean jumpToLine) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new NavigateToCodeAction(projectKey, component, jumpToLine));
+        item.addActionListener(new NavigateToCodeAction(projectKey, ikasanBasicElement, jumpToLine));
         return item;
     }
 }

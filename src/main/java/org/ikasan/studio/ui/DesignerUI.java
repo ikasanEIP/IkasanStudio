@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -17,6 +18,7 @@ import java.awt.*;
  * Create all onscreen components and register inter-thread communication components with UiContext
  */
 public class DesignerUI {
+    public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final String projectKey;
     private final Project project;
     private final JPanel mainJPanel = new JPanel();
@@ -69,14 +71,9 @@ public class DesignerUI {
                 // @TODO MODEL
                 StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
                 PalettePanel palettePanel = new PalettePanel(projectKey);
-                palettePanel.initialisePanel();
                 UiContext.setPalettePanel(projectKey, palettePanel);
                 mainJPanel.add(palettePanel, BorderLayout.EAST);
             }
         });
-    }
-
-    public void resetPallete() {
-        mainJPanel.add(new PalettePanel(projectKey), BorderLayout.EAST);
     }
 }

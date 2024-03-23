@@ -300,11 +300,11 @@ public class StudioBuildUtils {
      * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
      * @param module in scope that might relate to this property
      * @param flow in scope that might relate to this property
-     * @param component in scope that might relate to this property
+     * @param ikasanBasicElement in scope that might relate to this property
      * @param template to be updated
      * @return A string representing a property
      */
-    public static String getPropertyLabelPackageStyle(Module module, Flow flow, BasicElement component, String template) {
+    public static String getPropertyLabelPackageStyle(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
@@ -313,8 +313,8 @@ public class StudioBuildUtils {
             if (flow != null) {
                 propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, flow.getJavaPackageName());
             }
-            if (component != null ) {
-                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, component.getJavaPackageName());
+            if (ikasanBasicElement != null ) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, ikasanBasicElement.getJavaPackageName());
             }
         }
         return propertyLabel;
@@ -326,11 +326,11 @@ public class StudioBuildUtils {
      * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
      * @param module in scope that might relate to this property
      * @param flow in scope that might relate to this property
-     * @param component in scope that might relate to this property
+     * @param ikasanBasicElement in scope that might relate to this property
      * @param template to be updated
      * @return A string representing a property
      */
-    public static String getPropertyLabelVariableStyle(Module module, Flow flow, BasicElement component, String template) {
+    public static String getPropertyLabelVariableStyle(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
@@ -339,8 +339,8 @@ public class StudioBuildUtils {
             if (flow != null) {
                 propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, flow.getJavaVariableName());
             }
-            if (component != null ) {
-                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, component.getJavaVariableName());
+            if (ikasanBasicElement != null ) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, ikasanBasicElement.getJavaVariableName());
             }
             // By replacing _ with space, we should get UpperCase after the space, and space removed.
             propertyLabel = propertyLabel.replace("-", " ");

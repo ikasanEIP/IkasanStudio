@@ -16,19 +16,19 @@ import java.awt.event.MouseEvent;
 
 public class PopupHelpAction  implements ActionListener {
    private final String projectKey;
-   private final BasicElement component;
+   private final BasicElement ikasanBasicElement;
    private final MouseEvent mouseEvent;
    private final boolean webHelp;
 
-   public PopupHelpAction(String projectKey, BasicElement component, MouseEvent mouseEvent, boolean webHelp) {
+   public PopupHelpAction(String projectKey, BasicElement ikasanBasicElement, MouseEvent mouseEvent, boolean webHelp) {
       this.projectKey = projectKey;
-      this.component = component;
+      this.ikasanBasicElement = ikasanBasicElement;
       this.mouseEvent = mouseEvent;
       this.webHelp = webHelp;
    }
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      final IkasanFlowComponentAbstractViewHandler viewHandler = (IkasanFlowComponentAbstractViewHandler) component.getViewHandler();
+      final IkasanFlowComponentAbstractViewHandler viewHandler = (IkasanFlowComponentAbstractViewHandler) ikasanBasicElement.getViewHandler();
       if (webHelp) {
          BrowserUtil.browse(viewHandler.getFlowElement().getComponentMeta().getWebHelpURL());
       } else {

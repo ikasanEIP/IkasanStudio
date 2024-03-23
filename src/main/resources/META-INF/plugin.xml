@@ -17,7 +17,7 @@
         <toolWindow id="Ikasan Studio"
                     anchor="right"
                     factoryClass="org.ikasan.studio.ui.DesignerToolWindowFactory"
-                    icon="/studio/icons/squid13x13.svg"
+                    icon="/studio/icons/squid13x13.png"
         />
     </extensions>
 
@@ -35,7 +35,7 @@
         <action id="Studio.Search.Editor"
                 class="org.ikasan.studio.ui.actions.StudioMaintenanceDebug"
                 text="Studio Maintenance Debug"
-                icon="/studio/icons/squid13x13.svg"
+                icon="/studio/icons/squid13x13.png"
                 description="Invoke services to assist in the debugging of an issue">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
@@ -43,7 +43,7 @@
         <action id="StackOverflow.AskQuestion.ToolsMenu"
                 class="shed.AskQuestionAction"
                 text="Ask Question on Stack Overflow"
-                icon="/studio/icons/squid13x13.svg"
+                icon="/studio/icons/squid13x13.png"
                 description="Ask a question on stack overflow">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
@@ -51,7 +51,7 @@
         <action id="StackOverflow.Search.Editor"
                 class="shed.SearchAction"
                 text="Search on Stack Overflow"
-                icon="/studio/icons/squid13x13.svg"
+                icon="/studio/icons/squid13x13.png"
                 description="Search on stack overflow">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
@@ -59,7 +59,7 @@
         <action id="StackOverflow.Search.Console"
                 class="shed.SearchAction"
                 text="Search on Stack Overflow"
-                icon="/studio/icons/squid13x13.svg"
+                icon="/studio/icons/squid13x13.png"
                 description="Search on stack overflow">
             <add-to-group group-id="ConsoleEditorPopupMenu" anchor="last"/>
         </action>
