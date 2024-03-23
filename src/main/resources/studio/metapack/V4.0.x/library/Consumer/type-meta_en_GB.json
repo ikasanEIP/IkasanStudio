@@ -1,5 +1,5 @@
 {
   "componentType": "org.ikasan.spec.component.endpoint.Consumer",
   "displayOrder": 1,
-  "componentShortType": "Producer"
+  "componentShortType": "Consumer"
 }

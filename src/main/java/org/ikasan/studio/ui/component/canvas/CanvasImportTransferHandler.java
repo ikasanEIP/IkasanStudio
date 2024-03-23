@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
@@ -81,12 +82,11 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     private boolean flowInFocusActions(final TransferHandler.TransferSupport support) {
         boolean mouseOverFlow = false;
         Point currentMouse = support.getDropLocation().getDropPoint();
-        FlowElement flowElement = getDraggedComponent(support);
-        if ((flowElement != null && flowElement.getComponentMeta() != null && flowElement.getComponentMeta().isFlow()) ||
-                designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
+        BasicElement ikasanBasicElement = getDraggedComponent(support);
+        if (ikasanBasicElement != null && ikasanBasicElement.getComponentMeta().isFlow() || designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
             mouseOverFlow = true;
         }
-        designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, flowElement);
+        designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanBasicElement);
         return mouseOverFlow;
     }
     /**
@@ -108,9 +108,9 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
     public boolean importData(TransferSupport support) {
         LOG.info("import Data invoked " + support);
         if (this.canImport(support)) {
-            FlowElement flowElement = getDraggedComponent(support);
-            if (flowElement != null) {
-                ComponentMeta componentMeta = flowElement.getComponentMeta();
+            BasicElement ikasanBasicElement = getDraggedComponent(support);
+            if (ikasanBasicElement != null) {
+                ComponentMeta componentMeta = ikasanBasicElement.getComponentMeta();
                 return designerCanvas.requestToAddComponent(support.getDropLocation().getDropPoint().x, support.getDropLocation().getDropPoint().y, componentMeta);
             }
         }
@@ -122,16 +122,16 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      * @param support standard object containing information about the dragged component.
      * @return the instance of the IkasanFlowUIComponent currently being dragged.
      */
-    private FlowElement getDraggedComponent(TransferSupport support) {
-        FlowElement ikasanFlowComponent = null;
+    private BasicElement getDraggedComponent(TransferSupport support) {
+        BasicElement ikasanBasicComponent = null;
         try {
             IkasanFlowUIComponentTransferable  flowElementTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(flowElementFlavor);
-            ikasanFlowComponent = flowElementTransferable.getFlowElement();
+            ikasanBasicComponent = flowElementTransferable.getIkasanBasicElement();
         } catch (IOException | UnsupportedFlavorException e) {
             LOG.warn("Could not import flavor " + flowElementFlavor + " from support " + support + " due to exception " + e.getMessage());
             e.printStackTrace();
         }
-        return ikasanFlowComponent;
+        return ikasanBasicComponent;
     }
 }
 

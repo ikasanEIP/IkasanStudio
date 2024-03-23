@@ -1,6 +1,8 @@
 package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.ui.UiContext;
@@ -23,9 +25,10 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     // Source actions i.e. methods called for the source of the copy
 
-    public void PalettePanel(String projectKey) {
+    public PaletteExportTransferHandler(String projectKey) {
         this.projectKey = projectKey;
     }
+
     /**
      * For PaletteExportTransferHandler we only want to copy a component onto the design window, not link or move
      * @param sourceComponent the sourceComponent
@@ -47,8 +50,14 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                 LOG.warn("Module should never be null");
             }
 
-            IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(
-                    FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), item.getComponentMeta(), null, null));
+            BasicElement ikasanComponent;
+            String metapackVersion = UiContext.getIkasanModule(projectKey).getMetaVersion();
+            if (item.getComponentMeta().isFlow()) {
+                ikasanComponent = Flow.flowBuilder().metapackVersion(metapackVersion).build();
+            } else {
+                ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getComponentMeta(), null, null);
+            }
+            IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(ikasanComponent);
             Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);

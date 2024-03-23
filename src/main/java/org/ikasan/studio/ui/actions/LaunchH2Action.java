@@ -28,7 +28,7 @@ public class LaunchH2Action implements ActionListener {
          BrowserUtil.browse("http:localhost:" + module.getH2WebPortNumber() + "/login.do");
       } else {
          IKASAN_NOTIFICATION_GROUP
-              .createNotification("H2 console can't be launched unless module is defined.", NotificationType.INFORMATION)
+              .createNotification("H2 console can't be launched unless a module is defined.", NotificationType.INFORMATION)
               .notify(UiContext.getProject(projectKey));
 
       }

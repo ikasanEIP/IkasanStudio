@@ -80,7 +80,7 @@ Meta pack(s)
 * Add metapacks for Ikasan V4.x
 
 UI
-* Code to support user implemented and user supplied classes - integration into model.json
+* Code to support user implemented and user supplied classes - integration into model.json, including 'shared' poms and properties - maybe explore multiple project roots.
 * Validate current methods to run from UI
 * Component deletion handling
 * Debug mode, Message flow debug using wiretap

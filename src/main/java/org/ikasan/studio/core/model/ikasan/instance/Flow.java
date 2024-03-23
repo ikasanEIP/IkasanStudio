@@ -88,11 +88,13 @@ public class Flow extends BasicElement {
     }
 
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
-        if (ikasanFlowComponentToBeRemoved != null && ! flowElements.isEmpty()) {
+        if (ikasanFlowComponentToBeRemoved != null) {
             if (ikasanFlowComponentToBeRemoved.getComponentMeta().isConsumer()) {
                 setConsumer(null);
-            } else {
+            } else if (! flowElements.isEmpty()) {
                 getFlowElements().remove(ikasanFlowComponentToBeRemoved);
+            } else {
+                LOG.warn("Attempt to remove element " + ikasanFlowComponentToBeRemoved + " because it could not be found in the memory model");
             }
         }
     }
@@ -103,9 +105,10 @@ public class Flow extends BasicElement {
      * @return true if component valid to be added
      */
     public boolean isValidToAdd(ComponentMeta newComponent) {
-        return newComponent == null ||
+        return  newComponent == null ||
+                !newComponent.isFlow() ||
                 ((!hasConsumer() || !newComponent.isConsumer())) &&
-                        (!hasProducer() || !newComponent.isProducer());
+                 (!hasProducer() || !newComponent.isProducer());
     }
 
     /**
@@ -115,7 +118,9 @@ public class Flow extends BasicElement {
      */
     public String issueCausedByAdding(ComponentMeta newComponent) {
         String reason = "";
-        if (hasConsumer() && newComponent.isConsumer()) {
+        if (newComponent.isFlow()) {
+            reason += "You can add a flow to a module but not inside another flow";
+        } else if (hasConsumer() && newComponent.isConsumer()) {
             reason += "The flow cannot have more then one consumer";
         } else if (hasProducer() && newComponent.isProducer()) {
             reason += "The flow cannot have more then one producer";
@@ -147,8 +152,7 @@ public class Flow extends BasicElement {
     }
 
     public boolean hasConsumer() {
-        return flowElements.stream()
-            .anyMatch(e->e.getComponentMeta().isConsumer());
+        return getConsumer() != null;
     }
 
     public boolean hasProducer() {

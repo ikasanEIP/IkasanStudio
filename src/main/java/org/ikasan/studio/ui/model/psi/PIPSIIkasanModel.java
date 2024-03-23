@@ -49,7 +49,7 @@ public class PIPSIIkasanModel {
      * An update has been made to the diagram, so we need to reflect this into the code.
      * @param checkForJarChanges Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
      */
-    public void generateSourceFromModelInstance3(Boolean checkForJarChanges) {
+    public void generateSourceFromModelInstance3() {
         Boolean dependenciesHaveChanged = false;
         Project project = UiContext.getProject(projectKey);
         Module module = UiContext.getIkasanModule(project.getName());

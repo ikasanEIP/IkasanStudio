@@ -81,14 +81,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             }
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance3(false);
+            pipsiIkasanModel.generateSourceFromModelInstance3();
             if (metaPackChanged) {
-//                UiContext.getPalettePanel(projectKey).initialisePanel();
                 UiContext.getPalettePanel(projectKey).resetPallette();
             }
 
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
+            UiContext.getPalettePanel(projectKey).repaint();
             disablePermissionToOverwriteUserImplementedClass();
         } else {
             IKASAN_NOTIFICATION_GROUP

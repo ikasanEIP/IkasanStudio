@@ -56,7 +56,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 //            UiContext.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(false);
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance3(false);
+            pipsiIkasanModel.generateSourceFromModelInstance3();
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {

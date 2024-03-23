@@ -30,9 +30,8 @@ public class LaunchBlueAction implements ActionListener {
          BrowserUtil.browse("http:localhost:" + (module.getPort() != null ? module.getPort() : "8080") + "/" + module.getName().toLowerCase());
       } else {
          IKASAN_NOTIFICATION_GROUP
-            .createNotification("Blue console can't be launched unless module is defined.", NotificationType.INFORMATION)
+            .createNotification("Blue console can't be launched unless a module is defined.", NotificationType.INFORMATION)
             .notify(UiContext.getProject(projectKey));
       }
-
    }
 }
