@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
@@ -33,14 +34,14 @@ public class Flow extends BasicElement {
     /**
      * Used primarily during deserialization.
      */
-    public Flow() {
+    public Flow() throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(IkasanComponentLibrary.DEFAULT_IKASAN_PACK), null);
         LOG.error("Parameterless version of flow called");
         transitions = new ArrayList<>();
         flowElements = new ArrayList<>();
     }
 
-    public Flow(String metapackVersion) {
+    public Flow(String metapackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         transitions = new ArrayList<>();
         flowElements = new ArrayList<>();
@@ -55,7 +56,7 @@ public class Flow extends BasicElement {
                 List<FlowElement> flowElements,
                 ExceptionResolver exceptionResolver,
                 String name,
-                String description) {
+                String description) throws StudioBuildException {
         super(IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         if (consumer != null) {
             if (!consumer.getComponentMeta().isConsumer()) {

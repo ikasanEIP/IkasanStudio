@@ -1,7 +1,5 @@
 package org.ikasan.studio.ui;
 
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
@@ -25,7 +23,6 @@ import java.util.TreeMap;
  */
 public enum UiContext {
     INSTANCE;
-    public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio");
     public static final String JAVA_FILE_EXTENSION = "java";
     public static final String JSON_FILE_EXTENSION = "json";
     public static final String XML_FILE_EXTENSION = "xml";

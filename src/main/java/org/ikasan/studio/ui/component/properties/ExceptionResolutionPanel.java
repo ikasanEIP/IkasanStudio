@@ -1,20 +1,18 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.notification.NotificationType;
-import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.List;
-
-import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
@@ -48,9 +46,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
-            IKASAN_NOTIFICATION_GROUP
-                .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
             processEditedFlowComponents();
             // @TODO below line needs changing to model context
 //            UiContext.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(false);
@@ -60,9 +56,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {
-            IKASAN_NOTIFICATION_GROUP
-                .createNotification("Data has not changed in Exception Resolution, code will not be updated.", NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Data has not changed in Exception Resolution, code will not be updated.");
         }
     }
 

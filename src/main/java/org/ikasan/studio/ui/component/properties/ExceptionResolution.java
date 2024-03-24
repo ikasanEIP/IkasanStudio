@@ -50,6 +50,7 @@ public class ExceptionResolution implements EditBoxContainer {
      * @return the key for this exception resolution
      */
     public String getPropertyKey() {
+
         return exceptionResolution.getExceptionsCaught();
     }
 
@@ -61,6 +62,7 @@ public class ExceptionResolution implements EditBoxContainer {
     }
 
     public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
+
         return actionParamEditBoxList;
     }
 

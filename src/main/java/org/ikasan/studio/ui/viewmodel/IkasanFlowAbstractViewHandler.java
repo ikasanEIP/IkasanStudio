@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -14,6 +15,7 @@ import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
@@ -22,7 +24,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
 public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
-    private String projectKey;
+    private final String projectKey;
     public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
@@ -159,14 +161,19 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
                 if (propertyValueToDisplay != null) {
                     endpointText = propertyValueToDisplay.getValueString();
                 }
+                ComponentMeta endpointComponentMeta = null;
+                FlowElement endpointFlowElement = null;
+                try {
+                    // Create the endpoint symbol instance
+                    endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
+                    endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, flow, endpointText);
+                } catch (StudioBuildException se) {
+                    LOG.warn("A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+                }
 
-                // Create the endpoint symbol instance
-                ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
-                if (endpointComponentMeta == null) {
-                    LOG.warn("Expected to find endpoint named " + endpointComponentName + " but none were found, endpoint rendering will be skipped");
+                if (endpointComponentMeta == null || endpointFlowElement == null) {
+                    LOG.warn("Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
                 } else {
-                    FlowElement endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, flow, endpointText);
-
                     // Position and draw the endpoint
                     AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(projectKey, targetFlowElement);
                     AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(projectKey, endpointFlowElement);

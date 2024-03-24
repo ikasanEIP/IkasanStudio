@@ -1,10 +1,12 @@
 package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
 import org.ikasan.studio.ui.model.PaletteItem;
@@ -21,7 +23,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
-    private String projectKey;
+    private final String projectKey;
 
     // Source actions i.e. methods called for the source of the copy
 
@@ -43,7 +45,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     public Transferable createTransferable(JComponent sourceComponent) {
         if (sourceComponent instanceof JList paletteList &&
                 ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem &&
-                ! ((PaletteItem)((JList)sourceComponent).getSelectedValue()).isCategory()) {
+                ! ((PaletteItem)((JList<PaletteItem>)sourceComponent).getSelectedValue()).isCategory()) {
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
 
             if (UiContext.getIkasanModule(projectKey) == null) {
@@ -52,11 +54,17 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
             BasicElement ikasanComponent;
             String metapackVersion = UiContext.getIkasanModule(projectKey).getMetaVersion();
-            if (item.getComponentMeta().isFlow()) {
-                ikasanComponent = Flow.flowBuilder().metapackVersion(metapackVersion).build();
-            } else {
-                ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getComponentMeta(), null, null);
+            try {
+                if (item.getComponentMeta().isFlow()) {
+                    ikasanComponent = Flow.flowBuilder().metapackVersion(metapackVersion).build();
+                } else {
+                    ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getComponentMeta(), null, null);
+                }
+            } catch (StudioBuildException e) {
+                StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                return null;
             }
+
             IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(ikasanComponent);
             Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {

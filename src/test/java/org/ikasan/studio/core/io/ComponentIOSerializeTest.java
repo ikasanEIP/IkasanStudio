@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.io;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.TestUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -19,18 +20,18 @@ class ComponentIOSerializeTest {
     public static final String TEST_IKASAN_PACK = "Vtest.x";
 
     @BeforeAll
-    public static void classSetup() {
+    public static void classSetup() throws StudioBuildException {
         IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);
     }
 
     @Test
-    public void testFlowElementSerializeToJson() throws IOException {
+    public void testFlowElementSerializeToJson() throws IOException, StudioBuildException {
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));
     }
 
     @Test
-    public void testFlowSerializeToJson() throws IOException {
+    public void testFlowSerializeToJson() throws IOException, StudioBuildException {
         Flow flow1 = TestFixtures.getUnbuiltFlow().build();
         String jsonString = ComponentIO.toJson(flow1);
 
@@ -38,7 +39,7 @@ class ComponentIOSerializeTest {
     }
 
     @Test
-    public void testModuleSerializeToJson() throws IOException {
+    public void testModuleSerializeToJson() throws IOException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/module.json"), ComponentIO.toJson(module));
     }
@@ -46,19 +47,19 @@ class ComponentIOSerializeTest {
 
     //@NEXT EventGeneratingConsumer replicated
     @Test
-    public void testPopulatedFlowSerializeToJson() throws IOException {
+    public void testPopulatedFlowSerializeToJson() throws IOException, StudioBuildException {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
     }
 
     @Test
-    public void testPopulatedModuleSerializeToJson() throws IOException {
+    public void testPopulatedModuleSerializeToJson() throws IOException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow()));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json"), ComponentIO.toJson(module));
     }
 
     @Test
-    public void testDevNullFlowElementSerialiseToJson() throws IOException {
+    public void testDevNullFlowElementSerialiseToJson() throws IOException, StudioBuildException {
 
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));

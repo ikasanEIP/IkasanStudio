@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.generator;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class PropertiesTemplateTest extends GeneratorTests {
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws StudioBuildException {
         module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
     }
 
@@ -24,7 +25,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
+    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException, StudioBuildException {
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
@@ -36,7 +37,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException {
+    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getEventGeneratingConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEventGeneratingConsumerComponent.properties"), templateString);
@@ -47,7 +48,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_ftpConsumer() throws IOException {
+    public void testCreateFlowWith_ftpConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getFtpConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties"), templateString);
@@ -58,7 +59,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_localFileConsumer() throws IOException {
+    public void testCreateFlowWith_localFileConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getLocalFileConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
@@ -69,7 +70,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_scheduledConsumer() throws IOException {
+    public void testCreateFlowWith_scheduledConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getScheduledConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedScheduledConsumerComponent.properties"), templateString);
@@ -80,7 +81,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_sftpConsumer() throws IOException {
+    public void testCreateFlowWith_sftpConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getSftpConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties"), templateString);
@@ -92,7 +93,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_springJmsConsumer() throws IOException {
+    public void testCreateFlowWith_springJmsConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getSpringJmsConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSpringJmsConsumerComponent.properties"), templateString);
@@ -103,7 +104,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException {
+    public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedBasicAmqSpringJmsConsumerComponent.properties"), templateString);
@@ -116,7 +117,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageFilter() throws IOException {
+    public void testCreateFlowWith_messageFilter() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getMessageFilter();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedMessageFilterComponent.properties"), templateString);
@@ -128,7 +129,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_customConverter() throws IOException {
+    public void testCreateFlowWith_customConverter() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
         assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
@@ -142,7 +143,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException {
+    public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
         assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
@@ -156,7 +157,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException {
+    public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
         assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
@@ -172,7 +173,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_devNullProducer() throws IOException {
+    public void testCreateFlowWith_devNullProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getDevNullProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedDevNullProducerComponent.properties"), templateString);
@@ -183,7 +184,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_emailProducer() throws IOException {
+    public void testCreateFlowWith_emailProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getEmailProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEmailProducerComponent.properties"), templateString);
@@ -194,7 +195,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_ftpProducer() throws IOException {
+    public void testCreateFlowWith_ftpProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getFtpProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties"), templateString);
@@ -205,7 +206,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_jmsProducer() throws IOException {
+    public void testCreateFlowWith_jmsProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getJmsProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedJmsProducerComponent.properties"), templateString);
@@ -216,7 +217,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_basicAmqJmsProducer() throws IOException {
+    public void testCreateFlowWith_basicAmqJmsProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedBasicAmqJmsProducerComponent.properties"), templateString);
@@ -227,7 +228,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_SftpProducer() throws IOException {
+    public void testCreateFlowWith_SftpProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getSftpProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpProducerComponent.properties"), templateString);
@@ -238,7 +239,7 @@ public class PropertiesTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_loggingProducer() throws IOException {
+    public void testCreateFlowWith_loggingProducer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getLoggingProducer();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLoggingProducerComponent.properties"), templateString);
