@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -37,18 +37,31 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         String metapackVersion = DEFAULT_IKASAN_PACK;
         JsonNode versionNode = jsonNode.get(VERSION);
         if (versionNode != null) {
-            metapackVersion = ((TextNode) versionNode).asText();
+            metapackVersion = versionNode.asText();
         } else {
             LOG.warn("The metapackVersion of the module was not stated, using default metapackVersion");
         }
 
-        Module module = new Module(metapackVersion);
+        Module module = null;
+        try {
+            module = new Module(metapackVersion);
+        } catch (StudioBuildException se) {
+            String message = "A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
+            LOG.error(message);
+            throw new IOException(message, se);
+        }
         Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
         while(fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
             String fieldName  = field.getKey();
             if (FLOWS_TAG.equals(fieldName)) {
-                module.setFlows(getFlows(field.getValue(), metapackVersion));
+                try {
+                    module.setFlows(getFlows(field.getValue(), metapackVersion));
+                } catch (StudioBuildException se) {
+                    String message = "A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
+                    LOG.error(message);
+                    throw new IOException(message, se);
+                }
             } else {
                 if (fieldName != null && fieldName.equals(VERSION)) {
                     module.setPropertyValue(fieldName, metapackVersion);
@@ -79,7 +92,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 //        return null;
 //    }
 
-    public List<Flow> getFlows(JsonNode root, String metapackVersion) throws IOException {
+    public List<Flow> getFlows(JsonNode root, String metapackVersion) throws IOException, StudioBuildException {
         List<Flow> flows = new ArrayList<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
@@ -94,7 +107,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return flows;
     }
 
-    public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws IOException {
+    public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws IOException, StudioBuildException {
         Flow flow = null;
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             flow = new Flow(metapackVersion);
@@ -211,7 +224,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
         return transition;
     }
-    public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow, String metapackVersion) throws IOException {
+    public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow, String metapackVersion) throws IOException, StudioBuildException {
         Map<String, FlowElement> flowElementsMap = new TreeMap<>();
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
@@ -226,7 +239,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return flowElementsMap;
     }
 
-    public FlowElement getFlowElement(JsonNode jsonNode, Flow containingFlow, String metapackVersion) throws IOException {
+    public FlowElement getFlowElement(JsonNode jsonNode, Flow containingFlow, String metapackVersion) throws IOException, StudioBuildException {
         FlowElement flowElement = null;
         // Possibly just open/close brackets
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {

@@ -1,15 +1,19 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ExceptionAction;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolutionMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,11 +41,29 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
 
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
-        List<String> currentExceptions = ExceptionResolutionMeta.getStandardExceptionsList();
-        this.exceptionJComboBox = new JComboBox(currentExceptions.toArray());
+//        List<String> currentExceptions = ExceptionResolutionMeta.getStandardExceptionsList();
+
+        String[] exceptions;
+        ExceptionAction[] actions;
+        List<String> currentExceptions;
+
+        try {
+            actions = (ExceptionAction[]) IkasanComponentLibrary.getExceptionResolverMeta(UiContext.getIkasanModule(projectKey).getMetaVersion()).getActionList().toArray();
+            ExceptionResolutionMeta exceptionResolutionMeta = IkasanComponentLibrary.getExceptionResolverMeta(UiContext.getIkasanModule(projectKey).getMetaVersion());
+            currentExceptions = exceptionResolutionMeta.getExceptionsCaught();
+            exceptions = (String[]) currentExceptions.toArray();
+
+        } catch (StudioBuildException se) {
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
+            exceptions = new String[0] ;
+            actions = new ExceptionAction[0] ;
+            currentExceptions = Collections.emptyList();
+        }
+        this.actionJComboBox = new JComboBox(actions);
+        this.exceptionJComboBox = new JComboBox(exceptions);
+
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");
-        this.actionJComboBox = new JComboBox(IkasanComponentLibrary.getExceptionResolverMeta(UiContext.getIkasanModule(projectKey).getMetaVersion()).getActionList().toArray());
         if (exceptionResolution.getExceptionsCaught() != null) {
             // There might be a bespoke exception already set
             if (!currentExceptions.contains(exceptionResolution.getExceptionsCaught())) {

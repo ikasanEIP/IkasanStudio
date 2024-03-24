@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.meta;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -14,7 +15,7 @@ class IkasanComponentLibraryTest {
 //    public static final String TEST_IKASAN_PACK = "V4.0.x";
 //    public static final String TEST_IKASAN_PACK = "V3.3.x";
     @Test
-    void testThatDeserializationPopulatesTheIkasanComponentLibrary() {
+    void testThatDeserializationPopulatesTheIkasanComponentLibrary() throws StudioBuildException {
         IkasanComponentLibrary.refreshComponentLibrary(TEST_IKASAN_PACK);
 
         assertAll(

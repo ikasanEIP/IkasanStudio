@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 
 import java.util.HashMap;
@@ -17,7 +18,7 @@ public class ExceptionResolver extends FlowElement {
      * Create an ExceptionResolver
      * @param parent flow that contains this exceptions resolver
      */
-    protected ExceptionResolver(String metapackVersion, Flow parent) {
+    protected ExceptionResolver(String metapackVersion, Flow parent) throws StudioBuildException {
         super(parent, IkasanComponentLibrary.getExceptionResolverMeta(metapackVersion), null);
     }
 

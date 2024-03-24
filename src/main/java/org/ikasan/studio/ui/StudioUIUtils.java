@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -12,8 +15,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StudioUIUtils {
 
+public class StudioUIUtils {
+    public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio");
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
     private StudioUIUtils() {}
 
@@ -232,5 +236,11 @@ public class StudioUIUtils {
             StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, text, popupX + 3, popupY + 3, font);
             g.setColor(oldColor);
         }
+    }
+
+    public static void displayIdeaInfoMessage(String projectKey, String message) {
+        IKASAN_NOTIFICATION_GROUP
+                .createNotification(message, NotificationType.INFORMATION)
+                .notify(UiContext.getProject(projectKey));
     }
 }

@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
@@ -10,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
-import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
@@ -60,18 +59,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         // If the user has selected the checkbox, that indicates they wish to force a re-write
 
         if (userImplementedComponentOverwriteCheckBox == null) {
-            IKASAN_NOTIFICATION_GROUP
-                .createNotification("Update is not allowed unless overwrite box is ticked.", NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Update is not allowed unless overwrite box is ticked.");
         } else if (dataHasChanged()) {
-            IKASAN_NOTIFICATION_GROUP
-                .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
             // If the meta version has changed, we need to rerender the screen
-            boolean metaPackChanged = false;
-            if (getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION)) {
-                metaPackChanged = true;
-            }
+            boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             processEditedFlowComponents();
             // This will force a regeneration of the component
             if (userImplementedComponentOverwriteCheckBox.isSelected()) {
@@ -91,9 +83,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             UiContext.getPalettePanel(projectKey).repaint();
             disablePermissionToOverwriteUserImplementedClass();
         } else {
-            IKASAN_NOTIFICATION_GROUP
-                .createNotification("Data hasn't changed, ignoring OK action.", NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Data hasn't changed, ignoring OK action.");
         }
     }
 

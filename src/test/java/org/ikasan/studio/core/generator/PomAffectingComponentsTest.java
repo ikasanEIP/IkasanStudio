@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.generator;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class PomAffectingComponentsTest extends GeneratorTests {
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws StudioBuildException {
         module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
     }
 
@@ -26,7 +27,7 @@ public class PomAffectingComponentsTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
+    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);

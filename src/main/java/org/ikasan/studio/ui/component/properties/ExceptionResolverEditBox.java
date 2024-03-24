@@ -1,16 +1,15 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
@@ -50,31 +49,34 @@ public class ExceptionResolverEditBox {
     }
 
     public void doDelete(ExceptionResolution exceptionResolution) {
-        if (exceptionResolutionList != null) {
-            if (exceptionResolutionList.removeIf(item -> exceptionResolution.equals(item.getIkasanExceptionResolution()))) {
-                hasChanged = true;
-                resolverPanel.populatePropertiesEditorPanel();
-                resolverPanel.redrawPanel();
-            }
+        if (exceptionResolutionList.removeIf(item -> exceptionResolution.equals(item.getIkasanExceptionResolution()))) {
+            hasChanged = true;
+            resolverPanel.populatePropertiesEditorPanel();
+            resolverPanel.redrawPanel();
         }
     }
 
     private void doAdd() {
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
-        ExceptionResolution newResolution = new ExceptionResolution(projectKey, exceptionResolver);
-        exceptionResolutionPanel.updateTargetComponent(newResolution);
-        PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
-                UiContext.getProject(projectKey),
-                UiContext.getDesignerCanvas(projectKey),
-                exceptionResolutionPanel);
-        if (propertiesDialogue.showAndGet()) {
-            IKASAN_NOTIFICATION_GROUP
-                .createNotification("Code generation in progress, please wait.", NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
-            exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
-            hasChanged = true;
-            resolverPanel.populatePropertiesEditorPanel();
-            resolverPanel.redrawPanel();
+        ExceptionResolution newResolution = null;
+        try {
+            newResolution = new ExceptionResolution(projectKey, exceptionResolver);
+        } catch (StudioBuildException e) {
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
+        }
+        if (newResolution != null) {
+            exceptionResolutionPanel.updateTargetComponent(newResolution);
+            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                    UiContext.getProject(projectKey),
+                    UiContext.getDesignerCanvas(projectKey),
+                    exceptionResolutionPanel);
+            if (propertiesDialogue.showAndGet()) {
+                StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
+                exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
+                hasChanged = true;
+                resolverPanel.populatePropertiesEditorPanel();
+                resolverPanel.redrawPanel();
+            }
         }
     }
 
@@ -95,7 +97,7 @@ public class ExceptionResolverEditBox {
      * @return true if the editbox has a non-whitespace / real value.
      */
     public boolean editBoxHasValue() {
-        return exceptionResolutionList != null && !exceptionResolutionList.isEmpty();
+        return !exceptionResolutionList.isEmpty();
     }
 
     /**
@@ -114,7 +116,7 @@ public class ExceptionResolverEditBox {
      */
     protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
-        if (exceptionResolutionList == null || exceptionResolutionList.isEmpty()) {
+        if (exceptionResolutionList.isEmpty()) {
             result.add(new ValidationInfo("At least one exception should be added, or cancel so that exception resolver is not defined"));
         } else if (!hasChanged) {
             result.add(new ValidationInfo("No change has been made yet, change the configuration or cancel the action"));

@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.generator;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class GeneratorTests {
     Module module;
 
-    public String generatePropertiesTemplateString(FlowElement flowElement) {
+    public String generatePropertiesTemplateString(FlowElement flowElement) throws StudioBuildException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))
@@ -24,7 +25,7 @@ public class GeneratorTests {
     }
 
 
-    public String generateFlowTemplateString(FlowElement flowElement) {
+    public String generateFlowTemplateString(FlowElement flowElement) throws StudioBuildException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))
@@ -36,7 +37,7 @@ public class GeneratorTests {
         return templateString;
     }
 
-    public String generateFlowsComponentFactoryTemplateString(FlowElement flowElement) {
+    public String generateFlowsComponentFactoryTemplateString(FlowElement flowElement) throws StudioBuildException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))

@@ -3,6 +3,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolutionMeta;
@@ -21,7 +22,7 @@ ExceptionResolver parent;
     String theAction;
     List<ComponentProperty> params;
 
-    public ExceptionResolution(String metapackVersion, ExceptionResolver parent) {
+    public ExceptionResolution(String metapackVersion, ExceptionResolver parent) throws StudioBuildException {
         super(IkasanComponentLibrary.getOnExceptionComponentMeta(metapackVersion));
         this.parent = parent;
     }

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.*;
 import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleSerializer;
@@ -36,7 +37,7 @@ public class Module extends BasicElement {
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     private List<Flow> flows;
 
-    public Module(String metaPackVersion) {
+    public Module(String metaPackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getModuleComponentMeta(metaPackVersion), null);
         flows = new ArrayList<>();
     }
@@ -51,7 +52,7 @@ public class Module extends BasicElement {
             String port,
             String h2PortNumber,
             String h2WebPortNumber,
-            List<Flow> flows) {
+            List<Flow> flows) throws StudioBuildException {
         super (IkasanComponentLibrary.getModuleComponentMeta(version), description);
 
         setVersion(version);

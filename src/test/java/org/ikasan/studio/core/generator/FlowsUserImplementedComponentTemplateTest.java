@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.generator;
 
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws StudioBuildException {
         module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
     }
 
@@ -25,7 +26,7 @@ public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_customConverterComponent() throws IOException {
+    public void testCreateFlowWith_customConverterComponent() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
@@ -37,7 +38,7 @@ public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageFilterComponent() throws IOException {
+    public void testCreateFlowWith_messageFilterComponent() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getMessageFilter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);

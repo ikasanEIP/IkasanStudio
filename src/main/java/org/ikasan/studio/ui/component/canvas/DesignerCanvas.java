@@ -1,17 +1,17 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
@@ -30,8 +30,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static org.ikasan.studio.ui.UiContext.IKASAN_NOTIFICATION_GROUP;
 
 /**
  * The main painting / design panel
@@ -90,11 +88,14 @@ public class DesignerCanvas extends JPanel {
             {
                 String metapackVersion = (String) metaDataVersionJComboBox.getSelectedItem();
                 if (metapackVersion == null) {
-                    IKASAN_NOTIFICATION_GROUP
-                        .createNotification("A module can't be created until at least one meta-pack is loaded.", NotificationType.INFORMATION)
-                        .notify(UiContext.getProject(projectKey));
+                    StudioUIUtils.displayIdeaInfoMessage(projectKey, "A module can't be created until at least one meta-pack is loaded.");
                 } else {
-                    UiContext.setIkasanModule(projectKey, Module.moduleBuilder().version(metapackVersion).build());
+                    try {
+                        UiContext.setIkasanModule(projectKey, Module.moduleBuilder().version(metapackVersion).build());
+                    } catch (StudioBuildException ex) {
+
+                        throw new RuntimeException(ex);
+                    }
                     UiContext.getPalettePanel(projectKey).resetPallette();
                     ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
 //                componentPropertiesPanel.updateTargetComponent(ikasanModule);
@@ -476,6 +477,7 @@ public class DesignerCanvas extends JPanel {
                 try {
                     newComponent = createViableFlowComponent(ikasanComponentType, containingFlow);
                 } catch (Exception ex) {
+                    // Any exceptions raised here were silently handled, now exposed at least as logs
                     LOG.warn("ERROR: Intercept silent popup box failure, " + ex);
                 }
                 if (newComponent != null) {
@@ -493,10 +495,16 @@ public class DesignerCanvas extends JPanel {
                 }
             } else {
                 // The targetElement was the module, so we must be adding a new flow.
-                newComponent = createViableComponent(Flow
-                        .flowBuilder()
-                        .metapackVersion(UiContext.getIkasanModule(projectKey).getMetaVersion())
-                        .build());
+
+                try {
+                    newComponent = createViableComponent(Flow
+                            .flowBuilder()
+                            .metapackVersion(UiContext.getIkasanModule(projectKey).getMetaVersion())
+                            .build());
+                } catch (StudioBuildException e) {
+                    StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
+                    return false;
+                }
                 if (newComponent != null) {
                     ikasanModule.addFlow((Flow) newComponent);
                 } else {
@@ -522,7 +530,13 @@ public class DesignerCanvas extends JPanel {
      * @return the fully populated component or null if the action was cancelled.
      */
     private FlowElement createViableFlowComponent(ComponentMeta ikasanComponentType, Flow containingFlow) {
-        FlowElement newComponent = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), ikasanComponentType, containingFlow, null);
+        FlowElement newComponent = null;
+        try {
+            newComponent = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), ikasanComponentType, containingFlow, null);
+        } catch (StudioBuildException e) {
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
+            return newComponent;
+        }
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver(newComponent);
         } else {
