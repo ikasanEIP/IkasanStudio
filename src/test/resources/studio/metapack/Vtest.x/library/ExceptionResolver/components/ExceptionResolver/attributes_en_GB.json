@@ -36,19 +36,38 @@
     },{
       "actionName" : "retry",
       "actionProperties":{
-        "delay": "Integer",
-        "interval": "Integer"
+        "delay": {
+          "propertyName": "delay",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer"
+        },
+        "interval": {
+          "propertyName": "interval",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer"
+        }
       }
     },{
       "actionName" : "retryIndefinatel",
       "actionProperties":{
-        "delay": "Integer"
+        "delay": {
+          "propertyName": "delay",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer"
+        }
       }
     },{
       "actionName" : "scheduledCronEntry",
       "actionProperties":{
-        "cronExpression": "String",
-        "maxRetries": "Integer"
+        "cronExpression": {
+          "propertyName": "cronExpression",
+          "mandatory": true
+        },
+        "maxRetries": {
+          "propertyName": "maxRetries",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer"
+        }
       }
     }
   ]

@@ -29,7 +29,7 @@ class IkasanComponentLibraryTest {
         Map<String, ComponentMeta> componentMetaList = IkasanComponentLibrary.getIkasanComponents(TEST_IKASAN_PACK);
         verifyDefaultModuleMeta(componentMetaList.get(ComponentMeta.MODULE_NAME));
         verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_NAME));
-        verifyDefaultExceptionResolverMeta((ExceptionResolutionMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_NAME));
+        verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_NAME));
     }
 
     protected void verifyDefaultFlowMeta(ComponentMeta flow) {
@@ -57,7 +57,7 @@ class IkasanComponentLibraryTest {
         );
     }
 
-    protected void verifyDefaultExceptionResolverMeta(ExceptionResolutionMeta exceptionResolver) {
+    protected void verifyDefaultExceptionResolverMeta(ExceptionResolverMeta exceptionResolver) {
         assertAll(
                 "Check the Exception Resolver contains the expected values",
                 () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_NAME, exceptionResolver.getName()),

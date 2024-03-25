@@ -1,16 +1,13 @@
 package org.ikasan.studio.core;
 
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.instance.Transition;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
 /**
@@ -565,6 +562,28 @@ public class TestFixtures {
 
 
     // ------------------------ Flow Combinations --------------------
+
+    public static Flow getExceptionResolutionFlow() throws StudioBuildException {
+        ExceptionResolution exceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
+                .exceptionsCaught("javax.jms.JMSException.class")
+                .theAction("retry")
+                .build();
+
+        ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)exceptionResolution.getComponentMeta();
+        Map<String, ComponentPropertyMeta> retryPropertiesMeta = exceptionResolverMeta.getExceptionActionWithName("retry").getActionProperties();
+        ComponentProperty delayComponentProperty = new ComponentProperty(retryPropertiesMeta.get("delay"), 1);
+        ComponentProperty intervalcomponentProperty = new ComponentProperty(retryPropertiesMeta.get("interval"), 2);
+
+        Map<String, ComponentProperty>  retryConfiguredProperties = exceptionResolution.getConfiguredProperties();
+        retryConfiguredProperties.put("delay", delayComponentProperty);
+        retryConfiguredProperties.put("interval", intervalcomponentProperty);
+        exceptionResolution.setConfiguredProperties(retryConfiguredProperties);
+
+        return getUnbuiltFlow()
+                .exceptionResolution(exceptionResolution)
+                .build();
+    }
 
     public static Flow getEventGeneratingConsumerCustomConverterDevNullProducerFlow() throws StudioBuildException {
         FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();

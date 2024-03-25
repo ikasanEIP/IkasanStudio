@@ -1,19 +1,14 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionAction;
-import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolutionMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,6 +17,7 @@ import java.util.List;
  */
 public class ExceptionResolutionEditBox implements EditBoxContainer {
     private final String projectKey;
+    ExceptionResolverMeta exceptionResolverMeta;
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
     private final JComboBox exceptionJComboBox;
@@ -33,32 +29,36 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     private final boolean componentInitialisation;
     private final ExceptionResolution exceptionResolution;
 
-    public ExceptionResolutionEditBox(String projectKey, ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
+    public ExceptionResolutionEditBox(String projectKey, ExceptionResolverMeta exceptionResolverMeta, ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
         this.projectKey = projectKey;
+        this.exceptionResolverMeta = exceptionResolverMeta;
         this.resolutionPanel = resolutionPanel;
         this.exceptionResolution = exceptionResolution;
         this.componentInitialisation = componentInitialisation;
 
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
-//        List<String> currentExceptions = ExceptionResolutionMeta.getStandardExceptionsList();
+//        List<String> currentExceptions = ExceptionResolverMeta.getStandardExceptionsList();
 
-        String[] exceptions;
-        ExceptionAction[] actions;
-        List<String> currentExceptions;
+        List<String> currentExceptions = exceptionResolverMeta.getExceptionsCaught();
+        Object[] exceptions = currentExceptions.toArray();
+        Object[] actions = exceptionResolverMeta.getActionList().stream()
+                .map(ExceptionAction::getActionName)
+                .toArray();
 
-        try {
-            actions = (ExceptionAction[]) IkasanComponentLibrary.getExceptionResolverMeta(UiContext.getIkasanModule(projectKey).getMetaVersion()).getActionList().toArray();
-            ExceptionResolutionMeta exceptionResolutionMeta = IkasanComponentLibrary.getExceptionResolverMeta(UiContext.getIkasanModule(projectKey).getMetaVersion());
-            currentExceptions = exceptionResolutionMeta.getExceptionsCaught();
-            exceptions = (String[]) currentExceptions.toArray();
-
-        } catch (StudioBuildException se) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
-            exceptions = new String[0] ;
-            actions = new ExceptionAction[0] ;
-            currentExceptions = Collections.emptyList();
-        }
+//        try {
+//            actions = exceptionResolverMeta.getActionList().stream()
+//                    .map(ExceptionAction::getActionName)
+//                    .toArray();
+//            currentExceptions = exceptionResolverMeta.getExceptionsCaught().toArray();
+//            exceptions = currentExceptions.toArray();
+//
+//        } catch (StudioBuildException se) {
+//            StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
+//            exceptions = new String[0] ;
+//            actions = new ExceptionAction[0] ;
+//            currentExceptions = Collections.emptyList();
+//        }
         this.actionJComboBox = new JComboBox(actions);
         this.exceptionJComboBox = new JComboBox(exceptions);
 
@@ -75,9 +75,9 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         if (exceptionResolution.getTheAction() != null) {
             currentAction = exceptionResolution.getTheAction();
             actionJComboBox.setSelectedItem(currentAction);
-            if (!exceptionResolution.getParams().isEmpty()) {
+            if (!exceptionResolution.getConfiguredProperties().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
-                for (ComponentProperty property : exceptionResolution.getParams()) {
+                for (ComponentProperty property : exceptionResolution.getConfiguredProperties().values()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation, null);
                     actionParamEditBoxList.add(actionParam);
                 }
@@ -95,15 +95,21 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     private void setNewActionParams() {
         String actionSelected = (String)actionJComboBox.getSelectedItem();
         if (actionSelected != null && ! actionSelected.equals(currentAction)) {
+            currentAction = (String)actionJComboBox.getSelectedItem();
             actionParamEditBoxList = new ArrayList<>();
-            for (ComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
-                if (!propertyMeta.isVoid()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new ComponentProperty(propertyMeta), this.componentInitialisation, null);
-                    actionParamEditBoxList.add(actionParam);
+            ExceptionAction exceptionAction = exceptionResolverMeta.getExceptionActionWithName(currentAction);
+            if (exceptionAction != null) {
+//            for (ComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
+                // XXX
+                for (ComponentPropertyMeta propertyMeta : exceptionAction.getActionProperties().values()) {
+                    if (!propertyMeta.isVoid()) {
+                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new ComponentProperty(propertyMeta), this.componentInitialisation, null);
+                        actionParamEditBoxList.add(actionParam);
+                    }
                 }
             }
 
-            currentAction = (String)actionJComboBox.getSelectedItem();
+
             resolutionPanel.populatePropertiesEditorPanel();
             resolutionPanel.redrawPanel();
         }
@@ -120,10 +126,12 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         exceptionResolution.setExceptionsCaught(theException);
         exceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
-            List<ComponentProperty> newActionParams = new ArrayList<>();
-            exceptionResolution.setParams(newActionParams);
+//            exceptionResolution.getParams();
+//            List<ComponentProperty> newActionParams = new ArrayList<>();
+//            exceptionResolution.setParams(newActionParams);
             for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
-                newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());
+//                newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());
+                componentPropertyEditBox.updateValueObjectWithEnteredValues();
             }
         }
 
@@ -232,7 +240,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
             result.add(new ValidationInfo("The exception " + exceptionJComboBox.getSelectedItem() + " already has an assigned action, change the exception or cancel"));
         } else if (actionJComboBox.getSelectedItem() == null) {
             result.add(new ValidationInfo("An action must be chosen"));
-        } else if (!ExceptionResolutionMeta.isValidAction((String) actionJComboBox.getSelectedItem())) {
+        } else if (!ExceptionResolverMeta.isValidAction((String) actionJComboBox.getSelectedItem())) {
             result.add(new ValidationInfo("The action " + actionJComboBox.getSelectedItem() + " is not recognised"));
         } else {
             // By now the action params should have been set (if there are any)

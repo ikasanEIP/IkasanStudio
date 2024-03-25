@@ -35,10 +35,10 @@ public class ExceptionResolution implements EditBoxContainer {
             actionField.setText(exceptionResolution.getTheAction());
         }
         if (exceptionResolution.getTheAction() != null &&
-                exceptionResolution.getParams() != null &&
-                !exceptionResolution.getParams().isEmpty()) {
+                exceptionResolution.getConfiguredProperties() != null &&
+                !exceptionResolution.getConfiguredProperties().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
-            for (ComponentProperty property : exceptionResolution.getParams()) {
+            for (ComponentProperty property : exceptionResolution.getConfiguredProperties().values()) {
                 ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, componentInitialisation, this);
                 actionParamEditBoxList.add(actionParam);
             }
