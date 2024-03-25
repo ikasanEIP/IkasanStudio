@@ -38,7 +38,7 @@ public class Module extends BasicElement {
     private List<Flow> flows;
 
     public Module(String metaPackVersion) throws StudioBuildException {
-        super (IkasanComponentLibrary.getModuleComponentMeta(metaPackVersion), null);
+        super (IkasanComponentLibrary.getModuleComponentMetaMandatory(metaPackVersion), null);
         flows = new ArrayList<>();
     }
 
@@ -53,7 +53,7 @@ public class Module extends BasicElement {
             String h2PortNumber,
             String h2WebPortNumber,
             List<Flow> flows) throws StudioBuildException {
-        super (IkasanComponentLibrary.getModuleComponentMeta(version), description);
+        super (IkasanComponentLibrary.getModuleComponentMetaMandatory(version), description);
 
         setVersion(version);
         setName(name);

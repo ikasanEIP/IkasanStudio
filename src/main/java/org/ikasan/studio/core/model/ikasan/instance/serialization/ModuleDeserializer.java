@@ -123,6 +123,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     flow.setTransitions(getTransitions(field.getValue()));
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
                     flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
+                } else if (Flow.EXCEPTION_RESOLVER_JSON_TAG.equals(fieldName)) {
+                    flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
                 } else {
                     Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);

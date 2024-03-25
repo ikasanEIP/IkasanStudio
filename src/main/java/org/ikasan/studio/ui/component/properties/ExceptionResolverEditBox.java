@@ -1,7 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -60,8 +59,9 @@ public class ExceptionResolverEditBox {
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
         ExceptionResolution newResolution = null;
         try {
-            newResolution = new ExceptionResolution(projectKey, exceptionResolver);
-        } catch (StudioBuildException e) {
+//            newResolution = new ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion(), exceptionResolver);
+            newResolution = new ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion());
+        } catch (Exception e) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
         }
         if (newResolution != null) {

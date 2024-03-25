@@ -13,5 +13,5 @@ import java.util.Map;
 @AllArgsConstructor
 public class ExceptionAction {
     String actionName;
-    Map<String, String> actionProperties;
+    Map<String, ComponentPropertyMeta> actionProperties;
 }

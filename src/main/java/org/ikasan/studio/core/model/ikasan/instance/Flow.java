@@ -25,11 +25,12 @@ public class Flow extends BasicElement {
     public static final String CONSUMER_JSON_TAG = "consumer";
     public static final String TRANSITIONS_JSON_TAG = "transitions";
     public static final String FLOW_ELEMENTS_JSON_TAG = "flowElements";
+    public static final String EXCEPTION_RESOLVER_JSON_TAG = "flowElements";
 
     private FlowElement consumer;
     private List<Transition> transitions;
     private List<FlowElement> flowElements;
-    private ExceptionResolver exceptionResolver;
+    private ExceptionResolution exceptionResolution;
 
     /**
      * Used primarily during deserialization.
@@ -54,7 +55,7 @@ public class Flow extends BasicElement {
                 FlowElement consumer,
                 List<Transition> transitions,
                 List<FlowElement> flowElements,
-                ExceptionResolver exceptionResolver,
+                ExceptionResolution exceptionResolution,
                 String name,
                 String description) throws StudioBuildException {
         super(IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
@@ -79,7 +80,7 @@ public class Flow extends BasicElement {
             }
         }
 
-        this.exceptionResolver = exceptionResolver;
+        this.exceptionResolution = exceptionResolution;
         super.setName(name);
         super.setDescription(description);
     }
@@ -165,8 +166,8 @@ public class Flow extends BasicElement {
      * Does the Flow have a valid exception resolver
      * @return if the flow has a valid exception resolver.
      */
-    public boolean hasExceptionResolver() {
-        return (exceptionResolver != null && exceptionResolver.isValid());
+    public boolean hasExceptionResolution() {
+        return (exceptionResolution != null);
     }
 
 

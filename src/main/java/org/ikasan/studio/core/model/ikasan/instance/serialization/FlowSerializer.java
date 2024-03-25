@@ -69,7 +69,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
             jsonGenerator.writeEndArray();
         }
 
-        basicElementSerializer.serializePayload(flow.getExceptionResolver(), jsonGenerator);
+        basicElementSerializer.serializePayload(flow.getExceptionResolution(), jsonGenerator);
     }
 
     /**

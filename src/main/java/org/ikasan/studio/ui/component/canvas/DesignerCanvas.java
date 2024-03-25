@@ -326,16 +326,16 @@ public class DesignerCanvas extends JPanel {
 
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
-                    .filter(Flow::hasExceptionResolver)
-                    .filter(x -> StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getLeftX() <= xpos &&
-                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getRightX() >= xpos &&
-                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getTopY() <= ypos &&
-                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getBottomY() >= ypos)
+                    .filter(Flow::hasExceptionResolution)
+                    .filter(x -> StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getLeftX() <= xpos &&
+                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getRightX() >= xpos &&
+                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getTopY() <= ypos &&
+                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
 
             if (ikasanComponent != null) {
-                ikasanComponent = ((Flow) ikasanComponent).getExceptionResolver();
+                ikasanComponent = ((Flow) ikasanComponent).getExceptionResolution();
             }
         }
 
@@ -482,7 +482,7 @@ public class DesignerCanvas extends JPanel {
                 }
                 if (newComponent != null) {
                     if (newComponent instanceof ExceptionResolver) {
-                        containingFlow.setExceptionResolver((ExceptionResolver)newComponent);
+                        containingFlow.setExceptionResolution((ExceptionResolution) newComponent);
                     } else {
                         if (newComponent.getComponentMeta().isConsumer()) {
                             containingFlow.setConsumer((FlowElement) newComponent);

@@ -3,7 +3,6 @@ package org.ikasan.studio.core.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
-import lombok.NonNull;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 
 /**
@@ -19,12 +18,10 @@ public class IkasanObject {
     protected ViewHandler viewHandler;
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
-    @NonNull
     protected ComponentMeta componentMeta;
 
     public IkasanObject() {}
     protected IkasanObject(
-            @NonNull
             ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
     }

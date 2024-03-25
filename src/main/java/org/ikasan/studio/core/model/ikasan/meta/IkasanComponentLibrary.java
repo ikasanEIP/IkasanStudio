@@ -221,15 +221,23 @@ public class IkasanComponentLibrary {
     public static ComponentMeta getFLowComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.FLOW_NAME);
     }
-    public static ComponentMeta getModuleComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.MODULE_NAME);
+    public static ComponentMeta getModuleComponentMetaMandatory(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+        ComponentMeta componentMeta = getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.MODULE_NAME);
+        if (componentMeta == null) {
+            throw new StudioBuildRuntimeException("Meta cant be null");
+        }
+        return componentMeta;
     }
-    public static ExceptionResolutionMeta getExceptionResolverMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        return (ExceptionResolutionMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.EXCEPTION_RESOLVER_NAME);
+    public static ExceptionResolverMeta getExceptionResolverMetaMandatory(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+        ExceptionResolverMeta componentMeta = (ExceptionResolverMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.EXCEPTION_RESOLVER_NAME);
+        if (componentMeta == null) {
+            throw new StudioBuildRuntimeException("Meta cant be null");
+        }
+        return componentMeta;
     }
-    public static ComponentMeta getOnExceptionComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");
-    }
+//    public static ComponentMeta getOnExceptionComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+//        return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");
+//    }
 
 
     /**

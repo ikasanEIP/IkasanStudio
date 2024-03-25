@@ -19,7 +19,7 @@ public class ExceptionResolver extends FlowElement {
      * @param parent flow that contains this exceptions resolver
      */
     protected ExceptionResolver(String metapackVersion, Flow parent) throws StudioBuildException {
-        super(parent, IkasanComponentLibrary.getExceptionResolverMeta(metapackVersion), null);
+        super(parent, IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), null);
     }
 
     public Map<String, ExceptionResolution> getIkasanExceptionResolutionMap() {

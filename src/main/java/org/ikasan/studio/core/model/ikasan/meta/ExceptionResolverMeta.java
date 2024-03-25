@@ -8,9 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Capture the meta information for an action resolution. The meta will never change per class, so this is static.
@@ -20,20 +18,15 @@ import java.util.Map;
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
-public class ExceptionResolutionMeta extends ComponentMeta {
+public class ExceptionResolverMeta extends ComponentMeta {
     List<String> exceptionsCaught;
     List<ExceptionAction> actionList;
-    private static final Map<String, String> STANDARD_EXCEPTIONS = IkasanLookup.EXCEPTION_RESOLVER_STD_EXCEPTIONS.getDisplayAndValuePairs();
-    private static final Logger LOG = LoggerFactory.getLogger(ExceptionResolutionMeta.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ExceptionResolverMeta.class);
 
     /**
      * Though this is currently a static class, we expose its instance creation to make it more accessible to the template library
      */
-    public ExceptionResolutionMeta() {}
-
-    public static List<String> getStandardExceptionsList() {
-        return new ArrayList<>(STANDARD_EXCEPTIONS.keySet());
-    }
+    public ExceptionResolverMeta() {}
 
     public static boolean isValidAction(String action) {
         return true;
@@ -44,5 +37,14 @@ public class ExceptionResolutionMeta extends ComponentMeta {
         LOG.error("Not yet implemented");
         return null;
 //        return ON_EXCEPTION.getMetadataList(action);
+    }
+
+    public ExceptionAction getExceptionActionWithName(String actionName) {
+        for (ExceptionAction exceptionAction : actionList) {
+            if (exceptionAction.getActionName().equals(actionName)) {
+                return exceptionAction;
+            }
+        }
+        return null;
     }
 }

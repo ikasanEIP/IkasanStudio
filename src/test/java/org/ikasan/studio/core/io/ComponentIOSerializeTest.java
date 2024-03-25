@@ -59,6 +59,13 @@ class ComponentIOSerializeTest {
     }
 
     @Test
+    public void testExceptionResolverModuleSerializeToJson() throws IOException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(
+            Collections.singletonList(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow()));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json"), ComponentIO.toJson(module));
+    }
+
+    @Test
     public void testDevNullFlowElementSerialiseToJson() throws IOException, StudioBuildException {
 
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();

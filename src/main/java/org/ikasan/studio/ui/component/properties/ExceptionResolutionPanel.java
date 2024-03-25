@@ -1,10 +1,12 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
@@ -19,7 +21,6 @@ import java.util.List;
  * This panel contains the data entry for the exception and action
  */
 public class ExceptionResolutionPanel extends PropertiesPanel {
-    private static final Logger LOG = Logger.getInstance("#ExceptionResolutionPanel");
     private static final String OK_BUTTON_TEST = "Add";
     private final transient List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
@@ -112,14 +113,23 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
     private void updateExceptionAndAction() {
         exceptionActionEditorPanel.removeAll();
-        exceptionResolutionEditBox = new ExceptionResolutionEditBox(projectKey,this, getSelectedComponent(), componentInitialisation);
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = JBUI.insets(3, 4);
+        ExceptionResolverMeta exceptionResolverMeta = null;
+        try {
+            exceptionResolverMeta = IkasanComponentLibrary.getExceptionResolverMetaMandatory(UiContext.getIkasanModule(projectKey).getMetaVersion());
+        } catch (StudioBuildException se) {
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
+        }
 
-        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
-        addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
-        addToScrollPanelContent(exceptionActionEditorPanel, "", JBColor.LIGHT_GRAY, 0);
+        if (exceptionResolverMeta != null) {
+            exceptionResolutionEditBox = new ExceptionResolutionEditBox(projectKey, exceptionResolverMeta, this, getSelectedComponent(), componentInitialisation);
+            GridBagConstraints gc = new GridBagConstraints();
+            gc.fill = GridBagConstraints.HORIZONTAL;
+            gc.insets = JBUI.insets(3, 4);
+
+            addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
+            addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
+            addToScrollPanelContent(exceptionActionEditorPanel, "", JBColor.LIGHT_GRAY, 0);
+        }
     }
 
     public void updatePropertiesForAction() {
