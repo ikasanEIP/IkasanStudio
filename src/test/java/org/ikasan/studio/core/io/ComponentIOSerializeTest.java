@@ -61,8 +61,8 @@ class ComponentIOSerializeTest {
     @Test
     public void testExceptionResolverModuleSerializeToJson() throws IOException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(
-            Collections.singletonList(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow()));
-        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json"), ComponentIO.toJson(module));
+            Collections.singletonList(TestFixtures.getExceptionResolverFlow()));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module_with_exception_resolver.json"), ComponentIO.toJson(module));
     }
 
     @Test

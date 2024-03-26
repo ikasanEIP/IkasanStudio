@@ -26,8 +26,8 @@ public class FlowElementSerializer extends StdSerializer<FlowElement> {
         basicElementSerializer.serializePayload(flowElement, jsonGenerator);
 
         // This is metadata but used to identify the element
-        jsonGenerator.writeStringField(ComponentMeta.COMPONENT_TYPE, flowElement.getComponentMeta().getComponentType());
-        jsonGenerator.writeStringField(ComponentMeta.IMPLEMENTING_CLASS, flowElement.getComponentMeta().getImplementingClass());
+        jsonGenerator.writeStringField(ComponentMeta.COMPONENT_TYPE_KEY, flowElement.getComponentMeta().getComponentType());
+        jsonGenerator.writeStringField(ComponentMeta.IMPLEMENTING_CLASS_KEY, flowElement.getComponentMeta().getImplementingClass());
         if (flowElement.getComponentMeta().getAdditionalKey() != null) {
             jsonGenerator.writeStringField(ComponentMeta.ADDITIONAL_KEY, flowElement.getComponentMeta().getAdditionalKey());
         }

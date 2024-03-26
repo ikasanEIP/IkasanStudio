@@ -326,16 +326,16 @@ public class DesignerCanvas extends JPanel {
 
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
-                    .filter(Flow::hasExceptionResolution)
-                    .filter(x -> StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getLeftX() <= xpos &&
-                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getRightX() >= xpos &&
-                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getTopY() <= ypos &&
-                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolution()).getBottomY() >= ypos)
+                    .filter(Flow::hasExceptionResolver)
+                    .filter(x -> StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getLeftX() <= xpos &&
+                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getRightX() >= xpos &&
+                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getTopY() <= ypos &&
+                            StudioUIUtils.getViewHandler(projectKey, x.getExceptionResolver()).getBottomY() >= ypos)
                     .findFirst()
                     .orElse(null);
 
             if (ikasanComponent != null) {
-                ikasanComponent = ((Flow) ikasanComponent).getExceptionResolution();
+                ikasanComponent = ((Flow) ikasanComponent).getExceptionResolver();
             }
         }
 
@@ -460,7 +460,7 @@ public class DesignerCanvas extends JPanel {
         Module ikasanModule = getIkasanModule();
         if (x >= 0 && y >= 0) {
             BasicElement targetElement = getComponentAtXY(x,y);
-            BasicElement newComponent;
+            IkasanObject newComponent;
             // Add new component to existing flow
             if (targetElement instanceof FlowElement || targetElement instanceof Flow) {
                 Flow containingFlow;
@@ -482,7 +482,7 @@ public class DesignerCanvas extends JPanel {
                 }
                 if (newComponent != null) {
                     if (newComponent instanceof ExceptionResolver) {
-                        containingFlow.setExceptionResolution((ExceptionResolution) newComponent);
+                        containingFlow.setExceptionResolver((ExceptionResolver) newComponent);
                     } else {
                         if (newComponent.getComponentMeta().isConsumer()) {
                             containingFlow.setConsumer((FlowElement) newComponent);

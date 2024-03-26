@@ -20,7 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ExceptionResolverMeta extends ComponentMeta {
     List<String> exceptionsCaught;
-    List<ExceptionAction> actionList;
+    List<ExceptionActionMeta> actionList;
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionResolverMeta.class);
 
     /**
@@ -39,10 +39,10 @@ public class ExceptionResolverMeta extends ComponentMeta {
 //        return ON_EXCEPTION.getMetadataList(action);
     }
 
-    public ExceptionAction getExceptionActionWithName(String actionName) {
-        for (ExceptionAction exceptionAction : actionList) {
-            if (exceptionAction.getActionName().equals(actionName)) {
-                return exceptionAction;
+    public ExceptionActionMeta getExceptionActionWithName(String actionName) {
+        for (ExceptionActionMeta exceptionActionMeta : actionList) {
+            if (exceptionActionMeta.getActionName().equals(actionName)) {
+                return exceptionActionMeta;
             }
         }
         return null;

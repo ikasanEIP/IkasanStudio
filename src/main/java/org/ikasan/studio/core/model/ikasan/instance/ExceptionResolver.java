@@ -1,29 +1,36 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.model.ikasan.instance.serialization.ExceptionResolverSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Encapsulate the ExceptionResolver.
+ * The Exception Resolver owns the view handler andd has a list of exception resolutions
  */
 
+@JsonSerialize(using = ExceptionResolverSerializer.class)
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class ExceptionResolver extends FlowElement {
-    //@todo need to split IkasanComponent to nest ExceptionResolver above a protected Map<IkasanComponentPropertyMetaKey, ComponentProperty> configuredProperties; level
     private Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();  // list of all the exceptions we catch / process
 
-    /**
-     * Create an ExceptionResolver
-     * @param parent flow that contains this exceptions resolver
-     */
-    protected ExceptionResolver(String metapackVersion, Flow parent) throws StudioBuildException {
-        super(parent, IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), null);
+    public ExceptionResolver(String metapackVersion, Flow containingFlow) throws StudioBuildException {
+        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null);
+        ikasanExceptionResolutionMap = Collections.EMPTY_MAP;
     }
 
-    public Map<String, ExceptionResolution> getIkasanExceptionResolutionMap() {
-        return ikasanExceptionResolutionMap;
+    @Builder(builderMethodName = "exceptionResolverBuilder")
+    public ExceptionResolver(String metapackVersion, Flow containingFlow, Map<String, ExceptionResolution> ikasanExceptionResolutionMap) throws StudioBuildException {
+        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null);
+        this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
     }
 
     public void addExceptionResolution(ExceptionResolution exceptionResolution) {

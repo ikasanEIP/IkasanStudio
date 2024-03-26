@@ -7,9 +7,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +18,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
+//@JsonSerialize
 @JsonSerialize(using = FlowSerializer.class)
 public class Flow extends BasicElement {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
@@ -25,12 +26,12 @@ public class Flow extends BasicElement {
     public static final String CONSUMER_JSON_TAG = "consumer";
     public static final String TRANSITIONS_JSON_TAG = "transitions";
     public static final String FLOW_ELEMENTS_JSON_TAG = "flowElements";
-    public static final String EXCEPTION_RESOLVER_JSON_TAG = "flowElements";
+    public static final String EXCEPTION_RESOLVER_JSON_TAG = "exceptionResolver";
 
     private FlowElement consumer;
     private List<Transition> transitions;
     private List<FlowElement> flowElements;
-    private ExceptionResolution exceptionResolution;
+    private ExceptionResolver exceptionResolver;
 
     /**
      * Used primarily during deserialization.
@@ -55,7 +56,7 @@ public class Flow extends BasicElement {
                 FlowElement consumer,
                 List<Transition> transitions,
                 List<FlowElement> flowElements,
-                ExceptionResolution exceptionResolution,
+                ExceptionResolver exceptionResolver,
                 String name,
                 String description) throws StudioBuildException {
         super(IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
@@ -80,7 +81,7 @@ public class Flow extends BasicElement {
             }
         }
 
-        this.exceptionResolution = exceptionResolution;
+        this.exceptionResolver = exceptionResolver;
         super.setName(name);
         super.setDescription(description);
     }
@@ -166,8 +167,9 @@ public class Flow extends BasicElement {
      * Does the Flow have a valid exception resolver
      * @return if the flow has a valid exception resolver.
      */
-    public boolean hasExceptionResolution() {
-        return (exceptionResolution != null);
+    public boolean hasExceptionResolver() {
+
+        return (exceptionResolver != null);
     }
 
 
