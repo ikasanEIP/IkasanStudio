@@ -48,7 +48,7 @@
         }
       }
     },{
-      "actionName" : "retryIndefinatel",
+      "actionName" : "retryIndefinitely",
       "actionProperties":{
         "delay": {
           "propertyName": "delay",

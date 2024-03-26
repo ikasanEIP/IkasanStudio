@@ -113,8 +113,8 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
             initialiseDimensionsNotChildren(g, newLeftX, newTopY);
         }
         paintFlowBox(g);
-        if (flow.hasExceptionResolution()) {
-            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolution()).paintComponent(canvas, g, -1, -1);
+        if (flow.hasExceptionResolver()) {
+            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
         }
         List<FlowElement> flowAndConseumerElementList = flow.ftlGetConsumerAndFlowElements();
         int flowSize = flowAndConseumerElementList.size();
@@ -235,8 +235,8 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
             }
         }
         setWidthHeights(graphics, newTopY);
-        if (flow.hasExceptionResolution()) {
-            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolution()).initialiseDimensions(graphics,
+        if (flow.hasExceptionResolver()) {
+            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).initialiseDimensions(graphics,
                     IkasanFlowExceptionResolverAbstractViewHandler.getXOffsetFromRight(getRightX()),
                     IkasanFlowExceptionResolverAbstractViewHandler.getYOffsetFromTop(getTopY()),
                     -1, -1);

@@ -21,8 +21,7 @@ public class IkasanObject {
     protected ComponentMeta componentMeta;
 
     public IkasanObject() {}
-    protected IkasanObject(
-            ComponentMeta componentMeta) {
+    protected IkasanObject(ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
     }
 }

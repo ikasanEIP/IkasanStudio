@@ -563,26 +563,42 @@ public class TestFixtures {
 
     // ------------------------ Flow Combinations --------------------
 
-    public static Flow getExceptionResolutionFlow() throws StudioBuildException {
-        ExceptionResolution exceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
+    public static Flow getExceptionResolverFlow() throws StudioBuildException {
+        ExceptionResolution jmsExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(TEST_IKASAN_PACK)
                 .exceptionsCaught("javax.jms.JMSException.class")
                 .theAction("retry")
+                .configuredProperties(getRetryProperties())
+                .build();
+        ExceptionResolution resourceExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
+                .exceptionsCaught("javax.resource.ResourceException.class")
+                .theAction("ignore")
                 .build();
 
-        ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)exceptionResolution.getComponentMeta();
-        Map<String, ComponentPropertyMeta> retryPropertiesMeta = exceptionResolverMeta.getExceptionActionWithName("retry").getActionProperties();
-        ComponentProperty delayComponentProperty = new ComponentProperty(retryPropertiesMeta.get("delay"), 1);
-        ComponentProperty intervalcomponentProperty = new ComponentProperty(retryPropertiesMeta.get("interval"), 2);
+        Map<String, ExceptionResolution> exceptionResolutionMap = new HashMap<>();
+        exceptionResolutionMap.put(jmsExceptionResolution.getExceptionsCaught(), jmsExceptionResolution);
+        exceptionResolutionMap.put(resourceExceptionResolution.getExceptionsCaught(), resourceExceptionResolution);
 
-        Map<String, ComponentProperty>  retryConfiguredProperties = exceptionResolution.getConfiguredProperties();
-        retryConfiguredProperties.put("delay", delayComponentProperty);
-        retryConfiguredProperties.put("interval", intervalcomponentProperty);
-        exceptionResolution.setConfiguredProperties(retryConfiguredProperties);
+        ExceptionResolver exceptionResolver = ExceptionResolver.exceptionResolverBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
+                .ikasanExceptionResolutionMap(exceptionResolutionMap)
+                .build();
 
         return getUnbuiltFlow()
-                .exceptionResolution(exceptionResolution)
+                .exceptionResolver(exceptionResolver)
                 .build();
+    }
+
+    private static Map<String, ComponentProperty> getRetryProperties() throws StudioBuildException {
+        ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Exception Resolver");
+        Map<String, ComponentPropertyMeta> retryPropertiesMeta = exceptionResolverMeta.getExceptionActionWithName("retry").getActionProperties();
+
+        Map<String, ComponentProperty>  retryConfiguredProperties = new HashMap<>();
+        retryConfiguredProperties.put("delay", new ComponentProperty(retryPropertiesMeta.get("delay"), 1));
+        retryConfiguredProperties.put("interval", new ComponentProperty(retryPropertiesMeta.get("interval"), 2));
+
+        return retryConfiguredProperties;
     }
 
     public static Flow getEventGeneratingConsumerCustomConverterDevNullProducerFlow() throws StudioBuildException {

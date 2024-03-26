@@ -8,9 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.meta.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +122,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
                     flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
                 } else if (Flow.EXCEPTION_RESOLVER_JSON_TAG.equals(fieldName)) {
-                    flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
+                    flow.setExceptionResolver(getExceptionResolver(field.getValue(), metapackVersion));
                 } else {
                     Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);
@@ -207,6 +205,109 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return transitions;
     }
 
+    /**
+     * Deserialize the exception resolver e.g.
+     *             "exceptionResolver": {
+     *                 "javax.resource.ResourceException.class": {
+     *                     "exceptionsCaught": "javax.resource.ResourceException.class",
+     *                     "theAction": "ignore"
+     *                 },
+     *                 "javax.jms.JMSException.class": {
+     *                     "exceptionsCaught": "javax.jms.JMSException.class",
+     *                     "theAction": "retry",
+     *                     "properties": {
+     *                         "delay": "1",
+     *                         "interval": "2"
+     *                     }
+     *                 }
+     *             },
+     * @param jsonNode - the root, i.e. "exceptionResolver"
+     * @param metapackVersion to build
+     * @return an ExceptionResolver instance
+     * @throws StudioBuildException if there were issues with the metapack.
+     */
+    public ExceptionResolver getExceptionResolver(JsonNode jsonNode, String metapackVersion) throws StudioBuildException {
+        ExceptionResolver.ExceptionResolverBuilder exceptionResolverBuilder = ExceptionResolver.exceptionResolverBuilder()
+                .metapackVersion(metapackVersion);
+        Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();
+
+        if(jsonNode.isObject() && !jsonNode.isEmpty()) {
+            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> field = fields.next();
+                String fieldName = field.getKey();
+                ikasanExceptionResolutionMap.put(fieldName, getExceptionResolution(field.getValue(), metapackVersion));
+            }
+        }
+        if (!ikasanExceptionResolutionMap.isEmpty()) {
+            exceptionResolverBuilder.ikasanExceptionResolutionMap(ikasanExceptionResolutionMap);
+        }
+        return exceptionResolverBuilder.build();
+    }
+
+
+    /**
+     * Deserialize the exception resolver e.g.
+     *                 {
+     *                     "exceptionsCaught": "javax.jms.JMSException.class",
+     *                     "theAction": "retry",
+     *                     "properties": {
+     *                         "delay": "1",
+     *                         "interval": "2"
+     *                     }
+     *                 }
+     *             },
+     * @param jsonNode - the root, i.e. "exceptionResolver"
+     * @param metapackVersion to build
+     * @return an ExceptionResolver instance
+     * @throws StudioBuildException if there were issues with the metapack.
+     */
+    public ExceptionResolution getExceptionResolution(JsonNode jsonNode, String metapackVersion) throws StudioBuildException {
+        ExceptionResolution exceptionResolution = null;
+        ExceptionResolution.ExceptionResolutionBuilder exceptionResolutionBuilder = ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(metapackVersion);
+
+        if(jsonNode.isObject() && !jsonNode.isEmpty()) {
+            String exceptionCaught = jsonNode.get(ComponentMeta.EXCEPTIONS_CAUGHT_KEY) != null ? jsonNode.get(ComponentMeta.EXCEPTIONS_CAUGHT_KEY).asText() : null;
+            String action = jsonNode.get(ComponentMeta.ACTION_KEY) != null ? jsonNode.get(ComponentMeta.ACTION_KEY).asText() : null;
+            if (action == null || exceptionCaught == null) {
+                LOG.error("DATA CORRUPTION : Attempting to create an Exception Resolution but mandatory aproperty was not set action=[" + action + "] excepptionCaught [" + exceptionCaught + "] skipping");
+            } else {
+                exceptionResolutionBuilder.exceptionsCaught(exceptionCaught);
+                exceptionResolutionBuilder.theAction(action);
+
+                JsonNode actionProperties = jsonNode.get(ComponentMeta.ACTION_PROPERTIES_KEY);
+                if (actionProperties != null) {
+                    ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta) IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, "Exception Resolver");
+                    ExceptionActionMeta exceptionActionMeta = exceptionResolverMeta.getExceptionActionWithName(action);
+                    if (exceptionActionMeta == null) {
+                        LOG.error("DATA CORRUPTION : Attempting to set properties for an unknown action=[" + action + "], skipping");
+                    } else {
+                        exceptionResolutionBuilder.configuredProperties(new TreeMap<>());
+                        exceptionResolution = exceptionResolutionBuilder.build();
+
+                        Iterator<Map.Entry<String, JsonNode>> fields = actionProperties.fields();
+                        while (fields.hasNext()) {
+                            Map.Entry<String, JsonNode> field = fields.next();
+                            String fieldName = field.getKey();
+                            Object value = getTypedValue(field);
+
+                            ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
+                            if (componentPropertyMeta == null) {
+                                LOG.error("DATA CORRUPTION : Attempting to set properties field that has no recorded meta, fieldName=[" + fieldName + "], skipping");
+                            } else {
+                                exceptionResolution.setPropertyValue(componentPropertyMeta, fieldName, value);
+                            }
+                        }
+                    }
+                } else {
+                    exceptionResolution = exceptionResolutionBuilder.build();
+                }
+            }
+        }
+        return exceptionResolution;
+    }
+
     public Transition getTransition(JsonNode jsonNode)  {
         Transition transition = null;
         if (!jsonNode.isEmpty()) {
@@ -245,8 +346,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         FlowElement flowElement = null;
         // Possibly just open/close brackets
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
-            String implementingClass = jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS) != null ? jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS).asText() : null;
-            String componentType = jsonNode.get(ComponentMeta.COMPONENT_TYPE) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE).asText() : null;
+            String implementingClass = jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS_KEY) != null ? jsonNode.get(ComponentMeta.IMPLEMENTING_CLASS_KEY).asText() : null;
+            String componentType = jsonNode.get(ComponentMeta.COMPONENT_TYPE_KEY) != null ? jsonNode.get(ComponentMeta.COMPONENT_TYPE_KEY).asText() : null;
             String additionalKey = jsonNode.get(ComponentMeta.ADDITIONAL_KEY) != null ? jsonNode.get(ComponentMeta.ADDITIONAL_KEY).asText() : null;
 
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
@@ -266,8 +367,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String fieldName = field.getKey();
-                if (ComponentMeta.IMPLEMENTING_CLASS.equals(fieldName) ||
-                    ComponentMeta.COMPONENT_TYPE.equals(fieldName) ||
+                if (ComponentMeta.IMPLEMENTING_CLASS_KEY.equals(fieldName) ||
+                    ComponentMeta.COMPONENT_TYPE_KEY.equals(fieldName) ||
                     ComponentMeta.ADDITIONAL_KEY.equals(fieldName)) {
                     // these special components are actually meta and captured above, used to identify the component.
                     continue;

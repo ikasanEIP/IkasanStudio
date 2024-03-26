@@ -27,10 +27,9 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public  class BasicElement extends IkasanObject {
-    @JsonIgnore
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
     private static final com.intellij.openapi.diagnostic.Logger LOGI = com.intellij.openapi.diagnostic.Logger.getInstance("#BasicElement");
-    @JsonPropertyOrder({"componentName", "description"})
+//    @JsonPropertyOrder({"componentName", "description"})
     protected Map<String, ComponentProperty> configuredProperties;
     public BasicElement() {}
 
@@ -192,7 +191,7 @@ public  class BasicElement extends IkasanObject {
     }
 
     /**
-     * ** Used in FTL **
+     * ** Also Used in FTL **
      * Get all the standard properties i.e. exclude the special 'name and description' properties.
      * @return the Map of standard properties for this component.
      */

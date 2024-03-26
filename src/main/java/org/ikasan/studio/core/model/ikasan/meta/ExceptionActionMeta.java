@@ -11,7 +11,15 @@ import java.util.Map;
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
-public class ExceptionAction {
+public class ExceptionActionMeta {
     String actionName;
     Map<String, ComponentPropertyMeta> actionProperties;
+
+    public ComponentPropertyMeta getMetaProperty(String key) {
+        ComponentPropertyMeta componentPropertyMeta = null;
+        if (key != null) {
+            componentPropertyMeta = actionProperties.get(key);
+        }
+        return componentPropertyMeta;
+    }
 }

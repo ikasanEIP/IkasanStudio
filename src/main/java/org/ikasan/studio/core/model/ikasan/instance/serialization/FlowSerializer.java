@@ -25,8 +25,9 @@ public class FlowSerializer extends StdSerializer<Flow> {
     protected void serializePayload(Flow flow, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         BasicElementSerializer basicElementSerializer = new BasicElementSerializer();
         FlowElementSerializer flowElementSerializer = new FlowElementSerializer();
+        ExceptionResolverSerializer exceptionResolverSerializer = new ExceptionResolverSerializer();
 
-        // The properties for the flow itself
+        // The properties for the flow itself i.e. name: and description:
         basicElementSerializer.serializePayload(flow, jsonGenerator);
 
         if (flow.getConsumer() != null) {
@@ -59,6 +60,13 @@ public class FlowSerializer extends StdSerializer<Flow> {
             serializerProvider.defaultSerializeField(Flow.TRANSITIONS_JSON_TAG, flow.getTransitions(), jsonGenerator);
         }
 
+        if (    flow.getExceptionResolver() != null &&
+                flow.getExceptionResolver().getIkasanExceptionResolutionMap() != null &&
+                !flow.getExceptionResolver().getIkasanExceptionResolutionMap().isEmpty()) {
+            // Since transitions are simple pojos, we can use the default serialiser
+            serializerProvider.defaultSerializeField(Flow.EXCEPTION_RESOLVER_JSON_TAG, flow.getExceptionResolver(), jsonGenerator);
+        }
+
         if (flow.getFlowElements() != null && !flow.getFlowElements().isEmpty()) {
             jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS_JSON_TAG);
             for (FlowElement flowElement : flow.getFlowElements()) {
@@ -69,7 +77,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
             jsonGenerator.writeEndArray();
         }
 
-        basicElementSerializer.serializePayload(flow.getExceptionResolution(), jsonGenerator);
+        basicElementSerializer.serializePayload(flow.getExceptionResolver(), jsonGenerator);
     }
 
     /**

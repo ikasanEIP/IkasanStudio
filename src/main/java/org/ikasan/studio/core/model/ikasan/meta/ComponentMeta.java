@@ -30,12 +30,17 @@ public class ComponentMeta implements IkasanMeta {
     public static final String PRODUCER_NAME = "Producer";
     public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
 
-    public static final String ADDITIONAL_KEY = "additionalKey";
-    public static final String COMPONENT_TYPE = "componentType";
     private static final String DEFAULT_README = "Readme.md";
-    public static final String HELP_TEXT = "helpText";
-    public static final String IMPLEMENTING_CLASS = "implementingClass";
-    public static final String NAME = "name";
+
+    public static final String ADDITIONAL_KEY = "additionalKey";
+    public static final String COMPONENT_TYPE_KEY = "componentType";
+    public static final String EXCEPTION_RESOLVER_KEY = "exceptionResolver";
+    public static final String HELP_TEXT_KEY = "helpText";
+    public static final String IMPLEMENTING_CLASS_KEY = "implementingClass";
+    public static final String NAME_KEY = "name";
+    public static final String EXCEPTIONS_CAUGHT_KEY = "exceptionsCaught";
+    public static final String ACTION_KEY = "action";
+    public static final String ACTION_PROPERTIES_KEY = "actionProperties";
 
     // DO NOT RENAME - Will affect model.json
     @lombok.NonNull

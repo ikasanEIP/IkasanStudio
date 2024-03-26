@@ -2,10 +2,8 @@ package org.ikasan.studio.core.io;
 
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.instance.Transition;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -57,13 +55,16 @@ class ComponentIODeserializeTest {
 
     @Test
     public void testModuleInstanceDeserialize() throws StudioBuildException {
-        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module.json");
+        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_full_module_with_exception_resolver.json");
         List<Flow> flows = module.getFlows();
         Flow flow1 = flows.get(0);
         FlowElement eventGeneratingConsumer = flow1.getConsumer();
         List<Transition> transition = flow1.getTransitions();
         FlowElement customConverter = flow1.getFlowElements().get(0);
         FlowElement devNullProducer = flow1.getFlowElements().get(1);
+        ExceptionResolver exceptionResolver = flow1.getExceptionResolver();
+        ExceptionResolution resourceExceptionResolution = flow1.getExceptionResolver().getIkasanExceptionResolutionMap().get("javax.resource.ResourceException.class");
+        ExceptionResolution jmsExceptionResolution = flow1.getExceptionResolver().getIkasanExceptionResolutionMap().get("javax.jms.JMSException.class");
 
         assertAll(
             "Check the module contains the expected values",
@@ -78,6 +79,18 @@ class ComponentIODeserializeTest {
             () -> assertEquals(1, flows.size()),
             () -> assertEquals(2, flow1.getConfiguredProperties().size()),
             () -> assertEquals("MyFlow1", flow1.getName()),
+
+            () -> assertEquals(2, exceptionResolver.getIkasanExceptionResolutionMap().size()),
+
+            () -> assertEquals("javax.resource.ResourceException.class", resourceExceptionResolution.getExceptionsCaught()),
+            () -> assertEquals("ignore", resourceExceptionResolution.getTheAction()),
+            () -> Assertions.assertNull(resourceExceptionResolution.getConfiguredProperties()),
+
+            () -> assertEquals("javax.jms.JMSException.class", jmsExceptionResolution.getExceptionsCaught()),
+            () -> assertEquals("ignore", resourceExceptionResolution.getTheAction()),
+            () -> assertEquals(2, jmsExceptionResolution.getConfiguredProperties().size()),
+            () -> assertEquals("1", jmsExceptionResolution.getConfiguredProperties().get("delay").getValue().toString()),
+            () -> assertEquals("2", jmsExceptionResolution.getConfiguredProperties().get("interval").getValue().toString()),
 
             () -> assertEquals(1, eventGeneratingConsumer.getConfiguredProperties().size()),
 
