@@ -2,6 +2,7 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,7 +91,7 @@ public class FlowTemplateTest extends GeneratorTests {
     }
 
   /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedBasicAmqSpringJmsConsumerComponent.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedExceptionResolverComponent.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -98,6 +99,18 @@ public class FlowTemplateTest extends GeneratorTests {
         FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBasicAmqSpringJmsConsumerComponent.java"), templateString);
+    }
+
+    // ------------------------------------- EXCEPTION RESOLVER -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedExceptionResolverComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_ExceptionResolver() throws IOException, StudioBuildException {
+        ExceptionResolver exceptionResolver = TestFixtures.getExceptionResolver();
+        String templateString = generateFlowWithExceptionResolverTemplateString(exceptionResolver);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(exceptionResolver, TEST_FLOW_NAME + "FullyPopulatedExceptionResolverComponent.java"), templateString);
     }
 
     // ------------------------------------- FILTER -------------------------------------

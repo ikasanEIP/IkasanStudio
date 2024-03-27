@@ -12,10 +12,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -124,6 +121,13 @@ public  class BasicElement extends IkasanObject {
         return componentProperty != null ? componentProperty.getValue() : null;
     }
 
+    public List<ComponentProperty> getComponentPropertyList() {
+        if (configuredProperties != null && !configuredProperties.isEmpty()) {
+            return new ArrayList<>(configuredProperties.values());
+        } else {
+            return Collections.EMPTY_LIST;
+        }
+    }
 
     /**
      * Set the value of the (existing) property. Properties have associated metadata so we can't just add values.

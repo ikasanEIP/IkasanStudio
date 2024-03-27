@@ -38,7 +38,6 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
 
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
-//        List<String> currentExceptions = ExceptionResolverMeta.getStandardExceptionsList();
 
         List<String> currentExceptions = exceptionResolverMeta.getExceptionsCaught();
         Object[] exceptions = currentExceptions.toArray();
@@ -46,19 +45,6 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
                 .map(ExceptionActionMeta::getActionName)
                 .toArray();
 
-//        try {
-//            actions = exceptionResolverMeta.getActionList().stream()
-//                    .map(ExceptionActionMeta::getActionName)
-//                    .toArray();
-//            currentExceptions = exceptionResolverMeta.getExceptionsCaught().toArray();
-//            exceptions = currentExceptions.toArray();
-//
-//        } catch (StudioBuildException se) {
-//            StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
-//            exceptions = new String[0] ;
-//            actions = new ExceptionActionMeta[0] ;
-//            currentExceptions = Collections.emptyList();
-//        }
         this.actionJComboBox = new JComboBox(actions);
         this.exceptionJComboBox = new JComboBox(exceptions);
 
@@ -71,7 +57,8 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
             }
             exceptionJComboBox.setSelectedItem(exceptionResolution.getExceptionsCaught());
         }
-        
+
+        // Setup the box for update if they already exist
         if (exceptionResolution.getTheAction() != null) {
             currentAction = exceptionResolution.getTheAction();
             actionJComboBox.setSelectedItem(currentAction);
@@ -98,18 +85,19 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
             currentAction = (String)actionJComboBox.getSelectedItem();
             actionParamEditBoxList = new ArrayList<>();
             ExceptionActionMeta exceptionActionMeta = exceptionResolverMeta.getExceptionActionWithName(currentAction);
+
             if (exceptionActionMeta != null) {
-//            for (ComponentPropertyMeta propertyMeta : ExceptionResolution.getMetaForActionParams(actionSelected)) {
-                // XXX
                 for (ComponentPropertyMeta propertyMeta : exceptionActionMeta.getActionProperties().values()) {
                     if (!propertyMeta.isVoid()) {
-                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(new ComponentProperty(propertyMeta), this.componentInitialisation, null);
+                        ComponentProperty newActionProperty = new ComponentProperty(propertyMeta);
+//                        ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
+                        // The property has to be added to this exception resolution so that it can be updated later.
+                        exceptionResolution.addComponentProperty(newActionProperty.getMeta().getPropertyName(), newActionProperty);
+                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(newActionProperty, this.componentInitialisation, null);
                         actionParamEditBoxList.add(actionParam);
                     }
                 }
             }
-
-
             resolutionPanel.populatePropertiesEditorPanel();
             resolutionPanel.redrawPanel();
         }
@@ -126,11 +114,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         exceptionResolution.setExceptionsCaught(theException);
         exceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
         if (!actionParamEditBoxList.isEmpty()) {
-//            exceptionResolution.getParams();
-//            List<ComponentProperty> newActionParams = new ArrayList<>();
-//            exceptionResolution.setParams(newActionParams);
             for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
-//                newActionParams.add(componentPropertyEditBox.updateValueObjectWithEnteredValues());
                 componentPropertyEditBox.updateValueObjectWithEnteredValues();
             }
         }

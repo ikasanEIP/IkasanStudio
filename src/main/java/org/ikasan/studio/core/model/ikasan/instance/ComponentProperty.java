@@ -2,6 +2,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
 /**
@@ -40,6 +41,27 @@ public class ComponentProperty {
 
     public boolean affectsUserImplementedClass() {
         return Boolean.TRUE.equals(getMeta().isAffectsUserImplementedClass());
+    }
+
+    /**
+     * Used by template library, IDE may incorrectly identify as redundant
+     * Get the value and present it in such a way as to be appropriate for display in the template language
+     * @return a string that contains the value display in such a way as to be appropriate for inclusion in a template
+     */
+    @JsonIgnore
+    public String getTemplateRepresentationOfValue() {
+        String displayValue = "";
+        if (value == null) {
+            displayValue = null;
+        } else if (meta != null) {
+            if ("java.lang.String".equals(meta.getUsageDataType())) {
+                displayValue = ModelUtils.stripStartAndEndQuotes((String)value);
+                displayValue = "\"" + displayValue + "\"";
+            } else {
+                displayValue = value.toString();
+            }
+        }
+        return displayValue;
     }
 
     /**

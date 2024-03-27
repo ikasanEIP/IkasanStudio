@@ -67,7 +67,6 @@ class ComponentIOSerializeTest {
 
     @Test
     public void testDevNullFlowElementSerialiseToJson() throws IOException, StudioBuildException {
-
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));
     }

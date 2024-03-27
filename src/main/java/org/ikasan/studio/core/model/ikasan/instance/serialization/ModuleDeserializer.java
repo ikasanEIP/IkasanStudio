@@ -40,7 +40,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             LOG.warn("The metapackVersion of the module was not stated, using default metapackVersion");
         }
 
-        Module module = null;
+        Module module;
         try {
             module = new Module(metapackVersion);
         } catch (StudioBuildException se) {
@@ -71,24 +71,6 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
         return module;
     }
-
-//    /**
-//     * The top priority is to get the Ikasan meta-Pack version, that is required to choose the correct components
-//     * @return The version of the meta pack used for this module.
-//     */
-//    private String getIkasanVersion(JsonParser jp) throws IOException {
-//        JsonNode jsonNode = jp.getCodec().readTree(jp);
-//        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-//        while(fields.hasNext()) {
-//            Map.Entry<String, JsonNode> field = fields.next();
-//            String fieldName  = field.getKey();
-//
-//            if (fieldName != null && fieldName.equals(VERSION)) {
-//                return (String)getTypedValue(field);
-//            }
-//        }
-//        return null;
-//    }
 
     public List<Flow> getFlows(JsonNode root, String metapackVersion) throws IOException, StudioBuildException {
         List<Flow> flows = new ArrayList<>();

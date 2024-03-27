@@ -8,9 +8,7 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ExceptionResolverSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The Exception Resolver owns the view handler andd has a list of exception resolutions
@@ -47,5 +45,17 @@ public class ExceptionResolver extends FlowElement {
      */
     public boolean isValid() {
         return (ikasanExceptionResolutionMap != null && !ikasanExceptionResolutionMap.isEmpty());
+    }
+
+    /**
+     * Used by ftl
+     * @return the list of exception resolutions
+     */
+    public List<ExceptionResolution> getExceptionResolutionList() {
+        List<ExceptionResolution> exceptionResolutions = new ArrayList<>();
+        if (ikasanExceptionResolutionMap!=null && !ikasanExceptionResolutionMap.isEmpty()) {
+            exceptionResolutions.addAll(ikasanExceptionResolutionMap.values());
+        }
+        return exceptionResolutions;
     }
 }

@@ -168,7 +168,6 @@ public class Flow extends BasicElement {
      * @return if the flow has a valid exception resolver.
      */
     public boolean hasExceptionResolver() {
-
         return (exceptionResolver != null);
     }
 
