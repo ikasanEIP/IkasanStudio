@@ -32,10 +32,6 @@ public class DesignerUI {
         this.project = project;
         this.projectKey = project.getName();
         UiContext.setProject(projectKey, project);
-//        if (UiContext.getIkasanModule(projectKey) == null) {
-//            // This will serve as a dummy till the File system load completes.
-////            UiContext.setIkasanModule(projectKey, new Module(DUMMY_IKASAN_PACK));
-//        }
         if (UiContext.getPipsiIkasanModel(projectKey) == null) {
             UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
@@ -52,7 +48,6 @@ public class DesignerUI {
 
         mainJPanel.setLayout(new BorderLayout());
         mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
-//        mainJPanel.add(new PalettePanel(), BorderLayout.EAST);
     }
 
     public JPanel getContent() {

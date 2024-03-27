@@ -341,6 +341,32 @@ public class TestFixtures {
         return flowElement;
     }
 
+    // ------------------------- ExceptionResolver -------------------------
+
+    public static ExceptionResolver getExceptionResolver() throws StudioBuildException {
+        ExceptionResolution jmsExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
+                .exceptionsCaught("javax.jms.JMSException.class")
+                .theAction("retry")
+                .configuredProperties(getRetryProperties())
+                .build();
+        ExceptionResolution resourceExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
+                .exceptionsCaught("javax.resource.ResourceException.class")
+                .theAction("ignore")
+                .build();
+
+        Map<String, ExceptionResolution> exceptionResolutionMap = new HashMap<>();
+        exceptionResolutionMap.put(jmsExceptionResolution.getExceptionsCaught(), jmsExceptionResolution);
+        exceptionResolutionMap.put(resourceExceptionResolution.getExceptionsCaught(), resourceExceptionResolution);
+
+        return ExceptionResolver.exceptionResolverBuilder()
+                .metapackVersion(TEST_IKASAN_PACK)
+                .ikasanExceptionResolutionMap(exceptionResolutionMap)
+                .build();
+    }
+
+
     // ------------------------- Filters -------------------------
 
     public static FlowElement getMessageFilter() throws StudioBuildException {
@@ -564,27 +590,7 @@ public class TestFixtures {
     // ------------------------ Flow Combinations --------------------
 
     public static Flow getExceptionResolverFlow() throws StudioBuildException {
-        ExceptionResolution jmsExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
-                .metapackVersion(TEST_IKASAN_PACK)
-                .exceptionsCaught("javax.jms.JMSException.class")
-                .theAction("retry")
-                .configuredProperties(getRetryProperties())
-                .build();
-        ExceptionResolution resourceExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
-                .metapackVersion(TEST_IKASAN_PACK)
-                .exceptionsCaught("javax.resource.ResourceException.class")
-                .theAction("ignore")
-                .build();
-
-        Map<String, ExceptionResolution> exceptionResolutionMap = new HashMap<>();
-        exceptionResolutionMap.put(jmsExceptionResolution.getExceptionsCaught(), jmsExceptionResolution);
-        exceptionResolutionMap.put(resourceExceptionResolution.getExceptionsCaught(), resourceExceptionResolution);
-
-        ExceptionResolver exceptionResolver = ExceptionResolver.exceptionResolverBuilder()
-                .metapackVersion(TEST_IKASAN_PACK)
-                .ikasanExceptionResolutionMap(exceptionResolutionMap)
-                .build();
-
+        ExceptionResolver exceptionResolver = getExceptionResolver();
         return getUnbuiltFlow()
                 .exceptionResolver(exceptionResolver)
                 .build();

@@ -2,6 +2,7 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -29,6 +30,18 @@ public class GeneratorTests {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .flowElements(Collections.singletonList(flowElement))
+                .build();
+        module.addFlow(flow);
+
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertNotNull(templateString);
+        return templateString;
+    }
+
+    public String generateFlowWithExceptionResolverTemplateString(ExceptionResolver exceptionResolver) throws StudioBuildException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+                .exceptionResolver(exceptionResolver)
                 .build();
         module.addFlow(flow);
 

@@ -93,4 +93,20 @@ public class ModelUtils {
         return value;
     }
 
+    /**
+     * Remove the start and end quotes from a String to prevent double quoting.
+     * @param value to be examined
+     * @return the string with the start and end quites removed if there were any present
+     */
+    public static String stripStartAndEndQuotes(String value) {
+        if (value != null && !value.isEmpty()) {
+            if (value.startsWith("\"")) {
+                value = value.substring(1);
+            }
+            if (value.endsWith("\"")) {
+                value = value.substring(0,value.length()-1);
+            }
+        }
+        return value;
+    }
 }
