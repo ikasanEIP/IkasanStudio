@@ -4,12 +4,12 @@ import org.ikasan.studio.core.BuildContext;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 
 public class GeneratorTestUtils {
 
     public static String getExptectedFreemarkerOutputFromTestFile(BasicElement basicElement, String expectedTestResultFileName) throws IOException {
-        String testFile = BuildContext.FREEMARKER_OUTPUT_PATH + getSavedPathFromFlowElement(basicElement) + FileSystems.getDefault().getSeparator() + expectedTestResultFileName;
+//        String testFile = BuildContext.FREEMARKER_OUTPUT_PATH + getSavedPathFromFlowElement(basicElement) + FileSystems.getDefault().getSeparator() + expectedTestResultFileName;
+        String testFile = BuildContext.FREEMARKER_OUTPUT_PATH + getSavedPathFromFlowElement(basicElement) + "/" + expectedTestResultFileName;
         return TestUtils.getFileAsString(testFile);
     }
 

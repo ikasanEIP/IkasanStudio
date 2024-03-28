@@ -71,7 +71,7 @@ public class StudioPsiUtils {
             Module newModule = ModelUtils.generateModuleInstanceFromString(json, UiContext.JSON_MODEL_FULL_PATH);
             UiContext.setIkasanModule(projectKey, newModule);
         } else {
-            LOG.info("Could not read the model.json, this is probably a new project");
+            LOG.info("Could not read the " + UiContext.JSON_MODEL_FULL_PATH + ", this is probably a new project");
         }
     }
 
@@ -318,11 +318,14 @@ public class StudioPsiUtils {
     public static PsiFile getModelFile(final Project project) {
         PsiFile jsonModel = null;
         VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
-        if (contentRootVFiles == null || contentRootVFiles.length != 1) {
+        if (contentRootVFiles.length != 1) {
             LOG.warn("Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
         } else {
             VirtualFile contentRoot = contentRootVFiles[0];
             jsonModel = getFileFromPath(project, contentRootVFiles[0], "src/" + UiContext.JSON_MODEL_FULL_PATH);
+            if (jsonModel == null) {
+                LOG.warn("Could not get file from path " + "src/" + UiContext.JSON_MODEL_FULL_PATH);
+            }
         }
         return jsonModel;
     }
