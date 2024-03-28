@@ -9,15 +9,15 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanPaletteElementAbstractViewHandler extends AbstractViewHandler {
-    private static final Logger LOG = Logger.getInstance("#IkasanPaletteElementAbstractViewHandler");
+public class IkasanPaletteElementViewHandler extends AbstractViewHandler {
+    private static final Logger LOG = Logger.getInstance("#IkasanPaletteElementViewHandler");
     private final ComponentMeta componentMeta;
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param componentMeta for the view handler
      */
-    public IkasanPaletteElementAbstractViewHandler(ComponentMeta componentMeta) {
+    public IkasanPaletteElementViewHandler(ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
     }
 
@@ -42,7 +42,7 @@ public class IkasanPaletteElementAbstractViewHandler extends AbstractViewHandler
 
     @Override
     public String toString() {
-        return "IkasanPaletteElementAbstractViewHandler{" +
+        return "IkasanPaletteElementViewHandler{" +
                 "componentMeta=" + componentMeta +
                 '}';
     }

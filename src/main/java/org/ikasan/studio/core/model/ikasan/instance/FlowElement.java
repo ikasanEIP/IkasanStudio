@@ -27,7 +27,9 @@ public class FlowElement extends BasicElement {
     @Builder (builderMethodName = "flowElementBuilder")
     protected FlowElement(ComponentMeta componentMeta, Flow containingFlow, String componentName) {
         super(componentMeta, null);
-        setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, componentName);
+        if (!componentMeta.isExceptionResolver()) {
+            setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, componentName);
+        }
         this.containingFlow = containingFlow;
     }
 
@@ -36,7 +38,7 @@ public class FlowElement extends BasicElement {
         return "IkasanFlowComponent {" +
                 ", flowComponent='" + getComponentMeta() + '\'' +
                 ", name='" + getComponentName() + '\'' +
-                ", properties=" + configuredProperties +
+                ", properties=" + componentProperties +
                 '}';
     }
 }

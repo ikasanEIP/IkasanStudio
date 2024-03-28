@@ -348,7 +348,7 @@ public class TestFixtures {
                 .metapackVersion(TEST_IKASAN_PACK)
                 .exceptionsCaught("javax.jms.JMSException.class")
                 .theAction("retry")
-                .configuredProperties(getRetryProperties())
+                .componentProperties(getRetryProperties())
                 .build();
         ExceptionResolution resourceExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(TEST_IKASAN_PACK)
@@ -600,11 +600,11 @@ public class TestFixtures {
         ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Exception Resolver");
         Map<String, ComponentPropertyMeta> retryPropertiesMeta = exceptionResolverMeta.getExceptionActionWithName("retry").getActionProperties();
 
-        Map<String, ComponentProperty>  retryConfiguredProperties = new HashMap<>();
-        retryConfiguredProperties.put("delay", new ComponentProperty(retryPropertiesMeta.get("delay"), 1));
-        retryConfiguredProperties.put("interval", new ComponentProperty(retryPropertiesMeta.get("interval"), 2));
+        Map<String, ComponentProperty>  componentPropertyHashMap = new HashMap<>();
+        componentPropertyHashMap.put("delay", new ComponentProperty(retryPropertiesMeta.get("delay"), 1));
+        componentPropertyHashMap.put("interval", new ComponentProperty(retryPropertiesMeta.get("interval"), 2));
 
-        return retryConfiguredProperties;
+        return componentPropertyHashMap;
     }
 
     public static Flow getEventGeneratingConsumerCustomConverterDevNullProducerFlow() throws StudioBuildException {

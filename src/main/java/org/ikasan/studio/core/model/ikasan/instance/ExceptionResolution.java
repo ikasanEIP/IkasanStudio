@@ -25,11 +25,11 @@ public class ExceptionResolution extends BasicElement {
     }
 
     @Builder(builderMethodName = "exceptionResolutionBuilder")
-    public ExceptionResolution(String metapackVersion, String exceptionsCaught, String theAction, Map<String, ComponentProperty> configuredProperties) throws StudioBuildException {
+    public ExceptionResolution(String metapackVersion, String exceptionsCaught, String theAction, Map<String, ComponentProperty> componentProperties) throws StudioBuildException {
         super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), null);
         this.exceptionsCaught = exceptionsCaught;
         this.theAction = theAction;
-        this.configuredProperties = configuredProperties;
+        this.componentProperties = componentProperties;
     }
 
 
@@ -60,6 +60,6 @@ public class ExceptionResolution extends BasicElement {
      * @param value of the property
      */
     public void setPropertyValue(ComponentPropertyMeta componentPropertyMeta, String key, Object value) {
-        configuredProperties.put(key, new ComponentProperty(componentPropertyMeta, value));
+        componentProperties.put(key, new ComponentProperty(componentPropertyMeta, value));
     }
 }

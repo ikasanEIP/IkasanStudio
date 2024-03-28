@@ -37,7 +37,7 @@ public class ExceptionResolverSerializer extends StdSerializer<ExceptionResolver
                     jsonGenerator.writeStringField(EXCEPTIONS_CAUGHT_KEY, exceptionResolution.getExceptionsCaught());
                     jsonGenerator.writeStringField(ACTION_KEY, exceptionResolution.getTheAction());
 
-                        if (exceptionResolution.getConfiguredProperties() != null && !exceptionResolution.getConfiguredProperties().isEmpty()) {
+                        if (exceptionResolution.getComponentProperties() != null && !exceptionResolution.getComponentProperties().isEmpty()) {
                             // Standard BasicElement properties
                             jsonGenerator.writeFieldName(ACTION_PROPERTIES_KEY);
                             jsonGenerator.writeStartObject();

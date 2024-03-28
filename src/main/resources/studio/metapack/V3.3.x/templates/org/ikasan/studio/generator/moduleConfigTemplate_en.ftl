@@ -19,7 +19,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 <#list module.flows![] as flow>
 @javax.annotation.Resource
-${studioBasePackage}.${flow.getJavaPackageName()}.${flow.getJavaClassName()} ${flow.getJavaVariableName()};
+${studioFlowBasePackage}.${flow.getJavaPackageName()}.${flow.getJavaClassName()} ${flow.getJavaVariableName()};
 </#list>
 
 @org.springframework.context.annotation.Bean

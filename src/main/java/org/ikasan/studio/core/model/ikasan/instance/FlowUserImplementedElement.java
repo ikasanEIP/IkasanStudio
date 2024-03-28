@@ -30,7 +30,7 @@ public class FlowUserImplementedElement extends FlowElement {
     public String toString() {
         return "IkasanFlowBeskpokeComponent{" +
                 "overrideEnabled=" + overwriteEnabled +
-                ", properties=" + configuredProperties +
+                ", properties=" + componentProperties +
                 '}';
     }
 }

@@ -17,15 +17,15 @@ public class ViewHandlerFactory {
         if (component != null) {
             if (component instanceof PaletteItem) {
 //            if (component instanceof FlowElement) {
-                returnAbstractViewHandler =  new IkasanPaletteElementAbstractViewHandler(((PaletteItem) component).getComponentMeta());
+                returnAbstractViewHandler =  new IkasanPaletteElementViewHandler(((PaletteItem) component).getComponentMeta());
             } else if (component instanceof Module) {
-                returnAbstractViewHandler =  new IkasanModuleAbstractViewHandler(projectKey, (Module) component);
+                returnAbstractViewHandler =  new IkasanModuleViewHandler(projectKey, (Module) component);
             } else if (component instanceof Flow) {
-                returnAbstractViewHandler =  new IkasanFlowAbstractViewHandler(projectKey, (Flow) component);
+                returnAbstractViewHandler =  new IkasanFlowViewHandler(projectKey, (Flow) component);
             } else if (component instanceof FlowElement) {
-                returnAbstractViewHandler =  new IkasanFlowComponentAbstractViewHandler((FlowElement) component);
+                returnAbstractViewHandler =  new IkasanFlowComponentViewHandler((FlowElement) component);
             } else if (component instanceof ExceptionResolver) {
-                returnAbstractViewHandler =  new IkasanFlowExceptionResolverAbstractViewHandler((ExceptionResolver) component);
+                returnAbstractViewHandler =  new IkasanFlowExceptionResolverViewHandler((ExceptionResolver) component);
             }
         }
         if (returnAbstractViewHandler == null) {

@@ -8,18 +8,18 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import javax.swing.*;
 import java.awt.*;
 
-public class IkasanModuleAbstractViewHandler extends AbstractViewHandler {
-    private static final Logger LOG = Logger.getInstance("#IkasanModuleAbstractViewHandler");
+public class IkasanModuleViewHandler extends AbstractViewHandler {
+    private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
     public static final int FLOW_Y_START_POINT = 100;
     private final Module module;
-    private String projectKey;
+    private final String projectKey;
 
     /**
      * @param module for the view handler
      */
-    public IkasanModuleAbstractViewHandler(String projectKey, Module module) {
+    public IkasanModuleViewHandler(String projectKey, Module module) {
         this.projectKey = projectKey;
         this.module = module;
     }

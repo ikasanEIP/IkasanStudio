@@ -1,9 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -28,7 +26,7 @@ public class DeleteComponentAction implements ActionListener {
          if (parentFlow != null) {
             parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
          } else {
-            LOG.warn("Attrempt to remove flow element " + ikasanBasicElement + " because its containing flow could not be found.");
+            LOG.warn("Attempt to remove flow element " + ikasanBasicElement + " because its containing flow could not be found.");
          }
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       } else if (ikasanBasicElement instanceof Flow ikasanFlowToRemove) {

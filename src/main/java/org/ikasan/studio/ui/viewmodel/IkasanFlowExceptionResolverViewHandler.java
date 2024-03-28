@@ -9,8 +9,8 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowExceptionResolverAbstractViewHandler extends AbstractViewHandler {
-    private static final Logger LOG = Logger.getInstance("#IkasanFlowExceptionResolverAbstractViewHandler");
+public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandler {
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowExceptionResolverViewHandler");
     public static final int VERTICAL_PAD = 5;
     public static final int HORIZONTAL_PAD = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 15;
@@ -24,7 +24,7 @@ public class IkasanFlowExceptionResolverAbstractViewHandler extends AbstractView
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flowElement for view handler
      */
-    public IkasanFlowExceptionResolverAbstractViewHandler(FlowElement flowElement) {
+    public IkasanFlowExceptionResolverViewHandler(FlowElement flowElement) {
         this.flowElement = flowElement;
     }
 

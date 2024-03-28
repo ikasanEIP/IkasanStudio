@@ -25,7 +25,7 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
     protected void serializePayload(BasicElement basicElement, JsonGenerator jsonGenerator) throws IOException {
         // because we are serializing many nested elements, its possible the element is null, in which case we do nothing.
         if (basicElement != null) {
-            Map<String, ComponentProperty> properties = basicElement.getConfiguredProperties();
+            Map<String, ComponentProperty> properties = basicElement.getComponentProperties();
 
             if (!properties.isEmpty()) {
                 for (ComponentProperty componentProperty : properties.values()) {

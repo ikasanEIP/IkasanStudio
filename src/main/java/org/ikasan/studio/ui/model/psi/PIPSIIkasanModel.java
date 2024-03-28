@@ -6,7 +6,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.psi.PsiJavaFile;
-import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -14,7 +13,11 @@ import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
@@ -47,7 +50,6 @@ public class PIPSIIkasanModel {
 
     /**
      * An update has been made to the diagram, so we need to reflect this into the code.
-     * @param checkForJarChanges Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
      */
     public void generateSourceFromModelInstance3() {
         Boolean dependenciesHaveChanged = false;
@@ -64,7 +66,7 @@ public class PIPSIIkasanModel {
      * An update has been made to the diagram, so we need to reflect this into the code.
      * @param dependenciesHaveChanged Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
      */
-    public void generateSourceFromModelInstance2(Boolean dependenciesHaveChanged) {
+    private void generateSourceFromModelInstance2(Boolean dependenciesHaveChanged) {
         Project project = UiContext.getProject(projectKey);
         Module module = UiContext.getIkasanModule(project.getName());
         CommandProcessor.getInstance().executeCommand(
@@ -99,39 +101,39 @@ public class PIPSIIkasanModel {
                 });
     }
 
-    /**
-     * An update has been made to the diagram, so we need to reverse this into the code.
-     */
-    public void generateSourceFromModelInstance(Set<Dependency> newDependencies) {
-        Project project = UiContext.getProject(projectKey);
-        CommandProcessor.getInstance().executeCommand(
-                project,
-                () -> ApplicationManager.getApplication().runWriteAction(
-                        () -> {
-                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + UiContext.getIkasanModule(projectKey));
-                            StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, newDependencies);
-                            //@todo start making below conditional on state changed.
-                            Module module = UiContext.getIkasanModule(project.getName());
-                            saveApplication(project, module);
-                            saveFlow(project, module);
-                            saveModuleConfig(project, module);
-                            savePropertiesConfig(project, module);
-
-                            LOG.info("End ApplicationManager.getApplication().runWriteAction - source from model");
-                        }),
-                "Generate Source from Flow Diagram",
-                "Undo group ID");
-        ApplicationManager.getApplication().runReadAction(
-                () -> {
-                    LOG.info("ApplicationManager.getApplication().runReadAction");
-                    // reloadProject needed to re-read POM, must not be done till addDependancies
-                    // fully complete, hence in next executeCommand block
-                    if (newDependencies != null && !newDependencies.isEmpty() && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
-                        ProjectManager.getInstance().reloadProject(project);
-                    }
-                    LOG.info("End ApplicationManager.getApplication().runReadAction");
-                });
-    }
+//    /**
+//     * An update has been made to the diagram, so we need to reverse this into the code.
+//     */
+//    public void generateSourceFromModelInstance(Set<Dependency> newDependencies) {
+//        Project project = UiContext.getProject(projectKey);
+//        CommandProcessor.getInstance().executeCommand(
+//                project,
+//                () -> ApplicationManager.getApplication().runWriteAction(
+//                        () -> {
+//                            LOG.info("Start ApplicationManager.getApplication().runWriteAction - source from model" + UiContext.getIkasanModule(projectKey));
+//                            StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, newDependencies);
+//                            //@todo start making below conditional on state changed.
+//                            Module module = UiContext.getIkasanModule(project.getName());
+//                            saveApplication(project, module);
+//                            saveFlow(project, module);
+//                            saveModuleConfig(project, module);
+//                            savePropertiesConfig(project, module);
+//
+//                            LOG.info("End ApplicationManager.getApplication().runWriteAction - source from model");
+//                        }),
+//                "Generate Source from Flow Diagram",
+//                "Undo group ID");
+//        ApplicationManager.getApplication().runReadAction(
+//                () -> {
+//                    LOG.info("ApplicationManager.getApplication().runReadAction");
+//                    // reloadProject needed to re-read POM, must not be done till addDependancies
+//                    // fully complete, hence in next executeCommand block
+//                    if (newDependencies != null && !newDependencies.isEmpty() && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+//                        ProjectManager.getInstance().reloadProject(project);
+//                    }
+//                    LOG.info("End ApplicationManager.getApplication().runReadAction");
+//                });
+//    }
 
     public void generateJsonFromModelInstance() {
         Project project = UiContext.getProject(projectKey);
@@ -155,8 +157,10 @@ public class PIPSIIkasanModel {
     }
 
     private void saveFlow(Project project, Module module) {
+        Set<String> flowPackageNames = new HashSet<>();
         for (Flow ikasanFlow : module.getFlows()) {
-            String packageName = Generator.STUDIO_BOOT_PACKAGE + "." + ikasanFlow.getJavaPackageName();
+            String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
+            flowPackageNames.add(ikasanFlow.getJavaPackageName());
             if (!ikasanFlow.ftlGetConsumerAndFlowElements().isEmpty()) {
                 // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
                 for (FlowElement component : ikasanFlow.ftlGetConsumerAndFlowElements()) {
@@ -166,7 +170,8 @@ public class PIPSIIkasanModel {
                             String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
                             String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
                             String templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
-                            StudioPsiUtils.createJavaSourceFile(project, newPackageName, clazzName, templateString, true, true);
+                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, newPackageName, clazzName, templateString, true, true);
+                            ((AbstractViewHandler)ikasanFlow.getViewHandler()).setPsiJavaFile(newFile);
                         }
                     }
 
@@ -177,31 +182,35 @@ public class PIPSIIkasanModel {
                         boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
                         PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
-                        //        component.getViewHandler().setPsiJavaFile(newFile);
+                        ((AbstractViewHandler)ikasanFlow.getViewHandler()).setPsiJavaFile(newFile);
                     }
                 }
             }
-            String templateString = FlowsComponentFactoryTemplate.create(packageName, module, ikasanFlow);
-            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, packageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
-            // @TODO save the newFile for hotlink
-            templateString = FlowTemplate.create(module, ikasanFlow, packageName);
-            newFile = StudioPsiUtils.createJavaSourceFile(
+            // Component Factory java file
+            String templateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
+            StudioPsiUtils.createJavaSourceFile(project, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
+
+            // Flow java file
+            templateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
+            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(
                     project,
-                    packageName,
+                    flowPackageName,
                     ikasanFlow.getJavaClassName(),
                     templateString,
                     true,
                     true);
-            // @TODO save the newFile for hotlink
-//            ikasanFlow.getViewHandler().setPsiJavaFile(newFile);
+            ((IkasanFlowViewHandler)ikasanFlow.getViewHandler()).setPsiJavaFile(newFile);
         }
+        // we have the flowPackageNames that ARE valid
+        // @Todo work out if any folw directories need to be removed
+        StudioPsiUtils.deleteSubPackagesNotIn(project, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
     }
 
     private void saveModuleConfig(Project project, Module module) {
         String templateString = ModuleConfigTemplate.create(module);
         PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
         // @TODO save the newFile for hotlink
-//        ikasanModule.getViewHandler().setPsiJavaFile(newFile);
+        ((IkasanModuleViewHandler)module.getViewHandler()).setPsiJavaFile(newFile);
     }
 
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";

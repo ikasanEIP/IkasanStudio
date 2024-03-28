@@ -27,14 +27,14 @@ public  class BasicElement extends IkasanObject {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
     private static final com.intellij.openapi.diagnostic.Logger LOGI = com.intellij.openapi.diagnostic.Logger.getInstance("#BasicElement");
 //    @JsonPropertyOrder({"componentName", "description"})
-    protected Map<String, ComponentProperty> configuredProperties;
+    protected Map<String, ComponentProperty> componentProperties;
     public BasicElement() {}
 
     protected BasicElement(
             ComponentMeta componentMeta,
             String description) {
         super(componentMeta);
-        this.configuredProperties = componentMeta.getMandatoryInstanceProperties();
+        this.componentProperties = componentMeta.getMandatoryInstanceProperties();
         setDescription(description);
     }
 
@@ -112,18 +112,18 @@ public  class BasicElement extends IkasanObject {
 
     @JsonIgnore
     public ComponentProperty getProperty(String key) {
-        return configuredProperties.get(key);
+        return componentProperties.get(key);
     }
 
     @JsonIgnore
     public Object getPropertyValue(String key) {
-        ComponentProperty componentProperty = configuredProperties.get(key);
+        ComponentProperty componentProperty = componentProperties.get(key);
         return componentProperty != null ? componentProperty.getValue() : null;
     }
 
     public List<ComponentProperty> getComponentPropertyList() {
-        if (configuredProperties != null && !configuredProperties.isEmpty()) {
-            return new ArrayList<>(configuredProperties.values());
+        if (componentProperties != null && !componentProperties.isEmpty()) {
+            return new ArrayList<>(componentProperties.values());
         } else {
             return Collections.EMPTY_LIST;
         }
@@ -135,7 +135,7 @@ public  class BasicElement extends IkasanObject {
      * @param value for the updated property
      */
     public void updatePropertyValue(String key, Object value) {
-        ComponentProperty componentProperty = configuredProperties.get(key);
+        ComponentProperty componentProperty = componentProperties.get(key);
         if (componentProperty != null) {
             componentProperty.setValue(value);
         } else {
@@ -150,7 +150,7 @@ public  class BasicElement extends IkasanObject {
      * @param value for the property
      */
     public void setPropertyValue(String key, Object value) {
-        ComponentProperty componentProperty = configuredProperties.get(key);
+        ComponentProperty componentProperty = componentProperties.get(key);
         if (componentProperty != null) {
             componentProperty.setValue(value);
         } else {
@@ -159,7 +159,7 @@ public  class BasicElement extends IkasanObject {
                 Thread thread = Thread.currentThread();
                 LOG.error("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
-                configuredProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
+                componentProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
             }
         }
     }
@@ -169,12 +169,12 @@ public  class BasicElement extends IkasanObject {
      * @param key of the property to be updated
      */
     public void removeProperty(String key) {
-        configuredProperties.remove(key);
+        componentProperties.remove(key);
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    public Map<String, ComponentProperty> getConfiguredProperties() {
-        return configuredProperties;
+    public Map<String, ComponentProperty> getComponentProperties() {
+        return componentProperties;
     }
 
     /**
@@ -183,13 +183,13 @@ public  class BasicElement extends IkasanObject {
      */
     @JsonIgnore
     public List<ComponentProperty> getUserSuppliedClassProperties() {
-        return configuredProperties.values().stream()
+        return componentProperties.values().stream()
             .filter(x -> x.getMeta().isUserSuppliedClass())
             .collect(Collectors.toList());
     }
 
     public boolean hasUserSuppliedClass() {
-        return configuredProperties.values()
+        return componentProperties.values()
             .stream()
             .anyMatch(x -> x.getMeta().isUserSuppliedClass());
     }
@@ -200,10 +200,10 @@ public  class BasicElement extends IkasanObject {
      * @return the Map of standard properties for this component.
      */
     @JsonIgnore
-    public Map<String, ComponentProperty> getStandardConfiguredProperties() {
+    public Map<String, ComponentProperty> getStandardComponentProperties() {
         Map<String, ComponentProperty> standardProperties = new TreeMap<>();
-        if (configuredProperties != null && !configuredProperties.isEmpty()) {
-            for (Map.Entry<String, ComponentProperty> entry : configuredProperties.entrySet()) {
+        if (componentProperties != null && !componentProperties.isEmpty()) {
+            for (Map.Entry<String, ComponentProperty> entry : componentProperties.entrySet()) {
                 if (! ComponentPropertyMeta.NAME.equals(entry.getKey()) && !(ComponentPropertyMeta.DESCRIPTION.equals(entry.getKey()))) {
                     standardProperties.putIfAbsent(entry.getKey(), entry.getValue());
                 }
@@ -214,10 +214,10 @@ public  class BasicElement extends IkasanObject {
     }
 
     public void addAllProperties(Map<String, ComponentProperty> newProperties) {
-        configuredProperties.putAll(newProperties);
+        componentProperties.putAll(newProperties);
     }
     public void addComponentProperty(String key, ComponentProperty value) {
-        configuredProperties.put(key, value);
+        componentProperties.put(key, value);
     }
 
     /**
@@ -234,14 +234,14 @@ public  class BasicElement extends IkasanObject {
      * @return true if there are mandatory components that do not yet have a value.
      */
     public boolean hasUnsetMandatoryProperties() {
-        return configuredProperties.entrySet().stream()
+        return componentProperties.entrySet().stream()
             .anyMatch(x -> x.getValue().getMeta().isMandatory() && x.getValue().valueNotSet());
     }
 
     @Override
     public String toString() {
         return "IkasanComponent{" +
-                "properties=" + configuredProperties +
+                "properties=" + componentProperties +
                 ", type=" + componentMeta +
                 '}';
     }
