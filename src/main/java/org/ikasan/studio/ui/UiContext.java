@@ -11,7 +11,6 @@ import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import javax.swing.*;
-import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -41,13 +40,9 @@ public enum UiContext {
 
     public static final String JSON_MODEL_PARENT_DIR = "main";
     public static final String JSON_MODEL_SUB_DIR = "model";
-    public static final String JSON_MODEL_DIR =
-            JSON_MODEL_PARENT_DIR + FileSystems.getDefault().getSeparator() +
-                    JSON_MODEL_SUB_DIR;
+    public static final String JSON_MODEL_DIR = JSON_MODEL_PARENT_DIR + "/" + JSON_MODEL_SUB_DIR;
     public static final String JSON_MODEL_FILE_WITH_EXTENSION = "model"  + "." + JSON_FILE_EXTENSION;
-    public static final String JSON_MODEL_FULL_PATH =
-            JSON_MODEL_DIR +  FileSystems.getDefault().getSeparator() +
-            JSON_MODEL_FILE_WITH_EXTENSION;
+    public static final String JSON_MODEL_FULL_PATH = JSON_MODEL_DIR + "/" + JSON_MODEL_FILE_WITH_EXTENSION;
 
     // projectName -> region -> value
     // e.g. myProject -> INSTANCE.IKASAN_MODULE -> actualModule
