@@ -25,7 +25,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#else>
     </#if>
 
-    <#list flowElement.getStandardConfiguredProperties()![] as propKey, componentProperty>
+    <#list flowElement.getStandardComponentProperties()![] as propKey, componentProperty>
         <#if componentProperty.meta.propertyConfigFileLabel?? && componentProperty.value??>
             <#if componentProperty.meta.usageDataType?starts_with("java.util.List")>
                 <#assign f_startTag = r'#{${' >
@@ -51,7 +51,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#compress>
     <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
     <#-- todo - move this to above section -->
-    <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
+    <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if propValue.meta.isUserSuppliedClass()>
             @javax.annotation.Resource
             <#if propValue.meta.usageDataType == "configurationDefined">
@@ -75,7 +75,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
             return builderFactory.getComponentBuilder().${StudioBuildUtils.toJavaIdentifier(flowElement.componentMeta.name)}()
         </#if>
     </#if>
-    <#list flowElement.getStandardConfiguredProperties() as propKey, propValue>
+    <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
                 <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}(${StudioBuildUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>

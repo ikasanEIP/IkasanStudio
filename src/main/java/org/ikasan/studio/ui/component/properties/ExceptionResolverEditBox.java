@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import lombok.Data;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -14,6 +15,7 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
+@Data
 public class ExceptionResolverEditBox {
     private final ExceptionResolverPanel resolverPanel;
     private final String projectKey;
@@ -59,7 +61,6 @@ public class ExceptionResolverEditBox {
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
         ExceptionResolution newResolution = null;
         try {
-//            newResolution = new ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion(), exceptionResolver);
             newResolution = new ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion());
         } catch (Exception e) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
@@ -105,7 +106,6 @@ public class ExceptionResolverEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-//        //@todo we could check exceptionResolver.getIkasanExceptionResolutionMap() and  exceptionResolutionList to see if effectively same.
         return hasChanged;
     }
 
@@ -117,34 +117,10 @@ public class ExceptionResolverEditBox {
     protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
         if (exceptionResolutionList.isEmpty()) {
-            result.add(new ValidationInfo("At least one exception should be added, or cancel so that exception resolver is not defined"));
+            result.add(new ValidationInfo("At least one exception should be added. If the resolver is no longer required, delete it from the flow."));
         } else if (!hasChanged) {
             result.add(new ValidationInfo("No change has been made yet, change the configuration or cancel the action"));
         }
         return result;
-    }
-
-    public JButton getAddButton() {
-        return addButton;
-    }
-
-    public JLabel getExceptionTitleField() {
-        return exceptionTitleField;
-    }
-
-    public JLabel getActionTitleField() {
-        return actionTitleField;
-    }
-
-    public JLabel getParamsTitleField() {
-        return paramsTitleField;
-    }
-
-    public List<org.ikasan.studio.ui.component.properties.ExceptionResolution> getExceptionResolutionList() {
-        return exceptionResolutionList;
-    }
-
-    public void setHasChanged(boolean hasChanged) {
-        this.hasChanged = hasChanged;
     }
 }

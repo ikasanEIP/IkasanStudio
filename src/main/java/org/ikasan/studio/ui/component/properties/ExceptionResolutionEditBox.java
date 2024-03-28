@@ -62,9 +62,9 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         if (exceptionResolution.getTheAction() != null) {
             currentAction = exceptionResolution.getTheAction();
             actionJComboBox.setSelectedItem(currentAction);
-            if (!exceptionResolution.getConfiguredProperties().isEmpty()) {
+            if (!exceptionResolution.getComponentProperties().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
-                for (ComponentProperty property : exceptionResolution.getConfiguredProperties().values()) {
+                for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation, null);
                     actionParamEditBoxList.add(actionParam);
                 }

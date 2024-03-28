@@ -12,8 +12,8 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowComponentAbstractViewHandler extends AbstractViewHandler {
-    private static final Logger LOG = Logger.getInstance("#IkasanFlowComponentAbstractViewHandler");
+public class IkasanFlowComponentViewHandler extends AbstractViewHandler {
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowComponentViewHandler");
     public static final int TEXT_VERTICAL_SPACE = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 60;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 90;
@@ -30,7 +30,7 @@ public class IkasanFlowComponentAbstractViewHandler extends AbstractViewHandler 
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flowElement for the vie handler
      */
-    public IkasanFlowComponentAbstractViewHandler(FlowElement flowElement) {
+    public IkasanFlowComponentViewHandler(FlowElement flowElement) {
         this.flowElement = flowElement;
     }
 

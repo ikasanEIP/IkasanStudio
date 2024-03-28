@@ -77,24 +77,24 @@ class ComponentIODeserializeTest {
             () -> assertEquals("8091", module.getPort()),
 
             () -> assertEquals(1, flows.size()),
-            () -> assertEquals(2, flow1.getConfiguredProperties().size()),
+            () -> assertEquals(2, flow1.getComponentProperties().size()),
             () -> assertEquals("MyFlow1", flow1.getName()),
 
             () -> assertEquals(2, exceptionResolver.getIkasanExceptionResolutionMap().size()),
 
             () -> assertEquals("javax.resource.ResourceException.class", resourceExceptionResolution.getExceptionsCaught()),
             () -> assertEquals("ignore", resourceExceptionResolution.getTheAction()),
-            () -> Assertions.assertNull(resourceExceptionResolution.getConfiguredProperties()),
+            () -> Assertions.assertNull(resourceExceptionResolution.getComponentProperties()),
 
             () -> assertEquals("javax.jms.JMSException.class", jmsExceptionResolution.getExceptionsCaught()),
             () -> assertEquals("ignore", resourceExceptionResolution.getTheAction()),
-            () -> assertEquals(2, jmsExceptionResolution.getConfiguredProperties().size()),
-            () -> assertEquals("1", jmsExceptionResolution.getConfiguredProperties().get("delay").getValue().toString()),
-            () -> assertEquals("2", jmsExceptionResolution.getConfiguredProperties().get("interval").getValue().toString()),
+            () -> assertEquals(2, jmsExceptionResolution.getComponentProperties().size()),
+            () -> assertEquals("1", jmsExceptionResolution.getComponentProperties().get("delay").getValue().toString()),
+            () -> assertEquals("2", jmsExceptionResolution.getComponentProperties().get("interval").getValue().toString()),
 
-            () -> assertEquals(1, eventGeneratingConsumer.getConfiguredProperties().size()),
+            () -> assertEquals(1, eventGeneratingConsumer.getComponentProperties().size()),
 
-            () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
+            () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getComponentProperties().get(COMPONENT_NAME).getValue()),
             // The view handler is only created on demand when used in the UI
             () -> Assertions.assertNull(eventGeneratingConsumer.getViewHandler()),
 
@@ -103,22 +103,22 @@ class ComponentIODeserializeTest {
             () -> assertEquals("My Event Generating Consumer", transition.get(0).getFrom()),
             () -> assertEquals("My Custom Converter", transition.get(0).getTo()),
 
-            () -> assertEquals(4, customConverter.getConfiguredProperties().size()),
+            () -> assertEquals(4, customConverter.getComponentProperties().size()),
             () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getComponentMeta().getImplementingClass()),
-            () -> assertEquals("myConverter", customConverter.getConfiguredProperties().get(USER_IMPLEMENTED_CLASS_NAME).getValue()),
-            () -> assertEquals("My Custom Converter", customConverter.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
-            () -> assertEquals("java.lang.String", customConverter.getConfiguredProperties().get(FROM_TYPE).getValue()),
-            () -> assertEquals("java.lang.Integer", customConverter.getConfiguredProperties().get(TO_TYPE).getValue()),
+            () -> assertEquals("myConverter", customConverter.getComponentProperties().get(USER_IMPLEMENTED_CLASS_NAME).getValue()),
+            () -> assertEquals("My Custom Converter", customConverter.getComponentProperties().get(COMPONENT_NAME).getValue()),
+            () -> assertEquals("java.lang.String", customConverter.getComponentProperties().get(FROM_TYPE).getValue()),
+            () -> assertEquals("java.lang.Integer", customConverter.getComponentProperties().get(TO_TYPE).getValue()),
             // The view handler is only created on demand when used in the UI
             () -> Assertions.assertNull(customConverter.getViewHandler()),
 
-            () -> assertEquals(1, devNullProducer.getConfiguredProperties().size()),
+            () -> assertEquals(1, devNullProducer.getComponentProperties().size()),
             () -> assertEquals("Dev Null Producer", devNullProducer.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getComponentMeta().getImplementingClass()),
-            () -> assertEquals("My DevNull Producer", devNullProducer.getConfiguredProperties().get(COMPONENT_NAME).getValue()),
+            () -> assertEquals("My DevNull Producer", devNullProducer.getComponentProperties().get(COMPONENT_NAME).getValue()),
             // The view handler is only created on demand when used in the UI
             () -> Assertions.assertNull(devNullProducer.getViewHandler())
         );
@@ -143,7 +143,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals("3", module.getPort()),
 
             () -> assertEquals(1, flows.size()),
-            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
+            () -> assertEquals(1, flow1.getComponentProperties().size()),
             () -> assertEquals("Flow1", flow1.getName()),
 
             () -> Assertions.assertNull(elements),
@@ -170,7 +170,7 @@ class ComponentIODeserializeTest {
 //            () -> assertEquals("3", module.getPort()),
 //
 //            () -> assertEquals(1, flows.size()),
-//            () -> assertEquals(1, flow1.getConfiguredProperties().size()),
+//            () -> assertEquals(1, flow1.getComponentProperties().size()),
 //            () -> assertEquals("Flow1", flow1.getName()),
 //
 //            () -> Assertions.assertNull(elements),

@@ -94,6 +94,8 @@ public class Flow extends BasicElement {
         if (ikasanFlowComponentToBeRemoved != null) {
             if (ikasanFlowComponentToBeRemoved.getComponentMeta().isConsumer()) {
                 setConsumer(null);
+            } else if (ikasanFlowComponentToBeRemoved.getComponentMeta().isExceptionResolver()) {
+                setExceptionResolver(null);
             } else if (! flowElements.isEmpty()) {
                 getFlowElements().remove(ikasanFlowComponentToBeRemoved);
             } else {

@@ -104,7 +104,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
                     flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
                 } else if (Flow.EXCEPTION_RESOLVER_JSON_TAG.equals(fieldName)) {
-                    flow.setExceptionResolver(getExceptionResolver(field.getValue(), metapackVersion));
+                    flow.setExceptionResolver(getExceptionResolver(flow, field.getValue(), metapackVersion));
                 } else {
                     Object value = getTypedValue(field);
                     flow.setPropertyValue(fieldName, value);
@@ -208,8 +208,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @return an ExceptionResolver instance
      * @throws StudioBuildException if there were issues with the metapack.
      */
-    public ExceptionResolver getExceptionResolver(JsonNode jsonNode, String metapackVersion) throws StudioBuildException {
+    public ExceptionResolver getExceptionResolver(Flow containingFlow, JsonNode jsonNode, String metapackVersion) throws StudioBuildException {
         ExceptionResolver.ExceptionResolverBuilder exceptionResolverBuilder = ExceptionResolver.exceptionResolverBuilder()
+                .containingFlow(containingFlow)
                 .metapackVersion(metapackVersion);
         Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();
 
@@ -265,7 +266,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     if (exceptionActionMeta == null) {
                         LOG.error("DATA CORRUPTION : Attempting to set properties for an unknown action=[" + action + "], skipping");
                     } else {
-                        exceptionResolutionBuilder.configuredProperties(new TreeMap<>());
+                        exceptionResolutionBuilder.componentProperties((new TreeMap<>()));
                         exceptionResolution = exceptionResolutionBuilder.build();
 
                         Iterator<Map.Entry<String, JsonNode>> fields = actionProperties.fields();

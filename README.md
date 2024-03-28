@@ -104,6 +104,22 @@ Other
 * Demos
 * Jira ?
 * Public Forum for self-help (stack overflow sub-site)
+## Running Ikasan Studio
+### Running the project locally
+The simplest way to startup Ikasan Studio is to checkout this project locally and execute the 'Run Plugin' Gradle run configuration. This is only recommended for developers working on the plugin.
+### Installing the plugin
+Once the first release candidate has been approved by the core Ikasan team, the plugin for Ikasan Studio will be available in the standard plugin marketplace. In the meantime however, it is possible to generater the plugin 'zip' distribution and load it manually into Intellij.
+
+To generate the 'zip' distribution, invoke the 'intellij/buildPlugin' Gradle target to create IkasanStudio-1.0.0.zip file.
+
+Once created, this zip distribution can be loaded into any intellij via the Settings/Plugins /Cog Wheel/Install plugin from Disk.
+## Known issues
+### Does not build
+To get  project to build, the flows must be valid i.e. they must have at least a consumer and a producer.
+### Dependencies not satisfied
+When you first create a project, you may find red highlights and basic Spring dependencies are not satisfied. Use the (standard) Maven update for the project, it will re-pull the dependencies (the root casue is a threading issue inside Intellij, this will be fixed eventually)
+### Deleted components are not always removed
+Please work around this for now, it wwill be fixed shortly.
 
 ## Template ToDo list
 - [x] Create a new [IntelliJ Platform Plugin Template][template] project.

@@ -100,16 +100,16 @@ public class StudioPsiUtils {
         }
     }
 
-    /**
-     * Add the new dependencies IF they are not already in the pom
-     * @param projectKey for the project being worked on
-     */
-    public static boolean haveJarDependenciesChanged(String projectKey) {
-        Project project = UiContext.getProject(projectKey);
-        Module module = UiContext.getIkasanModule(project.getName());
-        IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);
-        return !ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies());
-    }
+//    /**
+//     * Add the new dependencies IF they are not already in the pom
+//     * @param projectKey for the project being worked on
+//     */
+//    public static boolean haveJarDependenciesChanged(String projectKey) {
+//        Project project = UiContext.getProject(projectKey);
+//        Module module = UiContext.getIkasanModule(project.getName());
+//        IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);
+//        return !ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies());
+//    }
 
     /**
      * Add in the standard properties for the ikasanPomModel, based on project level config e.g. JDK
@@ -392,22 +392,47 @@ public class StudioPsiUtils {
     public static PsiDirectory createOrGetDirectory(PsiDirectory parent, String newDirectoryName) {
         PsiDirectory newDirectory = null;
         if (parent != null && newDirectoryName != null) {
-            boolean alreadyExists = false;
+//            boolean alreadyExists = false;
 
-            for (PsiDirectory subdirectoryOfParent : parent.getSubdirectories()) {
-                if (subdirectoryOfParent.getName().equalsIgnoreCase(newDirectoryName)) {
-                    newDirectory = subdirectoryOfParent;
-                    alreadyExists = true;
-                    break;
-                }
-            }
+            newDirectory = parent.findSubdirectory(newDirectoryName);
+//            for (PsiDirectory subdirectoryOfParent : parent.getSubdirectories()) {
+//                if (subdirectoryOfParent.getName().equalsIgnoreCase(newDirectoryName)) {
+//                    newDirectory = subdirectoryOfParent;
+//                    alreadyExists = true;
+//                    break;
+//                }
+//            }
             // doesn't exist, create it.
-            if (!alreadyExists) {
+//            if (!alreadyExists) {
+            if (newDirectory == null) {
                 newDirectory = parent.createSubdirectory(newDirectoryName);
             }
         }
-
         return newDirectory;
+    }
+
+
+    /**
+     * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
+     * @param project the intellij project to being targetted
+     * @param basePackage the package that contains the subpackage leaves
+     * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
+     */
+    public static void deleteSubPackagesNotIn(Project project, String basePackage, Set<String> subPackagesToKeep) {
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(project, StudioPsiUtils.JAVA_CODE);
+        PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
+        PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
+        if (leafPackageDirectory != null) {
+            PsiDirectory[] subDirectories = leafPackageDirectory.getSubdirectories();
+            for (PsiDirectory directory : subDirectories) {
+                if (!subPackagesToKeep.contains(directory.getName())) {
+                    LOG.info("Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
+                    directory.delete();
+                }
+            }
+        }
+//        PsiDirectory myPackage = StudioPsiUtils.createPackage(baseDir, packageName);
+        // @todo
     }
 
     /**
@@ -424,6 +449,29 @@ public class StudioPsiUtils {
             while (token.hasMoreTokens()) {
                 String dirName = token.nextToken();
                 parentDir = createOrGetDirectory(parentDir, dirName);
+            }
+        }
+        return parentDir;
+    }
+
+    /**
+     * Traverse from the provided root directory to the leaf directory representing the leaf package
+     * @param sourceRootDir to start from
+     * @param qualifiedPackage to search
+     * @return either a PsiDirectory representing the leaf package or null if not found
+     * @throws IncorrectOperationException if there issues with the virtual file system
+     */
+    public static PsiDirectory getDirectoryForPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
+            throws IncorrectOperationException {
+        PsiDirectory parentDir = sourceRootDir;
+        if (sourceRootDir != null) {
+            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
+            while (token.hasMoreTokens()) {
+                String dirName = token.nextToken();
+                parentDir = parentDir.findSubdirectory(dirName);
+                if (parentDir==null) {
+                    break;
+                }
             }
         }
         return parentDir;

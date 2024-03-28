@@ -2,12 +2,12 @@ package org.ikasan.studio.ui.model;
 
 import lombok.Data;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementAbstractViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 
 @Data
 public class PaletteItem {
     private ComponentMeta componentMeta;
-    private IkasanPaletteElementAbstractViewHandler ikasanPaletteElementViewHandler;
+    private IkasanPaletteElementViewHandler ikasanPaletteElementViewHandler;
     private boolean category = false;
 
     /**
@@ -21,7 +21,7 @@ public class PaletteItem {
             .implementingClass("dummy")
             .build();
         componentMeta.setName(categoryName);
-        ikasanPaletteElementViewHandler = new IkasanPaletteElementAbstractViewHandler(componentMeta);
+        ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(componentMeta);
         category = true;
     }
 
@@ -31,7 +31,7 @@ public class PaletteItem {
      */
     public PaletteItem(ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
-        this.ikasanPaletteElementViewHandler = new IkasanPaletteElementAbstractViewHandler(componentMeta);
+        this.ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(componentMeta);
     }
 
 }

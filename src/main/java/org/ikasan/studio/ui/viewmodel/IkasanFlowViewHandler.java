@@ -23,14 +23,14 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
+public class IkasanFlowViewHandler extends AbstractViewHandler {
     private final String projectKey;
     public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
     public static final int CONTAINER_CORNER_ARC = 30;
 
-    private static final Logger LOG = Logger.getInstance("#IkasanFlowAbstractViewHandler");
+    private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
 
     private Color borderColor = JBColor.BLACK;
     private String warningText =  "";
@@ -42,7 +42,7 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flow for view handler
      */
-    public IkasanFlowAbstractViewHandler(String projectKey, Flow flow) {
+    public IkasanFlowViewHandler(String projectKey, Flow flow) {
         this.projectKey = projectKey;
         this.flow = flow;
     }
@@ -156,7 +156,7 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
             if (endpointComponentName != null) {
                 // Get the text to be displayed under the endpoint symbol
                 String endpointTextKey = targetFlowElement.getComponentMeta().getEndpointTextKey();
-                ComponentProperty propertyValueToDisplay = targetFlowElement.getConfiguredProperties().get(endpointTextKey);
+                ComponentProperty propertyValueToDisplay = targetFlowElement.getComponentProperties().get(endpointTextKey);
                 String endpointText = "";
                 if (propertyValueToDisplay != null) {
                     endpointText = propertyValueToDisplay.getValueString();
@@ -237,8 +237,8 @@ public class IkasanFlowAbstractViewHandler extends AbstractViewHandler {
         setWidthHeights(graphics, newTopY);
         if (flow.hasExceptionResolver()) {
             StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).initialiseDimensions(graphics,
-                    IkasanFlowExceptionResolverAbstractViewHandler.getXOffsetFromRight(getRightX()),
-                    IkasanFlowExceptionResolverAbstractViewHandler.getYOffsetFromTop(getTopY()),
+                    IkasanFlowExceptionResolverViewHandler.getXOffsetFromRight(getRightX()),
+                    IkasanFlowExceptionResolverViewHandler.getYOffsetFromTop(getTopY()),
                     -1, -1);
         }
     }

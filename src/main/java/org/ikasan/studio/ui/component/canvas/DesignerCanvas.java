@@ -18,8 +18,8 @@ import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
-import org.ikasan.studio.ui.viewmodel.IkasanFlowAbstractViewHandler;
-import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentAbstractViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -391,7 +391,7 @@ public class DesignerCanvas extends JPanel {
             }
 
             if (targetFlow != null) {
-                IkasanFlowAbstractViewHandler ikasanFlowViewHandler = (IkasanFlowAbstractViewHandler)targetFlow.getViewHandler();
+                IkasanFlowViewHandler ikasanFlowViewHandler = (IkasanFlowViewHandler)targetFlow.getViewHandler();
                 String issue = targetFlow.issueCausedByAdding(ikasanBasicElement.getComponentMeta());
                 if (issue.isEmpty()) {
                     if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
@@ -414,9 +414,9 @@ public class DesignerCanvas extends JPanel {
         Module ikasanModule = getIkasanModule();
         boolean redrawNeeded = ikasanModule.getFlows()
                 .stream()
-                .anyMatch(x -> ! ((IkasanFlowAbstractViewHandler)StudioUIUtils.getViewHandler(projectKey, x)).isFlowNormalMode());
+                .anyMatch(x -> ! ((IkasanFlowViewHandler)StudioUIUtils.getViewHandler(projectKey, x)).isFlowNormalMode());
 
-        ikasanModule.getFlows().forEach(x -> ((IkasanFlowAbstractViewHandler)StudioUIUtils.getViewHandler(projectKey, x)).setFlowNormalMode());
+        ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler)StudioUIUtils.getViewHandler(projectKey, x)).setFlowNormalMode());
         if (redrawNeeded) {
             this.repaint();
         }
@@ -432,7 +432,7 @@ public class DesignerCanvas extends JPanel {
         Module ikasanModule = getIkasanModule();
         Pair<FlowElement, FlowElement> surroundingComponents = new Pair<>();
         Point dragged = new Point(xpos, ypos);
-        Pair<Integer, Integer> proximityDetect = IkasanFlowComponentAbstractViewHandler.getProximityDetect();
+        Pair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
 
         if (ikasanModule != null) {
             for (Flow flow : ikasanModule.getFlows()) {
@@ -538,7 +538,7 @@ public class DesignerCanvas extends JPanel {
             return newComponent;
         }
         if (ikasanComponentType.isExceptionResolver()) {
-            return (FlowElement)createExceptionResolver(newComponent);
+            return (FlowElement)createExceptionResolver((ExceptionResolver)newComponent);
         } else {
             return (FlowElement)createViableComponent(newComponent);
         }
@@ -568,24 +568,26 @@ public class DesignerCanvas extends JPanel {
 
     /**
      * Create the popup properties panel for a new component
-     * @param newComponent to be included in panel
+     * @param newExceptionResolver to be included in panel
      * @return the populated component or null if the action was cancelled.
      */
-    private BasicElement createExceptionResolver(BasicElement newComponent) {
-        if (newComponent.hasUnsetMandatoryProperties()) {
+    private BasicElement createExceptionResolver(ExceptionResolver newExceptionResolver) {
+        if (    newExceptionResolver.hasUnsetMandatoryProperties() ||
+                newExceptionResolver.getIkasanExceptionResolutionMap() == null ||
+                newExceptionResolver.getIkasanExceptionResolutionMap().isEmpty() ) {
 
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
-            exceptionResolverPanel.updateTargetComponent(newComponent);
+            exceptionResolverPanel.updateTargetComponent(newExceptionResolver);
             PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
                     UiContext.getProject(projectKey),
                     UiContext.getDesignerCanvas(projectKey),
                     exceptionResolverPanel);
             if (! propertiesDialogue.showAndGet()) {
                 // i.e. cancel.
-                newComponent = null;
+                newExceptionResolver = null;
             }
         }
-        return newComponent;
+        return newExceptionResolver;
     }
 
     /**
