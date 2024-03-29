@@ -13,9 +13,9 @@ import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
-import org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -159,6 +159,9 @@ public class PIPSIIkasanModel {
     private void saveFlow(Project project, Module module) {
         Set<String> flowPackageNames = new HashSet<>();
         for (Flow ikasanFlow : module.getFlows()) {
+
+            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, ikasanFlow);
+
             String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             flowPackageNames.add(ikasanFlow.getJavaPackageName());
             if (!ikasanFlow.ftlGetConsumerAndFlowElements().isEmpty()) {
@@ -171,7 +174,9 @@ public class PIPSIIkasanModel {
                             String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
                             String templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
                             PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, newPackageName, clazzName, templateString, true, true);
-                            ((AbstractViewHandler)ikasanFlow.getViewHandler()).setPsiJavaFile(newFile);
+                            if (viewHandler != null) {
+                                viewHandler.setPsiJavaFile(newFile);
+                            }
                         }
                     }
 
@@ -182,7 +187,9 @@ public class PIPSIIkasanModel {
                         boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
                         PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
-                        ((AbstractViewHandler)ikasanFlow.getViewHandler()).setPsiJavaFile(newFile);
+                        if (viewHandler != null) {
+                            viewHandler.setPsiJavaFile(newFile);
+                        }
                     }
                 }
             }
@@ -199,7 +206,9 @@ public class PIPSIIkasanModel {
                     templateString,
                     true,
                     true);
-            ((IkasanFlowViewHandler)ikasanFlow.getViewHandler()).setPsiJavaFile(newFile);
+            if (viewHandler != null) {
+                viewHandler.setPsiJavaFile(newFile);
+            }
         }
         // we have the flowPackageNames that ARE valid
         // @Todo work out if any folw directories need to be removed
@@ -209,8 +218,11 @@ public class PIPSIIkasanModel {
     private void saveModuleConfig(Project project, Module module) {
         String templateString = ModuleConfigTemplate.create(module);
         PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
-        // @TODO save the newFile for hotlink
-        ((IkasanModuleViewHandler)module.getViewHandler()).setPsiJavaFile(newFile);
+
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, module);
+        if (viewHandler != null) {
+            viewHandler.setPsiJavaFile(newFile);
+        }
     }
 
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";

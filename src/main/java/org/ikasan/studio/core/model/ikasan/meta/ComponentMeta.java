@@ -25,6 +25,7 @@ public class ComponentMeta implements IkasanMeta {
 
     // Essential Ikasan Components
     public static final String COMSUMER_NAME = "Consumer";
+    public static final String END_POINT = "End Point";
     public static final String FLOW_NAME = "Flow";
     public static final String MODULE_NAME = "Module";
     public static final String PRODUCER_NAME = "Producer";
@@ -106,6 +107,9 @@ public class ComponentMeta implements IkasanMeta {
     }
     public boolean isConsumer() {
         return COMSUMER_NAME.equals(componentShortType);
+    }
+    public boolean isEndpoint() {
+        return END_POINT.equals(componentShortType);
     }
     public boolean isProducer() {
         return PRODUCER_NAME.equals(componentShortType);

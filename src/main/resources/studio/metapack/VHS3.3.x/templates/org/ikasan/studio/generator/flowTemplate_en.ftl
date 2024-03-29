@@ -33,15 +33,14 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 
 <#if flow.hasExceptionResolver()>
 .withExceptionResolver(builderFactory.getExceptionResolverBuilder()
-<#list flow.exceptionResolver.ikasanExceptionResolutionList![] as exceptionResolution>
-.addExceptionToAction(${exceptionResolution.theException}, org.ikasan.builder.OnException.${exceptionResolution.theAction}(<#list exceptionResolution.params![] as param><#if param.value??>${param.templateRepresentationOfValue!xx}<#sep>,</#if></#list>))<#sep>
+<#list flow.getExceptionResolver().getExceptionResolutionList()![] as exceptionResolution>
+.addExceptionToAction(${exceptionResolution.exceptionsCaught}, org.ikasan.builder.OnException.${exceptionResolution.theAction}(<#list exceptionResolution.getComponentPropertyList()![] as param><#if param.value??>${param.templateRepresentationOfValue!xx}<#sep>,</#if></#list>))<#sep>
 </#list>)
 </#if>
-
-<#list flow.ftlGetConsumerAndFlowElements()![] as flowElements>
-    .${flowElements.componentMeta.flowBuilderMethod}("${flowElements.componentName}",
-    componentFactory.get${flowElements.getJavaClassName()}())
-</#list>
+    <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
+        .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",
+        componentFactory.get${flowElement.getJavaClassName()}())
+    </#list>
 </#compress>
 
 .build();

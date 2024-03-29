@@ -121,6 +121,15 @@ When you first create a project, you may find red highlights and basic Spring de
 ### Deleted components are not always removed
 Please work around this for now, it wwill be fixed shortly.
 
+## Development Guidelines
+### Do not let any exceptions bubble up to Intellij
+These get reported directly to the user with the recommendation to disable the plugin and report it to Idea.
+Where possible, log it with a stack trace and try to recover or abort that particular operation.
+### Do not use @NotNull
+These bubble up to the IDE with the recommendation to disable the plugin and report it to Idea.
+### Do not use anything greater than warn when using Intellij's logger
+Anything greater than warn results in a stack trace reported directly to the user with the recommendation to disable the plugin and report it to Idea.
+
 ## Template ToDo list
 - [x] Create a new [IntelliJ Platform Plugin Template][template] project.
 - [ ] Get familiar with the [template documentation][template].

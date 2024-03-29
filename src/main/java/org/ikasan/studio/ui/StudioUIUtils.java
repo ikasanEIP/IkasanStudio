@@ -6,9 +6,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.ui.viewmodel.AbstractViewHandler;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,16 +26,6 @@ public class StudioUIUtils {
         if (g instanceof Graphics2D g2d) {
             g2d.setStroke(new BasicStroke(width));
         }
-    }
-
-    public static AbstractViewHandler getViewHandler(String projectKey, BasicElement basicElement) {
-        if (basicElement == null) {
-            LOG.error("BasicElement should never be null");
-        }
-        if (basicElement.getViewHandler() == null) {
-            basicElement.setViewHandler(ViewHandlerFactory.getInstance(projectKey, basicElement));
-        }
-        return (AbstractViewHandler)basicElement.getViewHandler();
     }
 
 
@@ -243,4 +230,6 @@ public class StudioUIUtils {
                 .createNotification(message, NotificationType.INFORMATION)
                 .notify(UiContext.getProject(projectKey));
     }
+
+
 }

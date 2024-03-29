@@ -3,6 +3,8 @@ package org.ikasan.studio.ui.actions;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,11 +22,14 @@ public class NavigateToCodeAction implements ActionListener {
 
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      if (StudioUIUtils.getViewHandler(projectKey, ikasanBasicElement).getOffsetInclassToNavigateTo() != 0 && jumpToLine) {
-         StudioUIUtils.displayMessage(projectKey, "Jumpt to offset " + StudioUIUtils.getViewHandler(projectKey, ikasanBasicElement).getOffsetInclassToNavigateTo());
-         Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(projectKey, ikasanBasicElement).getClassToNavigateTo(), StudioUIUtils.getViewHandler(projectKey, ikasanBasicElement).getOffsetInclassToNavigateTo());
-      } else {
-         Navigator.navigateToSource(projectKey, StudioUIUtils.getViewHandler(projectKey, ikasanBasicElement).getClassToNavigateTo());
+      AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, ikasanBasicElement);
+      if (viewHandler != null) {
+         if (viewHandler.getOffsetInclassToNavigateTo() != 0 && jumpToLine) {
+            StudioUIUtils.displayMessage(projectKey, "Jumpt to offset " + viewHandler.getOffsetInclassToNavigateTo());
+            Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
+         } else {
+            Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo());
+         }
       }
    }
 }

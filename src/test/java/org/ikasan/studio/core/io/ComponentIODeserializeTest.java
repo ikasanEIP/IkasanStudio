@@ -95,8 +95,6 @@ class ComponentIODeserializeTest {
             () -> assertEquals(1, eventGeneratingConsumer.getComponentProperties().size()),
 
             () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getComponentProperties().get(COMPONENT_NAME).getValue()),
-            // The view handler is only created on demand when used in the UI
-            () -> Assertions.assertNull(eventGeneratingConsumer.getViewHandler()),
 
             () -> assertEquals(2, transition.size()),
             () -> assertEquals("default", transition.get(0).getName()),
@@ -111,16 +109,12 @@ class ComponentIODeserializeTest {
             () -> assertEquals("My Custom Converter", customConverter.getComponentProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals("java.lang.String", customConverter.getComponentProperties().get(FROM_TYPE).getValue()),
             () -> assertEquals("java.lang.Integer", customConverter.getComponentProperties().get(TO_TYPE).getValue()),
-            // The view handler is only created on demand when used in the UI
-            () -> Assertions.assertNull(customConverter.getViewHandler()),
 
             () -> assertEquals(1, devNullProducer.getComponentProperties().size()),
             () -> assertEquals("Dev Null Producer", devNullProducer.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.endpoint.Producer", devNullProducer.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getComponentMeta().getImplementingClass()),
-            () -> assertEquals("My DevNull Producer", devNullProducer.getComponentProperties().get(COMPONENT_NAME).getValue()),
-            // The view handler is only created on demand when used in the UI
-            () -> Assertions.assertNull(devNullProducer.getViewHandler())
+            () -> assertEquals("My DevNull Producer", devNullProducer.getComponentProperties().get(COMPONENT_NAME).getValue())
         );
     }
 

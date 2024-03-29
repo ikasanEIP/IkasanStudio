@@ -21,6 +21,18 @@ public class FlowTemplateTest extends GeneratorTests {
 
     }
 
+    //  ------------------------------- BROKER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedBrokerComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getBroker();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBrokerComponent.java"), templateString);
+    }
+
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedEventGeneratingConsumerComponent.java

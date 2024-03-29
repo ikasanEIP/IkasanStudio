@@ -44,6 +44,19 @@ public class TestFixtures {
                 .name(TEST_FLOW_NAME);
     }
 
+    // -------------------------- Broker -------------------------
+    public static FlowElement getBroker() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Broker");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Broker")
+                .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myBroker");
+        return flowElement;
+    }
+
     // -------------------------- Consumers -------------------------
     public static FlowElement getEventGeneratingConsumer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Event Generating Consumer");

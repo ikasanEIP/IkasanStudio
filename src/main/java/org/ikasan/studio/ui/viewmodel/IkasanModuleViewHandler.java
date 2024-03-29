@@ -8,7 +8,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import javax.swing.*;
 import java.awt.*;
 
-public class IkasanModuleViewHandler extends AbstractViewHandler {
+public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
@@ -30,17 +30,19 @@ public class IkasanModuleViewHandler extends AbstractViewHandler {
         LOG.debug("paintComponent invoked");
 
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, module.getName(),10,10, StudioUIUtils.getBoldFont(g));
-
         for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set x,y, but we may be dealing with component move
-            if (currentY == 0 ) {
-                currentY = StudioUIUtils.getViewHandler(projectKey, ikasanFlow).getTopY();
-            } else {
-                currentY += FLOW_VERTICAL_SPACING;
-            }
-            currentY = StudioUIUtils.getViewHandler(projectKey, ikasanFlow).paintComponent(canvas, g, -1, currentY);
-        }
+            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, ikasanFlow);
+            if (viewHandler != null) {
 
+                if (currentY == 0) {
+                    currentY = viewHandler.getTopY();
+                } else {
+                    currentY += FLOW_VERTICAL_SPACING;
+                }
+                currentY = viewHandler.paintComponent(canvas, g, -1, currentY);
+            }
+        }
         return currentY;
     }
 
@@ -66,10 +68,13 @@ public class IkasanModuleViewHandler extends AbstractViewHandler {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         for(Flow ikasanFlow : module.getFlows()) {
-            // initialise width/height to maximum, it will be adjusted down after reset
-            StudioUIUtils.getViewHandler(projectKey, ikasanFlow).initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
-            minimumTopY = StudioUIUtils.getViewHandler(projectKey, ikasanFlow).getBottomY();
-            minimumTopY += FLOW_VERTICAL_SPACING;
+            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, ikasanFlow);
+            if (viewHandler != null) {
+                // initialise width/height to maximum, it will be adjusted down after reset
+                viewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
+                minimumTopY = viewHandler.getBottomY();
+                minimumTopY += FLOW_VERTICAL_SPACING;
+            }
         }
     }
 }

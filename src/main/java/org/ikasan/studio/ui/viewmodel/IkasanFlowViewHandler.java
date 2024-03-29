@@ -23,7 +23,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowViewHandler extends AbstractViewHandler {
+public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     private final String projectKey;
     public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
@@ -114,7 +114,13 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
         }
         paintFlowBox(g);
         if (flow.hasExceptionResolver()) {
-            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, flow);
+            if (viewHandler != null) {
+                viewHandler.paintComponent(canvas, g, -1, -1);
+            }
+//            ((IkasanFlowViewHandler)flow.getViewHandler(UiContext.getViewHandlerFactory(projectKey))).paintComponent(canvas, g, -1, -1);
+
+//            ViewHandlerFactoryIntellij.getViewHandler(projectKey, flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
         }
         List<FlowElement> flowAndConseumerElementList = flow.ftlGetConsumerAndFlowElements();
         int flowSize = flowAndConseumerElementList.size();
@@ -123,9 +129,18 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
         // Paint any components between the first and the last
         for (int index=0; index < flowSize; index ++) {
             FlowElement flowElement = flowAndConseumerElementList.get(index);
-            StudioUIUtils.getViewHandler(projectKey, flowElement).paintComponent(canvas, g, -1, -1);
+
+            IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, flowElement);
+            if (flowComponentViewHandler != null) {
+                flowComponentViewHandler.paintComponent(canvas, g, -1, -1);
+            }
             if (index < flowSize-1) {
-                drawConnector(g, StudioUIUtils.getViewHandler(projectKey, flowElement), StudioUIUtils.getViewHandler(projectKey, flowAndConseumerElementList.get(index+1)));
+                IkasanFlowComponentViewHandler nextFlowComponentViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, flowAndConseumerElementList.get(index + 1));
+                if (flowComponentViewHandler != null && nextFlowComponentViewHandler != null) {
+                    if (index < flowSize - 1) {
+                        drawConnector(g, flowComponentViewHandler, nextFlowComponentViewHandler);
+                    }
+                }
             }
         }
 
@@ -175,18 +190,24 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
                     LOG.warn("Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
                 } else {
                     // Position and draw the endpoint
-                    AbstractViewHandler targetFlowElementViewHandler = StudioUIUtils.getViewHandler(projectKey, targetFlowElement);
-                    AbstractViewHandler endpointViewHandler = StudioUIUtils.getViewHandler(projectKey, endpointFlowElement);
-                    endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
-                    endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
-                    if (targetFlowElement.getComponentMeta().isConsumer()) {
-                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
-                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
-                        drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
-                    } else {
-                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
-                        drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
+                    IkasanFlowComponentViewHandler targetFlowElementViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, targetFlowElement);
+                    IkasanFlowComponentViewHandler endpointViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, endpointFlowElement);
+
+//                    AbstractViewHandlerIntellij targetFlowElementViewHandler = ViewHandlerFactoryIntellij.getViewHandler(projectKey, targetFlowElement);
+//                    AbstractViewHandlerIntellij endpointViewHandler = ViewHandlerFactoryIntellij.getViewHandler(projectKey, endpointFlowElement);
+                    if (targetFlowElementViewHandler != null && endpointViewHandler!= null) {
+
+                        endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
+                        endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
+                        if (targetFlowElement.getComponentMeta().isConsumer()) {
+                            endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+                            endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                            drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+                        } else {
+                            endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                            endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                            drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
+                        }
                     }
                 }
             }
@@ -194,7 +215,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
     }
 
 
-    private void drawConnector(Graphics g, AbstractViewHandler start, AbstractViewHandler end) {
+    private void drawConnector(Graphics g, AbstractViewHandlerIntellij start, AbstractViewHandlerIntellij end) {
         g.drawLine(
                 start.getRightConnectorPoint().x,
                 start.getRightConnectorPoint().y,
@@ -226,22 +247,37 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
         List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
-                AbstractViewHandler viewHandler = StudioUIUtils.getViewHandler(projectKey, ikasanFlowComponent);
-                if (viewHandler == null) {
-                    LOG.error("Request for a view handler should always succeed");
+                AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, ikasanFlowComponent);
+                if (viewHandler != null) {
+                    viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
+                    currentX += viewHandler.getWidth() + FLOW_X_SPACING;
                 }
-                viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
-                currentX += StudioUIUtils.getViewHandler(projectKey, ikasanFlowComponent).getWidth() + FLOW_X_SPACING;
             }
         }
         setWidthHeights(graphics, newTopY);
         if (flow.hasExceptionResolver()) {
-            StudioUIUtils.getViewHandler(projectKey, flow.getExceptionResolver()).initialiseDimensions(graphics,
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, flow.getExceptionResolver());
+            if (viewHandler != null) {
+                viewHandler.initialiseDimensions(
+                    graphics,
                     IkasanFlowExceptionResolverViewHandler.getXOffsetFromRight(getRightX()),
                     IkasanFlowExceptionResolverViewHandler.getYOffsetFromTop(getTopY()),
                     -1, -1);
+            }
         }
     }
+
+//    IkasanFlowComponentViewHandler targetFlowElementViewHandler = null;
+//    IkasanFlowComponentViewHandler endpointViewHandler = null;
+//
+//    ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
+//                    try {
+//        targetFlowElementViewHandler = ((IkasanFlowComponentViewHandler)targetFlowElement.getViewHandler(viewHandlerFactoryIntellij));
+//        endpointViewHandler = ((IkasanFlowComponentViewHandler)endpointFlowElement.getViewHandler(viewHandlerFactoryIntellij));
+//    } catch (StudioException se) {
+//        LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+//    }
+
 
     public void initialiseDimensionsNotChildren(Graphics graphics, int newLeftx, int newTopY) {
         setLeftX(newLeftx);
@@ -249,7 +285,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
         setWidthHeights(graphics, newTopY);
     }
 
-    private void setWidthHeights(Graphics graphics, int newTopY) {
+    private void setWidthHeights(Graphics graphics, int newTopY)  {
         if (!flow.ftlGetConsumerAndFlowElements().isEmpty()) {
             setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
@@ -259,24 +295,79 @@ public class IkasanFlowViewHandler extends AbstractViewHandler {
         }
     }
 
-    public int getFlowElementsWidth() {
+    public int getFlowElementsWidth()  {
         return getFlowElementsRightX() - getFlowElementsLeftX();
     }
 
     public int getFlowElementsTopY() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getTopY()).min().orElse(0);
+        boolean seen = false;
+        int best = 0;
+        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            if (viewHandler == null) {
+                return 0;
+            }
+            int topY = viewHandler.getTopY();
+            if (!seen || topY < best) {
+                seen = true;
+                best = topY;
+            }
+        }
+        return seen ? best : 0;
     }
 
     public int getFlowElementsLeftX() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getLeftX()).min().orElse(0);
+        boolean seen = false;
+        int best = 0;
+        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            if (viewHandler == null) {
+                return 0;
+            }
+            int leftX = viewHandler.getLeftX();
+            if (!seen || leftX < best) {
+                seen = true;
+                best = leftX;
+            }
+        }
+        return seen ? best : 0;
     }
 
     public int getFlowElementsRightX() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getRightX()).max().orElse(0);
+        boolean seen = false;
+        int best = 0;
+        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            if (viewHandler == null) {
+                return 0;
+            }
+            int rightX = viewHandler.getRightX();
+            if (!seen || rightX > best) {
+                seen = true;
+                best = rightX;
+            }
+        }
+        return seen ? best : 0;
     }
-    public int getFlowElementsBottomY() {
-        return flow.ftlGetConsumerAndFlowElements().stream().mapToInt(x -> StudioUIUtils.getViewHandler(projectKey, x).getBottomY()).max().orElse(0);
+    public int getFlowElementsBottomY()  {
+        boolean seen = false;
+        int best = 0;
+        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            if (viewHandler == null) {
+                return 0;
+            }
+            int bottomY = viewHandler.getBottomY();
+            if (!seen || bottomY > best) {
+                seen = true;
+                best = bottomY;
+            }
+        }
+        return seen ? best : 0;
     }
+
+
+
 
     public void setFlowReceptiveMode() {
         this.warningText = "";

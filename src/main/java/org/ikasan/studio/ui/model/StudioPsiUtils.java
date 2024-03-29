@@ -69,6 +69,10 @@ public class StudioPsiUtils {
         if (jsonModelPsiFile != null) {
             String json = jsonModelPsiFile.getText();
             Module newModule = ModelUtils.generateModuleInstanceFromString(json, UiContext.JSON_MODEL_FULL_PATH);
+            if (newModule == null) {
+                Thread thread = Thread.currentThread();
+                LOG.error("Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
+            }
             UiContext.setIkasanModule(projectKey, newModule);
         } else {
             LOG.info("Could not read the " + UiContext.JSON_MODEL_FULL_PATH + ", this is probably a new project");

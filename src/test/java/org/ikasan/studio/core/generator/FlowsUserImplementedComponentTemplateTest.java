@@ -19,8 +19,20 @@ public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
         module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
     }
 
+    //  ------------------------------- BROKER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyBroker.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getBroker();
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyBroker.java"), templateString);
+    }
 
-    //  ------------------------------- CONSUMERS ----------------------------------
+    //  ------------------------------- CONVERTER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyConverter.java
      * @throws IOException if the template cant be generated

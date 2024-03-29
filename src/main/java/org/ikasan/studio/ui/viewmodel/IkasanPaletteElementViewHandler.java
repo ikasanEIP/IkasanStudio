@@ -9,7 +9,7 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanPaletteElementViewHandler extends AbstractViewHandler {
+public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanPaletteElementViewHandler");
     private final ComponentMeta componentMeta;
 

@@ -188,4 +188,21 @@ public class Flow extends BasicElement {
         }
         return allFlowElements;
     }
+
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer
+     */
+    public List<FlowElement> ftlGetConsumerAndFlowElementsNoEndPoints() {
+        List<FlowElement> allFlowElements = new ArrayList<>();
+        if (consumer != null) {
+            allFlowElements.add(consumer);
+        }
+        if (flowElements != null && !flowElements.isEmpty()) {
+            allFlowElements.addAll(flowElements.stream()
+                .filter(x-> ! x.componentMeta.isEndpoint())
+                .toList());
+        }
+        return allFlowElements;
+    }
 }
