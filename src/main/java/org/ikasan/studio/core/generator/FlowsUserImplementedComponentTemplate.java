@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * Template to create the user implemented classes (stubs) i.e. those with property for
- *      'userImplementedClassName' e.g. Filter, Converter
+ *      'userImplementedClassName' e.g. Broker, Filter, Converter
  * The type of template used depends on the component hence each component can have at most 1 userImplementedClassName
  */
 public class FlowsUserImplementedComponentTemplate extends Generator {

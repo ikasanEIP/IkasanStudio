@@ -4,14 +4,14 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
 import lombok.Data;
-import org.ikasan.studio.core.model.ikasan.instance.ViewHandler;
+import org.ikasan.studio.core.model.ikasan.instance.AbstractViewHandler;
 
 import javax.swing.*;
 import java.awt.*;
 
 @Data
-public abstract class AbstractViewHandler implements ViewHandler {
-    private static final Logger LOG = Logger.getInstance("#AbstractViewHandler");
+public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
+    private static final Logger LOG = Logger.getInstance("#AbstractViewHandlerIntellij");
     PsiClass classToNavigateTo;
     PsiJavaFile psiJavaFile;
     int offsetInclassToNavigateTo;
@@ -29,7 +29,7 @@ public abstract class AbstractViewHandler implements ViewHandler {
      *             determine
      * @return the bottom Y value for this component, sometimes we need this to pass onto the next
      */
-    public abstract int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY);
+    public abstract int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) ;
 
     public Point getLeftConnectorPoint() {
         return new Point(getLeftX(), getTopY() + (getHeight()/2));
@@ -112,5 +112,13 @@ public abstract class AbstractViewHandler implements ViewHandler {
                 classToNavigateTo = allClasses[0];
             }
         }
+    }
+
+    public AbstractViewHandler getViewHandler(String projectKey) {
+        return null;
+    }
+
+    public void setViewHandler(String projectKey) {
+
     }
 }

@@ -12,7 +12,7 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowComponentViewHandler extends AbstractViewHandler {
+public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanFlowComponentViewHandler");
     public static final int TEXT_VERTICAL_SPACE = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 60;

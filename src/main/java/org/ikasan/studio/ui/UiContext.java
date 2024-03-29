@@ -9,6 +9,7 @@ import org.ikasan.studio.ui.component.palette.PalettePanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ public enum UiContext {
 
     private static final String CANVAS_PANEL = "canvasPanel";
     private static final String PROJECT = "project";
+    private static final String VIEW_HANDLER_FACTORY = "viewHandlerFactory";
     private static final String APPLICATION_PROPERTIES = "applicationProperties";
     private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
@@ -87,6 +89,13 @@ public enum UiContext {
 
     public static void setProject(String projectKey, Project project) {
         putProjectCache(projectKey, PROJECT, project);
+    }
+    public static ViewHandlerFactoryIntellij getViewHandlerFactory(String projectKey) {
+        return (ViewHandlerFactoryIntellij)getProjectCache(projectKey, VIEW_HANDLER_FACTORY);
+    }
+
+    public static void setViewHandlerFactory(String projectKey, ViewHandlerFactoryIntellij viewHandlerFactory) {
+        putProjectCache(projectKey, VIEW_HANDLER_FACTORY, viewHandlerFactory);
     }
 
 //    public static void setApplicationProperties(String projectKey, Properties properties) {

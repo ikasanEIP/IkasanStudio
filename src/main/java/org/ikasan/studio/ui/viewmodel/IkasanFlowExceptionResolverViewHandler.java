@@ -9,7 +9,7 @@ import java.awt.*;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
-public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandler {
+public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanFlowExceptionResolverViewHandler");
     public static final int VERTICAL_PAD = 5;
     public static final int HORIZONTAL_PAD = 5;

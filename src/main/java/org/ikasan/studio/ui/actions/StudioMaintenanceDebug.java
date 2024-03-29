@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
-import com.sun.istack.NotNull;
 
 public class StudioMaintenanceDebug extends AnAction
 {
@@ -36,7 +35,7 @@ public class StudioMaintenanceDebug extends AnAction
    }
 
    @Override
-   public void actionPerformed(@NotNull AnActionEvent ae)
+   public void actionPerformed(AnActionEvent ae)
    {
       String text = "Any debug action can be placed here";
       LOG.info(text);

@@ -10,6 +10,7 @@ import org.ikasan.studio.ui.component.palette.PalettePanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,6 +33,7 @@ public class DesignerUI {
         this.project = project;
         this.projectKey = project.getName();
         UiContext.setProject(projectKey, project);
+        UiContext.setViewHandlerFactory(projectKey, new ViewHandlerFactoryIntellij(projectKey));
         if (UiContext.getPipsiIkasanModel(projectKey) == null) {
             UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }

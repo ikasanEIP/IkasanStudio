@@ -64,6 +64,22 @@ public class Module extends BasicElement {
         this.flows = Objects.requireNonNullElseGet(flows, ArrayList::new);
     }
 
+    /**
+     * Used to determine whether the module has been initialised or needs to be initialised
+     * @return true if all the mandatory fields have values
+     */
+    @JsonIgnore
+    public boolean isInitialised() {
+        return (
+                getName() != null && !getName().isBlank() &&
+                getVersion() != null && !getVersion().isBlank() &&
+                getApplicationPackageName() != null && !getApplicationPackageName().isBlank() &&
+                getPort() != null && !getPort().isBlank() &&
+                getH2PortNumber() != null && !getH2PortNumber().isBlank() &&
+                getH2WebPortNumber() != null && !getH2WebPortNumber().isBlank()
+        );
+    }
+
     public boolean addFlow(Flow ikasanFlow) {
         return flows.add(ikasanFlow);
     }
@@ -101,7 +117,6 @@ public class Module extends BasicElement {
     public String getMetaVersion() {
         String version = (String) getPropertyValue(ComponentPropertyMeta.VERSION);
         if (version == null) {
-            Thread thread = Thread.currentThread();
             LOG.error("SERIOUS ERROR - to getMetaVersion but it was null");
         }
         return version;
