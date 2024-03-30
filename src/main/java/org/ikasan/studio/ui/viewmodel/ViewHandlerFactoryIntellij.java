@@ -49,7 +49,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         return viewHandler;
     }
 
-    public static IkasanFlowComponentViewHandler getFlowComponentHandler(String projectKey, BasicElement ikasanBasicElement) {
+    public static IkasanFlowComponentViewHandler getFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowComponentViewHandler viewHandler = null;
         try {
@@ -60,7 +60,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         return viewHandler;
     }
 
-    public static AbstractViewHandlerIntellij getAbstracttHandler(String projectKey, BasicElement ikasanBasicElement) {
+    public static AbstractViewHandlerIntellij getAbstracttViewHandler(String projectKey, BasicElement ikasanBasicElement) {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         AbstractViewHandlerIntellij viewHandler = null;
         try {

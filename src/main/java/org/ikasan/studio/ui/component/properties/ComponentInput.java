@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import lombok.Data;
 
@@ -7,6 +8,7 @@ import javax.swing.*;
 
 @Data
 public class ComponentInput {
+    private static final Logger LOG = Logger.getInstance("#ComponentInput");
     private boolean booleanInput;
     private boolean choiceInput;
     private JCheckBox trueBox;
@@ -40,6 +42,9 @@ public class ComponentInput {
             firstComponent = propertyChoiceValueField;
         } else {
             firstComponent = propertyValueField;
+        }
+        if (firstComponent == null) {
+            LOG.warn("Component can't ever be null ");
         }
         return firstComponent;
     }

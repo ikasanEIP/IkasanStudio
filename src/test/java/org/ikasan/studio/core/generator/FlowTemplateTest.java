@@ -113,30 +113,6 @@ public class FlowTemplateTest extends GeneratorTests {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBasicAmqSpringJmsConsumerComponent.java"), templateString);
     }
 
-    // ------------------------------------- EXCEPTION RESOLVER -------------------------------------
-    /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedExceptionResolverComponent.java
-     * @throws IOException if the template cant be generated
-     */
-    @Test
-    public void testCreateFlowWith_ExceptionResolver() throws IOException, StudioBuildException {
-        ExceptionResolver exceptionResolver = TestFixtures.getExceptionResolver();
-        String templateString = generateFlowWithExceptionResolverTemplateString(exceptionResolver);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(exceptionResolver, TEST_FLOW_NAME + "FullyPopulatedExceptionResolverComponent.java"), templateString);
-    }
-
-    // ------------------------------------- FILTER -------------------------------------
-    /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMessageFilterComponent.java
-     * @throws IOException if the template cant be generated
-     */
-    @Test
-    public void testCreateFlowWith_messageFilter() throws IOException, StudioBuildException {
-        FlowElement flowElement = TestFixtures.getMessageFilter();
-        String templateString = generateFlowTemplateString(flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
-    }
-
     // ------------------------------------- CONVERTERS -------------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedCustomConverterComponent.java
@@ -169,6 +145,42 @@ public class FlowTemplateTest extends GeneratorTests {
         FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java"), templateString);
+    }
+
+    // ------------------------------------- EXCEPTION RESOLVER -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedExceptionResolverComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_ExceptionResolver() throws IOException, StudioBuildException {
+        ExceptionResolver exceptionResolver = TestFixtures.getExceptionResolver();
+        String templateString = generateFlowWithExceptionResolverTemplateString(exceptionResolver);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(exceptionResolver, TEST_FLOW_NAME + "FullyPopulatedExceptionResolverComponent.java"), templateString);
+    }
+
+    // ------------------------------------- FILTER -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMessageFilterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_messageFilter() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getMessageFilter();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
+    }
+
+    // ------------------------------------- ROUTER -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMultiRecipientRouterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
     }
 
 

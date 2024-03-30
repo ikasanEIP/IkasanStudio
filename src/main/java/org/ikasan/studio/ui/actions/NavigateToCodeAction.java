@@ -22,7 +22,7 @@ public class NavigateToCodeAction implements ActionListener {
 
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, ikasanBasicElement);
+      AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttViewHandler(projectKey, ikasanBasicElement);
       if (viewHandler != null) {
          if (viewHandler.getOffsetInclassToNavigateTo() != 0 && jumpToLine) {
             StudioUIUtils.displayMessage(projectKey, "Jumpt to offset " + viewHandler.getOffsetInclassToNavigateTo());

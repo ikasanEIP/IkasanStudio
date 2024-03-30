@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
@@ -20,6 +21,7 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ComponentPropertyEditBox {
+    private static final Logger LOG = Logger.getInstance("#ComponentPropertyEditBox");
     private final JLabel propertyTitleField;
     private ComboBox<Object> propertyChoiceValueField;
     private JFormattedTextField propertyValueField;
@@ -40,6 +42,9 @@ public class ComponentPropertyEditBox {
             value = componentProperty.getDefaultValue();
         }
 
+        if (componentProperty.getMeta().getPropertyName().equals("pubSubDomain")) {
+            System.out.println("Here");
+        }
         // @todo we can have all types of components with rich pattern matching validation
         if (meta.getChoices() != null) {
             propertyChoiceValueField = new ComboBox<>();
@@ -102,7 +107,7 @@ public class ComponentPropertyEditBox {
                         value = Boolean.valueOf((String) value);
                     }
                 }
-
+                // Now we can be sure valuue is Boolean
                 if (value instanceof Boolean) {
                     if ((Boolean)value) {
                         propertyBooleanFieldTrue.setSelected(true);
@@ -204,12 +209,13 @@ public class ComponentPropertyEditBox {
         return propertyChoiceValueField != null;
     }
    public boolean isBooleanProperty() {
-        return propertyChoiceValueField != null;
+        return propertyBooleanFieldTrue != null;
     }
 
     public ComponentInput getInputField() {
         ComponentInput componentInput = null;
         if (meta.getPropertyDataType() == null && meta.getUsageDataType() == null) {
+            LOG.info("NOTE: Not data type detected, no componentInput box generated");
             ; // there is no value to enter, just a label to display
         } else if (isChoiceProperty()) {
             componentInput = new ComponentInput(propertyChoiceValueField);

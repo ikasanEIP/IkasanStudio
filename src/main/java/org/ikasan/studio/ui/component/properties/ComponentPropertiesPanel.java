@@ -277,6 +277,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         ++gc.gridx;
         if (!componentInput.isBooleanInput()) {
             gc.weightx = 1.0;
+            LOG.info("Adding " + propertyLabel.getText() + " comp " + componentInput.getFirstFocusComponent());
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
             JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));

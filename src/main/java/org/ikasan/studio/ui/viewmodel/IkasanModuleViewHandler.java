@@ -32,7 +32,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, module.getName(),10,10, StudioUIUtils.getBoldFont(g));
         for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set x,y, but we may be dealing with component move
-            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler viewHandler = getFlowViewViewHandler(projectKey, ikasanFlow);
             if (viewHandler != null) {
 
                 if (currentY == 0) {
@@ -68,7 +68,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         for(Flow ikasanFlow : module.getFlows()) {
-            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler viewHandler = getFlowViewViewHandler(projectKey, ikasanFlow);
             if (viewHandler != null) {
                 // initialise width/height to maximum, it will be adjusted down after reset
                 viewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
