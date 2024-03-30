@@ -8,7 +8,6 @@ import java.io.IOException;
 public class GeneratorTestUtils {
 
     public static String getExptectedFreemarkerOutputFromTestFile(BasicElement basicElement, String expectedTestResultFileName) throws IOException {
-//        String testFile = BuildContext.FREEMARKER_OUTPUT_PATH + getSavedPathFromFlowElement(basicElement) + FileSystems.getDefault().getSeparator() + expectedTestResultFileName;
         String testFile = BuildContext.FREEMARKER_OUTPUT_PATH + getSavedPathFromFlowElement(basicElement) + "/" + expectedTestResultFileName;
         return TestUtils.getFileAsString(testFile);
     }

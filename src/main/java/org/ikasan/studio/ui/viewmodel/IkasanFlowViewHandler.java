@@ -114,13 +114,10 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         }
         paintFlowBox(g);
         if (flow.hasExceptionResolver()) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, flow);
+            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, flow.getExceptionResolver());
             if (viewHandler != null) {
                 viewHandler.paintComponent(canvas, g, -1, -1);
             }
-//            ((IkasanFlowViewHandler)flow.getViewHandler(UiContext.getViewHandlerFactory(projectKey))).paintComponent(canvas, g, -1, -1);
-
-//            ViewHandlerFactoryIntellij.getViewHandler(projectKey, flow.getExceptionResolver()).paintComponent(canvas, g, -1, -1);
         }
         List<FlowElement> flowAndConseumerElementList = flow.ftlGetConsumerAndFlowElements();
         int flowSize = flowAndConseumerElementList.size();
@@ -130,12 +127,12 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         for (int index=0; index < flowSize; index ++) {
             FlowElement flowElement = flowAndConseumerElementList.get(index);
 
-            IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, flowElement);
+            IkasanFlowComponentViewHandler flowComponentViewHandler = getFlowComponentViewHandler(projectKey, flowElement);
             if (flowComponentViewHandler != null) {
                 flowComponentViewHandler.paintComponent(canvas, g, -1, -1);
             }
             if (index < flowSize-1) {
-                IkasanFlowComponentViewHandler nextFlowComponentViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, flowAndConseumerElementList.get(index + 1));
+                IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getFlowComponentViewHandler(projectKey, flowAndConseumerElementList.get(index + 1));
                 if (flowComponentViewHandler != null && nextFlowComponentViewHandler != null) {
                     if (index < flowSize - 1) {
                         drawConnector(g, flowComponentViewHandler, nextFlowComponentViewHandler);
@@ -190,11 +187,8 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
                     LOG.warn("Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
                 } else {
                     // Position and draw the endpoint
-                    IkasanFlowComponentViewHandler targetFlowElementViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, targetFlowElement);
-                    IkasanFlowComponentViewHandler endpointViewHandler = ViewHandlerFactoryIntellij.getFlowComponentHandler(projectKey, endpointFlowElement);
-
-//                    AbstractViewHandlerIntellij targetFlowElementViewHandler = ViewHandlerFactoryIntellij.getViewHandler(projectKey, targetFlowElement);
-//                    AbstractViewHandlerIntellij endpointViewHandler = ViewHandlerFactoryIntellij.getViewHandler(projectKey, endpointFlowElement);
+                    IkasanFlowComponentViewHandler targetFlowElementViewHandler = getFlowComponentViewHandler(projectKey, targetFlowElement);
+                    IkasanFlowComponentViewHandler endpointViewHandler = getFlowComponentViewHandler(projectKey, endpointFlowElement);
                     if (targetFlowElementViewHandler != null && endpointViewHandler!= null) {
 
                         endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
@@ -247,7 +241,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
-                AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, ikasanFlowComponent);
+                AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, ikasanFlowComponent);
                 if (viewHandler != null) {
                     viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
                     currentX += viewHandler.getWidth() + FLOW_X_SPACING;
@@ -256,7 +250,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         }
         setWidthHeights(graphics, newTopY);
         if (flow.hasExceptionResolver()) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, flow.getExceptionResolver());
+            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, flow.getExceptionResolver());
             if (viewHandler != null) {
                 viewHandler.initialiseDimensions(
                     graphics,
@@ -266,18 +260,6 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
             }
         }
     }
-
-//    IkasanFlowComponentViewHandler targetFlowElementViewHandler = null;
-//    IkasanFlowComponentViewHandler endpointViewHandler = null;
-//
-//    ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
-//                    try {
-//        targetFlowElementViewHandler = ((IkasanFlowComponentViewHandler)targetFlowElement.getViewHandler(viewHandlerFactoryIntellij));
-//        endpointViewHandler = ((IkasanFlowComponentViewHandler)endpointFlowElement.getViewHandler(viewHandlerFactoryIntellij));
-//    } catch (StudioException se) {
-//        LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
-//    }
-
 
     public void initialiseDimensionsNotChildren(Graphics graphics, int newLeftx, int newTopY) {
         setLeftX(newLeftx);
@@ -303,7 +285,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         boolean seen = false;
         int best = 0;
         for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
             }
@@ -320,7 +302,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         boolean seen = false;
         int best = 0;
         for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
             }
@@ -337,7 +319,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         boolean seen = false;
         int best = 0;
         for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
             }
@@ -353,7 +335,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         boolean seen = false;
         int best = 0;
         for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttHandler(projectKey, x);
+            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
             }

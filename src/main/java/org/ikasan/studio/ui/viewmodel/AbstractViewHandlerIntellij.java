@@ -4,12 +4,17 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.ikasan.studio.core.model.ikasan.instance.AbstractViewHandler;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
 @Data
+@EqualsAndHashCode(callSuper=true)
 public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     private static final Logger LOG = Logger.getInstance("#AbstractViewHandlerIntellij");
     PsiClass classToNavigateTo;
@@ -119,6 +124,30 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     }
 
     public void setViewHandler(String projectKey) {
-
     }
+
+    public AbstractViewHandlerIntellij getAbstracttViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttViewHandler(projectKey, ikasanBasicElement);
+        return (AbstractViewHandlerIntellij)verifyHandler(viewHandler);
+    }
+
+    public IkasanFlowComponentViewHandler getFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+        IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowComponentViewHandler(projectKey, ikasanBasicElement);
+        return (IkasanFlowComponentViewHandler)verifyHandler(viewHandler);
+    }
+
+    public IkasanFlowViewHandler getFlowViewViewHandler(String projectKey, Flow flow) {
+        IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, flow);
+        return (IkasanFlowViewHandler)verifyHandler(viewHandler);
+    }
+
+    protected AbstractViewHandlerIntellij verifyHandler(AbstractViewHandlerIntellij viewHandler) {
+        if (viewHandler.equals(this)) {
+            Thread thread = Thread.currentThread();
+            LOG.warn("DANGER: call for a view handler returned this view handler, this must be a mistake, ignoring" + Arrays.toString(thread.getStackTrace()));
+            viewHandler = null;
+        }
+        return viewHandler;
+    }
+
 }
