@@ -38,8 +38,12 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 </#list>)
 </#if>
     <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
+        <#if flowElement.isRouter()>
+        new RecipientListRouter(asList(<#list flowElement.getRoutes()![] as route>route, </#list>))
+        <#else>
         .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",
         componentFactory.get${flowElement.getJavaClassName()}())
+        </#if>
     </#list>
 </#compress>
 

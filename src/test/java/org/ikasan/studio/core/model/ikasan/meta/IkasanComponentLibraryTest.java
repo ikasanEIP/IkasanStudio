@@ -22,20 +22,20 @@ class IkasanComponentLibraryTest {
             "Check the module contains the expected values",
             () -> assertEquals(6, IkasanComponentLibrary.getNumberOfComponents(TEST_IKASAN_PACK)),
             () -> assertEquals(
-                new TreeSet<>(Arrays.asList("Custom Converter", ComponentMeta.EXCEPTION_RESOLVER_NAME, "Event Generating Consumer", ComponentMeta.FLOW_NAME, ComponentMeta.MODULE_NAME, "Dev Null Producer")),
+                new TreeSet<>(Arrays.asList("Custom Converter", ComponentMeta.EXCEPTION_RESOLVER_TYPE, "Event Generating Consumer", ComponentMeta.FLOW_TYPE, ComponentMeta.MODULE_TYPE, "Dev Null Producer")),
                 new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(TEST_IKASAN_PACK)))
         );
 
         Map<String, ComponentMeta> componentMetaList = IkasanComponentLibrary.getIkasanComponents(TEST_IKASAN_PACK);
-        verifyDefaultModuleMeta(componentMetaList.get(ComponentMeta.MODULE_NAME));
-        verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_NAME));
-        verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_NAME));
+        verifyDefaultModuleMeta(componentMetaList.get(ComponentMeta.MODULE_TYPE));
+        verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_TYPE));
+        verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_TYPE));
     }
 
     protected void verifyDefaultFlowMeta(ComponentMeta flow) {
         assertAll(
             "Check the flow contains the expected values",
-            () -> assertEquals(ComponentMeta.FLOW_NAME, flow.getName()),
+            () -> assertEquals(ComponentMeta.FLOW_TYPE, flow.getName()),
             () -> assertEquals("The flow is the container for components and generally represents an atomic action.", flow.getHelpText()),
             () -> assertEquals("org.ikasan.spec.flow.Flow", flow.getComponentType()),
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
@@ -47,7 +47,7 @@ class IkasanComponentLibraryTest {
     protected void verifyDefaultModuleMeta(ComponentMeta module) {
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(ComponentMeta.MODULE_NAME, module.getName()),
+            () -> assertEquals(ComponentMeta.MODULE_TYPE, module.getName()),
             () -> assertEquals("The module is the container for all flows", module.getHelpText()),
             () -> assertEquals("org.ikasan.spec.module.Module", module.getComponentType()),
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
@@ -60,7 +60,7 @@ class IkasanComponentLibraryTest {
     protected void verifyDefaultExceptionResolverMeta(ExceptionResolverMeta exceptionResolver) {
         assertAll(
                 "Check the Exception Resolver contains the expected values",
-                () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_NAME, exceptionResolver.getName()),
+                () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_TYPE, exceptionResolver.getName()),
                 () -> assertEquals("Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.", exceptionResolver.getHelpText()),
                 () -> assertEquals("org.ikasan.exceptionResolver.ExceptionResolver", exceptionResolver.getComponentType()),
                 () -> assertEquals("Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.", exceptionResolver.getHelpText()),

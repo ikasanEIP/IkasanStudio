@@ -8,13 +8,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
@@ -29,8 +25,9 @@ public class Flow extends BasicElement {
     public static final String EXCEPTION_RESOLVER_JSON_TAG = "exceptionResolver";
 
     private FlowElement consumer;
-    private List<Transition> transitions;
-    private List<FlowElement> flowElements;
+    private FlowRoute flowRoute;
+//    private List<Transition> transitions;
+//    private List<FlowElement> flowElements;
     private ExceptionResolver exceptionResolver;
 
     /**
@@ -39,14 +36,15 @@ public class Flow extends BasicElement {
     public Flow() throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(IkasanComponentLibrary.DEFAULT_IKASAN_PACK), null);
         LOG.error("Parameterless version of flow called");
-        transitions = new ArrayList<>();
-        flowElements = new ArrayList<>();
+//        flowRoute = new FlowRoute(this);
+//        transitions = new ArrayList<>();
+//        flowElements = new ArrayList<>();
     }
 
     public Flow(String metapackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
-        transitions = new ArrayList<>();
-        flowElements = new ArrayList<>();
+//        transitions = new ArrayList<>();
+//        flowElements = new ArrayList<>();
     }
 
     @Builder(builderMethodName = "flowBuilder")
@@ -54,8 +52,7 @@ public class Flow extends BasicElement {
                 @NonNull
                 String metapackVersion,
                 FlowElement consumer,
-                List<Transition> transitions,
-                List<FlowElement> flowElements,
+                FlowRoute flowRoute,
                 ExceptionResolver exceptionResolver,
                 String name,
                 String description) throws StudioBuildException {
@@ -67,27 +64,10 @@ public class Flow extends BasicElement {
                 this.consumer = consumer;
             }
         }
-        if (transitions != null) {
-            // By default, Lombok uses immutable arrays
-            this.transitions = new ArrayList<>(transitions);
-        } else {
-            this.transitions = new ArrayList<>();
-        }
-        if (flowElements != null) {
-            this.flowElements = new ArrayList<>(flowElements);
-        } else {
-            if (this.flowElements == null) {
-                this.flowElements = new ArrayList<>();
-            }
-        }
-
+        this.flowRoute = flowRoute;
         this.exceptionResolver = exceptionResolver;
         super.setName(name);
         super.setDescription(description);
-    }
-
-    public void addFlowComponent(FlowElement ikasanFlowComponent) {
-        flowElements.add(ikasanFlowComponent);
     }
 
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
@@ -96,73 +76,16 @@ public class Flow extends BasicElement {
                 setConsumer(null);
             } else if (ikasanFlowComponentToBeRemoved.getComponentMeta().isExceptionResolver()) {
                 setExceptionResolver(null);
-            } else if (! flowElements.isEmpty()) {
-                getFlowElements().remove(ikasanFlowComponentToBeRemoved);
+            } else if (flowRoute != null) {
+                flowRoute.removeFlowElement(ikasanFlowComponentToBeRemoved);
             } else {
                 LOG.warn("Attempt to remove element " + ikasanFlowComponentToBeRemoved + " because it could not be found in the memory model");
             }
         }
     }
 
-    /**
-     * Return true if it is valid to add the supplied component
-     * @param newComponent to br added
-     * @return true if component valid to be added
-     */
-    public boolean isValidToAdd(ComponentMeta newComponent) {
-        return  newComponent == null ||
-                !newComponent.isFlow() ||
-                ((!hasConsumer() || !newComponent.isConsumer())) &&
-                 (!hasProducer() || !newComponent.isProducer());
-    }
-
-    /**
-     * If the component can be added to the flow, return an empty string otherwise state the reason why
-     * @param newComponent to be added
-     * @return reason why the component can not be added or empty string if there is no problem.
-     */
-    public String issueCausedByAdding(ComponentMeta newComponent) {
-        String reason = "";
-        if (newComponent.isFlow()) {
-            reason += "You can add a flow to a module but not inside another flow";
-        } else if (hasConsumer() && newComponent.isConsumer()) {
-            reason += "The flow cannot have more then one consumer";
-        } else if (hasProducer() && newComponent.isProducer()) {
-            reason += "The flow cannot have more then one producer";
-        }
-        return reason;
-    }
-    
-    /**
-     * Determine the current state of the flow for completeness
-     * @return A status string
-     */
-    @JsonIgnore
-    public String getFlowIntegrityStatus() {
-        String status = "";
-        if (! hasConsumer()) {
-            status += "The flow needs a consumer";
-        }
-        if (! hasProducer()) {
-            if (!status.isEmpty()) {
-                status += " and a producer";
-            } else {
-                status += "The flow needs a producer";
-            }
-        }
-        if (!status.isEmpty()) {
-            status += " to be complete.";
-        }
-        return status;
-    }
-
     public boolean hasConsumer() {
         return getConsumer() != null;
-    }
-
-    public boolean hasProducer() {
-        return flowElements.stream()
-            .anyMatch(e->e.getComponentMeta().isProducer());
     }
 
     /**
@@ -173,36 +96,22 @@ public class Flow extends BasicElement {
         return (exceptionResolver != null);
     }
 
-
     /**
-     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
-     * @return A list of all non-null flow elements, including the consumer
+     * Determine the current state of the flow for completeness
+     * @return A status string
      */
-    public List<FlowElement> ftlGetConsumerAndFlowElements() {
-        List<FlowElement> allFlowElements = new ArrayList<>();
-        if (consumer != null) {
-            allFlowElements.add(consumer);
+    @JsonIgnore
+    public String getFlowIntegrityStatus() {
+        String status = "";
+        if (! hasConsumer()) {
+            status += "The flow needs a consumer";
         }
-        if (flowElements != null && !flowElements.isEmpty()) {
-            allFlowElements.addAll(flowElements);
+        if (flowRoute != null) {
+            status += flowRoute.getFlowIntegrityStatus();
         }
-        return allFlowElements;
-    }
-
-    /**
-     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
-     * @return A list of all non-null flow elements, including the consumer
-     */
-    public List<FlowElement> ftlGetConsumerAndFlowElementsNoEndPoints() {
-        List<FlowElement> allFlowElements = new ArrayList<>();
-        if (consumer != null) {
-            allFlowElements.add(consumer);
+        if (!status.isEmpty()) {
+            status += " to be complete.";
         }
-        if (flowElements != null && !flowElements.isEmpty()) {
-            allFlowElements.addAll(flowElements.stream()
-                .filter(x-> ! x.componentMeta.isEndpoint())
-                .toList());
-        }
-        return allFlowElements;
+        return status;
     }
 }

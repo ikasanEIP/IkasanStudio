@@ -88,6 +88,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     }
 
     public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws IOException, StudioBuildException {
+        List<Transition> transitions = new ArrayList<>();
         Flow flow = null;
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             flow = new Flow(metapackVersion);
@@ -100,7 +101,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
                     flow.setConsumer(getFlowElement(field.getValue(), flow, metapackVersion));
                 } else if (Flow.TRANSITIONS_JSON_TAG.equals(fieldName)) {
-                    flow.setTransitions(getTransitions(field.getValue()));
+                    transitions = getTransitions(field.getValue());
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
                     flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
                 } else if (Flow.EXCEPTION_RESOLVER_JSON_TAG.equals(fieldName)) {
@@ -110,7 +111,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     flow.setPropertyValue(fieldName, value);
                 }
             }
-            flow.setFlowElements(orderFlowElementsByTransitions(flow, flowElementsMap));
+            flow.getFlowRoute().setFlowElements(orderFlowElementsByTransitions(transitions, flow, flowElementsMap));
             // Now we need to sort the elements.
         }
         return flow;
@@ -123,12 +124,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @param flowElementsMap containing componentName -> flowElement
      * @return A list of flow elements in the order dictated by the transitions attribute
      */
-    protected List<FlowElement> orderFlowElementsByTransitions(Flow flow, Map<String, FlowElement> flowElementsMap) {
+    protected List<FlowElement> orderFlowElementsByTransitions(List<Transition> transitions, Flow flow, Map<String, FlowElement> flowElementsMap) {
         List<FlowElement> sortedFlowElements = new ArrayList<>();
-        if (!flow.getTransitions().isEmpty()) {
-            Map<String, Transition> transitionsMap = flow.getTransitions().stream()
+        if (!transitions.isEmpty()) {
+            Map<String, Transition> transitionsMap = transitions.stream()
                     .collect(Collectors.toMap(Transition::getFrom, Function.identity()));
-            Set<String> toKeys  = flow.getTransitions().stream()
+            Set<String> toKeys  = transitions.stream()
                     .map(Transition::getTo)
                     .collect(Collectors.toSet());
             Set<String> fromKeys = new HashSet<>(transitionsMap.keySet());
@@ -136,8 +137,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             fromKeys.removeAll(toKeys);
             Optional<String> startKey = fromKeys.stream().findFirst();
             if (startKey.isEmpty()) {
-                ILOG.warn("ERROR: Could not find the start of the transition chain " + flow.getTransitions());
-                LOG.warn("ERROR: Could not find the start of the transition chain " + flow.getTransitions());
+                ILOG.warn("ERROR: Could not find the start of the transition chain " + transitions);
+                LOG.warn("ERROR: Could not find the start of the transition chain " + transitions);
             } else {
                 Transition transition = transitionsMap.get(startKey.get());
                 // If no consumer, first from should be added (remeber, flowElements list excludes the consumer)

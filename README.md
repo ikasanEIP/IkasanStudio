@@ -129,6 +129,8 @@ Where possible, log it with a stack trace and try to recover or abort that parti
 These bubble up to the IDE with the recommendation to disable the plugin and report it to Idea.
 ### Do not use anything greater than warn when using Intellij's logger
 Anything greater than warn results in a stack trace reported directly to the user with the recommendation to disable the plugin and report it to Idea.
+### Defensive coding is essential
+You don't have to make many mistakes to get blacklisted.
 
 ## Template ToDo list
 - [x] Create a new [IntelliJ Platform Plugin Template][template] project.

@@ -24,12 +24,13 @@ import java.util.TreeMap;
 public class ComponentMeta implements IkasanMeta {
 
     // Essential Ikasan Components
-    public static final String COMSUMER_NAME = "Consumer";
-    public static final String END_POINT = "End Point";
-    public static final String FLOW_NAME = "Flow";
-    public static final String MODULE_NAME = "Module";
-    public static final String PRODUCER_NAME = "Producer";
-    public static final String EXCEPTION_RESOLVER_NAME = "Exception Resolver";
+    public static final String COMSUMER_TYPE = "Consumer";
+    public static final String ROUTER_TYPE = "MultiRecipientRouter";
+    public static final String END_POINT_TYPE = "End Point";
+    public static final String FLOW_TYPE = "Flow";
+    public static final String MODULE_TYPE = "Module";
+    public static final String PRODUCER_TYPE = "Producer";
+    public static final String EXCEPTION_RESOLVER_TYPE = "Exception Resolver";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -106,22 +107,25 @@ public class ComponentMeta implements IkasanMeta {
         return properties.get(propertyName);
     }
     public boolean isConsumer() {
-        return COMSUMER_NAME.equals(componentShortType);
+        return COMSUMER_TYPE.equals(componentShortType);
+    }
+    public boolean isRouter() {
+        return ROUTER_TYPE.equals(componentShortType);
     }
     public boolean isEndpoint() {
-        return END_POINT.equals(componentShortType);
+        return END_POINT_TYPE.equals(componentShortType);
     }
     public boolean isProducer() {
-        return PRODUCER_NAME.equals(componentShortType);
+        return PRODUCER_TYPE.equals(componentShortType);
     }
     public boolean isFlow() {
-        return FLOW_NAME.equals(componentShortType);
+        return FLOW_TYPE.equals(componentShortType);
     }
     public boolean isModule() {
-        return MODULE_NAME.equals(componentShortType);
+        return MODULE_TYPE.equals(componentShortType);
     }
     public boolean isExceptionResolver() {
-        return EXCEPTION_RESOLVER_NAME.equals(componentShortType);
+        return EXCEPTION_RESOLVER_TYPE.equals(componentShortType);
     }
 
     public String getDisplayComponentType() {
