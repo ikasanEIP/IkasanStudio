@@ -395,6 +395,23 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuredResource", true);
         return flowElement;
     }
+    // ------------------------- Router -------------------------
+
+    public static FlowElement getMultiRecipientRouter() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Multi Recipient Router");
+        List<String> routes = Arrays.asList("route1", "route2");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Multi Recipient Router")
+                .build();
+        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myMultiRecipientRouter");
+        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResource", true);
+        flowElement.setPropertyValue("routeNames", routes);
+        return flowElement;
+    }
 
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() throws StudioBuildException {
@@ -624,6 +641,7 @@ public class TestFixtures {
         FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
         FlowElement customConverter = getCustomConverter();
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();
+        FlowRoute flowRoute = FlowRoute.flowBuilder().flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build();
         Transition transition = Transition.builder()
                 .from(customConverter.getComponentName())
                 .to(devNullProducer.getComponentName())
@@ -631,8 +649,7 @@ public class TestFixtures {
                 .build();
         return getUnbuiltFlow()
                 .consumer(eventGeneratingConsumer)
-                .flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer)))
-                .transitions(Collections.singletonList(transition))
+                .flowRoute(flowRoute)
                 .build();
     }
 }

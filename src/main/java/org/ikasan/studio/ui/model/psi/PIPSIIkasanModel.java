@@ -131,9 +131,9 @@ public class PIPSIIkasanModel {
 
             String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             flowPackageNames.add(ikasanFlow.getJavaPackageName());
-            if (!ikasanFlow.ftlGetConsumerAndFlowElements().isEmpty()) {
+            if (!ikasanFlow.getFlowRoute().ftlGetConsumerAndFlowElements().isEmpty()) {
                 // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
-                for (FlowElement component : ikasanFlow.ftlGetConsumerAndFlowElements()) {
+                for (FlowElement component : ikasanFlow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
                     if (component.hasUserSuppliedClass()) {
                         for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
                             String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);

@@ -2,9 +2,7 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.util.Collections;
@@ -17,8 +15,8 @@ public class GeneratorTests {
     public String generatePropertiesTemplateString(FlowElement flowElement) throws StudioBuildException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
-                .flowElements(Collections.singletonList(flowElement))
                 .build();
+        flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         module.addFlow(flow);
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
@@ -29,10 +27,9 @@ public class GeneratorTests {
     public String generateFlowTemplateString(FlowElement flowElement) throws StudioBuildException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
-                .flowElements(Collections.singletonList(flowElement))
                 .build();
         module.addFlow(flow);
-
+        flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         return templateString;
@@ -53,10 +50,9 @@ public class GeneratorTests {
     public String generateFlowsComponentFactoryTemplateString(FlowElement flowElement) throws StudioBuildException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
-                .flowElements(Collections.singletonList(flowElement))
                 .build();
         module.addFlow(flow);
-
+        flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         return templateString;

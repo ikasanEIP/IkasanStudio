@@ -59,9 +59,10 @@ class ComponentIODeserializeTest {
         List<Flow> flows = module.getFlows();
         Flow flow1 = flows.get(0);
         FlowElement eventGeneratingConsumer = flow1.getConsumer();
-        List<Transition> transition = flow1.getTransitions();
-        FlowElement customConverter = flow1.getFlowElements().get(0);
-        FlowElement devNullProducer = flow1.getFlowElements().get(1);
+
+        FlowElement customConverter = flow1.getFlowRoute().getFlowElements().get(0);
+        FlowElement devNullProducer = flow1.getFlowRoute().getFlowElements().get(1);
+
         ExceptionResolver exceptionResolver = flow1.getExceptionResolver();
         ExceptionResolution resourceExceptionResolution = flow1.getExceptionResolver().getIkasanExceptionResolutionMap().get("javax.resource.ResourceException.class");
         ExceptionResolution jmsExceptionResolution = flow1.getExceptionResolver().getIkasanExceptionResolutionMap().get("javax.jms.JMSException.class");
@@ -96,11 +97,6 @@ class ComponentIODeserializeTest {
 
             () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getComponentProperties().get(COMPONENT_NAME).getValue()),
 
-            () -> assertEquals(2, transition.size()),
-            () -> assertEquals("default", transition.get(0).getName()),
-            () -> assertEquals("My Event Generating Consumer", transition.get(0).getFrom()),
-            () -> assertEquals("My Custom Converter", transition.get(0).getTo()),
-
             () -> assertEquals(4, customConverter.getComponentProperties().size()),
             () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
@@ -124,7 +120,6 @@ class ComponentIODeserializeTest {
         List<Flow> flows = module.getFlows();
         Flow flow1 = flows.get(0);
         FlowElement elements = flow1.getConsumer();
-        List<Transition> transition = flow1.getTransitions();
 
         assertAll(
             "Check the module contains the expected values",
@@ -140,8 +135,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals(1, flow1.getComponentProperties().size()),
             () -> assertEquals("Flow1", flow1.getName()),
 
-            () -> Assertions.assertNull(elements),
-            () -> Assertions.assertTrue(transition.isEmpty())
+            () -> Assertions.assertNull(elements)
         );
     }
 

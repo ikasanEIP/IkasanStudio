@@ -34,7 +34,7 @@ public class IkasanComponentLibrary {
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
     protected static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
     protected static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndDeserialisationKey = new HashMap<>(new HashMap<>());
-    private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(ComponentMeta.MODULE_NAME, ComponentMeta.FLOW_NAME, ComponentMeta.EXCEPTION_RESOLVER_NAME));
+    private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(ComponentMeta.MODULE_TYPE, ComponentMeta.FLOW_TYPE, ComponentMeta.EXCEPTION_RESOLVER_TYPE));
 
     /**
      * Refresh the component library.
@@ -219,17 +219,17 @@ public class IkasanComponentLibrary {
 
 
     public static ComponentMeta getFLowComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.FLOW_NAME);
+        return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.FLOW_TYPE);
     }
     public static ComponentMeta getModuleComponentMetaMandatory(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        ComponentMeta componentMeta = getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.MODULE_NAME);
+        ComponentMeta componentMeta = getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.MODULE_TYPE);
         if (componentMeta == null) {
             throw new StudioBuildRuntimeException("Meta cant be null");
         }
         return componentMeta;
     }
     public static ExceptionResolverMeta getExceptionResolverMetaMandatory(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        ExceptionResolverMeta componentMeta = (ExceptionResolverMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.EXCEPTION_RESOLVER_NAME);
+        ExceptionResolverMeta componentMeta = (ExceptionResolverMeta) getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.EXCEPTION_RESOLVER_TYPE);
         if (componentMeta == null) {
             throw new StudioBuildRuntimeException("Meta cant be null");
         }

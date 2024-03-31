@@ -1,0 +1,141 @@
+package org.ikasan.studio.core.model.ikasan.instance;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
+import lombok.Data;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * The 'default' flow is contained in a single FlowRoute i.e. each node
+ * And additional branches
+ */
+@Data
+public class FlowRoute {
+    private static final Logger LOG = LoggerFactory.getLogger(FlowRoute.class);
+    List<FlowRoute> childRoutes;
+    private List<FlowElement> flowElements;
+//    FlowRoutelet flowRoute;
+    Flow flow;  // A convenience link to get back to the containing flow
+
+    /**
+     * Used primarily during deserialization.
+     */
+    public FlowRoute() throws StudioBuildException {
+        LOG.error("Parameterless version of flow called");
+    }
+
+    @Builder(builderMethodName = "flowBuilder")
+    public FlowRoute(
+            Flow flow,
+            List<FlowRoute> childRoutes,
+            List<FlowElement> flowElements) throws StudioBuildException {
+        this.flow = flow;
+        this.childRoutes = childRoutes;
+        this.flowElements = flowElements;
+        if (flow == null) {
+            throw new StudioBuildException("Flow can not be null");
+        }
+    }
+
+    public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
+        if (childRoutes != null) {
+            childRoutes.forEach(flowRoute -> flowRoute.removeFlowElement(ikasanFlowComponentToBeRemoved));
+        } else {
+            // This is a leaf, no further traversing required
+            getFlowElements().remove(ikasanFlowComponentToBeRemoved);
+        }
+    }
+
+    /**
+     * Determine the current state of the flow for completeness
+     * @return A status string
+     */
+    @JsonIgnore
+    public String getFlowIntegrityStatus() {
+        if (childRoutes != null) {
+            return childRoutes.stream().map(f -> f.getFlowIntegrityStatus()).collect(Collectors.joining (","));
+        } else {
+            String status = "";
+            if (! hasProducer()) {
+                if (!status.isEmpty()) {
+                    status += " and a producer";
+                } else {
+                    status += "The flow needs a producer";
+                }
+            }
+            return status;
+        }
+    }
+
+
+    public boolean hasProducer() {
+        return flowElements.stream()
+                .anyMatch(e->e.getComponentMeta().isProducer());
+    }
+
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer
+     */
+    public List<FlowElement> ftlGetConsumerAndFlowElements() {
+        List<FlowElement> allElements;
+
+        List<FlowElement> standardElements = getFlowElements().stream()
+                .filter(x-> ! x.componentMeta.isEndpoint())
+                .toList();
+        if (flow.hasConsumer()) {
+            allElements = new ArrayList<>();
+            allElements.add(flow.getConsumer());
+            allElements.addAll(standardElements);
+        } else {
+            allElements = standardElements;
+        }
+
+        return allElements;
+    }
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer
+     */
+    public List<FlowElement> ftlGetConsumerAndFlowElementsNoEndPoints() {
+        return getFlowElements().stream()
+                .filter(x-> ! x.componentMeta.isEndpoint())
+                .toList();
+    }
+
+    /**
+     * Return true if it is valid to add the supplied component
+     * @param newComponent to br added
+     * @return true if component valid to be added
+     */
+    public boolean isValidToAdd(ComponentMeta newComponent) {
+        return  newComponent == null ||
+                !newComponent.isFlow() ||
+                ((!flow.hasConsumer() || !newComponent.isConsumer())) &&
+                        (!hasProducer() || !newComponent.isProducer());
+    }
+
+    /**
+     * If the component can be added to the flow, return an empty string otherwise state the reason why
+     * @param newComponent to be added
+     * @return reason why the component can not be added or empty string if there is no problem.
+     */
+    public String issueCausedByAdding(ComponentMeta newComponent) {
+        String reason = "";
+        if (newComponent.isFlow()) {
+            reason += "You can add a flow to a module but not inside another flow";
+        } else if (flow.hasConsumer() && newComponent.isConsumer()) {
+            reason += "The flow cannot have more then one consumer";
+        } else if (hasProducer() && newComponent.isProducer()) {
+            reason += "The flow cannot have more then one producer";
+        }
+        return reason;
+    }
+}

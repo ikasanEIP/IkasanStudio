@@ -119,7 +119,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
                 viewHandler.paintComponent(canvas, g, -1, -1);
             }
         }
-        List<FlowElement> flowAndConseumerElementList = flow.ftlGetConsumerAndFlowElements();
+        List<FlowElement> flowAndConseumerElementList = flow.getFlowRoute().ftlGetConsumerAndFlowElements();
         int flowSize = flowAndConseumerElementList.size();
         StudioUIUtils.setLine(g, 2f);
 
@@ -146,7 +146,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
             // The input symbol, typically a queue gets painted before the flow start
             displayEndpointIfExists(canvas, g, flow.getConsumer());
             // A flow might have multiple producers
-            List<FlowElement> flowElementList = flow.getFlowElements();
+            List<FlowElement> flowElementList = flow.getFlowRoute().getFlowElements();
             if (flowElementList != null && !flowElementList.isEmpty()) {
                 List <FlowElement> producers = flowElementList.stream().filter(f->f.getComponentMeta().isProducer()).toList();
                 for (FlowElement producer : producers) {
@@ -238,7 +238,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
-        List<FlowElement> flowElementList = flow.ftlGetConsumerAndFlowElements();
+        List<FlowElement> flowElementList = flow.getFlowRoute().ftlGetConsumerAndFlowElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
                 AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, ikasanFlowComponent);
@@ -268,7 +268,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     private void setWidthHeights(Graphics graphics, int newTopY)  {
-        if (!flow.ftlGetConsumerAndFlowElements().isEmpty()) {
+        if (!flow.getFlowRoute().ftlGetConsumerAndFlowElements().isEmpty()) {
             setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
         } else {
@@ -284,7 +284,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     public int getFlowElementsTopY() {
         boolean seen = false;
         int best = 0;
-        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
             AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
@@ -301,7 +301,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     public int getFlowElementsLeftX() {
         boolean seen = false;
         int best = 0;
-        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
             AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
@@ -318,7 +318,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     public int getFlowElementsRightX() {
         boolean seen = false;
         int best = 0;
-        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
             AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
@@ -334,7 +334,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     public int getFlowElementsBottomY()  {
         boolean seen = false;
         int best = 0;
-        for (FlowElement x : flow.ftlGetConsumerAndFlowElements()) {
+        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
             AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
             if (viewHandler == null) {
                 return 0;
