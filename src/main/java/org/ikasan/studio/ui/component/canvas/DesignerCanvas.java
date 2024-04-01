@@ -659,7 +659,7 @@ public class DesignerCanvas extends JPanel {
             }
 
             if (ikasanModule.hasUnsetMandatoryProperties()) {
-                LOG.warn("Ikasan Module is not in the context, assuming this is a new build");
+                LOG.warn("Ikasan Module is not in the context, assuming this is a new buildRouteTree");
                 enableModuleInitialiseProcess();
             }
             if (viewHandler != null) {

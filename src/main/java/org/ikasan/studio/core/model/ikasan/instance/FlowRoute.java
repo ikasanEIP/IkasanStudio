@@ -21,24 +21,38 @@ public class FlowRoute {
     private static final Logger LOG = LoggerFactory.getLogger(FlowRoute.class);
     List<FlowRoute> childRoutes;
     private List<FlowElement> flowElements;
-//    FlowRoutelet flowRoute;
-    Flow flow;  // A convenience link to get back to the containing flow
 
+    Flow flow;  // A convenience link to get back to the containing flow
+    String routeName;
     /**
      * Used primarily during deserialization.
      */
-    public FlowRoute() throws StudioBuildException {
+    public FlowRoute() {
         LOG.error("Parameterless version of flow called");
     }
 
     @Builder(builderMethodName = "flowBuilder")
     public FlowRoute(
             Flow flow,
+            String routeName,
             List<FlowRoute> childRoutes,
             List<FlowElement> flowElements) throws StudioBuildException {
         this.flow = flow;
-        this.childRoutes = childRoutes;
-        this.flowElements = flowElements;
+        if (routeName != null) {
+            this.routeName = routeName;
+        } else {
+            this.routeName = Transition.DEFAULT_TRANSITION_NAME;
+        }
+        if (childRoutes != null) {
+            this.childRoutes = childRoutes;
+        } else {
+            this.childRoutes = new ArrayList<>();
+        }
+        if (flowElements != null) {
+            this.flowElements = flowElements;
+        } else {
+            this.flowElements = new ArrayList<>();
+        }
         if (flow == null) {
             throw new StudioBuildException("Flow can not be null");
         }
@@ -137,5 +151,14 @@ public class FlowRoute {
             reason += "The flow cannot have more then one producer";
         }
         return reason;
+    }
+
+    @Override
+    public String toString() {
+        return "FlowRoute{" +
+                "childRoutes=" + childRoutes +
+                ", flowElements=" + flowElements +
+                ", routeName='" + routeName + '\'' +
+                '}';
     }
 }

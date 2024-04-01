@@ -16,7 +16,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
-<#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
+<#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
     <#if flowElement.componentMeta.generatesUserImplementedClass>
         @javax.annotation.Resource
         <#if flowElement.componentMeta.generatesUserImplementedClass>
@@ -49,7 +49,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 </#compress>
 
 <#compress>
-    <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
+    <#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
     <#-- todo - move this to above section -->
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if propValue.meta.isUserSuppliedClass()>
@@ -66,7 +66,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 <#compress>
-<#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
+<#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilder>
         <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>

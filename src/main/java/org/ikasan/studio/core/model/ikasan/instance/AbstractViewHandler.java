@@ -7,7 +7,7 @@ import org.ikasan.studio.StudioException;
  * This interface allows domain objects to be handled easily when used within a UI (Intellij, Eclipse, Swing etc)
  */
 public abstract class AbstractViewHandler {
-    // The view handler could be thought of as polluting the build namespace since it serves no purpose
+    // The view handler could be thought of as polluting the buildRouteTree namespace since it serves no purpose
     // or value here. However, having a reference handle here, means we can plug in the view handlers
     // very easily when the object is used in the UI space, otherwise we would need to deal with very complex
     // parallel structures. Including the handle here is the lesser evil.

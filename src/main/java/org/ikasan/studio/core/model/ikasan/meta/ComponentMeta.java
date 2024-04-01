@@ -25,7 +25,7 @@ public class ComponentMeta implements IkasanMeta {
 
     // Essential Ikasan Components
     public static final String COMSUMER_TYPE = "Consumer";
-    public static final String ROUTER_TYPE = "MultiRecipientRouter";
+    public static final String ROUTER_TYPE = "Router";
     public static final String END_POINT_TYPE = "End Point";
     public static final String FLOW_TYPE = "Flow";
     public static final String MODULE_TYPE = "Module";

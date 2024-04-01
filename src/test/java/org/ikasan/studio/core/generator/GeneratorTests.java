@@ -40,6 +40,7 @@ public class GeneratorTests {
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .exceptionResolver(exceptionResolver)
                 .build();
+        flow.setFlowRoute(FlowRoute.flowBuilder().flow(flow).build());
         module.addFlow(flow);
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);

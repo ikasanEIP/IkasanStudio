@@ -12,11 +12,13 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @AllArgsConstructor
 public class Transition {
+    public static final String DEFAULT_TRANSITION_NAME = "default";
+
     private String from;
     private String to;
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
-    private String name = "default";
+    private String name = DEFAULT_TRANSITION_NAME;
 
     public Transition() {}
 }

@@ -58,7 +58,7 @@ public class ModuleConfig {
     @Bean
     public org.ikasan.spec.module.Module getModule(){
 
-        // The Module build holda the module name
+        // The Module buildRouteTree holda the module name
         ModuleBuilder mb = builderFactory.getModuleBuilder("fms-ftp");
 
         Flow jmsToFtpFlow = getJmsToFtpFlow(mb,builderFactory.getComponentBuilder());
