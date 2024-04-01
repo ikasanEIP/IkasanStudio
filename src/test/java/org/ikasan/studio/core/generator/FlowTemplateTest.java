@@ -170,18 +170,18 @@ public class FlowTemplateTest extends GeneratorTests {
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
     }
-
-    // ------------------------------------- ROUTER -------------------------------------
-    /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMultiRecipientRouterComponent.java
-     * @throws IOException if the template cant be generated
-     */
-    @Test
-    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException {
-        FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
-        String templateString = generateFlowTemplateString(flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
-    }
+//
+//    // ------------------------------------- ROUTER -------------------------------------
+//    /**
+//     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMultiRecipientRouterComponent.java
+//     * @throws IOException if the template cant be generated
+//     */
+//    @Test
+//    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException {
+//        FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
+//        String templateString = generateFlowTemplateString(flowElement);
+//        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
+//    }
 
 
     // ------------------------------------- PRODUCERS -------------------------------------

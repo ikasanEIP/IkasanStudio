@@ -641,15 +641,37 @@ public class TestFixtures {
         FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
         FlowElement customConverter = getCustomConverter();
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();
-        FlowRoute flowRoute = FlowRoute.flowBuilder().flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build();
-        Transition transition = Transition.builder()
-                .from(customConverter.getComponentName())
-                .to(devNullProducer.getComponentName())
-                .name("My Transition")
-                .build();
-        return getUnbuiltFlow()
+        Flow flow = getUnbuiltFlow()
                 .consumer(eventGeneratingConsumer)
-                .flowRoute(flowRoute)
                 .build();
+        flow.setFlowRoute(FlowRoute.flowBuilder().flow(flow).flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build());
+        return flow;
+    }
+
+    public static Flow getEventGeneratingConsumerRouterFlow() throws StudioBuildException {
+        FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
+        FlowElement customConverter = getCustomConverter();
+        FlowElement router = getMultiRecipientRouter();
+        FlowElement devNullProducer1 = TestFixtures.getDevNullProducer();
+        devNullProducer1.setComponentName("My DevNull Producer1");
+        FlowElement devNullProducer2 = TestFixtures.getDevNullProducer();
+        devNullProducer2.setComponentName("My DevNull Producer2");
+
+        Flow flow = getUnbuiltFlow()
+                .consumer(eventGeneratingConsumer)
+                .build();
+
+        FlowRoute firstRoute = FlowRoute.flowBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Arrays.asList(devNullProducer1))).build();
+        FlowRoute secondRoute = FlowRoute.flowBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Arrays.asList(devNullProducer2))).build();
+        List<FlowRoute> childRoutes = new ArrayList<>();
+        childRoutes.add(firstRoute);
+        childRoutes.add(secondRoute);
+
+        flow.setFlowRoute(FlowRoute.flowBuilder()
+                .flow(flow)
+                .flowElements(new ArrayList<>(Arrays.asList(customConverter, router)))
+                .childRoutes(childRoutes)
+                .build());
+        return flow;
     }
 }

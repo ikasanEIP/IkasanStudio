@@ -37,8 +37,8 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 .addExceptionToAction(${exceptionResolution.exceptionsCaught}, org.ikasan.builder.OnException.${exceptionResolution.theAction}(<#list exceptionResolution.getComponentPropertyList()![] as param><#if param.value??>${param.templateRepresentationOfValue!xx}<#sep>,</#if></#list>))<#sep>
 </#list>)
 </#if>
-    <#list flow.ftlGetConsumerAndFlowElements()![] as flowElement>
-        <#if flowElement.isRouter()>
+    <#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
+        <#if flowElement.componentMeta.isRouter()>
         new RecipientListRouter(asList(<#list flowElement.getRoutes()![] as route>route, </#list>))
         <#else>
         .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",

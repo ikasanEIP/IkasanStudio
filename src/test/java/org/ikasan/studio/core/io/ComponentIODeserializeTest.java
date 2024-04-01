@@ -115,6 +115,28 @@ class ComponentIODeserializeTest {
     }
 
     @Test
+    public void testModuleInstanceWithRouterDeserialize() throws StudioBuildException {
+        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_with_router.json");
+        List<Flow> flows = module.getFlows();
+        Flow flow1 = flows.get(0);
+
+        assertAll(
+            "Check the module contains the flow routes",
+            () -> assertEquals(1, flows.size()),
+            () -> assertEquals(2, flow1.getComponentProperties().size()),
+            () -> assertEquals("MyFlow1", flow1.getName()),
+            () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().size()),
+            () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().get(0).getChildRoutes().size()),
+            () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().get(1).getChildRoutes().size()),
+            () -> assertEquals(1, flow1.getFlowRoute().getChildRoutes().get(0).getFlowElements().size()),
+            () -> assertEquals(1, flow1.getFlowRoute().getChildRoutes().get(1).getFlowElements().size()),
+            () -> assertEquals("route1", flow1.getFlowRoute().getChildRoutes().get(0).getRouteName()),
+            () -> assertEquals("route2", flow1.getFlowRoute().getChildRoutes().get(1).getRouteName())
+
+        );
+    }
+
+    @Test
     public void testModuleInstanceDeserializeIsRobustNotFailingWithEmptyElements() throws StudioBuildException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_with_empty_elements.json");
         List<Flow> flows = module.getFlows();

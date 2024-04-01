@@ -43,6 +43,7 @@ public class Flow extends BasicElement {
 
     public Flow(String metapackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
+        flowRoute = FlowRoute.flowBuilder().flow(this).build();
 //        transitions = new ArrayList<>();
 //        flowElements = new ArrayList<>();
     }
@@ -64,7 +65,11 @@ public class Flow extends BasicElement {
                 this.consumer = consumer;
             }
         }
-        this.flowRoute = flowRoute;
+        if (flowRoute != null) {
+            this.flowRoute = flowRoute;
+        } else {
+            this.flowRoute = FlowRoute.flowBuilder().flow(this).build();
+        }
         this.exceptionResolver = exceptionResolver;
         super.setName(name);
         super.setDescription(description);

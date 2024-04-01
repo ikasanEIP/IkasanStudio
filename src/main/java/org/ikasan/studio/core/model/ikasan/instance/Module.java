@@ -27,10 +27,8 @@ import java.util.*;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-
 @JsonSerialize(using = ModuleSerializer.class)
 @JsonDeserialize(using = ModuleDeserializer.class)
-
 public class Module extends BasicElement {
     public static final Logger LOG = Logger.getInstance("Module");
     @JsonPropertyOrder(alphabetic = true)

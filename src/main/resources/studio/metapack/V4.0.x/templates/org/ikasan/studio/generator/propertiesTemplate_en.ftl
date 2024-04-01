@@ -59,7 +59,7 @@ ikasan.dashboard.extract.password=
 <#--properties for all components-->
 <#compress>
 <#list module.getFlows()![] as flow>
-    <#list flow.ftlGetConsumerAndFlowElements()![] as basicElement>
+    <#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as basicElement>
         <#if (basicElement.getStandardComponentProperties())??>
             <#list basicElement.getStandardComponentProperties() as componentPropertyName, componentProperty>
                 <#if componentProperty?? && componentProperty.getMeta()?? &&
