@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.ikasan.studio.ui.UiContext.JSON_MODEL_FILE_WITH_EXTENSION;
+
 /**
  * The main painting / design panel
  */
@@ -532,7 +534,15 @@ public class DesignerCanvas extends JPanel {
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3();
-            StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+            try {
+                StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+            } catch (StudioBuildException se) {
+                LOG.warn("SERIOUS ERROR: Reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + Arrays.asList(se.getStackTrace()));
+                StudioUIUtils.displayIdeaInfoMessage(projectKey, "Please check " + JSON_MODEL_FILE_WITH_EXTENSION + " for errors");
+                // The dumb module should contain just enough to prevent the plugin from crashing
+                UiContext.setIkasanModule(projectKey, Module.getDumbModule());
+            }
+
             initialiseAllDimensions = true;
             this.repaint();
             return true;

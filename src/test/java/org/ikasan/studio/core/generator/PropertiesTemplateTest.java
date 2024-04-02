@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-public class PropertiesTemplateTest extends GeneratorTests {
+public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     @BeforeEach
     public void setUp() throws StudioBuildException {

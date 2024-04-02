@@ -82,7 +82,6 @@ public class FlowSerializer extends StdSerializer<Flow> {
      */
     protected void processFlowRouteTransitions(String startElement, List<Transition> transitions, FlowRoute flowRoute) {
         if (flowRoute != null) {
-//            for (FlowRoute flowRoute : flowRoutes) {
             String routeName = flowRoute.getRouteName();
             // process the elements at this level
             List<FlowElement> flowElements = flowRoute.getFlowElements();
@@ -100,7 +99,6 @@ public class FlowSerializer extends StdSerializer<Flow> {
                     processFlowRouteTransitions(nextStartElement, transitions, childFlowRoute);
                 }
             }
-//            }
         }
     }
 
@@ -145,5 +143,4 @@ public class FlowSerializer extends StdSerializer<Flow> {
             }
         }
     }
-
 }

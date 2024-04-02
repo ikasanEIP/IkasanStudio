@@ -2,17 +2,21 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FlowTemplateTest extends GeneratorTests {
+public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_FLOW_NAME = "MyFlow1";
 
     @BeforeEach
@@ -170,18 +174,22 @@ public class FlowTemplateTest extends GeneratorTests {
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
     }
-//
-//    // ------------------------------------- ROUTER -------------------------------------
-//    /**
-//     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMultiRecipientRouterComponent.java
-//     * @throws IOException if the template cant be generated
-//     */
-//    @Test
-//    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException {
-//        FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
-//        String templateString = generateFlowTemplateString(flowElement);
-//        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
-//    }
+
+    // ------------------------------------- ROUTER -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMultiRecipientRouterComponent.java
+     * The Flow functionality for a MRR bleeds partially onto subsequent components hence this test is less self contained.
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow()));
+        List<FlowElement> flowElements = module.getFlows().get(0).getFlowRoute().getFlowElements();
+        BasicElement router = flowElements.get(flowElements.size()-1);
+
+        String templateString = generateFlowTemlateStringForModule(module);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(router, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
+    }
 
 
     // ------------------------------------- PRODUCERS -------------------------------------

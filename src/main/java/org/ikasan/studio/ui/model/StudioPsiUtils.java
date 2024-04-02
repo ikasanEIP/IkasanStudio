@@ -17,7 +17,8 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.ikasan.studio.core.model.ModelUtils;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.UiContext;
@@ -64,11 +65,11 @@ public class StudioPsiUtils {
     }
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static void generateModelInstanceFromJSON(String projectKey, boolean assumeModuleConfigClass) {
+    public static void generateModelInstanceFromJSON(String projectKey, boolean assumeModuleConfigClass) throws StudioBuildException {
         PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(UiContext.getProject(projectKey));
         if (jsonModelPsiFile != null) {
             String json = jsonModelPsiFile.getText();
-            Module newModule = ModelUtils.generateModuleInstanceFromString(json, UiContext.JSON_MODEL_FULL_PATH);
+            Module newModule = ComponentIO.deserializeModuleInstanceString(json, UiContext.JSON_MODEL_FULL_PATH);
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
                 LOG.error("Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));

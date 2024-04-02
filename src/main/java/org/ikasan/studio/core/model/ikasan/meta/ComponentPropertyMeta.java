@@ -48,6 +48,11 @@ public class ComponentPropertyMeta {
     public static final String TO = "to";
     public static final String FROM = "from";
 
+        public static final ComponentPropertyMeta DUMB_VERSION =
+            ComponentPropertyMeta.builder()
+                    .propertyName(ComponentPropertyMeta.VERSION)
+                    .build();
+
     public static final ComponentPropertyMeta STD_NAME_META_COMPONENT =
             ComponentPropertyMeta.builder()
                     .propertyName(NAME)

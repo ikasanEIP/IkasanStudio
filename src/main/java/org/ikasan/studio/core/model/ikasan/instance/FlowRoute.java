@@ -99,29 +99,25 @@ public class FlowRoute {
      * @return A list of all non-null flow elements, including the consumer
      */
     public List<FlowElement> ftlGetConsumerAndFlowElements() {
-        List<FlowElement> allElements;
 
-        List<FlowElement> standardElements = getFlowElements().stream()
-                .filter(x-> ! x.componentMeta.isEndpoint())
-                .toList();
+        List<FlowElement> allElements = new ArrayList<>();
         if (flow.hasConsumer()) {
-            allElements = new ArrayList<>();
             allElements.add(flow.getConsumer());
-            allElements.addAll(standardElements);
-        } else {
-            allElements = standardElements;
         }
-
+        allElements.addAll(ftlGetFlowElementsNoEndPoints());
         return allElements;
     }
+
+
     /**
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer
      */
-    public List<FlowElement> ftlGetConsumerAndFlowElementsNoEndPoints() {
-        return getFlowElements().stream()
+    public List<FlowElement> ftlGetFlowElementsNoEndPoints() {
+        List<FlowElement> allElements  = getFlowElements().stream()
                 .filter(x-> ! x.componentMeta.isEndpoint())
                 .toList();
+        return allElements;
     }
 
     /**

@@ -43,7 +43,7 @@ public enum UiContext {
     public static final String JSON_MODEL_PARENT_DIR = "main";
     public static final String JSON_MODEL_SUB_DIR = "model";
     public static final String JSON_MODEL_DIR = JSON_MODEL_PARENT_DIR + "/" + JSON_MODEL_SUB_DIR;
-    public static final String JSON_MODEL_FILE_WITH_EXTENSION = "model"  + "." + JSON_FILE_EXTENSION;
+    public static final String JSON_MODEL_FILE_WITH_EXTENSION = "model.json";
     public static final String JSON_MODEL_FULL_PATH = JSON_MODEL_DIR + "/" + JSON_MODEL_FILE_WITH_EXTENSION;
 
     // projectName -> region -> value

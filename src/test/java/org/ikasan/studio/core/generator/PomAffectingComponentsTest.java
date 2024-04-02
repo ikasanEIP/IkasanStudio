@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * Not many components result in the need for adsitional elements in the pom.
  */
-public class PomAffectingComponentsTest extends GeneratorTests {
+public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
 
     @BeforeEach
     public void setUp() throws StudioBuildException {

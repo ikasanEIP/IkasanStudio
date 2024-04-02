@@ -27,8 +27,19 @@ org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("MyFlo
 
 org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 .withDescription("MyFlowDescription")
-.filter("My Message Filter",
-componentFactory.getMyMessageFilter())
+.consumer("My Event Generating Consumer",
+componentFactory.getMyEventGeneratingConsumer())
+.converter("My Custom Converter",
+componentFactory.getMyCustomConverter())
+.multiRecipientRouter("My Multi Recipient Router", new RecipientListRouter(Arrays.asList( "route1", "route2")))
+.when(route1
+.producer("My DevNull Producer1",
+componentFactory.getMyDevNullProducer1())
+)
+.when(route2
+.producer("My DevNull Producer2",
+componentFactory.getMyDevNullProducer2())
+)
 .build();
 return myFlow1;
 }
