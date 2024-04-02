@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FlowsComponentFactoryTemplateTest extends GeneratorTests {
+public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
     @BeforeEach

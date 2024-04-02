@@ -14,7 +14,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
@@ -28,6 +30,7 @@ public class ComponentPropertyEditBox {
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
     private boolean affectsUserImplementedClass = false;
+    private boolean isList = false;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
     final EditBoxContainer parent;
@@ -133,8 +136,19 @@ public class ComponentPropertyEditBox {
             // STRING INPUT
             this.propertyValueField = new JFormattedTextField();
 
+
+            // For list, allow comma seperated entry then convert to/from at start/end
+            if (meta.getPropertyDataType() == java.util.List.class) {
+                isList = true;
+            }
+
             if (value != null) {
-                propertyValueField.setText(value.toString());
+                if (isList) {
+                    String strValue = (String) ((List)value).stream().map(Object::toString).collect(Collectors.joining(","));
+                    propertyValueField.setText(strValue);
+                } else {
+                    propertyValueField.setText(value.toString());
+                }
             }
 
             if (!componentInitialisation) {
@@ -215,8 +229,8 @@ public class ComponentPropertyEditBox {
     public ComponentInput getInputField() {
         ComponentInput componentInput = null;
         if (meta.getPropertyDataType() == null && meta.getUsageDataType() == null) {
+            // there is no value to enter, just a label to display
             LOG.info("NOTE: Not data type detected, no componentInput box generated");
-            ; // there is no value to enter, just a label to display
         } else if (isChoiceProperty()) {
             componentInput = new ComponentInput(propertyChoiceValueField);
         } else if (isBooleanProperty()) {
@@ -227,7 +241,7 @@ public class ComponentPropertyEditBox {
         return componentInput;
     }
 
-    /**
+    /**ModuleDeserialize
      * Given the class of the property, return a value of the appropriate type.
      * @return the value of the property updated by the user.
      */
@@ -242,6 +256,9 @@ public class ComponentPropertyEditBox {
             } else if (propertyBooleanFieldFalse != null && propertyBooleanFieldFalse.isSelected()) {
                 returnValue = false;
             }
+        } else if (meta.getUsageDataType().equals("java.util.List<String>")) {
+            List<String> returnList = Arrays.asList(propertyValueField.getText().split("\\s*,\\s*"));
+            returnValue = returnList;
         } else if (meta.getPropertyDataType() == java.lang.String.class) {
             // The formatter would be null if this was a standard text field.
             returnValue = propertyValueField.getText();

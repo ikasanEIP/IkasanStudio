@@ -18,8 +18,7 @@ import java.util.*;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class ExceptionResolver extends FlowElement {
-    private Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();  // list of all the exceptions we catch / process
-
+    private Map<String, ExceptionResolution> ikasanExceptionResolutionMap ;
     public ExceptionResolver(String metapackVersion, Flow containingFlow) throws StudioBuildException {
         super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null);
         ikasanExceptionResolutionMap = Collections.EMPTY_MAP;

@@ -121,6 +121,27 @@ public  class BasicElement extends IkasanObject {
         return componentProperty != null ? componentProperty.getValue() : null;
     }
 
+    /**
+     * Also used by ftl
+     * @param key of the property
+     * @return string value of the paroperty or empty string
+     */
+    @JsonIgnore
+    public String getPropertyValueAsString(String key) {
+        String returnValue = "";
+        ComponentProperty componentProperty = componentProperties.get(key);
+        if (componentProperty != null) {
+            Object value = componentProperty.getValue();
+
+            if (value instanceof List) {
+                returnValue = Arrays.toString(((List)value).toArray());
+            } else {
+                returnValue = value.toString();
+            }
+        }
+        return returnValue;
+    }
+
     public List<ComponentProperty> getComponentPropertyList() {
         if (componentProperties != null && !componentProperties.isEmpty()) {
             return new ArrayList<>(componentProperties.values());

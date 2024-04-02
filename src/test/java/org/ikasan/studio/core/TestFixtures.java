@@ -388,7 +388,8 @@ public class TestFixtures {
                 .componentMeta(meta)
                 .componentName("My Message Filter")
                 .build();
-        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
+//        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myFilter");
         flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
@@ -400,18 +401,46 @@ public class TestFixtures {
     public static FlowElement getMultiRecipientRouter() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Multi Recipient Router");
         List<String> routes = Arrays.asList("route1", "route2");
+
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Multi Recipient Router")
                 .build();
-        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myMultiRecipientRouter");
         flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResource", true);
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue("routeNames", routes);
         return flowElement;
     }
+
+
+//    FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
+//    FlowElement customConverter = getCustomConverter();
+//    FlowElement router = getMultiRecipientRouter();
+//    FlowElement devNullProducer1 = TestFixtures.getDevNullProducer();
+//        devNullProducer1.setComponentName("My DevNull Producer1");
+//    FlowElement devNullProducer2 = TestFixtures.getDevNullProducer();
+//        devNullProducer2.setComponentName("My DevNull Producer2");
+//
+//    Flow flow = getUnbuiltFlow()
+//            .consumer(eventGeneratingConsumer)
+//            .build();
+//
+//    FlowRoute firstRoute = FlowRoute.flowBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Arrays.asList(devNullProducer1))).build();
+//    FlowRoute secondRoute = FlowRoute.flowBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Arrays.asList(devNullProducer2))).build();
+//    List<FlowRoute> childRoutes = new ArrayList<>();
+//        childRoutes.add(firstRoute);
+//        childRoutes.add(secondRoute);
+//
+//        flow.setFlowRoute(FlowRoute.flowBuilder()
+//                .flow(flow)
+//                .flowElements(new ArrayList<>(Arrays.asList(customConverter, router)))
+//            .childRoutes(childRoutes)
+//                .build());
+//        return flow;
+
 
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() throws StudioBuildException {

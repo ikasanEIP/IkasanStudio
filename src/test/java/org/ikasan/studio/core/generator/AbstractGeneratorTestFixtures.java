@@ -9,7 +9,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class GeneratorTests {
+public abstract class AbstractGeneratorTestFixtures {
     Module module;
 
     public String generatePropertiesTemplateString(FlowElement flowElement) throws StudioBuildException {
@@ -30,7 +30,11 @@ public class GeneratorTests {
                 .build();
         module.addFlow(flow);
         flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
-        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        return generateFlowTemlateStringForModule(module);
+    }
+
+    public String generateFlowTemlateStringForModule(Module module) {
+        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0));
         assertNotNull(templateString);
         return templateString;
     }

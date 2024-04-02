@@ -31,6 +31,8 @@ import java.util.*;
 @JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends BasicElement {
     public static final Logger LOG = Logger.getInstance("Module");
+    public static final String DUMB_MODULE = "DUMB_MODULE";     // Allows creation of emergency modelto cope with crash scenarios
+
     @JsonPropertyOrder(alphabetic = true)
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     private List<Flow> flows;
@@ -76,6 +78,18 @@ public class Module extends BasicElement {
                 getH2PortNumber() != null && !getH2PortNumber().isBlank() &&
                 getH2WebPortNumber() != null && !getH2WebPortNumber().isBlank()
         );
+    }
+
+    private Module() {}
+    public static final Module getDumbModule() {
+        Module module = new Module();
+        if (module.getComponentProperties() == null) {
+            module.setComponentProperties(new TreeMap<>());
+        }
+        module.getComponentProperties().put(ComponentPropertyMeta.VERSION, new ComponentProperty(ComponentPropertyMeta.DUMB_VERSION, DUMB_MODULE));
+//        module.setVersion(DUMB_MODULE);
+        module.setFlows(new ArrayList<>());
+        return module;
     }
 
     public boolean addFlow(Flow ikasanFlow) {

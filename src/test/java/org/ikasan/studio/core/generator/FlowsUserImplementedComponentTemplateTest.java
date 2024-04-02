@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
+public class FlowsUserImplementedComponentTemplateTest extends AbstractGeneratorTestFixtures {
 
     @BeforeEach
     public void setUp() throws StudioBuildException {
@@ -55,5 +55,18 @@ public class FlowsUserImplementedComponentTemplateTest extends GeneratorTests {
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"MessageFilter.java"), templateString);
+    }
+
+    //  ------------------------------- ROUTER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/Router.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_messageRouterComponent() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"Router.java"), templateString);
     }
 }

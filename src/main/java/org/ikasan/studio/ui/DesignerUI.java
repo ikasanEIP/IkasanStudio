@@ -4,6 +4,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PalettePanel;
@@ -14,7 +16,9 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
+import static org.ikasan.studio.ui.UiContext.JSON_MODEL_FILE_WITH_EXTENSION;
 /**
  * Create all onscreen components and register inter-thread communication components with UiContext
  */
@@ -65,8 +69,14 @@ public class DesignerUI {
         dumbService.runWhenSmart(() -> {
             DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
-                // @TODO MODEL
-                StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+                try {
+                    StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+                } catch (StudioBuildException se) {
+                    LOG.warn("SERIOUS ERROR: Reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + Arrays.asList(se.getStackTrace()));
+                    StudioUIUtils.displayIdeaInfoMessage(projectKey, "Error: Please check " + JSON_MODEL_FILE_WITH_EXTENSION + " for errors");
+                    // The dumb module should contain just enough to prevent the plugin from crashing
+                    UiContext.setIkasanModule(projectKey, Module.getDumbModule());
+                }
                 PalettePanel palettePanel = new PalettePanel(projectKey);
                 UiContext.setPalettePanel(projectKey, palettePanel);
                 mainJPanel.add(palettePanel, BorderLayout.EAST);
