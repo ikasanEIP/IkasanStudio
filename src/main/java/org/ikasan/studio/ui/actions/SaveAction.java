@@ -55,7 +55,7 @@ public class SaveAction implements ActionListener {
          UiContext.getDesignerCanvas(projectKey).saveAsImage(file, imageFormat, transparentBackground);
 //      }
       } else {
-         StudioUIUtils.displayIdeaInfoMessage(projectKey, "Save of image can't be launched unless a module is defined.");
+         StudioUIUtils.displayIdeaWarnMessage(projectKey, "Save of image can't be launched unless a module is defined.");
       }
 
 

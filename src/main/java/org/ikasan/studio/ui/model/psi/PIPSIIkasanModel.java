@@ -92,7 +92,7 @@ public class PIPSIIkasanModel {
         ApplicationManager.getApplication().runReadAction(
                 () -> {
                     LOG.info("ApplicationManager.getApplication().runReadAction");
-                    // reloadProject needed to re-read POM, must not be done till addDependancies
+                    // reloadProject needed to re-read POM, must not be done till add Dependancies
                     // fully complete, hence in next executeCommand block
                     if (dependenciesHaveChanged && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
@@ -102,6 +102,9 @@ public class PIPSIIkasanModel {
     }
 
 
+    /**
+     * Take the Model from memory and persist it to disk
+     */
     public void generateJsonFromModelInstance() {
         Project project = UiContext.getProject(projectKey);
         CommandProcessor.getInstance().executeCommand(

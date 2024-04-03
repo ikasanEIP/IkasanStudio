@@ -35,6 +35,7 @@ public enum UiContext {
     private static final String PROPERTIES_PANEL = "propertiesPanel";
     private static final String PALETTE_PANEL = "palettePanel";
     private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
+    private static final String DESIGNER_UI = "designerUI";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
@@ -117,9 +118,16 @@ public enum UiContext {
     public static void setPropertiesAndCanvasPane(String projectKey, JSplitPane propertiesAndCanvasPane) {
         putProjectCache(projectKey, PROPERTIES_AND_CANVAS_SPLITPANE, propertiesAndCanvasPane);
     }
+    public static void setDesignerUI(String projectKey, DesignerUI designerUI) {
+        putProjectCache(projectKey, DESIGNER_UI, designerUI);
+    }
 
     public static JSplitPane getPropertiesAndCanvasPane(String projectKey) {
         return (JSplitPane) getProjectCache(projectKey, PROPERTIES_AND_CANVAS_SPLITPANE);
+    }
+
+    public static DesignerUI getDesignerUI(String projectKey) {
+        return (DesignerUI) getProjectCache(projectKey, DESIGNER_UI);
     }
 
     public static void setPropertiesPanel(String projectKey, ComponentPropertiesPanel componentPropertiesPanel) {

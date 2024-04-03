@@ -31,7 +31,7 @@ import java.util.*;
 @JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends BasicElement {
     public static final Logger LOG = Logger.getInstance("Module");
-    public static final String DUMB_MODULE = "DUMB_MODULE";     // Allows creation of emergency modelto cope with crash scenarios
+    public static final String DUMB_MODULE_VERSION = "DUMB_MODULE";     // Allows creation of emergency modelto cope with crash scenarios
 
     @JsonPropertyOrder(alphabetic = true)
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
@@ -81,12 +81,12 @@ public class Module extends BasicElement {
     }
 
     private Module() {}
-    public static final Module getDumbModule() {
+    public static Module getDumbModuleVersion() {
         Module module = new Module();
         if (module.getComponentProperties() == null) {
             module.setComponentProperties(new TreeMap<>());
         }
-        module.getComponentProperties().put(ComponentPropertyMeta.VERSION, new ComponentProperty(ComponentPropertyMeta.DUMB_VERSION, DUMB_MODULE));
+        module.getComponentProperties().put(ComponentPropertyMeta.VERSION, new ComponentProperty(ComponentPropertyMeta.DUMB_VERSION, DUMB_MODULE_VERSION));
 //        module.setVersion(DUMB_MODULE);
         module.setFlows(new ArrayList<>());
         return module;

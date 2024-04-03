@@ -23,7 +23,7 @@ import java.util.List;
 public class PalettePanel extends JPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
-    private String projectKey;
+    private final String projectKey;
     JScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
     JPanel paletteHelpBodyPanel;
@@ -155,7 +155,7 @@ public class PalettePanel extends JPanel {
             try {
                 componentMetaList = IkasanComponentLibrary.getPaletteComponentList(UiContext.getIkasanModule(projectKey).getMetaVersion());
             } catch (StudioBuildException e) {
-                StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
             }
             if (componentMetaList != null) {
                 List<ComponentMeta> displayOrder = componentMetaList

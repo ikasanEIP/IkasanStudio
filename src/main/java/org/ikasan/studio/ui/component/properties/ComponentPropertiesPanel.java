@@ -59,7 +59,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         // If the user has selected the checkbox, that indicates they wish to force a re-write
 
         if (userImplementedComponentOverwriteCheckBox == null) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Update is not allowed unless overwrite box is ticked.");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Update is not allowed unless overwrite box is ticked.");
         } else if (dataHasChanged()) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
             // If the meta version has changed, we need to rerender the screen
@@ -84,7 +84,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             UiContext.getPalettePanel(projectKey).repaint();
             disablePermissionToOverwriteUserImplementedClass();
         } else {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Data hasn't changed, ignoring OK action.");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Data hasn't changed, ignoring OK action.");
         }
     }
 
