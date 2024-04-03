@@ -522,7 +522,7 @@ public class DesignerCanvas extends JPanel {
                             .metapackVersion(UiContext.getIkasanModule(projectKey).getMetaVersion())
                             .build());
                 } catch (StudioBuildException e) {
-                    StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
                     return false;
                 }
                 if (newComponent != null) {
@@ -538,9 +538,9 @@ public class DesignerCanvas extends JPanel {
                 StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
             } catch (StudioBuildException se) {
                 LOG.warn("SERIOUS ERROR: Reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaInfoMessage(projectKey, "Please check " + JSON_MODEL_FILE_WITH_EXTENSION + " for errors");
+                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
                 // The dumb module should contain just enough to prevent the plugin from crashing
-                UiContext.setIkasanModule(projectKey, Module.getDumbModule());
+                UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
             }
 
             initialiseAllDimensions = true;
@@ -562,7 +562,7 @@ public class DesignerCanvas extends JPanel {
         try {
             newComponent = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), ikasanComponentType, containingFlow, null);
         } catch (StudioBuildException e) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
             return newComponent;
         }
         if (ikasanComponentType.isExceptionResolver()) {
@@ -657,6 +657,8 @@ public class DesignerCanvas extends JPanel {
         Module ikasanModule = getIkasanModule();
         if (ikasanModule != null && ikasanModule.isInitialised()) {
             disableModuleInitialiseProcess();
+        } else {
+            enableModuleInitialiseProcess();
         }
         LOG.debug("paintComponent invoked");
         super.paintComponent(g);

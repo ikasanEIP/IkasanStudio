@@ -10,8 +10,6 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,17 +49,12 @@ public class ComponentPropertyEditBox {
         // @todo we can have all types of components with rich pattern matching validation
         if (meta.getChoices() != null) {
             propertyChoiceValueField = new ComboBox<>();
-            meta.getChoices().stream()
+            meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
             if (componentProperty.getValue() != null) {
                 propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
             }
-            propertyChoiceValueField.addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    parent.editBoxChangeListener();
-                }
-            });
+            propertyChoiceValueField.addItemListener(e -> parent.editBoxChangeListener());
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
@@ -257,8 +250,7 @@ public class ComponentPropertyEditBox {
                 returnValue = false;
             }
         } else if (meta.getUsageDataType().equals("java.util.List<String>")) {
-            List<String> returnList = Arrays.asList(propertyValueField.getText().split("\\s*,\\s*"));
-            returnValue = returnList;
+            returnValue = (List<String>)Arrays.asList(propertyValueField.getText().split("\\s*,\\s*"));
         } else if (meta.getPropertyDataType() == java.lang.String.class) {
             // The formatter would be null if this was a standard text field.
             returnValue = propertyValueField.getText();
@@ -307,7 +299,14 @@ public class ComponentPropertyEditBox {
         }
         // 2. Apply a regex validation pattern as defined in the component's meta pack definition
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
-            if (!meta.getValidationPattern().matcher((String) getValue()).matches()) {
+            String valueToBeChecked = null;
+            // Currently, lists are being entered as comma separated values.
+            if (meta.getUsageDataType() != null && "java.util.List<String>".equals(meta.getUsageDataType())) {
+                valueToBeChecked = propertyValueField.getText();
+            } else {
+                valueToBeChecked = (String) getValue();
+            }
+            if (!meta.getValidationPattern().matcher(valueToBeChecked).matches()) {
                 result.add(new ValidationInfo(meta.getValidationMessage(), getOverridingInputField()));
             }
         }

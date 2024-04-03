@@ -25,7 +25,7 @@ public class DebugAction implements ActionListener {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Check idea logs for debug output.");
             LOG.info("ikasan module was " + ComponentIO.toJson(module));
         } else {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Debug can't be launched unless a module is defined.");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Debug can't be launched unless a module is defined.");
         }
 
 

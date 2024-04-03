@@ -57,7 +57,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Data has not changed in Exception Resolution, code will not be updated.");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Data has not changed in Exception Resolution, code will not be updated.");
         }
     }
 
@@ -117,7 +117,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         try {
             exceptionResolverMeta = IkasanComponentLibrary.getExceptionResolverMetaMandatory(UiContext.getIkasanModule(projectKey).getMetaVersion());
         } catch (StudioBuildException se) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
         }
 
         if (exceptionResolverMeta != null) {

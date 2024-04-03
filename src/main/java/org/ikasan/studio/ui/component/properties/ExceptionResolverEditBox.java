@@ -63,7 +63,7 @@ public class ExceptionResolverEditBox {
         try {
             newResolution = new ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion());
         } catch (Exception e) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
         }
         if (newResolution != null) {
             exceptionResolutionPanel.updateTargetComponent(newResolution);

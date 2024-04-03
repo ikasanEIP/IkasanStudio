@@ -6,11 +6,17 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static org.ikasan.studio.ui.UiContext.JSON_MODEL_FILE_WITH_EXTENSION;
 
 
 public class StudioUIUtils {
@@ -230,6 +236,27 @@ public class StudioUIUtils {
                 .createNotification(message, NotificationType.INFORMATION)
                 .notify(UiContext.getProject(projectKey));
     }
+    public static void displayIdeaWarnMessage(String projectKey, String message) {
+        IKASAN_NOTIFICATION_GROUP
+                .createNotification(message, NotificationType.WARNING)
+                .notify(UiContext.getProject(projectKey));
+    }
+    public static void displayIdeaErrorMessage(String projectKey, String message) {
+        IKASAN_NOTIFICATION_GROUP
+                .createNotification(message, NotificationType.ERROR)
+                .notify(UiContext.getProject(projectKey));
+    }
 
+
+    public static void resetModelFromDisk(String projectKey) {
+        try {
+            StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+        } catch (StudioBuildException se) {
+            LOG.warn("SERIOUS ERROR: Reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + Arrays.asList(se.getStackTrace()));
+            StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
+            // The dumb module should contain just enough to prevent the plugin from crashing
+            UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
+        }
+    }
 
 }

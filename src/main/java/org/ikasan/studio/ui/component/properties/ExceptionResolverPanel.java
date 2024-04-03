@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -20,7 +19,6 @@ import java.util.List;
  * This panel contains the data entry for the exception and action
  */
 public class ExceptionResolverPanel extends PropertiesPanel {
-    private static final Logger LOG = Logger.getInstance("#ExceptionResolverPanel");
     private transient ExceptionResolverEditBox exceptionResolverEditBox;
 
     /**
@@ -50,7 +48,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Data hos not changed in exception resolver, code will not be updated.");
+            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Data hos not changed in exception resolver, code will not be updated.");
         }
     }
 

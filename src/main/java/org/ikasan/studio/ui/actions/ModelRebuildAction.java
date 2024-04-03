@@ -25,7 +25,6 @@ public class ModelRebuildAction implements ActionListener {
          StudioUIUtils.displayIdeaInfoMessage(projectKey, "Rebuilding source code from memory model.");
          PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
          pipsiIkasanModel.generateSourceFromModelInstance3();
-//         StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
 
          module = UiContext.getIkasanModule(projectKey);
          LOG.info("ikasan module was " + ComponentIO.toJson(module));
@@ -33,7 +32,7 @@ public class ModelRebuildAction implements ActionListener {
          UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
          UiContext.getDesignerCanvas(projectKey).repaint();
       } else {
-         StudioUIUtils.displayIdeaInfoMessage(projectKey, "Rebuilding can't be launched unless a module is defined.");
+         StudioUIUtils.displayIdeaWarnMessage(projectKey, "Rebuilding can't be launched unless a module is defined.");
       }
    }
 }
