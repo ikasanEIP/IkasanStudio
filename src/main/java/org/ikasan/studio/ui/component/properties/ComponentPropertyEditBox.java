@@ -6,15 +6,16 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.STRING_LIST;
 
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
@@ -31,9 +32,11 @@ public class ComponentPropertyEditBox {
     private boolean isList = false;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
+    private final String projectKey;
     final EditBoxContainer parent;
 
-    public ComponentPropertyEditBox(ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer parent) {
+    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer parent) {
+        this.projectKey = projectKey;
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
@@ -68,10 +71,10 @@ public class ComponentPropertyEditBox {
                         value = Integer.valueOf((String) value);
                     }
                 }
-                propertyValueField.setValue(value);
+                this.propertyValueField.setValue(value);
             }
             if (!componentInitialisation) {
-                propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
@@ -124,28 +127,32 @@ public class ComponentPropertyEditBox {
                 }
                 parent.editBoxChangeListener();
             });
-        }
-        else {
+        } else {
             // STRING INPUT
             this.propertyValueField = new JFormattedTextField();
 
-
             // For list, allow comma seperated entry then convert to/from at start/end
-            if (meta.getPropertyDataType() == java.util.List.class) {
+            if (meta.getUsageDataType().equals(STRING_LIST)) {
                 isList = true;
             }
 
             if (value != null) {
                 if (isList) {
-                    String strValue = (String) ((List)value).stream().map(Object::toString).collect(Collectors.joining(","));
-                    propertyValueField.setText(strValue);
+                    String strValue;
+                    if (value instanceof List<?>) {
+                        strValue = getListAsText((String) ((List)value).stream().map(Object::toString).collect(Collectors.joining(",")));
+                    } else {
+                        strValue = getListAsText((String)value);
+                    }
+                    this.propertyValueField.setText(strValue);
                 } else {
-                    propertyValueField.setText(value.toString());
+                    this.propertyValueField.setText(value.toString());
                 }
+
             }
 
             if (!componentInitialisation) {
-                propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
@@ -171,6 +178,21 @@ public class ComponentPropertyEditBox {
         }
     }
 
+    private String getListAsText(List<String> stringList) {
+        String returnValue = "";
+        if (stringList != null) {
+            returnValue = getListAsText(stringList.toString());
+        }
+        return returnValue;
+    }
+    private String getListAsText(String bracketedCommList) {
+        String returnValue = "";
+        if (bracketedCommList != null) {
+            returnValue = bracketedCommList.replace("[", "").replace("]", "");
+        }
+        return returnValue;
+    }
+
     /**
      * UperImplementedClasses are classes that Studio will create the stub for, with the intention that the
      * user will complete the implementation.
@@ -191,7 +213,11 @@ public class ComponentPropertyEditBox {
                 propertyValueField.setEnabled(enable);
                 // If the regenerate code is disabled, reset the input boxes
                 if (!enable && propertyValueHasChanged()) {
-                    propertyValueField.setValue(componentProperty.getValue());
+                    if (isList) {
+                        propertyValueField.setValue(getListAsText((String)componentProperty.getValue()));
+                    } else {
+                        propertyValueField.setValue(componentProperty.getValue());
+                    }
                 }
             } else if (propertyBooleanFieldTrue != null) {
                 propertyBooleanFieldTrue.setEnabled(enable);
@@ -234,7 +260,8 @@ public class ComponentPropertyEditBox {
         return componentInput;
     }
 
-    /**ModuleDeserialize
+
+    /**
      * Given the class of the property, return a value of the appropriate type.
      * @return the value of the property updated by the user.
      */
@@ -249,8 +276,21 @@ public class ComponentPropertyEditBox {
             } else if (propertyBooleanFieldFalse != null && propertyBooleanFieldFalse.isSelected()) {
                 returnValue = false;
             }
-        } else if (meta.getUsageDataType().equals("java.util.List<String>")) {
-            returnValue = (List<String>)Arrays.asList(propertyValueField.getText().split("\\s*,\\s*"));
+        } else if (meta.getUsageDataType().equals(STRING_LIST)) {
+            String rawValue = (String)propertyValueField.getValue();
+            // Bug workaround
+            if (rawValue == null) {
+                rawValue = propertyValueField.getText();
+            }
+
+            List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
+            Set<String> deduplicate = new HashSet(rawList);
+            if (rawList.size() > deduplicate.size()) {
+                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Duplicates in the list will be removed");
+                returnValue = new ArrayList<String>(deduplicate);
+            } else {
+                returnValue = rawList;
+            }
         } else if (meta.getPropertyDataType() == java.lang.String.class) {
             // The formatter would be null if this was a standard text field.
             returnValue = propertyValueField.getText();
@@ -258,6 +298,24 @@ public class ComponentPropertyEditBox {
             returnValue = propertyValueField.getValue();
         }
         return returnValue;
+    }
+
+    /**
+     * Get the value of the propertyInputField
+     * @return the value of the property updated by the user.
+     */
+    public Object getRawEntered() {
+        if (meta.getUsageDataType().equals(STRING_LIST)) {
+            String commmaList = propertyValueField.getText();
+            if (commmaList != null) {
+                commmaList = commmaList.replace("[", "").replace("]", "");
+                return commmaList;
+            } else {
+                return null;
+            }
+        } else {
+            return getValue();
+        }
     }
 
     /**
@@ -301,7 +359,7 @@ public class ComponentPropertyEditBox {
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
             String valueToBeChecked = null;
             // Currently, lists are being entered as comma separated values.
-            if (meta.getUsageDataType() != null && "java.util.List<String>".equals(meta.getUsageDataType())) {
+            if (meta.getUsageDataType() != null && STRING_LIST.equals(meta.getUsageDataType())) {
                 valueToBeChecked = propertyValueField.getText();
             } else {
                 valueToBeChecked = (String) getValue();

@@ -65,7 +65,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
             if (!exceptionResolution.getComponentProperties().isEmpty()) {
                 actionParamEditBoxList = new ArrayList<>();
                 for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, this.componentInitialisation, null);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, property, this.componentInitialisation, null);
                     actionParamEditBoxList.add(actionParam);
                 }
             }
@@ -93,7 +93,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
 //                        ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                         // The property has to be added to this exception resolution so that it can be updated later.
                         exceptionResolution.addComponentProperty(newActionProperty.getMeta().getPropertyName(), newActionProperty);
-                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(newActionProperty, this.componentInitialisation, null);
+                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, newActionProperty, this.componentInitialisation, null);
                         actionParamEditBoxList.add(actionParam);
                     }
                 }
@@ -190,20 +190,6 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         return hasChanged;
     }
 
-    /**
-     * get the key for the exception resolution
-     * @return the key for this exception resolution
-     */
-    public String getPropertyKey() {
-        return (String)exceptionJComboBox.getSelectedItem();
-    }
-
-    /**
-     * @return actionParams will only have elements if an action has been chosen.
-     */
-    public boolean actionHasParams() {
-        return !actionParamEditBoxList.isEmpty();
-    }
     public String getAction() {
         return (String)actionJComboBox.getSelectedItem();
     }

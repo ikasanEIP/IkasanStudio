@@ -39,26 +39,10 @@ public class ExceptionResolution implements EditBoxContainer {
                 !exceptionResolution.getComponentProperties().isEmpty()) {
             actionParamEditBoxList = new ArrayList<>();
             for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(property, componentInitialisation, this);
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProjectKey(), property, componentInitialisation, this);
                 actionParamEditBoxList.add(actionParam);
             }
         }
-    }
-
-    /**
-     * get the key for the exception resolution
-     * @return the key for this exception resolution
-     */
-    public String getPropertyKey() {
-
-        return exceptionResolution.getExceptionsCaught();
-    }
-
-    /**
-     * @return actionParams will only have elements if an action has been chosen the requirements params.
-     */
-    public boolean actionHasParams() {
-        return !actionParamEditBoxList.isEmpty();
     }
 
     public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
