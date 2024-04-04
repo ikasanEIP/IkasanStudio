@@ -94,7 +94,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             flow = new Flow(metapackVersion);
             Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-            Map<String, FlowElement> flowElementsMap = null;
+            Map<String, FlowElement> flowElementsMap = new TreeMap<>();
 
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
@@ -104,7 +104,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 } else if (Flow.TRANSITIONS_JSON_TAG.equals(fieldName)) {
                     transitions = getTransitions(field.getValue());
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
-                    flowElementsMap = getFlowElements(field.getValue(), flow, metapackVersion);
+                    flowElementsMap = getFlowElements(flowElementsMap, field.getValue(), flow, metapackVersion);
                 } else if (Flow.EXCEPTION_RESOLVER_JSON_TAG.equals(fieldName)) {
                     flow.setExceptionResolver(getExceptionResolver(flow, field.getValue(), metapackVersion));
                 } else {
@@ -113,6 +113,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 }
             }
             if (flow.getConsumer() != null) {
+
                 flowElementsMap.put(flow.getConsumer().getComponentName(), flow.getConsumer());
             }
             flow.setFlowRoute(orderFlowElementsByTransitions(transitions, flow, flowElementsMap));
@@ -199,7 +200,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      *                    From: My MRR
      *                    To: yy component
      *                    Name: route2
-     * @throws StudioBuildException
+     * @throws StudioBuildException if there were problems identifying the correct metapack to use.
      */
     protected void buildRouteTree(FlowRoute returnFlowRoute, Flow flow, Map<String, List<Transition>> transitionsMap, Map<String, FlowElement> flowElementsMap, List<Transition> transitions) throws StudioBuildException {
         if (transitions != null) {
@@ -399,8 +400,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
         return transition;
     }
-    public Map<String, FlowElement> getFlowElements(JsonNode root, Flow containingFlow, String metapackVersion) throws IOException, StudioBuildException {
-        Map<String, FlowElement> flowElementsMap = new TreeMap<>();
+    public Map<String, FlowElement> getFlowElements(Map<String, FlowElement> flowElementsMap, JsonNode root, Flow containingFlow, String metapackVersion) throws IOException, StudioBuildException {
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {

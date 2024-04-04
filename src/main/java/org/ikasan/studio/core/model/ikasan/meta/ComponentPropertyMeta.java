@@ -48,6 +48,8 @@ public class ComponentPropertyMeta {
     public static final String TO = "to";
     public static final String FROM = "from";
 
+    public static final String STRING_LIST = "java.util.List<String>";
+
         public static final ComponentPropertyMeta DUMB_VERSION =
             ComponentPropertyMeta.builder()
                     .propertyName(ComponentPropertyMeta.VERSION)
