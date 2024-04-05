@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
-//@JsonSerialize
 @JsonSerialize(using = FlowSerializer.class)
 public class Flow extends BasicElement {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
@@ -26,8 +25,6 @@ public class Flow extends BasicElement {
 
     private FlowElement consumer;
     private FlowRoute flowRoute;
-//    private List<Transition> transitions;
-//    private List<FlowElement> flowElements;
     private ExceptionResolver exceptionResolver;
 
     /**
@@ -36,16 +33,11 @@ public class Flow extends BasicElement {
     public Flow() throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(IkasanComponentLibrary.DEFAULT_IKASAN_PACK), null);
         LOG.error("Parameterless version of flow called");
-//        flowRoute = new FlowRoute(this);
-//        transitions = new ArrayList<>();
-//        flowElements = new ArrayList<>();
     }
 
     public Flow(String metapackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         flowRoute = FlowRoute.flowBuilder().flow(this).build();
-//        transitions = new ArrayList<>();
-//        flowElements = new ArrayList<>();
     }
 
     @Builder(builderMethodName = "flowBuilder")

@@ -3,10 +3,7 @@ package org.ikasan.studio.ui.viewmodel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
@@ -102,37 +99,53 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         paintFlowTitle(g, PaintMode.PAINT);
     }
 
+    /**
+     * Paint the flow itself and all the components within (technically, the view handler of each component will paint the
+     * component itseld
+     * @param canvas panel to paint on
+     * @param g Swing graphics class
+     * @param minimumLeftX of the flow
+     * @param minimumTopY top y of the component, sometimes we need to supply this, otherwise -1 will allow viewHandler to
+     *             determine
+     * @return the bottom Y co-ordinate of this flow.
+     */
     public int paintComponent(JPanel canvas, Graphics g, int minimumLeftX, int minimumTopY) {
         LOG.debug("paintComponent invoked");
         int newLeftX = getNewCoord(minimumLeftX, getLeftX());
         int newTopY = getNewCoord(minimumTopY, getTopY());
 
-        if (newLeftX != getLeftX() || newTopY != getTopY()) {
-            initialiseDimensions(g, newLeftX, newTopY,-1, -1);
-        } else {
-            initialiseDimensionsNotChildren(g, newLeftX, newTopY);
-        }
+        initialiseDimensions(g, newLeftX, newTopY,-1, -1);
+
         paintFlowBox(g);
+
         if (flow.hasExceptionResolver()) {
             AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, flow.getExceptionResolver());
             if (viewHandler != null) {
                 viewHandler.paintComponent(canvas, g, -1, -1);
             }
         }
-        List<FlowElement> flowAndConseumerElementList = flow.getFlowRoute().ftlGetConsumerAndFlowElements();
-        int flowSize = flowAndConseumerElementList.size();
+        paintRoute(canvas, g, flow.getFlowRoute());
+
+        // The warning must always have the highest z order.
+        StudioUIUtils.paintWarningPopup(g, warningX, warningY, canvas.getX() + canvas.getWidth(), canvas.getY() + canvas.getHeight(), warningText);
+        return getBottomY();
+    }
+
+    private void paintRoute(JPanel canvas, Graphics g, FlowRoute flowRoute) {
+        List<FlowElement> flowAndConsumerElementList = flowRoute.ftlGetConsumerAndFlowElements();
+        int flowSize = flowAndConsumerElementList.size();
         StudioUIUtils.setLine(g, 2f);
 
         // Paint any components between the first and the last
         for (int index=0; index < flowSize; index ++) {
-            FlowElement flowElement = flowAndConseumerElementList.get(index);
+            FlowElement flowElement = flowAndConsumerElementList.get(index);
 
             IkasanFlowComponentViewHandler flowComponentViewHandler = getFlowComponentViewHandler(projectKey, flowElement);
             if (flowComponentViewHandler != null) {
                 flowComponentViewHandler.paintComponent(canvas, g, -1, -1);
             }
             if (index < flowSize-1) {
-                IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getFlowComponentViewHandler(projectKey, flowAndConseumerElementList.get(index + 1));
+                IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getFlowComponentViewHandler(projectKey, flowAndConsumerElementList.get(index + 1));
                 if (flowComponentViewHandler != null && nextFlowComponentViewHandler != null) {
                     if (index < flowSize - 1) {
                         drawConnector(g, flowComponentViewHandler, nextFlowComponentViewHandler);
@@ -141,7 +154,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
             }
         }
 
-        // This section draws the symbold before the start and after the end of the flow to represent the input/output boxes.
+        // This section draws the symbols before the start and after the end of the flow to represent the input/output boxes.
         if (flowSize > 1) {
             // The input symbol, typically a queue gets painted before the flow start
             displayEndpointIfExists(canvas, g, flow.getConsumer());
@@ -155,10 +168,11 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
             }
         }
         StudioUIUtils.setLine(g,1f);
-
-        // The warning must always have the highest z order.
-        StudioUIUtils.paintWarningPopup(g, warningX, warningY, canvas.getX() + canvas.getWidth(), canvas.getY() + canvas.getHeight(), warningText);
-        return getBottomY();
+        if (flowRoute.getChildRoutes() != null) {
+            for(FlowRoute flowRoute1 : flowRoute.getChildRoutes()) {
+                paintRoute(canvas, g, flowRoute1);
+            }
+        }
     }
 
     private void displayEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
@@ -208,7 +222,6 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         }
     }
 
-
     private void drawConnector(Graphics g, AbstractViewHandlerIntellij start, AbstractViewHandlerIntellij end) {
         g.drawLine(
                 start.getRightConnectorPoint().x,
@@ -234,21 +247,14 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         setLeftX(newLeftx);
         setTopY(newTopY);
         if (width != -1) {
-            setWidth(width); // We initialise the width twice, first to prevent constraints
+            setWidth(width); // We initialise the width twice, first time is to prevent constraints
         }
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
-        List<FlowElement> flowElementList = flow.getFlowRoute().ftlGetConsumerAndFlowElements();
-        if (!flowElementList.isEmpty()) {
-            for (FlowElement ikasanFlowComponent : flowElementList) {
-                AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, ikasanFlowComponent);
-                if (viewHandler != null) {
-                    viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
-                    currentX += viewHandler.getWidth() + FLOW_X_SPACING;
-                }
-            }
-        }
-        setWidthHeights(graphics, newTopY);
+
+        initilaiseDimensionsForRoute(graphics, currentX, topYForElements, newTopY, flow.getFlowRoute());
+
+        // Needs to be after all routes of flow so its rightmost
         if (flow.hasExceptionResolver()) {
             AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, flow.getExceptionResolver());
             if (viewHandler != null) {
@@ -261,96 +267,89 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         }
     }
 
-    public void initialiseDimensionsNotChildren(Graphics graphics, int newLeftx, int newTopY) {
-        setLeftX(newLeftx);
-        setTopY(newTopY);
-        setWidthHeights(graphics, newTopY);
+    private void initilaiseDimensionsForRoute(Graphics graphics, int currentX, int topYForElements, int newTopY, FlowRoute flowRoute) {
+        List<FlowElement> flowElementList = flowRoute.ftlGetConsumerAndFlowElements();
+        if (!flowElementList.isEmpty()) {
+            for (FlowElement ikasanFlowComponent : flowElementList) {
+                AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, ikasanFlowComponent);
+                if (viewHandler != null) {
+                    viewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
+                    currentX += viewHandler.getWidth() + FLOW_X_SPACING;
+                }
+            }
+        }
+        setWidthAndHeights(graphics, newTopY, flowRoute);
+
+        if (flowRoute.getChildRoutes() != null) {
+            for(FlowRoute flowRoute1 : flowRoute.getChildRoutes()) {
+                initilaiseDimensionsForRoute(graphics, currentX, topYForElements, newTopY, flowRoute1);
+            }
+        }
     }
 
-    private void setWidthHeights(Graphics graphics, int newTopY)  {
-        if (!flow.getFlowRoute().ftlGetConsumerAndFlowElements().isEmpty()) {
-            setWidth(getFlowElementsWidth() + (2 * FLOW_CONTAINER_BORDER));
-            setHeight(getFlowElementsBottomY() + FLOW_CONTAINER_BORDER - newTopY);
+//    public void initialiseDimensionsNotChildren(Graphics graphics, int newLeftx, int newTopY) {
+//        setLeftX(newLeftx);
+//        setTopY(newTopY);
+//        setWidthAndHeights(graphics, newTopY, null);
+//    }
+
+    private void setWidthAndHeights(Graphics graphics, int newTopY, FlowRoute flowRoute)  {
+        if (flowRoute != null && ! flowRoute.ftlGetConsumerAndFlowElements().isEmpty()) {
+            setWidth(getFlowElementsWidth(flowRoute) + (2 * FLOW_CONTAINER_BORDER));
+            setHeight(getFlowElementsBottomY(flowRoute) + FLOW_CONTAINER_BORDER - newTopY);
         } else {
             setWidth(getFlowTitleWidth(graphics) + (2 * FLOW_CONTAINER_BORDER));
             setHeight(getFlowTitleHeight(graphics) + (2 * FLOW_Y_TITLE_SPACING));
         }
     }
 
-    public int getFlowElementsWidth()  {
-        return getFlowElementsRightX() - getFlowElementsLeftX();
+    public int getFlowElementsWidth(FlowRoute flowRoute)  {
+        return getFlowElementsRightX(flowRoute) - getFlowElementsLeftX(flowRoute);
     }
 
-    public int getFlowElementsTopY() {
-        boolean seen = false;
-        int best = 0;
-        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
-            if (viewHandler == null) {
-                return 0;
-            }
-            int topY = viewHandler.getTopY();
-            if (!seen || topY < best) {
-                seen = true;
-                best = topY;
+    /**
+     * For a given flowRoute, the first element will be the leftmost
+     * @return the smallest (most lext) x value for the route
+     */
+    public int getFlowElementsLeftX(FlowRoute flowRoute) {
+        List<FlowElement> flowElementList = flowRoute.ftlGetConsumerAndFlowElements();
+        if (flowElementList.isEmpty()) {
+            return 0;
+        } else {
+            return getAbstracttViewHandler(projectKey, flowElementList.get(0)).getLeftX();
+        }
+    }
+
+    public int getFlowElementsRightX(FlowRoute flowRoute) {
+        List<FlowElement> flowElementList = flowRoute.ftlGetConsumerAndFlowElements();
+        if (flowElementList.isEmpty()) {
+            return 0;
+        } else {
+            return getAbstracttViewHandler(projectKey, flowElementList.get(flowElementList.size()-1)).getRightX();
+        }
+    }
+
+    /**
+     * For the given route find the one with the largest Y valye
+     * @return the larget Y
+     */
+    public int getFlowElementsBottomY(FlowRoute flowRoute)  {
+        int bottomY = 0 ;
+        List<FlowElement> flowElementList = flowRoute.ftlGetConsumerAndFlowElements();
+        if (flowElementList.isEmpty()) {
+            return 0;
+        } else {
+            for (FlowElement flowElement : flowElementList) {
+                int flowY = getAbstracttViewHandler(projectKey, flowElement).getBottomY();
+                bottomY = Math.max(flowY, bottomY);
             }
         }
-        return seen ? best : 0;
+        return bottomY;
     }
 
-    public int getFlowElementsLeftX() {
-        boolean seen = false;
-        int best = 0;
-        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
-            if (viewHandler == null) {
-                return 0;
-            }
-            int leftX = viewHandler.getLeftX();
-            if (!seen || leftX < best) {
-                seen = true;
-                best = leftX;
-            }
-        }
-        return seen ? best : 0;
-    }
-
-    public int getFlowElementsRightX() {
-        boolean seen = false;
-        int best = 0;
-        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
-            if (viewHandler == null) {
-                return 0;
-            }
-            int rightX = viewHandler.getRightX();
-            if (!seen || rightX > best) {
-                seen = true;
-                best = rightX;
-            }
-        }
-        return seen ? best : 0;
-    }
-    public int getFlowElementsBottomY()  {
-        boolean seen = false;
-        int best = 0;
-        for (FlowElement x : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
-            AbstractViewHandlerIntellij viewHandler = getAbstracttViewHandler(projectKey, x);
-            if (viewHandler == null) {
-                return 0;
-            }
-            int bottomY = viewHandler.getBottomY();
-            if (!seen || bottomY > best) {
-                seen = true;
-                best = bottomY;
-            }
-        }
-        return seen ? best : 0;
-    }
-
-
-
-
+    /**
+     * The flow is willing to accept a component that has been dragged to it
+     */
     public void setFlowReceptiveMode() {
         this.warningText = "";
         this.borderColor = JBColor.GREEN;
@@ -360,6 +359,12 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         return Color.GREEN.equals(this.borderColor);
     }
 
+    /***
+     * Typically this appears when attempting to drag in a component into a flow where it is not allowed
+     * @param mouseX to display the warning
+     * @param mouseY to display the warning
+     * @param message to appear
+     */
     public void setFlowlWarningMode(int mouseX, int mouseY, String message) {
         this.warningText = message;
         this.warningX = mouseX;

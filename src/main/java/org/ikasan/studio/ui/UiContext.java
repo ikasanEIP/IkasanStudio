@@ -99,14 +99,6 @@ public enum UiContext {
         putProjectCache(projectKey, VIEW_HANDLER_FACTORY, viewHandlerFactory);
     }
 
-//    public static void setApplicationProperties(String projectKey, Properties properties) {
-//        putProjectCache(projectKey, APPLICATION_PROPERTIES, properties);
-//    }
-//
-//    public static Properties getApplicationProperties(String projectKey) {
-//        return (Properties) getProjectCache(projectKey, APPLICATION_PROPERTIES);
-//    }
-
     public static void setDesignerCanvas(String projectKey, DesignerCanvas designerCanvas) {
         putProjectCache(projectKey, CANVAS_PANEL, designerCanvas);
     }

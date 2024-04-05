@@ -31,20 +31,9 @@ repositories {
 dependencies {
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-
     implementation("org.freemarker:freemarker:2.3.32")
-//    implementation("org.ikasan:ikasan-eip-standalone:3.3.3")
-//    implementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
-//    implementation("org.ikasan:ikasan-h2-standalone-persistence:3.3.3")
-
     testImplementation("org.freemarker:freemarker:2.3.32")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
-
-//    testImplementation("org.ikasan:ikasan-eip-standalone:3.3.3")
-//    testImplementation("org.ikasan:ikasan-ftp-endpoint:3.3.3")
-//    testImplementation("org.ikasan:ikasan-jms-spring-arjuna:3.3.3")
-//    testImplementation("org.ikasan:ikasan-component-converter:3.3.3")
-//    testImplementation("org.ikasan:ikasan-test-endpoint:3.3.3")
     testImplementation("org.ikasan:ikasan-test:3.3.3")
     compileOnly ("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")

@@ -20,12 +20,9 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
-//    private Flow flow;
     private final FlowElement flowElement;
 
-    public FlowElement getFlowElement() {
-        return flowElement;
-    }
+
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flowElement for the vie handler
@@ -34,6 +31,9 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         this.flowElement = flowElement;
     }
 
+    public FlowElement getFlowElement() {
+        return flowElement;
+    }
     /**
      * Paint the flow icon and the text underneath it
      * @param canvas panel to paint on
