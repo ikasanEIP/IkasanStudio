@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.*;
@@ -244,8 +245,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      */
     private void addIfNotNull(List<FlowElement> sortedFlowElements, Map<String, FlowElement> flowElementsMap, String componentName) {
         FlowElement flowElement = flowElementsMap.get(componentName);
-        if (flowElement != null && !flowElement.getComponentMeta().isConsumer()) {
-            sortedFlowElements.add(flowElement);
+        if (flowElement != null) {
+            if (!flowElement.getComponentMeta().isConsumer()) {
+                sortedFlowElements.add(flowElement);
+            }
         } else {
             LOG.warn("While trying to add the component, the component named " + componentName + " was present in a transition but was not defined in the flow, known components are [" + flowElementsMap.keySet() + "], assuming it was removed without updating the transition");
         }
@@ -446,7 +449,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 }
 
                 Object value = getTypedValue(field);
-                flowElement.setPropertyValue(fieldName, value);
+                // temp workaround
+                if (flowElement.getComponentMeta().isRouter() && ("routeNames".equals(fieldName))) {
+                    List<String> routeList = StudioBuildUtils.stringToList((String)value);
+                    flowElement.setPropertyValue(fieldName, routeList);
+                } else {
+                    flowElement.setPropertyValue(fieldName, value);
+                }
             }
         }
         return flowElement;

@@ -664,9 +664,9 @@ public class DesignerCanvas extends JPanel {
         super.paintComponent(g);
 
         if (ikasanModule != null) {
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttViewHandler(projectKey, ikasanModule);
-            if (initialiseAllDimensions && viewHandler != null) {
-                viewHandler.initialiseDimensions(g, 0, 0, this.getWidth(), this.getHeight());
+            AbstractViewHandlerIntellij moduleViewHandler = ViewHandlerFactoryIntellij.getAbstracttViewHandler(projectKey, ikasanModule);
+            if (initialiseAllDimensions && moduleViewHandler != null) {
+                moduleViewHandler.initialiseDimensions(g, 0, 0, this.getWidth(), this.getHeight());
                 initialiseAllDimensions = false;
             }
 
@@ -674,8 +674,8 @@ public class DesignerCanvas extends JPanel {
                 LOG.warn("Ikasan Module is not in the context, assuming this is a new buildRouteTree");
                 enableModuleInitialiseProcess();
             }
-            if (viewHandler != null) {
-                viewHandler.paintComponent(this, g, -1, -1);
+            if (moduleViewHandler != null) {
+                moduleViewHandler.paintComponent(this, g, -1, -1);
             }
         }
         if (drawGrid) {

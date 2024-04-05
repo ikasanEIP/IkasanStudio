@@ -54,16 +54,13 @@ public class PalettePanel extends JPanel {
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
         paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
-//        JBList<PaletteItem> paletteList;
         paletteList = new JBList(buildPaletteItems(projectKey).toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
         paletteScrollPane = new JScrollPane(paletteList);
-//        paletteScrollPane = new JScrollPane();
-//        paletteScrollPane.add(paletteList);
         paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-//
+
         // Footer
         JPanel paletteHelpHeaderPanel = new JPanel();
         paletteHelpHeaderPanel.add(new JLabel("Description"));

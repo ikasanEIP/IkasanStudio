@@ -24,7 +24,6 @@ public class IkasanComponentLibrary {
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
     public static final String DEFAULT_IKASAN_PACK = "default";  // Short term convenience, long term this must be pak driven
     public static final String DUMMY_IKASAN_PACK = "dummy";  // used when the UI first loads, has no elements.
-//    public static final String STD_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
 
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
@@ -50,7 +49,6 @@ public class IkasanComponentLibrary {
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
 
         if (libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion)) {
-//            LOG.warn("The pack for version " + ikasanMetaDataPackVersion + " has already been loaded, the attempt to reload it will be ignored");
             returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         } else {
             returnedIkasanComponentMetaMapByKey = loadMetapack(ikasanMetaDataPackVersion);
@@ -102,7 +100,6 @@ public class IkasanComponentLibrary {
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                 continue;
             }
-//            String[] componentDirectories = getSubdirectories(componentTypeDirectory + File.separator + "components");
             String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
 
             for (String componentDirectory : componentDirectories) {
@@ -235,10 +232,6 @@ public class IkasanComponentLibrary {
         }
         return componentMeta;
     }
-//    public static ComponentMeta getOnExceptionComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-//        return getIkasanComponentByKey(ikasanMetaDataPackVersion, "OnException");
-//    }
-
 
     /**
      * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
@@ -258,8 +251,6 @@ public class IkasanComponentLibrary {
         }
         return libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
     }
-
-
 
     /**
      * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
