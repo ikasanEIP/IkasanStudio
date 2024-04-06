@@ -29,7 +29,7 @@ public class PopupHelpAction  implements ActionListener {
    }
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowComponentViewHandler(projectKey, ikasanBasicElement);
+      IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, ikasanBasicElement);
        if (viewHandler != null) {
          if (webHelp) {
             BrowserUtil.browse(viewHandler.getFlowElement().getComponentMeta().getWebHelpURL());

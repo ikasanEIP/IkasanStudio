@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.ikasan.studio.core.model.ikasan.instance.AbstractViewHandler;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,7 +61,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
      * @param width of container
      * @param height of container
      */
-    public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {}
+    public abstract void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) ;
 
     /**
      * Get the y position for the bottom of the component
@@ -68,6 +69,13 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
      */
     public int getBottomY() {
         return getTopY() + getHeight();
+    }
+    /**
+     * Get the y position for the bottom of the component
+     * @return y position for the bottom of the component
+     */
+    public int getBottomYPlusText(Graphics g) {
+        return getTopY() + getHeight() + getTextHeight(g);
     }
 
     /**
@@ -100,6 +108,16 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         this.height = height;
     }
 
+    public abstract String getText();
+
+    protected int getTextWidth(Graphics g) {
+        return StudioUIUtils.getTextWidth(g, getText());
+    }
+
+    protected int getTextHeight(Graphics g) {
+        return StudioUIUtils.getTextHeight(g);
+    }
+
     public boolean isAlreadySelected() {
         return isAlreadySelected;
     }
@@ -126,17 +144,23 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     public void setViewHandler(String projectKey) {
     }
 
-    public AbstractViewHandlerIntellij getAbstracttViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttViewHandler(projectKey, ikasanBasicElement);
-        return (AbstractViewHandlerIntellij)verifyHandler(viewHandler);
+    /**
+     * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
+     * @param projectKey to provide scope
+     * @param ikasanBasicElement to be examined
+     * @return the view handler for this element.
+     */
+    public AbstractViewHandlerIntellij getOrCreateAbstractViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, ikasanBasicElement);
+        return verifyHandler(viewHandler);
     }
 
-    public IkasanFlowComponentViewHandler getFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowComponentViewHandler(projectKey, ikasanBasicElement);
+    public IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+        IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, ikasanBasicElement);
         return (IkasanFlowComponentViewHandler)verifyHandler(viewHandler);
     }
 
-    public IkasanFlowViewHandler getFlowViewViewHandler(String projectKey, Flow flow) {
+    public IkasanFlowViewHandler getOrCreateFlowViewViewHandler(String projectKey, Flow flow) {
         IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, flow);
         return (IkasanFlowViewHandler)verifyHandler(viewHandler);
     }
@@ -150,4 +174,17 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         return viewHandler;
     }
 
+    /**
+     * Use the value or reset if it is greater than -1
+     * @param reset set to -1 if we don't yet know if we need to override the current value
+     * @param current value that might be overriden
+     * @return reset unless it was -1
+     */
+    protected int checkForReset(int reset, int current) {
+        if (reset > -1) {
+            return reset;
+        } else {
+            return current;
+        }
+    }
 }

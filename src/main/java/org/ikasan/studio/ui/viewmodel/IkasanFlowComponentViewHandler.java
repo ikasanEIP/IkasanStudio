@@ -9,6 +9,8 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import javax.swing.*;
 import java.awt.*;
 
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROUTE_NAMES;
+
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
@@ -83,7 +85,13 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {
         setLeftX(x);
         setTopY(y);
-        setWidth(getCanvasIcon().getIconWidth());
+        if (flowElement.getComponentMeta().isRouter() && flowElement.getPropertyValue(ROUTE_NAMES) != null) {
+            List routeNames = (List)flowElement.getPropertyValue(ROUTE_NAMES);
+
+
+        } else {
+            setWidth(getCanvasIcon().getIconWidth());
+        }
 
         if (getWidth() < -10) {
             LOG.error("Width set to negative " + getWidth());
@@ -96,6 +104,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         paintSymbolText(graphics, PaintMode.DIMENSION_ONLY);
     }
 
+    @Override
     public String getText() {
         return flowElement.getComponentName();
     }

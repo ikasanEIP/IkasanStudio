@@ -26,6 +26,7 @@ public class ComponentPropertyMeta {
     public static final String IS_CONFIGURED_RESOURCE = "isConfiguredResource";   // Is the configuration exposed in the dashboard.
     public static final String FROM_TYPE = "fromType";                          // Special meta for converter, the type of the inbound payload
     public static final String TO_TYPE = "toType";                              // Special meta for converter, the type of the outbound payload
+    public static final String ROUTE_NAMES = "routeNames";                              // Special meta for converter, the type of the outbound payload
 
     // Special META for component NAME, this standard for each component.
     public static final String NAME = "name";

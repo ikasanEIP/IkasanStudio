@@ -42,29 +42,29 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowViewHandler viewHandler = null;
         try {
-            viewHandler = ((IkasanFlowViewHandler)flow.getViewHandler(viewHandlerFactoryIntellij));
+            viewHandler = ((IkasanFlowViewHandler)flow.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
             LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
 
-    public static IkasanFlowComponentViewHandler getFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+    public static IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowComponentViewHandler viewHandler = null;
         try {
-            viewHandler = ((IkasanFlowComponentViewHandler)ikasanBasicElement.getViewHandler(viewHandlerFactoryIntellij));
+            viewHandler = ((IkasanFlowComponentViewHandler)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
             LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
 
-    public static AbstractViewHandlerIntellij getAbstracttViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+    public static AbstractViewHandlerIntellij getOrCreateAbstracttViewHandler(String projectKey, BasicElement ikasanBasicElement) {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         AbstractViewHandlerIntellij viewHandler = null;
         try {
-            viewHandler = ((AbstractViewHandlerIntellij)ikasanBasicElement.getViewHandler(viewHandlerFactoryIntellij));
+            viewHandler = ((AbstractViewHandlerIntellij)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
             LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }

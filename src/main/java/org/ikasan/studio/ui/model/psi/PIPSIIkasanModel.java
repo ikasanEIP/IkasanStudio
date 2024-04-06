@@ -189,7 +189,7 @@ public class PIPSIIkasanModel {
         String templateString = ModuleConfigTemplate.create(module);
         PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
 
-        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getAbstracttViewHandler(projectKey, module);
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, module);
         if (viewHandler != null) {
             viewHandler.setPsiJavaFile(newFile);
         }

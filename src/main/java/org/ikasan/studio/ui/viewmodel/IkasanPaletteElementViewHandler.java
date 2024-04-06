@@ -5,6 +5,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
@@ -27,6 +28,12 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
             getDisplayIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         }
         return getBottomY();
+    }
+
+    @Override
+    public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {
+        Thread thread = Thread.currentThread();
+        LOG.warn("Call to initialiseDimensions on IkasanPaletteElementViewHandler not expected :" + Arrays.asList(thread.getStackTrace()));
     }
 
     public String getText() {

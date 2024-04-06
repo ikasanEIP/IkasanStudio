@@ -59,11 +59,10 @@ public class FlowRoute {
     }
 
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
-        if (childRoutes != null) {
+        if (flowElements!=null && flowElements.contains(ikasanFlowComponentToBeRemoved)) {
+            flowElements.remove(ikasanFlowComponentToBeRemoved);
+        } else if (childRoutes != null) {
             childRoutes.forEach(flowRoute -> flowRoute.removeFlowElement(ikasanFlowComponentToBeRemoved));
-        } else {
-            // This is a leaf, no further traversing required
-            getFlowElements().remove(ikasanFlowComponentToBeRemoved);
         }
     }
 
