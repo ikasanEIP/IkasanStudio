@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.generator.Generator.FLOWS_TAG;
 import static org.ikasan.studio.core.model.ikasan.instance.serialization.SerializerUtils.getTypedValue;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROUTE_NAMES;
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.DEFAULT_IKASAN_PACK;
 
@@ -213,6 +214,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     if (elementIsRouter(flowElementsMap, transition.getFrom())) {
                         FlowRoute newChild = FlowRoute.flowBuilder().flow(flow).routeName(transition.getName()).build();
                         returnFlowRoute.getChildRoutes().add(newChild);
+                        // Also we want to add in the enndpoint to the start of each nested FlowRoute
+//                        xx
+
+
                         addIfNotNull(newChild.getFlowElements(), flowElementsMap, transition.getFrom());
                         // Add the rest of this branch to the new child
                         List<Transition> nextTransitions = transitionsMap.get(transition.getTo());
@@ -234,6 +239,50 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             }
         }
     }
+
+//    private void getRouterEndPoint() {
+//        String endpointComponentName = targetFlowElement.getComponentMeta().getEndpointKey();
+//        if (endpointComponentName != null) {
+//            // Get the text to be displayed under the endpoint symbol
+//            String endpointTextKey = targetFlowElement.getComponentMeta().getEndpointTextKey();
+//            ComponentProperty propertyValueToDisplay = targetFlowElement.getComponentProperties().get(endpointTextKey);
+//            String endpointText = "";
+//            if (propertyValueToDisplay != null) {
+//                endpointText = propertyValueToDisplay.getValueString();
+//            }
+//            ComponentMeta endpointComponentMeta = null;
+//            FlowElement endpointFlowElement = null;
+//            try {
+//                // Create the endpoint symbol instance
+//                endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
+//                endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, flow, endpointText);
+//            } catch (StudioBuildException se) {
+//                LOG.warn("A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+//            }
+//
+//            if (endpointComponentMeta == null || endpointFlowElement == null) {
+//                LOG.warn("Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
+//            } else {
+//                // Position and draw the endpoint
+//                IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(projectKey, targetFlowElement);
+//                IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(projectKey, endpointFlowElement);
+//                if (targetFlowElementViewHandler != null && endpointViewHandler != null) {
+//
+//                    endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
+//                    endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
+//                    if (targetFlowElement.getComponentMeta().isConsumer()) {
+//                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+//                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
+//                        drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+//                    } else {
+//                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+//                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
+//                        drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * In user testing, devs removed components but forgot to update the transitions
@@ -450,7 +499,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
                 Object value = getTypedValue(field);
                 // temp workaround
-                if (flowElement.getComponentMeta().isRouter() && ("routeNames".equals(fieldName))) {
+                if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
                     List<String> routeList = StudioBuildUtils.stringToList((String)value);
                     flowElement.setPropertyValue(fieldName, routeList);
                 } else {

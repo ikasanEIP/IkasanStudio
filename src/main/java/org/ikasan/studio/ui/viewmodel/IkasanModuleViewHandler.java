@@ -29,10 +29,10 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         int currentY = 0;
         LOG.debug("paintComponent invoked");
         // Module name
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, module.getName(),10,10, StudioUIUtils.getBoldFont(g));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont(g));
         for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set x,y, but we may be dealing with component move
-            IkasanFlowViewHandler flowViewViewHandler = getFlowViewViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
             if (flowViewViewHandler != null) {
 
                 if (currentY == 0) {
@@ -68,7 +68,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         for(Flow ikasanFlow : module.getFlows()) {
-            IkasanFlowViewHandler flowViewViewHandler = getFlowViewViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
             if (flowViewViewHandler != null) {
                 // initialise width/height to maximum, it will be adjusted down after reset
                 flowViewViewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
@@ -76,5 +76,10 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
                 minimumTopY += FLOW_VERTICAL_SPACING;
             }
         }
+    }
+
+    @Override
+    public String getText() {
+        return module.getName();
     }
 }

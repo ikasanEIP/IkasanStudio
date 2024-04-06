@@ -19,6 +19,10 @@ public class DeleteComponentAction implements ActionListener {
       this.ikasanBasicElement = ikasanBasicElement;
    }
 
+   /**
+    * doDelete for component under mouse
+    * @param actionEvent the event to be processed
+    */
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       if (ikasanBasicElement instanceof FlowElement ikasanFlowComponentToRemove) {

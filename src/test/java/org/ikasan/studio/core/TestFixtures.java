@@ -411,7 +411,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResource", true);
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
-        flowElement.setPropertyValue("routeNames", routes);
+        flowElement.setPropertyValue(ROUTE_NAMES, routes);
         return flowElement;
     }
 

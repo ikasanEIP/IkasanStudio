@@ -81,4 +81,9 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
     public ImageIcon getCanvasIcon() {
         return flowElement.getComponentMeta().getCanvasIcon();
     }
+
+    @Override
+    public String getText() {
+        return "";
+    }
 }

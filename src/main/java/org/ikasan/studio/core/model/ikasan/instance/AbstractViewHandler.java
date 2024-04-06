@@ -19,7 +19,7 @@ public abstract class AbstractViewHandler {
      * This will allow each UI domain opportunity to provide what ever type of view handler it requires
      * @return a view handler appropriate for the UI that the domain object is being controlled in.
      */
-    private AbstractViewHandler getViewHandler() {
+    private AbstractViewHandler getOrCreateViewHandler() {
         return viewHandler;
     }
     /**
@@ -30,9 +30,9 @@ public abstract class AbstractViewHandler {
         this.viewHandler = viewHandler;
     }
 
-    public AbstractViewHandler getViewHandler(ViewHandlerFactory viewHandlerFactory) throws StudioException {
+    public AbstractViewHandler getOrCreateViewHandler(ViewHandlerFactory viewHandlerFactory) throws StudioException {
         if (viewHandlerFactory == null) {
-            throw new StudioException("View Handler Factor must be provided");
+            throw new StudioException("View Handler Factory must be provided");
         }
         if (viewHandler == null) {
             viewHandler = viewHandlerFactory.getInstance(this);
