@@ -30,6 +30,7 @@
 * Cost of ownership
   * Corporate coding standards and implementation standards enforced by the auto-generated code.
   * Consistency in implementation reduces support costs.
+  * Reduction in project written code results in reduction of development time and all related QA activities
   * Upgrades between versions of Ikasan greatly simplified via json (not Java) as the source code model, reducing legacy friction and therefore legacy support costs.
   * Improvements and bug fixes to core Ikasan features can be applied with reduced / no alteration to the module configuration / bespoke code.
   * Localised developer testing and debugging reduces the reliance on expensive centralised server resource
