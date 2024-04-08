@@ -2,18 +2,16 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import lombok.*;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Data
-@EqualsAndHashCode(callSuper=false)
+@Getter
+@Setter
+@ToString
 @JsonSerialize(using = FlowSerializer.class)
 public class Flow extends BasicElement {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);

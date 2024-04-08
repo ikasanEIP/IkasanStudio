@@ -2,8 +2,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 
 /**
@@ -13,8 +12,9 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
  * very easily when the object is used in the UI space, otherwise we would need to deal with very complex
  * parallel structures. Including the handle here is the lesser evil.
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
+@ToString
 public class IkasanObject extends AbstractViewHandler {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore

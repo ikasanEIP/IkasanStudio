@@ -2,9 +2,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
@@ -14,8 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 @JsonSerialize
-@Data
-@EqualsAndHashCode(callSuper=true)
+@Getter
+@Setter
+@ToString
 public class ExceptionResolution extends BasicElement {
     String exceptionsCaught;
     String theAction;

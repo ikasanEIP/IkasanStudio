@@ -1,14 +1,18 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
 /**
  * Holds the value of a property
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class ComponentProperty {
     private Object value;
     @JsonIgnore

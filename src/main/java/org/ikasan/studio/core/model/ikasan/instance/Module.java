@@ -24,9 +24,10 @@ import java.util.*;
  * from any changes to ikasan or componentDependencies on any particular ikasan version.
  */
 
-@Data
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
+@Getter
+@Setter
+@ToString
+//@AllArgsConstructor
 @JsonSerialize(using = ModuleSerializer.class)
 @JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends BasicElement {
