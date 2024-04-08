@@ -3,8 +3,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.BasicElementSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -21,8 +20,9 @@ import java.util.stream.Collectors;
  * This does
  */
 @JsonSerialize(using = BasicElementSerializer.class)
-@Data
-@EqualsAndHashCode(callSuper=true)
+@Getter
+@Setter
+@ToString
 public  class BasicElement extends IkasanObject {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
     private static final com.intellij.openapi.diagnostic.Logger LOGI = com.intellij.openapi.diagnostic.Logger.getInstance("#BasicElement");

@@ -1,9 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ExceptionResolverSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -15,8 +13,9 @@ import java.util.*;
  */
 
 @JsonSerialize(using = ExceptionResolverSerializer.class)
-@Data
-@EqualsAndHashCode(callSuper=true)
+@Getter
+@Setter
+@ToString
 public class ExceptionResolver extends FlowElement {
     private Map<String, ExceptionResolution> ikasanExceptionResolutionMap ;
     public ExceptionResolver(String metapackVersion, Flow containingFlow) throws StudioBuildException {

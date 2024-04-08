@@ -1,8 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.slf4j.Logger;
@@ -16,7 +15,9 @@ import java.util.stream.Collectors;
  * The 'default' flow is contained in a single FlowRoute i.e. each node
  * And additional branches
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class FlowRoute {
     private static final Logger LOG = LoggerFactory.getLogger(FlowRoute.class);
     List<FlowRoute> childRoutes;
