@@ -51,11 +51,11 @@ class ComponentIOSerializeTest {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
     }
-//    @Test
-//    public void testPopulatedFlowWithMultiRecipientRouterSerializeToJson() throws IOException, StudioBuildException {
-//        Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow()));
-//        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module_with_router.json"), ComponentIO.toJson(module));
-//    }
+    @Test
+    public void testPopulatedFlowWithMultiRecipientRouterSerializeToJson() throws IOException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow()));
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module_with_router.json"), ComponentIO.toJson(module));
+    }
 
     @Test
     public void testPopulatedModuleSerializeToJson() throws IOException, StudioBuildException {

@@ -246,14 +246,16 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             FlowElement fromElement = flowElementsMap.get(currentTransition.getFrom());
             if (fromElement == null) {
                 LOG.warn("WARN: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
-            } else if (!fromElement.getComponentMeta().isConsumer()) {
+            // We never add the consumer
+            // We never add the router as a fromElement, the endpoint is its connector in the new route
+            } else if (!fromElement.getComponentMeta().isConsumer() && !fromElement.getComponentMeta().isRouter()) {
                 currentFlowRoute.getFlowElements().add(fromElement);
             }
 
             // This could be an MRR
             String toKey = currentTransition.getTo();
             FlowElement toElement = flowElementsMap.get(toKey);
-            List<Transition> nextTransitionList = transitionsMap.get(toElement);
+            List<Transition> nextTransitionList = transitionsMap.get(toKey);
 
             // If we have an MRR, we have made sure its only ever in a To transition.
             if (toElement != null && toElement.getComponentMeta().isRouter()) {
