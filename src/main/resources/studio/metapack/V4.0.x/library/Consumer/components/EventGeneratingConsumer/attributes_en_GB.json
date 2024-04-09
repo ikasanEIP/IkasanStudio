@@ -4,10 +4,8 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
-  "componentType": "org.ikasan.spec.component.endpoint.Consumer",
   "usesBuilder" : true,
   "flowBuilderMethod": "consumer",
-  "displayOrder": 2,
   "properties": {
     "componentName": {
       "propertyName": "componentName",

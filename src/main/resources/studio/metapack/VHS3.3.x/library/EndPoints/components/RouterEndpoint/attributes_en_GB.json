@@ -1,0 +1,15 @@
+{
+  "name": "Router Endpoint",
+  "implementingClass": "RouterEndpoint",
+  "helpText": "The router endpoint appear at the start of each route. It acts as a UI anchor point for new components",
+  "isEndpoint": true,
+  "isInternalEndpoint": true,
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "For a Router endpoint, this is the route name",
+      "mandatory": true
+    }
+  }
+}
+
