@@ -11,14 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
+
 /**
  * The 'default' flow is contained in a single FlowRoute i.e. each node
  * And additional branches
  */
 @Getter
 @Setter
-@ToString
-public class FlowRoute {
+public class FlowRoute  implements IkasanComponent {
     private static final Logger LOG = LoggerFactory.getLogger(FlowRoute.class);
     List<FlowRoute> childRoutes;
     private List<FlowElement> flowElements;
@@ -42,15 +43,28 @@ public class FlowRoute {
         if (routeName != null) {
             this.routeName = routeName;
         } else {
-            this.routeName = Transition.DEFAULT_TRANSITION_NAME;
+            this.routeName = DEFAULT_TRANSITION_NAME;
         }
         if (childRoutes != null) {
             this.childRoutes = childRoutes;
         } else {
             this.childRoutes = new ArrayList<>();
         }
+
         if (flowElements != null) {
-            this.flowElements = flowElements;
+            this.flowElements = new ArrayList<>();
+            for(FlowElement flowElement : flowElements) {
+                if (flowElement.getComponentMeta().isConsumer()) {
+                    LOG.warn("SERIOUS: Attempt made to add a consumer " + flowElement + " to a route, will try to add to flow");
+                    if (!flow.hasConsumer()) {
+                        flow.setConsumer(flowElement);
+                    } else {
+                        LOG.warn("SERIOUS: could not add to flow consumer, a consumer already exists " + flow.getConsumer());
+                    }
+                } else {
+                    this.flowElements.add(flowElement);
+                }
+            }
         } else {
             this.flowElements = new ArrayList<>();
         }
@@ -78,11 +92,7 @@ public class FlowRoute {
         } else {
             String status = "";
             if (! hasProducer()) {
-                if (!status.isEmpty()) {
-                    status += " and a producer";
-                } else {
-                    status += "The flow needs a producer";
-                }
+                status += "The flow needs a producer";
             }
             return status;
         }
@@ -95,26 +105,34 @@ public class FlowRoute {
     }
 
     /**
-     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer
      */
-    public List<FlowElement> ftlGetConsumerAndFlowElements() {
+    public List<FlowElement> getConsumerAndFlowRouteElements() {
 
         List<FlowElement> allElements = new ArrayList<>();
-        if (flow.hasConsumer()) {
+        // Only the default (primary) flowRoute includes the consumer
+        if (flow.hasConsumer() && DEFAULT_TRANSITION_NAME.equals(getRouteName())) {
             allElements.add(flow.getConsumer());
         }
-        allElements.addAll(ftlGetFlowElementsNoEndPoints());
+        allElements.addAll(getFlowElementsNoExternalEndPoints());
         return allElements;
     }
 
 
     /**
-     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer and router endpoints
+     */
+    public List<FlowElement> getFlowElementsNoExternalEndPoints() {
+        List<FlowElement> allElements  = getFlowElements().stream()
+                .filter(x-> ! x.componentMeta.isEndpoint() || x.componentMeta.isInternalEndpoint())
+                .toList();
+        return allElements;
+    }
+    /**
      * @return A list of all non-null flow elements, including the consumer
      */
-    public List<FlowElement> ftlGetFlowElementsNoEndPoints() {
-        List<FlowElement> allElements  = getFlowElements().stream()
+    public List<FlowElement> ftlGetConsumerAndFlowElementsNoEndPoints() {
+        List<FlowElement> allElements  = getConsumerAndFlowRouteElements().stream()
                 .filter(x-> ! x.componentMeta.isEndpoint())
                 .toList();
         return allElements;

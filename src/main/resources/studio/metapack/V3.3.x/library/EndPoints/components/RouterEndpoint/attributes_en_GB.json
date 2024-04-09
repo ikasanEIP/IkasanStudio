@@ -3,6 +3,7 @@
   "implementingClass": "RouterEndpoint",
   "helpText": "The router endpoint appear at the start of each route. It acts as a UI anchor point for new components",
   "isEndpoint": true,
+  "isInternalEndpoint": true,
   "properties": {
     "componentName": {
       "propertyName": "componentName",

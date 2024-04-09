@@ -9,6 +9,9 @@ import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
@@ -89,6 +92,107 @@ public class Flow extends BasicElement {
      */
     public boolean hasExceptionResolver() {
         return (exceptionResolver != null);
+    }
+
+    public boolean anyFlowRouteHasComponents(FlowRoute flowRoute) {
+        if (flowRoute != null) {
+            if (flowRoute.getFlowElements() != null && !flowRoute.getFlowElements().isEmpty()) {
+                return true;
+            }
+        }
+        if (flowRoute.getChildRoutes() != null) {
+            for(FlowRoute childRoute : flowRoute.getChildRoutes()) {
+                if (anyFlowRouteHasComponents(childRoute)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public FlowRoute getFlowRouteContaining(FlowRoute searchRoute, FlowElement targetFlowElement) {
+        if (searchRoute != null) {
+            if (searchRoute.getFlowElements() != null && !searchRoute.getFlowElements().isEmpty() && searchRoute.getFlowElements().contains(targetFlowElement)) {
+                return searchRoute;
+            }
+        }
+        if (searchRoute.getChildRoutes() != null) {
+            for(FlowRoute childRoute : searchRoute.getChildRoutes()) {
+                if (getFlowRouteContaining(childRoute, targetFlowElement) != null) {
+                    return childRoute;
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<FlowRoute> getAllFlowRoutes(List<FlowRoute> flowRoutes, FlowRoute currentRoot) {
+        if (currentRoot != null) {
+            flowRoutes.add(currentRoot);
+        }
+        if (currentRoot.getChildRoutes() != null && !currentRoot.getChildRoutes().isEmpty()) {
+            for(FlowRoute childRoute : currentRoot.getChildRoutes()) {
+                getAllFlowRoutes(flowRoutes, childRoute);
+            }
+        }
+        return flowRoutes;
+    }
+
+
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer
+     */
+    public List<FlowElement> ftlGetConsumerAndFlowElements() {
+
+        List<FlowElement> allElements = new ArrayList<>();
+        // Only the default (primary) flowRoute includes the consumer
+        if (getConsumer() != null) {
+            allElements.add(getConsumer());
+        }
+        getAllFlowElementsInAnyRoute(allElements, getFlowRoute());
+        return allElements;
+    }
+
+    public List<FlowElement> getAllFlowElementsInAnyRoute(List<FlowElement> flowElementsList, FlowRoute flowRoute) {
+        if (flowRoute != null) {
+            List<FlowElement> thisRouteFlowElementList = flowRoute.getFlowElements();
+            if (thisRouteFlowElementList != null && !thisRouteFlowElementList.isEmpty()) {
+                flowElementsList.addAll(thisRouteFlowElementList);
+            }
+        }
+        if (flowRoute.getChildRoutes() != null) {
+            for(FlowRoute childRoute : flowRoute.getChildRoutes()) {
+                getAllFlowElementsInAnyRoute(flowElementsList, childRoute);
+            }
+        }
+        return flowElementsList;
+    }
+
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer, excluding any endpoints
+     */
+    public List<FlowElement> ftlGetAllFlowElementsInAnyRouteNoEndpoints() {
+
+        List<FlowElement> allElements = ftlGetConsumerAndFlowElements();
+        allElements = allElements.stream()
+            .filter(flowElement -> !flowElement.componentMeta.isEndpoint())
+            .toList();
+        return allElements;
+    }
+
+    /**
+     * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
+     * @return A list of all non-null flow elements, including the consumer, excluding any endpoints
+     */
+    public List<FlowElement> getFlowElementsNoExternalEndPoints() {
+
+        List<FlowElement> allElements = ftlGetConsumerAndFlowElements();
+        allElements = allElements.stream()
+            .filter(x-> ! x.componentMeta.isEndpoint() || x.componentMeta.isInternalEndpoint())
+            .toList();
+        return allElements;
     }
 
     /**

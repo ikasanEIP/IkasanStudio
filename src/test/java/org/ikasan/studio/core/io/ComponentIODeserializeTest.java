@@ -130,11 +130,10 @@ class ComponentIODeserializeTest {
             () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().get(1).getChildRoutes().size(), "Child route 2"),
 
             // Flow Element + Router endPoint
-            () -> assertEquals(1, flow1.getFlowRoute().getChildRoutes().get(0).getFlowElements().size(), "Route 1 Flow Elements Size"),
-            () -> assertEquals(1, flow1.getFlowRoute().getChildRoutes().get(1).getFlowElements().size(), "Route 2 Flow Elements Size"),
+            () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().get(0).getFlowElements().size(), "Route 1 Flow Elements Size"),
+            () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().get(1).getFlowElements().size(), "Route 2 Flow Elements Size"),
             () -> assertEquals("route1", flow1.getFlowRoute().getChildRoutes().get(0).getRouteName()),
             () -> assertEquals("route2", flow1.getFlowRoute().getChildRoutes().get(1).getRouteName())
-
         );
     }
 

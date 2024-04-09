@@ -16,7 +16,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
-<#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
+<#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as flowElement>
     <#if flowElement.componentMeta.generatesUserImplementedClass>
         @javax.annotation.Resource
         <#if flowElement.componentMeta.generatesUserImplementedClass>
@@ -49,7 +49,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 </#compress>
 
 <#compress>
-    <#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
+    <#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as flowElement>
     <#-- todo - move this to above section -->
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if propValue.meta.isUserSuppliedClass()>
@@ -66,7 +66,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 <#compress>
-<#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
+<#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as flowElement>
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilder>
         <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
@@ -93,7 +93,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
         </#if>
     </#list>
 
-<#-- Special case for message filter, set configuredResourceId to default -->
+    <#-- Special case for message filter, set configuredResourceId to default -->
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.name)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");
     </#if>

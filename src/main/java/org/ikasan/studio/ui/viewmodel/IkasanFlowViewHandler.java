@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
+import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -14,6 +15,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
  */
+@Getter
 public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     IkasanFlowRouteViewHandler flowRouteViewHandler;
     private final String projectKey;
@@ -138,7 +140,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
 
-        flowRouteViewHandler.initialiseDimensions(graphics, currentX, topYForElements, newTopY);
+        flowRouteViewHandler.initialiseDimensions(graphics, currentX, topYForElements);
 
         setWidthAndHeights(graphics);
 

@@ -15,7 +15,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 @Getter
 @Setter
 @ToString
-public class IkasanObject extends AbstractViewHandler {
+public class IkasanObject extends AbstractViewHandler implements IkasanComponent {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     protected ComponentMeta componentMeta;

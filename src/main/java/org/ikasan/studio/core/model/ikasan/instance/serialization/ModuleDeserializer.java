@@ -152,17 +152,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 // To - The MRR with default path
                 String firstElementKey = firstTransition.get(0).getFrom();
                 FlowElement firstElement = flowElementsMap.get(firstElementKey);
-                if (firstTransition != null && firstElement.getComponentMeta().isRouter()) {
+                if (firstElement.getComponentMeta().isRouter()) {
                     Transition artificalFirstTransition = Transition.builder().from("").to(firstElementKey).name(DEFAULT_TRANSITION_NAME).build();
                     transitions.add(0, artificalFirstTransition);
                     firstTransition = Arrays.asList(artificalFirstTransition);
                     transitionsMap.put(artificalFirstTransition.getFrom(), firstTransition);
                 }
-//                else if (flow.getConsumer() == null) {
-//                    // By now, the consumer would have been added, so if there isn't one on the flow
-//                    // the first 'from' is a flowElement, add it.
-//                    addFlowElementIfNotNull(returnFlowRoute.getFlowElements(), flowElementsMap, firstTransition.get(0).getFrom());
-//                }
                 // The root of the tree, buildRouteTree is recursive
                 buildRouteTree(metapackVersion, flow, returnFlowRoute, transitionsMap, flowElementsMap, firstTransition.get(0));
             }
@@ -275,62 +270,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                             buildRouteTree(metapackVersion, flow, newRoute, transitionsMap, flowElementsMap, nextTransition);
                         }
                     }
-                    // 2 new start points
                 } else {
                     // Just another element
                     buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, nextTransitionList.get(0));
                 }
-                // add next flowElement
             }
         }
-
-//            // Only MRR have lists greater than 1
-//            if (elementIsRouter(flowElementsMap, startingTransition.get(0).getFrom()) || startingTransition.size() > 1) {
-//                // for each transition, start new brances and threads
-//                for (Transition transition : startingTransition) {
-//                    // If the last element in a flow route is an MRR, it will have the name of the route in it
-////                    if (elementIsRouter(flowElementsMap, transition.getTo())) {
-////                        FlowElement router = flowElementsMap.get(transition.getTo());
-////                        if (router.getComponentMeta().isRouter() && router.getPropertyValue(ROUTE_NAMES) != null) {
-////                            List<String> routeNames = (List)router.getPropertyValue(ROUTE_NAMES);
-////                            for(String route : routeNames) {
-////                                FlowRoute newChild = FlowRoute.flowBuilder().flow(flow).routeName(route).build();
-////                                returnFlowRoute.getChildRoutes().add(newChild);
-////
-////                                FlowElement routerEndpoint = getRouterEndPoint(metapackVersion, flow, router);
-////                                if (routerEndpoint != null) {
-////                                    newChild.getFlowElements().add(routerEndpoint);
-////                                }
-////                            }
-////
-////
-////                        }
-////                    }
-//                    if (elementIsRouter(flowElementsMap, transition.getFrom())) {
-//                        FlowElement router = flowElementsMap.get(transition.getFrom());
-//
-//                        FlowRoute newChild = FlowRoute.flowBuilder().flow(flow).routeName(transition.getName()).build();
-//                        currentFlowRoute.getChildRoutes().add(newChild);
-//
-//                        FlowElement routerEndpoint = getRouterEndPoint(metapackVersion, flow, router);
-//                        if (routerEndpoint != null) {
-//                            newChild.getFlowElements().add(routerEndpoint);
-//                        }
-//
-//                        newChild.getFlowElements().add(routerEndpoint);
-//
-//                        addFlowElementIfNotNull(newChild.getFlowElements(), flowElementsMap, transition.getFrom());
-//                        // Add the rest of this branch to the new child
-//                        List<Transition> nextTransitions = transitionsMap.get(transition.getTo());
-//                        buildRouteTree(metapackVersion, flow, newChild, transitionsMap, flowElementsMap, nextTransitions);
-//                    }
-//                    else {
-//                        LOG.error("A router was expected, but the element was " + flowElementsMap.get(transition.getFrom()));
-//                    }
-//                }
-//
-////            } else
-//        }
     }
 
     private FlowRoute getChildWithName(List<FlowRoute> children, String routeName) {
@@ -342,7 +287,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 .orElse(null);
         }
         if (returnRoute == null) {
-            LOG.warn("SERIOUS: Expected to find a child route with name " + routeName + " but found none in " + children == null ? null : Arrays.toString(children.toArray()));
+            LOG.warn("SERIOUS: Expected to find a child route with name " + routeName + " but found none in " + (children == null ? null : Arrays.toString(children.toArray())));
         }
         return returnRoute ;
     }
@@ -359,14 +304,14 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     private void addNewRoutesForRouter(String metapackVersion, Flow flow, FlowRoute returnFlowRoute, FlowElement router) throws StudioBuildException {
         if (router.getPropertyValue(ROUTE_NAMES) != null) {
             List<String> routeNames = (List)router.getPropertyValue(ROUTE_NAMES);
-            for(String route : routeNames) {
+            for(String routeName : routeNames) {
                 FlowRoute newChild = FlowRoute.flowBuilder()
                         .flow(flow)
-                        .routeName(route)
+                        .routeName(routeName)
                         .build();
                 returnFlowRoute.getChildRoutes().add(newChild);
 
-                FlowElement routerEndpoint = getRouterEndPoint(metapackVersion, flow, router);
+                FlowElement routerEndpoint = getRouterEndPoint(metapackVersion, flow, router, newChild, routeName);
                 if (routerEndpoint != null) {
                     newChild.getFlowElements().add(routerEndpoint);
                 }
@@ -374,79 +319,20 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
     }
 
-//    protected void buildRouteTree2(String metapackVersion, FlowRoute returnFlowRoute, Flow flow, Map<String, List<Transition>> transitionsMap, Map<String, FlowElement> flowElementsMap, List<Transition> transitions) throws StudioBuildException {
-//        if (transitions != null) {
-//
-//            // Only MRR have lists greater than 1
-//            if (elementIsRouter(flowElementsMap, transitions.get(0).getFrom()) || transitions.size() > 1) {
-//                // for each transition, start new brances and threads
-//                for (Transition transition : transitions) {
-//                    // If the last element in a flow route is an MRR, it will have the name of the route in it
-//                    if (elementIsRouter(flowElementsMap, transition.getTo())) {
-//                        FlowElement router = flowElementsMap.get(transition.getTo());
-//
-//                        if (router.getComponentMeta().isRouter() && router.getPropertyValue(ROUTE_NAMES) != null) {
-//                            List<String> routeNames = (List)router.getPropertyValue(ROUTE_NAMES);
-//                            for(String route : routeNames) {
-//                                FlowRoute newChild = FlowRoute.flowBuilder().flow(flow).routeName(route).build();
-//                                returnFlowRoute.getChildRoutes().add(newChild);
-//
-//                                FlowElement routerEndpoint = getRouterEndPoint(metapackVersion, flow, router);
-//                                if (routerEndpoint != null) {
-//                                    newChild.getFlowElements().add(routerEndpoint);
-//                                }
-//                            }
-//
-//
-//                        }
-//                    }
-//                    if (elementIsRouter(flowElementsMap, transition.getFrom())) {
-//                        FlowElement router = flowElementsMap.get(transition.getFrom());
-//
-//                        FlowRoute newChild = FlowRoute.flowBuilder().flow(flow).routeName(transition.getName()).build();
-//                        returnFlowRoute.getChildRoutes().add(newChild);
-//
-//                        FlowElement routerEndpoint = getRouterEndPoint(metapackVersion, flow, router);
-//                        if (routerEndpoint != null) {
-//                            newChild.getFlowElements().add(routerEndpoint);
-//                        }
-//
-//                        newChild.getFlowElements().add(routerEndpoint);
-//
-//                        addFlowElementIfNotNull(newChild.getFlowElements(), flowElementsMap, transition.getFrom());
-//                        // Add the rest of this branch to the new child
-//                        List<Transition> nextTransitions = transitionsMap.get(transition.getTo());
-//                        buildRouteTree(metapackVersion, newChild, flow, transitionsMap, flowElementsMap, nextTransitions);
-//                    }
-//                    else {
-//                        LOG.error("A router was expected, but the element was " + flowElementsMap.get(transition.getFrom()));
-//                    }
-//                }
-//
-//            } else {  // Not a router, add it to this level
-//                addFlowElementIfNotNull(returnFlowRoute.getFlowElements(), flowElementsMap, transitions.get(0).getFrom());
-//                List<Transition> nextTransitions = transitionsMap.get(transitions.get(0).getTo());
-//                // The last link in the chain
-//                if (nextTransitions == null) {
-//                    addFlowElementIfNotNull(returnFlowRoute.getFlowElements(), flowElementsMap, transitions.get(0).getTo());
-//                } else {
-//                    buildRouteTree(metapackVersion, returnFlowRoute, flow, transitionsMap, flowElementsMap, nextTransitions);
-//                }
-//            }
-//        }
-//    }
 
-    private FlowElement getRouterEndPoint(String metapackVersion, Flow flow, FlowElement router) {
+    private FlowElement getRouterEndPoint(String metapackVersion, Flow flow, FlowElement router, FlowRoute containingFlowRoute, String routeName) {
         String endpointComponentName = router.getComponentMeta().getEndpointKey();
         FlowElement endpointFlowElement = null;
         if (endpointComponentName != null) {
             try {
                 // Create the endpoint symbol instance
                 ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
-                endpointFlowElement = FlowElementFactory.createFlowElement(metapackVersion, endpointComponentMeta, flow, router.getComponentMeta().getName());
+                endpointFlowElement = FlowElementFactory.createFlowElement(metapackVersion, endpointComponentMeta, flow, containingFlowRoute, routeName);
             } catch (StudioBuildException se) {
                 LOG.warn("A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
             }
+        } else {
+            LOG.warn("SERIOUS: The endpoint name for the router was not set or null " + router);
         }
         return endpointFlowElement;
     }

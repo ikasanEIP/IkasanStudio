@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @JsonSerialize(using = BasicElementSerializer.class)
 @Getter
 @Setter
-@ToString
 public  class BasicElement extends IkasanObject {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
     private static final com.intellij.openapi.diagnostic.Logger LOGI = com.intellij.openapi.diagnostic.Logger.getInstance("#BasicElement");
@@ -37,6 +36,7 @@ public  class BasicElement extends IkasanObject {
         this.componentProperties = componentMeta.getMandatoryInstanceProperties();
         setDescription(description);
     }
+
 
     /**
      * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
