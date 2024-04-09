@@ -9,13 +9,13 @@ public class FlowElementFactory {
      * @param type e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
      * @param containinfFlow flow that contains this element
      */
-    public static FlowElement createFlowElement(String metapackVersion, ComponentMeta type, Flow containinfFlow, String componentName) throws StudioBuildException {
+    public static FlowElement createFlowElement(String metapackVersion, ComponentMeta type, Flow containinfFlow, FlowRoute containingFlowRoute, String componentName) throws StudioBuildException {
         if (type.isGeneratesUserImplementedClass()) {
             return new FlowUserImplementedElement(type, containinfFlow, false);
         } else if (type.isExceptionResolver()) {
             return new ExceptionResolver(metapackVersion, containinfFlow);
         } else {
-            return FlowElement.flowElementBuilder().componentMeta(type).containingFlow(containinfFlow).componentName(componentName).build();
+            return FlowElement.flowElementBuilder().componentMeta(type).containingFlowRoute(containingFlowRoute).containingFlow(containinfFlow).componentName(componentName).build();
         }
     }
 }

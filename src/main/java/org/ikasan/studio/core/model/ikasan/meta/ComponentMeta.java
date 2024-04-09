@@ -54,9 +54,10 @@ public class ComponentMeta implements IkasanMeta {
     private String defaultValue;
     private int displayOrder;
 
-    private boolean isEndpoint;     // Is this component an endpoint e.g. DB endpoint, sftp location
-    private String endpointKey;     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
-    private String endpointTextKey; // The name of the property in the real component that the endpoint will display as text e.g. queuename
+    private boolean isEndpoint;             // Is this component an endpoint e.g. DB endpoint, sftp location
+    private boolean isInternalEndpoint;     // This endpoint is internal to the flow
+    private String endpointKey;             // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
+    private String endpointTextKey;         // The name of the property in the real component that the endpoint will display as text e.g. queuename
 
     private String flowBuilderMethod;
     private boolean generatesUserImplementedClass;

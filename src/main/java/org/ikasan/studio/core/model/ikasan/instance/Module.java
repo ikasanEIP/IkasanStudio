@@ -145,7 +145,7 @@ public class Module extends BasicElement {
         Set<Dependency> allJarDepedencies = new HashSet<>(this.getComponentMeta().getJarDependencies());
 
          for(Flow flow : this.getFlows()) {
-             for (FlowElement flowElement : flow.getFlowRoute().ftlGetConsumerAndFlowElements()) {
+             for (FlowElement flowElement : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
                  if (flowElement.getComponentMeta().getJarDependencies() != null) {
                      allJarDepedencies.addAll(flowElement.getComponentMeta().getJarDependencies());
                  }

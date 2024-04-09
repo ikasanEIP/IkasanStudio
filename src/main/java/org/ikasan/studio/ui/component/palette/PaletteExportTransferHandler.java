@@ -58,7 +58,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                 if (item.getComponentMeta().isFlow()) {
                     ikasanComponent = Flow.flowBuilder().metapackVersion(metapackVersion).build();
                 } else {
-                    ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getComponentMeta(), null, null);
+                    ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getComponentMeta(), null, null, null);
                 }
             } catch (StudioBuildException e) {
                 StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");

@@ -2,8 +2,8 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 
 import java.util.Collections;
 
@@ -57,7 +57,12 @@ public abstract class AbstractGeneratorTestFixtures {
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .build();
         module.addFlow(flow);
-        flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
+
+        if (flowElement.getComponentMeta().isConsumer()) {
+            flow.setConsumer(flowElement);
+        } else {
+            flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
+        }
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         return templateString;

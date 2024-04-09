@@ -18,16 +18,18 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 public class FlowElement extends BasicElement {
     @JsonIgnore
     private Flow containingFlow;
+    private FlowRoute containingFlowRoute;
 
     public FlowElement() {}
 
     @Builder (builderMethodName = "flowElementBuilder")
-    protected FlowElement(ComponentMeta componentMeta, Flow containingFlow, String componentName) {
+    protected FlowElement(ComponentMeta componentMeta, Flow containingFlow, FlowRoute containingFlowRoute, String componentName) {
         super(componentMeta, null);
         if (!componentMeta.isExceptionResolver()) {
             setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, componentName);
         }
         this.containingFlow = containingFlow;
+        this.containingFlowRoute = containingFlowRoute;
     }
 
     @Override

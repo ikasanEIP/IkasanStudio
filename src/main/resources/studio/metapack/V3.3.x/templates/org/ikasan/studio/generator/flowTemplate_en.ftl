@@ -1,6 +1,7 @@
 <#macro iterateSubflow flowRoute>
     .when(${flowRoute.getRouteName()}
-    <#list flowRoute.ftlGetFlowElementsNoEndPoints()![] as flowElement>
+    <#-- This will be the one of the branches of a MRR, not the default branch -->
+    <#list flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
     <#-- The MRR is always the last element of the list of flowElements -->
         <#if flowElement.getComponentMeta().isRouter()>
             .${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(${flowElement.getPropertyValueAsString("routeNames")})))
@@ -53,7 +54,7 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 .addExceptionToAction(${exceptionResolution.exceptionsCaught}, org.ikasan.builder.OnException.${exceptionResolution.theAction}(<#list exceptionResolution.getComponentPropertyList()![] as param><#if param.value??>${param.templateRepresentationOfValue!xx}<#sep>,</#if></#list>))<#sep>
 </#list>)
 </#if>
-    <#list flow.getFlowRoute().ftlGetConsumerAndFlowElements()![] as flowElement>
+    <#list flow.getFlowRoute().ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
         <#-- The MRR is always the last element of the list of flowElements -->
         <#if flowElement.componentMeta.isRouter()>
             .${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(<#list flowElement.getPropertyValue("routeNames")![] as route> "${route}"<#sep>, </#sep></#list>)))

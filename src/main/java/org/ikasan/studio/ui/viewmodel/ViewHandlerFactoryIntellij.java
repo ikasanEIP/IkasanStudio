@@ -26,10 +26,10 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
                 returnAbstractViewHandlerIntellij =  new IkasanModuleViewHandler(projectKey, (Module) component);
             } else if (component instanceof Flow) {
                 returnAbstractViewHandlerIntellij =  new IkasanFlowViewHandler(projectKey, (Flow) component);
-            } else if (component instanceof FlowElement) {
-                returnAbstractViewHandlerIntellij =  new IkasanFlowComponentViewHandler((FlowElement) component);
             } else if (component instanceof ExceptionResolver) {
                 returnAbstractViewHandlerIntellij =  new IkasanFlowExceptionResolverViewHandler((ExceptionResolver) component);
+            } else if (component instanceof FlowElement) {
+                returnAbstractViewHandlerIntellij =  new IkasanFlowComponentViewHandler((FlowElement) component);
             }
         }
         if (returnAbstractViewHandlerIntellij == null) {
@@ -49,9 +49,10 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         return viewHandler;
     }
 
-    public static IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+    public static IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, IkasanComponent ikasanComponent) {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowComponentViewHandler viewHandler = null;
+        BasicElement ikasanBasicElement = (BasicElement)ikasanComponent;
         try {
             viewHandler = ((IkasanFlowComponentViewHandler)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
