@@ -56,4 +56,18 @@ public class ExceptionResolver extends FlowElement {
         }
         return exceptionResolutions;
     }
+
+    @Override
+    public String toSimpleString() {
+        StringBuilder builder = new StringBuilder();
+        if (ikasanExceptionResolutionMap != null && !ikasanExceptionResolutionMap.isEmpty()) {
+            for(Map.Entry<String, ExceptionResolution> resolution : ikasanExceptionResolutionMap.entrySet()) {
+                builder.append(resolution.getKey()).append("->").append(resolution.getValue().toSimpleString()).append(",");
+            }
+        }
+        return "[" +
+                super.toSimpleString() +
+                ", ikasanExceptionResolutionMap [" + builder + "]" +
+                ']';
+    }
 }

@@ -102,7 +102,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
                 viewHandler.paintComponent(canvas, g, -1, -1);
             }
         }
-        flowRouteViewHandler.paintRoute(canvas, g, flow.getFlowRoute());
+        flowRouteViewHandler.paintRoute(canvas, g, flow.getFlowRoute(), null);
 
         // The warning must always have the highest z order.
         StudioUIUtils.paintWarningPopup(g, warningX, warningY, canvas.getX() + canvas.getWidth(), canvas.getY() + canvas.getHeight(), warningText);
@@ -110,13 +110,13 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
 
-    private void drawConnector(Graphics g, AbstractViewHandlerIntellij start, AbstractViewHandlerIntellij end) {
-        g.drawLine(
-                start.getRightConnectorPoint().x,
-                start.getRightConnectorPoint().y,
-                end.getLeftConnectorPoint().x,
-                end.getLeftConnectorPoint().y);
-    }
+//    private void drawConnector(Graphics g, AbstractViewHandlerIntellij start, AbstractViewHandlerIntellij end) {
+//        g.drawLine(
+//                start.getRightConnectorPoint().x,
+//                start.getRightConnectorPoint().y,
+//                end.getLeftConnectorPoint().x,
+//                end.getLeftConnectorPoint().y);
+//    }
 
     private int getYAfterPaintingFlowTitle(Graphics g) {
         return paintFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;
@@ -203,4 +203,5 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     public boolean isFlowNormalMode() {
         return Color.BLACK.equals(this.borderColor);
     }
+
 }

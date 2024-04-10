@@ -15,7 +15,11 @@ public class FlowElementFactory {
         } else if (type.isExceptionResolver()) {
             return new ExceptionResolver(metapackVersion, containinfFlow);
         } else {
-            return FlowElement.flowElementBuilder().componentMeta(type).containingFlowRoute(containingFlowRoute).containingFlow(containinfFlow).componentName(componentName).build();
+            return FlowElement.flowElementBuilder()
+                    .componentMeta(type)
+                    .containingFlowRoute(containingFlowRoute)
+                    .containingFlow(containinfFlow)
+                    .componentName(componentName).build();
         }
     }
 }

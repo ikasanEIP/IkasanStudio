@@ -153,4 +153,18 @@ public class Module extends BasicElement {
         }
         return ModelUtils.getAllUniqueSortedDependenciesSet(allJarDepedencies);
     }
+
+    @Override
+    public String toSimpleString() {
+        StringBuilder builder = new StringBuilder();
+        if (flows != null && !flows.isEmpty()) {
+            for(Flow flow : flows) {
+                builder.append(flow.toSimpleString()).append(", \n");
+            }
+        }
+        return "Module{" +
+                super.toSimpleString() + "\n" +
+                "AllFlows [" + builder + "]" +
+                '}';
+    }
 }

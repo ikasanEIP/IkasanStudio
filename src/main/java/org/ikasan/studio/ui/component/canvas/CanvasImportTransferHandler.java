@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class CanvasImportTransferHandler extends TransferHandler // implements Transferable
 {
@@ -80,14 +81,16 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      * @return true if the mouse is currently over a flow.
      */
     private boolean flowInFocusActions(final TransferHandler.TransferSupport support) {
-        boolean mouseOverFlow = false;
+//        boolean okToAdd = false;
         Point currentMouse = support.getDropLocation().getDropPoint();
         BasicElement ikasanBasicElement = getDraggedComponent(support);
-        if (ikasanBasicElement != null && ikasanBasicElement.getComponentMeta().isFlow() || designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
-            mouseOverFlow = true;
-        }
-        designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanBasicElement);
-        return mouseOverFlow;
+//        if (ikasanBasicElement != null && ikasanBasicElement.getComponentMeta().isFlow() ||
+//            designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
+//        if (ikasanBasicElement != null && ikasanBasicElement.getComponentMeta().isFlow()) {
+//            okToAdd = true;
+//        }
+//        okToAdd = designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanBasicElement);
+        return designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanBasicElement);
     }
     /**
      * Causes a transfer to occur from a clipboard or a drag and drop operation. The <code>Transferable</code> to be
@@ -128,8 +131,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
             IkasanFlowUIComponentTransferable  flowElementTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(flowElementFlavor);
             ikasanBasicComponent = flowElementTransferable.getIkasanBasicElement();
         } catch (IOException | UnsupportedFlavorException e) {
-            LOG.warn("Could not import flavor " + flowElementFlavor + " from support " + support + " due to exception " + e.getMessage());
-            e.printStackTrace();
+            LOG.warn("Could not import flavor " + flowElementFlavor + " from support " + support + " due to exception " + Arrays.asList(e.getStackTrace()));
         }
         return ikasanBasicComponent;
     }

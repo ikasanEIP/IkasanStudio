@@ -16,6 +16,7 @@ public abstract class AbstractGeneratorTestFixtures {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .build();
+        flowElement.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         module.addFlow(flow);
         String templateString = PropertiesTemplate.generateContents(module);
@@ -29,6 +30,7 @@ public abstract class AbstractGeneratorTestFixtures {
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .build();
         module.addFlow(flow);
+        flowElement.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         return generateFlowTemlateStringForModule(module);
     }
@@ -44,6 +46,7 @@ public abstract class AbstractGeneratorTestFixtures {
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .exceptionResolver(exceptionResolver)
                 .build();
+        exceptionResolver.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowBuilder().flow(flow).build());
         module.addFlow(flow);
 
@@ -61,6 +64,7 @@ public abstract class AbstractGeneratorTestFixtures {
         if (flowElement.getComponentMeta().isConsumer()) {
             flow.setConsumer(flowElement);
         } else {
+            flowElement.setContainingFlowRoute(flow.getFlowRoute());
             flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         }
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);

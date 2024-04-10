@@ -32,12 +32,32 @@ public class FlowElement extends BasicElement {
         this.containingFlowRoute = containingFlowRoute;
     }
 
+    public void setContainingFlowRoute(FlowRoute containingFlowRoute) {
+        if (containingFlowRoute != null) {
+            this.containingFlowRoute = containingFlowRoute;
+            this.containingFlow = containingFlowRoute.getFlow();
+        }
+    }
+
     @Override
     public String toString() {
         return "IkasanFlowComponent {" +
-                ", flowComponent='" + getComponentMeta() + '\'' +
                 ", name='" + getComponentName() + '\'' +
+                ", containingFlow ='" + (containingFlow == null ? null : containingFlow.getName()) + '\'' +
+                ", containingFlowRoute ='" + (containingFlowRoute == null ? null : containingFlowRoute.getRouteName()) + '\'' +
+                ", flowComponent='" + getComponentMeta().getName() + '\'' +
                 ", properties=" + componentProperties +
+                '}';
+    }
+
+    @Override
+    public String toSimpleString() {
+        return "{" +
+                super.toSimpleString() +
+                ", flowComponent='" + getComponentMeta().getName() + '\'' +
+                ", flowName='" + getComponentName() + '\'' +
+                ", containingFlow ='" + (containingFlow == null ? null : containingFlow.getName()) + '\'' +
+                ", containingFlowRoute ='" + (containingFlowRoute == null ? null : containingFlowRoute.getRouteName()) + '\'' +
                 '}';
     }
 }

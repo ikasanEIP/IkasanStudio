@@ -58,10 +58,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     public List<IkasanFlowRouteViewHandler> getAllFlowRouteViewHandlers(List<IkasanFlowRouteViewHandler> flowRouteViewHandlers, IkasanFlowRouteViewHandler currentRoot) {
         if (currentRoot != null) {
             flowRouteViewHandlers.add(currentRoot);
-        }
-        if (currentRoot.getChildFlowRouteViewHandlers() != null && !currentRoot.getChildFlowRouteViewHandlers().isEmpty()) {
-            for(IkasanFlowRouteViewHandler childFlowRouteViewHandler : currentRoot.getChildFlowRouteViewHandlers()) {
-                getAllFlowRouteViewHandlers(flowRouteViewHandlers, childFlowRouteViewHandler);
+
+            if (currentRoot.getChildFlowRouteViewHandlers() != null && !currentRoot.getChildFlowRouteViewHandlers().isEmpty()) {
+                for (IkasanFlowRouteViewHandler childFlowRouteViewHandler : currentRoot.getChildFlowRouteViewHandlers()) {
+                    getAllFlowRouteViewHandlers(flowRouteViewHandlers, childFlowRouteViewHandler);
+                }
             }
         }
         return flowRouteViewHandlers;
@@ -87,7 +88,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
 
     /**
      * Paint the flow itself and all the components within (technically, the view handler of each component will paint the
-     * component itseld
+     * component itself
      * @param canvas panel to paint on
      * @param g Swing graphics class
      * @param minimumLeftX of the flow
@@ -99,7 +100,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         return minimumTopY;
     }
 
-    protected void paintRoute(JPanel canvas, Graphics g, FlowRoute flowRoute) {
+    protected void paintRoute(JPanel canvas, Graphics g, FlowRoute flowRoute, FlowRoute parent) {
         List<FlowElement> flowAndConsumerElementList = flowRoute.getConsumerAndFlowRouteElements();
         int flowSize = flowAndConsumerElementList.size();
         StudioUIUtils.setLine(g, 2f);
@@ -112,29 +113,47 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
             if (flowComponentViewHandler != null) {
                 flowComponentViewHandler.paintComponent(canvas, g, -1, -1);
                 if (flowElement.getComponentMeta().isConsumer() || flowElement.getComponentMeta().isProducer()) {
-                    displayEndpointIfExists(canvas, g, flowElement);
+                    displayExternalEndpointIfExists(canvas, g, flowElement);
                 }
-            }
-            // Draw Connector
-            if (index < flowSize - 1) {
-                IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getOrCreateFlowComponentViewHandler(projectKey, flowAndConsumerElementList.get(index + 1));
-                if (flowComponentViewHandler != null && nextFlowComponentViewHandler != null) {
-                    if (index < flowSize - 1) {
-                        drawConnector(g, flowComponentViewHandler, nextFlowComponentViewHandler);
+
+
+                // Draw Connector to previous route
+                if (index == 0 && parent != null) {
+                    List<FlowElement> previousRouteFlowElements = parent.getFlowElements();
+                    if (previousRouteFlowElements != null && ! previousRouteFlowElements.isEmpty()) {
+                        FlowElement lastElementPreviousRoute = previousRouteFlowElements.get(previousRouteFlowElements.size()-1);
+                        IkasanFlowComponentViewHandler lastElementPreviousRouteViewHandler = getOrCreateFlowComponentViewHandler(projectKey, lastElementPreviousRoute);
+                        drawConnector(g, lastElementPreviousRouteViewHandler, flowComponentViewHandler);
+                    }
+                }
+                // Draw Connector to previous flow element
+                if (index < flowSize - 1) {
+                    IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getOrCreateFlowComponentViewHandler(projectKey, flowAndConsumerElementList.get(index + 1));
+                    if (nextFlowComponentViewHandler != null) {
+                        if (index < flowSize - 1) {
+                            drawConnector(g, flowComponentViewHandler, nextFlowComponentViewHandler);
+                        }
                     }
                 }
             }
         }
 
+        // Traverse down children to paint
         StudioUIUtils.setLine(g, 1f);
         if (flowRoute.getChildRoutes() != null) {
-            for (FlowRoute flowRoute1 : flowRoute.getChildRoutes()) {
-                paintRoute(canvas, g, flowRoute1);
+            for (FlowRoute childFlowRoute : flowRoute.getChildRoutes()) {
+                paintRoute(canvas, g, childFlowRoute, flowRoute);
             }
         }
     }
 
-    private void displayEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
+    /**
+     * The external endpoint reside outside the flow
+     * @param canvas to paint on
+     * @param g is the graphics callback
+     * @param targetFlowElement that may have an endpoint
+     */
+    private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
 
         String endpointComponentName = targetFlowElement.getComponentMeta().getEndpointKey();
         if (endpointComponentName != null) {
@@ -335,4 +354,20 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         }
         return currentMax;
     }
+//
+//
+//    public IkasanFlowRouteViewHandler getFlowRouteViewHandlerForRoute(FlowRoute flowRoute) {
+//        if (this.flowRoute.equals(flow)) {
+//            return this;
+//        } else {
+//            if (!childFlowRouteViewHandlers.isEmpty()) {
+//                for(IkasanFlowRouteViewHandler ikasanFlowViewHandler : childFlowRouteViewHandlers) {
+//                    if (ikasanFlowViewHandler.getFlowRouteViewHandlerForRoute(flowRoute) != null) {
+//                        return ikasanFlowViewHandler;
+//                    }
+//                }
+//            }
+//        }
+//        return null;
+//    }
 }
