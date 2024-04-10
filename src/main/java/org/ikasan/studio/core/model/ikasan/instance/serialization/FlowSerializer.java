@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
+
 public class FlowSerializer extends StdSerializer<Flow> {
 
     public FlowSerializer() {
@@ -44,7 +46,8 @@ public class FlowSerializer extends StdSerializer<Flow> {
         if (    flow.getConsumer() != null &&
                 flow.getFlowRoute().getFlowElements() != null &&
                 !flow.getFlowRoute().getFlowElements().isEmpty()) {
-            processFlowRouteTransitions(flow.getConsumer().getComponentName(), transitions, flow.getFlowRoute());
+//            processFlowRouteTransitions(flow.getConsumer().getComponentName(), transitions, flow.getFlowRoute());
+            processFlowRouteTransitions(flow.getConsumer(), transitions, flow.getFlowRoute());
         // Scenario2: Flow has multiple flow elements but no consumer
         // E1 -> E2
         } else if ( flow.getFlowRoute().getFlowElements() != null &&
@@ -80,18 +83,24 @@ public class FlowSerializer extends StdSerializer<Flow> {
      * @param transitions the growing list of transitions to be updated
      * @param flowRoute to be interrogated
      */
-    protected void processFlowRouteTransitions(String startElement, List<Transition> transitions, FlowRoute flowRoute) {
+//    protected void processFlowRouteTransitions(String startElement, List<Transition> transitions, FlowRoute flowRoute) {
+    protected void processFlowRouteTransitions(FlowElement startElement, List<Transition> transitions, FlowRoute flowRoute) {
+
         if (flowRoute != null) {
             String routeName = flowRoute.getRouteName();
             // process the elements at this level
             List<FlowElement> flowElements = flowRoute.getFlowElements();
-            String nextStartElement = null;
+//            String nextStartElement = null;
+            FlowElement nextStartElement = null;
             if (flowElements != null && !flowElements.isEmpty()) {
-                populateTransitionsFromFlowElements(startElement, routeName, transitions, flowElements);
+                populateTransitionsFromFlowElements(startElement.getName(), routeName, transitions, flowElements);
+//                populateTransitionsFromFlowElements(startElement, routeName, transitions, flowElements);
 
                 // Get the next start element, which might be the MRR
-                FlowElement lastInFlow = flowElements.get(flowElements.size() - 1);
-                nextStartElement = lastInFlow.getComponentName();
+//                FlowElement lastInFlow = flowElements.get(flowElements.size() - 1);
+//                nextStartElement = lastInFlow.getComponentName();
+//                nextStartElement = lastInFlow;
+                nextStartElement = flowElements.get(flowElements.size() - 1);
             }
 
             if (flowRoute.getChildRoutes() != null && !flowRoute.getChildRoutes().isEmpty()) {
@@ -123,6 +132,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
                     Transition.builder()
                         .from(flowElements.get(index-1).getComponentName())
                         .to(flowElements.get(index).getComponentName())
+                        .name(index <= 2 ? routeName : DEFAULT_TRANSITION_NAME)
                         .build()
                 );
             }

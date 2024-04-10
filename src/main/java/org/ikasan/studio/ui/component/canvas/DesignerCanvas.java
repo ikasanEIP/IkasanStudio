@@ -145,19 +145,18 @@ public class DesignerCanvas extends JPanel {
         clickStartMouseY = y;
         IkasanComponent mouseSelectedComponent = getComponentAtXY(x, y);
 
-        if (!(mouseSelectedComponent instanceof BasicElement)) {
+        if (!(mouseSelectedComponent instanceof BasicElement basicElement)) {
             return;
         }
-        BasicElement basicElement = (BasicElement) mouseSelectedComponent;
-          // Right click - popup menus
+        // Right click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
-            if (mouseSelectedComponent != null) {
-                DesignCanvasContextMenu.showPopupAndNavigateMenu(projectKey, this, me, basicElement);
-            } else {
-                DesignCanvasContextMenu.showPopupMenu(projectKey,this, me);
-            }
+            DesignCanvasContextMenu.showPopupAndNavigateMenu(projectKey, this, me, basicElement);
+//            if (mouseSelectedComponent != null) {
+//            } else {
+//                DesignCanvasContextMenu.showPopupMenu(projectKey,this, me);
+//            }
         } // Double click -> go to source
-        else if (mouseSelectedComponent != null && me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
+        else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
             AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, basicElement);
             if (viewHandler != null) {
@@ -171,8 +170,7 @@ public class DesignerCanvas extends JPanel {
             }
         } // Single click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
-                 (  mouseSelectedComponent != null &&
-                    ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, basicElement) != null &&
+                 (  ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, basicElement) != null &&
                     ! ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, basicElement).isAlreadySelected()
 
                  )) {
@@ -412,51 +410,81 @@ public class DesignerCanvas extends JPanel {
         return ikasanComponent;
     }
 
-    /**
-     * Given the x and y coords, return true if there is an ikasan flow that resides at that x,y.
-     *
-     * @param xpos of the mouse click
-     * @param ypos of the mouse click
-     * @return true if an ikasan flow resides at the location, false otherwise
-     */
-    public boolean isFlowAtXY(int xpos, int ypos) {
-        return null != getFlowAtXY(xpos, ypos);
-    }
+//    /**
+//     * Given the x and y coords, return true if there is an ikasan flow that resides at that x,y.
+//     *
+//     * @param xpos of the mouse click
+//     * @param ypos of the mouse click
+//     * @return true if an ikasan flow resides at the location, false otherwise
+//     */
+//    public boolean isFlowAtXY(int xpos, int ypos) {
+//        return null != getFlowAtXY(xpos, ypos);
+//    }
 
     /**
      * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
+     * Return true if its OK for the component to be dropped
      */
-    public void componentDraggedToFlowAction(int mouseX, int mouseY, final BasicElement ikasanBasicElement) {
+    public boolean componentDraggedToFlowAction(int mouseX, int mouseY, final BasicElement ikasanBasicElement) {
+        boolean okToAdd = false;
         if (ikasanBasicElement != null) {
-            final IkasanComponent targetComponent = getComponentAtXY(mouseX, mouseY);
-            Flow targetFlow = null;
-            FlowElement targetFlowComponent;
+            final IkasanComponent targetElement = getComponentAtXY(mouseX, mouseY);
 
-            if (targetComponent instanceof FlowElement) {
-                targetFlowComponent = (FlowElement)targetComponent;
-                targetFlow = targetFlowComponent.getContainingFlow();
-            } else if (targetComponent instanceof Flow) {
-                targetFlow = (Flow)targetComponent;
+            Flow targetFlow = null;
+            FlowRoute targetFlowRoute = null;
+//            FlowElement targetFlowComponent;
+            if (targetElement instanceof Flow) {
+                targetFlow = (Flow)targetElement;
+            } else if (targetElement instanceof FlowRoute) {
+                targetFlowRoute = (FlowRoute)targetElement;
+                targetFlow = targetFlowRoute.getFlow();
+            } else if (targetElement instanceof FlowElement) {
+                targetFlow = ((FlowElement)targetElement).getContainingFlow();
+                targetFlowRoute = ((FlowElement)targetElement).getContainingFlowRoute();
+            } else if (targetElement instanceof Module) {
+                if (ikasanBasicElement instanceof Flow) {
+                    okToAdd = true;
+                }
             }
 
-            if (targetFlow != null) {
-                IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, targetFlow);
-                String issue = targetFlow.getFlowRoute().issueCausedByAdding(ikasanBasicElement.getComponentMeta());
-                if (issue.isEmpty()) {
-                    if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
-                        ikasanFlowViewHandler.setFlowReceptiveMode();
-                        this.repaint();
-                    }
-                } else {
-                    if (!ikasanFlowViewHandler.isFlowWarningMode()) {
-                        ikasanFlowViewHandler.setFlowlWarningMode(mouseX, mouseY, issue);
-                        this.repaint();
+
+//            Flow targetFlow = null;
+//            FlowElement targetFlowComponent;
+//
+//            if (targetComponent instanceof FlowElement) {
+//                targetFlowComponent = (FlowElement)targetComponent;
+//                targetFlow = targetFlowComponent.getContainingFlow();
+//            } else if (targetComponent instanceof Flow) {
+//                targetFlow = (Flow)targetComponent;
+//            }
+
+            if (targetFlowRoute != null || targetFlow != null) {
+                String issue = "";
+                if (targetFlowRoute != null) {
+                    issue = targetFlowRoute.issueCausedByAdding(ikasanBasicElement.getComponentMeta());
+                }
+                if (targetFlow != null) {
+                    IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, targetFlow);
+                    issue += targetFlow.issueCausedByAdding(ikasanBasicElement.getComponentMeta(), targetFlowRoute);
+
+                    if (issue.isEmpty()) {
+                        okToAdd = true;
+                        if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
+                            ikasanFlowViewHandler.setFlowReceptiveMode();
+                            this.repaint();
+                        }
+                    } else {
+                        if (!ikasanFlowViewHandler.isFlowWarningMode()) {
+                            ikasanFlowViewHandler.setFlowlWarningMode(mouseX, mouseY, issue);
+                            this.repaint();
+                        }
                     }
                 }
             } else {
                 resetContextSensitiveHighlighting();
             }
         }
+        return okToAdd;
     }
 
     public void resetContextSensitiveHighlighting() {
@@ -511,7 +539,7 @@ public class DesignerCanvas extends JPanel {
             IkasanComponent targetElement = getComponentAtXY(x,y);
             IkasanObject newComponent;
             if (targetElement instanceof FlowElement || targetElement instanceof Flow || targetElement instanceof FlowRoute) {
-                Flow containingFlow = null;
+                Flow containingFlow;
                 FlowRoute containingFlowRoute = null;
                 if (targetElement instanceof Flow) {
                     containingFlow = (Flow)targetElement;

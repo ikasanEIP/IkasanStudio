@@ -1,7 +1,9 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.slf4j.Logger;
@@ -104,6 +106,11 @@ public class FlowRoute  implements IkasanComponent {
                 .anyMatch(e->e.getComponentMeta().isProducer());
     }
 
+    public boolean hasRouter() {
+        return flowElements.stream()
+                .anyMatch(e->e.getComponentMeta().isRouter());
+    }
+
     /**
      * @return A list of all non-null flow elements, including the consumer
      */
@@ -157,12 +164,10 @@ public class FlowRoute  implements IkasanComponent {
      */
     public String issueCausedByAdding(ComponentMeta newComponent) {
         String reason = "";
-        if (newComponent.isFlow()) {
-            reason += "You can add a flow to a module but not inside another flow";
-        } else if (flow.hasConsumer() && newComponent.isConsumer()) {
-            reason += "The flow cannot have more then one consumer";
-        } else if (hasProducer() && newComponent.isProducer()) {
-            reason += "The flow cannot have more then one producer";
+        if (hasProducer() && newComponent.isProducer()) {
+            reason += "The flow route cannot have more then one producer. ";
+        } else if (hasRouter() && newComponent.isRouter()) {
+            reason += "The flow route cannot have more then one router. ";
         }
         return reason;
     }
@@ -174,5 +179,27 @@ public class FlowRoute  implements IkasanComponent {
                 ", flowElements=" + flowElements +
                 ", routeName='" + routeName + '\'' +
                 '}';
+    }
+
+    public String toSimpleString() {
+        StringBuilder flowElementsBuilder = new StringBuilder();
+        if (flowElements != null && !flowElements.isEmpty()) {
+            for(FlowElement flowElement : flowElements) {
+                flowElementsBuilder.append(flowElement.getName()).append(",");
+            }
+        }
+
+        StringBuilder childRoutesBuilder = new StringBuilder();
+        if (childRoutes != null && !childRoutes.isEmpty()) {
+            for(FlowRoute childFlowRoute : childRoutes) {
+                childRoutesBuilder.append(childFlowRoute.toSimpleString()).append(",");
+            }
+        }
+
+        return "FlowRouteName='" + routeName + '\'' +
+                ",parentFlow='" + (flow!=null ? flow.getName() : null) + '\'' +
+                "[flowElements [" + flowElementsBuilder + "]\n" +
+                "childRoutes [" + childRoutesBuilder + "]" +
+                ']';
     }
 }

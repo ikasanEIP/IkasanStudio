@@ -150,19 +150,19 @@ public  class BasicElement extends IkasanObject {
         }
     }
 
-    /**
-     * Set the value of the (existing) property. Properties have associated metadata so we can't just add values.
-     * @param key of the data to be updated
-     * @param value for the updated property
-     */
-    public void updatePropertyValue(String key, Object value) {
-        ComponentProperty componentProperty = componentProperties.get(key);
-        if (componentProperty != null) {
-            componentProperty.setValue(value);
-        } else {
-            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
-        }
-    }
+//    /**
+//     * Set the value of the (existing) property. Properties have associated metadata so we can't just add values.
+//     * @param key of the data to be updated
+//     * @param value for the updated property
+//     */
+//    public void updatePropertyValue(String key, Object value) {
+//        ComponentProperty componentProperty = componentProperties.get(key);
+//        if (componentProperty != null) {
+//            componentProperty.setValue(value);
+//        } else {
+//            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
+//        }
+//    }
 
 
     /**
@@ -234,9 +234,9 @@ public  class BasicElement extends IkasanObject {
         return standardProperties;
     }
 
-    public void addAllProperties(Map<String, ComponentProperty> newProperties) {
-        componentProperties.putAll(newProperties);
-    }
+//    public void addAllProperties(Map<String, ComponentProperty> newProperties) {
+//        componentProperties.putAll(newProperties);
+//    }
     public void addComponentProperty(String key, ComponentProperty value) {
         componentProperties.put(key, value);
     }
@@ -265,5 +265,17 @@ public  class BasicElement extends IkasanObject {
                 "properties=" + componentProperties +
                 ", type=" + componentMeta +
                 '}';
+    }
+
+    public String toSimpleString() {
+        StringBuilder builder = new StringBuilder();
+        if (componentProperties != null && !componentProperties.isEmpty()) {
+            for(ComponentProperty componentProperty : componentProperties.values()) {
+                builder.append(componentProperty.getMeta().getPropertyName()).append("=").append(componentProperty.getValue()).append(", ");
+            }
+        }
+
+        return "type=" + (componentMeta!=null ? componentMeta.getName() : null) +
+                ",properties[" + builder + "]" ;
     }
 }

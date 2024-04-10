@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,7 @@ public class Flow extends BasicElement {
                 return true;
             }
         }
-        if (flowRoute.getChildRoutes() != null) {
+        if (flowRoute != null && flowRoute.getChildRoutes() != null) {
             for(FlowRoute childRoute : flowRoute.getChildRoutes()) {
                 if (anyFlowRouteHasComponents(childRoute)) {
                     return true;
@@ -116,7 +117,7 @@ public class Flow extends BasicElement {
                 return searchRoute;
             }
         }
-        if (searchRoute.getChildRoutes() != null) {
+        if (searchRoute != null && searchRoute.getChildRoutes() != null) {
             for(FlowRoute childRoute : searchRoute.getChildRoutes()) {
                 if (getFlowRouteContaining(childRoute, targetFlowElement) != null) {
                     return childRoute;
@@ -126,17 +127,17 @@ public class Flow extends BasicElement {
         return null;
     }
 
-    public List<FlowRoute> getAllFlowRoutes(List<FlowRoute> flowRoutes, FlowRoute currentRoot) {
-        if (currentRoot != null) {
-            flowRoutes.add(currentRoot);
-        }
-        if (currentRoot.getChildRoutes() != null && !currentRoot.getChildRoutes().isEmpty()) {
-            for(FlowRoute childRoute : currentRoot.getChildRoutes()) {
-                getAllFlowRoutes(flowRoutes, childRoute);
-            }
-        }
-        return flowRoutes;
-    }
+//    public List<FlowRoute> getAllFlowRoutes(List<FlowRoute> flowRoutes, FlowRoute currentRoot) {
+//        if (currentRoot != null) {
+//            flowRoutes.add(currentRoot);
+//        }
+//        if (currentRoot != null && currentRoot.getChildRoutes() != null && !currentRoot.getChildRoutes().isEmpty()) {
+//            for(FlowRoute childRoute : currentRoot.getChildRoutes()) {
+//                getAllFlowRoutes(flowRoutes, childRoute);
+//            }
+//        }
+//        return flowRoutes;
+//    }
 
 
     /**
@@ -161,7 +162,7 @@ public class Flow extends BasicElement {
                 flowElementsList.addAll(thisRouteFlowElementList);
             }
         }
-        if (flowRoute.getChildRoutes() != null) {
+        if (flowRoute != null && flowRoute.getChildRoutes() != null) {
             for(FlowRoute childRoute : flowRoute.getChildRoutes()) {
                 getAllFlowElementsInAnyRoute(flowElementsList, childRoute);
             }
@@ -212,5 +213,34 @@ public class Flow extends BasicElement {
             status += " to be complete.";
         }
         return status;
+    }
+
+    /**
+     * If the component can be added to the flow, return an empty string otherwise state the reason why
+     * @param newComponent to be added
+     * @return reason why the component can not be added or empty string if there is no problem.
+     */
+    public String issueCausedByAdding(ComponentMeta newComponent, FlowRoute targetRoute) {
+        String reason = "";
+        if (newComponent.isFlow()) {
+            reason += "You can add a flow to a module but not inside another flow. ";
+        } else if (getConsumer() != null && newComponent.isConsumer()) {
+            reason += "The flow cannot have more then one consumer. ";
+        } else if (getExceptionResolver() != null && newComponent.isExceptionResolver()) {
+            reason += "The flow cannot have more then one exception resolver. ";
+        } else if (targetRoute == null) {
+            reason += "Please drop into route. ";
+        }
+        return reason;
+    }
+
+    @Override
+    public String toSimpleString() {
+
+        return getName() + "[" + super.toSimpleString() +
+                " consumer=" + (consumer!=null ? consumer.toSimpleString() : null) + "\n" +
+                ", exceptionResolver=" + (exceptionResolver!=null ? exceptionResolver.toSimpleString() : null) + "\n" +
+                ", flowRoute [" + (flowRoute!=null ? flowRoute.toSimpleString() : null) + "]" + "\n" +
+                ']';
     }
 }
