@@ -137,12 +137,9 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         }
     }
 
-    public AbstractViewHandler getViewHandler(String projectKey) {
-        return null;
-    }
+    public abstract AbstractViewHandler getViewHandler(String projectKey);
 
-    public void setViewHandler(String projectKey) {
-    }
+    public abstract void setViewHandler(String projectKey) ;
 
     /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
@@ -161,7 +158,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     }
 
     public IkasanFlowViewHandler getOrCreateFlowViewViewHandler(String projectKey, Flow flow) {
-        IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, flow);
+        IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow);
         return (IkasanFlowViewHandler)verifyHandler(viewHandler);
     }
 

@@ -75,6 +75,14 @@ public class FlowRoute  implements IkasanComponent {
         }
     }
 
+    /**
+     * Is the route devoid of children and elements
+     * @return true if there are no children and no elements.
+     */
+    public boolean isEmpty() {
+        return childRoutes.isEmpty() && flowElements.isEmpty();
+    }
+
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
         if (flowElements!=null && flowElements.contains(ikasanFlowComponentToBeRemoved)) {
             flowElements.remove(ikasanFlowComponentToBeRemoved);
@@ -99,7 +107,6 @@ public class FlowRoute  implements IkasanComponent {
             return status;
         }
     }
-
 
     public boolean hasProducer() {
         return flowElements.stream()
@@ -166,6 +173,8 @@ public class FlowRoute  implements IkasanComponent {
         String reason = "";
         if (hasProducer() && newComponent.isProducer()) {
             reason += "The flow route cannot have more then one producer. ";
+        } else if (hasRouter() && newComponent.isProducer()) {
+            reason += "The flow route cannot have a router AND a producer. ";
         } else if (hasRouter() && newComponent.isRouter()) {
             reason += "The flow route cannot have more then one router. ";
         }

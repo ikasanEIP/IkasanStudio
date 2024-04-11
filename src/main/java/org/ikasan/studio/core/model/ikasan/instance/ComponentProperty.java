@@ -7,6 +7,9 @@ import lombok.ToString;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Holds the value of a property
  */
@@ -34,7 +37,14 @@ public class ComponentProperty {
 
     @JsonIgnore
     public String getValueString() {
-        return value == null ? "null" : value.toString();
+        String returnValue = "null";
+        if (value != null) {
+            if (value instanceof List) {
+                returnValue = Arrays.toString(((List) value).toArray());
+            } else
+                returnValue = value.toString();
+        }
+        return returnValue;
     }
 
     @JsonIgnore

@@ -25,7 +25,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException, StudioBuildException {
+    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException {
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
@@ -61,6 +61,16 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     @Test
     public void testCreateFlowWith_localFileConsumer() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getLocalFileConsumer();
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
+    }
+    /**
+     * See also application_fullyPopulatedLocalFileConsumerComponent.properties
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_localFileConsumerMandatoryOnly() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getLocalFileConsumerMandatoryOnly();
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
     }

@@ -213,6 +213,17 @@ public class TestFixtures {
         return flowElement;
     }
 
+    public static FlowElement getLocalFileConsumerMandatoryOnly() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Local File Consumer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Local File Consumer")
+                .build();
+        flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
+        flowElement.setPropertyValue("filenames", "{'myFile','anotherFile'}");
+        return flowElement;
+    }
+
     public static FlowElement getSpringJmsConsumer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Spring JMS Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
