@@ -127,19 +127,6 @@ public class Flow extends BasicElement {
         return null;
     }
 
-//    public List<FlowRoute> getAllFlowRoutes(List<FlowRoute> flowRoutes, FlowRoute currentRoot) {
-//        if (currentRoot != null) {
-//            flowRoutes.add(currentRoot);
-//        }
-//        if (currentRoot != null && currentRoot.getChildRoutes() != null && !currentRoot.getChildRoutes().isEmpty()) {
-//            for(FlowRoute childRoute : currentRoot.getChildRoutes()) {
-//                getAllFlowRoutes(flowRoutes, childRoute);
-//            }
-//        }
-//        return flowRoutes;
-//    }
-
-
     /**
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer
@@ -228,7 +215,7 @@ public class Flow extends BasicElement {
             reason += "The flow cannot have more then one consumer. ";
         } else if (getExceptionResolver() != null && newComponent.isExceptionResolver()) {
             reason += "The flow cannot have more then one exception resolver. ";
-        } else if (targetRoute == null) {
+        } else if (targetRoute == null && flowRoute != null && !flowRoute.isEmpty()) {
             reason += "Please drop into route. ";
         }
         return reason;

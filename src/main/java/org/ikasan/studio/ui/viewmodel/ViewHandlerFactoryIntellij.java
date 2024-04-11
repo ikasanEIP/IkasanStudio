@@ -38,7 +38,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         return returnAbstractViewHandlerIntellij;
     }
 
-    public static IkasanFlowViewHandler getFlowViewHandler(String projectKey, Flow flow) {
+    public static IkasanFlowViewHandler getOrCreateFlowViewHandler(String projectKey, Flow flow) {
         ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowViewHandler viewHandler = null;
         try {

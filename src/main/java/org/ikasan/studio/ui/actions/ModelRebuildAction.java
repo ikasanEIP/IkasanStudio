@@ -1,17 +1,14 @@
 package org.ikasan.studio.ui.actions;
 
-import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ModelRebuildAction implements ActionListener {
-   private static final Logger LOG = Logger.getInstance("#ModelRebuildAction");
    private final String projectKey;
 
    public ModelRebuildAction(String projectKey) {
@@ -23,14 +20,7 @@ public class ModelRebuildAction implements ActionListener {
 
       if (module != null) {
          StudioUIUtils.displayIdeaInfoMessage(projectKey, "Rebuilding source code from memory model.");
-         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-         pipsiIkasanModel.generateSourceFromModelInstance3();
-
-         module = UiContext.getIkasanModule(projectKey);
-         LOG.info("ikasan module was " + ComponentIO.toJson(module));
-
-         UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-         UiContext.getDesignerCanvas(projectKey).repaint();
+         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       } else {
          StudioUIUtils.displayIdeaWarnMessage(projectKey, "Rebuilding can't be launched unless a module is defined.");
       }

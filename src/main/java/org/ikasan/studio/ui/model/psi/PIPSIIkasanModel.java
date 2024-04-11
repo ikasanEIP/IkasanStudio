@@ -42,10 +42,10 @@ public class PIPSIIkasanModel {
         this.projectKey = projectKey;
 
     }
-
-    protected Project getProject() {
-        return UiContext.getProject(projectKey);
-    }
+//
+//    protected Project getProject() {
+//        return UiContext.getProject(projectKey);
+//    }
 
 
     /**
@@ -130,7 +130,7 @@ public class PIPSIIkasanModel {
         Set<String> flowPackageNames = new HashSet<>();
         for (Flow ikasanFlow : module.getFlows()) {
 
-            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, ikasanFlow);
 
             String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             flowPackageNames.add(ikasanFlow.getJavaPackageName());

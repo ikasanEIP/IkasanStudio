@@ -312,29 +312,25 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 addNewRoutesForRouter(metapackVersion, flow, currentFlowRoute, toElement);
             }
 
+            boolean routerDetected = false;
             // Note the router always marks the end of a route
             if (nextTransitionList == null && toElement != null ||
                 toElement != null && toElement.getComponentMeta().isRouter()) {
                 // Add the one element and finish
                 toElement.setContainingFlowRoute(currentFlowRoute);
                 currentFlowRoute.getFlowElements().add(toElement);
+                routerDetected = true;
             }
 
             if (nextTransitionList != null) {
                 // This must be a split for a router
-                if (nextTransitionList.size() > 1) {
+                if (routerDetected) {
                     // The new flow route was created about and should be accessible via routeName
                     for (Transition nextTransition : nextTransitionList) {
                         // The newRoute will already contain the router endpoint
                         FlowRoute newRoute = getChildWithName(currentFlowRoute.getChildRoutes(), nextTransition.getName());
-                        // The first transition after to the link to the MRR is where we start
-                        List<Transition> firstTransitionNewRoute = transitionsMap.get(nextTransition.getTo());
-                        if (firstTransitionNewRoute != null && firstTransitionNewRoute.size() > 1) {
-                            LOG.warn("SERIOUS: The first transition of a new route shounld only have 1 element, ignoring thr second, please in investigae. srartTransition was " + Arrays.toString(firstTransitionNewRoute.toArray()));
-                        }
-                        // There may be no elements on the next route to process
-                        if (newRoute != null && firstTransitionNewRoute!= null) {
-                            buildRouteTree(metapackVersion, flow, newRoute, transitionsMap, flowElementsMap, firstTransitionNewRoute.get(0));
+                        if (newRoute != null) {
+                            buildRouteTree(metapackVersion, flow, newRoute, transitionsMap, flowElementsMap, nextTransition);
                         }
                     }
                 } else {
@@ -405,33 +401,6 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return endpointFlowElement;
     }
 
-//    /**
-//     * Create add to the supplied list of flow elements if the FlowElement with the key of component name is not a consumer and is not null
-//     * @param sortedFlowElements to be updated if the found flow element is not null
-//     * @param flowElementsMap containing the components known to this flow
-//     * @param componentName to be added
-//     */
-//    private void addFlowElementIfNotNull(List<FlowElement> sortedFlowElements, Map<String, FlowElement> flowElementsMap, String componentName) {
-//        FlowElement flowElement = flowElementsMap.get(componentName);
-//        if (flowElement != null) {
-//            if (!flowElement.getComponentMeta().isConsumer()) {
-//                sortedFlowElements.add(flowElement);
-//            }
-//        } else {
-//            LOG.warn("While trying to add the component, the component named " + componentName + " was present in a transition but was not defined in the flow, known components are [" + flowElementsMap.keySet() + "], assuming it was removed without updating the transition");
-//        }
-//    }
-//
-//    private boolean elementIsRouter(Map<String, FlowElement> flowElementsMap, String componentName) {
-//        boolean isRouter = false;
-//        FlowElement flowElement = flowElementsMap.get(componentName);
-//        if (flowElement != null) {
-//            isRouter = flowElement.getComponentMeta().isRouter();
-//        } else {
-//            LOG.warn("While checking the type, the component named " + componentName + " was present in a transition but was not defined in the flow, known components are [" + flowElementsMap.keySet() + "], assuming it was removed without updating the transition");
-//        }
-//        return isRouter;
-//    }
 
     public List<Transition> getTransitions(JsonNode root) {
         List<Transition> transitions = new ArrayList<>();

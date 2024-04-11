@@ -73,13 +73,13 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         return flowRoute != null ? flowRoute.getRouteName() : "";
     }
 
-    private int getFlowRouteTitleWidth(Graphics g) {
-        return StudioUIUtils.getTextWidth(g, getText());
-    }
-
-    private int getFlowRouteTitleHeight(Graphics g) {
-        return StudioUIUtils.getTextHeight(g);
-    }
+//    private int getFlowRouteTitleWidth(Graphics g) {
+//        return StudioUIUtils.getTextWidth(g, getText());
+//    }
+//
+//    private int getFlowRouteTitleHeight(Graphics g) {
+//        return StudioUIUtils.getTextHeight(g);
+//    }
 
     private int paintRouteFlowTitle(Graphics g, PaintMode paintMode) {
         return StudioUIUtils.drawCenteredStringFromTopCentre
@@ -189,7 +189,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                         endpointViewHandler.paintComponent(canvas, g, -1, -1);
                         drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                     } else {
-                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+//                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                        endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
                         endpointViewHandler.paintComponent(canvas, g, -1, -1);
                         drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
                     }
@@ -217,7 +218,14 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         LOG.warn("SERIOUS: incorrect initialiseDimensions called for FlowRouteViewHandler :" + Arrays.asList(thread.getStackTrace()));
     }
 
-    protected void initialiseDimensions(Graphics graphics, int currentX, int topYForElements) {
+    /**
+     * Initilise the demonsions of the components
+     * @param graphics handle
+     * @param currentX for the start of the flow route
+     * @param topYForElements top y for flow elements
+     * @return the new top Y for flow elements
+     */
+    protected int initialiseDimensions(Graphics graphics, int currentX, int topYForElements) {
         java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
@@ -232,10 +240,21 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         int nextRowY = topYForElements;
 
         for(IkasanFlowRouteViewHandler flowRouteViewHandler : childFlowRouteViewHandlers) {
-            flowRouteViewHandler.initialiseDimensions(graphics, currentX, nextRowY);
-            // Every new route needs to be 1 row lower down
-            nextRowY += flowRouteViewHandler.getHeight();
+            nextRowY = flowRouteViewHandler.initialiseDimensions(graphics, currentX, nextRowY);
         }
+        if (isLeaf()) {
+            nextRowY += getHeight();
+        }
+
+        return nextRowY;
+    }
+
+    /**
+     * If this the last route view handler in the chain
+     * @return true if there are no more children.
+     */
+    private boolean isLeaf() {
+        return flowRoute.getChildRoutes() == null || flowRoute.getChildRoutes().isEmpty();
     }
 
     private void setWidthAndHeights(Graphics graphics)  {
@@ -354,20 +373,4 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         }
         return currentMax;
     }
-//
-//
-//    public IkasanFlowRouteViewHandler getFlowRouteViewHandlerForRoute(FlowRoute flowRoute) {
-//        if (this.flowRoute.equals(flow)) {
-//            return this;
-//        } else {
-//            if (!childFlowRouteViewHandlers.isEmpty()) {
-//                for(IkasanFlowRouteViewHandler ikasanFlowViewHandler : childFlowRouteViewHandlers) {
-//                    if (ikasanFlowViewHandler.getFlowRouteViewHandlerForRoute(flowRoute) != null) {
-//                        return ikasanFlowViewHandler;
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
 }

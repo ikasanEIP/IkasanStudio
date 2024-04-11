@@ -110,14 +110,6 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
 
-//    private void drawConnector(Graphics g, AbstractViewHandlerIntellij start, AbstractViewHandlerIntellij end) {
-//        g.drawLine(
-//                start.getRightConnectorPoint().x,
-//                start.getRightConnectorPoint().y,
-//                end.getLeftConnectorPoint().x,
-//                end.getLeftConnectorPoint().y);
-//    }
-
     private int getYAfterPaintingFlowTitle(Graphics g) {
         return paintFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;
     }
@@ -140,7 +132,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
 
-        flowRouteViewHandler.initialiseDimensions(graphics, currentX, topYForElements);
+        topYForElements = flowRouteViewHandler.initialiseDimensions(graphics, currentX, topYForElements);
 
         setWidthAndHeights(graphics);
 

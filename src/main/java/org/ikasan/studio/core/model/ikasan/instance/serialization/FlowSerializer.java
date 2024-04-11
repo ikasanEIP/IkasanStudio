@@ -3,14 +3,15 @@ package org.ikasan.studio.core.model.ikasan.instance.serialization;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Transition;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
 
 public class FlowSerializer extends StdSerializer<Flow> {
 
@@ -46,7 +47,6 @@ public class FlowSerializer extends StdSerializer<Flow> {
         if (    flow.getConsumer() != null &&
                 flow.getFlowRoute().getFlowElements() != null &&
                 !flow.getFlowRoute().getFlowElements().isEmpty()) {
-//            processFlowRouteTransitions(flow.getConsumer().getComponentName(), transitions, flow.getFlowRoute());
             processFlowRouteTransitions(flow.getConsumer(), transitions, flow.getFlowRoute());
         // Scenario2: Flow has multiple flow elements but no consumer
         // E1 -> E2
@@ -83,23 +83,17 @@ public class FlowSerializer extends StdSerializer<Flow> {
      * @param transitions the growing list of transitions to be updated
      * @param flowRoute to be interrogated
      */
-//    protected void processFlowRouteTransitions(String startElement, List<Transition> transitions, FlowRoute flowRoute) {
     protected void processFlowRouteTransitions(FlowElement startElement, List<Transition> transitions, FlowRoute flowRoute) {
 
         if (flowRoute != null) {
             String routeName = flowRoute.getRouteName();
             // process the elements at this level
             List<FlowElement> flowElements = flowRoute.getFlowElements();
-//            String nextStartElement = null;
             FlowElement nextStartElement = null;
             if (flowElements != null && !flowElements.isEmpty()) {
-                populateTransitionsFromFlowElements(startElement.getName(), routeName, transitions, flowElements);
-//                populateTransitionsFromFlowElements(startElement, routeName, transitions, flowElements);
+                populateTransitionsFromFlowElements(startElement, routeName, transitions, flowElements);
 
                 // Get the next start element, which might be the MRR
-//                FlowElement lastInFlow = flowElements.get(flowElements.size() - 1);
-//                nextStartElement = lastInFlow.getComponentName();
-//                nextStartElement = lastInFlow;
                 nextStartElement = flowElements.get(flowElements.size() - 1);
             }
 
@@ -118,23 +112,33 @@ public class FlowSerializer extends StdSerializer<Flow> {
      * @param transitions the growing list of transitions to be updated
      * @param flowElements to be interrogated
      */
-    private void populateTransitionsFromFlowElements(String startElement, String routeName, List<Transition> transitions, List<FlowElement> flowElements) {
+    private void populateTransitionsFromFlowElements(FlowElement startElement, String routeName, List<Transition> transitions, List<FlowElement> flowElements) {
         if (flowElements!=null && !flowElements.isEmpty()) {
-            if (startElement != null) {
-                transitions.add(Transition.builder()
-                        .from(startElement)
-                        .to(flowElements.get(0).getComponentName())
-                        .name(routeName)
-                        .build());
-            }
-            for(int index = 1; index < flowElements.size(); index++) {
-                transitions.add(
-                    Transition.builder()
-                        .from(flowElements.get(index-1).getComponentName())
-                        .to(flowElements.get(index).getComponentName())
-                        .name(index <= 2 ? routeName : DEFAULT_TRANSITION_NAME)
-                        .build()
-                );
+            for(int index = 0; index < flowElements.size(); index++) {
+                FlowElement from = flowElements.get(index);
+                FlowElement to = null;
+                if (index+1 < flowElements.size()) {
+                    to = flowElements.get(index+1);
+                }
+                if (!from.getComponentMeta().isEndpoint()) {
+                    // If a start was provided, it will be the last element of the previous route
+                    if (startElement != null && !startElement.getComponentMeta().isEndpoint()) {
+                        transitions.add(Transition.builder()
+                                .from(startElement.getName())
+                                .to(from.getComponentName())
+                                .name(routeName)
+                                .build());
+                        startElement = null;
+                    }
+                    if (to != null && !to.getComponentMeta().isEndpoint()) {
+                        transitions.add(
+                                Transition.builder()
+                                        .from(from.getComponentName())
+                                        .to(to.getComponentName())
+                                        .build()
+                        );
+                    }
+                }
             }
         }
     }
@@ -144,9 +148,11 @@ public class FlowSerializer extends StdSerializer<Flow> {
             for (FlowRoute flowRoute : flowRoutes) {
                 if (flowRoute.getFlowElements() != null && !flowRoute.getFlowElements().isEmpty()) {
                     for (FlowElement flowElement : flowRoute.getFlowElements()) {
-                        jsonGenerator.writeStartObject();
-                        flowElementSerializer.serializePayload(flowElement, jsonGenerator);
-                        jsonGenerator.writeEndObject();
+                        if (!flowElement.getComponentMeta().isEndpoint()) {
+                            jsonGenerator.writeStartObject();
+                            flowElementSerializer.serializePayload(flowElement, jsonGenerator);
+                            jsonGenerator.writeEndObject();
+                        }
                     }
                 }
                 processFlowRouteFlowElements(flowRoute.getChildRoutes(), jsonGenerator, flowElementSerializer);

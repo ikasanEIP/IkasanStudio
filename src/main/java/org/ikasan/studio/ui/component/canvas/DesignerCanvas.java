@@ -464,7 +464,7 @@ public class DesignerCanvas extends JPanel {
                     issue = targetFlowRoute.issueCausedByAdding(ikasanBasicElement.getComponentMeta());
                 }
                 if (targetFlow != null) {
-                    IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerFactoryIntellij.getFlowViewHandler(projectKey, targetFlow);
+                    IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, targetFlow);
                     issue += targetFlow.issueCausedByAdding(ikasanBasicElement.getComponentMeta(), targetFlowRoute);
 
                     if (issue.isEmpty()) {
