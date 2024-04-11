@@ -137,9 +137,9 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         }
     }
 
-    public abstract AbstractViewHandler getViewHandler(String projectKey);
-
-    public abstract void setViewHandler(String projectKey) ;
+//    public abstract AbstractViewHandler getViewHandler(String projectKey);
+//
+//    public abstract void setViewHandler(String projectKey) ;
 
     /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement

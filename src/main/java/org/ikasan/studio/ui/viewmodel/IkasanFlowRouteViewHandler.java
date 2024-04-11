@@ -73,13 +73,13 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         return flowRoute != null ? flowRoute.getRouteName() : "";
     }
 
-//    private int getFlowRouteTitleWidth(Graphics g) {
-//        return StudioUIUtils.getTextWidth(g, getText());
-//    }
-//
-//    private int getFlowRouteTitleHeight(Graphics g) {
-//        return StudioUIUtils.getTextHeight(g);
-//    }
+    private int getFlowRouteTitleWidth(Graphics g) {
+        return StudioUIUtils.getTextWidth(g, getText());
+    }
+
+    private int getFlowRouteTitleHeight(Graphics g) {
+        return StudioUIUtils.getTextHeight(g);
+    }
 
     private int paintRouteFlowTitle(Graphics g, PaintMode paintMode) {
         return StudioUIUtils.drawCenteredStringFromTopCentre
