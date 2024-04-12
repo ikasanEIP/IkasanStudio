@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROUTE_NAMES;
 
 /**
  * The 'default' flow is contained in a single FlowRoute i.e. each node
@@ -80,16 +81,62 @@ public class FlowRoute  implements IkasanComponent {
      * @return true if there are no children and no elements.
      */
     public boolean isEmpty() {
-        return childRoutes.isEmpty() && flowElements.isEmpty();
+        if (childRoutes != null || !childRoutes.isEmpty()) {
+            for(FlowRoute childRoute : childRoutes) {
+                if (!childRoute.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return flowElements == null || flowElements.isEmpty();
     }
 
+    protected FlowRoute getRouteOfName(String routeName) {
+        if (routeName != null && childRoutes != null && childRoutes.size() > 0) {
+            for(FlowRoute childRoute : childRoutes) {
+                if (childRoute.getRouteName().equals(routeName)) {
+                    return childRoute;
+                }
+            }
+        }
+        return null;
+    }
+
+//    /**
+//     * For now this does little but left here in case we need to remove circular dependencies
+//     */
+//    protected void deleteRoute() {
+//        childRoutes = null;
+//        flowElements = null;
+//    }
+
+    /**
+     * Attempt to remove the element from the flow. Note that the UI threads can sometimes call this multiple times so
+     * Extra checks are required.
+     * @param ikasanFlowComponentToBeRemoved from this route
+     */
     public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
-        if (flowElements!=null && flowElements.contains(ikasanFlowComponentToBeRemoved)) {
+        if (ikasanFlowComponentToBeRemoved != null) {
+            if (ikasanFlowComponentToBeRemoved.componentMeta.isRouter()) {
+                for (String routeName : (List<String>) ikasanFlowComponentToBeRemoved.getPropertyValue(ROUTE_NAMES)) {
+                    FlowRoute deleteTarget = getRouteOfName(routeName);
+                    if (deleteTarget != null && this != deleteTarget) {
+//                        deleteTarget.deleteRoute();
+                        childRoutes.remove(deleteTarget);
+                    }
+                }
+            }
             flowElements.remove(ikasanFlowComponentToBeRemoved);
-        } else if (childRoutes != null) {
-            childRoutes.forEach(flowRoute -> flowRoute.removeFlowElement(ikasanFlowComponentToBeRemoved));
         }
     }
+
+//    public void removeFlowElement2(FlowElement ikasanFlowComponentToBeRemoved) {
+//        if (flowElements!=null && flowElements.contains(ikasanFlowComponentToBeRemoved)) {
+//            flowElements.remove(ikasanFlowComponentToBeRemoved);
+//        } else if (childRoutes != null) {
+//            childRoutes.forEach(flowRoute -> flowRoute.removeFlowElement2(ikasanFlowComponentToBeRemoved));
+//        }
+//    }
 
     /**
      * Determine the current state of the flow for completeness
@@ -137,19 +184,27 @@ public class FlowRoute  implements IkasanComponent {
      * @return A list of all non-null flow elements, including the consumer and router endpoints
      */
     public List<FlowElement> getFlowElementsNoExternalEndPoints() {
-        List<FlowElement> allElements  = getFlowElements().stream()
-                .filter(x-> ! x.componentMeta.isEndpoint() || x.componentMeta.isInternalEndpoint())
-                .toList();
-        return allElements;
+        if (getFlowElements() == null) {
+            return new ArrayList<>();
+        } else {
+            List<FlowElement> allElements = getFlowElements().stream()
+                    .filter(x -> !x.componentMeta.isEndpoint() || x.componentMeta.isInternalEndpoint())
+                    .toList();
+            return allElements;
+        }
     }
     /**
      * @return A list of all non-null flow elements, including the consumer
      */
     public List<FlowElement> ftlGetConsumerAndFlowElementsNoEndPoints() {
-        List<FlowElement> allElements  = getConsumerAndFlowRouteElements().stream()
-                .filter(x-> ! x.componentMeta.isEndpoint())
-                .toList();
-        return allElements;
+        if (getConsumerAndFlowRouteElements() == null) {
+            return new ArrayList<>();
+        } else {
+            List<FlowElement> allElements = getConsumerAndFlowRouteElements().stream()
+                    .filter(x -> !x.componentMeta.isEndpoint())
+                    .toList();
+            return allElements;
+        }
     }
 
     /**

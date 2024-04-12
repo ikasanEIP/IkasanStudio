@@ -173,6 +173,18 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 // The root of the tree, buildRouteTree is recursive
                 buildRouteTree(metapackVersion, flow, returnFlowRoute, transitionsMap, flowElementsMap, firstTransition.get(0));
             }
+        } // Edge case, one element, no transitions.
+        else if (flowElementsMap != null && !flowElementsMap.isEmpty()) {
+            FlowElement singleElmenet = flowElementsMap.values().stream().findFirst().orElse(null);
+            if (singleElmenet != null) {
+                if (singleElmenet.getComponentMeta().isRouter()) {
+                    singleElmenet.setContainingFlowRoute(returnFlowRoute);
+                    returnFlowRoute.getFlowElements().add(singleElmenet);
+                    addNewRoutesForRouter(metapackVersion, flow, returnFlowRoute, singleElmenet);
+                } else {
+                    addToRouteIfAllowed(singleElmenet, returnFlowRoute);
+                }
+            }
         }
         return returnFlowRoute;
     }
@@ -268,6 +280,15 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return fromKeys.stream().findFirst().orElse("");
     }
 
+    protected void addToRouteIfAllowed(FlowElement flowElement, FlowRoute currentFlowRoute) {
+        if ( !flowElement.getComponentMeta().isConsumer() &&
+            !flowElement.getComponentMeta().isEndpoint() &&
+            !flowElement.getComponentMeta().isRouter()) {
+            flowElement.setContainingFlowRoute(currentFlowRoute);
+            currentFlowRoute.getFlowElements().add(flowElement);
+        }
+    }
+
     /**
      * Update returnFlowRoute, build out the flowElement and nested flowRoute
      * @param currentFlowRoute to be updated
@@ -293,12 +314,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 LOG.warn("WARN: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
             // We never add the consumer
             // We never add the router as a fromElement, the endpoint is its connector in the new route
-            } else if (
-                    !fromElement.getComponentMeta().isConsumer() &&
-                    !fromElement.getComponentMeta().isEndpoint() &&
-                    !fromElement.getComponentMeta().isRouter()) {
-                fromElement.setContainingFlowRoute(currentFlowRoute);
-                currentFlowRoute.getFlowElements().add(fromElement);
+            } else {
+                addToRouteIfAllowed(fromElement, currentFlowRoute);
             }
 
             // This could be an MRR

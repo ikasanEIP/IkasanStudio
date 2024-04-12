@@ -76,7 +76,7 @@ public class Flow extends BasicElement {
             } else if (ikasanFlowComponentToBeRemoved.getComponentMeta().isExceptionResolver()) {
                 setExceptionResolver(null);
             } else if (flowRoute != null) {
-                flowRoute.removeFlowElement(ikasanFlowComponentToBeRemoved);
+                ikasanFlowComponentToBeRemoved.getContainingFlowRoute().removeFlowElement(ikasanFlowComponentToBeRemoved);
             } else {
                 LOG.warn("Attempt to remove element " + ikasanFlowComponentToBeRemoved + " because it could not be found in the memory model");
             }

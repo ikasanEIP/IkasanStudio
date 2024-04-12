@@ -82,4 +82,12 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     public String getText() {
         return module.getName();
     }
+
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    @Override
+    public void dispose() {
+
+    }
 }

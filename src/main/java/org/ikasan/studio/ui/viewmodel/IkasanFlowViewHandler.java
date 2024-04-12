@@ -150,11 +150,17 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     private void setWidthAndHeights(Graphics graphics)  {
-        if (flowRouteViewHandler != null) {
+        if ((flowRouteViewHandler != null && !flowRouteViewHandler.getFlowRoute().isEmpty()) ||
+             flow.getConsumer() != null) {
             setWidth(flowRouteViewHandler.getAllRouteMaxX(0) - flowRouteViewHandler.getFlowElementsMinX() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(flowRouteViewHandler.getAllRouteMaxY(graphics, 0) - flowRouteViewHandler.getFlowElementsMinY() + (2 * FLOW_CONTAINER_BORDER) + getTextHeight(graphics));
         } else {
-            setWidth(getTextWidth(graphics) + (2 * FLOW_CONTAINER_BORDER));
+            int width = getTextWidth(graphics) + (2 * FLOW_CONTAINER_BORDER);
+            if (flow.hasExceptionResolver()) {
+                AbstractViewHandlerIntellij exceptionResolverViewHandler = getOrCreateAbstractViewHandler(projectKey, flow.getExceptionResolver());
+                width += (exceptionResolverViewHandler.getWidth() * 2);
+            }
+            setWidth(width);
             setHeight(getTextHeight(graphics) + (2 * FLOW_Y_TITLE_SPACING));
         }
     }
@@ -196,4 +202,11 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         return Color.BLACK.equals(this.borderColor);
     }
 
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    @Override
+    public void dispose() {
+
+    }
 }
