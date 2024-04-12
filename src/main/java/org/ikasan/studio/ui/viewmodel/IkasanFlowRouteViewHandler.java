@@ -373,4 +373,12 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         }
         return currentMax;
     }
+
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    @Override
+    public void dispose() {
+
+    }
 }

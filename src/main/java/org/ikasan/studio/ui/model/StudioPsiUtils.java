@@ -287,9 +287,15 @@ public class StudioPsiUtils {
         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
         pipsiIkasanModel.generateJsonFromModelInstance();
         pipsiIkasanModel.generateSourceFromModelInstance3();
+        causeRedraw(projectKey);
+    }
+
+    public static void causeRedraw(String projectKey) {
         UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         UiContext.getDesignerCanvas(projectKey).repaint();
     }
+
+
 
     public static void getAllSourceRootsForProject(Project project) {
         String projectName = project.getName();

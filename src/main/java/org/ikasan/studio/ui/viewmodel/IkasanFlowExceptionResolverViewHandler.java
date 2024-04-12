@@ -86,4 +86,12 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
     public String getText() {
         return "";
     }
+
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    @Override
+    public void dispose() {
+
+    }
 }

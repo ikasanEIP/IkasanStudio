@@ -132,4 +132,12 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     public Point getBottomConnectorPoint() {
         return new Point(getLeftX() + (flowchartSymbolWidth/2), getTopY() + flowchartSymbolHeight);
     }
+
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    @Override
+    public void dispose() {
+
+    }
 }

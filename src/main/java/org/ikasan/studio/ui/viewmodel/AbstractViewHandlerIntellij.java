@@ -110,6 +110,12 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     public abstract String getText();
 
+
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    public abstract void dispose();
+
     protected int getTextWidth(Graphics g) {
         return StudioUIUtils.getTextWidth(g, getText());
     }

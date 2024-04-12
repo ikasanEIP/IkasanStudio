@@ -53,4 +53,12 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
                 "componentMeta=" + componentMeta +
                 '}';
     }
+
+    /**
+     * Perform any tidy up during deletion of this element
+     */
+    @Override
+    public void dispose() {
+
+    }
 }
