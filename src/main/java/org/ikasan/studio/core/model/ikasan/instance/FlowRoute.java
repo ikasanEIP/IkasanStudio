@@ -33,7 +33,7 @@ public class FlowRoute  implements IkasanComponent {
      * Used primarily during deserialization.
      */
     public FlowRoute() {
-        LOG.error("Parameterless version of flow called");
+        LOG.error("STUDIO: Parameterless version of flow called");
     }
 
     @Builder(builderMethodName = "flowBuilder")
@@ -58,11 +58,11 @@ public class FlowRoute  implements IkasanComponent {
             this.flowElements = new ArrayList<>();
             for(FlowElement flowElement : flowElements) {
                 if (flowElement.getComponentMeta().isConsumer()) {
-                    LOG.warn("SERIOUS: Attempt made to add a consumer " + flowElement + " to a route, will try to add to flow");
+                    LOG.warn("STUDIO: SERIOUS: Attempt made to add a consumer " + flowElement + " to a route, will try to add to flow");
                     if (!flow.hasConsumer()) {
                         flow.setConsumer(flowElement);
                     } else {
-                        LOG.warn("SERIOUS: could not add to flow consumer, a consumer already exists " + flow.getConsumer());
+                        LOG.warn("STUDIO: SERIOUS: could not add to flow consumer, a consumer already exists " + flow.getConsumer());
                     }
                 } else {
                     this.flowElements.add(flowElement);

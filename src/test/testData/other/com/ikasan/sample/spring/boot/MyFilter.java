@@ -53,7 +53,7 @@ class MyFilter implements Filter<List<Person>>, ConfiguredResource<MyFilterConfi
             }
             catch(Exception e)
             {
-                LOG.info("Unable to calculate age for " + person.getName(), e);
+                LOG.info("STUDIO: Unable to calculate age for " + person.getName(), e);
             }
         }
 

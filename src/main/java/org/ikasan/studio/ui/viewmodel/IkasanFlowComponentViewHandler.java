@@ -43,7 +43,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      * @return the y position of the bottom of the text
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        LOG.debug("paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked");
         // here we get the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);
@@ -51,7 +51,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
 
     private void paintFlowchartSymbol(JPanel canvas, Graphics g) {
         if ( getLeftX() < -10 ) {
-            LOG.error("X was negative !!");
+            LOG.error("STUDIO: X was negative !!");
         }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
     }
@@ -86,12 +86,12 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         setWidth(getCanvasIcon().getIconWidth());
 
         if (getWidth() < -10) {
-            LOG.error("Width set to negative " + getWidth());
+            LOG.warn("STUDIO: SERIOUS: Width set to negative " + getWidth());
         }
         // this has the side effect of setting the correct height.
 
         if (getLeftX() < -10) {
-            LOG.error("initialiseDimensions leftX" + getLeftX() + " topY" + getTopY() + " for component " + flowElement + "X was negative !!");
+            LOG.warn("STUDIO: SERIOUS: initialiseDimensions leftX" + getLeftX() + " topY" + getTopY() + " for component " + flowElement + "X was negative !!");
         }
         paintSymbolText(graphics, PaintMode.DIMENSION_ONLY);
     }

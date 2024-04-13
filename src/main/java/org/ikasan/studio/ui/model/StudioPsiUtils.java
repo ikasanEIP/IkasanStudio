@@ -58,7 +58,7 @@ public class StudioPsiUtils {
                     ikasanPomModel = new IkasanPomModel(model);
                     UiContext.setIkasanPomModel(project.getName(), ikasanPomModel);
                 } catch (IOException | XmlPullParserException ex) {
-                    LOG.warn("Unable to load project ikasanPomModel", ex);
+                    LOG.warn("STUDIO: Unable to load project ikasanPomModel", ex);
                 }
             }
         return ikasanPomModel;
@@ -72,11 +72,11 @@ public class StudioPsiUtils {
             Module newModule = ComponentIO.deserializeModuleInstanceString(json, UiContext.JSON_MODEL_FULL_PATH);
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
-                LOG.error("Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
+                LOG.error("STUDIO: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
             }
             UiContext.setIkasanModule(projectKey, newModule);
         } else {
-            LOG.info("Could not read the " + UiContext.JSON_MODEL_FULL_PATH + ", this is probably a new project");
+            LOG.info("STUDIO: Could not read the " + UiContext.JSON_MODEL_FULL_PATH + ", this is probably a new project");
         }
     }
 
@@ -246,7 +246,7 @@ public class StudioPsiUtils {
             }
         } else {
             //@todo add this to system alerts in Intellij
-            LOG.warn("The resources directory was missing, please add it and restart the project, could not save file " + fileNameWithExtension);
+            LOG.warn("STUDIO: The resources directory was missing, please add it and restart the project, could not save file " + fileNameWithExtension);
         }
 
         return psiFile;
@@ -301,7 +301,7 @@ public class StudioPsiUtils {
         String projectName = project.getName();
         VirtualFile[] vFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
         String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
-        LOG.info("Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
+        LOG.info("STUDIO: Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
     }
 
     public static final String JAVA_CODE = "main/java";
@@ -330,12 +330,12 @@ public class StudioPsiUtils {
         PsiFile jsonModel = null;
         VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
         if (contentRootVFiles.length != 1) {
-            LOG.warn("Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
+            LOG.warn("STUDIO: Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
         } else {
             VirtualFile contentRoot = contentRootVFiles[0];
             jsonModel = getFileFromPath(project, contentRootVFiles[0], "src/" + UiContext.JSON_MODEL_FULL_PATH);
             if (jsonModel == null) {
-                LOG.warn("Could not get file from path " + "src/" + UiContext.JSON_MODEL_FULL_PATH);
+                LOG.warn("STUDIO: Could not get file from path " + "src/" + UiContext.JSON_MODEL_FULL_PATH);
             }
         }
         return jsonModel;
@@ -383,7 +383,7 @@ public class StudioPsiUtils {
         if (sourceCodeRoot == null) {
             VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
             if (contentRootVFiles == null || contentRootVFiles.length != 1) {
-                LOG.warn("Could not find the source root for directory [" + relativeRootDir + "] or the content root [" + Arrays.toString(contentRootVFiles) + "]");
+                LOG.warn("STUDIO: Could not find the source root for directory [" + relativeRootDir + "] or the content root [" + Arrays.toString(contentRootVFiles) + "]");
             } else {
                 VirtualFile contentRoot = contentRootVFiles[0];
                 PsiDirectory contentDir = PsiDirectoryFactory.getInstance(project).createDirectory(contentRoot);
@@ -440,7 +440,7 @@ public class StudioPsiUtils {
             PsiDirectory[] subDirectories = leafPackageDirectory.getSubdirectories();
             for (PsiDirectory directory : subDirectories) {
                 if (!subPackagesToKeep.contains(directory.getName())) {
-                    LOG.info("Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
+                    LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
                     directory.delete();
                 }
             }

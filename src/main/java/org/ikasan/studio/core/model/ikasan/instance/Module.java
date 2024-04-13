@@ -32,7 +32,7 @@ import java.util.*;
 @JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends BasicElement {
     public static final Logger LOG = Logger.getInstance("Module");
-    public static final String DUMB_MODULE_VERSION = "DUMB_MODULE";     // Allows creation of emergency modelto cope with crash scenarios
+    public static final String DUMB_MODULE_VERSION = "DUMB_MODULE";     // Allows creation of emergency model to cope with crash scenarios
 
     @JsonPropertyOrder(alphabetic = true)
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
@@ -88,7 +88,6 @@ public class Module extends BasicElement {
             module.setComponentProperties(new TreeMap<>());
         }
         module.getComponentProperties().put(ComponentPropertyMeta.VERSION, new ComponentProperty(ComponentPropertyMeta.DUMB_VERSION, DUMB_MODULE_VERSION));
-//        module.setVersion(DUMB_MODULE);
         module.setFlows(new ArrayList<>());
         return module;
     }
@@ -130,7 +129,7 @@ public class Module extends BasicElement {
     public String getMetaVersion() {
         String version = (String) getPropertyValue(ComponentPropertyMeta.VERSION);
         if (version == null) {
-            LOG.error("SERIOUS ERROR - to getMetaVersion but it was null");
+            LOG.error("STUDIO: SERIOUS ERROR - to getMetaVersion but it was null");
         }
         return version;
     }

@@ -30,7 +30,7 @@ public class DeleteComponentAction implements ActionListener {
          if (parentFlow != null) {
             parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
          } else {
-            LOG.warn("Attempt to remove flow element " + ikasanBasicElement + " because its containing flow could not be found.");
+            LOG.warn("STUDIO: Attempt to remove flow element " + ikasanBasicElement + " because its containing flow could not be found.");
          }
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       } else if (ikasanBasicElement instanceof Flow ikasanFlowToRemove) {

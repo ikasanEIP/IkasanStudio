@@ -184,7 +184,7 @@ public class StudioBuildUtils {
 
         URL url = StudioBuildUtils.class.getClassLoader().getResource(dir);
         if (url == null) {
-            LOG.warn("WARNING: Could not find any directory " + dir);
+            LOG.warn("STUDIO: WARNING: Could not find any directory " + dir);
         } else {
             final URI uri = url.toURI();
             Path myPath;
@@ -195,7 +195,7 @@ public class StudioBuildUtils {
                 try {
                     fileSystem = FileSystems.getFileSystem(uri);
                 } catch (FileSystemNotFoundException fsnf) {
-                    LOG.info(dir + " is not currently open, attempting to create newFileSystem for it");
+                    LOG.info("STUDIO: " + dir + " is not currently open, attempting to create newFileSystem for it");
                 }
                 if (fileSystem == null) {
                     fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());

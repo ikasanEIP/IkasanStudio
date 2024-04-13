@@ -37,7 +37,7 @@ public class StudioMaintenanceDebug extends AnAction
    @Override
    public void actionPerformed(AnActionEvent ae)
    {
-      String text = "Any debug action can be placed here";
+      String text = "STUDIO: Any debug action can be placed here";
       LOG.info(text);
    }
 }

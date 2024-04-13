@@ -49,7 +49,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
 
             if (UiContext.getIkasanModule(projectKey) == null) {
-                LOG.warn("Module should never be null");
+                LOG.warn("STUDIO: Module should never be null");
             }
 
             BasicElement ikasanComponent;
@@ -95,7 +95,6 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     @Override
     public boolean importData(TransferHandler.TransferSupport support) {
-        LOG.info("Got " + support);
         return super.importData(support);
 
     }
@@ -114,8 +113,6 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             if (t.isDataFlavorSupported(ikasanFlowUIComponentFlavor)) {
                 try {
                     IkasanFlowUIComponentTransferable ikasanFlowUIComponent = (IkasanFlowUIComponentTransferable) t.getTransferData(ikasanFlowUIComponentFlavor);
-                    LOG.warn("I can perhaps drop " + ikasanFlowUIComponent);
-
                     return true;
                 } catch (UnsupportedFlavorException | IOException ignored) {
                 }

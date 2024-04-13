@@ -33,7 +33,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
             }
         }
         if (returnAbstractViewHandlerIntellij == null) {
-            LOG.error("View handler returned null for component " + component);
+            LOG.error("STUDIO: View handler returned null for component " + component);
         }
         return returnAbstractViewHandlerIntellij;
     }
@@ -44,7 +44,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         try {
             viewHandler = ((IkasanFlowViewHandler)flow.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
-            LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+            LOG.warn("STUDIO: A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
@@ -56,7 +56,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         try {
             viewHandler = ((IkasanFlowComponentViewHandler)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
-            LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+            LOG.warn("STUDIO: A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
@@ -67,7 +67,7 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         try {
             viewHandler = ((AbstractViewHandlerIntellij)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
         } catch (StudioException se) {
-            LOG.warn("A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+            LOG.warn("STUDIO: A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
