@@ -54,7 +54,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         final Component targetComponent = support.getComponent();
         final DataFlavor[] destinationSupportedflavors = support.getDataFlavors();
 
-        LOG.trace("Can import check " + targetComponent);
+        LOG.trace("STUDIO: Can import check " + targetComponent);
         // Only allow drop (not paste) and ignore unless on canvas
         if (! support.isDrop() ||
             // and only on the canvas
@@ -109,7 +109,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
      */
     @Override
     public boolean importData(TransferSupport support) {
-        LOG.info("import Data invoked " + support);
+        LOG.info("STUDIO: import Data invoked " + support);
         if (this.canImport(support)) {
             BasicElement ikasanBasicElement = getDraggedComponent(support);
             if (ikasanBasicElement != null) {
@@ -131,7 +131,7 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
             IkasanFlowUIComponentTransferable  flowElementTransferable = (IkasanFlowUIComponentTransferable)support.getTransferable().getTransferData(flowElementFlavor);
             ikasanBasicComponent = flowElementTransferable.getIkasanBasicElement();
         } catch (IOException | UnsupportedFlavorException e) {
-            LOG.warn("Could not import flavor " + flowElementFlavor + " from support " + support + " due to exception " + Arrays.asList(e.getStackTrace()));
+            LOG.warn("STUDIO: Could not import flavor " + flowElementFlavor + " from support " + support + " due to exception " + Arrays.asList(e.getStackTrace()));
         }
         return ikasanBasicComponent;
     }

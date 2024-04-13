@@ -39,15 +39,16 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         JsonNode versionNode = jsonNode.get(VERSION);
         if (versionNode != null) {
             metapackVersion = versionNode.asText();
+            LOG.warn("STUDIO: Loading metapackVersion version " + metapackVersion);
         } else {
-            LOG.warn("The metapackVersion of the module was not stated, using default metapackVersion");
+            LOG.warn("STUDIO: The metapackVersion of the module was not stated, using default metapackVersion");
         }
 
         Module module;
         try {
             module = new Module(metapackVersion);
         } catch (StudioBuildException se) {
-            String message = "A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
+            String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
             LOG.error(message);
             throw new IOException(message, se);
         }
@@ -59,7 +60,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 try {
                     module.setFlows(getFlows(field.getValue(), metapackVersion));
                 } catch (StudioBuildException se) {
-                    String message = "A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
+                    String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
                     LOG.error(message);
                     throw new IOException(message, se);
                 }
@@ -151,8 +152,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if (!transitions.isEmpty()) {
             String startKey = getStartKey(transitions);
             if (startKey.isEmpty() || startKey.isBlank()) {
-                ILOG.warn("ERROR: Could not find the start of the transition chain " + transitions);
-                LOG.warn("ERROR: Could not find the start of the transition chain " + transitions);
+                ILOG.warn("STUDIO: ERROR: Could not find the start of the transition chain " + transitions);
+                LOG.warn("STUDIO: ERROR: Could not find the start of the transition chain " + transitions);
             } else {
                 Map<String, List<Transition>> transitionsMap = transitionToMap(transitions);
                 List<Transition> firstTransition = transitionsMap.get(startKey);
@@ -212,7 +213,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if (currentTransition!= null) {
             String from_name = currentTransition.getFrom()+"-"+currentTransition.getName();
             if (elementsVisited.contains(from_name)) {
-                LOG.warn("SERIOUS: A recursion error found in transtion map, truncating at this node. Node = " + currentTransition + " map was " + transitionsMap);
+                LOG.warn("STUDIO: SERIOUS: A recursion error found in transtion map, truncating at this node. Node = " + currentTransition + " map was " + transitionsMap);
                 transitionsMap.remove(currentTransition.getFrom());
             } else {
                 elementsVisited.add(from_name);
@@ -311,7 +312,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if (currentTransition != null) {
             FlowElement fromElement = flowElementsMap.get(currentTransition.getFrom());
             if (fromElement == null) {
-                LOG.warn("WARN: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
+                LOG.warn("STUDIO: WARN: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
             // We never add the consumer
             // We never add the router as a fromElement, the endpoint is its connector in the new route
             } else {
@@ -367,7 +368,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 .orElse(null);
         }
         if (returnRoute == null) {
-            LOG.warn("SERIOUS: Expected to find a child route with name " + routeName + " but found none in " + (children == null ? null : Arrays.toString(children.toArray())));
+            LOG.warn("STUDIO: SERIOUS: Expected to find a child route with name " + routeName + " but found none in " + (children == null ? null : Arrays.toString(children.toArray())));
         }
         return returnRoute ;
     }
@@ -410,10 +411,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 ComponentMeta endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
                 endpointFlowElement = FlowElementFactory.createFlowElement(metapackVersion, endpointComponentMeta, flow, containingFlowRoute, routeName);
             } catch (StudioBuildException se) {
-                LOG.warn("A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+                LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
             }
         } else {
-            LOG.warn("SERIOUS: The endpoint name for the router was not set or null " + router);
+            LOG.warn("STUDIO: SERIOUS: The endpoint name for the router was not set or null " + router);
         }
         return endpointFlowElement;
     }
@@ -502,7 +503,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             String exceptionCaught = jsonNode.get(ComponentMeta.EXCEPTIONS_CAUGHT_KEY) != null ? jsonNode.get(ComponentMeta.EXCEPTIONS_CAUGHT_KEY).asText() : null;
             String action = jsonNode.get(ComponentMeta.ACTION_KEY) != null ? jsonNode.get(ComponentMeta.ACTION_KEY).asText() : null;
             if (action == null || exceptionCaught == null) {
-                LOG.error("DATA CORRUPTION : Attempting to create an Exception Resolution but mandatory aproperty was not set action=[" + action + "] excepptionCaught [" + exceptionCaught + "] skipping");
+                LOG.error("STUDIO: DATA CORRUPTION : Attempting to create an Exception Resolution but mandatory aproperty was not set action=[" + action + "] excepptionCaught [" + exceptionCaught + "] skipping");
             } else {
                 exceptionResolutionBuilder.exceptionsCaught(exceptionCaught);
                 exceptionResolutionBuilder.theAction(action);
@@ -512,7 +513,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta) IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, "Exception Resolver");
                     ExceptionActionMeta exceptionActionMeta = exceptionResolverMeta.getExceptionActionWithName(action);
                     if (exceptionActionMeta == null) {
-                        LOG.error("DATA CORRUPTION : Attempting to set properties for an unknown action=[" + action + "], skipping");
+                        LOG.error("STUDIO: DATA CORRUPTION : Attempting to set properties for an unknown action=[" + action + "], skipping");
                     } else {
                         exceptionResolutionBuilder.componentProperties((new TreeMap<>()));
                         exceptionResolution = exceptionResolutionBuilder.build();
@@ -525,7 +526,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
                             ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                             if (componentPropertyMeta == null) {
-                                LOG.error("DATA CORRUPTION : Attempting to set properties field that has no recorded meta, fieldName=[" + fieldName + "], skipping");
+                                LOG.error("STUDIO: DATA CORRUPTION : Attempting to set properties field that has no recorded meta, fieldName=[" + fieldName + "], skipping");
                             } else {
                                 exceptionResolution.setPropertyValue(componentPropertyMeta, fieldName, value);
                             }
@@ -603,7 +604,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
                     metapackVersion, implementingClass, componentType, additionalKey);
             if (componentMeta == null) {
-                throw new IOException("Could not create a flow element using implementingClass" + implementingClass + " componentType " + componentType + " additionalKey " +additionalKey);
+                throw new IOException("Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" +additionalKey + "]");
             }
             if (componentMeta.isGeneratesUserImplementedClass()) {
                 flowElement = FlowUserImplementedElement.flowElementBuilder()

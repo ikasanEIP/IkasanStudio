@@ -53,7 +53,7 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
      * @return topY + symbole height
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        LOG.debug("paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked");
         // here we ket the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return minimumTopY + flowchartSymbolHeight;

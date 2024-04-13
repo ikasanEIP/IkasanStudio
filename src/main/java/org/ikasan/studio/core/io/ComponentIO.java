@@ -104,7 +104,7 @@ public class ComponentIO {
             jsonString = MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException jpe) {
             value = "";
-            LOG.warn("Could not generate JSON from [" + value + "] message [" + jpe.getMessage() + "]", jpe);
+            LOG.warn("STUDIO: Could not generate JSON from [" + value + "] message [" + jpe.getMessage() + "]", jpe);
         }
         return jsonString;
     }

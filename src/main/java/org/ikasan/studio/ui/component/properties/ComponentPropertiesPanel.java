@@ -48,7 +48,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      */
     @Override
     public void editBoxChangeListener() {
-        LOG.info("editBoxChangeListener has data changed " + dataHasChanged());
+        LOG.info("STUDIO: editBoxChangeListener has data changed " + dataHasChanged());
         okButton.setEnabled(dataHasChanged());
      }
     /**
@@ -335,7 +335,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             for (final ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
                 if (componentPropertyEditBox.propertyValueHasChanged()) {
                     if (!componentPropertyEditBox.isAffectsUserImplementedClass() || userImplementedComponentOverwriteCheckBox.isSelected()) {
-                        LOG.info("Component " + componentPropertyEditBox.getComponentProperty().getMeta().getPropertyName() + " new value is " + componentPropertyEditBox.getValue());
+                        LOG.info("STUDIO: Component " + componentPropertyEditBox.getComponentProperty().getMeta().getPropertyName() + " new value is " + componentPropertyEditBox.getValue());
                         modelUpdated = true;
                         break;
                     }

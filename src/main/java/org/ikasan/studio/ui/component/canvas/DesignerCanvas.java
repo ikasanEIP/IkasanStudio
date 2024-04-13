@@ -54,21 +54,21 @@ public class DesignerCanvas extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                LOG.trace("Mouse press x "+ e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: Mouse press x "+ e.getX() + " y " + e.getY());
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                LOG.trace("Mouse release click x "+ e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: Mouse release click x "+ e.getX() + " y " + e.getY());
                 mouseReleaseAction();
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                LOG.trace("DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
                 mouseDragAction(e.getX(),e.getY());
             }
         });
@@ -76,7 +76,7 @@ public class DesignerCanvas extends JPanel {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    LOG.trace("DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
+                    LOG.trace("STUDIO: DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
                 mouseMoveAction(e.getX(),e.getY());
                 }
             });
@@ -228,14 +228,14 @@ public class DesignerCanvas extends JPanel {
      */
     private void mouseDragAction(int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
-        LOG.trace("Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
+        LOG.trace("STUDIO: Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
         if (mouseSelectedComponent instanceof FlowElement) {
             FlowElement flowElement = (FlowElement) mouseSelectedComponent;
             screenChanged = true;
             AbstractViewHandlerIntellij vh = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, flowElement);
             if (vh != null) {
-                LOG.trace("Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
+                LOG.trace("STUDIO: Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
                         "] Generator selected [" + flowElement.getComponentName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
 
                 final int componentX = vh.getLeftX();
@@ -601,7 +601,7 @@ public class DesignerCanvas extends JPanel {
             try {
                 StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
             } catch (StudioBuildException se) {
-                LOG.warn("SERIOUS ERROR: Reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + Arrays.asList(se.getStackTrace()));
+                LOG.warn("STUDIO: SERIOUS ERROR: Reported when reading JSON file " + JSON_MODEL_FILE_WITH_EXTENSION + " message: " + se.getMessage() + " trace: "+ Arrays.asList(se.getStackTrace()));
                 StudioUIUtils.displayIdeaErrorMessage(projectKey, "Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
                 // The dumb module should contain just enough to prevent the plugin from crashing
                 UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
@@ -739,7 +739,7 @@ public class DesignerCanvas extends JPanel {
         } else {
             enableModuleInitialiseProcess();
         }
-        LOG.debug("paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked");
         super.paintComponent(g);
 
         if (ikasanModule != null) {
@@ -750,7 +750,7 @@ public class DesignerCanvas extends JPanel {
             }
 
             if (ikasanModule.hasUnsetMandatoryProperties()) {
-                LOG.warn("Ikasan Module is not in the context, assuming this is a new buildRouteTree");
+                LOG.warn("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
                 enableModuleInitialiseProcess();
             }
             if (moduleViewHandler != null) {
@@ -788,7 +788,7 @@ public class DesignerCanvas extends JPanel {
             }
         } catch (IOException ioe) {
             StudioUIUtils.displayErrorMessage(projectKey, "Could not save image to file " + file.getAbsolutePath());
-            LOG.warn("Error saving image to file " + file.getAbsolutePath(), ioe);
+            LOG.warn("STUDIO: Error saving image to file " + file.getAbsolutePath(), ioe);
         }
     }
 

@@ -27,7 +27,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     @Override
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         int currentY = 0;
-        LOG.debug("paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked");
         // Module name
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont(g));
         for (Flow ikasanFlow : module.getFlows()) {

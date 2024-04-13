@@ -87,7 +87,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
      * @return the bottom Y co-ordinate of this flow.
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumLeftX, int minimumTopY) {
-        LOG.debug("paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked");
         int newLeftX = checkForReset(minimumLeftX, getLeftX());
         int newTopY = checkForReset(minimumTopY, getTopY());
 

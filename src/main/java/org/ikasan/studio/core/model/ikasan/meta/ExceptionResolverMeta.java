@@ -30,13 +30,11 @@ public class ExceptionResolverMeta extends ComponentMeta {
 
     public static boolean isValidAction(String action) {
         return true;
-//        return ON_EXCEPTION.hasProperty(action);
     }
 
     public static List<ComponentPropertyMeta> getPropertyMetaListForAction(String action) {
-        LOG.error("Not yet implemented");
+        LOG.error("STUDIO: Not yet implemented");
         return null;
-//        return ON_EXCEPTION.getMetadataList(action);
     }
 
     public ExceptionActionMeta getExceptionActionWithName(String actionName) {

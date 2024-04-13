@@ -75,7 +75,7 @@ public class ModelUtils {
         try {
             value = Integer.parseInt(number);
         } catch (NumberFormatException nfe) {
-            LOG.warn("Could not convert the string [" + number + "] inter a number");
+            LOG.warn("STUDIO: Could not convert the string [" + number + "] inter a number");
         }
         return value;
     }

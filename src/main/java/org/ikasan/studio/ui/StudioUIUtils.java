@@ -117,7 +117,7 @@ public class StudioUIUtils {
      */
     public static int drawCenteredStringFromTopCentre(Graphics g, PaintMode paintMode, String text, int centerX, int topY, int maxWidth, Font font) {
         if (maxWidth <= 0) {
-            LOG.warn("Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
+            LOG.warn("STUDIO: Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
             maxWidth = 1;
         }
         Font origFont = g.getFont();
@@ -252,7 +252,7 @@ public class StudioUIUtils {
         try {
             StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
         } catch (StudioBuildException se) {
-            LOG.warn("SERIOUS ERROR: Reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + Arrays.asList(se.getStackTrace()));
+            LOG.warn("STUDIO: SERIOUS ERROR: during resetModelFromDisk, reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + " message: " + se.getMessage() +" trace: " + Arrays.asList(se.getStackTrace()));
             StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
             // The dumb module should contain just enough to prevent the plugin from crashing
             UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());

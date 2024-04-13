@@ -249,7 +249,7 @@ public class ComponentPropertyEditBox {
         ComponentInput componentInput = null;
         if (meta.getPropertyDataType() == null && meta.getUsageDataType() == null) {
             // there is no value to enter, just a label to display
-            LOG.info("NOTE: Not data type detected, no componentInput box generated");
+            LOG.info("STUDIO: NOTE: Not data type detected, no componentInput box generated");
         } else if (isChoiceProperty()) {
             componentInput = new ComponentInput(propertyChoiceValueField);
         } else if (isBooleanProperty()) {

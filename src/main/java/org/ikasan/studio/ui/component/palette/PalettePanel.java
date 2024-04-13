@@ -146,7 +146,7 @@ public class PalettePanel extends JPanel {
 
         // New project created, no module yet
         if (UiContext.getIkasanModule(projectKey) == null) {
-            LOG.info("New project, no model available yet");
+            LOG.info("STUDIO: New project, no model available yet");
         } else {
             Collection<ComponentMeta> componentMetaList = null;
             try {

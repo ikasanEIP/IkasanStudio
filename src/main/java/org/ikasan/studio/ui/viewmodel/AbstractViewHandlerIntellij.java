@@ -88,14 +88,14 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     public void setLeftX(int leftX) {
         if (leftX < -10) {
-            LOG.error("Left X being set to a -ve of " + leftX);
+            LOG.error("STUDIO: Left X being set to a -ve of " + leftX);
         }
         this.leftX = leftX;
     }
 
     public void setWidth(int width) {
         if (width < -10) {
-            LOG.error("Left X being set to a -ve of " + width);
+            LOG.error("STUDIO: Left X being set to a -ve of " + width);
         }
 
         this.width = width;
@@ -103,7 +103,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     public void setHeight(int height) {
         if (height < 0) {
-            LOG.error("Height less than 0") ;
+            LOG.error("STUDIO: Height less than 0") ;
         }
         this.height = height;
     }
@@ -171,7 +171,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     protected AbstractViewHandlerIntellij verifyHandler(AbstractViewHandlerIntellij viewHandler) {
         if (viewHandler.equals(this)) {
             Thread thread = Thread.currentThread();
-            LOG.warn("DANGER: call for a view handler returned this view handler, this must be a mistake, ignoring" + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("STUDIO: SERIOUS: call for a view handler returned this view handler, this must be a mistake, ignoring" + Arrays.toString(thread.getStackTrace()));
             viewHandler = null;
         }
         return viewHandler;

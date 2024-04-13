@@ -34,7 +34,7 @@ public class Flow extends BasicElement {
      */
     public Flow() throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(IkasanComponentLibrary.DEFAULT_IKASAN_PACK), null);
-        LOG.error("Parameterless version of flow called");
+        LOG.error("STUDIO: Parameterless version of flow called");
     }
 
     public Flow(String metapackVersion) throws StudioBuildException {
@@ -54,7 +54,7 @@ public class Flow extends BasicElement {
         super(IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         if (consumer != null) {
             if (!consumer.getComponentMeta().isConsumer()) {
-                LOG.error("ERROR : Tried to set consumer on " + this + " with a flowElement that is not a consumer " + consumer + ", this will be ignored");
+                LOG.error("STUDIO: ERROR : Tried to set consumer on " + this + " with a flowElement that is not a consumer " + consumer + ", this will be ignored");
             } else {
                 this.consumer = consumer;
             }
@@ -78,7 +78,7 @@ public class Flow extends BasicElement {
             } else if (flowRoute != null) {
                 ikasanFlowComponentToBeRemoved.getContainingFlowRoute().removeFlowElement(ikasanFlowComponentToBeRemoved);
             } else {
-                LOG.warn("Attempt to remove element " + ikasanFlowComponentToBeRemoved + " because it could not be found in the memory model");
+                LOG.warn("STUDIO: Attempt to remove element " + ikasanFlowComponentToBeRemoved + " because it could not be found in the memory model");
             }
         }
     }

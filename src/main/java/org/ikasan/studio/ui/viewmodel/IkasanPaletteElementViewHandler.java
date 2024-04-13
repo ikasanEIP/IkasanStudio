@@ -23,7 +23,7 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
     }
 
     public int paintComponent(JPanel canvas, Graphics g, int topX, int topY){
-        LOG.debug("paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked");
         if (getDisplayIcon() != null) {
             getDisplayIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         }
@@ -33,7 +33,7 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
     @Override
     public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {
         Thread thread = Thread.currentThread();
-        LOG.warn("Call to initialiseDimensions on IkasanPaletteElementViewHandler not expected :" + Arrays.asList(thread.getStackTrace()));
+        LOG.warn("STUDIO: Call to initialiseDimensions on IkasanPaletteElementViewHandler not expected :" + Arrays.asList(thread.getStackTrace()));
     }
 
     public String getText() {

@@ -44,7 +44,7 @@ public class ComponentInput {
             firstComponent = propertyValueField;
         }
         if (firstComponent == null) {
-            LOG.warn("Component can't ever be null ");
+            LOG.warn("STUDIO: Component can't ever be null ");
         }
         return firstComponent;
     }

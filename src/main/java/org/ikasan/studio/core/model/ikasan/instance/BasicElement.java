@@ -150,20 +150,6 @@ public  class BasicElement extends IkasanObject {
         }
     }
 
-//    /**
-//     * Set the value of the (existing) property. Properties have associated metadata so we can't just add values.
-//     * @param key of the data to be updated
-//     * @param value for the updated property
-//     */
-//    public void updatePropertyValue(String key, Object value) {
-//        ComponentProperty componentProperty = componentProperties.get(key);
-//        if (componentProperty != null) {
-//            componentProperty.setValue(value);
-//        } else {
-//            LOG.warn("Attempt made to update non-existant property will be ignored key =" + key + " value " + value);
-//        }
-//    }
-
 
     /**
      * This setter should be used if we think the property might not already be set but will require the correct metadata
@@ -178,7 +164,7 @@ public  class BasicElement extends IkasanObject {
             ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
-                LOG.error("SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
+                LOG.error("STUDIO: SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
                 componentProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
             }

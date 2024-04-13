@@ -22,8 +22,7 @@ public class IkasanComponentLibrary {
     private static final String METAPACK_BASE_BASE_DIR = "studio/metapack";
     private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR + "icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
-    public static final String DEFAULT_IKASAN_PACK = "default";  // Short term convenience, long term this must be pak driven
-    public static final String DUMMY_IKASAN_PACK = "dummy";  // used when the UI first loads, has no elements.
+    public static final String DEFAULT_IKASAN_PACK = "v3.3.x";  // Short term convenience, long term this must be pak driven
 
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
@@ -44,7 +43,7 @@ public class IkasanComponentLibrary {
      */
     public static Map<String, ComponentMeta> refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         if (ikasanMetaDataPackVersion == null) {
-            LOG.error("ikasanMetaDataPackVersion was set to null which is not allowed");
+            LOG.error("STUDIO: ikasanMetaDataPackVersion was set to null which is not allowed");
         }
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
 
@@ -54,7 +53,7 @@ public class IkasanComponentLibrary {
             returnedIkasanComponentMetaMapByKey = loadMetapack(ikasanMetaDataPackVersion);
             Map<String, ComponentMeta> ikasanComponentMetaMapByClass = generateDeserialisationKeyedMeta(returnedIkasanComponentMetaMapByKey);
             if (ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
-                LOG.warn("WARNING: ikasanComponentMetaMapByClass & returnedIkasanComponentMetaMapByKey are different sizes. " +
+                LOG.warn("STUDIO: WARNING: ikasanComponentMetaMapByClass & returnedIkasanComponentMetaMapByKey are different sizes. " +
                         "Keys for returnedIkasanComponentMetaMapByKey [" + returnedIkasanComponentMetaMapByKey.keySet() + "]" +
                         "Keys for ikasanComponentMetaMapByClass [" + ikasanComponentMetaMapByClass.keySet() + "]");
             }
@@ -77,7 +76,7 @@ public class IkasanComponentLibrary {
      */
     public static Map<String, ComponentMeta> loadMetapack(final String ikasanMetaDataPackVersion) {
         if (ikasanMetaDataPackVersion == null || ikasanMetaDataPackVersion.isEmpty()) {
-            LOG.error("ikasanMetaDataPackVersion should not be null");
+            LOG.error("STUDIO: ikasanMetaDataPackVersion should not be null");
         }
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
         returnedIkasanComponentMetaMapByKey = new HashMap<>();
@@ -95,7 +94,7 @@ public class IkasanComponentLibrary {
             try {
                 componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/type-meta_en_GB.json");
             } catch (StudioBuildException e) {
-                LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
+                LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
                         " there was an error generating the details for component " + componentTypeDirectory +
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                 continue;
@@ -107,7 +106,7 @@ public class IkasanComponentLibrary {
                 try {
                     ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
                 } catch (StudioBuildException e) {
-                    LOG.warn("While trying to populate the component library from base directory " + baseDirectory +
+                    LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
                             " there was an error generating the details for component " + componentDirectory +
                             " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                     continue;
@@ -131,7 +130,7 @@ public class IkasanComponentLibrary {
             }
         }
         if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
-            LOG.error("The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
+            LOG.error("STUDIO: The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
                     returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
                     mandatoryComponents + " so will be ignored");
         }
@@ -158,7 +157,7 @@ public class IkasanComponentLibrary {
         try {
             componentTypeDirectories = StudioBuildUtils.getDirectories(baseDirectory);
         } catch (URISyntaxException | IOException e) {
-            LOG.error("Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
+            LOG.error("STUDIO: Could not scan the directory " + baseDirectory + " in order to populate the component library.", e);
         }
         return componentTypeDirectories;
     }
@@ -245,7 +244,7 @@ public class IkasanComponentLibrary {
         }
         Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
-            String message = "Attempt to get a metemap for key " + ikasanComponentMetaMap + " resulted in an empty map";
+            String message = "STUDIO: Attempt to get a metemap for key " + ikasanComponentMetaMap + " resulted in an empty map";
             LOG.warn(message);
             throw new StudioBuildException(message);
         }
@@ -264,7 +263,7 @@ public class IkasanComponentLibrary {
         }
         Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndDeserialisationKey.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
-            String message = "Attempt to get a metemap for key " + ikasanComponentMetaMap + " resulted in an empty map";
+            String message = "STUDIO: Attempt to get a metemap for key " + ikasanComponentMetaMap + " resulted in an empty map";
             LOG.warn(message);
             throw new StudioBuildException(message);
         }
@@ -334,7 +333,7 @@ public class IkasanComponentLibrary {
         ImageIcon imageIcon;
         URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
         if (iconURL == null) {
-            LOG.warn("Could not create Icon for " + iconLocation + " using default");
+            LOG.warn("STUDIO: Could not create Icon for " + iconLocation + " using default");
             iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(defaultIcon);
         }
         imageIcon = new ImageIcon(iconURL, description);

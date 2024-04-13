@@ -27,7 +27,7 @@ public class FreemarkerUtils {
             // Would have thought we remove \r in Freemarker but it does not look like it.
             output = writer.toString().replace("\r", "");
         } catch (IOException | TemplateException e) {
-            LOG.warn("Problems encountered trying to read template " + templateName + " exception message " + e.getMessage(), e);
+            LOG.warn("STUDIO: Problems encountered trying to read template " + templateName + " exception message " + e.getMessage(), e);
         }
         return output;
     }

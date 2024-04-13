@@ -171,11 +171,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
                 endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, flow, targetFlowElement.getContainingFlowRoute(), endpointText);
             } catch (StudioBuildException se) {
-                LOG.warn("A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+                LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
             }
 
             if (endpointComponentMeta == null || endpointFlowElement == null) {
-                LOG.warn("Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
+                LOG.warn("STUDIO: Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
             } else {
                 // Position and draw the endpoint
                 IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(projectKey, targetFlowElement);
@@ -215,7 +215,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     @Override
     public void initialiseDimensions(Graphics graphics, int newLeftx, int newTopY, int width, int height) {
         Thread thread = Thread.currentThread();
-        LOG.warn("SERIOUS: incorrect initialiseDimensions called for FlowRouteViewHandler :" + Arrays.asList(thread.getStackTrace()));
+        LOG.warn("STUDIO: SERIOUS: incorrect initialiseDimensions called for FlowRouteViewHandler :" + Arrays.asList(thread.getStackTrace()));
     }
 
     /**

@@ -57,7 +57,7 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
                 setBorder(JBUI.Borders.emptyBottom(2));
             }
         } else {
-            LOG.warn("The PaletteListCellRenderer should contain a PaletteItem but did contain " + value);
+            LOG.warn("STUDIO: The PaletteListCellRenderer should contain a PaletteItem but did contain " + value);
         }
         return this;
     }
