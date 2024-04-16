@@ -16,8 +16,8 @@
   </properties>
 
   <modules>
-    <module>${rootArtifactId}-generated</module>
-    <module>${rootArtifactId}-user</module>
+    <module>generated</module>
+    <module>user</module>
   </modules>
 
   <dependencies>

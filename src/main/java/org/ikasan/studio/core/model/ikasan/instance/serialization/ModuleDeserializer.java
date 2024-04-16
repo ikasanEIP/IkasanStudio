@@ -39,7 +39,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         JsonNode versionNode = jsonNode.get(VERSION);
         if (versionNode != null) {
             metapackVersion = versionNode.asText();
-            LOG.warn("STUDIO: Loading metapackVersion version " + metapackVersion);
+            LOG.info("STUDIO: Loading metapackVersion version " + metapackVersion);
         } else {
             LOG.warn("STUDIO: The metapackVersion of the module was not stated, using default metapackVersion");
         }

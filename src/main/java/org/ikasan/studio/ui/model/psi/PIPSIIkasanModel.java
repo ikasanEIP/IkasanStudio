@@ -113,7 +113,7 @@ public class PIPSIIkasanModel {
                         () -> {
                             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - json from model");
                             String templateString = ModelTemplate.create(UiContext.getIkasanModule(project.getName()));
-                            createJsonModelFile(project, templateString);
+                            createJsonModelFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, templateString);
                             LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - json from model");
                             LOG.debug("STUDIO: model now" + UiContext.getIkasanModule(projectKey));
                         }),
@@ -121,9 +121,14 @@ public class PIPSIIkasanModel {
                 "Undo group ID");
     }
 
+    /**
+     * Save the Spring Boot Application class
+     * @param project to key by
+     * @param module for this code
+     */
     private void saveApplication(Project project, Module module) {
         String templateString  = ApplicationTemplate.create(module);
-        StudioPsiUtils.createJavaSourceFile(project, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, templateString, true, true);
+        StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, templateString, true, true);
     }
 
     private void saveFlow(Project project, Module module) {
@@ -143,7 +148,7 @@ public class PIPSIIkasanModel {
                             String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
                             String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
                             String templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
-                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, newPackageName, clazzName, templateString, true, true);
+                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
                             if (viewHandler != null) {
                                 viewHandler.setPsiJavaFile(newFile);
                             }
@@ -155,7 +160,7 @@ public class PIPSIIkasanModel {
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                         String templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, component);
                         boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
-                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
+                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
                         if (viewHandler != null) {
                             viewHandler.setPsiJavaFile(newFile);
@@ -165,12 +170,13 @@ public class PIPSIIkasanModel {
             }
             // Component Factory java file
             String templateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
-            StudioPsiUtils.createJavaSourceFile(project, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
+            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
 
             // Flow java file
             templateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
             PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(
                     project,
+                    StudioPsiUtils.GENERATED_CONTENT_ROOT,
                     flowPackageName,
                     ikasanFlow.getJavaClassName(),
                     templateString,
@@ -181,13 +187,12 @@ public class PIPSIIkasanModel {
             }
         }
         // we have the flowPackageNames that ARE valid
-        // @Todo work out if any folw directories need to be removed
-        StudioPsiUtils.deleteSubPackagesNotIn(project, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+        StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
     }
 
     private void saveModuleConfig(Project project, Module module) {
         String templateString = ModuleConfigTemplate.create(module);
-        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
+        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
 
         AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, module);
         if (viewHandler != null) {
@@ -198,6 +203,6 @@ public class PIPSIIkasanModel {
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";
     private void savePropertiesConfig(Project project, Module module) {
         String templateString = PropertiesTemplate.create(module);
-        StudioPsiUtils.createResourceFile(project, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
+        StudioPsiUtils.createResourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
     }
 }
