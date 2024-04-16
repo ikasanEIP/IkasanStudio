@@ -7,12 +7,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.ikasan.studio.ui.model.StudioPsiUtils.TEMP_CONTENT_ROOT;
 
 /**
  * Light tests reuse a project from the previous test run when possible, they are quicker and therefore advised
@@ -72,7 +72,7 @@ public class StudioPsiStudioBuildUtilsLightTests extends LightJavaCodeInsightFix
 
     private PsiDirectory createPackageFixture(String packageName) {
         Project myProject = myFixture.getProject();
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceRootEndingWith(myProject,"src");
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, TEMP_CONTENT_ROOT, "src");
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
 
         // This may be an async call but example tests in Intellij community indicate it is safe to assume it completes

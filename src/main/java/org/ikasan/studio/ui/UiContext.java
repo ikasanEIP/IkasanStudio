@@ -75,7 +75,8 @@ public enum UiContext {
     public static IkasanPomModel getIkasanPomModel(String projectKey) {
         IkasanPomModel ikasanPomModel = (IkasanPomModel)getProjectCache(projectKey, IKASAN_POM_MODEL);
         if (ikasanPomModel == null) {
-            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(getProject(projectKey));
+            Project project = getProject(projectKey);
+            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(project, project.getName());
         }
         return ikasanPomModel;
     }
