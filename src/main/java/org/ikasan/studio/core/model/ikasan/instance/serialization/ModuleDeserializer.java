@@ -65,6 +65,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     throw new IOException(message, se);
                 }
             } else {
+                // These tags are for the top level flow properties
                 if (fieldName != null && fieldName.equals(VERSION)) {
                     module.setPropertyValue(fieldName, metapackVersion);
                 } else {
@@ -76,6 +77,14 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return module;
     }
 
+    /**
+     * Build up all the flows
+     * @param root node in json where the flows section starts
+     * @param metapackVersion to use
+     * @return a list of Flows
+     * @throws IOException if the JSON can't be read
+     * @throws StudioBuildException if the components could not be generated
+     */
     public List<Flow> getFlows(JsonNode root, String metapackVersion) throws IOException, StudioBuildException {
         List<Flow> flows = new ArrayList<>();
         if (root.isArray()) {
@@ -147,7 +156,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      */
     protected FlowRoute orderFlowElementsByTransitions(String metapackVersion, List<Transition> transitions, Flow flow, Map<String, FlowElement> flowElementsMap) throws StudioBuildException {
         List<FlowElement> firstFlowElements = new ArrayList<>();
-        FlowRoute returnFlowRoute = FlowRoute.flowBuilder().flow(flow).routeName(DEFAULT_TRANSITION_NAME).flowElements(firstFlowElements).build();
+        FlowRoute returnFlowRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName(DEFAULT_TRANSITION_NAME).flowElements(firstFlowElements).build();
 
         if (!transitions.isEmpty()) {
             String startKey = getStartKey(transitions);
@@ -386,7 +395,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if (router.getPropertyValue(ROUTE_NAMES) != null) {
             List<String> routeNames = (List)router.getPropertyValue(ROUTE_NAMES);
             for(String routeName : routeNames) {
-                FlowRoute newChild = FlowRoute.flowBuilder()
+                FlowRoute newChild = FlowRoute.flowRouteBuilder()
                         .flow(flow)
                         .routeName(routeName)
                         .build();

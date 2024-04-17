@@ -33,10 +33,10 @@ public class FlowRoute  implements IkasanComponent {
      * Used primarily during deserialization.
      */
     public FlowRoute() {
-        LOG.error("STUDIO: Parameterless version of flow called");
+        LOG.warn("STUDIO: Serious: Parameterless version of flow called");
     }
 
-    @Builder(builderMethodName = "flowBuilder")
+    @Builder(builderMethodName = "flowRouteBuilder")
     public FlowRoute(
             Flow flow,
             String routeName,
@@ -102,13 +102,6 @@ public class FlowRoute  implements IkasanComponent {
         return null;
     }
 
-//    /**
-//     * For now this does little but left here in case we need to remove circular dependencies
-//     */
-//    protected void deleteRoute() {
-//        childRoutes = null;
-//        flowElements = null;
-//    }
 
     /**
      * Attempt to remove the element from the flow. Note that the UI threads can sometimes call this multiple times so

@@ -39,9 +39,12 @@ public class Flow extends BasicElement {
 
     public Flow(String metapackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
-        flowRoute = FlowRoute.flowBuilder().flow(this).build();
+        flowRoute = FlowRoute.flowRouteBuilder().flow(this).build();
     }
 
+    // The Builders are used to create test fixtures and occasionally, partially constructed Flows
+    // Only the core properties are set in the constructor in order to allow loose coupling between the
+    // IDE integration and the underlying version of Ikasan
     @Builder(builderMethodName = "flowBuilder")
     public Flow(
                 @NonNull
@@ -62,7 +65,7 @@ public class Flow extends BasicElement {
         if (flowRoute != null) {
             this.flowRoute = flowRoute;
         } else {
-            this.flowRoute = FlowRoute.flowBuilder().flow(this).build();
+            this.flowRoute = FlowRoute.flowRouteBuilder().flow(this).build();
         }
         this.exceptionResolver = exceptionResolver;
         super.setName(name);
