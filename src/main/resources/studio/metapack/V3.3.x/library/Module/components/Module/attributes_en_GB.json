@@ -61,6 +61,12 @@
       "helpText": "The java package name for the new module.",
       "mandatory": true
     },
+    "configuredResourceId": {
+      "propertyName": "configuredResourceId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don'twant to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
     "context": {
       "propertyName": "context",
       "helpText": "The name of module prepended by slash."
@@ -68,10 +74,6 @@
     "description": {
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."
-    },
-    "host": {
-      "propertyName": "host",
-      "helpText": "Hostname for the current environment."
     },
     "h2DbPortNumber": {
       "propertyName": "h2DbPortNumber",
@@ -85,6 +87,10 @@
       "defaultValue": "12452",
       "mandatory": true
     },
+    "host": {
+      "propertyName": "host",
+      "helpText": "Hostname for the current environment."
+    },
     "port": {
       "propertyName": "port",
       "helpText": "The http port to be used by the blue console for this module.",
@@ -95,6 +101,11 @@
       "propertyName": "protocol",
       "helpText": "The http protocol required to access the blue console.",
       "defaultValue": "https"
+    },
+    "type": {
+      "propertyName": "type",
+      "helpText": "The type of module to be created.",
+      "defaultValue": "INTEGRATION_MODULE"
     },
     "url": {
       "propertyName": "url",
