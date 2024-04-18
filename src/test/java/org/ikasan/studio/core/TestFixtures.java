@@ -684,7 +684,7 @@ public class TestFixtures {
         Flow flow = getUnbuiltFlow()
                 .consumer(eventGeneratingConsumer)
                 .build();
-        flow.setFlowRoute(FlowRoute.flowBuilder().flow(flow).flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build());
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build());
         return flow;
     }
 
@@ -701,13 +701,13 @@ public class TestFixtures {
                 .consumer(eventGeneratingConsumer)
                 .build();
 
-        FlowRoute firstRoute = FlowRoute.flowBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Arrays.asList(devNullProducer1))).build();
-        FlowRoute secondRoute = FlowRoute.flowBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Arrays.asList(devNullProducer2))).build();
+        FlowRoute firstRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Arrays.asList(devNullProducer1))).build();
+        FlowRoute secondRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Arrays.asList(devNullProducer2))).build();
         List<FlowRoute> childRoutes = new ArrayList<>();
         childRoutes.add(firstRoute);
         childRoutes.add(secondRoute);
 
-        flow.setFlowRoute(FlowRoute.flowBuilder()
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder()
                 .flow(flow)
                 .flowElements(new ArrayList<>(Arrays.asList(customConverter, router)))
                 .childRoutes(childRoutes)

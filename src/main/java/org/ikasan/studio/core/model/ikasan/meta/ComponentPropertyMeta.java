@@ -39,6 +39,7 @@ public class ComponentPropertyMeta {
     public static final String H2_DB_PORT_NUMBER_NAME = "h2DbPortNumber";
     public static final String H2_WEB_PORT_NUMBER_NAME = "h2WebPortNumber";
     public static final String H2_PORT_NUMBER_KEY = "h2.db.port";
+    public static final String CONFIGURED_RESOURCE_ID = "configuredResourceId";
 
     // Special META for package parent of the users own packages, a little like a pom group
     public static final String APPLICATION_PACKAGE_NAME = "applicationPackageName";

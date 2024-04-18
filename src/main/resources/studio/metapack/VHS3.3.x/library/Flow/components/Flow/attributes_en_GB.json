@@ -15,6 +15,14 @@
     "description": {
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."
+    },
+    "flowStartupType": {
+      "propertyName": "flowStartupType",
+      "helpText": "Relates to the startup on the blue console."
+    },
+    "flowStartupComment": {
+      "propertyName": "flowStartupComment",
+      "helpText": "Relates to the startup on the blue console."
     }
   }
 }
