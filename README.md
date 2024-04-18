@@ -126,43 +126,52 @@ Offering is split into 3 artefects with independant lifecycles
 * Abstracted to be driven from the content of a meta pack
 * Support for multiple simultaneous metapacks
 * Resilient and defensive, the UI needs to accommodate developer errors (misconfigured flows or metapacks) without resulting in serious errors in the IDE (Intellij are very keen to expose even slightly wonky plugins). Where possible the IDE should recover misconfiguration and inform the user via popup / message baloons.
+
 ## Epics / major stories
 
 Core
-* Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github)
-* Create builder / Maven integration for non-UI code regeneration, integrate into maven
-* Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI)
-* Parameterize meta pack version in build
-* Explore DB driven configuration
+* Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github).
+* Create builder / Maven integration for non-UI code regeneration, integrate into maven.
+* Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI).
+* Parameterize meta pack version in build.
+* Explore DB driven configuration.
+* Explore how to integrate with environment configurations solutions .
 
 Meta pack(s)
-* Migrate remaining part done 2023 components
-* Remove old lookup mechanism
-* Verify Exception resolver
-* Add 'advanced config' tag for use in UI
-* Add in all Ikasan standard components to meta pack with associated free marker templates
-* Split out metapack with its unit tests into seperate module with dependent on code
-* Add in aggregate components with associated free marker templates
-* Add metapacks for Ikasan V4.x
+* Ikasan SME to identify the set of core Ikasan components to be supported in MVP1.
+* Ikasan SME to identify review and correct all auto generated classes code properties files (ftl templates).
+* Ikasan SME to identify review and correct all properties for completed components, identify as standard / advanced.
+* Ikasan SME to work on ftl templates for remaining core Ikasan components.
+* Split out metapack with its unit tests into seperate module with dependent on code.
+* Add in aggregate components with associated free marker templates.
+* Add metapacks for Ikasan V4.x.
+* Add metapacks for Bespoke implementations / libraries / user overrides.
+* Add Junit stubs for all user generated classes.
+* Support generic bespoke classes e.g. brokers, consumer, splitters etc
 
 UI
+* Split component configuration into standard with drop down advance tab.
+* Rework the way mandatory components are highlighted to remove issue with 'user code regeneration' affecting components.
+* Support generic bespoke classes e.g. brokers, consumer, splitters etc
+* Expand component configuration to support beyond basic Wrapped Java types e.g. lists etc.
+* Move component configurations to palette for shared to tabbed usage.
 * Code to support user implemented and user supplied classes - integration into model.json, including 'shared' poms and properties - maybe explore multiple project roots.
-* Validate current methods to run from UI
-* Component deletion handling
-* Debug mode, Message flow debug using wiretap
-* Robustness tests
-* Integrate 'advanced config' concept to reduce noise in UI
+* Validate current methods to run application from UI, ensure H2 config not dangerous
+* Add support for wiretaps
+* Review / improve handling of component deletion, auto generated and user generated.
+* Single step debug mode for flows, using maybe wiretap.
 * Support archetype to build the project, maybe partially implemented projects.
-* Sort out icons with correct scalling and transparency to support standard Intellj themes
-* Update UI look and feel for all modes of Intellij themes
-* Eclipse, Vaaden, Javascript based IDE
-* Data exchange / XML mmapping of payload
-* Parameterise meta pack version in model startup
-* Explore DB driven configuration
+* Sort out icons with correct scaling and transparency to support standard IntelliJ themes.
+* Update UI look and feel for all modes of Intellij themes.
+* Parameterise meta pack version in model startup.
+* Data exchange / XML mmapping of payload for simple transitions / mappers.
+* Explore DB driven configuration.
+* Robustness tests.
+* Eclipse, Vaaden, Javascript based IDE.
 
 CI
 * Determine how / what output from the build process are integrated into standard M processing.
-* Solution for artefact storage issue
+* Integration with marketplace and Maven central / licence. 
 
 Other
 * Videos
@@ -256,7 +265,7 @@ This plugin provides a visual designer and integrated development environment fo
 
 * https://github.com/ikasanEIP
 * https://www.youtube.com/@Ikasan-nq3js
-
+<!-- Plugin description end -->
 Ikasan EIP is a mature and well maintained integration platform based on industrial patterns (https://www.enterpriseintegrationpatterns.com/) to satisfy complex, disparate and demanding integration requirements of the finance sector.
 
 ## Installation

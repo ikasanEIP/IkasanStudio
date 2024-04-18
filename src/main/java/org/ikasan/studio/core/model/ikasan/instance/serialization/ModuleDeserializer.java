@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
@@ -32,7 +33,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     }
 
     @Override
-    public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, StudioBuildRuntimeException {
         JsonNode jsonNode = jp.getCodec().readTree(jp);
 
         String metapackVersion = DEFAULT_IKASAN_PACK;
@@ -47,6 +48,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         Module module;
         try {
             module = new Module(metapackVersion);
+            module.setName("Initialising module"); // A temp name to aid any issue resolution.
         } catch (StudioBuildException se) {
             String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
             LOG.error(message);
@@ -62,7 +64,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 } catch (StudioBuildException se) {
                     String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
                     LOG.error(message);
-                    throw new IOException(message, se);
+                    throw new StudioBuildRuntimeException(message, se);
                 }
             } else {
                 // These tags are for the top level flow properties
@@ -121,7 +123,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 Map.Entry<String, JsonNode> field = fields.next();
                 String   fieldName  = field.getKey();
                 if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
-                    flow.setConsumer(getInitialFlowElement(field.getValue(), flow, metapackVersion));
+                    FlowElement newFlowElement = getInitialFlowElement(field.getValue(), flow, metapackVersion);
+                    if (newFlowElement != null) {
+                        flow.setConsumer(newFlowElement);
+                    }
                 } else if (Flow.TRANSITIONS_JSON_TAG.equals(fieldName)) {
                     transitions = getTransitions(field.getValue());
                 } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
@@ -172,7 +177,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 // To - The MRR with default path
                 String firstElementKey = firstTransition.get(0).getFrom();
                 FlowElement firstElement = flowElementsMap.get(firstElementKey);
-                if (firstElement.getComponentMeta().isRouter()) {
+                // If the flowElement was excluded (can't create components) we must skip
+                if (firstElement != null && firstElement.getComponentMeta().isRouter()) {
                     Transition artificalFirstTransition = Transition.builder().from("").to(firstElementKey).name(DEFAULT_TRANSITION_NAME).build();
                     transitions.add(0, artificalFirstTransition);
                     firstTransition = Arrays.asList(artificalFirstTransition);
@@ -613,36 +619,38 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
                     metapackVersion, implementingClass, componentType, additionalKey);
             if (componentMeta == null) {
-                throw new IOException("Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" +additionalKey + "]");
-            }
-            if (componentMeta.isGeneratesUserImplementedClass()) {
-                flowElement = FlowUserImplementedElement.flowElementBuilder()
-                        .componentMeta(componentMeta)
-                        .containingFlow(containingFlow)
-                        .build();
+                LOG.error("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" +additionalKey + "] ignoring element.");
+//                throw new StudioBuildException("Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" +additionalKey + "]");
             } else {
-                flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
-            }
-
-            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> field = fields.next();
-                String fieldName = field.getKey();
-                if (ComponentMeta.IMPLEMENTING_CLASS_KEY.equals(fieldName) ||
-                    ComponentMeta.COMPONENT_TYPE_KEY.equals(fieldName) ||
-                    ComponentMeta.ADDITIONAL_KEY.equals(fieldName)) {
-                    // these special components are actually meta and captured above, used to identify the component.
-                    continue;
+                if (componentMeta.isGeneratesUserImplementedClass()) {
+                    flowElement = FlowUserImplementedElement.flowElementBuilder()
+                            .componentMeta(componentMeta)
+                            .containingFlow(containingFlow)
+                            .build();
+                } else {
+                    flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
                 }
 
-                Object value = getTypedValue(field);
-                // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
-                if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
-                    List<String> routeList = StudioBuildUtils.stringToList((String)value);
-                    flowElement.setPropertyValue(fieldName, routeList);
-                } else {
-                    flowElement.setPropertyValue(fieldName, value);
+                Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+
+                while (fields.hasNext()) {
+                    Map.Entry<String, JsonNode> field = fields.next();
+                    String fieldName = field.getKey();
+                    if (ComponentMeta.IMPLEMENTING_CLASS_KEY.equals(fieldName) ||
+                            ComponentMeta.COMPONENT_TYPE_KEY.equals(fieldName) ||
+                            ComponentMeta.ADDITIONAL_KEY.equals(fieldName)) {
+                        // these special components are actually meta and captured above, used to identify the component.
+                        continue;
+                    }
+
+                    Object value = getTypedValue(field);
+                    // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
+                    if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
+                        List<String> routeList = StudioBuildUtils.stringToList((String) value);
+                        flowElement.setPropertyValue(fieldName, routeList);
+                    } else {
+                        flowElement.setPropertyValue(fieldName, value);
+                    }
                 }
             }
         }

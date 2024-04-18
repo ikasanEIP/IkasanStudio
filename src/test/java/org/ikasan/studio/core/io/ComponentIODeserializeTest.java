@@ -68,14 +68,19 @@ class ComponentIODeserializeTest {
         ExceptionResolution jmsExceptionResolution = flow1.getExceptionResolver().getIkasanExceptionResolutionMap().get("javax.jms.JMSException.class");
 
         assertAll(
-            "Check the module contains the expected values",
-            () -> assertEquals("V3.3.x", module.getVersion()),
-            () -> assertEquals("A to B convert", module.getName()),
-            () -> assertEquals("My first module", module.getDescription()),
+        "Check the module contains the expected values",
             () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
+            () -> assertEquals("/myApp", module.getPropertyValue("context")),
+            () -> assertEquals("myResourceId", module.getPropertyValue(CONFIGURED_RESOURCE_ID)),
+            () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("8092", module.getH2PortNumber()),
             () -> assertEquals("8093", module.getH2WebPortNumber()),
+            () -> assertEquals("A to B convert", module.getName()),
             () -> assertEquals("8091", module.getPort()),
+            () -> assertEquals("https", module.getPropertyValue("protocol")),
+            () -> assertEquals("INTEGRATION_MODULE", module.getPropertyValue("type")),
+            () -> assertEquals("https://host/myApp", module.getPropertyValue("url")),
+            () -> assertEquals("V3.3.x", module.getVersion()),
 
             () -> assertEquals(1, flows.size()),
             () -> assertEquals(2, flow1.getComponentProperties().size()),

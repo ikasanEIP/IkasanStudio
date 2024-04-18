@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class ComponentIO {
@@ -38,7 +39,7 @@ public class ComponentIO {
         try {
             componentTypeMeta = MAPPER.readValue(jsonString, ComponentTypeMeta.class);
         } catch (JsonProcessingException e) {
-            throw new StudioBuildException("The serialised data in [" + path + "] could not be read due to [" + e.getMessage() + "]", e);
+            throw new StudioBuildException("The serialised data in [" + path + "] could not be read due to [" + e.getMessage() + "] trace: " + Arrays.toString(e.getStackTrace()));
         }
         return componentTypeMeta;
     }
@@ -57,7 +58,7 @@ public class ComponentIO {
         try {
             ikasanMeta = MAPPER.readValue(jsonString, IkasanMeta.class);
         } catch (JsonProcessingException e) {
-            throw new StudioBuildException("The serialised data in [" + path + "] could not be read due to [" + e.getMessage() + "]", e);
+            throw new StudioBuildException("The serialised data in [" + path + "] could not be read due to [" + e.getMessage() + "] trace: " + Arrays.toString(e.getStackTrace()));
         }
         return ikasanMeta;
     }
@@ -77,7 +78,7 @@ public class ComponentIO {
         try {
             moduleInstance = MAPPER.readValue(jsonString, Module.class);
         } catch (JsonProcessingException e) {
-            throw new StudioBuildException("The serialised data in [" + source + "] could not be read due to " + e.getMessage(), e);
+            throw new StudioBuildException("The serialised data in [" + source + "] could not be read due to " + e.getMessage() + " trace: " + Arrays.toString(e.getStackTrace()));
         }
         return moduleInstance;
     }
@@ -102,9 +103,9 @@ public class ComponentIO {
 
         try {
             jsonString = MAPPER.writeValueAsString(value);
-        } catch (JsonProcessingException jpe) {
+        } catch (JsonProcessingException e) {
             value = "";
-            LOG.warn("STUDIO: Could not generate JSON from [" + value + "] message [" + jpe.getMessage() + "]", jpe);
+            LOG.warn("STUDIO: Could not generate JSON from [" + value + "] message " + e.getMessage() + " trace: " + Arrays.toString(e.getStackTrace()));
         }
         return jsonString;
     }

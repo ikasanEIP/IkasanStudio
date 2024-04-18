@@ -17,7 +17,7 @@ public abstract class AbstractGeneratorTestFixtures {
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
                 .build();
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
-        flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         module.addFlow(flow);
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
@@ -31,7 +31,7 @@ public abstract class AbstractGeneratorTestFixtures {
                 .build();
         module.addFlow(flow);
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
-        flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         return generateFlowTemlateStringForModule(module);
     }
 
@@ -47,7 +47,7 @@ public abstract class AbstractGeneratorTestFixtures {
                 .exceptionResolver(exceptionResolver)
                 .build();
         exceptionResolver.setContainingFlowRoute(flow.getFlowRoute());
-        flow.setFlowRoute(FlowRoute.flowBuilder().flow(flow).build());
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).build());
         module.addFlow(flow);
 
         String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
@@ -65,7 +65,7 @@ public abstract class AbstractGeneratorTestFixtures {
             flow.setConsumer(flowElement);
         } else {
             flowElement.setContainingFlowRoute(flow.getFlowRoute());
-            flow.setFlowRoute(FlowRoute.flowBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
+            flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         }
         String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
