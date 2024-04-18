@@ -1,9 +1,9 @@
 {
-  "name": "Multi Recipient Router",
-  "helpText": "The router will allow the payload to be sent conditionally to zero or many routes.",
+  "name": "Single Recipient Router",
+  "helpText": "The router will allow the payload to be sent conditionally to zero or one routes.",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "implementingClass": "org.ikasan.spec.component.routing.MultiRecipientRouter",
-  "flowBuilderMethod": "multiRecipientRouter",
+  "implementingClass": "org.ikasan.spec.component.routing.SingleRecipientRouter",
+  "flowBuilderMethod": "singleRecipientRouter",
   "endpointKey": "Router Endpoint",
   "generatesUserImplementedClass": "true",
   "properties": {
@@ -60,6 +60,7 @@
       "usageDataType":"java.util.List<String>",
       "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
       "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
+
     }
   }
 }
