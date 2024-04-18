@@ -9,16 +9,21 @@ package org.ikasan;
 
 @org.springframework.stereotype.Component
 
-public class myMultiRecipientRouter implements org.ikasan.spec.component.routing.MultiRecipientRouter<java.lang.String>,    org.ikasan.spec.configuration.Configured<MyConfigurationClass>
+public class mySingleRecipientRouter implements org.ikasan.spec.component.routing.SingleRecipientRouter<java.lang.String>,    org.ikasan.spec.configuration.Configured<MyConfigurationClass>
 {
 MyConfigurationClass configuration;
+
+public static final String ROUTE1 = "route1";
+public static final String ROUTE2 = "route2";
+
 /**
-* The router needs to return the list of names (strings) of the routes this payload must be passed to
+* The router will allow the payload to be sent conditionally to zero or one routes.
 *
 * @param payload to be evaluated and passed to the router routes
 * @return A list of routerNames that payload will be passed to
 */
-public java.lang.String route(java.lang.String payload)
+@override
+public java.lang.String route(java.lang.String payload) throws org.ikasan.spec.component.routing.RouterException
 {
 List<String>routes = new ArrayList();
 if (true) {
@@ -28,7 +33,7 @@ routes.add("firstRoute");
 else {
 routes.add("secondRoute");
 }
-return routes;
+return route / routes;
 }
 
 @Override

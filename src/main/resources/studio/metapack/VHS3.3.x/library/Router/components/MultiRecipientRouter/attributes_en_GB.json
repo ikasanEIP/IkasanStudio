@@ -1,6 +1,6 @@
 {
   "name": "Multi Recipient Router",
-  "helpText": "The router will allow the payload to be sent conditionally alone one or more optional routes.",
+  "helpText": "The router will allow the payload to be sent conditionally to zero or many routes.",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "org.ikasan.spec.component.routing.MultiRecipientRouter",
   "flowBuilderMethod": "multiRecipientRouter",
@@ -60,7 +60,6 @@
       "usageDataType":"java.util.List<String>",
       "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
       "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
-
     }
   }
 }

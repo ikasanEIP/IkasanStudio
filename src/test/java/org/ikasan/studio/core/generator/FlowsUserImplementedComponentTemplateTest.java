@@ -59,14 +59,26 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
     //  ------------------------------- ROUTER ----------------------------------
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/Router.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/MultiRecipientRouter.java
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageRouterComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_messageMultiRecipientRouterComponent() throws IOException, StudioBuildException {
         FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"Router.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"MultiRecipientRouter.java"), templateString);
+    }
+
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/MultiRecipientRouter.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_messageSingleRecipientRouterComponent() throws IOException, StudioBuildException {
+        FlowElement flowElement = TestFixtures.getSingleRecipientRouter();
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"SingleRecipientRouter.java"), templateString);
     }
 }
