@@ -19,13 +19,13 @@ import java.util.*;
 public class ExceptionResolver extends FlowElement {
     private Map<String, ExceptionResolution> ikasanExceptionResolutionMap ;
     public ExceptionResolver(String metapackVersion, Flow containingFlow) throws StudioBuildException {
-        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null);
+        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
         ikasanExceptionResolutionMap = Collections.EMPTY_MAP;
     }
 
     @Builder(builderMethodName = "exceptionResolverBuilder")
     public ExceptionResolver(String metapackVersion, Flow containingFlow, Map<String, ExceptionResolution> ikasanExceptionResolutionMap) throws StudioBuildException {
-        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null);
+        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
         this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
     }
 

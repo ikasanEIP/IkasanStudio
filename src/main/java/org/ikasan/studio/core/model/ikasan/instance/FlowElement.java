@@ -9,6 +9,8 @@ import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSer
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
+import java.util.List;
+
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
  */
@@ -16,20 +18,23 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 @Getter
 @Setter
 public class FlowElement extends BasicElement {
+    public static final String DECORATORS_JSON_TAG = "decorators";
     @JsonIgnore
     private Flow containingFlow;
     private FlowRoute containingFlowRoute;
+    private List<Decorator> decorators;
 
     public FlowElement() {}
 
     @Builder (builderMethodName = "flowElementBuilder")
-    protected FlowElement(ComponentMeta componentMeta, Flow containingFlow, FlowRoute containingFlowRoute, String componentName) {
+    protected FlowElement(ComponentMeta componentMeta, Flow containingFlow, FlowRoute containingFlowRoute, String componentName, List<Decorator> decorators) {
         super(componentMeta, null);
         if (!componentMeta.isExceptionResolver()) {
             setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, componentName);
         }
         this.containingFlow = containingFlow;
         this.containingFlowRoute = containingFlowRoute;
+        this.decorators = decorators;
     }
 
     public void setContainingFlowRoute(FlowRoute containingFlowRoute) {

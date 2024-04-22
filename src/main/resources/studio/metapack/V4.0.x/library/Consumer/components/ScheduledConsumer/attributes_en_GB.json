@@ -4,13 +4,13 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
-  "usesBuilder" : true,
+  "usesBuilderInFactory" : true,
   "flowBuilderMethod": "consumer",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow."
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
     },
     "cronExpression": {
       "propertyName": "cronExpression",
@@ -28,10 +28,16 @@
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
-    "configuredResourceId": {
-      "propertyName": "configuredResourceId",
+    "configurationId": {
+      "propertyName": "configurationId",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
+      "setterMethod" : "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "usageDataType":"java.lang.String"
     },
     "criticalOnStartup": {
@@ -39,6 +45,10 @@
       "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
+    },
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
     },
     "eager": {
       "propertyName": "eager",

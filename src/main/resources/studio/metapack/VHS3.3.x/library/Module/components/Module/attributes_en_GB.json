@@ -5,7 +5,7 @@
   "generatesUserImplementedClass": true,
   "implementingClass": "",
   "ikasanComponentFactoryMethod": "",
-  "usesBuilder" : true,
+  "usesBuilderInFactory" : true,
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
@@ -52,7 +52,7 @@
     "name": {
       "propertyName": "name",
       "affectsUserImplementedClass": true,
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
     "applicationPackageName": {
@@ -63,9 +63,9 @@
     },
     "configuredResourceId": {
       "propertyName": "configuredResourceId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don'twant to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
-      "usageDataType": "java.lang.String"
+      "usageDataType":"java.lang.String"
     },
     "context": {
       "propertyName": "context",

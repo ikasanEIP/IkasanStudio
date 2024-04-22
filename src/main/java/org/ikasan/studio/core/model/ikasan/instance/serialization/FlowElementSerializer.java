@@ -17,11 +17,11 @@ public class FlowElementSerializer extends StdSerializer<FlowElement> {
     @Override
     public void serialize(FlowElement flowElement, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();
-        serializePayload(flowElement, jsonGenerator);
+        serializePayload(flowElement, jsonGenerator, serializerProvider);
         jsonGenerator.writeEndObject();
     }
 
-    protected void serializePayload(FlowElement flowElement, JsonGenerator jsonGenerator) throws IOException {
+    protected void serializePayload(FlowElement flowElement, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         BasicElementSerializer basicElementSerializer = new BasicElementSerializer();
         basicElementSerializer.serializePayload(flowElement, jsonGenerator);
 
@@ -30,6 +30,19 @@ public class FlowElementSerializer extends StdSerializer<FlowElement> {
         jsonGenerator.writeStringField(ComponentMeta.IMPLEMENTING_CLASS_KEY, flowElement.getComponentMeta().getImplementingClass());
         if (flowElement.getComponentMeta().getAdditionalKey() != null) {
             jsonGenerator.writeStringField(ComponentMeta.ADDITIONAL_KEY, flowElement.getComponentMeta().getAdditionalKey());
+        }
+
+
+        if (flowElement.getDecorators() != null && !flowElement.getDecorators().isEmpty()) {
+
+                // Since transitions are simple pojos, we can use the default serialiser
+            serializerProvider.defaultSerializeField(FlowElement.DECORATORS_JSON_TAG, flowElement.getDecorators(), jsonGenerator);
+
+
+//            DecoratorSerializer decoratorSerializer = new DecoratorSerializer();
+//            for(Decorator decorator : flowElement.getDecorators()) {
+//                decoratorSerializer.serializePayload(decorator, jsonGenerator);
+//            }
         }
     }
 }

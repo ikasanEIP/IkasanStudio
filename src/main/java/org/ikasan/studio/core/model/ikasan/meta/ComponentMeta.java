@@ -31,15 +31,20 @@ public class ComponentMeta implements IkasanMeta {
     public static final String MODULE_TYPE = "Module";
     public static final String PRODUCER_TYPE = "Producer";
     public static final String EXCEPTION_RESOLVER_TYPE = "Exception Resolver";
+    public static final String GENERIC_KEY = "Generic";  // This component is a generic component i.e. the user will supply the class implementing the interface of this component type
 
     private static final String DEFAULT_README = "Readme.md";
 
     public static final String ADDITIONAL_KEY = "additionalKey";
     public static final String COMPONENT_TYPE_KEY = "componentType";
+    public static final String CONFIGURATION_ID_KEY = "configurationId";
+    public static final String CONFIGURABLE_KEY = "configurable";
+    public static final String DECORATORS_KEY = "decorators";
     public static final String EXCEPTION_RESOLVER_KEY = "exceptionResolver";
     public static final String HELP_TEXT_KEY = "helpText";
     public static final String IMPLEMENTING_CLASS_KEY = "implementingClass";
     public static final String NAME_KEY = "name";
+    public static final String TYPE_KEY = "type";
     public static final String EXCEPTIONS_CAUGHT_KEY = "exceptionsCaught";
     public static final String ACTION_KEY = "action";
     public static final String ACTION_PROPERTIES_KEY = "actionProperties";
@@ -47,7 +52,7 @@ public class ComponentMeta implements IkasanMeta {
     // DO NOT RENAME - Will affect model.json
     @lombok.NonNull
     private String name;
-    private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer
+    private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
 
     private String componentType;
     private String componentShortType;  // The componentType is a FQN to be persisted to module.json, this is the short form, using in logic.
@@ -69,8 +74,8 @@ public class ComponentMeta implements IkasanMeta {
     private Set<Dependency> jarDependencies;
     @Builder.Default
     private Map<String, ComponentPropertyMeta> properties = new HashMap<>();
-    private boolean usesBuilder;
-    private boolean useImplementingClass;
+    private boolean usesBuilderInFactory;
+    private boolean useImplementingClassInFactory;
 
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
@@ -109,6 +114,14 @@ public class ComponentMeta implements IkasanMeta {
     }
     public boolean isConsumer() {
         return COMSUMER_TYPE.equals(componentShortType);
+    }
+
+    /**
+     * Thie component is a generic component e.g. a broker or consumer, the user will supply the implementing class.
+     * @return true if the meta represents a generic component.
+     */
+    public boolean isGeneric() {
+        return GENERIC_KEY.equals(additionalKey);
     }
     public boolean isRouter() {
         return ROUTER_TYPE.equals(componentShortType);

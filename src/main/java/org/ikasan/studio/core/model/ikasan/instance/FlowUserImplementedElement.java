@@ -14,7 +14,7 @@ public class FlowUserImplementedElement extends FlowElement {
      * @param overwriteEnabled to allow the user implemented class to be regenerated from the template
      */
     protected FlowUserImplementedElement(ComponentMeta type, Flow parent, boolean overwriteEnabled) {
-        super(type, parent, null, null);
+        super(type, parent, null, null, null);
         this.overwriteEnabled = overwriteEnabled;
     }
 

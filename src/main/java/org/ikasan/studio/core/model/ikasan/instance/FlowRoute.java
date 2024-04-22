@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,8 @@ public class FlowRoute  implements IkasanComponent {
             this.flowElements = new ArrayList<>();
             for(FlowElement flowElement : flowElements) {
                 if (flowElement.getComponentMeta().isConsumer()) {
-                    LOG.warn("STUDIO: SERIOUS: Attempt made to add a consumer " + flowElement + " to a route, will try to add to flow");
+                    Thread thread = Thread.currentThread();
+                    LOG.warn("STUDIO: SERIOUS: Attempt made to add a consumer " + flowElement + " to a route, will try to add to flow. Trace: " + Arrays.toString(thread.getStackTrace()));
                     if (!flow.hasConsumer()) {
                         flow.setConsumer(flowElement);
                     } else {

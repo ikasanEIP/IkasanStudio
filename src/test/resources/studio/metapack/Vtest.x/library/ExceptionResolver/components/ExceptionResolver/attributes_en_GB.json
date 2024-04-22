@@ -5,7 +5,7 @@
   "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
   "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
-  "usesBuilder" : true,
+  "usesBuilderInFactory" : true,
   "flowBuilderMethod": "withExceptionResolver",
   "properties": {
     "componentName": {

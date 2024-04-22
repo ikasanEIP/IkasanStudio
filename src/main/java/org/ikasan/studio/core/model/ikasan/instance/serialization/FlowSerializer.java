@@ -37,7 +37,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
         if (flow.getConsumer() != null) {
             jsonGenerator.writeFieldName(Flow.CONSUMER_JSON_TAG);
             jsonGenerator.writeStartObject();
-            flowElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator);
+            flowElementSerializer.serializePayload(flow.getConsumer(), jsonGenerator, serializerProvider);
             jsonGenerator.writeEndObject();
         }
 
@@ -70,7 +70,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
         if (    flow.getFlowRoute().getFlowElements() != null &&
                 !flow.getFlowRoute().getFlowElements().isEmpty()) {
             jsonGenerator.writeArrayFieldStart(Flow.FLOW_ELEMENTS_JSON_TAG);
-            processFlowRouteFlowElements(Arrays.asList(flow.getFlowRoute()), jsonGenerator, flowElementSerializer);
+            processFlowRouteFlowElements(Arrays.asList(flow.getFlowRoute()), jsonGenerator, flowElementSerializer, serializerProvider);
 
             jsonGenerator.writeEndArray();
         }
@@ -143,19 +143,19 @@ public class FlowSerializer extends StdSerializer<Flow> {
         }
     }
 
-    protected void processFlowRouteFlowElements(List<FlowRoute> flowRoutes, JsonGenerator jsonGenerator, FlowElementSerializer flowElementSerializer) throws IOException {
+    protected void processFlowRouteFlowElements(List<FlowRoute> flowRoutes, JsonGenerator jsonGenerator, FlowElementSerializer flowElementSerializer, SerializerProvider serializerProvider) throws IOException {
         if (flowRoutes != null && !flowRoutes.isEmpty()) {
             for (FlowRoute flowRoute : flowRoutes) {
                 if (flowRoute.getFlowElements() != null && !flowRoute.getFlowElements().isEmpty()) {
                     for (FlowElement flowElement : flowRoute.getFlowElements()) {
                         if (!flowElement.getComponentMeta().isEndpoint()) {
                             jsonGenerator.writeStartObject();
-                            flowElementSerializer.serializePayload(flowElement, jsonGenerator);
+                            flowElementSerializer.serializePayload(flowElement, jsonGenerator, serializerProvider);
                             jsonGenerator.writeEndObject();
                         }
                     }
                 }
-                processFlowRouteFlowElements(flowRoute.getChildRoutes(), jsonGenerator, flowElementSerializer);
+                processFlowRouteFlowElements(flowRoute.getChildRoutes(), jsonGenerator, flowElementSerializer, serializerProvider);
             }
         }
     }

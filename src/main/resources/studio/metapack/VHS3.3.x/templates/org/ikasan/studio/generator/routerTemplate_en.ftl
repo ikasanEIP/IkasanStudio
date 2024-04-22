@@ -17,13 +17,19 @@ ${flowElement.getPropertyValue("configuration")} configuration;
 <#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>
 String configurationId;
 </#if>
+
+<#list flowElement.getPropertyValue("routeNames")![] as route>
+public static final String ${route?upper_case} = "${route}";
+</#list>
+
 /**
-* The router needs to return the list of names (strings) of the routes this payload must be passed to
+* ${flowElement.getComponentMeta().getHelpText()}
 *
 * @param payload to be evaluated and passed to the router routes
 * @return A list of routerNames that payload will be passed to
 */
-public ${flowElement.getPropertyValue("fromType")} route(${flowElement.getPropertyValue("fromType")} payload)
+@override
+public ${flowElement.getPropertyValue("fromType")} route(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.routing.RouterException
 {
 List<String>routes = new ArrayList();
 if (true) {
@@ -33,7 +39,7 @@ routes.add("firstRoute");
 else {
 routes.add("secondRoute");
 }
-return routes;
+return route / routes;
 }
 <#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>
 

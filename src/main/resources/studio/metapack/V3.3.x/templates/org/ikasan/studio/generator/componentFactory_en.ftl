@@ -68,7 +68,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 <#compress>
 <#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as flowElement>
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
-    <#if flowElement.componentMeta.usesBuilder>
+    <#if flowElement.componentMeta.usesBuilderInFactory>
         <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
             return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
         <#else>
@@ -77,16 +77,21 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#if>
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
+            <#if propValue.meta.getSetterMethod()?? && propValue.meta.getSetterMethod()!= "">
+                <#assign setter="${propValue.meta.getSetterMethod()}">
+            <#else>
+                <#assign setter="set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}">
+            </#if>
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
-                <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}(${StudioBuildUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#else>
                 <#if propValue.meta.isUserSuppliedClass()>
-                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}(${StudioBuildUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
-                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}("${propValue.valueString}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${propValue.valueString}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     <#else>
-                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}(${propValue.valueString})<#if flowElement.componentMeta.generatesUserImplementedClass>;x</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${propValue.valueString})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     </#if>
                 </#if>
             </#if>
@@ -99,7 +104,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#if>
     <#if flowElement.componentMeta.generatesUserImplementedClass>
         return ${flowElement.getJavaVariableName()};
-    <#elseif flowElement.componentMeta.useImplementingClass>
+    <#elseif flowElement.componentMeta.useImplementingClassInFactory>
         return new ${flowElement.componentMeta.implementingClass}();
     <#else>
         .build();

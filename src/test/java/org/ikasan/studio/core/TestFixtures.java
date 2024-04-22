@@ -91,7 +91,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("cleanupJournalOnComplete", true);
         flowElement.setPropertyValue("clientID", "myClientId");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("connectionTimeout", 600001);
         flowElement.setPropertyValue("dataTimeout", 300001);
         flowElement.setPropertyValue("destructive", true);
@@ -150,7 +150,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("cleanupJournalOnComplete", true);
         flowElement.setPropertyValue("clientID", "myClientId");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("connectionTimeout", 600001);
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("dataTimeout", 300001);
@@ -190,7 +190,7 @@ public class TestFixtures {
                 .componentName("My Local File Consumer")
                 .build();
         flowElement.setPropertyValue("configuration", "org.ikasan.myflow.configuration");
-        flowElement.setPropertyValue("configuredResourceId", "bob");
+        flowElement.setPropertyValue("configurationId", "bob");
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
         flowElement.setPropertyValue("directoryDepth", 1);
@@ -238,7 +238,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("cacheLevel", 1);
         flowElement.setPropertyValue("concurrentConsumers", 2);
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
@@ -304,7 +304,7 @@ public class TestFixtures {
                 .build();
         flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
         flowElement.setPropertyValue("configuration", "org.ikasan.myflow.configuration");
-        flowElement.setPropertyValue("configuredResourceId", "bob");
+        flowElement.setPropertyValue("configurationId", "bob");
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("eager", true);
         flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");
@@ -347,7 +347,7 @@ public class TestFixtures {
                 .componentName("My Object Message To XML String Converter")
                 .build();
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("fastFailOnConfigurationLoad", true);
         flowElement.setPropertyValue("namespacePrefix", "myNamespacePrefix");
         flowElement.setPropertyValue("namespaceURI", "myNamespaceURI");
@@ -402,7 +402,7 @@ public class TestFixtures {
 //        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myFilter");
-        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("configurationId", "MyResourceID");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResource", true);
         return flowElement;
@@ -418,7 +418,7 @@ public class TestFixtures {
                 .componentName("My Multi Recipient Router")
                 .build();
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myMultiRecipientRouter");
-        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("configurationId", "MyResourceID");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResource", true);
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
@@ -446,9 +446,23 @@ public class TestFixtures {
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Dev Null Producer");
+        Decorator decorator1 = Decorator.decoratorBuilder()
+                .type("Wiretap")
+                .name("Before bob")
+                .configurationId("345")
+                .configurable(false)
+                .build();
+        Decorator decorator2 = Decorator.decoratorBuilder()
+                .type("LoggingWiretap")
+                .name("Before bobie")
+                .configurationId("3451")
+                .configurable(true)
+                .build();
+
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My DevNull Producer")
+                .decorators(Arrays.asList(decorator1, decorator2))
                 .build();
     }
 
@@ -464,7 +478,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("ccRecipient", "myCcRecipient");
         flowElement.setPropertyValue("ccRecipients"," {'cc1','cc2'}");
         flowElement.setPropertyValue("configuration", "myConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("emailBody", "myEmailBody");
         flowElement.setPropertyValue("emailFormat", "html");
@@ -504,7 +518,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("cleanupJournalOnComplete", true);
         flowElement.setPropertyValue("clientID", "myClientId");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("createParentDirectory", true);
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("dataTimeout", 300001);
@@ -613,7 +627,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("cleanupJournalOnComplete", true);
         flowElement.setPropertyValue("clientID", "myClientId");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("createParentDirectory", true);
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("knownHostFilename", "~/.ssh/knownhosts");
@@ -639,7 +653,7 @@ public class TestFixtures {
                 .componentMeta(meta)
                 .componentName("My Logging Producer")
                 .build();
-        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("configurationId", "MyResourceID");
         flowElement.setPropertyValue("regExpPattern", "this");
         flowElement.setPropertyValue("replacementText", "that");
         flowElement.setPropertyValue("logEveryNth", 2);

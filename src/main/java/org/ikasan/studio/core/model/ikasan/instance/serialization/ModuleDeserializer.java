@@ -599,6 +599,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         return flowElementsMap;
     }
 
+
     /**
      * Start to build the FlowElement from the Json. At this stage we don't know what route they belong to.
      * @param jsonNode contaiing the flow element
@@ -619,8 +620,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
                     metapackVersion, implementingClass, componentType, additionalKey);
             if (componentMeta == null) {
-                LOG.error("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" +additionalKey + "] ignoring element.");
-//                throw new StudioBuildException("Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" +additionalKey + "]");
+                LOG.error("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" + additionalKey + "] ignoring element.");
             } else {
                 if (componentMeta.isGeneratesUserImplementedClass()) {
                     flowElement = FlowUserImplementedElement.flowElementBuilder()
@@ -628,7 +628,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                             .containingFlow(containingFlow)
                             .build();
                 } else {
-                    flowElement = FlowElement.flowElementBuilder().componentMeta(componentMeta).containingFlow(containingFlow).build();
+                    flowElement = FlowElement.flowElementBuilder()
+                            .componentMeta(componentMeta)
+                            .containingFlow(containingFlow)
+                            .build();
+                }
+                if (flowElement.getComponentMeta().isGeneric()) {
+                    flowElement.setPropertyValue("userImplementedClassName", IkasanComponentLibrary.getClassFromSpringString(implementingClass));
                 }
 
                 Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
@@ -639,7 +645,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     if (ComponentMeta.IMPLEMENTING_CLASS_KEY.equals(fieldName) ||
                             ComponentMeta.COMPONENT_TYPE_KEY.equals(fieldName) ||
                             ComponentMeta.ADDITIONAL_KEY.equals(fieldName)) {
-                        // these special components are actually meta and captured above, used to identify the component.
+                        // these special properties are actually meta and captured above, used to identify the component.
+                        continue;
+                    }
+                    // Decorators don't get set via the properties panels so are treated differently.
+                    if (ComponentMeta.DECORATORS_KEY.equals(fieldName)) {
+                        flowElement.setDecorators(getDecorators(field.getValue()));
                         continue;
                     }
 
@@ -655,5 +666,37 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             }
         }
         return flowElement;
+    }
+
+    public List<Decorator> getDecorators(JsonNode root) {
+        List<Decorator> decorators = new ArrayList<>();
+        if (root.isArray()) {
+            ArrayNode arrayNode = (ArrayNode) root;
+            for (int i = 0; i < arrayNode.size(); i++) {
+                JsonNode arrayElement = arrayNode.get(i);
+                Decorator decorator = getDecorator(arrayElement);
+                if (decorator != null) {
+                    decorators.add(decorator);
+                }
+            }
+        }
+        return decorators;
+    }
+
+    public Decorator getDecorator(JsonNode jsonNode) {
+        Decorator decorator = null;
+        if(jsonNode.isObject() && !jsonNode.isEmpty()) {
+            String type = jsonNode.get(ComponentMeta.TYPE_KEY) != null ? jsonNode.get(ComponentMeta.TYPE_KEY).asText() : null;
+            String name = jsonNode.get(ComponentMeta.NAME_KEY) != null ? jsonNode.get(ComponentMeta.NAME_KEY).asText() : null;
+            String configurationId = jsonNode.get(ComponentMeta.CONFIGURATION_ID_KEY) != null ? jsonNode.get(ComponentMeta.CONFIGURATION_ID_KEY).asText() : null;
+            Boolean configurable = jsonNode.get(ComponentMeta.CONFIGURABLE_KEY) != null ? jsonNode.get(ComponentMeta.CONFIGURABLE_KEY).asBoolean() : null;
+            decorator = Decorator.decoratorBuilder()
+                    .type(type)
+                    .name(name)
+                    .configurable(configurable)
+                    .configurationId(configurationId)
+                    .build();
+        }
+        return decorator;
     }
 }

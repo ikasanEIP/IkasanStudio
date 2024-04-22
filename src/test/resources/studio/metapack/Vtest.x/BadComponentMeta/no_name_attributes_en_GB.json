@@ -2,7 +2,7 @@
   "helpText": "The module is the container for all flows",
   "implementingClass": "",
   "ikasanComponentFactoryMethod": "",
-  "usesBuilder" : true,
+  "usesBuilderInFactory" : true,
   "jarDependencies": [
 
   ],
