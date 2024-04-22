@@ -67,7 +67,7 @@ ikasan.dashboard.extract.password=
                         componentProperty.getMeta().getPropertyConfigFileLabel() != "" &&
                         componentProperty.getValue()?? &&
                         !componentProperty.getMeta().isUserSuppliedClass()>
-                    ${StudioBuildUtils.getPropertyLabelPackageStyle(module, flow, basicElement, componentProperty.getMeta().getPropertyConfigFileLabel())}=${componentProperty.getValue()}
+                    ${StudioBuildUtils.getPropertyLabelPackageStyle(module, flow, basicElement, componentProperty.getMeta().getPropertyConfigFileLabel())}=${componentProperty.getValueString()}
                 </#if>
             </#list>
         </#if>

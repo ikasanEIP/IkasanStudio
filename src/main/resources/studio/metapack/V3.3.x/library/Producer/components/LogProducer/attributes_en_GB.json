@@ -6,18 +6,24 @@
   "helpText": "Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A",
   "ikasanComponentFactoryMethod": "logProducer",
   "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
-  "usesBuilder" : true,
+  "usesBuilderInFactory" : true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
-    "configuredResourceId": {
-      "propertyName": "configuredResourceId",
-      "helpText": "An ID used to uniquely identify this component, which is then used as a key for configuration.",
+    "configurationId": {
+      "propertyName": "configurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
+      "setterMethod" : "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "usageDataType":"java.lang.String"
     },
     "description": {

@@ -14,6 +14,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentMeta.GENERIC_KEY;
+
 /**
  * This class aggregates all the defined Ikasan components
  */
@@ -165,7 +167,7 @@ public class IkasanComponentLibrary {
     /**
      * For most internal operations on componentMeta, the name of the component is used e.f. 'FTP Consumer',
      * When we need to deserialize a module.json, the 'names' of the components are not contained, instead we need to use
-     * other peices of data in the module.json to identify components i.e. using a deserialization key.
+     * other pieces of data in the module.json to identify components i.e. using a deserialization key.
      * This method creates a map into componentMeta using the deserialization key.
      * @param ikasanComponentMetaMap keyed by component name
      * @return  the provided meta map, keyed by 'deserialization attributes'
@@ -174,10 +176,18 @@ public class IkasanComponentLibrary {
     private static Map<String, ComponentMeta> generateDeserialisationKeyedMeta(Map<String, ComponentMeta> ikasanComponentMetaMap) {
         Map<String, ComponentMeta> deserialsiationMetaMap = new HashMap<>();
         if (ikasanComponentMetaMap != null && !ikasanComponentMetaMap.isEmpty()) {
-            deserialsiationMetaMap = ikasanComponentMetaMap.values().stream()
-                .collect(Collectors.toMap(
-                        IkasanComponentLibrary::getDeserialisationKey, componentMeta -> componentMeta
-                ));
+            for (ComponentMeta componentMeta : ikasanComponentMetaMap.values()) {
+                String key = getDeserialisationKey(componentMeta);
+                if (deserialsiationMetaMap.containsKey(key)) {
+                    LOG.error("Studio: Serious: A mapping already exists for key [" + key + "] existing value [" + deserialsiationMetaMap.get(key) + "], new value [" + componentMeta + "]. Correct the metapack. This entry will be ignored");
+                } else {
+                    deserialsiationMetaMap.putIfAbsent(getDeserialisationKey(componentMeta), componentMeta);
+                }
+            }
+//            deserialsiationMetaMap = ikasanComponentMetaMap.values().stream()
+//                .collect(Collectors.toMap(
+//                        IkasanComponentLibrary::getDeserialisationKey, componentMeta -> componentMeta
+//                ));
         }
         return deserialsiationMetaMap;
     }
@@ -194,11 +204,8 @@ public class IkasanComponentLibrary {
      */
     public static String getDeserialisationKey(String implementingClass, String componentType, String additionalKey) {
         StringBuilder metaDataDeserialisationKey = new StringBuilder();
-        if (implementingClass != null && !implementingClass.isBlank()) {
-            if (implementingClass.contains("$")) {
-                // remove any inner class reference
-                implementingClass = implementingClass.split("\\$")[0];
-            }
+        implementingClass = getClassFromSpringString(implementingClass);
+        if (!implementingClass.isBlank()) {
             metaDataDeserialisationKey.append(implementingClass).append("-");
         }
         if (componentType != null && !componentType.isBlank()) {
@@ -213,6 +220,14 @@ public class IkasanComponentLibrary {
         return getDeserialisationKey(componentMeta.getImplementingClass(), componentMeta.getComponentType(), componentMeta.getAdditionalKey());
     }
 
+    public static String getClassFromSpringString(String implementingClass) {
+        if (implementingClass != null && !implementingClass.isBlank()) {
+            if (implementingClass.contains("$")) {
+                implementingClass = implementingClass.split("\\$")[0];
+            }
+        }
+        return implementingClass;
+    }
 
     public static ComponentMeta getFLowComponentMeta(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         return getIkasanComponentByKey(ikasanMetaDataPackVersion, ComponentMeta.FLOW_TYPE);
@@ -294,17 +309,24 @@ public class IkasanComponentLibrary {
     }
 
     /**
-     * Some use cases, including deserialisation, will need to match the metadata given an implementing class
+     * Some use cases, including deserialization, will need to match the metadata given an implementing class
      * @param ikasanMetaDataPackVersion of the IkasanMetaPack
      * @param implementingClass to be searched for
-     * @param componentType to be used is no implementing class is available for this component e.g. Module
-     * @param additionalKey to be used is no implementing class is available for this component e.g. Module
-     * @return the metadata that matches the name of the implmenting class provided, or null
+     * @param componentType fully qualified Ikasan class name for this component type e.g. org.ikasan.spec.component.endpoint.Consumer
+     * @param additionalKey to be used if no implementing class is available for this component e.g. Module
+     * @return the metadata that matches the name of the implementing class provided, or null
      */
     public static ComponentMeta getIkasanComponentByDeserialisationKey(String ikasanMetaDataPackVersion, String implementingClass, String componentType, String additionalKey) throws StudioBuildException {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByDeserialisationKey(ikasanMetaDataPackVersion);
-        return safeIkasanComponentMetaMap.get(getDeserialisationKey(implementingClass, componentType, additionalKey));
+        ComponentMeta componentMeta = safeIkasanComponentMetaMap.get(getDeserialisationKey(implementingClass, componentType, additionalKey));
+        // Assume we have a generic / user provided component.
+        if (componentMeta == null) {
+            componentMeta = safeIkasanComponentMetaMap.get(getDeserialisationKey("", componentType, GENERIC_KEY));
+        }
+        return componentMeta;
     }
+
+
 
     public static Set<String> getIkasanComponentNames(String ikasanMetaDataPackVersion) throws StudioBuildException {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);

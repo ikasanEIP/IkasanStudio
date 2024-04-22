@@ -5,14 +5,14 @@
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "additionalKey": "Spring JMS Consumer",
-  "usesBuilder": true,
+  "usesBuilderInFactory": true,
   "flowBuilderMethod": "consumer",
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow.",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
     "autoContentConversion": {
@@ -60,12 +60,17 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
-    "configuredResourceId": {
-      "propertyName": "configuredResourceId",
-      "defaultValue": "__moduleName-__componentName",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don'twant to update properties that may have already been stored in the override properties database.",
-      "mandatory": true,
-      "setterProperty": true
+    "configurationId": {
+      "propertyName": "configurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "setterMethod" : "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
     },
     "connectionFactory": {
       "propertyName": "connectionFactory",
@@ -143,6 +148,10 @@
       "propertyName": "connectionUsername",
       "helpText": "Authentication principal.",
       "setterProperty": true
+    },
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
