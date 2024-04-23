@@ -31,7 +31,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getBroker();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBrokerComponent.java"), templateString);
@@ -43,7 +43,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_eventGeneratingConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getEventGeneratingConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedEventGeneratingConsumerComponent.java"), templateString);
@@ -55,7 +55,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_ftpConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_ftpConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getFtpConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedFtpConsumerComponent.java"), templateString);
@@ -66,7 +66,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_sftpConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_sftpConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getSftpConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedSftpConsumerComponent.java"), templateString);
@@ -78,7 +78,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_localFileConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_localFileConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getLocalFileConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedLocalFileConsumerComponent.java"), templateString);
@@ -89,7 +89,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_scheduledConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_scheduledConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getScheduledConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedScheduledConsumerComponent.java"), templateString);
@@ -100,7 +100,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_springJmsConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_springJmsConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getSpringJmsConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedSpringJmsConsumerComponent.java"), templateString);
@@ -111,7 +111,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBasicAmqSpringJmsConsumerComponent.java"), templateString);
@@ -123,7 +123,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_customConverter() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_customConverter() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedCustomConverterComponent.java"), templateString);
@@ -134,7 +134,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedObjectMessageToObjectConverterComponent.java"), templateString);
@@ -145,7 +145,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java"), templateString);
@@ -157,7 +157,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_ExceptionResolver() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_ExceptionResolver() throws IOException, StudioBuildException, StudioGeneratorException {
         ExceptionResolver exceptionResolver = TestFixtures.getExceptionResolver();
         String templateString = generateFlowWithExceptionResolverTemplateString(exceptionResolver);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(exceptionResolver, TEST_FLOW_NAME + "FullyPopulatedExceptionResolverComponent.java"), templateString);
@@ -169,7 +169,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageFilter() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_messageFilter() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getMessageFilter();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
@@ -182,7 +182,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_multiRecipientRouter() throws IOException, StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow()));
         List<FlowElement> flowElements = module.getFlows().get(0).getFlowRoute().getFlowElements();
         BasicElement router = flowElements.get(flowElements.size()-1);
@@ -198,7 +198,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_devNullProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_devNullProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getDevNullProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedDevNullProducerComponent.java"), templateString);
@@ -209,7 +209,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_emailProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_emailProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getEmailProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedEmailProducerComponent.java"), templateString);
@@ -220,7 +220,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_ftpProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_ftpProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getFtpProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedFtpProducerComponent.java"), templateString);
@@ -231,7 +231,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_jmsProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_jmsProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getJmsProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedJmsProducerComponent.java"), templateString);
@@ -242,7 +242,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_basicAmqJmsProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_basicAmqJmsProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedBasicAmqJmsProducerComponent.java"), templateString);
@@ -253,7 +253,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_SftpProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_SftpProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getSftpProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedSftpProducerComponent.java"), templateString);
@@ -264,7 +264,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_loggingProducer() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_loggingProducer() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getLoggingProducer();
         String templateString = generateFlowTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedLoggingProducerComponent.java"), templateString);

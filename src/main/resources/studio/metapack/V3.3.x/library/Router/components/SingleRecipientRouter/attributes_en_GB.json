@@ -67,12 +67,18 @@
       "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the router."
     },
+    "toType": {
+      "propertyName": "toType",
+      "defaultValue": "java.lang.String",
+      "hiddenProperty" : true,
+      "mandatory": true
+    },
     "routeNames": {
       "propertyName": "routeNames",
       "affectsUserImplementedClass": "true",
       "helpText": "The commma seperated list of names to identify the different routes",
       "mandatory": true,
-      "usageDataType":"java.util.List<String>",
+      "usageDataType":"java.util.List<java.lang.String>",
       "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
       "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
 

@@ -20,7 +20,7 @@ public class ModuleConfigTemplateTest {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateModuleWith_emptyIkasanModel() throws IOException, StudioBuildException {
+    public void testCreateModuleWith_emptyIkasanModel() throws IOException, StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
 
         String templateString = ModuleConfigTemplate.generateContents(module);
@@ -33,7 +33,7 @@ public class ModuleConfigTemplateTest {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateModuleWith_oneFlow() throws IOException, StudioBuildException {
+    public void testCreateModuleWith_oneFlow() throws IOException, StudioBuildException, StudioGeneratorException {
         Flow flow1 = TestFixtures.getUnbuiltFlow().build();
         Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(flow1));
 

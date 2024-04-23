@@ -9,12 +9,12 @@ public class PropertiesTemplate extends Generator {
 
     private static final String MODULE_PROPERTIES_FTL = "propertiesTemplate.ftl";
 
-    public static String create(Module ikasanModule) {
+    public static String create(Module ikasanModule) throws StudioGeneratorException {
         return generateContents(ikasanModule);
     }
 
     //@todo it might be more efficient to have 1 properties file per flow
-    protected static String generateContents(Module ikasanModule) {
+    protected static String generateContents(Module ikasanModule) throws StudioGeneratorException {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
         return FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);

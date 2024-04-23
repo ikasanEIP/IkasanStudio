@@ -28,18 +28,18 @@ public static final String ${route?upper_case} = "${route}";
 * @param payload to be evaluated and passed to the router routes
 * @return A list of routerNames that payload will be passed to
 */
-@override
-public ${flowElement.getPropertyValue("fromType")} route(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.routing.RouterException
+@Override
+public ${flowElement.getPropertyValue("toType")} route(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.routing.RouterException
 {
-List<String>routes = new ArrayList();
-if (true) {
+//List<String>routes = new ArrayList();
+//if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter
-routes.add("firstRoute");
-}
-else {
-routes.add("secondRoute");
-}
-return route / routes;
+//routes.add("firstRoute");
+//}
+//else {
+//routes.add("secondRoute");
+//}
+return null;
 }
 <#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>
 

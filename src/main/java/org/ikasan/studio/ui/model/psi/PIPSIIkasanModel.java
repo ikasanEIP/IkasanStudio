@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
+import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
 import static org.ikasan.studio.ui.model.StudioPsiUtils.createJsonModelFile;
 
 /**
@@ -127,8 +128,15 @@ public class PIPSIIkasanModel {
      * @param module for this code
      */
     private void saveApplication(Project project, Module module) {
-        String templateString  = ApplicationTemplate.create(module);
-        StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, templateString, true, true);
+        String templateString  = null;
+        try {
+            templateString = ApplicationTemplate.create(module);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+        }
+        if (templateString != null) {
+            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, templateString, true, true);
+        }
     }
 
     private void saveFlow(Project project, Module module) {
@@ -147,10 +155,17 @@ public class PIPSIIkasanModel {
                             String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                             String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
                             String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
-                            String templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
-                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
-                            if (viewHandler != null) {
-                                viewHandler.setPsiJavaFile(newFile);
+                            String templateString = null;
+                            try {
+                                templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
+                            } catch (StudioGeneratorException e) {
+                                displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+                            }
+                            if (templateString != null) {
+                                PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
+                                if (viewHandler != null) {
+                                    viewHandler.setPsiJavaFile(newFile);
+                                }
                             }
                         }
                     }
@@ -158,32 +173,54 @@ public class PIPSIIkasanModel {
                     if (component instanceof FlowUserImplementedElement && ((FlowUserImplementedElement)component).isOverwriteEnabled()) {
                         String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
-                        String templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, component);
-                        boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
-                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
-                        ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
-                        if (viewHandler != null) {
-                            viewHandler.setPsiJavaFile(newFile);
+                        String templateString = null;
+                        try {
+                            templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, component);
+                        } catch (StudioGeneratorException e) {
+                            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+                        }
+                        if (templateString != null) {
+                            boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
+                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
+                            ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
+                            if (viewHandler != null) {
+                                viewHandler.setPsiJavaFile(newFile);
+                            }
                         }
                     }
                 }
             }
             // Component Factory java file
-            String templateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
-            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), templateString, true, true);
+            String componentFactoryTemplateString = null;
+            try {
+                componentFactoryTemplateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
+            } catch (StudioGeneratorException e) {
+                displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            }
+            if (componentFactoryTemplateString != null) {
+                StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true);
+            }
+            componentFactoryTemplateString = null;
 
             // Flow java file
-            templateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
-            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(
-                    project,
-                    StudioPsiUtils.GENERATED_CONTENT_ROOT,
-                    flowPackageName,
-                    ikasanFlow.getJavaClassName(),
-                    templateString,
-                    true,
-                    true);
-            if (viewHandler != null) {
-                viewHandler.setPsiJavaFile(newFile);
+            String flowTemplateString = null;
+            try {
+                flowTemplateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
+            } catch (StudioGeneratorException e) {
+                displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            }
+            if (flowTemplateString != null) {
+                PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(
+                        project,
+                        StudioPsiUtils.GENERATED_CONTENT_ROOT,
+                        flowPackageName,
+                        ikasanFlow.getJavaClassName(),
+                        flowTemplateString,
+                        true,
+                        true);
+                if (viewHandler != null) {
+                    viewHandler.setPsiJavaFile(newFile);
+                }
             }
         }
         // we have the flowPackageNames that ARE valid
@@ -191,18 +228,32 @@ public class PIPSIIkasanModel {
     }
 
     private void saveModuleConfig(Project project, Module module) {
-        String templateString = ModuleConfigTemplate.create(module);
-        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
-
-        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, module);
-        if (viewHandler != null) {
-            viewHandler.setPsiJavaFile(newFile);
+        String templateString = null;
+        try {
+            templateString = ModuleConfigTemplate.create(module);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
+        if (templateString != null) {
+            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, module);
+            if (viewHandler != null) {
+                viewHandler.setPsiJavaFile(newFile);
+            }
+        }
+
     }
 
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";
     private void savePropertiesConfig(Project project, Module module) {
-        String templateString = PropertiesTemplate.create(module);
-        StudioPsiUtils.createResourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
+        String templateString = null;
+        try {
+            templateString = PropertiesTemplate.create(module);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+        }
+        if (templateString != null) {
+            StudioPsiUtils.createResourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
+        }
     }
 }

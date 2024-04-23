@@ -2,7 +2,7 @@
   "name": "Multi Recipient Router",
   "helpText": "The router will allow the payload to be sent conditionally to zero or many routes.",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "implementingClass": "org.ikasan.component.router.multirecipient.RecipientListRouter",
+  "implementingClass": "org.ikasan.spec.component.routing.MultiRecipientRouter",
   "flowBuilderMethod": "multiRecipientRouter",
   "endpointKey": "Router Endpoint",
   "generatesUserImplementedClass": "true",
@@ -61,11 +61,16 @@
       "propertyName": "fromType",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
-      "helpText": "The type of data we expect to come into the router. This can be any Java class.",
+      "helpText": "The type of data we expect to come into the converter. This can be any Java class.xx",
       "mandatory": true,
-      "usageDataType":"java.lang.Class",
       "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the router."
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+    },
+    "toType": {
+      "propertyName": "toType",
+      "defaultValue": "List<java.lang.String>",
+      "hiddenProperty" : true,
+      "mandatory": true
     },
     "routeNames": {
       "propertyName": "routeNames",

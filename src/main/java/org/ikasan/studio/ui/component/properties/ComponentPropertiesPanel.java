@@ -149,7 +149,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                 }
                 for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getProperties().entrySet()) {
                     String key = entry.getKey();
-                    if (!key.equals(ComponentPropertyMeta.NAME)) {
+                    if (!key.equals(ComponentPropertyMeta.NAME) && !entry.getValue().isHiddenProperty() && !entry.getValue().isIgnoreProperty()) {
                         ComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component

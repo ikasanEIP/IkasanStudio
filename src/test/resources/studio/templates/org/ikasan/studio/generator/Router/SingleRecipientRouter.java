@@ -22,18 +22,18 @@ public static final String ROUTE2 = "route2";
 * @param payload to be evaluated and passed to the router routes
 * @return A list of routerNames that payload will be passed to
 */
-@override
+@Override
 public java.lang.String route(java.lang.String payload) throws org.ikasan.spec.component.routing.RouterException
 {
-List<String>routes = new ArrayList();
-if (true) {
+//List<String>routes = new ArrayList();
+//if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter
-routes.add("firstRoute");
-}
-else {
-routes.add("secondRoute");
-}
-return route / routes;
+//routes.add("firstRoute");
+//}
+//else {
+//routes.add("secondRoute");
+//}
+return null;
 }
 
 @Override

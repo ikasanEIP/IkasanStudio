@@ -1,19 +1,28 @@
-<#macro iterateSubflow flowRoute>
-    .when(${flowRoute.getRouteName()}
+<#macro iterateSubflow __flowRoute>
+    <#assign __processingWhen = "yes">
+    .when("${__flowRoute.getRouteName()}"
     <#-- This will be the one of the branches of a MRR, not the default branch -->
-    <#list flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
+    <#list __flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
     <#-- The MRR is always the last element of the list of flowElements -->
         <#if flowElement.getComponentMeta().isRouter()>
-            .${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(${flowElement.getPropertyValueAsString("routeNames")})))
-            <#list flowRoute.getChildRoutes()![] as childRoute>
+            ,builderFactory.getRouteBuilder().${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(<#list flowElement.getPropertyValue("routeNames")![] as route> "${route}"<#sep>, </#sep></#list>)))
+            <#list __flowRoute.getChildRoutes()![] as childRoute>
                 <@iterateSubflow childRoute />
             </#list>
+            .build()
         <#else>
+            <#if __processingWhen == "yes">
+            ,builderFactory.getRouteBuilder().${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
+            componentFactory.get${flowElement.getJavaClassName()}())
+            <#assign __processingWhen = "no">
+            <#else>
             .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
             componentFactory.get${flowElement.getJavaClassName()}())
+            </#if>
         </#if>
-        )
     </#list>
+    )
+
 </#macro>
 package ${studioPackageTag};
 

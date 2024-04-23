@@ -25,7 +25,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getBroker();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
@@ -38,7 +38,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_customConverterComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_customConverterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
@@ -50,7 +50,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageFilterComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_messageFilterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getMessageFilter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
@@ -63,7 +63,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageMultiRecipientRouterComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_messageMultiRecipientRouterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
@@ -75,7 +75,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateFlowWith_messageSingleRecipientRouterComponent() throws IOException, StudioBuildException {
+    public void testCreateFlowWith_messageSingleRecipientRouterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getSingleRecipientRouter();
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);

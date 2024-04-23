@@ -665,6 +665,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                         }
                     }
                 }
+                flowElement.defaultUnsetMandatoryProperties();
             }
         }
         return flowElement;

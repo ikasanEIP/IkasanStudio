@@ -11,11 +11,11 @@ import java.util.Map;
  */
 public class FlowsUserImplementedComponentTemplate extends Generator {
 
-    public static String create(String newPackageName, FlowElement component) {
+    public static String create(String newPackageName, FlowElement component) throws StudioGeneratorException {
         return generateContents(newPackageName, component);
     }
 
-    protected static String generateContents(String packageName, FlowElement flowElement) {
+    protected static String generateContents(String packageName, FlowElement flowElement) throws StudioGeneratorException {
         String templateName = flowElement.getProperty("userImplementedClassName").getMeta().getUserImplementClassFtlTemplate();
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
