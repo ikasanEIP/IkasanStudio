@@ -21,6 +21,11 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
     "checksum": {
       "propertyName": "checksum",
       "helpText": "Default(False) Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.",
