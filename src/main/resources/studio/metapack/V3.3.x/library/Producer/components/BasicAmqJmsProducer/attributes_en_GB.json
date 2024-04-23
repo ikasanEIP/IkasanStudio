@@ -15,6 +15,11 @@
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
     "connectionFactoryJndiPropertyFactoryInitial": {
       "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
       "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",

@@ -21,6 +21,11 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
     },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
     "configuration": {
       "propertyName": "configuration",
       "helpText": "Provide the bean type that contains bespoke configurations for this component.",

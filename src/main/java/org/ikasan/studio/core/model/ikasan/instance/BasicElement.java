@@ -120,6 +120,13 @@ public  class BasicElement extends IkasanObject {
         ComponentProperty componentProperty = componentProperties.get(key);
         return componentProperty != null ? componentProperty.getValue() : null;
     }
+//
+//    @JsonIgnore
+//    public boolean ignoreProperty(ComponentProperty componentProperty) {
+//        componentProperty.
+//        Object value = getPropertyValue("ignoreProperty");
+//        return value == null || Boolean.parseBoolean(value.toString());
+//    }
 
     /**
      * Also used by ftl
@@ -144,7 +151,9 @@ public  class BasicElement extends IkasanObject {
 
     public List<ComponentProperty> getComponentPropertyList() {
         if (componentProperties != null && !componentProperties.isEmpty()) {
-            return new ArrayList<>(componentProperties.values());
+            return componentProperties.values().stream()
+                    .filter(x-> !x.getMeta().isIgnoreProperty())
+                    .collect(Collectors.toList());
         } else {
             return Collections.EMPTY_LIST;
         }
@@ -191,6 +200,7 @@ public  class BasicElement extends IkasanObject {
     @JsonIgnore
     public List<ComponentProperty> getUserSuppliedClassProperties() {
         return componentProperties.values().stream()
+            .filter(x-> !x.getMeta().isIgnoreProperty())
             .filter(x -> x.getMeta().isUserSuppliedClass())
             .collect(Collectors.toList());
     }
@@ -220,9 +230,6 @@ public  class BasicElement extends IkasanObject {
         return standardProperties;
     }
 
-//    public void addAllProperties(Map<String, ComponentProperty> newProperties) {
-//        componentProperties.putAll(newProperties);
-//    }
     public void addComponentProperty(String key, ComponentProperty value) {
         componentProperties.put(key, value);
     }

@@ -2,7 +2,7 @@
   "name": "Multi Recipient Router",
   "helpText": "The router will allow the payload to be sent conditionally to zero or many routes.",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "implementingClass": "org.ikasan.spec.component.routing.MultiRecipientRouter",
+  "implementingClass": "org.ikasan.component.router.multirecipient.RecipientListRouter",
   "flowBuilderMethod": "multiRecipientRouter",
   "endpointKey": "Router Endpoint",
   "generatesUserImplementedClass": "true",
@@ -20,6 +20,11 @@
       "mandatory": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a valid java classname for the router e.g. starting with upper case, followed by number/characters etc."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
@@ -42,6 +47,10 @@
       "setterProperty": true,
       "setterMethod" : "setConfiguredResourceId",
       "usageDataType":"java.lang.String"
+    },
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
     },
     "invokerConfigurationId": {
       "propertyName": "invokerConfigurationId",

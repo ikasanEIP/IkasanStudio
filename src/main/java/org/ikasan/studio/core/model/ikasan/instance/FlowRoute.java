@@ -116,7 +116,6 @@ public class FlowRoute  implements IkasanComponent {
                 for (String routeName : (List<String>) ikasanFlowComponentToBeRemoved.getPropertyValue(ROUTE_NAMES)) {
                     FlowRoute deleteTarget = getRouteOfName(routeName);
                     if (deleteTarget != null && this != deleteTarget) {
-//                        deleteTarget.deleteRoute();
                         childRoutes.remove(deleteTarget);
                     }
                 }
@@ -124,14 +123,6 @@ public class FlowRoute  implements IkasanComponent {
             flowElements.remove(ikasanFlowComponentToBeRemoved);
         }
     }
-
-//    public void removeFlowElement2(FlowElement ikasanFlowComponentToBeRemoved) {
-//        if (flowElements!=null && flowElements.contains(ikasanFlowComponentToBeRemoved)) {
-//            flowElements.remove(ikasanFlowComponentToBeRemoved);
-//        } else if (childRoutes != null) {
-//            childRoutes.forEach(flowRoute -> flowRoute.removeFlowElement2(ikasanFlowComponentToBeRemoved));
-//        }
-//    }
 
     /**
      * Determine the current state of the flow for completeness

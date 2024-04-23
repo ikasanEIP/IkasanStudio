@@ -656,11 +656,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
                     Object value = getTypedValue(field);
                     // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
-                    if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
-                        List<String> routeList = StudioBuildUtils.stringToList((String) value);
-                        flowElement.setPropertyValue(fieldName, routeList);
-                    } else {
-                        flowElement.setPropertyValue(fieldName, value);
+                    if (value != null) {
+                        if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
+                            List<String> routeList = StudioBuildUtils.stringToList((String) value);
+                            flowElement.setPropertyValue(fieldName, routeList);
+                        } else {
+                            flowElement.setPropertyValue(fieldName, value);
+                        }
                     }
                 }
             }
