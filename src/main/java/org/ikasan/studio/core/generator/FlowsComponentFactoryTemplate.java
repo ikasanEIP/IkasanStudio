@@ -9,11 +9,11 @@ public class FlowsComponentFactoryTemplate extends Generator {
     public static final String COMPONENT_FACTORY_CLASS_NAME = "ComponentFactory";
     private static final String COMPONENT_FACTORY_FTL = "componentFactory.ftl";
 
-    public static String create(final String packageName, final Module ikasanModule, final Flow ikasanFlow) {
+    public static String create(final String packageName, final Module ikasanModule, final Flow ikasanFlow) throws StudioGeneratorException {
         return generateContents(packageName, ikasanModule, ikasanFlow);
     }
 
-    protected static String generateContents(String packageName, Module ikasanModule, Flow ikasanFlow) {
+    protected static String generateContents(String packageName, Module ikasanModule, Flow ikasanFlow) throws StudioGeneratorException {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);

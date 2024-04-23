@@ -252,6 +252,19 @@ public  class BasicElement extends IkasanObject {
             .anyMatch(x -> x.getValue().getMeta().isMandatory() && x.getValue().valueNotSet());
     }
 
+    /**
+     * If there are any unset mandatory properties, set them to their default value.
+     */
+    public void defaultUnsetMandatoryProperties() {
+        if (hasUnsetMandatoryProperties()) {
+            for (Map.Entry<String, ComponentProperty> componentProperty : componentProperties.entrySet()) {
+                if (componentProperty.getValue().getMeta().isMandatory() && componentProperty.getValue().valueNotSet()) {
+                    componentProperty.getValue().setValue(componentProperty.getValue().getMeta().getDefaultValue());
+                }
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return "IkasanComponent{" +

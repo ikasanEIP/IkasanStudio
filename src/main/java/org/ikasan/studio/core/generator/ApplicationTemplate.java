@@ -11,11 +11,11 @@ public class ApplicationTemplate extends Generator {
     public static final String APPLICATION_CLASS_NAME = "Application";
     private static final String APPLICATION_FTL = "applicationTemplate.ftl";
 
-    public static String create(Module ikasanModule) {
+    public static String create(Module ikasanModule) throws StudioGeneratorException {
         return generateContents(ikasanModule);
     }
 
-    protected static String generateContents(Module ikasanModule) {
+    protected static String generateContents(Module ikasanModule) throws StudioGeneratorException {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(MODULE_TAG, ikasanModule);

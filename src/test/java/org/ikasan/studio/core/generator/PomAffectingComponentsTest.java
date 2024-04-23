@@ -27,7 +27,7 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException, StudioBuildException {
+    public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);

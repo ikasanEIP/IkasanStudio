@@ -18,7 +18,7 @@ public class ApplicationTemplateTest {
      * @throws IOException if the template cant be generated
      */
     @Test
-    public void test_generateApplicationClass() throws IOException, StudioBuildException {
+    public void test_generateApplicationClass() throws IOException, StudioBuildException, StudioGeneratorException {
         Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
 
         String templateString = ApplicationTemplate.generateContents(ikasanModule);

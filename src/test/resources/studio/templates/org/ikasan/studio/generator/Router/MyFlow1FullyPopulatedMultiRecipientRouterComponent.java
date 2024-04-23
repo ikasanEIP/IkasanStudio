@@ -32,12 +32,12 @@ componentFactory.getMyEventGeneratingConsumer())
 .converter("My Custom Converter",
 componentFactory.getMyCustomConverter())
 .multiRecipientRouter("My Multi Recipient Router", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList( "route1", "route2")))
-.when(route1
-.producer("My DevNull Producer1",
+.when("route1"
+,builderFactory.getRouteBuilder().producer("My DevNull Producer1",
 componentFactory.getMyDevNullProducer1())
 )
-.when(route2
-.producer("My DevNull Producer2",
+.when("route2"
+,builderFactory.getRouteBuilder().producer("My DevNull Producer2",
 componentFactory.getMyDevNullProducer2())
 )
 .build();

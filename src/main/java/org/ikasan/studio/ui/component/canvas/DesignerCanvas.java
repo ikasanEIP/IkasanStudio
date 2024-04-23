@@ -546,7 +546,7 @@ public class DesignerCanvas extends JPanel {
                 } else if (targetElement instanceof FlowRoute) {
                     containingFlowRoute = (FlowRoute)targetElement;
                     containingFlow = containingFlowRoute.getFlow();
-                }else {
+                } else {
                     containingFlow = ((FlowElement)targetElement).getContainingFlow();
                     containingFlowRoute = ((FlowElement)targetElement).getContainingFlowRoute();
                 }
@@ -572,11 +572,13 @@ public class DesignerCanvas extends JPanel {
                     if (newComponent instanceof ExceptionResolver) {
                         containingFlow.setExceptionResolver((ExceptionResolver) newComponent);
                     } else {
+                        ((FlowElement) newComponent).defaultUnsetMandatoryProperties();
                         insertNewComponentBetweenSurroundingPair(containingFlow, containingFlowRoute, (FlowElement) newComponent, x, y);
                     }
                 } else {
                     return false;
                 }
+
             } else {
                 // The targetElement was the module, so we must be adding a new flow.
 

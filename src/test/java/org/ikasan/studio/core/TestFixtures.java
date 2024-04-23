@@ -54,6 +54,7 @@ public class TestFixtures {
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myBroker");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -124,6 +125,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("sourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
         flowElement.setPropertyValue("systemKey", "mySystemKey");
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
     public static FlowElement getSftpConsumer() throws StudioBuildException {
@@ -180,6 +182,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("systemKey", "mySystemKey");
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
         flowElement.setPropertyValue("timeZone", "UTC");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -210,6 +213,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("sortAscending", true);
         flowElement.setPropertyValue("sortByModifiedDateTime", true);
         flowElement.setPropertyValue("timezone", "UTC");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -221,6 +225,7 @@ public class TestFixtures {
                 .build();
         flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
         flowElement.setPropertyValue("filenames", "{'myFile','anotherFile'}");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -270,6 +275,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("sessionAcknowledgeModeName", "AUTO_ACKNOWLEDGE");
         flowElement.setPropertyValue("sessionTransacted", true);
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -293,6 +299,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
         flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
         flowElement.setPropertyValue("sessionTransacted", true);
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -315,6 +322,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("messageProvider", "org.ikasan.myflow.myMessageProvider");
         flowElement.setPropertyValue("timezone", "UTC");
 
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -329,6 +337,7 @@ public class TestFixtures {
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myConverter");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -362,6 +371,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("useNamespacePrefix", true);
         flowElement.setPropertyValue("validate", true);
         flowElement.setPropertyValue("xmlAdapterMap", "myXmlAdapterMap");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -405,6 +415,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configurationId", "MyResourceID");
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResource", true);
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
     // ------------------------- Router -------------------------
@@ -423,6 +434,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuredResource", true);
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(ROUTE_NAMES, routes);
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -440,6 +452,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuredResource", true);
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(ROUTE_NAMES, routes);
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -503,6 +516,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("toRecipients", "{'to1','to2'}");
         flowElement.setPropertyValue("transportProtocol", "myTransportProtocol");
         flowElement.setPropertyValue("user", "myUser");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -542,6 +556,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
         flowElement.setPropertyValue("unzip", true);
         flowElement.setPropertyValue("username", "myLoginName");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -589,6 +604,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("sessionTransacted", true);
         flowElement.setPropertyValue("timeToLive", 100L);
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -612,6 +628,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
         flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
         flowElement.setPropertyValue("sessionTransacted", true);
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -643,6 +660,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("tempFileName", "myTempFiilename");
         flowElement.setPropertyValue("unzip", true);
         flowElement.setPropertyValue("username", "myLoginName");
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 
@@ -657,6 +675,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("regExpPattern", "this");
         flowElement.setPropertyValue("replacementText", "that");
         flowElement.setPropertyValue("logEveryNth", 2);
+        flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
 

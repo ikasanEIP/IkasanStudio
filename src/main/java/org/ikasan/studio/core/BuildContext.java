@@ -14,6 +14,7 @@ public enum BuildContext {
         freemarkerConfiguration.setIncompatibleImprovements(new Version(2, 3, 20));
         freemarkerConfiguration.setDefaultEncoding("UTF-8");
         freemarkerConfiguration.setWhitespaceStripping(true);
+        freemarkerConfiguration.setLogTemplateExceptions(false);
     }
 
     // @todo needs to be version configurable

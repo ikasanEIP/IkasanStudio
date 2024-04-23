@@ -18,7 +18,7 @@ public class FreemarkerUtils {
     // Enforce as a utility class
     private FreemarkerUtils() {}
 
-    public static String generateFromTemplate(String templateName, Map<String, Object> configurations) {
+    public static String generateFromTemplate(String templateName, Map<String, Object> configurations) throws StudioGeneratorException {
         String output = "";
         try (StringWriter writer = new StringWriter()) {
             addSupportForJavaUtilsClasses(configurations);
@@ -27,7 +27,8 @@ public class FreemarkerUtils {
             // Would have thought we remove \r in Freemarker but it does not look like it.
             output = writer.toString().replace("\r", "");
         } catch (IOException | TemplateException e) {
-            LOG.warn("STUDIO: Problems encountered trying to read template " + templateName + " exception message " + e.getMessage(), e);
+            LOG.warn("STUDIO: Serious: Problems encountered trying to generate template " + templateName + " exception message " + e.getMessage(), e);
+            throw new StudioGeneratorException("STUDIO: Serious: Problems encountered trying to generate template " + templateName + ", please check the logs");
         }
         return output;
     }

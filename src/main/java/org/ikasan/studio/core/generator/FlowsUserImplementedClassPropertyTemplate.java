@@ -7,11 +7,11 @@ import java.util.Map;
 
 public class FlowsUserImplementedClassPropertyTemplate extends Generator {
 
-    public static String create(ComponentProperty property, String newPackageName, String clazzName, String prefix) {
+    public static String create(ComponentProperty property, String newPackageName, String clazzName, String prefix) throws StudioGeneratorException {
         return generateContents(newPackageName, clazzName, property, prefix);
     }
 
-    protected static String generateContents(String packageName, String clazzName, ComponentProperty property, String prefix) {
+    protected static String generateContents(String packageName, String clazzName, ComponentProperty property, String prefix) throws StudioGeneratorException {
         String interfaceName = property.getMeta().getUsageDataType();
         String templateName;
         if (ComponentPropertyMeta.CONFIGURATION.equals(property.getMeta().getPropertyName())) {

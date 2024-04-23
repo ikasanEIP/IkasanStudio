@@ -8,11 +8,11 @@ public class ModuleConfigTemplate extends Generator {
     public static final String MODULE_CLASS_NAME = "ModuleConfig";
     private static final String MODULE_FTL = "moduleConfigTemplate.ftl";
 
-    public static String create(Module ikasanModule) {
+    public static String create(Module ikasanModule) throws StudioGeneratorException {
         return generateContents(ikasanModule);
     }
 
-    protected static String generateContents(Module ikasanModule) {
+    protected static String generateContents(Module ikasanModule) throws StudioGeneratorException {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(CLASS_NAME_TAG, MODULE_CLASS_NAME);
