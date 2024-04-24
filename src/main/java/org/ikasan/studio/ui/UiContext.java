@@ -34,7 +34,12 @@ public enum UiContext {
     private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
     private static final String PALETTE_PANEL = "palettePanel";
-    private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
+//    private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
+    private static final String RIGHT_TABBED_PANE = "rightTabbedPane";
+    public static final String PROPERTIES_TAB_TITLE = "Properties";
+    public static final String PALETTE_TAB_TITLE = "Palette";
+    public static final int PROPERTIES_TAB_INDEX = 1;
+    public static final int PALETTE_TAB_INDEX = 0;
     private static final String DESIGNER_UI = "designerUI";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
@@ -108,17 +113,27 @@ public enum UiContext {
         return (DesignerCanvas) getProjectCache(projectKey, CANVAS_PANEL);
     }
 
-    public static void setPropertiesAndCanvasPane(String projectKey, JSplitPane propertiesAndCanvasPane) {
-        putProjectCache(projectKey, PROPERTIES_AND_CANVAS_SPLITPANE, propertiesAndCanvasPane);
+    /**
+     * Set the selected tab
+     * @param projectKey to namespace the project
+     * @param tabIndex one of the defined constants PROPERTIES_TAB_INDEX, PALETTE_TAB_INDEX
+     */
+    public static void setRightTabbedPaneFocus(String projectKey, int tabIndex) {
+        JTabbedPane rightTabbedPane = getRightTabbedPane(projectKey);
+        if (rightTabbedPane != null) {
+            rightTabbedPane.setSelectedIndex(tabIndex);
+        }
     }
+    public static void setRightTabbedPane(String projectKey, JTabbedPane rightTabbedPane) {
+        putProjectCache(projectKey, RIGHT_TABBED_PANE, rightTabbedPane);
+    }
+    public static JTabbedPane getRightTabbedPane(String projectKey) {
+        return (JTabbedPane) getProjectCache(projectKey, RIGHT_TABBED_PANE);
+    }
+
     public static void setDesignerUI(String projectKey, DesignerUI designerUI) {
         putProjectCache(projectKey, DESIGNER_UI, designerUI);
     }
-
-    public static JSplitPane getPropertiesAndCanvasPane(String projectKey) {
-        return (JSplitPane) getProjectCache(projectKey, PROPERTIES_AND_CANVAS_SPLITPANE);
-    }
-
     public static DesignerUI getDesignerUI(String projectKey) {
         return (DesignerUI) getProjectCache(projectKey, DESIGNER_UI);
     }

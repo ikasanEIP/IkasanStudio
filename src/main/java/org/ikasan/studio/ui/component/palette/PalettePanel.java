@@ -37,20 +37,22 @@ public class PalettePanel extends JPanel {
         super();
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
+//        this.setLayout(new FlowLayout());
         this.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         paletteExportTransferHandler = new PaletteExportTransferHandler(projectKey);
 
         // Header
-        JLabel paletteHeaderLabel =  new JLabel("Palette");
-        paletteHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
-        paletteHeaderPanel = new JPanel();
-        paletteHeaderPanel.add(paletteHeaderLabel);
-        paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+//        JLabel paletteHeaderLabel =  new JLabel("Palette");
+//        paletteHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
+//        paletteHeaderPanel = new JPanel();
+//        paletteHeaderPanel.add(paletteHeaderLabel);
+//        paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
         // Body
         paletteHelpBodyPanel = new JPanel(new BorderLayout());
         paletteHelpTextArea = new JTextArea();
         paletteHelpTextArea.setLineWrap(true);
+        paletteHelpTextArea.setWrapStyleWord(true);
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
         paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
@@ -58,8 +60,10 @@ public class PalettePanel extends JPanel {
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
-        paletteScrollPane = new JScrollPane(paletteList);
-        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+//        paletteScrollPane = new JScrollPane(paletteList);
+        paletteScrollPane = new JScrollPane();
+        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        paletteScrollPane.getViewport().add(paletteList);
 
         // Footer
         JPanel paletteHelpHeaderPanel = new JPanel();
@@ -67,7 +71,6 @@ public class PalettePanel extends JPanel {
         JPanel paletteHelpMainPanel = new JPanel(new BorderLayout());
         paletteHelpMainPanel.add(paletteHelpHeaderPanel, BorderLayout.NORTH);
         paletteHelpMainPanel.add(paletteHelpBodyPanel, BorderLayout.CENTER);
-
 
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, paletteHelpMainPanel);
         paletteSplitPane.setDividerSize(3);
@@ -81,9 +84,10 @@ public class PalettePanel extends JPanel {
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(JBColor.WHITE);
 
-        add(paletteHeaderPanel, BorderLayout.NORTH);
+//        add(paletteHeaderPanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
         setBorder(JBUI.Borders.emptyTop(1));
+//        setBorder(JBUI.Borders.empty(10, 10, 10, 10));
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
@@ -174,5 +178,19 @@ public class PalettePanel extends JPanel {
             }
         }
         return paletteItems;
+    }
+
+    @Override
+    public void paint(Graphics g) {
+//        LOG.info("StudioYY: 1 Width PP " + getWidth() + ", Height" + getHeight());
+//        LOG.info("StudioYY: 2 Width PP " + getPreferredSize());
+//        setPreferredSize(new Dimension(getWidth(), getHeight()));
+//        setPreferredSize(getPreferredSize());
+//        setSize(getPreferredSize());
+//        revalidate();
+        super.paint(g);
+//
+//        LOG.info("StudioYY: 3 Width PP " + getWidth() + ", Height" + getHeight());
+//        LOG.info("StudioYY: 4 Width PP " + getPreferredSize());
     }
 }

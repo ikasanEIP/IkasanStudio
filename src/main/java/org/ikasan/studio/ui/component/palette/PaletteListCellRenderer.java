@@ -8,7 +8,6 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<Object> {
@@ -27,7 +26,9 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             if (paletteItem.isCategory()) {
                 // Separator
                 if (index > 0) {
-                    setBorder(new MatteBorder(1, 0, 0, 0, StudioUIUtils.IKASAN_GREY));
+//                    setBorder(new MatteBorder(3, 3, 3, 3, StudioUIUtils.IKASAN_GREY));
+//                    setBorder(new MatteBorder(3, 3, 3, 3));
+                    setBorder(BorderFactory.createEmptyBorder(5, 3, 4, 3));
                 }
 
                 setText(paletteItem.getComponentMeta().getName());
@@ -40,9 +41,9 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
                 this.setFocusable(false);
 
             } else {
+//                setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
                 setText(paletteItem.getIkasanPaletteElementViewHandler().getText());
                 setIcon(paletteItem.getIkasanPaletteElementViewHandler().getDisplayIcon());
-                setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
                 if (isSelected) {
                     setBackground(list.getSelectionBackground());
@@ -54,7 +55,7 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
                 setEnabled(list.isEnabled());
                 setFont(list.getFont());
                 setOpaque(true);
-                setBorder(JBUI.Borders.emptyBottom(2));
+                setBorder(JBUI.Borders.emptyBottom(4));
             }
         } else {
             LOG.warn("STUDIO: The PaletteListCellRenderer should contain a PaletteItem but did contain " + value);

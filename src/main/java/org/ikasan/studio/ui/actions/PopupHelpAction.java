@@ -36,6 +36,7 @@ public class PopupHelpAction  implements ActionListener {
          } else {
             JTextArea jTextArea = new JTextArea(viewHandler.getFlowElement().getComponentMeta().getHelpText());
             jTextArea.setLineWrap(true);
+            jTextArea.setWrapStyleWord(true);
             JComponent helpPanel = new JPanel(new BorderLayout());
             helpPanel.add(jTextArea, BorderLayout.CENTER);
 

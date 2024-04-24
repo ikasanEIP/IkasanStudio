@@ -95,7 +95,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     public void setWidth(int width) {
         if (width < -10) {
-            LOG.error("STUDIO: Left X being set to a -ve of " + width);
+            LOG.error("STUDIO: width being set to a -ve of " + width);
         }
 
         this.width = width;

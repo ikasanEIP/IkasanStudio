@@ -36,18 +36,19 @@ public class DesignerUI {
             UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
         }
 
-        ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
-        UiContext.setPropertiesPanel(projectKey, componentPropertiesPanel);
-
-        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                componentPropertiesPanel,
-                new CanvasPanel(projectKey));
-        propertiesAndCanvasSplitPane.setDividerSize(3);
-        propertiesAndCanvasSplitPane.setDividerLocation(0.4);
-        UiContext.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);
-
+//        ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
+//        UiContext.setPropertiesPanel(projectKey, componentPropertiesPanel);
+//
+//        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//                componentPropertiesPanel,
+//                new CanvasPanel(projectKey));
+//        propertiesAndCanvasSplitPane.setDividerSize(3);
+//        propertiesAndCanvasSplitPane.setDividerLocation(0.4);
+//        UiContext.setPropertiesAndCanvasPane(projectKey, propertiesAndCanvasSplitPane);
+//
         mainJPanel.setLayout(new BorderLayout());
-        mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
+////        mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
+        mainJPanel.add(new CanvasPanel(projectKey), BorderLayout.CENTER);
         UiContext.setDesignerUI(projectKey, this);
     }
 
@@ -67,7 +68,22 @@ public class DesignerUI {
                 StudioUIUtils.resetModelFromDisk(projectKey);
                 PalettePanel palettePanel = new PalettePanel(projectKey);
                 UiContext.setPalettePanel(projectKey, palettePanel);
-                mainJPanel.add(palettePanel, BorderLayout.EAST);
+                ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
+                UiContext.setPropertiesPanel(projectKey, componentPropertiesPanel);
+
+//                JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//                        componentPropertiesPanel,
+//                        new CanvasPanel(projectKey));
+
+
+                JTabbedPane paletteAndProperties = new JTabbedPane();
+                UiContext.setRightTabbedPane(projectKey, paletteAndProperties);
+                paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, palettePanel);
+                paletteAndProperties.addTab(UiContext.PROPERTIES_TAB_TITLE, componentPropertiesPanel);
+//                mainJPanel.add(new CanvasPanel(projectKey), BorderLayout.CENTER);
+//                mainJPanel.setLayout(new BorderLayout());
+//                mainJPanel.add(palettePanel, BorderLayout.EAST);
+                mainJPanel.add(paletteAndProperties, BorderLayout.EAST);
             }
         });
     }

@@ -74,6 +74,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
+//        LOG.info("StudioXX: planted flow " + this.getFlow().getName() + " flow box x:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
     }
 
     /**
@@ -87,13 +88,14 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
      * @return the bottom Y co-ordinate of this flow.
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumLeftX, int minimumTopY) {
-        LOG.debug("STUDIO: paintComponent invoked");
+        LOG.debug("Studio: paintComponent invoked");
         int newLeftX = checkForReset(minimumLeftX, getLeftX());
         int newTopY = checkForReset(minimumTopY, getTopY());
 
         // This will also call initialise for route(s)
         initialiseDimensions(g, newLeftX, newTopY,-1, -1);
 
+        // Draw flow rectangle
         paintFlowBox(g);
 
         if (flow.hasExceptionResolver()) {

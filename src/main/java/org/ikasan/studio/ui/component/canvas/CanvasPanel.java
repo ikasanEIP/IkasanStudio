@@ -12,10 +12,8 @@ import java.awt.event.ItemEvent;
 public class CanvasPanel extends JPanel {
     public CanvasPanel(String projectKey) {
         super();
-        JTextArea canvasTextArea = new JTextArea();
-
-        DesignerCanvas canvasPanel = new DesignerCanvas(projectKey);
-        UiContext.setDesignerCanvas(projectKey, canvasPanel);
+        DesignerCanvas designerCanvas = new DesignerCanvas(projectKey);
+        UiContext.setDesignerCanvas(projectKey, designerCanvas);
 
         JPanel canvasHeaderButtonPanel = new JPanel();
 
@@ -29,9 +27,10 @@ public class CanvasPanel extends JPanel {
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
         gridCheckBox.addItemListener(e -> {
-            DesignerCanvas designerCanvas = UiContext.getDesignerCanvas(projectKey);
-            designerCanvas.setDrawGrid(e.getStateChange() == ItemEvent.SELECTED);
-            designerCanvas.repaint();
+            // Function, so don't use instance above
+            DesignerCanvas designerCanvasRef = UiContext.getDesignerCanvas(projectKey);
+            designerCanvasRef.setDrawGrid(e.getStateChange() == ItemEvent.SELECTED);
+            designerCanvasRef.repaint();
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
 
@@ -40,12 +39,23 @@ public class CanvasPanel extends JPanel {
         canvasHeaderPanel.add(canvasHeaderTitlePanel);
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
         canvasHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+
+        // This may be redundant now we have Intellij Messaging
+        JTextArea canvasTextArea = new JTextArea();
         UiContext.setCanvasTextArea(projectKey, canvasTextArea);
         canvasTextArea.setLineWrap(true);
+        canvasTextArea.setWrapStyleWord(true);
+        add(canvasTextArea, BorderLayout.SOUTH);
 
         setLayout(new BorderLayout());
         add(canvasHeaderPanel, BorderLayout.NORTH);
-        add(canvasPanel, BorderLayout.CENTER);
+        // XX
+        JScrollPane canvasScrollPane = new JScrollPane();
+        canvasScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        canvasScrollPane.getViewport().add(designerCanvas);
+
+//        add(canvasPanel, BorderLayout.CENTER);
+        add(canvasScrollPane, BorderLayout.CENTER);
     }
 
     private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al, String tooltip) {

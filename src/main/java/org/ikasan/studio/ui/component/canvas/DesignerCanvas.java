@@ -735,15 +735,14 @@ public class DesignerCanvas extends JPanel {
      */
     @Override
     public void paintComponent(Graphics g) {
+//LOG.info("1 StudioXX new dimenstions dimension:" + this.getPreferredSize());
+
         Module ikasanModule = getIkasanModule();
         if (ikasanModule != null && ikasanModule.isInitialised()) {
             disableModuleInitialiseProcess();
         } else {
             enableModuleInitialiseProcess();
         }
-        LOG.debug("STUDIO: paintComponent invoked");
-        super.paintComponent(g);
-
         if (ikasanModule != null) {
             AbstractViewHandlerIntellij moduleViewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, ikasanModule);
             if (initialiseAllDimensions && moduleViewHandler != null) {
@@ -755,10 +754,22 @@ public class DesignerCanvas extends JPanel {
                 LOG.warn("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
                 enableModuleInitialiseProcess();
             }
+            int newWidth = moduleViewHandler.getWidth() + 0;
+            int newHeight = moduleViewHandler.getHeight() + 0;
+//LOG.info("2 StudioXX from moduleViewHandler :" + this.getPreferredSize());
+//            this.setMinimumSize(new Dimension(newWidth, newHeight));
+            this.setPreferredSize(new Dimension(newWidth, newHeight));
+//LOG.info("3 StudioXX preferred w:" + newWidth + "h: " + newHeight);
+//LOG.info("4 StudioXX actual diension:" + getSize());
+            revalidate();
+            super.paintComponent(g);
+//            repaint();
             if (moduleViewHandler != null) {
                 moduleViewHandler.paintComponent(this, g, -1, -1);
             }
         }
+//LOG.info("5 StudioXX new preferred dimension:" + this.getPreferredSize());
+//LOG.info("6 StudioXX new this width/height w: " + getWidth() + "h: " + getHeight());
         if (drawGrid) {
             StudioUIUtils.paintGrid(g, getWidth(), getHeight());
         }
