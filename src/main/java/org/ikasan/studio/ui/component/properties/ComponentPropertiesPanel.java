@@ -195,6 +195,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             if (!componentInitialisation && !getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 okButton.setEnabled(true);
             }
+            UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PROPERTIES_TAB_INDEX);
         }
     }
 
@@ -402,5 +403,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             result.addAll(editPair.doValidateAll());
         }
         return result;
+    }
+
+    @Override
+    public void paint(Graphics g) {
+//        LOG.info("StudioYY: 1 Width" + getWidth() + ", Height" + getHeight());
+//        LOG.info("StudioYY: 2 Width" + getPreferredSize());
+//        setPreferredSize(new Dimension(getWidth(), getHeight()));
+        super.paint(g);
+
+//        LOG.info("StudioYY: 3 Width" + getWidth() + ", Height" + getHeight());
+//        LOG.info("StudioYY: 4 Width" + getPreferredSize());
     }
 }

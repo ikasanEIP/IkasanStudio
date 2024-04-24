@@ -12,7 +12,10 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
     public static final int FLOW_VERTICAL_SPACING = 20;
     public static final int FLOW_X_START_POINT = 150;
+    public static final int FLOW_X_RIGHT_BUFFER = 150;
     public static final int FLOW_Y_START_POINT = 100;
+    public static final int FLOW_Y_BOTTTOM_BUFFER = 100;
+    public static final int SCROLL_BAR_HEIGHT = 10;
     private final Module module;
     private final String projectKey;
 
@@ -67,6 +70,9 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         setHeight(height);
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
+        int maxWidth = 0;
+        int maxHeight = 0;
+        int lastFlowHeight = topy;
         for(Flow ikasanFlow : module.getFlows()) {
             IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
             if (flowViewViewHandler != null) {
@@ -74,8 +80,19 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
                 flowViewViewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
                 minimumTopY = flowViewViewHandler.getBottomY();
                 minimumTopY += FLOW_VERTICAL_SPACING;
+
+                // Real width of Module = Max flow + left + right
+                maxWidth = Math.max(maxWidth, flowViewViewHandler.getWidth());
+                lastFlowHeight = flowViewViewHandler.getHeight();
             }
         }
+//LOG.info("StudioXX ModuleViewHandler Max Flow Width " + maxWidth + " current getFlowXStartPoint(): " + getFlowXStartPoint() + " BUFFFER " + FLOW_X_RIGHT_BUFFER);
+        maxWidth += getFlowXStartPoint() + FLOW_X_RIGHT_BUFFER;
+        maxHeight = minimumTopY + lastFlowHeight + FLOW_Y_BOTTTOM_BUFFER;
+//LOG.info("StudioXX ModuleViewHandler width and height was " + getWidth() + ", " + getHeight());
+        setWidth(Math.max(getWidth(), maxWidth));
+        setHeight(Math.max(getHeight()-SCROLL_BAR_HEIGHT, maxHeight));
+//LOG.info("StudioXX ModuleViewHandler width and height now " + getWidth() + ", " + getHeight());
     }
 
     @Override
@@ -90,4 +107,19 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     public void dispose() {
 
     }
+
+    @Override
+    public void setWidth(int width) {
+        super.setWidth(width);
+        Thread thread = Thread.currentThread();
+//        LOG.info("StudioXX: module view handler setWidth() invoked " + width + " trace:" + Arrays.toString(thread.getStackTrace()));
+    }
+
+    @Override
+    public void setHeight(int height) {
+        super.setHeight(height);
+        Thread thread = Thread.currentThread();
+//        LOG.info("StudioXX: module view handler setHeight() invoked " + " trace:" + Arrays.toString(thread.getStackTrace()));
+    }
+
 }

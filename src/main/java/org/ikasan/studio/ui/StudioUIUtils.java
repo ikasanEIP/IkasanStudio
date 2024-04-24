@@ -190,11 +190,11 @@ public class StudioUIUtils {
         Stroke dashed = new BasicStroke(1);
         g2d.setStroke(dashed);
 
-        for (int yy = 0 ; yy < width ; yy += 100) {
+        for (int yy = 0 ; yy < height ; yy += 100) {
             g2d.drawLine(0, yy, width, yy);
         }
 
-        for (int xx = 0 ; xx < height ; xx += 100) {
+        for (int xx = 0 ; xx < width ; xx += 100) {
             g2d.drawLine(xx, 0, xx, height);
         }
     }
