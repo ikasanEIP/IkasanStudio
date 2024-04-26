@@ -7,7 +7,7 @@
   "flowBuilderMethod": "consumer",
   "helpText": "The JMS consumer is an Event Driven Consumer, used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.",
   "ikasanComponentFactoryMethod": "jmsConsumer",
-  "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "implementingClass": "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
   "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/jms-spring-arjuna/consumer.md",
   "properties": {

@@ -1,14 +1,13 @@
 {
   "name": "JMS Producer",
-  "helpText": "Ending component of the flow, or a route in the flow. The JMS producer is based on Spring template and is used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
-  "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
-  "additionalKey": "JMS Producer",
-  "usesBuilderInFactory": true,
-  "flowBuilderMethod": "producer",
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
+  "flowBuilderMethod": "producer",
+  "helpText": "Ending component of the flow, or a route in the flow. The JMS producer is based on Spring template and is used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.",
+  "implementingClass": "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+  "usesBuilderInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
