@@ -78,7 +78,7 @@
       "affectsUserImplementedClass": "true",
       "helpText": "The commma seperated list of names to identify the different routes",
       "mandatory": true,
-      "usageDataType":"java.util.List<String>",
+      "usageDataType":"java.util.List<java.lang.String>",
       "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
       "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
 

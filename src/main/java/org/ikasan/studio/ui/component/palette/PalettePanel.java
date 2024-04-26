@@ -115,7 +115,10 @@ public class PalettePanel extends JPanel {
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
-        paletteScrollPane = new JScrollPane(paletteList);
+
+        paletteScrollPane = new JScrollPane();
+        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        paletteScrollPane.getViewport().add(paletteList);
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
@@ -136,7 +139,12 @@ public class PalettePanel extends JPanel {
                 handler.exportAsDrag(comp, me, TransferHandler.COPY);
             }
         });
-        paletteScrollPane = new JScrollPane(paletteList);
+//        paletteScrollPane = new JScrollPane(paletteList);
+
+        paletteScrollPane = new JScrollPane();
+        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        paletteScrollPane.getViewport().add(paletteList);
+
         paletteSplitPane.setLeftComponent(paletteList);
     }
 

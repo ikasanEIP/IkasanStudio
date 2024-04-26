@@ -49,12 +49,12 @@ public class CanvasPanel extends JPanel {
 
         setLayout(new BorderLayout());
         add(canvasHeaderPanel, BorderLayout.NORTH);
-        // XX
+
         JScrollPane canvasScrollPane = new JScrollPane();
         canvasScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         canvasScrollPane.getViewport().add(designerCanvas);
+        canvasScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-//        add(canvasPanel, BorderLayout.CENTER);
         add(canvasScrollPane, BorderLayout.CENTER);
     }
 

@@ -1,12 +1,11 @@
 {
   "name": "Email Producer",
-  "helpText": "Ending component of the flow, or a route in the flow. This type of producer sends an email. This requires an incoming EmailPayload event instance.",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
-  "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
-  "additionalKey": "Email Producer",
-  "usesBuilderInFactory": true,
   "flowBuilderMethod": "producer",
+  "helpText": "Ending component of the flow, or a route in the flow. This type of producer sends an email. This requires an incoming EmailPayload event instance.",
+  "implementingClass": "org.ikasan.component.endpoint.email.producer.EmailProducer",
+  "usesBuilderInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
