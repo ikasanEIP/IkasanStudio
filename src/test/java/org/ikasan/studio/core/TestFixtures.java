@@ -418,43 +418,6 @@ public class TestFixtures {
         flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
-    // ------------------------- Router -------------------------
-
-    public static FlowElement getMultiRecipientRouter() throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Multi Recipient Router");
-        List<String> routes = Arrays.asList("route1", "route2");
-
-        FlowElement flowElement =  FlowElement.flowElementBuilder()
-                .componentMeta(meta)
-                .componentName("My Multi Recipient Router")
-                .build();
-        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myMultiRecipientRouter");
-        flowElement.setPropertyValue("configurationId", "MyResourceID");
-        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResource", true);
-        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
-        flowElement.setPropertyValue(ROUTE_NAMES, routes);
-        flowElement.defaultUnsetMandatoryProperties();
-        return flowElement;
-    }
-
-    public static FlowElement getSingleRecipientRouter() throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Single Recipient Router");
-        List<String> routes = Arrays.asList("route1", "route2");
-
-        FlowElement flowElement =  FlowElement.flowElementBuilder()
-                .componentMeta(meta)
-                .componentName("My Single Recipient Router")
-                .build();
-        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "mySingleRecipientRouter");
-        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
-        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResource", true);
-        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
-        flowElement.setPropertyValue(ROUTE_NAMES, routes);
-        flowElement.defaultUnsetMandatoryProperties();
-        return flowElement;
-    }
 
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() throws StudioBuildException {
@@ -679,6 +642,68 @@ public class TestFixtures {
         return flowElement;
     }
 
+    // ------------------------- Router -------------------------
+
+    public static FlowElement getMultiRecipientRouter() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Multi Recipient Router");
+        List<String> routes = Arrays.asList("route1", "route2");
+
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Multi Recipient Router")
+                .build();
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myMultiRecipientRouter");
+        flowElement.setPropertyValue("configurationId", "MyResourceID");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResource", true);
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(ROUTE_NAMES, routes);
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
+    public static FlowElement getSingleRecipientRouter() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Single Recipient Router");
+        List<String> routes = Arrays.asList("route1", "route2");
+
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Single Recipient Router")
+                .build();
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "mySingleRecipientRouter");
+        flowElement.setPropertyValue("configuredResourceId", "MyResourceID");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResource", true);
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(ROUTE_NAMES, routes);
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
+    // ------------------------- Splittter -------------------------
+    public static FlowElement getCustomSplitter() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Custom Splitter");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Custom Splitter")
+                .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(TO_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "mySplitter");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
+    public static FlowElement getDefaultListSplitter() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Default List Splitter");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Default List Splitter")
+                .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
 
     // ------------------------ Flow Combinations --------------------
 
@@ -724,8 +749,8 @@ public class TestFixtures {
                 .consumer(eventGeneratingConsumer)
                 .build();
 
-        FlowRoute firstRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Arrays.asList(devNullProducer1))).build();
-        FlowRoute secondRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Arrays.asList(devNullProducer2))).build();
+        FlowRoute firstRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Collections.singletonList(devNullProducer1))).build();
+        FlowRoute secondRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Collections.singletonList(devNullProducer2))).build();
         List<FlowRoute> childRoutes = new ArrayList<>();
         childRoutes.add(firstRoute);
         childRoutes.add(secondRoute);
