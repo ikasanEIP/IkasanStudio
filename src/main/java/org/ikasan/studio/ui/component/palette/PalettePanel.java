@@ -28,7 +28,7 @@ public class PalettePanel extends JPanel {
     PaletteExportTransferHandler paletteExportTransferHandler;
     JPanel paletteHelpBodyPanel;
     JPanel paletteHeaderPanel;
-    JTextArea paletteHelpTextArea;
+    JTextPane paletteHelpTextArea;
     JBList<PaletteItem> paletteList;
     final JSplitPane paletteSplitPane;
     JPanel paletteBodyPanel;
@@ -50,9 +50,10 @@ public class PalettePanel extends JPanel {
 
         // Body
         paletteHelpBodyPanel = new JPanel(new BorderLayout());
-        paletteHelpTextArea = new JTextArea();
-        paletteHelpTextArea.setLineWrap(true);
-        paletteHelpTextArea.setWrapStyleWord(true);
+        paletteHelpTextArea = new JTextPane();
+        paletteHelpTextArea.setContentType("text/html");
+//        paletteHelpTextArea.setLineWrap(true);
+//        paletteHelpTextArea.setWrapStyleWord(true);
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
         paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
@@ -111,7 +112,7 @@ public class PalettePanel extends JPanel {
     }
 
     public void resetPallette() {
-        paletteList = new JBList(buildPaletteItems(projectKey).toArray());
+        paletteList = new JBList(buildPaletteItems(projectKey));
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);

@@ -1,6 +1,6 @@
 {
   "name": "SFTP Consumer",
-  "helpText": "This consumer is variation of Scheduled Consumer which is a \"time event\" based consumer configured to be either an absolute or relative time schedule, backed by (S)FTP Message provider.",
+  "helpText": "<html><body><h2>SFTP Consumer</h2><p>This consumer is variation of Scheduled Consumer which is a \"time event\" based consumer configured to be either an absolute or relative time schedule, backed by (S)FTP Message provider.</p></body></html>\n",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",

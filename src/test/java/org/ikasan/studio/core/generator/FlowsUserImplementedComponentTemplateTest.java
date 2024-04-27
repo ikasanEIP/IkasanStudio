@@ -59,7 +59,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
     //  ------------------------------- ROUTER ----------------------------------
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/MultiRecipientRouter.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/Router/MultiRecipientRouter.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -71,7 +71,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     }
 
     /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/MultiRecipientRouter.java
+     * See also resources/studio/templates/org/ikasan/studio/generator/Router/MultiRecipientRouter.java
      * @throws IOException if the template cant be generated
      */
     @Test
@@ -80,5 +80,18 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"SingleRecipientRouter.java"), templateString);
+    }
+
+    //  ------------------------------- SPLITTER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Splitter/MySplitter.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_customSplitterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getCustomSplitter();
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyCustomSplitter.java"), templateString);
     }
 }
