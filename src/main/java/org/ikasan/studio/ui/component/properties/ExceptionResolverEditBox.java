@@ -67,11 +67,11 @@ public class ExceptionResolverEditBox {
         }
         if (newResolution != null) {
             exceptionResolutionPanel.updateTargetComponent(newResolution);
-            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+            PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     UiContext.getProject(projectKey),
                     UiContext.getDesignerCanvas(projectKey),
                     exceptionResolutionPanel);
-            if (propertiesDialogue.showAndGet()) {
+            if (propertiesPopupDialogue.showAndGet()) {
                 StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
                 exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
                 hasChanged = true;

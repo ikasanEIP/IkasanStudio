@@ -16,6 +16,7 @@ public class DesignCanvasContextMenu {
     public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", ikasanBasicElement));
+        menu.add(createDebugComponentMenuItem(projectKey, "Add Debug to Component", ikasanBasicElement));
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
         menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
@@ -23,7 +24,8 @@ public class DesignCanvasContextMenu {
         menu.add(createHelpTextItem(projectKey, "Description", ikasanBasicElement, mouseEvent));
         menu.add(createWebHelpTextItem(projectKey, "Web help", ikasanBasicElement, mouseEvent));
         menu.add(createNavigateToCode(projectKey, "Jump to code", ikasanBasicElement, false));
-        menu.add(createNavigateToCode(projectKey, "Jump to code line", ikasanBasicElement, true));
+        // Currently code line jump is not supported.
+//        menu.add(createNavigateToCode(projectKey, "Jump to code line", ikasanBasicElement, true));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
@@ -39,6 +41,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new DeleteComponentAction(projectKey, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createDebugComponentMenuItem(String projectKey, String label, BasicElement ikasanBasicElement) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new DebugComponentAction(projectKey, ikasanBasicElement));
         return item;
     }
 

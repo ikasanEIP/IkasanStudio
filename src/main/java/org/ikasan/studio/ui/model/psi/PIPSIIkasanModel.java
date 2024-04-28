@@ -14,6 +14,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
@@ -143,88 +144,106 @@ public class PIPSIIkasanModel {
         Set<String> flowPackageNames = new HashSet<>();
         for (Flow ikasanFlow : module.getFlows()) {
 
-            IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, ikasanFlow);
-
             String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             flowPackageNames.add(ikasanFlow.getJavaPackageName());
-            if (!ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements().isEmpty()) {
-                // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
-                for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
-                    if (component.hasUserSuppliedClass()) {
-                        for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
-                            String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
-                            String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
-                            String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
-                            String templateString = null;
-                            try {
-                                templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
-                            } catch (StudioGeneratorException e) {
-                                displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
-                            }
-                            if (templateString != null) {
-                                PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
-                                if (viewHandler != null) {
-                                    viewHandler.setPsiJavaFile(newFile);
-                                }
-                            }
-                        }
-                    }
+            // Component Factory java file
+            generateComponentFactory(project, module, flowPackageName, ikasanFlow);
+            PsiJavaFile flowPsiJavaFile = generateFlow(project, module, flowPackageName, ikasanFlow);
 
-                    if (component instanceof FlowUserImplementedElement && ((FlowUserImplementedElement)component).isOverwriteEnabled()) {
-                        String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
+            generteUserImplementClassStubsForFlow(project, module, ikasanFlow, flowPsiJavaFile);
+        }
+        // we have the flowPackageNames that ARE valid
+        StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+    }
+
+    private void generteUserImplementClassStubsForFlow(Project project, Module module, Flow ikasanFlow, PsiJavaFile flowPsiJavaFile) {
+        if (!ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements().isEmpty()) {
+            // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
+            for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+                IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, component);
+                if (component.hasUserSuppliedClass()) {
+                    for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
+                        String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
+                        String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
                         String templateString = null;
                         try {
-                            templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, component);
+                            templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
                         } catch (StudioGeneratorException e) {
                             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                         }
                         if (templateString != null) {
-                            boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
-                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
-                            ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
-                            if (viewHandler != null) {
-                                viewHandler.setPsiJavaFile(newFile);
+                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
+
+                            if (componentViewHandler != null) {
+                                componentViewHandler.setPsiJavaFile(newFile);
                             }
                         }
                     }
                 }
-            }
-            // Component Factory java file
-            String componentFactoryTemplateString = null;
-            try {
-                componentFactoryTemplateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
-            } catch (StudioGeneratorException e) {
-                displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
-            }
-            if (componentFactoryTemplateString != null) {
-                StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true);
-            }
-            componentFactoryTemplateString = null;
 
-            // Flow java file
-            String flowTemplateString = null;
-            try {
-                flowTemplateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
-            } catch (StudioGeneratorException e) {
-                displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
-            }
-            if (flowTemplateString != null) {
-                PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(
-                        project,
-                        StudioPsiUtils.GENERATED_CONTENT_ROOT,
-                        flowPackageName,
-                        ikasanFlow.getJavaClassName(),
-                        flowTemplateString,
-                        true,
-                        true);
-                if (viewHandler != null) {
-                    viewHandler.setPsiJavaFile(newFile);
+                if (component instanceof FlowUserImplementedElement && ((FlowUserImplementedElement)component).isOverwriteEnabled()) {
+                    String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
+                    String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
+                    String templateString = null;
+                    try {
+                        templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, component);
+                    } catch (StudioGeneratorException e) {
+                        displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+                    }
+                    if (templateString != null) {
+                        boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
+                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
+                        ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
+                        if (componentViewHandler != null) {
+                            componentViewHandler.setPsiJavaFile(newFile);
+                        }
+                    }
+                }
+                // If we can't navigate anywhere else, we should nagigate to the flow
+                if (componentViewHandler != null && componentViewHandler.getPsiJavaFile() == null) {
+                    componentViewHandler.setPsiJavaFile(flowPsiJavaFile);
                 }
             }
         }
-        // we have the flowPackageNames that ARE valid
-        StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+    }
+
+    private void generateComponentFactory(Project project, Module module, String flowPackageName, Flow ikasanFlow) {
+        String componentFactoryTemplateString = null;
+        try {
+            componentFactoryTemplateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+        }
+        if (componentFactoryTemplateString != null) {
+            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true);
+        }
+    }
+
+    private PsiJavaFile generateFlow(Project project, Module module,  String flowPackageName, Flow ikasanFlow) {
+        PsiJavaFile newFile = null;
+
+        IkasanFlowViewHandler flowViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, ikasanFlow);
+        String flowTemplateString = null;
+        try {
+            flowTemplateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+        }
+        if (flowTemplateString != null) {
+            newFile = StudioPsiUtils.createJavaSourceFile(
+                    project,
+                    StudioPsiUtils.GENERATED_CONTENT_ROOT,
+                    flowPackageName,
+                    ikasanFlow.getJavaClassName(),
+                    flowTemplateString,
+                    true,
+                    true);
+            if (flowViewHandler != null) {
+                flowViewHandler.setPsiJavaFile(newFile);
+            }
+        }
+        return newFile;
     }
 
     private void saveModuleConfig(Project project, Module module) {

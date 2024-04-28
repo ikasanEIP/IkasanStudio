@@ -1,5 +1,5 @@
 {
   "componentType": "org.ikasan.spec.component.routing.MultiRecipientRouter",
-  "displayOrder": 10,
+  "displayOrder": 7,
   "componentShortType": "Router"
 }

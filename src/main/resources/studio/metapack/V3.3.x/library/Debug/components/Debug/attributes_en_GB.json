@@ -1,0 +1,43 @@
+{
+  "name": "Debug Transition",
+  "flowBuilderMethod": "converter",
+  "generatesUserImplementedClass": "true",
+  "helpText": "<html><body><h2>Debug Transition</h2><p>This component allows you to set a debug breakpoint on the data as it moves from one component to the next.</p></body></html>",
+  "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "userImplementClassFtlTemplate": "debugTransitionTemplate.ftl",
+      "affectsUserImplementedClass": "true",
+      "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
+      "mandatory": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "The name of the class to used as thee debug class."
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lanf.Object",
+      "hiddenProperty" : true,
+      "mandatory": true
+    },
+    "toType": {
+      "propertyName": "toType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lanf.Object",
+      "hiddenProperty" : true,
+      "mandatory": true
+    }
+  }
+}
+

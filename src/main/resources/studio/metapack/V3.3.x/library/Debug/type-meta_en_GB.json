@@ -1,7 +1,7 @@
 {
   "componentType": "org.ikasan.spec.component.transformation.Converter",
-  "displayOrder": 5,
-  "componentShortType": "Converter",
+  "displayOrder": 1,
+  "componentShortType": "debugTransition",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",

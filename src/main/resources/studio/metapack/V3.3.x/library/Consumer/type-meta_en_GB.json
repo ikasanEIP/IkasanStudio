@@ -1,6 +1,6 @@
 {
   "componentType": "org.ikasan.spec.component.endpoint.Consumer",
-  "displayOrder": 2,
+  "displayOrder": 3,
   "componentShortType": "Consumer",
   "supportsGenericImplementation": true
 }

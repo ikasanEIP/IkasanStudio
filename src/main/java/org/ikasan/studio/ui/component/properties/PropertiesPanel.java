@@ -24,7 +24,7 @@ public abstract class PropertiesPanel extends JPanel {
     protected final String projectKey;
     protected final boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
-    private transient PropertiesDialogue propertiesDialogue;
+    private transient PropertiesPopupDialogue propertiesPopupDialogue;
 
     protected JButton okButton;
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
@@ -139,9 +139,9 @@ public abstract class PropertiesPanel extends JPanel {
 
     protected void redrawPanel() {
         propertiesEditorScrollingContainer.revalidate();
-        if (propertiesDialogue != null) {
-            propertiesDialogue.pack();
-            propertiesDialogue.repaint();
+        if (propertiesPopupDialogue != null) {
+            propertiesPopupDialogue.pack();
+            propertiesPopupDialogue.repaint();
         }
         setFocusOnFirstComponent();
     }
@@ -181,11 +181,11 @@ public abstract class PropertiesPanel extends JPanel {
     public abstract void processEditedFlowComponents();
     public abstract boolean dataHasChanged();
 
-    public PropertiesDialogue getPropertiesDialogue() {
-        return propertiesDialogue;
+    public PropertiesPopupDialogue getPropertiesDialogue() {
+        return propertiesPopupDialogue;
     }
 
-    public void setPropertiesDialogue(PropertiesDialogue propertiesDialogue) {
-        this.propertiesDialogue = propertiesDialogue;
+    public void setPropertiesDialogue(PropertiesPopupDialogue propertiesPopupDialogue) {
+        this.propertiesPopupDialogue = propertiesPopupDialogue;
     }
 }

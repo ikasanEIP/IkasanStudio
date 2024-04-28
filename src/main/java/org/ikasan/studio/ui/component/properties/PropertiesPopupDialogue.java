@@ -13,7 +13,7 @@ import java.awt.*;
 /**
  * The popup wrapper for the Properties panel.
  */
-public class PropertiesDialogue extends DialogWrapper {
+public class PropertiesPopupDialogue extends DialogWrapper {
     private final PropertiesPanel propertiesPanel;
     private final Component parentComponent;
 
@@ -29,7 +29,7 @@ public class PropertiesDialogue extends DialogWrapper {
      * @param parentComponent of this popup
      * @param propertiesPanel to display and have entries taken on.
      */
-    public PropertiesDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
+    public PropertiesPopupDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
         propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
