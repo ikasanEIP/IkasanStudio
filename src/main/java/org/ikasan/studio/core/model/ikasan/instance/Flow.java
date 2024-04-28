@@ -90,6 +90,15 @@ public class Flow extends BasicElement {
         return getConsumer() != null;
     }
 
+    public boolean hasAnyComponents() {
+        return
+                hasExceptionResolver() || hasConsumer() || hasFlowComponents();
+    }
+
+    public boolean hasFlowComponents() {
+        return ! flowRoute.isEmpty() || flowRoute.isEmpty();
+    }
+
     /**
      * Does the Flow have a valid exception resolver
      * @return if the flow has a valid exception resolver.

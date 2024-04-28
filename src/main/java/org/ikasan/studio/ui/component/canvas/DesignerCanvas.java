@@ -14,7 +14,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
-import org.ikasan.studio.ui.component.properties.PropertiesDialogue;
+import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.*;
@@ -103,11 +103,11 @@ public class DesignerCanvas extends JPanel {
                     }
                     ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
                     componentPropertiesPanel.updateTargetComponent(getIkasanModule());
-                    PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                    PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                             UiContext.getProject(projectKey),
                             UiContext.getDesignerCanvas(projectKey),
                             componentPropertiesPanel);
-                    if (propertiesDialogue.showAndGet()) {
+                    if (propertiesPopupDialogue.showAndGet()) {
                         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
                         pipsiIkasanModel.generateJsonFromModelInstance();
                         pipsiIkasanModel.generateSourceFromModelInstance3();
@@ -178,11 +178,11 @@ public class DesignerCanvas extends JPanel {
             if (mouseSelectedComponent instanceof ExceptionResolver) {
                 ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
                 exceptionResolverPanel.updateTargetComponent(basicElement);
-                PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+                PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                         UiContext.getProject(projectKey),
                         UiContext.getDesignerCanvas(projectKey),
                         exceptionResolverPanel);
-                if (propertiesDialogue.showAndGet()) {
+                if (propertiesPopupDialogue.showAndGet()) {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
                     pipsiIkasanModel.generateJsonFromModelInstance();
@@ -649,11 +649,11 @@ public class DesignerCanvas extends JPanel {
             // Add new component
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
             componentPropertiesPanel.updateTargetComponent(newComponent);
-            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+            PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     UiContext.getProject(projectKey),
                     UiContext.getDesignerCanvas(projectKey),
                     componentPropertiesPanel);
-            if (! propertiesDialogue.showAndGet()) {
+            if (! propertiesPopupDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;
             }
@@ -673,11 +673,11 @@ public class DesignerCanvas extends JPanel {
 
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
             exceptionResolverPanel.updateTargetComponent(newExceptionResolver);
-            PropertiesDialogue propertiesDialogue = new PropertiesDialogue(
+            PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     UiContext.getProject(projectKey),
                     UiContext.getDesignerCanvas(projectKey),
                     exceptionResolverPanel);
-            if (! propertiesDialogue.showAndGet()) {
+            if (! propertiesPopupDialogue.showAndGet()) {
                 // i.e. cancel.
                 newExceptionResolver = null;
             }

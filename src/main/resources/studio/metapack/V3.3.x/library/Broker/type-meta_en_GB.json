@@ -1,5 +1,5 @@
 {
   "componentType": "org.ikasan.spec.component.endpoint.Broker",
-  "displayOrder": 1,
+  "displayOrder": 4,
   "componentShortType": "Broker"
 }

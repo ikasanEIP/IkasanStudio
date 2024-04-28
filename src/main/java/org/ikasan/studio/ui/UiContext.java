@@ -38,8 +38,8 @@ public enum UiContext {
     private static final String RIGHT_TABBED_PANE = "rightTabbedPane";
     public static final String PROPERTIES_TAB_TITLE = "Properties";
     public static final String PALETTE_TAB_TITLE = "Palette";
-    public static final int PROPERTIES_TAB_INDEX = 1;
-    public static final int PALETTE_TAB_INDEX = 0;
+    public static final int PROPERTIES_TAB_INDEX = 0;
+    public static final int PALETTE_TAB_INDEX = 1;
     private static final String DESIGNER_UI = "designerUI";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
