@@ -192,14 +192,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         } // Edge case, one element, no transitions.
         else if (flowElementsMap != null && !flowElementsMap.isEmpty()) {
             FlowElement singleElmenet = flowElementsMap.values().stream().findFirst().orElse(null);
-            if (singleElmenet != null) {
-                if (singleElmenet.getComponentMeta().isRouter()) {
-                    singleElmenet.setContainingFlowRoute(returnFlowRoute);
-                    returnFlowRoute.getFlowElements().add(singleElmenet);
-                    addNewRoutesForRouter(metapackVersion, flow, returnFlowRoute, singleElmenet);
-                } else {
-                    addToRouteIfAllowed(singleElmenet, returnFlowRoute);
-                }
+            if (singleElmenet.getComponentMeta().isRouter()) {
+                singleElmenet.setContainingFlowRoute(returnFlowRoute);
+                returnFlowRoute.getFlowElements().add(singleElmenet);
+                addNewRoutesForRouter(metapackVersion, flow, returnFlowRoute, singleElmenet);
+            } else {
+                addToRouteIfAllowed(singleElmenet, returnFlowRoute);
             }
         }
         return returnFlowRoute;
@@ -609,7 +607,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @throws IOException if the Json could not be read
      * @throws StudioBuildException if the element could not be created.
      */
-    public FlowElement getInitialFlowElement(JsonNode jsonNode, Flow containingFlow, String metapackVersion) throws IOException, StudioBuildException {
+    public FlowElement getInitialFlowElement(JsonNode jsonNode, Flow containingFlow, String metapackVersion) throws StudioBuildException {
         FlowElement flowElement = null;
         // Possibly just open/close brackets
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
@@ -656,7 +654,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
                     Object value = getTypedValue(field);
                     // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
-                    if (value != null) {
+                    if (value != null && !"null".equals(value.toString())) {
                         if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
                             List<String> routeList = StudioBuildUtils.stringToList((String) value);
                             flowElement.setPropertyValue(fieldName, routeList);
@@ -696,7 +694,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             decorator = Decorator.decoratorBuilder()
                     .type(type)
                     .name(name)
-                    .configurable(configurable)
+                    .configurable(configurable!=null ? configurable:false)
                     .configurationId(configurationId)
                     .build();
         }

@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.maven.model.Dependency;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -24,4 +26,6 @@ public class ComponentTypeMeta {
     String componentShortType;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private Set<Dependency> jarDependencies;
+    @Builder.Default
+    private Map<String, ComponentPropertyMeta> properties = new HashMap<>();
 }
