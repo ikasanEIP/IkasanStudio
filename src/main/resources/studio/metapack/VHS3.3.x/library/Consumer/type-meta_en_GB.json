@@ -1,6 +1,12 @@
 {
   "componentType": "org.ikasan.spec.component.endpoint.Consumer",
-  "displayOrder": 2,
+  "displayOrder": 3,
   "componentShortType": "Consumer",
-  "supportsGenericImplementation": true
+  "supportsGenericImplementation": true,
+  "properties": {
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    }
+  }
 }

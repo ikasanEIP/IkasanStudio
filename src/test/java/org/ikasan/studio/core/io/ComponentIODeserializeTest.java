@@ -54,6 +54,14 @@ class ComponentIODeserializeTest {
     }
 
     @Test
+    public void testNullPropertiesDoesNotGetSet() throws StudioBuildException {
+//        IkasanMeta module = ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/BadComponentMeta/null_property_en_GB.json");
+        Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_just_consumer_and_null_properties.json");
+        FlowElement consumer = module.getFlows().get(0).getConsumer();
+        assertNull(consumer.getDescription());
+    }
+
+    @Test
     public void testModuleInstanceDeserialize() throws StudioBuildException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_full_module_with_exception_resolver.json");
         List<Flow> flows = module.getFlows();

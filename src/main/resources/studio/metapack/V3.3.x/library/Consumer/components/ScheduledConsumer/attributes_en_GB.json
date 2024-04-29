@@ -51,10 +51,6 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
-    },
     "eager": {
       "propertyName": "eager",
       "helpText": "When true the scheduled consumer is immediately called back on completion of flow execution i.e. attempts to consume all messages available. If false the scheduled consumers cron expression determines the callback.",

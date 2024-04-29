@@ -17,10 +17,6 @@
       "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
       "ignoreProperty": true
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
-    },
     "endpointEventProvider": {
       "propertyName": "endpointEventProvider",
       "helpText": "Set the endpoint event provider for this event consumer.",

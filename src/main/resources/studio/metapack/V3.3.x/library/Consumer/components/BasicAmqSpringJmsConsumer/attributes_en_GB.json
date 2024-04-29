@@ -67,10 +67,6 @@
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user"
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
-    },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",

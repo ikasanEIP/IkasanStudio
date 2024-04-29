@@ -107,10 +107,6 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
-    },
     "destructive": {
       "propertyName": "destructive",
       "helpText": "Default(False) Flag indicating whether the processed file should be deleted after successful consumption.",

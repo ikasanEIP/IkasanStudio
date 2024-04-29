@@ -38,10 +38,6 @@
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "usageDataType": "java.lang.String"
     },
-    "description": {
-      "propertyName": "description",
-      "helpText": "A more detailed description of the component that may assist in support."
-    },
     "fromType": {
       "propertyName": "fromType",
       "affectsUserImplementedClass": "true",

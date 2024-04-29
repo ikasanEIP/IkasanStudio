@@ -448,7 +448,6 @@ public class TestFixtures {
                 .componentMeta(meta)
                 .componentName("My Email Producer")
                 .build();
-
         flowElement.setPropertyValue("bccRecipient", "myBccRecipient");
         flowElement.setPropertyValue("bccRecipients", "{'bcc1','bcc2'}");
         flowElement.setPropertyValue("ccRecipient", "myCcRecipient");
@@ -489,6 +488,8 @@ public class TestFixtures {
                 .componentMeta(meta)
                 .componentName("My FTP Producer")
                 .build();
+
+        flowElement.setPropertyValue("description", "xx");
 
         flowElement.setPropertyValue("active", true);
         flowElement.setPropertyValue("checksumDelivered", true);
