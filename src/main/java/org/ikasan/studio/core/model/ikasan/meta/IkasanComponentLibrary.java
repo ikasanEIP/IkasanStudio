@@ -114,7 +114,10 @@ public class IkasanComponentLibrary {
                     continue;
                 }
                 ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
-                componentMeta.setComponentType(componentTypeMeta.getComponentType());
+                // The component type only comes from componentTypeMeta if its is common
+                if (componentTypeMeta.getComponentType() != null) {
+                    componentMeta.setComponentType(componentTypeMeta.getComponentType());
+                }
                 componentMeta.setComponentShortType(componentTypeMeta.getComponentShortType());
                 componentMeta.setDisplayOrder(componentTypeMeta.getDisplayOrder());
                 if (componentTypeMeta.getJarDependencies() != null) {

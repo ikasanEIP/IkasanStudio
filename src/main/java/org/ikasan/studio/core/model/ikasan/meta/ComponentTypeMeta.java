@@ -20,8 +20,7 @@ import java.util.Set;
 public class ComponentTypeMeta {
     @lombok.NonNull
     Integer displayOrder;
-    @lombok.NonNull
-    String componentType;
+    String componentType;       // Component type might come from component if the type is not common for all component in this category e.g. routers.
     @lombok.NonNull
     String componentShortType;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.

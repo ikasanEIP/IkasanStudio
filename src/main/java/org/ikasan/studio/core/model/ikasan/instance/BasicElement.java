@@ -173,7 +173,12 @@ public  class BasicElement extends IkasanObject {
             ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
-                LOG.error("STUDIO: SERIOUS ERROR - Attempt to set property " + key + " on Element " + this.getName() + ", class " + this.getClass() + " with value [" + value + "], the known properties are " + getComponentMeta().getPropertyKeys() + " this property will be ignored." + Arrays.toString(thread.getStackTrace()));
+                LOG.error("STUDIO: SERIOUS ERROR - Attempt to set property [" + key + "] on Element [" + this.getName() +
+                        "], class [" + this.getClass() +
+                        "], implemnting class [" + getComponentMeta().getImplementingClass() +
+                        "], additional key [" + getComponentMeta().getAdditionalKey() +
+                        "] with value [" + value + "], the known properties are [" + getComponentMeta().getPropertyKeys() +
+                        "] this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
                 componentProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
             }

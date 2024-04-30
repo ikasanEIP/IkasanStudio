@@ -488,9 +488,6 @@ public class TestFixtures {
                 .componentMeta(meta)
                 .componentName("My FTP Producer")
                 .build();
-
-        flowElement.setPropertyValue("description", "xx");
-
         flowElement.setPropertyValue("active", true);
         flowElement.setPropertyValue("checksumDelivered", true);
         flowElement.setPropertyValue("cleanupJournalOnComplete", true);
