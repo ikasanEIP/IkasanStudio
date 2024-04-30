@@ -241,7 +241,7 @@ public class ComponentPropertyEditBox {
     public boolean isChoiceProperty() {
         return propertyChoiceValueField != null;
     }
-   public boolean isBooleanProperty() {
+    public boolean isBooleanProperty() {
         return propertyBooleanFieldTrue != null;
     }
 
@@ -256,6 +256,9 @@ public class ComponentPropertyEditBox {
             componentInput = new ComponentInput(propertyBooleanFieldTrue, propertyBooleanFieldFalse);
         } else {
             componentInput = new ComponentInput(propertyValueField);
+        }
+        if (meta.isReadOnlyProperty()) {
+            componentInput.setEnabled(false);
         }
         return componentInput;
     }

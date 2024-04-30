@@ -160,6 +160,19 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedObjectMessageToXmlStringConverterComponent.java"), templateString);
     }
 
+    // ------------------------------------- DEBUG -------------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedCustomConverterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_debugTransitionComponent() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getDebugTransition();
+        String templateString = generateFlowsComponentFactoryTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedDebugTransitionComponent.java"), templateString);
+    }
+
+
 
     // ------------------------------------- PRODUCERS -------------------------------------
     /**

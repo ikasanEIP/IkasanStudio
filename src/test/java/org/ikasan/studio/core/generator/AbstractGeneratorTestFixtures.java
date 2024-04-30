@@ -41,6 +41,23 @@ public abstract class AbstractGeneratorTestFixtures {
         return templateString;
     }
 
+    public String generateUserImplementedComponentTemplate(FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+                .build();
+        module.addFlow(flow);
+        flowElement.setContainingFlowRoute(flow.getFlowRoute());
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
+        return generateUserImplementedComponentTemplateStringForModule(module, flowElement);
+    }
+
+    public String generateUserImplementedComponentTemplateStringForModule(Module module, FlowElement flowElement) throws StudioGeneratorException {
+        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0), flowElement);
+        assertNotNull(templateString);
+        return templateString;
+    }
+
+
     public String generateFlowWithExceptionResolverTemplateString(ExceptionResolver exceptionResolver) throws StudioBuildException, StudioGeneratorException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)

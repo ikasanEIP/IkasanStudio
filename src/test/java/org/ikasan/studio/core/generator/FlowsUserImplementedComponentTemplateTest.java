@@ -27,7 +27,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @Test
     public void testCreateFlowWith_brokerComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getBroker();
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyBroker.java"), templateString);
     }
@@ -40,9 +40,21 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @Test
     public void testCreateFlowWith_customConverterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyConverter.java"), templateString);
+    }
+    //  ------------------------------- DEBUG ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyConverter.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_debugTransitionComponent() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getDebugTransition();
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyDebugTransition.java"), templateString);
     }
     //  ------------------------------- FILTERS ----------------------------------
     /**
@@ -52,7 +64,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @Test
     public void testCreateFlowWith_messageFilterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getMessageFilter();
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"MessageFilter.java"), templateString);
     }
@@ -65,7 +77,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @Test
     public void testCreateFlowWith_messageMultiRecipientRouterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getMultiRecipientRouter();
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"MultiRecipientRouter.java"), templateString);
     }
@@ -77,7 +89,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @Test
     public void testCreateFlowWith_messageSingleRecipientRouterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getSingleRecipientRouter();
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"SingleRecipientRouter.java"), templateString);
     }
@@ -90,7 +102,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @Test
     public void testCreateFlowWith_customSplitterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
         FlowElement flowElement = TestFixtures.getCustomSplitter();
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, flowElement);
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyCustomSplitter.java"), templateString);
     }

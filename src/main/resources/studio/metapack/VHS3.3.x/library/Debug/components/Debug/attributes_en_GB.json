@@ -8,8 +8,10 @@
   "properties": {
     "componentName": {
       "propertyName": "componentName",
+      "defaultValue": "setByIDEEndingInDebug",
+      "readOnlyProperty" : true,
       "mandatory": true,
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+      "helpText": "For a debug element, this will be the name of the component into which the debug flows."
     },
     "configurable": {
       "propertyName": "configurable",
@@ -18,24 +20,23 @@
     },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
-      "userImplementClassFtlTemplate": "debugTransitionTemplate.ftl",
       "affectsUserImplementedClass": "true",
-      "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
+      "defaultValue": "__module__flow__componentDebug",
       "mandatory": true,
-      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "The name of the class to used as thee debug class."
+      "readOnlyProperty" : true,
+      "userImplementClassFtlTemplate": "debugTransitionTemplate.ftl"
     },
     "fromType": {
       "propertyName": "fromType",
       "affectsUserImplementedClass": "true",
-      "defaultValue": "java.lanf.Object",
+      "defaultValue": "java.lang.Object",
       "hiddenProperty" : true,
       "mandatory": true
     },
     "toType": {
       "propertyName": "toType",
       "affectsUserImplementedClass": "true",
-      "defaultValue": "java.lanf.Object",
+      "defaultValue": "java.lang.Object",
       "hiddenProperty" : true,
       "mandatory": true
     }

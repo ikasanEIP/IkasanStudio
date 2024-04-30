@@ -225,9 +225,9 @@ public class StudioBuildUtils {
     private static final int NUMBER_OF_DEPENDENCY_CONFIGS = 3;
     public static final String COMPONENT_DEPENDENCIES_DIR = "/studio/componentDependencies/";
     private static final String SUBSTITUTION_PREFIX = "__";
-    private static final String SUBSTITUTION_PREFIX_FLOW = SUBSTITUTION_PREFIX + "flow";
-    private static final String SUBSTITUTION_PREFIX_COMPONENT = SUBSTITUTION_PREFIX + "component";
-    private static final String SUBSTITUTION_PREFIX_MODULE = SUBSTITUTION_PREFIX + "module";
+    private static final String SUBSTITUTION_PREFIX_FLOW = "__flow";
+    private static final String SUBSTITUTION_PREFIX_COMPONENT = "__component";
+    private static final String SUBSTITUTION_PREFIX_MODULE = "__module";
 
     /**
      * ** Used by FTL ***
@@ -239,7 +239,7 @@ public class StudioBuildUtils {
      * @param template to be updated
      * @return A string representing a property
      */
-    public static String getPropertyLabelPackageStyle(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
+    public static String substitutePlaceholderInLowerCase(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
@@ -265,7 +265,33 @@ public class StudioBuildUtils {
      * @param template to be updated
      * @return A string representing a property
      */
-    public static String getPropertyLabelVariableStyle(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
+    public static String substitutePlaceholderInPascalCase(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
+        String propertyLabel = template;
+        if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
+            if (module != null) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_MODULE, toPascalCase(module.getName()));
+            }
+            if (flow != null) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, toPascalCase(flow.getName()));
+            }
+            if (ikasanBasicElement != null ) {
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, toPascalCase(ikasanBasicElement.getName()));
+            }
+        }
+        return propertyLabel;
+    }
+
+    /**
+     * ** Used by FTL ***
+     * The supplied string template e.g. __flow.ftp.consumer.cron-expression, replacing meta tags so that the final
+     * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
+     * @param module in scope that might relate to this property
+     * @param flow in scope that might relate to this property
+     * @param ikasanBasicElement in scope that might relate to this property
+     * @param template to be updated
+     * @return A string representing a property
+     */
+    public static String substitutePlaceholderInJavaCamelCase(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {

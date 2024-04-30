@@ -90,7 +90,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
 
     private void controlFieldsThatAffectUserImplementedClass(boolean enable) {
         for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-            componentPropertyEditBox.controlFieldsAffectingUserImplementedClass(enable);
+            if (!componentPropertyEditBox.getMeta().isReadOnlyProperty()) {
+                componentPropertyEditBox.controlFieldsAffectingUserImplementedClass(enable);
+            }
         }
     }
 

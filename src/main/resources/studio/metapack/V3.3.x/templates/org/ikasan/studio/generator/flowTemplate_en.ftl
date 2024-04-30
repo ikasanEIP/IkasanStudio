@@ -1,3 +1,4 @@
+<#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
 <#macro iterateSubflow __flowRoute>
     <#assign __processingWhen = "yes">
     .when("${__flowRoute.getRouteName()}"
@@ -13,12 +14,12 @@
         <#else>
             <#if __processingWhen == "yes">
             ,builderFactory.getRouteBuilder().${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
-            componentFactory.get${flowElement.getJavaClassName()}())
             <#assign __processingWhen = "no">
             <#else>
             .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
-            componentFactory.get${flowElement.getJavaClassName()}())
             </#if>
+            componentFactory.get${flowElement.getJavaClassName()}())
+<#--            componentFactory.get${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, flowElement.getJavaClassName())}())-->
         </#if>
     </#list>
     )
@@ -73,6 +74,7 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
         <#else>
         .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",
         componentFactory.get${flowElement.getJavaClassName()}())
+<#--            componentFactory.get${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, flowElement.getJavaClassName())}())-->
         </#if>
     </#list>
 </#compress>
