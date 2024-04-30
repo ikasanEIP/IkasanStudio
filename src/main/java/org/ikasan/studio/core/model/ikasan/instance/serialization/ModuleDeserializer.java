@@ -195,7 +195,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             if (singleElmenet.getComponentMeta().isRouter()) {
                 singleElmenet.setContainingFlowRoute(returnFlowRoute);
                 returnFlowRoute.getFlowElements().add(singleElmenet);
-                addNewRoutesForRouter(metapackVersion, flow, returnFlowRoute, singleElmenet);
+                addNewRoutesForRouter(metapackVersion, flow, returnFlowRoute, singleElmenet, null);
             } else {
                 addToRouteIfAllowed(singleElmenet, returnFlowRoute);
             }
@@ -340,7 +340,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             // If we have an MRR, we have made sure its only ever in a To transition.
             if (toElement != null && toElement.getComponentMeta().isRouter()) {
                 // add all ther new routes, even if no more elements
-                addNewRoutesForRouter(metapackVersion, flow, currentFlowRoute, toElement);
+                addNewRoutesForRouter(metapackVersion, flow, currentFlowRoute, toElement, transitionsMap);
             }
 
             boolean routerDetected = false;
@@ -395,9 +395,24 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @param router that has been found at the end of a flowRoute
      * @throws StudioBuildException if the flowRoutes could not be created
      */
-    private void addNewRoutesForRouter(String metapackVersion, Flow flow, FlowRoute returnFlowRoute, FlowElement router) throws StudioBuildException {
+    private void addNewRoutesForRouter(String metapackVersion, Flow flow, FlowRoute returnFlowRoute, FlowElement router, Map<String, List<Transition>> transitionsMap) throws StudioBuildException {
         if (router.getPropertyValue(ROUTE_NAMES) != null) {
-            List<String> routeNames = (List)router.getPropertyValue(ROUTE_NAMES);
+            Object typeSafeAttempt = router.getPropertyValue(ROUTE_NAMES);
+            List<String> routeNames = null;
+            if (typeSafeAttempt==null) {
+                LOG.warn("Studio: Serious: Attempt to setup routes but routeNames was null");
+            }
+            else if (! (typeSafeAttempt instanceof List)) {
+                LOG.warn("Studio: Serious: Attempt to setup routes but routeNames does not contain a list, routeNames was [" + typeSafeAttempt + "]");
+            }
+            else {
+                routeNames = (List) typeSafeAttempt;
+            }
+            if (routeNames == null) {
+                routeNames = guessRouteNames(router, transitionsMap);
+                LOG.warn("Studio: Attempted to guess routename, got [" + routeNames + "]");
+            }
+
             for(String routeName : routeNames) {
                 FlowRoute newChild = FlowRoute.flowRouteBuilder()
                         .flow(flow)
@@ -414,6 +429,24 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         }
     }
 
+    /**
+     * In some environments, the routnames might not have been set, so we try to deduce this from the transitions.
+     * @param router being set up
+     * @param transitionsMap of all transitions for this flow
+     * @return A list of routenames if they can be found, or an empty list.
+     */
+    private List<String> guessRouteNames(FlowElement router, Map<String, List<Transition>> transitionsMap) {
+        List<String> routeNames = new ArrayList<>();
+        String routerName = router.getName();
+        List<Transition> transitions = transitionsMap.get(routerName);
+        if (transitions != null) {
+            routeNames = transitions.stream()
+                .map(Transition::getName)
+                .collect(Collectors.toList());
+        }
+        router.setPropertyValue(ROUTE_NAMES, routeNames);
+        return routeNames;
+    }
 
     private FlowElement getRouterEndPoint(String metapackVersion, Flow flow, FlowElement router, FlowRoute containingFlowRoute, String routeName) {
         String endpointComponentName = router.getComponentMeta().getEndpointKey();
@@ -580,10 +613,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @param containingFlow tht the element belongs to
      * @param metapackVersion to use to build the element
      * @return A flow element without its route
-     * @throws IOException if the Json could not be read
      * @throws StudioBuildException if the element could not be created.
      */
-    public Map<String, FlowElement> getInitialFlowElements(Map<String, FlowElement> flowElementsMap, JsonNode root, Flow containingFlow, String metapackVersion) throws IOException, StudioBuildException {
+    public Map<String, FlowElement> getInitialFlowElements(Map<String, FlowElement> flowElementsMap, JsonNode root, Flow containingFlow, String metapackVersion) throws StudioBuildException {
         if (root.isArray()) {
             ArrayNode arrayNode = (ArrayNode) root;
             for (int i = 0; i < arrayNode.size(); i++) {
@@ -604,7 +636,6 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @param containingFlow tht the element belongs to
      * @param metapackVersion to use to build the element
      * @return A flow element without its route
-     * @throws IOException if the Json could not be read
      * @throws StudioBuildException if the element could not be created.
      */
     public FlowElement getInitialFlowElement(JsonNode jsonNode, Flow containingFlow, String metapackVersion) throws StudioBuildException {
@@ -654,7 +685,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
                     Object value = getTypedValue(field);
                     // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
-                    if (value != null && !"null".equals(value.toString())) {
+                    if (value != null && ! "null".equals(value.toString())) {
                         if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {
                             List<String> routeList = StudioBuildUtils.stringToList((String) value);
                             flowElement.setPropertyValue(fieldName, routeList);

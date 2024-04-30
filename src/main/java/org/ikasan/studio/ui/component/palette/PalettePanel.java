@@ -37,23 +37,13 @@ public class PalettePanel extends JPanel {
         super();
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
-//        this.setLayout(new FlowLayout());
         this.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         paletteExportTransferHandler = new PaletteExportTransferHandler(projectKey);
-
-        // Header
-//        JLabel paletteHeaderLabel =  new JLabel("Palette");
-//        paletteHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
-//        paletteHeaderPanel = new JPanel();
-//        paletteHeaderPanel.add(paletteHeaderLabel);
-//        paletteHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
         // Body
         paletteHelpBodyPanel = new JPanel(new BorderLayout());
         paletteHelpTextArea = new JTextPane();
         paletteHelpTextArea.setContentType("text/html");
-//        paletteHelpTextArea.setLineWrap(true);
-//        paletteHelpTextArea.setWrapStyleWord(true);
         paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
         paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
@@ -61,7 +51,6 @@ public class PalettePanel extends JPanel {
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
-//        paletteScrollPane = new JScrollPane(paletteList);
         paletteScrollPane = new JScrollPane();
         paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         paletteScrollPane.getViewport().add(paletteList);
@@ -85,10 +74,8 @@ public class PalettePanel extends JPanel {
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(JBColor.WHITE);
 
-//        add(paletteHeaderPanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
         setBorder(JBUI.Borders.emptyTop(1));
-//        setBorder(JBUI.Borders.empty(10, 10, 10, 10));
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
@@ -147,6 +134,7 @@ public class PalettePanel extends JPanel {
         paletteScrollPane.getViewport().add(paletteList);
 
         paletteSplitPane.setLeftComponent(paletteList);
+        UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
     }
 
 
@@ -178,8 +166,8 @@ public class PalettePanel extends JPanel {
 
                 String category = "";
                 for (ComponentMeta componentMeta : displayOrder) {
-                    if (!category.equals(componentMeta.getDisplayComponentType())) {
-                        category = componentMeta.getDisplayComponentType();
+                    if (!category.equals(componentMeta.getComponentShortType())) {
+                        category = componentMeta.getComponentShortType();
                         paletteItems.add(new PaletteItem(category));
                     }
                     paletteItems.add(new PaletteItem(componentMeta));

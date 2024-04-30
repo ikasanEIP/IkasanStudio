@@ -72,6 +72,7 @@ public class DesignerUI {
                 PalettePanel palettePanel = new PalettePanel(projectKey);
                 UiContext.setPalettePanel(projectKey, palettePanel);
                 paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, palettePanel);
+                UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
             }
         });
     }
