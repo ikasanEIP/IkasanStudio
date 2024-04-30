@@ -20,7 +20,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#if flowElement.componentMeta.generatesUserImplementedClass>
         @javax.annotation.Resource
         <#if flowElement.componentMeta.generatesUserImplementedClass>
-        ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${flowElement.getPropertyValue('userImplementedClassName')} ${flowElement.getJavaVariableName()};
+<#--        ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${flowElement.getPropertyValue('userImplementedClassName')} ${flowElement.getJavaVariableName()};-->
+        ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, flowElement, flowElement.getPropertyValue('userImplementedClassName'))} ${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, flowElement.getJavaVariableName())};
         </#if>
     <#else>
     </#if>
@@ -35,14 +36,14 @@ org.ikasan.builder.BuilderFactory builderFactory;
                 <#assign f_endTag = r'}'>
             </#if>
 
-            <#assign f_propertyName = '${StudioBuildUtils.getPropertyLabelPackageStyle(module, flow, flowElement, componentProperty.meta.propertyConfigFileLabel)}'>
+            <#assign f_propertyName = '${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, componentProperty.meta.propertyConfigFileLabel)}'>
             @org.springframework.beans.factory.annotation.Value("${f_startTag}${f_propertyName}${f_endTag}")
             <#if componentProperty.meta.usageDataType?starts_with("java.util.List")>
                 <#assign f_dataType = componentProperty.meta.usageDataType >
             <#else>
                 <#assign f_dataType = componentProperty.meta.propertyDataType.getCanonicalName()>
             </#if>
-            ${f_dataType} ${StudioBuildUtils.getPropertyLabelVariableStyle(module, flow, flowElement, componentProperty.meta.propertyConfigFileLabel)};
+            ${f_dataType} ${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, componentProperty.meta.propertyConfigFileLabel)};
         </#if>
     </#list>
 </#list>
@@ -83,7 +84,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
                 <#assign setter="set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}">
             </#if>
             <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
-                <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.getPropertyLabelVariableStyle(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#else>
                 <#if propValue.meta.isUserSuppliedClass()>
                     <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>

@@ -182,12 +182,13 @@ public class PIPSIIkasanModel {
                     }
                 }
 
-                if (component instanceof FlowUserImplementedElement && ((FlowUserImplementedElement)component).isOverwriteEnabled()) {
+                if (    component instanceof FlowUserImplementedElement &&
+                        (((FlowUserImplementedElement)component).isOverwriteEnabled() || component.getComponentMeta().isDebug())) {
                     String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
                     String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                     String templateString = null;
                     try {
-                        templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, component);
+                        templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, module, ikasanFlow, component);
                     } catch (StudioGeneratorException e) {
                         displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                     }

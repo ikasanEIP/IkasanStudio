@@ -53,9 +53,21 @@ public  class BasicElement extends IkasanObject {
     public void setComponentName(String name) {
         this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
     }
+//    public void setName(String name) {
+//        this.setPropertyValue(ComponentPropertyMeta.NAME, name);
+//    }
+
     public void setName(String name) {
-        this.setPropertyValue(ComponentPropertyMeta.NAME, name);
+        if (this instanceof Flow || this instanceof Module) {
+            this.setPropertyValue(ComponentPropertyMeta.NAME, name);
+        } else {
+            // to compily wil JSON, all flow elements use component name not name
+            this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
+//            return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
+        }
     }
+
+
     public void setVersion(String version) {
         this.setPropertyValue(ComponentPropertyMeta.VERSION, version);
     }

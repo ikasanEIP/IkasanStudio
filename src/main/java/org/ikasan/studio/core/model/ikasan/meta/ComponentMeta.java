@@ -32,6 +32,7 @@ public class ComponentMeta implements IkasanMeta {
     public static final String PRODUCER_TYPE = "Producer";
     public static final String EXCEPTION_RESOLVER_TYPE = "Exception Resolver";
     public static final String GENERIC_KEY = "Generic";  // This component is a generic component i.e. the user will supply the class implementing the interface of this component type
+    public static final String DEBUG_KEY = "DebugTransition";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -120,6 +121,9 @@ public class ComponentMeta implements IkasanMeta {
      * Thie component is a generic component e.g. a broker or consumer, the user will supply the implementing class.
      * @return true if the meta represents a generic component.
      */
+    public boolean isDebug() {
+        return DEBUG_KEY.equals(additionalKey);
+    }
     public boolean isGeneric() {
         return GENERIC_KEY.equals(additionalKey);
     }

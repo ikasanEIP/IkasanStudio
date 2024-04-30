@@ -101,6 +101,7 @@ public class ComponentPropertyMeta {
     @Builder.Default
     private String helpText = "";           // Describes the property, typically popping up on tooltips.
     private boolean hiddenProperty;         // The property is used by the templates but is not edited / shown to the user
+    private boolean readOnlyProperty;       // The property can be viewed but not changed
     private boolean ignoreProperty;         // The property is consumed but not featured in any screens or used to update ftl
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.

@@ -375,6 +375,18 @@ public class TestFixtures {
         return flowElement;
     }
 
+    // ------------------------- Debug -------------------------
+
+    public static FlowElement getDebugTransition() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Debug Transition");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .build();
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
+
     // ------------------------- ExceptionResolver -------------------------
 
     public static ExceptionResolver getExceptionResolver() throws StudioBuildException {

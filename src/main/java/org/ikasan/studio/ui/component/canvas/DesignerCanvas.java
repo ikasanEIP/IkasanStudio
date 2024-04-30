@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
 import static org.ikasan.studio.ui.UiContext.JSON_MODEL_FILE_WITH_EXTENSION;
 
 /**
@@ -645,6 +647,10 @@ public class DesignerCanvas extends JPanel {
      * @return the populated component or null if the action was cancelled.
      */
     private BasicElement createViableComponent(BasicElement newComponent) {
+        if (newComponent.getComponentMeta().isDebug()) {
+            newComponent.defaultUnsetMandatoryProperties();
+        }
+
         if (newComponent.hasUnsetMandatoryProperties()) {
             // Add new component
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
@@ -712,6 +718,12 @@ public class DesignerCanvas extends JPanel {
                     targetRoute = containingFlow.getFlowRouteContaining(containingFlow.getFlowRoute(), surroundingComponents.getLeft());
                 }
 
+                if (ikasanFlowComponent.getComponentMeta().isDebug() && surroundingComponents.getRight() != null) {
+                    ikasanFlowComponent.setName(surroundingComponents.getRight().getName()+"Debug");
+                    String rawClassname = ikasanFlowComponent.getPropertyValueAsString(USER_IMPLEMENTED_CLASS_NAME);
+                    String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, ikasanFlowComponent, rawClassname);
+                    ikasanFlowComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);
+                }
                 if (targetRoute != null) {
                     List<FlowElement> components = targetRoute.getFlowElements();
                     int numberOfComponents = components.size();
