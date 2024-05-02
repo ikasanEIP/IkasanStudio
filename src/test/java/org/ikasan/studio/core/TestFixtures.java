@@ -746,6 +746,19 @@ public class TestFixtures {
         return flow;
     }
 
+    public static Flow getEventGeneratingConsumerCustomConverterDevNullProducerFlowWithDebugOnEachElement() throws StudioBuildException {
+        FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
+        FlowElement customConverterDebug = getDebugTransition();
+        FlowElement customConverter = getCustomConverter();
+        FlowElement devNullProducerDebug = getDebugTransition();
+        FlowElement devNullProducer = getDevNullProducer();
+        Flow flow = getUnbuiltFlow()
+                .consumer(eventGeneratingConsumer)
+                .build();
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(new ArrayList<>(Arrays.asList(customConverterDebug, customConverter, devNullProducerDebug, devNullProducer))).build());
+        return flow;
+    }
+
     public static Flow getEventGeneratingConsumerRouterFlow() throws StudioBuildException {
         FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
         FlowElement customConverter = getCustomConverter();

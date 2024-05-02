@@ -15,7 +15,6 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.*;
 
@@ -33,7 +32,6 @@ import java.util.List;
 
 import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
-import static org.ikasan.studio.ui.UiContext.JSON_MODEL_FILE_WITH_EXTENSION;
 
 /**
  * The main painting / design panel
@@ -602,14 +600,16 @@ public class DesignerCanvas extends JPanel {
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3();
-            try {
-                StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
-            } catch (StudioBuildException se) {
-                LOG.warn("STUDIO: SERIOUS ERROR: Reported when reading JSON file " + JSON_MODEL_FILE_WITH_EXTENSION + " message: " + se.getMessage() + " trace: "+ Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
-                // The dumb module should contain just enough to prevent the plugin from crashing
-                UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
-            }
+
+            // Do we really want to recreate the Model from the JSON, this will slow down progress and prevent ever showing debugs.
+//            try {
+//                StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
+//            } catch (StudioBuildException se) {
+//                LOG.warn("STUDIO: SERIOUS ERROR: Reported when reading JSON file " + JSON_MODEL_FILE_WITH_EXTENSION + " message: " + se.getMessage() + " trace: "+ Arrays.asList(se.getStackTrace()));
+//                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
+//                // The dumb module should contain just enough to prevent the plugin from crashing
+//                UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
+//            }
 
             initialiseAllDimensions = true;
             this.repaint();
@@ -768,20 +768,14 @@ public class DesignerCanvas extends JPanel {
             }
             int newWidth = moduleViewHandler.getWidth() + 0;
             int newHeight = moduleViewHandler.getHeight() + 0;
-//LOG.info("2 StudioXX from moduleViewHandler :" + this.getPreferredSize());
-//            this.setMinimumSize(new Dimension(newWidth, newHeight));
             this.setPreferredSize(new Dimension(newWidth, newHeight));
-//LOG.info("3 StudioXX preferred w:" + newWidth + "h: " + newHeight);
-//LOG.info("4 StudioXX actual diension:" + getSize());
             revalidate();
             super.paintComponent(g);
-//            repaint();
+
             if (moduleViewHandler != null) {
                 moduleViewHandler.paintComponent(this, g, -1, -1);
             }
         }
-//LOG.info("5 StudioXX new preferred dimension:" + this.getPreferredSize());
-//LOG.info("6 StudioXX new this width/height w: " + getWidth() + "h: " + getHeight());
         if (drawGrid) {
             StudioUIUtils.paintGrid(g, getWidth(), getHeight());
         }
