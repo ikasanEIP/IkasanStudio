@@ -54,7 +54,7 @@ public class PIPSIIkasanModel {
      * An update has been made to the diagram, so we need to reflect this into the code.
      */
     public void generateSourceFromModelInstance3() {
-        Boolean dependenciesHaveChanged = false;
+        boolean dependenciesHaveChanged = false;
         Project project = UiContext.getProject(projectKey);
         Module module = UiContext.getIkasanModule(project.getName());
         IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);
@@ -201,7 +201,7 @@ public class PIPSIIkasanModel {
                         }
                     }
                 }
-                // If we can't navigate anywhere else, we should nagigate to the flow
+                // If we can't navigate anywhere else, we should navigate to the flow
                 if (componentViewHandler != null && componentViewHandler.getPsiJavaFile() == null) {
                     componentViewHandler.setPsiJavaFile(flowPsiJavaFile);
                 }

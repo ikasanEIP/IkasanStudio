@@ -114,23 +114,72 @@ public class FlowSerializer extends StdSerializer<Flow> {
      */
     private void populateTransitionsFromFlowElements(FlowElement startElement, String routeName, List<Transition> transitions, List<FlowElement> flowElements) {
         if (flowElements!=null && !flowElements.isEmpty()) {
+            int index = 0;
+            while(index < flowElements.size()) {
+                FlowElement from = flowElements.get(index);
+                FlowElement to = null;
+                if (index+1 < flowElements.size()) {
+                    to = flowElements.get(index+1);
+                }
+                if (!from.getComponentMeta().isEndpoint() && !from.getComponentMeta().isDebug()) {
+                    // If a start was provided, it will be the last element of the previous route
+                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
+                        transitions.add(Transition.builder()
+                                .from(startElement.getName())
+                                .to(from.getComponentName())
+                                .name(routeName)
+                                .build());
+                        startElement = null;        // Now its been processed, prevent from reprocessing
+                    }
+
+                    // Skip debug components
+                    while(  to != null &&
+                            to.getComponentMeta().isDebug() &&
+                            index < flowElements.size()) {
+                        index ++;
+                        if (index+1 < flowElements.size()) {
+                            to = flowElements.get(index+1);
+                        }
+                    }
+                    if (to != null && !to.getComponentMeta().isEndpoint()) {
+                        transitions.add(
+                                Transition.builder()
+                                        .from(from.getComponentName())
+                                        .to(to.getComponentName())
+                                        .build()
+                        );
+                    }
+                }
+                index ++;
+            }
+        }
+    }
+    /**
+     * Build up the transitions using the supplied properties
+     * @param startElement if we are at a branch caused by a multi-recipient router, or we have a consumer
+     * @param routeName this will be default of the name of the current MRR route
+     * @param transitions the growing list of transitions to be updated
+     * @param flowElements to be interrogated
+     */
+    private void populateTransitionsFromFlowElements2(FlowElement startElement, String routeName, List<Transition> transitions, List<FlowElement> flowElements) {
+        if (flowElements!=null && !flowElements.isEmpty()) {
             for(int index = 0; index < flowElements.size(); index++) {
                 FlowElement from = flowElements.get(index);
                 FlowElement to = null;
                 if (index+1 < flowElements.size()) {
                     to = flowElements.get(index+1);
                 }
-                if (!from.getComponentMeta().isEndpoint()) {
+                if (!from.getComponentMeta().isEndpoint() && !from.getComponentMeta().isDebug()) {
                     // If a start was provided, it will be the last element of the previous route
-                    if (startElement != null && !startElement.getComponentMeta().isEndpoint()) {
+                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
                         transitions.add(Transition.builder()
                                 .from(startElement.getName())
                                 .to(from.getComponentName())
                                 .name(routeName)
                                 .build());
-                        startElement = null;
+                        startElement = null;        // Now its been processed, prevent from reprocessing
                     }
-                    if (to != null && !to.getComponentMeta().isEndpoint()) {
+                    if (to != null && !to.getComponentMeta().isEndpoint() && !to.getComponentMeta().isDebug()) {
                         transitions.add(
                                 Transition.builder()
                                         .from(from.getComponentName())
@@ -143,12 +192,21 @@ public class FlowSerializer extends StdSerializer<Flow> {
         }
     }
 
+    /**
+     * Work recursively through flowRoutes and any of their children, call FlowElementSerializer on anything that isn't
+     * an endpoint or debug.
+     * @param flowRoutes to be persisted
+     * @param jsonGenerator fasterxml engine that does the persistance
+     * @param flowElementSerializer we delegate the flow element serialisation to this
+     * @param serializerProvider is needed to accees non-bespoke serialiser
+     * @throws IOException if we could not write to file system
+     */
     protected void processFlowRouteFlowElements(List<FlowRoute> flowRoutes, JsonGenerator jsonGenerator, FlowElementSerializer flowElementSerializer, SerializerProvider serializerProvider) throws IOException {
         if (flowRoutes != null && !flowRoutes.isEmpty()) {
             for (FlowRoute flowRoute : flowRoutes) {
                 if (flowRoute.getFlowElements() != null && !flowRoute.getFlowElements().isEmpty()) {
                     for (FlowElement flowElement : flowRoute.getFlowElements()) {
-                        if (!flowElement.getComponentMeta().isEndpoint()) {
+                        if (!flowElement.getComponentMeta().isEndpoint() && !flowElement.getComponentMeta().isDebug()) {
                             jsonGenerator.writeStartObject();
                             flowElementSerializer.serializePayload(flowElement, jsonGenerator, serializerProvider);
                             jsonGenerator.writeEndObject();
