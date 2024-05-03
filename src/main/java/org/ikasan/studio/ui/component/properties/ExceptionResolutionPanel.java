@@ -48,7 +48,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
-            processEditedFlowComponents();
+            updateComponentsWithNewValues();
             // @TODO below line needs changing to model context
 //            UiContext.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(false);
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
@@ -76,7 +76,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      */
     @Override
-    public void processEditedFlowComponents() {
+    public void updateComponentsWithNewValues() {
         if (dataHasChanged()) {
                 exceptionResolutionEditBox.updateValueObjectWithEnteredValues();
         }

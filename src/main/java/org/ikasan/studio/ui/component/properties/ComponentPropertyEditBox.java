@@ -46,9 +46,6 @@ public class ComponentPropertyEditBox {
             value = componentProperty.getDefaultValue();
         }
 
-        if (componentProperty.getMeta().getPropertyName().equals("pubSubDomain")) {
-            System.out.println("Here");
-        }
         // @todo we can have all types of components with rich pattern matching validation
         if (meta.getChoices() != null) {
             propertyChoiceValueField = new ComboBox<>();
@@ -287,10 +284,10 @@ public class ComponentPropertyEditBox {
             }
 
             List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
-            Set<String> deduplicate = new HashSet(rawList);
+            Set<String> deduplicate = new HashSet<>(rawList);
             if (rawList.size() > deduplicate.size()) {
                 StudioUIUtils.displayIdeaWarnMessage(projectKey, "Duplicates in the list will be removed");
-                returnValue = new ArrayList<String>(deduplicate);
+                returnValue = new ArrayList<>(deduplicate);
             } else {
                 returnValue = rawList;
             }
@@ -360,7 +357,7 @@ public class ComponentPropertyEditBox {
         }
         // 2. Apply a regex validation pattern as defined in the component's meta pack definition
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
-            String valueToBeChecked = null;
+            String valueToBeChecked;
             // Currently, lists are being entered as comma separated values.
             if (meta.getUsageDataType() != null && STRING_LIST.equals(meta.getUsageDataType())) {
                 valueToBeChecked = propertyValueField.getText();

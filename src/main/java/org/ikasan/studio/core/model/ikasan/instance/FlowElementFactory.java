@@ -11,7 +11,12 @@ public class FlowElementFactory {
      */
     public static FlowElement createFlowElement(String metapackVersion, ComponentMeta type, Flow containinfFlow, FlowRoute containingFlowRoute, String componentName) throws StudioBuildException {
         if (type.isGeneratesUserImplementedClass()) {
-            return new FlowUserImplementedElement(type, containinfFlow, false);
+            return FlowUserImplementedElement.flowUserImplementedElementBuilder()
+                    .componentMeta(type)
+                    .containingFlowRoute(containingFlowRoute)
+                    .containingFlow(containinfFlow)
+                    .componentName(componentName)
+                    .build();
         } else if (type.isExceptionResolver()) {
             return new ExceptionResolver(metapackVersion, containinfFlow);
         } else {
@@ -19,7 +24,8 @@ public class FlowElementFactory {
                     .componentMeta(type)
                     .containingFlowRoute(containingFlowRoute)
                     .containingFlow(containinfFlow)
-                    .componentName(componentName).build();
+                    .componentName(componentName)
+                    .build();
         }
     }
 }

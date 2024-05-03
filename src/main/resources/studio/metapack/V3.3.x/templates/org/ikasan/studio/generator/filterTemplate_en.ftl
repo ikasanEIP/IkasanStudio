@@ -9,7 +9,7 @@ package ${studioPackageTag};
 
 @org.springframework.stereotype.Component
 
-public class ${flowElement.getPropertyValue("userImplementedClassName")} implements org.ikasan.spec.flowElement.filter.Filter<${flowElement.getPropertyValue("fromType")}><#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>, org.ikasan.spec.configuration.ConfiguredResource<${flowElement.getPropertyValue("cConfiguration")}><#elseif flowElement.getPropertyValue("configuration")?has_content>, org.ikasan.spec.configuration.Configured<${flowElement.getPropertyValue("configuration")}></#if>
+public class ${flowElement.getPropertyValue("userImplementedClassName")} implements ${flowElement.getComponentMeta().getComponentType()}<${flowElement.getPropertyValue("fromType")}><#if flowElement.getPropertyValue("isConfiguredResource")?has_content && flowElement.getPropertyValue("isConfiguredResource")>,org.ikasan.spec.configuration.ConfiguredResource<${flowElement.getPropertyValue("cConfiguration")}><#elseif flowElement.getPropertyValue("configuration")?has_content>, org.ikasan.spec.configuration.Configured<${flowElement.getPropertyValue("configuration")}></#if>
 {
 <#if flowElement.getPropertyValue("configuration")??>
 ${flowElement.getPropertyValue("configuration")} configuration;
@@ -27,7 +27,7 @@ String configurationId;
 * @return Message or null.
 * @throws FilterException
 */
-public ${flowElement.getPropertyValue("fromType")} filter(${flowElement.getPropertyValue("fromType")} message) throws org.ikasan.spec.flowElement.filter.FilterException
+public ${flowElement.getPropertyValue("fromType")} filter(${flowElement.getPropertyValue("fromType")} message) throws org.ikasan.spec.component.filter.FilterException
 {
 if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter

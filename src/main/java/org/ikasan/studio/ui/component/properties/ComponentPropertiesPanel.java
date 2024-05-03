@@ -64,7 +64,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
-            processEditedFlowComponents();
+            updateComponentsWithNewValues();
             // This will force a regeneration of the component
             if (userImplementedComponentOverwriteCheckBox.isSelected()) {
                 if (getSelectedComponent() instanceof FlowUserImplementedElement) {
@@ -292,34 +292,34 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         }
     }
 
-    private void addLabelInputEditorAndGenerateSource(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley,
-                                                      JLabel propertyLabel, ComponentInput componentInput,
-                                                      JLabel generateSourceLabel, JCheckBox generateSourceCheckbox) {
-        gc.weightx = 0.0;
-        gc.gridx = 0;
-        gc.gridy = tabley;
-        propertiesEditorPanel.add(propertyLabel, gc);
-        gc.weightx = 1.0;
-        gc.gridx = 1;
-        if (!componentInput.isBooleanInput()) {
-            propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
-        } else {
-            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            booleanPanel.setBackground(JBColor.WHITE);
-            booleanPanel.add(new JLabel("true"));
-            booleanPanel.add(componentInput.getTrueBox());
-            booleanPanel.add(new JLabel("false"));
-            booleanPanel.add(componentInput.getFalseBox());
-            propertiesEditorPanel.add(booleanPanel, gc);
-        }
-//        propertiesEditorPanel.add(propertyInputField, gc);
-
-        gc.weightx = 0.0;
-        gc.gridx = 2;
-        propertiesEditorPanel.add(generateSourceLabel, gc);
-        gc.gridx = 3;
-        propertiesEditorPanel.add(generateSourceCheckbox, gc);
-    }
+//    private void addLabelInputEditorAndGenerateSource(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley,
+//                                                      JLabel propertyLabel, ComponentInput componentInput,
+//                                                      JLabel generateSourceLabel, JCheckBox generateSourceCheckbox) {
+//        gc.weightx = 0.0;
+//        gc.gridx = 0;
+//        gc.gridy = tabley;
+//        propertiesEditorPanel.add(propertyLabel, gc);
+//        gc.weightx = 1.0;
+//        gc.gridx = 1;
+//        if (!componentInput.isBooleanInput()) {
+//            propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
+//        } else {
+//            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+//            booleanPanel.setBackground(JBColor.WHITE);
+//            booleanPanel.add(new JLabel("true"));
+//            booleanPanel.add(componentInput.getTrueBox());
+//            booleanPanel.add(new JLabel("false"));
+//            booleanPanel.add(componentInput.getFalseBox());
+//            propertiesEditorPanel.add(booleanPanel, gc);
+//        }
+////        propertiesEditorPanel.add(propertyInputField, gc);
+//
+//        gc.weightx = 0.0;
+//        gc.gridx = 2;
+//        propertiesEditorPanel.add(generateSourceLabel, gc);
+//        gc.gridx = 3;
+//        propertiesEditorPanel.add(generateSourceCheckbox, gc);
+//    }
 
     @Override
     protected BasicElement getSelectedComponent() {
@@ -339,6 +339,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                 if (componentPropertyEditBox.propertyValueHasChanged()) {
                     if (!componentPropertyEditBox.isAffectsUserImplementedClass() || userImplementedComponentOverwriteCheckBox.isSelected()) {
                         LOG.info("STUDIO: Component " + componentPropertyEditBox.getComponentProperty().getMeta().getPropertyName() + " new value is " + componentPropertyEditBox.getValue());
+
                         modelUpdated = true;
                         break;
                     }
@@ -371,7 +372,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     /**
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      */
-    public void processEditedFlowComponents() {
+    public void updateComponentsWithNewValues() {
         if (componentPropertyEditBoxList != null) {
             for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
                 if (componentPropertyEditBox.propertyValueHasChanged()) {
@@ -409,12 +410,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
 
     @Override
     public void paint(Graphics g) {
-//        LOG.info("StudioYY: 1 Width" + getWidth() + ", Height" + getHeight());
-//        LOG.info("StudioYY: 2 Width" + getPreferredSize());
-//        setPreferredSize(new Dimension(getWidth(), getHeight()));
         super.paint(g);
-
-//        LOG.info("StudioYY: 3 Width" + getWidth() + ", Height" + getHeight());
-//        LOG.info("StudioYY: 4 Width" + getPreferredSize());
     }
 }

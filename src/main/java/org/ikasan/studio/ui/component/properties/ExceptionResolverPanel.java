@@ -66,7 +66,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * Called once the OK button is pressed.
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      */
-    public void processEditedFlowComponents() {
+    public void updateComponentsWithNewValues() {
         if (dataHasChanged()) {
             exceptionResolverEditBox.updateValueObjectWithEnteredValues();
         }
