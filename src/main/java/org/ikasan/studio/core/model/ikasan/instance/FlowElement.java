@@ -26,6 +26,14 @@ public class FlowElement extends BasicElement {
 
     public FlowElement() {}
 
+    /**
+     * FlowElement e.g. filter, producer, consumer
+     * @param componentMeta e.g. EVENT_DRIVEN_CONSUMER, PAYLOAD_TO_MAP_CONVERTER
+     * @param containingFlow for this element
+     * @param containingFlowRoute for this element
+     * @param componentName for this element
+     * @param decorators e.g. wiretaps
+     */
     @Builder (builderMethodName = "flowElementBuilder")
     protected FlowElement(ComponentMeta componentMeta, Flow containingFlow, FlowRoute containingFlowRoute, String componentName, List<Decorator> decorators) {
         super(componentMeta, null);

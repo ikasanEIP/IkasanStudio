@@ -178,7 +178,7 @@ public abstract class PropertiesPanel extends JPanel {
     }
 
     protected abstract List<ValidationInfo> doValidateAll();
-    public abstract void processEditedFlowComponents();
+    public abstract void updateComponentsWithNewValues();
     public abstract boolean dataHasChanged();
 
     public PropertiesPopupDialogue getPropertiesDialogue() {

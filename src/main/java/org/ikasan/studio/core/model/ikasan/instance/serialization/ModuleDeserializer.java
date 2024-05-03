@@ -652,7 +652,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 LOG.error("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" + additionalKey + "] ignoring element.");
             } else {
                 if (componentMeta.isGeneratesUserImplementedClass()) {
-                    flowElement = FlowUserImplementedElement.flowElementBuilder()
+                    flowElement = FlowUserImplementedElement.flowUserImplementedElementBuilder()
                             .componentMeta(componentMeta)
                             .containingFlow(containingFlow)
                             .build();

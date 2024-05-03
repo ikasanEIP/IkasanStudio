@@ -9,7 +9,7 @@ package org.ikasan;
 
 @org.springframework.stereotype.Component
 
-public class myFilter implements org.ikasan.spec.flowElement.filter.Filter<java.lang.String>, org.ikasan.spec.configuration.Configured<MyConfigurationClass>
+public class myFilter implements org.ikasan.spec.component.filter.Filter<java.lang.String>, org.ikasan.spec.configuration.Configured<MyConfigurationClass>
 {
 MyConfigurationClass configuration;
 /**
@@ -22,7 +22,7 @@ MyConfigurationClass configuration;
 * @return Message or null.
 * @throws FilterException
 */
-public java.lang.String filter(java.lang.String message) throws org.ikasan.spec.flowElement.filter.FilterException
+public java.lang.String filter(java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
 {
 if (true) {
 //@TODO implement your filter logic, return the message if it is allowed by your filter

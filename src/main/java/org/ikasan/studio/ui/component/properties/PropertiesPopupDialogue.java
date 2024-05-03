@@ -55,7 +55,7 @@ public class PropertiesPopupDialogue extends DialogWrapper {
     @Override
     protected void doOKAction() {
         if (getOKAction().isEnabled()) {
-            propertiesPanel.processEditedFlowComponents();
+            propertiesPanel.updateComponentsWithNewValues();
             close(OK_EXIT_CODE);
         }
     }
