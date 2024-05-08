@@ -1,12 +1,5 @@
 {
-  "componentType": "org.ikasan.spec.component.transformation.Converter",
+  "componentType": "org.ikasan.spec.component.filter.Filter",
   "displayOrder": 1,
-  "componentShortType": "Debug",
-  "jarDependencies": [
-    {
-      "groupId": "org.ikasan",
-      "artifactId": "ikasan-component-converter",
-      "version": "3.1.0"
-    }
-    ]
+  "componentShortType": "Debug"
 }

@@ -18,6 +18,6 @@ org.ikasan.builder.BuilderFactory builderFactory;
 co.uk.test.myflow1.AToBConvertMyFlow1SetByIDEEndingInDebugDebug setByIDEEndingInDebug;
 
 
-public org.ikasan.spec.component.transformation.Converter getSetByIDEEndingInDebug() {
+public org.ikasan.spec.component.filter.Filter getSetByIDEEndingInDebug() {
 return setByIDEEndingInDebug;
 }}
