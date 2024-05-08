@@ -5,16 +5,18 @@ package org.ikasan;
 * The components will not be saved away when the project closes, do not add any code here you wish to keep
 */
 
-import org.ikasan.spec.component.transformation.Converter;
-import org.ikasan.spec.component.transformation.TransformationException;
+import org.ikasan.spec.component.filter.Filter;
+import org.ikasan.spec.component.filter.FilterException;
+import org.springframework.stereotype.Component;
 
 @org.springframework.stereotype.Component
 
-public class AToBConvertMyFlow1SetByIDEEndingInDebugDebug implements Converter<java.lang.Object, java.lang.Object>
+public class AToBConvertMyFlow1SetByIDEEndingInDebugDebug implements Filter<java.lang.Object>
 {
-public java.lang.Object convert(java.lang.Object payload) throws TransformationException
+public java.lang.Object filter(java.lang.Object message) throws org.ikasan.spec.component.filter.FilterException
 {
 System.out.println("Flow Debug Invoked");
-return payload;
+return message;
 }
+
 }
