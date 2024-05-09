@@ -23,7 +23,7 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROU
 @Setter
 public class FlowRoute  implements IkasanComponent {
     private static final Logger LOG = LoggerFactory.getLogger(FlowRoute.class);
-    List<FlowRoute> childRoutes;
+    private List<FlowRoute> childRoutes;
     private List<FlowElement> flowElements;
 
     Flow flow;  // A convenience link to get back to the containing flow
@@ -75,9 +75,10 @@ public class FlowRoute  implements IkasanComponent {
      */
     public boolean isEmpty() {
         if (!childRoutes.isEmpty()) {
-            return childRoutes.stream().allMatch(FlowRoute::isEmpty);
+            return flowElements.isEmpty() && childRoutes.stream().allMatch(FlowRoute::isEmpty);
+        } else {
+            return flowElements.isEmpty();
         }
-        return flowElements.isEmpty();
     }
 
     protected FlowRoute findRouteOfName(String routeName) {
@@ -112,22 +113,6 @@ public class FlowRoute  implements IkasanComponent {
         }
     }
 
-    /**
-     * Determine the current state of the flow for completeness
-     * @return A status string
-     */
-    @JsonIgnore
-    public String getFlowIntegrityStatus() {
-        if (childRoutes != null) {
-            return childRoutes.stream().map(FlowRoute::getFlowIntegrityStatus).collect(Collectors.joining (","));
-        } else {
-            String status = "";
-            if (! hasProducer()) {
-                status += "The flow needs a producer";
-            }
-            return status;
-        }
-    }
 
     public boolean hasProducer() {
         return flowElements.stream()
@@ -137,6 +122,22 @@ public class FlowRoute  implements IkasanComponent {
     public boolean hasRouter() {
         return flowElements.stream()
                 .anyMatch(e->e.getComponentMeta().isRouter());
+    }
+
+    /**
+     * Determine the current state of the flow for completeness
+     * @return A status string
+     */
+    @JsonIgnore
+    public String getFlowIntegrityStatus() {
+        String status = "";
+        if (childRoutes != null) {
+            status = childRoutes.stream().map(FlowRoute::getFlowIntegrityStatus).collect(Collectors.joining (","));
+        }
+        if (! hasProducer()) {
+            status += "The flow needs a producer";
+        }
+        return status;
     }
 
     /**
@@ -160,10 +161,9 @@ public class FlowRoute  implements IkasanComponent {
         if (getFlowElements() == null) {
             return new ArrayList<>();
         } else {
-            List<FlowElement> allElements = getFlowElements().stream()
+            return getFlowElements().stream()
                     .filter(x -> !x.componentMeta.isEndpoint() || x.componentMeta.isInternalEndpoint())
                     .toList();
-            return allElements;
         }
     }
     /**
@@ -173,10 +173,9 @@ public class FlowRoute  implements IkasanComponent {
         if (getConsumerAndFlowRouteElements() == null) {
             return new ArrayList<>();
         } else {
-            List<FlowElement> allElements = getConsumerAndFlowRouteElements().stream()
+            return getConsumerAndFlowRouteElements().stream()
                     .filter(x -> !x.componentMeta.isEndpoint())
                     .toList();
-            return allElements;
         }
     }
 
@@ -186,14 +185,16 @@ public class FlowRoute  implements IkasanComponent {
      * @return true if component valid to be added
      */
     public boolean isValidToAdd(ComponentMeta newComponent) {
-        return  newComponent == null ||
-                !newComponent.isFlow() ||
-                ((!flow.hasConsumer() || !newComponent.isConsumer())) &&
-                        (!hasProducer() || !newComponent.isProducer());
+        return  newComponent != null && (
+            (newComponent.isProducer() && !hasProducer()) ||
+            (newComponent.isConsumer() && !flow.hasConsumer()) ||
+            (!newComponent.isFlow() && !newComponent.isProducer() && !newComponent.isConsumer())
+        );
     }
 
     /**
      * If the component can be added to the flow, return an empty string otherwise state the reason why
+     * Note this is a route, so a consumer is of no concern, that will be dealt with at the flow level
      * @param newComponent to be added
      * @return reason why the component can not be added or empty string if there is no problem.
      */
