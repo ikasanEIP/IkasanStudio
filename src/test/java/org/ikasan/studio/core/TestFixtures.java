@@ -186,6 +186,12 @@ public class TestFixtures {
         return flowElement;
     }
 
+    public static FlowElement getEndpointForLocalFileConsumer() throws StudioBuildException {
+        FlowElement localFileConsumer = getLocalFileConsumer();
+        FlowElement localFileConsumerEndPoint = IkasanComponentLibrary.getEndpointForGivenComponent(TEST_IKASAN_PACK, localFileConsumer);
+        return localFileConsumerEndPoint;
+    }
+
     public static FlowElement getLocalFileConsumer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Local File Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()

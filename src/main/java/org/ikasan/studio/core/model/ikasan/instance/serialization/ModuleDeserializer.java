@@ -648,9 +648,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
             ComponentMeta componentMeta = IkasanComponentLibrary.getIkasanComponentByDeserialisationKey(
                     metapackVersion, implementingClass, componentType, additionalKey);
-            if (componentMeta == null) {
+            if (componentMeta == null)
                 LOG.error("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" + additionalKey + "] ignoring element.");
-            } else {
+            else {
                 if (componentMeta.isGeneratesUserImplementedClass()) {
                     flowElement = FlowUserImplementedElement.flowUserImplementedElementBuilder()
                             .componentMeta(componentMeta)

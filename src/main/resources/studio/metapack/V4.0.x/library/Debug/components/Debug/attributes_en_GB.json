@@ -1,10 +1,10 @@
 {
   "name": "Debug Transition",
   "additionalKey":"DebugTransition",
-  "flowBuilderMethod": "converter",
   "generatesUserImplementedClass": "true",
   "helpText": "<html><body><h2>Debug Transition</h2><p>This component allows you to set a debug breakpoint on the data as it moves from one component to the next.</p><p>NOTE: debug elements are not saved when the project is closed.</p></body></html>",
-  "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
+  "implementingClass": "org.ikasan.spec.component.filter.Filter.Custom",
+  "flowBuilderMethod": "filter",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
@@ -28,13 +28,6 @@
     },
     "fromType": {
       "propertyName": "fromType",
-      "affectsUserImplementedClass": "true",
-      "defaultValue": "java.lang.Object",
-      "hiddenProperty" : true,
-      "mandatory": true
-    },
-    "toType": {
-      "propertyName": "toType",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.Object",
       "hiddenProperty" : true,

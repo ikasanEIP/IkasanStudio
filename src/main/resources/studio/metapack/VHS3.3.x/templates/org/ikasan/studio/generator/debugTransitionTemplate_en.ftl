@@ -6,16 +6,18 @@ package ${studioPackageTag};
 * The components will not be saved away when the project closes, do not add any code here you wish to keep
 */
 
-import org.ikasan.spec.component.transformation.Converter;
-import org.ikasan.spec.component.transformation.TransformationException;
+import org.ikasan.spec.component.filter.Filter;
+import org.ikasan.spec.component.filter.FilterException;
+import org.springframework.stereotype.Component;
 
 @org.springframework.stereotype.Component
 
-public class ${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, flowElement, flowElement.getPropertyValue('userImplementedClassName'))} implements Converter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
+public class ${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, flowElement, flowElement.getPropertyValue('userImplementedClassName'))} implements Filter<${flowElement.getPropertyValue('fromType')}>
 {
-public ${flowElement.getPropertyValue('toType')} convert(${flowElement.getPropertyValue('fromType')} payload) throws TransformationException
+public ${flowElement.getPropertyValue("fromType")} filter(${flowElement.getPropertyValue("fromType")} message) throws org.ikasan.spec.component.filter.FilterException
 {
 System.out.println("Flow Debug Invoked");
-return payload;
+return message;
 }
+
 }
