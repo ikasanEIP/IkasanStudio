@@ -5,6 +5,9 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
@@ -371,5 +374,33 @@ public class IkasanComponentLibrary {
         }
         imageIcon = new ImageIcon(iconURL, description);
         return imageIcon;
+    }
+
+    public static FlowElement getEndpointForGivenComponent(String ikasanMetaDataPackVersion, FlowElement targetFlowElement) {
+        FlowElement endpointFlowElement = null;
+        String endpointComponentName = targetFlowElement.getComponentMeta().getEndpointKey();
+        if (endpointComponentName != null) {
+            // Get the text to be displayed
+            // under the endpoint symbol
+            String endpointTextKey = targetFlowElement.getComponentMeta().getEndpointTextKey();
+            ComponentProperty propertyValueToDisplay = targetFlowElement.getComponentProperties().get(endpointTextKey);
+            String endpointText = "";
+            if (propertyValueToDisplay != null) {
+                endpointText = propertyValueToDisplay.getValueString();
+            }
+            ComponentMeta endpointComponentMeta = null;
+
+            try {
+                // Create the endpoint symbol instance
+//                endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
+//                endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, targetFlowElement.getContainingFlow(), targetFlowElement.getContainingFlowRoute(), endpointText);
+
+                endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(ikasanMetaDataPackVersion, endpointComponentName);
+                endpointFlowElement = FlowElementFactory.createFlowElement(ikasanMetaDataPackVersion, endpointComponentMeta, targetFlowElement.getContainingFlow(), targetFlowElement.getContainingFlowRoute(), endpointText);
+            } catch (StudioBuildException se) {
+                LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+            }
+        }
+        return endpointFlowElement;
     }
 }

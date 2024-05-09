@@ -2,10 +2,9 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.Getter;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
 import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 
 
@@ -147,6 +147,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         }
     }
 
+
+
     /**
      * The external endpoint reside outside the flow
      * @param canvas to paint on
@@ -154,46 +156,26 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @param targetFlowElement that may have an endpoint
      */
     private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
+        FlowElement endpointFlowElement = getEndpointForGivenComponent(UiContext.getIkasanModule(projectKey).getMetaVersion(), targetFlowElement);
+        if (endpointFlowElement == null ) {
+            LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getName() + " but no endpoint was found");
+        } else {
+            // Position and draw the endpoint
+            IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(projectKey, targetFlowElement);
+            IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(projectKey, endpointFlowElement);
+            if (targetFlowElementViewHandler != null && endpointViewHandler != null) {
 
-        String endpointComponentName = targetFlowElement.getComponentMeta().getEndpointKey();
-        if (endpointComponentName != null) {
-            // Get the text to be displayed under the endpoint symbol
-            String endpointTextKey = targetFlowElement.getComponentMeta().getEndpointTextKey();
-            ComponentProperty propertyValueToDisplay = targetFlowElement.getComponentProperties().get(endpointTextKey);
-            String endpointText = "";
-            if (propertyValueToDisplay != null) {
-                endpointText = propertyValueToDisplay.getValueString();
-            }
-            ComponentMeta endpointComponentMeta = null;
-            FlowElement endpointFlowElement = null;
-            try {
-                // Create the endpoint symbol instance
-                endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
-                endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, flow, targetFlowElement.getContainingFlowRoute(), endpointText);
-            } catch (StudioBuildException se) {
-                LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
-            }
-
-            if (endpointComponentMeta == null || endpointFlowElement == null) {
-                LOG.warn("STUDIO: Expected to find endpoint named " + endpointComponentName + " but endpointComponentMeta was " + endpointComponentMeta + " and endpointFlowElement was " + endpointFlowElement);
-            } else {
-                // Position and draw the endpoint
-                IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(projectKey, targetFlowElement);
-                IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(projectKey, endpointFlowElement);
-                if (targetFlowElementViewHandler != null && endpointViewHandler != null) {
-
-                    endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
-                    endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
-                    if (targetFlowElement.getComponentMeta().isConsumer()) {
-                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
-                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
-                        drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
-                    } else {
+                endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
+                endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
+                if (targetFlowElement.getComponentMeta().isConsumer()) {
+                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+                    endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                    drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+                } else {
 //                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-                        endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-                        endpointViewHandler.paintComponent(canvas, g, -1, -1);
-                        drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
-                    }
+                    endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                    endpointViewHandler.paintComponent(canvas, g, -1, -1);
+                    drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
                 }
             }
         }

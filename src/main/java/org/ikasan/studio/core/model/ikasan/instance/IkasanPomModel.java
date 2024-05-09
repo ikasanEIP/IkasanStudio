@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -18,6 +19,7 @@ import java.util.*;
  * Typically, this object is thrown away once its dirty and re-read anew (to safeguard against simultaneous updates)
  */
 public class IkasanPomModel {
+    private static final Logger LOG = Logger.getInstance("#IkasanPomModel");
     public static final String MAVEN_COMPILER_TARGET = "maven.compiler.target";
     public static final String MAVEN_COMPILER_SOURCE = "maven.compiler.source";
 
@@ -43,7 +45,8 @@ public class IkasanPomModel {
         try {
             writer.write(pomStringWriter, model);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.warn("STUDIO: WARN, an error occurred trying to get the pom as a string. Trace: [" +
+                    Arrays.toString(e.getStackTrace()) + "]");
         }
         return pomStringWriter.toString();
     }

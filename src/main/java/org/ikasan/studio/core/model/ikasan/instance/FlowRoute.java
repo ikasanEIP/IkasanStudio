@@ -9,9 +9,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
@@ -30,11 +28,12 @@ public class FlowRoute  implements IkasanComponent {
 
     Flow flow;  // A convenience link to get back to the containing flow
     String routeName;
+
     /**
      * Used primarily during deserialization.
      */
-    public FlowRoute() {
-        LOG.warn("STUDIO: Serious: Parameterless version of flow called");
+    private FlowRoute() {
+        LOG.warn("STUDIO: Serious: Parameterless version of flowRoute called");
     }
 
     @Builder(builderMethodName = "flowRouteBuilder")
@@ -44,16 +43,8 @@ public class FlowRoute  implements IkasanComponent {
             List<FlowRoute> childRoutes,
             List<FlowElement> flowElements) throws StudioBuildException {
         this.flow = flow;
-        if (routeName != null) {
-            this.routeName = routeName;
-        } else {
-            this.routeName = DEFAULT_TRANSITION_NAME;
-        }
-        if (childRoutes != null) {
-            this.childRoutes = childRoutes;
-        } else {
-            this.childRoutes = new ArrayList<>();
-        }
+        this.routeName = routeName != null ? routeName : DEFAULT_TRANSITION_NAME;
+        this.childRoutes = childRoutes != null ? childRoutes : new ArrayList<>();
 
         if (flowElements != null) {
             this.flowElements = new ArrayList<>();
@@ -83,23 +74,18 @@ public class FlowRoute  implements IkasanComponent {
      * @return true if there are no children and no elements.
      */
     public boolean isEmpty() {
-        if (childRoutes != null || !childRoutes.isEmpty()) {
-            for(FlowRoute childRoute : childRoutes) {
-                if (!childRoute.isEmpty()) {
-                    return false;
-                }
-            }
+        if (!childRoutes.isEmpty()) {
+            return childRoutes.stream().allMatch(FlowRoute::isEmpty);
         }
-        return flowElements == null || flowElements.isEmpty();
+        return flowElements.isEmpty();
     }
 
-    protected FlowRoute getRouteOfName(String routeName) {
-        if (routeName != null && childRoutes != null && childRoutes.size() > 0) {
-            for(FlowRoute childRoute : childRoutes) {
-                if (childRoute.getRouteName().equals(routeName)) {
-                    return childRoute;
-                }
-            }
+    protected FlowRoute findRouteOfName(String routeName) {
+        if (routeName != null && childRoutes != null && !childRoutes.isEmpty()) {
+            return childRoutes.stream()
+                    .filter(childRoute -> childRoute.getRouteName().equals(routeName))
+                    .findFirst()
+                    .orElse(null);
         }
         return null;
     }
@@ -114,13 +100,15 @@ public class FlowRoute  implements IkasanComponent {
         if (ikasanFlowComponentToBeRemoved != null) {
             if (ikasanFlowComponentToBeRemoved.componentMeta.isRouter()) {
                 for (String routeName : (List<String>) ikasanFlowComponentToBeRemoved.getPropertyValue(ROUTE_NAMES)) {
-                    FlowRoute deleteTarget = getRouteOfName(routeName);
+                    FlowRoute deleteTarget = findRouteOfName(routeName);
                     if (deleteTarget != null && this != deleteTarget) {
                         childRoutes.remove(deleteTarget);
                     }
                 }
             }
-            flowElements.remove(ikasanFlowComponentToBeRemoved);
+            if (flowElements != null) {
+                flowElements.remove(ikasanFlowComponentToBeRemoved);
+            }
         }
     }
 
@@ -131,7 +119,7 @@ public class FlowRoute  implements IkasanComponent {
     @JsonIgnore
     public String getFlowIntegrityStatus() {
         if (childRoutes != null) {
-            return childRoutes.stream().map(f -> f.getFlowIntegrityStatus()).collect(Collectors.joining (","));
+            return childRoutes.stream().map(FlowRoute::getFlowIntegrityStatus).collect(Collectors.joining (","));
         } else {
             String status = "";
             if (! hasProducer()) {
@@ -155,14 +143,13 @@ public class FlowRoute  implements IkasanComponent {
      * @return A list of all non-null flow elements, including the consumer
      */
     public List<FlowElement> getConsumerAndFlowRouteElements() {
-
-        List<FlowElement> allElements = new ArrayList<>();
+        List<FlowElement> allElements = new LinkedList<>();
         // Only the default (primary) flowRoute includes the consumer
-        if (flow.hasConsumer() && DEFAULT_TRANSITION_NAME.equals(getRouteName())) {
+        if (flow != null && flow.hasConsumer() && DEFAULT_TRANSITION_NAME.equals(getRouteName())) {
             allElements.add(flow.getConsumer());
         }
         allElements.addAll(getFlowElementsNoExternalEndPoints());
-        return allElements;
+        return Collections.unmodifiableList(allElements);
     }
 
 

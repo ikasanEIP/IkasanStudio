@@ -57,13 +57,13 @@ public class ModelUtils {
                 if (index < second.length) {
                     secondNumber = safeParse(second[index]);
                 }
-                if (Objects.equals(firstNumber, secondNumber)) {
-                    continue;
-                } else if (firstNumber > secondNumber) {
-                    break;
-                } else {
-                    firstIsNewer = false;
-                    break;
+                if (!Objects.equals(firstNumber, secondNumber)) {
+                    if (firstNumber > secondNumber) {
+                        break;
+                    } else {
+                        firstIsNewer = false;
+                        break;
+                    }
                 }
             }
         }
@@ -71,7 +71,7 @@ public class ModelUtils {
     }
 
     public static Integer safeParse(String number) {
-        Integer value = 0;
+        int value = 0;
         try {
             value = Integer.parseInt(number);
         } catch (NumberFormatException nfe) {
