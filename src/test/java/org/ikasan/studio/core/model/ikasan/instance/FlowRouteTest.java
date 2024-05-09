@@ -2,7 +2,6 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,8 +27,12 @@ class FlowRouteTest {
         String routeName = "route1";
         List<FlowRoute> childRoutes = new ArrayList<>();
         List<FlowElement> flowElements = new ArrayList<>();
-
-        FlowRoute flowRoute = new FlowRoute(testFlow, routeName, childRoutes, flowElements);
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .routeName(routeName)
+                .childRoutes(childRoutes)
+                .flowElements(flowElements)
+                .build();
 
         assertEquals(testFlow, flowRoute.getFlow());
         assertEquals(routeName, flowRoute.getRouteName());
@@ -38,96 +41,32 @@ class FlowRouteTest {
     }
 
     @Test
-    public void test_default_route_name() throws StudioBuildException {
-        String routeName = null;
-        List<FlowRoute> childRoutes = new ArrayList<>();
-        List<FlowElement> flowElements = new ArrayList<>();
-
-        FlowRoute flowRoute = new FlowRoute(testFlow, routeName, childRoutes, flowElements);
+    public void test_default_route_name_and_default_child_routes_abd_default_flow_elements() throws StudioBuildException {
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .build();
 
         assertEquals(Transition.DEFAULT_TRANSITION_NAME, flowRoute.getRouteName());
-    }
-
-    @Test
-    public void test_default_child_routes() throws StudioBuildException {
-        String routeName = null;
-        List<FlowRoute> childRoutes = null;
-        List<FlowElement> flowElements = new ArrayList<>();
-
-        FlowRoute flowRoute = new FlowRoute(testFlow, routeName, childRoutes, flowElements);
-
         assertNotNull(flowRoute.getChildRoutes());
         assertTrue(flowRoute.getChildRoutes().isEmpty());
-    }
-
-    @Test
-    public void test_null_flow_exception() {
-        Flow flow = null;
-        String routeName = "route1";
-        List<FlowRoute> childRoutes = new ArrayList<>();
-        List<FlowElement> flowElements = new ArrayList<>();
-
-        StudioBuildException exception = assertThrows(StudioBuildException.class, () -> new FlowRoute(flow, routeName, childRoutes, flowElements));
-        assertEquals("Flow can not be null", exception.getMessage());
-    }
-
-    @Test
-    public void test_default_flow_elements() throws StudioBuildException {
-        String routeName = "route1";
-        List<FlowRoute> childRoutes = new ArrayList<>();
-        List<FlowElement> flowElements = null;
-
-        FlowRoute flowRoute = new FlowRoute(testFlow, routeName, childRoutes, flowElements);
-
         assertNotNull(flowRoute.getFlowElements());
         assertTrue(flowRoute.getFlowElements().isEmpty());
     }
 
     @Test
-    public void test_add_consumer_to_flow() throws StudioBuildException {
-        String routeName = "route1";
-        List<FlowRoute> childRoutes = new ArrayList<>();
-        List<FlowElement> flowElements = new ArrayList<>();
-        ComponentMeta consumerComponentMeta = ComponentMeta.builder()
-                .componentShortType(ComponentMeta.COMSUMER_TYPE)
-                .name("test")
-                .implementingClass("implementngClass")
-                .build();
-        FlowElement consumerFlowElement = FlowElement.flowElementBuilder()
-                .componentMeta(consumerComponentMeta)
-                .build();
-        flowElements.add(consumerFlowElement);
-
-        FlowRoute flowRoute = new FlowRoute(testFlow, routeName, childRoutes, flowElements);
-
-        assertEquals(consumerFlowElement, testFlow.getConsumer());
+    public void test_null_flow_exception() {
+        StudioBuildException exception = assertThrows(StudioBuildException.class, () -> new FlowRoute.FlowRouteBuilder().build());
+        assertEquals("Flow can not be null", exception.getMessage());
     }
 
     @Test
-    public void test_returns_true_if_childRoutes_and_flowElements_are_both_null_or_empty() throws StudioBuildException {
-        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
-                .flow(testFlow)
-                .childRoutes(null)
-                .flowElements(null)
-                .build();
-
-        boolean result = flowRoute.isEmpty();
-
-        assertTrue(result);
-    }
-
-
-    @Test
-    public void test_returns_true_if_childRoutes_exist_bust_are_empty() throws StudioBuildException {
+    public void test_isEmpty_returns_true_if_childRoutes_exist_but_are_empty_and_top_level_route_is_empty() throws StudioBuildException {
         FlowRoute childFlowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .childRoutes(null)
-                .flowElements(null)
                 .build();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
                 .childRoutes(Collections.singletonList(childFlowRoute))
-                .flowElements(null)
                 .build();
 
         boolean result = flowRoute.isEmpty();
@@ -135,10 +74,35 @@ class FlowRouteTest {
         assertTrue(result);
     }
 
+    @Test
+    public void test_isEmpty_returns_false_if_childRoutes_exist_and_is_not_empty_and_top_level_route_is_empty() throws StudioBuildException {
+        FlowRoute childFlowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(Collections.singletonList(TestFixtures.getBroker()))
+                .build();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .childRoutes(Collections.singletonList(childFlowRoute))
+                .build();
 
+        boolean result = flowRoute.isEmpty();
+
+        assertFalse(result);
+    }
+        @Test
+    public void test_isEmpty_returns_false_if_childRoutes_empty_but_top_level_route_is_not_empty() throws StudioBuildException {
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+            .flow(testFlow)
+            .flowElements(Collections.singletonList(TestFixtures.getBroker()))
+            .build();
+
+        boolean result = flowRoute.isEmpty();
+
+        assertFalse(result);
+    }
 
     @Test
-    public void test_returns_child_route_with_matching_routeName() throws StudioBuildException {
+    public void test_findRouteOfName_returns_child_route_with_matching_routeName() throws StudioBuildException {
         List<FlowRoute> childRoutes = new ArrayList<>();
         FlowRoute childRoute1 = FlowRoute.flowRouteBuilder().routeName("route1").flow(testFlow).build();
         FlowRoute childRoute2 = FlowRoute.flowRouteBuilder().routeName("route2").flow(testFlow).build();
@@ -156,7 +120,7 @@ class FlowRouteTest {
     }
 
     @Test
-    public void test_returns_null_if_no_child_route_with_matching_routeName_exists() throws StudioBuildException {
+    public void test_findRouteOfName_returns_null_if_no_child_route_with_matching_routeName_exists() throws StudioBuildException {
         FlowRoute childRoute1 = FlowRoute.flowRouteBuilder().routeName("route1").flow(testFlow).build();
         FlowRoute childRoute2 = FlowRoute.flowRouteBuilder().routeName("route2").flow(testFlow).build();
         List<FlowRoute> childRoutes = new ArrayList<>();
@@ -173,33 +137,30 @@ class FlowRouteTest {
     }
 
     @Test
-    public void test_returns_null_if_routeName_is_null() throws StudioBuildException {
+    public void test_findRouteOfName_returns_null_if_routeName_is_null() throws StudioBuildException {
         FlowRoute childRoute1 = FlowRoute.flowRouteBuilder().routeName("route1").flow(testFlow).build();
         FlowRoute childRoute2 = FlowRoute.flowRouteBuilder().routeName("route2").flow(testFlow).build();
         List<FlowRoute> childRoutes = new ArrayList<>();
         childRoutes.add(childRoute1);
         childRoutes.add(childRoute2);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
-                .childRoutes(childRoutes)
                 .flow(testFlow)
+                .childRoutes(childRoutes)
                 .build();
 
-
         FlowRoute result = flowRoute.findRouteOfName(null);
-
   
         assertNull(result);
     }
 
-    // Removes a flow element from the flow route's flow elements list if it exists
     @Test
-    public void test_remove_flow_element_from_flow_elements_list() throws StudioBuildException {
+    public void test_removeFlowElement_where_we_remove_flow_element_from_flow_elements_list() throws StudioBuildException {
         FlowElement broker = TestFixtures.getBroker();
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(broker);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
-                .flowElements(flowElements)
                 .flow(testFlow)
+                .flowElements(flowElements)
                 .build();
 
         flowRoute.removeFlowElement(broker);
@@ -207,27 +168,11 @@ class FlowRouteTest {
         assertTrue(flowRoute.getFlowElements().isEmpty());
     }
 
-    // Remove a router flow element and observe the related child flow routes are removed.
     @Test
-    public void test_remove_child_route_if_no_flow_elements_and_router() throws StudioBuildException {
-        // test routes are route1, route2
+    public void test_removeFlowElement_where_we_remove_child_route_if_no_flow_elements_and_router() throws StudioBuildException {
         FlowElement router = TestFixtures.getMultiRecipientRouter();
-
-        FlowRoute childFlowRoute1 = new FlowRoute.FlowRouteBuilder()
-                .routeName("route1")
-                .flow(testFlow)
-                .build();
-        FlowRoute childFlowRoute2 = new FlowRoute.FlowRouteBuilder()
-                .routeName("route2")
-                .flow(testFlow)
-                .build();
-        List<FlowRoute> childRoutes = new ArrayList<>();
-        childRoutes.add(childFlowRoute1);
-        childRoutes.add(childFlowRoute2);
-
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(router);
-
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flowElements(flowElements)
                 .flow(testFlow)
@@ -238,40 +183,11 @@ class FlowRouteTest {
         assertTrue(flowRoute.getChildRoutes().isEmpty());
     }
 
-
-        // Returns a list of FlowElements containing all FlowElements in the FlowRoute, including the consumer if present in the default route
-        @Test
-        public void test_returns_all_flow_elements_including_consumer_in_default_route() throws StudioBuildException {
-            // Create a FlowRoute object
-            FlowElement consumer = TestFixtures.getEventGeneratingConsumer();
-            FlowElement broker = TestFixtures.getBroker();
-            List<FlowElement> flowElements = new ArrayList<>();
-            flowElements.add(broker);
-            Flow flow = TestFixtures.getUnbuiltFlow()
-                    .consumer(consumer)
-                    .build();
-            FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
-                    .flow(flow)
-                    .flowElements(flowElements)
-                    .build();
-
-            List<FlowElement> result = flowRoute.getConsumerAndFlowRouteElements();
-
-            assertTrue(result.contains(consumer));
-            assertTrue(result.contains(broker));
-        }
-
-
-
-    // Returns a list of FlowElements containing all FlowElements in the FlowRoute, including the consumer if present in the default route
     @Test
     public void test_hasProducer_returns_true_when_producer_exists() throws StudioBuildException {
-        FlowElement producer = TestFixtures.getLoggingProducer();
-        List<FlowElement> flowElements = new ArrayList<>();
-        flowElements.add(producer);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(flowElements)
+                .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer()))
                 .build();
 
         boolean result = flowRoute.hasProducer();
@@ -281,10 +197,8 @@ class FlowRouteTest {
 
     @Test
     public void test_hasProducer_returns_false_when_no_producer_exists() throws StudioBuildException {
-        List<FlowElement> flowElements = new ArrayList<>();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(flowElements)
                 .build();
 
         boolean result = flowRoute.hasProducer();
@@ -292,15 +206,11 @@ class FlowRouteTest {
         assertFalse(result);
     }
 
-    // Returns a list of FlowElements containing all FlowElements in the FlowRoute, including the consumer if present in the default route
     @Test
     public void test_hasRouter_returns_true_when_producer_exists() throws StudioBuildException {
-        FlowElement router = TestFixtures.getMultiRecipientRouter();
-        List<FlowElement> flowElements = new ArrayList<>();
-        flowElements.add(router);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(flowElements)
+                .flowElements(Collections.singletonList(TestFixtures.getMultiRecipientRouter()))
                 .build();
 
         boolean result = flowRoute.hasRouter();
@@ -310,10 +220,8 @@ class FlowRouteTest {
 
     @Test
     public void test_hasRouter_returns_false_when_no_producer_exists() throws StudioBuildException {
-        List<FlowElement> flowElements = new ArrayList<>();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(flowElements)
                 .build();
 
         boolean result = flowRoute.hasRouter();
@@ -321,5 +229,163 @@ class FlowRouteTest {
         assertFalse(result);
     }
 
+    @Test
+    public void test_getFlowIntegrityStatus_returns_true_when_meets_criteria() throws StudioBuildException {
+        FlowElement producer = TestFixtures.getLoggingProducer();
+        List<FlowElement> flowElements = new ArrayList<>();
+        flowElements.add(producer);
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(flowElements)
+                .build();
 
+        String result = flowRoute.getFlowIntegrityStatus();
+
+        assertNotNull(result);
+        assertTrue(result.isBlank());
+    }
+
+    @Test
+    public void test_returns_all_flow_elements_including_consumer_in_default_route() throws StudioBuildException {
+        // Create a FlowRoute object
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer();
+        FlowElement broker = TestFixtures.getBroker();
+        List<FlowElement> flowElements = new ArrayList<>();
+        flowElements.add(broker);
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .consumer(consumer)
+                .build();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(flow)
+                .flowElements(flowElements)
+                .build();
+
+        List<FlowElement> result = flowRoute.getConsumerAndFlowRouteElements();
+
+        assertTrue(result.contains(consumer));
+        assertTrue(result.contains(broker));
+    }
+
+    @Test
+    public void test_getFlowElementsNoExternalEndPoints_returns_empty_list_even_when_not_flow_elements() throws StudioBuildException {
+        FlowElement endPoint = TestFixtures.getEndpointForLocalFileConsumer();
+        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer();
+        FlowElement broker = TestFixtures.getBroker();
+        List<FlowElement> flowElements = new ArrayList<>();
+        flowElements.add(endPoint);
+        flowElements.add(localFileConsumer);
+        flowElements.add(broker);
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(flowElements)
+                .build();
+
+        List<FlowElement> result = flowRoute.getFlowElementsNoExternalEndPoints();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(broker, result.get(0));
+    }
+
+    @Test
+    public void test_ftlGetConsumerAndFlowElementsNoEndPoints_returns_empty_list_even_when_not_flow_elements() throws StudioBuildException {
+        FlowElement endPoint = TestFixtures.getEndpointForLocalFileConsumer();
+        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer();
+        FlowElement broker = TestFixtures.getBroker();
+        List<FlowElement> flowElements = new ArrayList<>();
+        flowElements.add(endPoint);
+        flowElements.add(localFileConsumer);
+        flowElements.add(broker);
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(flowElements)
+                .build();
+
+        List<FlowElement> result = flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(localFileConsumer, result.get(0));
+        assertEquals(broker, result.get(1));
+    }
+
+    @Test
+    public void test_isValidToAdd_returns_true_when_adding_producer_and_no_existing_producer() throws StudioBuildException {
+        FlowElement producer = TestFixtures.getLoggingProducer();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .build();
+
+        boolean result = flowRoute.isValidToAdd(producer.getComponentMeta());
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void test_isValidToAdd_returns_true_when_adding_consumer_and_no_existing_consumer() throws StudioBuildException {
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .build();
+
+        boolean result = flowRoute.isValidToAdd(consumer.getComponentMeta());
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void test_isValidToAdd_returns_false_when_adding_producer_and_existing_producer() throws StudioBuildException {
+        FlowElement producer = TestFixtures.getLoggingProducer();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(Collections.singletonList(producer))
+                .build();
+
+        boolean result = flowRoute.isValidToAdd(producer.getComponentMeta());
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void test_isValidToAdd_returns_false_when_adding_consumer_and_existing_consumer() throws StudioBuildException {
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer();
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .consumer(consumer)
+                .build();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(flow)
+                .build();
+
+        boolean result = flowRoute.isValidToAdd(consumer.getComponentMeta());
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void test_isValidToAdd_returns_true_when_adding_a_broker_where_consumer_and_producer_exist() throws StudioBuildException {
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer();
+        FlowElement producer = TestFixtures.getLoggingProducer();
+        Flow flow = TestFixtures.getUnbuiltFlow()
+                .consumer(consumer)
+                .build();
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(flow)
+                .flowElements(Collections.singletonList(producer))
+                .build();
+
+        boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker().getComponentMeta());
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void test_isValidToAdd_returns_true_when_adding_a_broker_where_no_consumer_and_no_producer_exist() throws StudioBuildException {
+        FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .build();
+
+        boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker().getComponentMeta());
+
+        assertTrue(result);
+    }
 }
