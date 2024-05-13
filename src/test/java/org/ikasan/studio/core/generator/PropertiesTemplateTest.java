@@ -141,11 +141,11 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     @Test
     public void testCreateFlowWith_customConverter() throws IOException, StudioGeneratorException , StudioBuildException {
         FlowElement flowElement = TestFixtures.getCustomConverter();
-        assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
-        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
+        assertEquals(10, module.getAllUniqueSortedJarDependencies().size());
     }
 
     /**
@@ -155,11 +155,11 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     @Test
     public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException, StudioGeneratorException , StudioBuildException {
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter();
-        assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToObjectConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
-        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
+        assertEquals(10, module.getAllUniqueSortedJarDependencies().size());
     }
 
     /**
@@ -169,11 +169,11 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     @Test
     public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException, StudioGeneratorException , StudioBuildException {
         FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter();
-        assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
         String templateString = generatePropertiesTemplateString(flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
-        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
+        assertEquals(10, module.getAllUniqueSortedJarDependencies().size());
     }
 
 

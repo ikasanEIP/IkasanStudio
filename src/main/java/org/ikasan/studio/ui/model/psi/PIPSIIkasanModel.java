@@ -129,16 +129,30 @@ public class PIPSIIkasanModel {
      * @param module for this code
      */
     private void saveApplication(Project project, Module module) {
-        String templateString  = null;
+        // First do the template
+        String applicationTemplateString  = null;
         try {
-            templateString = ApplicationTemplate.create(module);
+            applicationTemplateString = ApplicationTemplate.create(module);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            displayIdeaWarnMessage(projectKey, "An error has occurred generating the applicationTemplate, attempting to continue. Error was " + e.getMessage());
         }
-        if (templateString != null) {
-            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, templateString, true, true);
+        if (applicationTemplateString != null) {
+            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true);
         }
+        applicationTemplateString = null;
+        // Now any studio util helper classes
+//        String debugTransitionComponentString = null;
+//        try {
+//            debugTransitionComponentString = DebugTransitionComponentTemplate.create(module);
+//        } catch (StudioGeneratorException e) {
+//            displayIdeaWarnMessage(projectKey, "An error has occurred generating the debugTransitionComponent, attempting to continue. Error was " + e.getMessage());
+//        }
+//        if (debugTransitionComponentString != null) {
+//            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, DebugTransitionComponentTemplate.STUDIO_DEBUG_COMPONENT_PACKAGE, DebugTransitionComponentTemplate.STUDIO_DEBUG_COMPONENT_CLASS_NAME, debugTransitionComponentString, true, true);
+//        }
     }
+
+
 
     private void saveFlow(Project project, Module module) {
         Set<String> flowPackageNames = new HashSet<>();

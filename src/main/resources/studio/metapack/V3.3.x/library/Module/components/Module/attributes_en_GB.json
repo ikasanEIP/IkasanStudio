@@ -8,6 +8,11 @@
   "usesBuilderInFactory" : true,
   "jarDependencies": [
     {
+      "groupId": "org.ikasan.studio",
+      "artifactId": "studio-ikasan-extension",
+      "version": "1.0-SNAPSHOT"
+    },
+    {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-connector-base",
       "version": "3.1.0"

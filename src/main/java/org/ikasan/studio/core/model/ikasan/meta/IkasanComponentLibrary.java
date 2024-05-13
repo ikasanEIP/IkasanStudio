@@ -392,13 +392,13 @@ public class IkasanComponentLibrary {
 
             try {
                 // Create the endpoint symbol instance
-//                endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentName);
-//                endpointFlowElement = FlowElementFactory.createFlowElement(UiContext.getIkasanModule(projectKey).getMetaVersion(), endpointComponentMeta, targetFlowElement.getContainingFlow(), targetFlowElement.getContainingFlowRoute(), endpointText);
-
                 endpointComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(ikasanMetaDataPackVersion, endpointComponentName);
                 endpointFlowElement = FlowElementFactory.createFlowElement(ikasanMetaDataPackVersion, endpointComponentMeta, targetFlowElement.getContainingFlow(), targetFlowElement.getContainingFlowRoute(), endpointText);
             } catch (StudioBuildException se) {
                 LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+            }
+            if (endpointFlowElement == null) {
+                LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getName() + " the key was " + endpointComponentName + " but no endpoint was found");
             }
         }
         return endpointFlowElement;

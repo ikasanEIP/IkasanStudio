@@ -26,12 +26,14 @@ version = properties("pluginVersion").get()
 // Configure project's dependencies
 repositories {
     mavenCentral()
+    mavenLocal()
     //jcenter()
 }
 dependencies {
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     implementation("org.freemarker:freemarker:2.3.32")
+    implementation("org.ikasan.studio:studio-ikasan-extension:1.0-SNAPSHOT")
     testImplementation("org.freemarker:freemarker:2.3.32")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
     testImplementation("org.ikasan:ikasan-test:3.3.3")
