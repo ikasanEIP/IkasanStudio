@@ -18,7 +18,6 @@ import java.util.List;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
 import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 
-
 /**
  * A flow route and a flow are similar for non Router flows i.e. the flow contains 1 flow route
  * When dealing with Multi-Recipient Routers, the flow will contain the same (default) flowRoute and that
@@ -116,7 +115,6 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     displayExternalEndpointIfExists(canvas, g, flowElement);
                 }
 
-
                 // Draw Connector to previous route
                 if (index == 0 && parent != null) {
                     List<FlowElement> previousRouteFlowElements = parent.getFlowElements();
@@ -148,7 +146,6 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     }
 
 
-
     /**
      * The external endpoint reside outside the flow
      * @param canvas to paint on
@@ -157,9 +154,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      */
     private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
         FlowElement endpointFlowElement = getEndpointForGivenComponent(UiContext.getIkasanModule(projectKey).getMetaVersion(), targetFlowElement);
-        if (endpointFlowElement == null ) {
-            LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getName() + " but no endpoint was found");
-        } else {
+        if (endpointFlowElement != null ) {
             // Position and draw the endpoint
             IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(projectKey, targetFlowElement);
             IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(projectKey, endpointFlowElement);
@@ -172,7 +167,6 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                 } else {
-//                        endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() + endpointViewHandler.getWidth() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
                     endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
