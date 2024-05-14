@@ -26,12 +26,10 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             if (paletteItem.isCategory()) {
                 // Separator
                 if (index > 0) {
-//                    setBorder(new MatteBorder(3, 3, 3, 3, StudioUIUtils.IKASAN_GREY));
-//                    setBorder(new MatteBorder(3, 3, 3, 3));
                     setBorder(BorderFactory.createEmptyBorder(5, 3, 4, 3));
                 }
 
-                setText(paletteItem.getComponentMeta().getName());
+                setText(paletteItem.getIkasanPaletteElementViewHandler().getComponentMeta().getName());
                 Font labelFont = getFont();
                 Font boldLabelFond = new Font(labelFont.getFontName(), Font.BOLD, labelFont.getSize());
                 setFont(boldLabelFond);
@@ -41,7 +39,6 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
                 this.setFocusable(false);
 
             } else {
-//                setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
                 setText(paletteItem.getIkasanPaletteElementViewHandler().getText());
                 setIcon(paletteItem.getIkasanPaletteElementViewHandler().getDisplayIcon());
 

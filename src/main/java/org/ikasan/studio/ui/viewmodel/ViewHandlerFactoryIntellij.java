@@ -21,7 +21,8 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         AbstractViewHandlerIntellij returnAbstractViewHandlerIntellij = null ;
         if (component != null) {
             if (component instanceof PaletteItem) {
-                returnAbstractViewHandlerIntellij =  new IkasanPaletteElementViewHandler(((PaletteItem) component).getComponentMeta());
+                // PaletteItems get a view handler when instantiated.
+                returnAbstractViewHandlerIntellij =  ((PaletteItem) component).getIkasanPaletteElementViewHandler();
             } else if (component instanceof Module) {
                 returnAbstractViewHandlerIntellij =  new IkasanModuleViewHandler(projectKey, (Module) component);
             } else if (component instanceof Flow) {

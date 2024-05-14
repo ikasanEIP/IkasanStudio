@@ -17,7 +17,7 @@ public static final String ROUTE1 = "route1";
 public static final String ROUTE2 = "route2";
 
 /**
-* <html><body><h2>Single Recipient Route</h2><p>The router will allow the payload to be sent conditionally to zero or one routes.</p></body></html>
+* <html><body><h2>Single Recipient Router</h2><p>The router will allow the payload to be sent conditionally to zero or one routes.</p></body></html>
 *
 * @param payload to be evaluated and passed to the router routes
 * @return A list of routerNames that payload will be passed to

@@ -47,6 +47,10 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
         return componentMeta.getSmallIcon();
     }
 
+    public ComponentMeta getComponentMeta() {
+        return componentMeta;
+    }
+
     @Override
     public String toString() {
         return "IkasanPaletteElementViewHandler{" +

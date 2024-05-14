@@ -1,7 +1,7 @@
 {
   "name": "Generic Filter",
   "additionalKey": "Generic",
-  "helpText": "<html><body><h2>Generic Filter</h2><p>Filter will allow given event to be past to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.</p></body></html>",
+  "helpText": "<html><body><h2>Generic Filter</h2><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "",
   "flowBuilderMethod": "filter",

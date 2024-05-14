@@ -13,10 +13,10 @@ public class GeneratorTestUtils {
     }
 
     public static String getSavedPathFromFlowElement(BasicElement basicElement) {
-        if (basicElement == null || basicElement.getComponentMeta() == null || basicElement.getComponentMeta().getComponentShortType() == null) {
+        if (basicElement == null || basicElement.getComponentMeta() == null || basicElement.getComponentMeta().getComponentTypeMeta().getComponentShortType() == null) {
             return "";
         } else {
-            return basicElement.getComponentMeta().getComponentShortType().replace(" ", "");
+            return basicElement.getComponentMeta().getComponentTypeMeta().getComponentShortType().replace(" ", "");
         }
     }
 }
