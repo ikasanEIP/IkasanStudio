@@ -2,6 +2,7 @@
   "componentType": "org.ikasan.spec.component.filter.Filter",
   "displayOrder": 6,
   "componentShortType": "Filter",
+  "helpText": "<html><body><h2>Filter</h2><p>The filter can be used to stop certain payloads from advancing any further in the flow.</p></body></html>",
   "properties": {
     "description": {
       "propertyName": "description",

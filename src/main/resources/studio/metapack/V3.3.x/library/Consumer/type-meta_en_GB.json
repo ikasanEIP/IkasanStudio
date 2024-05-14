@@ -3,6 +3,7 @@
   "displayOrder": 3,
   "componentShortType": "Consumer",
   "supportsGenericImplementation": true,
+  "helpText": "<html><body><h2>Consumer</h2><p>Consumers are always at the start of a flow. They are the entry point for the payload into the floe.</p></body></html>",
   "properties": {
     "description": {
       "propertyName": "description",

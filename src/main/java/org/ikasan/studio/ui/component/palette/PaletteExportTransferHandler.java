@@ -55,10 +55,10 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             BasicElement ikasanComponent;
             String metapackVersion = UiContext.getIkasanModule(projectKey).getMetaVersion();
             try {
-                if (item.getComponentMeta().isFlow()) {
+                if (item.getIkasanPaletteElementViewHandler().getComponentMeta().isFlow()) {
                     ikasanComponent = Flow.flowBuilder().metapackVersion(metapackVersion).build();
                 } else {
-                    ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getComponentMeta(), null, null, null);
+                    ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getIkasanPaletteElementViewHandler().getComponentMeta(), null, null, null);
                 }
             } catch (StudioBuildException e) {
                 StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
@@ -66,7 +66,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             }
 
             IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(ikasanComponent);
-            Image dragImage = item.getComponentMeta().getSmallIcon().getImage();
+            Image dragImage = item.getIkasanPaletteElementViewHandler().getComponentMeta().getSmallIcon().getImage();
             if (dragImage != null) {
                 setDragImage(dragImage);
             }

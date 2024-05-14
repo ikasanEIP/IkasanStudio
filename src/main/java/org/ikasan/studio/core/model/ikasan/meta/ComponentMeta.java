@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.maven.model.Dependency;
@@ -17,8 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-@Data
-@SuperBuilder
+@Getter
+@Setter
+@SuperBuilder(toBuilder = true)
 @Jacksonized
 @AllArgsConstructor
 public class ComponentMeta implements IkasanMeta {
@@ -55,10 +57,10 @@ public class ComponentMeta implements IkasanMeta {
     private String name;
     private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
 
-    private String componentType;
-    private String componentShortType;  // The componentType is a FQN to be persisted to module.json, this is the short form, using in logic.
+    private String componentType;       // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
+//    private String componentShortType;  // The componentType is a FQN to be persisted to module.json, this is the short form, using in logic.
     private String defaultValue;
-    private int displayOrder;
+//    private int displayOrder;
 
     private boolean isEndpoint;             // Is this component an endpoint e.g. DB endpoint, sftp location
     private boolean isInternalEndpoint;     // This endpoint is internal to the flow
@@ -85,7 +87,10 @@ public class ComponentMeta implements IkasanMeta {
     @JsonIgnore
     private ImageIcon smallIcon;
     @JsonIgnore
+    private ComponentTypeMeta componentTypeMeta;
+    @JsonIgnore
     private ImageIcon canvasIcon;
+
 
 
     public ComponentMeta() {}
@@ -114,7 +119,7 @@ public class ComponentMeta implements IkasanMeta {
         return properties.get(propertyName);
     }
     public boolean isConsumer() {
-        return COMSUMER_TYPE.equals(componentShortType);
+        return COMSUMER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
 
     /**
@@ -128,22 +133,22 @@ public class ComponentMeta implements IkasanMeta {
         return GENERIC_KEY.equals(additionalKey);
     }
     public boolean isRouter() {
-        return ROUTER_TYPE.equals(componentShortType);
+        return ROUTER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
     public boolean isEndpoint() {
-        return END_POINT_TYPE.equals(componentShortType);
+        return END_POINT_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
     public boolean isProducer() {
-        return PRODUCER_TYPE.equals(componentShortType);
+        return PRODUCER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
     public boolean isFlow() {
-        return FLOW_TYPE.equals(componentShortType);
+        return FLOW_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
     public boolean isModule() {
-        return MODULE_TYPE.equals(componentShortType);
+        return MODULE_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
     public boolean isExceptionResolver() {
-        return EXCEPTION_RESOLVER_TYPE.equals(componentShortType);
+        return EXCEPTION_RESOLVER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
 
     public String getDisplayComponentType() {
@@ -151,6 +156,26 @@ public class ComponentMeta implements IkasanMeta {
             return componentType.substring(componentType.lastIndexOf('.') + 1).trim();
         } else {
             return "";
+        }
+    }
+
+    public String getComponentType() {
+        if (componentType == null || componentType.isEmpty()) {
+            return componentTypeMeta.getComponentType();
+        } else {
+            return componentType;
+        }
+    }
+
+    public int getDisplayOrder() {
+        return componentTypeMeta.getDisplayOrder();
+    }
+
+    public String getHelpText() {
+        if (helpText == null || helpText.isEmpty()) {
+            return componentTypeMeta.getHelpText();
+        } else {
+            return helpText;
         }
     }
 }

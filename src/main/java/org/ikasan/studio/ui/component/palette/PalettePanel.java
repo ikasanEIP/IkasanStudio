@@ -79,12 +79,12 @@ public class PalettePanel extends JPanel {
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
-                PaletteItem PaletteItem = paletteList.getSelectedValue();
+                PaletteItem paletteItem = paletteList.getSelectedValue();
                 // Only do this if it's the first time, otherwise it might get annoying.
                 if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
                 }
-                paletteHelpTextArea.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
+                paletteHelpTextArea.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
 
@@ -127,7 +127,6 @@ public class PalettePanel extends JPanel {
                 handler.exportAsDrag(comp, me, TransferHandler.COPY);
             }
         });
-//        paletteScrollPane = new JScrollPane(paletteList);
 
         paletteScrollPane = new JScrollPane();
         paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
@@ -156,7 +155,7 @@ public class PalettePanel extends JPanel {
                 StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
             }
             if (componentMetaList != null) {
-                List<ComponentMeta> displayOrder = componentMetaList
+                List<ComponentMeta> componentMetaInDisplayOrder = componentMetaList
                         .stream()
                         .filter(meta -> !meta.isModule())
                         .sorted(Comparator
@@ -165,10 +164,10 @@ public class PalettePanel extends JPanel {
                         .toList();
 
                 String category = "";
-                for (ComponentMeta componentMeta : displayOrder) {
-                    if (!category.equals(componentMeta.getComponentShortType())) {
-                        category = componentMeta.getComponentShortType();
-                        paletteItems.add(new PaletteItem(category));
+                for (ComponentMeta componentMeta : componentMetaInDisplayOrder) {
+                    if (!category.equals(componentMeta.getComponentTypeMeta().getComponentShortType())) {
+                        category = componentMeta.getComponentTypeMeta().getComponentShortType();
+                        paletteItems.add(new PaletteItem(category, componentMeta));
                     }
                     paletteItems.add(new PaletteItem(componentMeta));
                 }

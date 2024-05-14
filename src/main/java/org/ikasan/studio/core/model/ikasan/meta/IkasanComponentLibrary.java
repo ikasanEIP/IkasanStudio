@@ -55,7 +55,8 @@ public class IkasanComponentLibrary {
         if (libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion)) {
             returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         } else {
-            returnedIkasanComponentMetaMapByKey = loadMetapack(ikasanMetaDataPackVersion);
+            returnedIkasanComponentMetaMapByKey = new HashMap<>();
+            loadMetapack(ikasanMetaDataPackVersion, returnedIkasanComponentMetaMapByKey);
             Map<String, ComponentMeta> ikasanComponentMetaMapByClass = generateDeserialisationKeyedMeta(returnedIkasanComponentMetaMapByKey);
             if (ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
                 LOG.warn("STUDIO: WARNING: ikasanComponentMetaMapByClass & returnedIkasanComponentMetaMapByKey are different sizes. " +
@@ -79,12 +80,11 @@ public class IkasanComponentLibrary {
      *
      * @param ikasanMetaDataPackVersion to search for components
      */
-    public static Map<String, ComponentMeta> loadMetapack(final String ikasanMetaDataPackVersion) {
+    public static void loadMetapack(final String ikasanMetaDataPackVersion,
+                             Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey) {
         if (ikasanMetaDataPackVersion == null || ikasanMetaDataPackVersion.isEmpty()) {
             LOG.error("STUDIO: ikasanMetaDataPackVersion should not be null");
         }
-        Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
-        returnedIkasanComponentMetaMapByKey = new HashMap<>();
 
         String baseDirectory = METAPACK_BASE_BASE_DIR + "/" + ikasanMetaDataPackVersion + "/library";
         // The structure of the Meta-Pack directory is
@@ -104,6 +104,7 @@ public class IkasanComponentLibrary {
                         " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                 continue;
             }
+
             String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
 
             for (String componentDirectory : componentDirectories) {
@@ -117,12 +118,9 @@ public class IkasanComponentLibrary {
                     continue;
                 }
                 ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
-                // The component type only comes from componentTypeMeta if its is common
-                if (componentTypeMeta.getComponentType() != null) {
-                    componentMeta.setComponentType(componentTypeMeta.getComponentType());
-                }
-                componentMeta.setComponentShortType(componentTypeMeta.getComponentShortType());
-                componentMeta.setDisplayOrder(componentTypeMeta.getDisplayOrder());
+                componentMeta.setComponentTypeMeta(componentTypeMeta);
+
+                // Merge the jar depencies once only at load time rather than every time we need them
                 if (componentTypeMeta.getJarDependencies() != null) {
                     if (componentMeta.getJarDependencies() == null) {
                         componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
@@ -130,6 +128,7 @@ public class IkasanComponentLibrary {
                         componentMeta.getJarDependencies().addAll(componentTypeMeta.getJarDependencies());
                     }
                 }
+                // Merge the properties once only at load time rather than every time we need them
                 if (componentTypeMeta.getProperties() != null) {
                     for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getProperties().entrySet()) {
                         if (componentMeta.getProperties().containsKey(propertiesFromType.getKey())) {
@@ -150,7 +149,6 @@ public class IkasanComponentLibrary {
                     returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
                     mandatoryComponents + " so will be ignored");
         }
-        return returnedIkasanComponentMetaMapByKey;
     }
 
     /**
@@ -198,10 +196,6 @@ public class IkasanComponentLibrary {
                     deserialsiationMetaMap.putIfAbsent(getDeserialisationKey(componentMeta), componentMeta);
                 }
             }
-//            deserialsiationMetaMap = ikasanComponentMetaMap.values().stream()
-//                .collect(Collectors.toMap(
-//                        IkasanComponentLibrary::getDeserialisationKey, componentMeta -> componentMeta
-//                ));
         }
         return deserialsiationMetaMap;
     }
@@ -388,7 +382,7 @@ public class IkasanComponentLibrary {
             if (propertyValueToDisplay != null) {
                 endpointText = propertyValueToDisplay.getValueString();
             }
-            ComponentMeta endpointComponentMeta = null;
+            ComponentMeta endpointComponentMeta;
 
             try {
                 // Create the endpoint symbol instance

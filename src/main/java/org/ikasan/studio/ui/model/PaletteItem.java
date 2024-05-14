@@ -1,12 +1,13 @@
 package org.ikasan.studio.ui.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 
-@Data
+@Getter
+@Setter
 public class PaletteItem {
-    private ComponentMeta componentMeta;
     private IkasanPaletteElementViewHandler ikasanPaletteElementViewHandler;
     private boolean category = false;
 
@@ -14,14 +15,12 @@ public class PaletteItem {
      * Create a Category Palette Item i.e. one that merely displays a title and does not move
      * @param categoryName to be displayed
      */
-    public PaletteItem(String categoryName) {
-        this.componentMeta = ComponentMeta.builder()
-            .name(categoryName)
-            .componentType("dummy")
-            .implementingClass("dummy")
-            .build();
-        componentMeta.setName(categoryName);
-        ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(componentMeta);
+    public PaletteItem(String categoryName, final ComponentMeta componentMeta) {
+        ComponentMeta clonedComponentMeta = componentMeta.toBuilder()
+                .name(categoryName)
+                .helpText("")
+                .build();
+        ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(clonedComponentMeta);
         category = true;
     }
 
@@ -30,8 +29,6 @@ public class PaletteItem {
      * @param componentMeta to create
      */
     public PaletteItem(ComponentMeta componentMeta) {
-        this.componentMeta = componentMeta;
         this.ikasanPaletteElementViewHandler = new IkasanPaletteElementViewHandler(componentMeta);
     }
-
 }
