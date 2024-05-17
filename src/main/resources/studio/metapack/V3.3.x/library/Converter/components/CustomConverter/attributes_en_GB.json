@@ -2,7 +2,7 @@
   "name": "Custom Converter",
   "flowBuilderMethod": "converter",
   "generatesUserImplementedClass": "true",
-  "helpText": "<html><body><h2>Custom Converter</h2><p>The main responsibility of a converter is to convert from one form to another. The purpose of this converter is to support any type of transformation required, implemented by a bespoke converter class.</p></body></html>",
+  "helpText": "<html><body><h3>Custom Converter</h3><p>The main responsibility of a converter is to convert from one form to another. The purpose of this converter is to support any type of transformation required, implemented by a bespoke converter class.</p></body></html>",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
   "properties": {

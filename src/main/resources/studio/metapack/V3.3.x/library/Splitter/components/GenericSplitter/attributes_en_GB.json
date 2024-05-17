@@ -1,7 +1,7 @@
 {
   "name": "Generic Splitter",
   "generatesUserImplementedClass": "true",
-  "helpText": "<html><body><h2>Generic Splitter</h2><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This is a generic splitter i.e. the user has a splitter class and the component here is representing that as a general interface.</p></body></html>",
+  "helpText": "<html><body><h3>Generic Splitter</h3><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This is a generic splitter i.e. the user has a splitter class and the component here is representing that as a general interface.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
