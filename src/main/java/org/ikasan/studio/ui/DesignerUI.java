@@ -12,6 +12,7 @@ import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
 /**
  * Create all onscreen components and register inter-thread communication components with UiContext
@@ -34,6 +35,12 @@ public class DesignerUI {
         UiContext.setProject(projectKey, project);
         UiContext.setViewHandlerFactory(projectKey, new ViewHandlerFactoryIntellij(projectKey));
 
+        paletteAndProperties.setUI(new BasicTabbedPaneUI() {
+            @Override
+            protected int calculateTabHeight(int tabPlacement, int tabIndex, int fontHeight) {
+                return 47; // manipulate this number however you please.
+            }
+        });
         UiContext.setRightTabbedPane(projectKey, paletteAndProperties);
         if (UiContext.getPipsiIkasanModel(projectKey) == null) {
             UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));

@@ -1,7 +1,7 @@
 {
   "name": "Generic Consumer",
   "generatesUserImplementedClass": "true",
-  "helpText": "<html><body><h2>Generic Consumer</h2><p>Consumers provide the 'glue' between the entry into the flow and the underlying technology generating the event. In order to create your own consumer you need to implement Consumer Interface.</p></body></html>",
+  "helpText": "<html><body><h3>Generic Consumer</h3><p>Consumers provide the 'glue' between the entry into the flow and the underlying technology generating the event. In order to create your own consumer you need to implement Consumer Interface.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",

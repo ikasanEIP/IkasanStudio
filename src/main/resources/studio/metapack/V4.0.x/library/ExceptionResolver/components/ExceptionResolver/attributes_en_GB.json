@@ -1,6 +1,6 @@
 {
   "name": "Exception Resolver",
-  "helpText": "<html><body><h2>Exception Resolver</h2><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p></body></html>",
+  "helpText": "<html><body><h3>Exception Resolver</h3><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/hospital/Readme.md",
   "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
   "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",

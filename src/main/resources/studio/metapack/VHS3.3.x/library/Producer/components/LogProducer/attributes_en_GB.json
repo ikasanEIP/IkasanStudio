@@ -3,7 +3,7 @@
   "builder": "",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "flowBuilderMethod": "producer",
-  "helpText": "<html><body><h2>Logging Producer</h2><p>Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A.</p></body></html>",
+  "helpText": "<html><body><h3>Logging Producer</h3><p>Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A.</p></body></html>",
   "ikasanComponentFactoryMethod": "logProducer",
   "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
   "usesBuilderInFactory" : true,

@@ -1,7 +1,7 @@
 {
   "displayOrder": 7,
   "componentShortType": "Router",
-  "helpText": "<html><body><h2>Router</h2><p>The router will allow the payload to be sent conditionally to zero, one or more routes.</p></body></html>",
+  "helpText": "<html><body><h3>Router</h3><p>The router will allow the payload to be sent conditionally to zero, one or more routes.</p></body></html>",
   "properties": {
     "description": {
       "propertyName": "description",

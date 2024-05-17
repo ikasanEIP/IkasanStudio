@@ -1,6 +1,6 @@
 {
   "name": "FTP Consumer",
-  "helpText": "T<html><body><h2>FTP Consumer</h2><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule, backed by FTP MessageProvider.</p></body></html>",
+  "helpText": "T<html><body><h3>FTP Consumer</h3><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule, backed by FTP MessageProvider.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",

@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.splitting.Splitter",
   "displayOrder": 8,
   "componentShortType": "Splitter",
-  "helpText": "<html><body><h2>Splitter</h2><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p></body></html>",
+  "helpText": "<html><body><h3>Splitter</h3><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p></body></html>",
   "properties": {
     "description": {
       "propertyName": "description",
