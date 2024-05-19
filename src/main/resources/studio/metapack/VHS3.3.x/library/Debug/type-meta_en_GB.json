@@ -1,5 +1,6 @@
 {
   "componentType": "org.ikasan.spec.component.filter.Filter",
   "displayOrder": 1,
-  "componentShortType": "Debug"
+  "componentShortType": "Debug",
+  "helpText": "<html><body><h3>Debug</h3><p>These components are transient, design to help when running the application in debug mode.</p></body></html>"
 }

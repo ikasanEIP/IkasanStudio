@@ -5,8 +5,9 @@ import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-import org.ikasan.studio.ui.component.palette.PalettePanel;
+import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
@@ -33,6 +34,7 @@ public enum UiContext {
     private static final String APPLICATION_PROPERTIES = "applicationProperties";
     private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
+    private static final String PROPERTIES_TAB_PANEL = "propertiesTabPanel";
     private static final String PALETTE_PANEL = "palettePanel";
 //    private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
     private static final String RIGHT_TABBED_PANE = "rightTabbedPane";
@@ -144,11 +146,17 @@ public enum UiContext {
     public static ComponentPropertiesPanel getPropertiesPanel(String projectKey) {
         return (ComponentPropertiesPanel) getProjectCache(projectKey, PROPERTIES_PANEL);
     }
-    public static void setPalettePanel(String projectKey, PalettePanel palettePanel) {
-        putProjectCache(projectKey, PALETTE_PANEL, palettePanel);
+    public static void setPropertiesTabPanel(String projectKey, ComponentPropertiesTabPanel componentPropertiesPanel) {
+        putProjectCache(projectKey, PROPERTIES_TAB_PANEL, componentPropertiesPanel);
     }
-    public static PalettePanel getPalettePanel(String projectKey) {
-        return (PalettePanel) getProjectCache(projectKey, PALETTE_PANEL);
+    public static ComponentPropertiesTabPanel getPropertiesTabPanel(String projectKey) {
+        return (ComponentPropertiesTabPanel) getProjectCache(projectKey, PROPERTIES_TAB_PANEL);
+    }
+    public static void setPalettePanel(String projectKey, PaletteTabPanel paletteTabPanel) {
+        putProjectCache(projectKey, PALETTE_PANEL, paletteTabPanel);
+    }
+    public static PaletteTabPanel getPalettePanel(String projectKey) {
+        return (PaletteTabPanel) getProjectCache(projectKey, PALETTE_PANEL);
     }
 
     public static void setCanvasTextArea(String projectKey, JTextArea canvasTextArea) {

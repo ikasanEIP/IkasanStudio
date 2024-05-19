@@ -189,6 +189,7 @@ public class DesignerCanvas extends JPanel {
                     pipsiIkasanModel.generateSourceFromModelInstance3();
                 }
             } else {
+                UiContext.getPropertiesTabPanel(projectKey).updateTargetComponent(basicElement);
                 UiContext.getPropertiesPanel(projectKey).updateTargetComponent(basicElement);
             }
         }
@@ -410,17 +411,6 @@ public class DesignerCanvas extends JPanel {
         return ikasanComponent;
     }
 
-//    /**
-//     * Given the x and y coords, return true if there is an ikasan flow that resides at that x,y.
-//     *
-//     * @param xpos of the mouse click
-//     * @param ypos of the mouse click
-//     * @return true if an ikasan flow resides at the location, false otherwise
-//     */
-//    public boolean isFlowAtXY(int xpos, int ypos) {
-//        return null != getFlowAtXY(xpos, ypos);
-//    }
-
     /**
      * The transferHandler has indicated we are over a flow, decide how we will highlight that flow
      * Return true if its OK for the component to be dropped
@@ -432,7 +422,6 @@ public class DesignerCanvas extends JPanel {
 
             Flow targetFlow = null;
             FlowRoute targetFlowRoute = null;
-//            FlowElement targetFlowComponent;
             if (targetElement instanceof Flow) {
                 targetFlow = (Flow)targetElement;
             } else if (targetElement instanceof FlowRoute) {
@@ -446,17 +435,6 @@ public class DesignerCanvas extends JPanel {
                     okToAdd = true;
                 }
             }
-
-
-//            Flow targetFlow = null;
-//            FlowElement targetFlowComponent;
-//
-//            if (targetComponent instanceof FlowElement) {
-//                targetFlowComponent = (FlowElement)targetComponent;
-//                targetFlow = targetFlowComponent.getContainingFlow();
-//            } else if (targetComponent instanceof Flow) {
-//                targetFlow = (Flow)targetComponent;
-//            }
 
             if (targetFlowRoute != null || targetFlow != null) {
                 String issue = "";
@@ -600,16 +578,6 @@ public class DesignerCanvas extends JPanel {
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
             pipsiIkasanModel.generateJsonFromModelInstance();
             pipsiIkasanModel.generateSourceFromModelInstance3();
-
-            // Do we really want to recreate the Model from the JSON, this will slow down progress and prevent ever showing debugs.
-//            try {
-//                StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
-//            } catch (StudioBuildException se) {
-//                LOG.warn("STUDIO: SERIOUS ERROR: Reported when reading JSON file " + JSON_MODEL_FILE_WITH_EXTENSION + " message: " + se.getMessage() + " trace: "+ Arrays.asList(se.getStackTrace()));
-//                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
-//                // The dumb module should contain just enough to prevent the plugin from crashing
-//                UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
-//            }
 
             initialiseAllDimensions = true;
             this.repaint();
