@@ -30,7 +30,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     private JCheckBox userImplementedComponentOverwriteCheckBox;
-
+    private ComponentDescription componentDescription;
     /**
      * Create the ComponentPropertiesPanel
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
@@ -198,6 +198,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                 okButton.setEnabled(true);
             }
             UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PROPERTIES_TAB_INDEX);
+
+            if (componentDescription != null) {
+                componentDescription.setText(getSelectedComponent().getComponentMeta().getHelpText());
+            }
         }
     }
 
@@ -292,35 +296,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         }
     }
 
-//    private void addLabelInputEditorAndGenerateSource(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley,
-//                                                      JLabel propertyLabel, ComponentInput componentInput,
-//                                                      JLabel generateSourceLabel, JCheckBox generateSourceCheckbox) {
-//        gc.weightx = 0.0;
-//        gc.gridx = 0;
-//        gc.gridy = tabley;
-//        propertiesEditorPanel.add(propertyLabel, gc);
-//        gc.weightx = 1.0;
-//        gc.gridx = 1;
-//        if (!componentInput.isBooleanInput()) {
-//            propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
-//        } else {
-//            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-//            booleanPanel.setBackground(JBColor.WHITE);
-//            booleanPanel.add(new JLabel("true"));
-//            booleanPanel.add(componentInput.getTrueBox());
-//            booleanPanel.add(new JLabel("false"));
-//            booleanPanel.add(componentInput.getFalseBox());
-//            propertiesEditorPanel.add(booleanPanel, gc);
-//        }
-////        propertiesEditorPanel.add(propertyInputField, gc);
-//
-//        gc.weightx = 0.0;
-//        gc.gridx = 2;
-//        propertiesEditorPanel.add(generateSourceLabel, gc);
-//        gc.gridx = 3;
-//        propertiesEditorPanel.add(generateSourceCheckbox, gc);
-//    }
-
     @Override
     protected BasicElement getSelectedComponent() {
         return (BasicElement)super.getSelectedComponent();
@@ -411,5 +386,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     @Override
     public void paint(Graphics g) {
         super.paint(g);
+    }
+
+    public void setComponentDescription(ComponentDescription componentDescription) {
+        this.componentDescription = componentDescription;
     }
 }

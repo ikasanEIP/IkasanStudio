@@ -2,6 +2,7 @@
   "componentType": "org.ikasan.spec.flow.Flow",
   "displayOrder": 2,
   "componentShortType": "Flow",
+  "helpText": "<html><body><h3>Flow</h3><p>The flow is the container for components and generally represents an atomic action.</p></body></html>",
   "properties": {
     "description": {
       "propertyName": "description",

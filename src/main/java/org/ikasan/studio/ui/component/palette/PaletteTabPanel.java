@@ -9,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.properties.ComponentDescription;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
@@ -20,20 +21,19 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-public class PalettePanel extends JPanel {
+public class PaletteTabPanel extends JPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     private final String projectKey;
     JScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
     JPanel paletteHelpBodyPanel;
-    JPanel paletteHeaderPanel;
-    JTextPane paletteHelpTextArea;
     JBList<PaletteItem> paletteList;
     final JSplitPane paletteSplitPane;
     JPanel paletteBodyPanel;
+    ComponentDescription componentDescription = new ComponentDescription();
 
-    public PalettePanel(String projectKey) {
+    public PaletteTabPanel(String projectKey) {
         super();
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
@@ -41,12 +41,6 @@ public class PalettePanel extends JPanel {
         paletteExportTransferHandler = new PaletteExportTransferHandler(projectKey);
 
         // Body
-        paletteHelpBodyPanel = new JPanel(new BorderLayout());
-        paletteHelpTextArea = new JTextPane();
-        paletteHelpTextArea.setContentType("text/html");
-        paletteHelpBodyPanel.add(paletteHelpTextArea, BorderLayout.CENTER);
-        paletteHelpBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
-
         paletteList = new JBList(buildPaletteItems(projectKey).toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
@@ -55,14 +49,8 @@ public class PalettePanel extends JPanel {
         paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         paletteScrollPane.getViewport().add(paletteList);
 
-        // Footer
-        JPanel paletteHelpHeaderPanel = new JPanel();
-        paletteHelpHeaderPanel.add(new JLabel("Description"));
-        JPanel paletteHelpMainPanel = new JPanel(new BorderLayout());
-        paletteHelpMainPanel.add(paletteHelpHeaderPanel, BorderLayout.NORTH);
-        paletteHelpMainPanel.add(paletteHelpBodyPanel, BorderLayout.CENTER);
-
-        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, paletteHelpMainPanel);
+        // Assemble Body and Footer
+        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, componentDescription);
         paletteSplitPane.setDividerSize(3);
 
         // At this point, and even when the method ends, the preferred height only reflects the preferred height of all
@@ -81,10 +69,10 @@ public class PalettePanel extends JPanel {
             if (paletteList.getSelectedValue() != null) {
                 PaletteItem paletteItem = paletteList.getSelectedValue();
                 // Only do this if it's the first time, otherwise it might get annoying.
-                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
+//                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
-                }
-                paletteHelpTextArea.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
+//                }
+                componentDescription.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
 
@@ -112,10 +100,10 @@ public class PalettePanel extends JPanel {
             if (paletteList.getSelectedValue() != null) {
                 PaletteItem PaletteItem = paletteList.getSelectedValue();
                 // Only do this if it's the first time, otherwise it might get annoying.
-                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
+//                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
-                }
-                paletteHelpTextArea.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
+//                }
+                componentDescription.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
 

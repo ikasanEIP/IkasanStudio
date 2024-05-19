@@ -6,8 +6,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-import org.ikasan.studio.ui.component.palette.PalettePanel;
+import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
@@ -48,7 +49,9 @@ public class DesignerUI {
 
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
         UiContext.setPropertiesPanel(projectKey, componentPropertiesPanel);
-        paletteAndProperties.addTab(UiContext.PROPERTIES_TAB_TITLE, componentPropertiesPanel);
+        ComponentPropertiesTabPanel componentPropertiesTabPanel = new ComponentPropertiesTabPanel(componentPropertiesPanel);
+        UiContext.setPropertiesTabPanel(projectKey, componentPropertiesTabPanel);
+        paletteAndProperties.addTab(UiContext.PROPERTIES_TAB_TITLE, componentPropertiesTabPanel);
 
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 new CanvasPanel(projectKey),
@@ -76,9 +79,9 @@ public class DesignerUI {
             DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
                 StudioUIUtils.resetModelFromDisk(projectKey);
-                PalettePanel palettePanel = new PalettePanel(projectKey);
-                UiContext.setPalettePanel(projectKey, palettePanel);
-                paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, palettePanel);
+                PaletteTabPanel paletteTabPanel = new PaletteTabPanel(projectKey);
+                UiContext.setPalettePanel(projectKey, paletteTabPanel);
+                paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
                 UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
             }
         });

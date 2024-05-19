@@ -30,9 +30,7 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
                 }
 
                 setText(paletteItem.getIkasanPaletteElementViewHandler().getComponentMeta().getName());
-                Font labelFont = getFont();
-                Font boldLabelFond = new Font(labelFont.getFontName(), Font.BOLD, labelFont.getSize());
-                setFont(boldLabelFond);
+                setFont(new Font(getFont().getFontName(), Font.BOLD, getFont().getSize()));
                 setForeground(StudioUIUtils.IKASAN_ORANGE);
 
                 setIcon(null);

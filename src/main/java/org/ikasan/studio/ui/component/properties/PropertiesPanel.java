@@ -26,9 +26,10 @@ public abstract class PropertiesPanel extends JPanel {
     private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private transient PropertiesPopupDialogue propertiesPopupDialogue;
 
-    protected JButton okButton;
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JPanel propertiesEditorPanel = new JPanel();
+
+    protected JButton okButton;
     private boolean dataValid = true;
 
     protected PropertiesPanel(String projectKey, boolean componentInitialisation) {
@@ -187,5 +188,9 @@ public abstract class PropertiesPanel extends JPanel {
 
     public void setPropertiesDialogue(PropertiesPopupDialogue propertiesPopupDialogue) {
         this.propertiesPopupDialogue = propertiesPopupDialogue;
+    }
+
+    public String getProjectKey() {
+        return projectKey;
     }
 }
