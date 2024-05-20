@@ -14,6 +14,44 @@
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
+    "connectionFactoryJndiPropertyFactoryInitial": {
+      "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
+      "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+      "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial"
+    },
+    "connectionFactoryName": {
+      "propertyName": "connectionFactoryName",
+      "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name"
+    },
+    "connectionFactoryPassword": {
+      "propertyName": "connectionFactoryPassword",
+      "defaultValue": "admin",
+      "helpText": "Id set on the JMS connection for durable subscribers.",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password"
+    },
+    "connectionFactoryUsername": {
+      "propertyName": "connectionFactoryUsername",
+      "defaultValue": "admin",
+      "helpText": "Authentication principal.",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user"
+    },
+    "destinationJndiName": {
+      "propertyName": "destinationJndiName",
+      "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination"
+    },
     "autoContentConversion": {
       "propertyName": "autoContentConversion",
       "helpText": "Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.",
@@ -90,14 +128,6 @@
       "usageDataType":"java.util.Map<String, String>",
       "userSuppliedClass":true
     },
-    "connectionFactoryJndiPropertyFactoryInitial": {
-      "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
-      "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
-      "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial"
-    },
     "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
@@ -120,30 +150,7 @@
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
       "setterProperty": true
     },
-    "connectionFactoryName": {
-      "propertyName": "connectionFactoryName",
-      "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name"
-    },
-    "connectionFactoryPassword": {
-      "propertyName": "connectionFactoryPassword",
-      "defaultValue": "admin",
-      "helpText": "Id set on the JMS connection for durable subscribers.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password"
-    },
-    "connectionFactoryUsername": {
-      "propertyName": "connectionFactoryUsername",
-      "defaultValue": "admin",
-      "helpText": "Authentication principal.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user"
-    },
-    "connectionPassword": {
+     "connectionPassword": {
       "propertyName": "connectionPassword",
       "helpText": "Authentication credential.This value is masked on all GUI views.",
       "setterProperty": true
@@ -153,13 +160,7 @@
       "helpText": "Authentication principal.",
       "setterProperty": true
     },
-    "destinationJndiName": {
-      "propertyName": "destinationJndiName",
-      "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination"
-    },
+
     "destinationJndiProperties": {
       "propertyName": "destinationJndiProperties",
       "helpText": "Optional JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",

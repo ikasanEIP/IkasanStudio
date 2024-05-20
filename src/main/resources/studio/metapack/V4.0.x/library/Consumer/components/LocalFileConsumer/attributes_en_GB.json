@@ -6,6 +6,7 @@
   "endpointTextKey": "filenames",
   "flowBuilderMethod": "consumer",
   "helpText": "<html><body><h3>Local File Consumer</h3><p>Looks for a file on this host, the frequency is configured in the cron expression. The consumer records the filename, modified time stamp and file size in the local datastore so that the same file is not delivered more than once.</p></body></html>",
+  "ikasanComponentFactoryMethod": "fileConsumer",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "usesBuilderInFactory" : true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
@@ -71,8 +72,7 @@
       "propertyName": "encoding",
       "defaultValue":"UTF-8",
       "helpText": "Encoding of the files ie. UTF-8.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
+      "setterProperty": true
     },
     "eventFactory": {
       "propertyName": "eventFactory",
