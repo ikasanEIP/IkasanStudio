@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.meta;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonKey;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
@@ -151,6 +152,10 @@ public class ComponentPropertyMeta {
         }
     }
 
+    @JsonIgnore
+    public boolean isOptional() {
+        return (!isMandatory()) && (!isAffectsUserImplementedClass());
+    }
 
     /**
      * Patterns are expensive, so only generate one when we need it but share the same one thereafter.

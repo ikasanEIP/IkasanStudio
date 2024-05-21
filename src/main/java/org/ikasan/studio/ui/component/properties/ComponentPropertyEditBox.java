@@ -42,8 +42,9 @@ public class ComponentPropertyEditBox {
         this.meta = componentProperty.getMeta();
         this.parent = parent;
         Object value = componentProperty.getValue();
-        if (componentInitialisation && value == null) {
-            value = componentProperty.getDefaultValue();
+        // Optionals properties only get set todefaults via UI action
+        if (componentInitialisation && value == null && !meta.isOptional()) {
+            componentProperty.setValue(componentProperty.getDefaultValue());
         }
 
         // @todo we can have all types of components with rich pattern matching validation
@@ -51,25 +52,11 @@ public class ComponentPropertyEditBox {
             propertyChoiceValueField = new ComboBox<>();
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
-            if (componentProperty.getValue() != null) {
-                propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
-            }
             propertyChoiceValueField.addItemListener(e -> parent.editBoxChangeListener());
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.propertyValueField = new JFormattedTextField(amountFormat);
-            if (value != null) {
-                // Coming from a property this may not be the correct type yet
-                if (value instanceof String) {
-                    if (((String) value).isEmpty()) {
-                        value = 0;
-                    } else {
-                        value = Integer.valueOf((String) value);
-                    }
-                }
-                this.propertyValueField.setValue(value);
-            }
             if (!componentInitialisation) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
@@ -93,25 +80,6 @@ public class ComponentPropertyEditBox {
             propertyBooleanFieldFalse = new JCheckBox();
             propertyBooleanFieldTrue.setBackground(JBColor.WHITE);
             propertyBooleanFieldFalse.setBackground(JBColor.WHITE);
-
-            if (value != null) {
-                // Defensive, just in case not set correctly
-                if (value instanceof String) {
-                    if (((String) value).isBlank()) {
-                        value = Boolean.FALSE;
-                    } else {
-                        value = Boolean.valueOf((String) value);
-                    }
-                }
-                // Now we can be sure valuue is Boolean
-                if (value instanceof Boolean) {
-                    if ((Boolean)value) {
-                        propertyBooleanFieldTrue.setSelected(true);
-                    } else {
-                        propertyBooleanFieldFalse.setSelected(true);
-                    }
-                }
-            }
             propertyBooleanFieldTrue.addActionListener(e -> {
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
@@ -133,21 +101,6 @@ public class ComponentPropertyEditBox {
                 isList = true;
             }
 
-            if (value != null) {
-                if (isList) {
-                    String strValue;
-                    if (value instanceof List<?>) {
-                        strValue = getListAsText((String) ((List)value).stream().map(Object::toString).collect(Collectors.joining(",")));
-                    } else {
-                        strValue = getListAsText((String)value);
-                    }
-                    this.propertyValueField.setText(strValue);
-                } else {
-                    this.propertyValueField.setText(value.toString());
-                }
-
-            }
-
             if (!componentInitialisation) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
@@ -166,6 +119,7 @@ public class ComponentPropertyEditBox {
                 });
             }
         }
+        resetDataEntryComponentsWithNewValues();
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
 
         if (componentProperty.affectsUserImplementedClass() && !componentInitialisation) {
@@ -228,7 +182,6 @@ public class ComponentPropertyEditBox {
         }
     }
 
-
     /**
      * For a simple property, the key IS the property name.
      * @return the key for this property.
@@ -254,12 +207,86 @@ public class ComponentPropertyEditBox {
         } else {
             componentInput = new ComponentInput(propertyValueField);
         }
-        if (meta.isReadOnlyProperty()) {
+        if (meta.isReadOnlyProperty() && componentInput != null) {
             componentInput.setEnabled(false);
         }
         return componentInput;
     }
 
+    public void setDefaultValue() {
+        if (componentProperty != null && componentProperty.getDefaultValue() != null) {
+            componentProperty.setValue(componentProperty.getDefaultValue());
+            resetDataEntryComponentsWithNewValues();
+        }
+    }
+
+    public void resetDataEntryComponentsWithNoValue() {
+        if (meta.getChoices() != null) {
+            propertyChoiceValueField.setSelectedItem(null);
+        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
+            this.propertyValueField.setValue(null);
+        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+            propertyBooleanFieldTrue.setSelected(false);
+            propertyBooleanFieldFalse.setSelected(false);
+        } else {
+            this.propertyValueField.setText(null);
+        }
+    }
+
+    public void resetDataEntryComponentsWithNewValues() {
+        Object value = componentProperty.getValue();
+        if (meta.getChoices() != null) {
+            if (componentProperty.getValue() != null) {
+                propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
+            }
+        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
+            // NUMERIC INPUT
+            if (value != null) {
+                // Coming from a property this may not be the correct type yet
+                if (value instanceof String) {
+                    if (((String) value).isEmpty()) {
+                        value = 0;
+                    } else {
+                        value = Integer.valueOf((String) value);
+                    }
+                }
+                this.propertyValueField.setValue(value);
+            }
+        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+            if (value != null) {
+                // Defensive, just in case not set correctly
+                if (value instanceof String) {
+                    if (((String) value).isBlank()) {
+                        value = Boolean.FALSE;
+                    } else {
+                        value = Boolean.valueOf((String) value);
+                    }
+                }
+                // Now we can be sure valuue is Boolean
+                if (value instanceof Boolean) {
+                    if ((Boolean)value) {
+                        propertyBooleanFieldTrue.setSelected(true);
+                    } else {
+                        propertyBooleanFieldFalse.setSelected(true);
+                    }
+                }
+            }
+        } else {
+            if (value != null) {
+                if (isList) {
+                    String strValue;
+                    if (value instanceof List<?>) {
+                        strValue = getListAsText((String) ((List)value).stream().map(Object::toString).collect(Collectors.joining(",")));
+                    } else {
+                        strValue = getListAsText((String)value);
+                    }
+                    this.propertyValueField.setText(strValue);
+                } else {
+                    this.propertyValueField.setText(value.toString());
+                }
+            }
+        }
+    }
 
     /**
      * Given the class of the property, return a value of the appropriate type.
@@ -370,7 +397,6 @@ public class ComponentPropertyEditBox {
         }
         return result;
     }
-
 
     /**
      * Determine if the edit box has a valid value
