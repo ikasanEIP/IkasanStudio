@@ -30,7 +30,7 @@ org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyM
 org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor orgIkasanMyflowMyMssageProviderPostProcessor;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyLocalFileConsumer() {
-return builderFactory.getComponentBuilder().localFileConsumer()
+return builderFactory.getComponentBuilder().fileConsumer()
 .setConfiguration(orgIkasanMyflowConfiguration)
 .setConfiguredResourceId("bob")
 .setCriticalOnStartup(true)

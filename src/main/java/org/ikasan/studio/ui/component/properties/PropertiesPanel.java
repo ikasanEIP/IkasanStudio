@@ -140,6 +140,7 @@ public abstract class PropertiesPanel extends JPanel {
 
     protected void redrawPanel() {
         propertiesEditorScrollingContainer.revalidate();
+        propertiesEditorScrollingContainer.repaint();
         if (propertiesPopupDialogue != null) {
             propertiesPopupDialogue.pack();
             propertiesPopupDialogue.repaint();
