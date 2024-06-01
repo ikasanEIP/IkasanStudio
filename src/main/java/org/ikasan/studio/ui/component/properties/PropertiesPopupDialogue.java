@@ -15,7 +15,6 @@ import java.awt.*;
  */
 public class PropertiesPopupDialogue extends DialogWrapper {
     private final PropertiesPanel propertiesPanel;
-    private final Component parentComponent;
 
     /**
      * Popup Modal window to support entry of properties.
@@ -33,7 +32,6 @@ public class PropertiesPopupDialogue extends DialogWrapper {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
         propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
-        this.parentComponent = parentComponent;
         init();  // which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText(propertiesPanel.getOKButtonText());

@@ -429,6 +429,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                         // If its new this will insert, existing will just overwrite.
                         getSelectedComponent().addComponentProperty(componentPropertyEditBox.getPropertyKey(), componentProperty);
                     }
+                    UiContext.setRightTabbedPaneFocus(projectKey, PALETTE_TAB_INDEX);
                 }
             }
         }
