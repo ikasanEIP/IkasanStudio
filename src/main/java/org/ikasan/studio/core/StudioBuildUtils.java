@@ -167,10 +167,6 @@ public class StudioBuildUtils {
             return "";
         }
     }
-    private static final int PROPERTY_DATA_TYPE_INDEX = 8;
-    private static final int DEFAULT_VALUE_INDEX = 12;
-
-
 
     /**
      * Get the subdirectories of a given directory on the classpath, when in a jar file or file system
@@ -219,11 +215,6 @@ public class StudioBuildUtils {
         return directoriesNames;
     }
 
-    private static final int ARTIFACT_ID_INDEX = 0;
-    private static final int GROUP_ID_INDEX = 1;
-    private static final int VERSION_INDEX = 2;
-    private static final int NUMBER_OF_DEPENDENCY_CONFIGS = 3;
-    public static final String COMPONENT_DEPENDENCIES_DIR = "/studio/componentDependencies/";
     private static final String SUBSTITUTION_PREFIX = "__";
     private static final String SUBSTITUTION_PREFIX_FLOW = "__flow";
     private static final String SUBSTITUTION_PREFIX_COMPONENT = "__component";
@@ -305,8 +296,9 @@ public class StudioBuildUtils {
             }
             // By replacing _ with space, we should get UpperCase after the space, and space removed.
             propertyLabel = propertyLabel.replace("-", " ");
+            propertyLabel = StudioBuildUtils.toJavaIdentifier(propertyLabel);
         }
-        return StudioBuildUtils.toJavaIdentifier(propertyLabel);
+        return propertyLabel;
     }
 
     /**

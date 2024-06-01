@@ -90,15 +90,14 @@ org.ikasan.builder.BuilderFactory builderFactory;
                     <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
-                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${propValue.valueString}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     <#else>
-                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${propValue.valueString})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     </#if>
                 </#if>
             </#if>
         </#if>
     </#list>
-
     <#-- Special case for message filter, set configuredResourceId to default -->
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.name)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");
