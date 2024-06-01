@@ -90,7 +90,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      */
     protected void populatePropertiesEditorPanel() {
         if (!componentInitialisation) {
-            okButton.setEnabled(false);
+            updateCodeButton.setEnabled(false);
         }
 
         if (getSelectedComponent() != null) {
@@ -105,8 +105,8 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
                 updateActionPropertiesOnly = true;
             }
             updatePropertiesForAction();
-            if (okButton != null) {
-                okButton.setEnabled(true);
+            if (updateCodeButton != null) {
+                updateCodeButton.setEnabled(true);
             }
         }
     }

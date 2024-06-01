@@ -12,6 +12,9 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.components.JBPanel;
+
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
@@ -22,8 +25,8 @@ public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final String projectKey;
     private final Project project;
-    private final JPanel mainJPanel = new JPanel();
-    JTabbedPane paletteAndProperties = new JTabbedPane();
+    private final JBPanel mainJPanel = new JBPanel();
+    JBTabbedPane paletteAndProperties = new JBTabbedPane();
 
     /**
      * Create the main Designer window
@@ -39,7 +42,7 @@ public class DesignerUI {
         paletteAndProperties.setUI(new BasicTabbedPaneUI() {
             @Override
             protected int calculateTabHeight(int tabPlacement, int tabIndex, int fontHeight) {
-                return 47; // manipulate this number however you please.
+                return 47; // Make palette top panel same height as designer top panel
             }
         });
         UiContext.setRightTabbedPane(projectKey, paletteAndProperties);

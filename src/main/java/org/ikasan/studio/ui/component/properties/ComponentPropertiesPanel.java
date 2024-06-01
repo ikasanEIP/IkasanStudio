@@ -53,8 +53,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      */
     @Override
     public void editBoxChangeListener() {
-        LOG.info("STUDIO: editBoxChangeListener has data changed " + dataHasChanged());
-        okButton.setEnabled(dataHasChanged());
+        if (updateCodeButton != null) {
+            updateCodeButton.setEnabled(dataHasChanged());
+        }
      }
     /**
      * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
@@ -116,7 +117,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      */
     protected void populatePropertiesEditorPanel() {
         if (!componentInitialisation) {
-            okButton.setEnabled(false);
+            updateCodeButton.setEnabled(false);
         }
 
         if (getSelectedComponent() != null) {
@@ -209,7 +210,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
 
             if (!componentInitialisation && !getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
-                okButton.setEnabled(true);
+                updateCodeButton.setEnabled(true);
             }
             UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PROPERTIES_TAB_INDEX);
 

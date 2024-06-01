@@ -76,6 +76,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 }
             }
         }
+        if (module.getVersion() == null) {
+            module.setVersion(DEFAULT_IKASAN_PACK);
+        }
         return module;
     }
 
@@ -110,7 +113,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @throws IOException if the json could not be read
      * @throws StudioBuildException if there were issues creating the objects
      */
-    public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws IOException, StudioBuildException {
+    public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws StudioBuildException {
         List<Transition> transitions = new ArrayList<>();
         Flow flow = null;
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
