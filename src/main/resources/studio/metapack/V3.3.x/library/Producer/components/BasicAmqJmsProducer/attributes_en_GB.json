@@ -1,14 +1,29 @@
 {
   "name": "Basic AMQ JMS Producer",
-  "helpText": "<html><body><h3>Basic AMQ JMS Producer</h3><p>Ending component of the flow, or a route in the flow. The JMS producer is based on Spring template and is used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p></body></html>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "builderFactory": "org.ikasan.builder.BuilderFactory",
-  "implementingClass": "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
   "additionalKey": "Basic AMQ JMS Producer",
-  "usesBuilderInFactory": true,
-  "flowBuilderMethod": "producer",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
+  "helpText": "<html><body><h3>Basic AMQ JMS Producer</h3><p>Ending component of the flow, or a route in the flow. The JMS producer is based on Spring template and is used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p></body></html>",
+  "ikasanComponentFactoryMethod": "jmsProducer",
+  "implementingClass": "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-jms-spring-arjuna<",
+      "version": "3.1.0"
+    },{
+      "groupId": "org.apache.activemq",
+      "artifactId": "activemq-client",
+      "version": "5.16.3"
+    },{
+      "groupId": "org.apache.activemq",
+      "artifactId": "activemq-broker",
+      "version": "5.16.3"
+    }
+  ],
+  "usesBuilderInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "properties": {
     "componentName": {
       "propertyName": "componentName",
@@ -32,6 +47,7 @@
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
+      "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url"
     },

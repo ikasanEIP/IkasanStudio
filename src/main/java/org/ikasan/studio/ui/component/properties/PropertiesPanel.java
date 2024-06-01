@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
-    private static final String OK_BUTTON_TEXT = "Update Code";
+    private static final String UPDATE_CODE_BUTTON_TEXT = "Update Code";
     private transient IkasanObject selectedComponent;
     protected final String projectKey;
     protected final boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
@@ -29,7 +29,7 @@ public abstract class PropertiesPanel extends JPanel {
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JPanel propertiesEditorPanel = new JPanel();
 
-    protected JButton okButton;
+    protected JButton updateCodeButton;
     private boolean dataValid = true;
 
     protected PropertiesPanel(String projectKey, boolean componentInitialisation) {
@@ -53,8 +53,8 @@ public abstract class PropertiesPanel extends JPanel {
 
         // Palette editor mode, add an OK button at the bottom.
         if (! componentInitialisation) {
-            okButton = new JButton(OK_BUTTON_TEXT);
-            okButton.addActionListener(e -> {
+            updateCodeButton = new JButton(UPDATE_CODE_BUTTON_TEXT);
+            updateCodeButton.addActionListener(e -> {
                     okActionListener(e);
                     if (dataValid) {
                         doOKAction();
@@ -63,7 +63,7 @@ public abstract class PropertiesPanel extends JPanel {
                }
             );
             JPanel footerPanel = new JPanel();
-            footerPanel.add(okButton);
+            footerPanel.add(updateCodeButton);
             footerPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
             add(footerPanel, BorderLayout.SOUTH);
         }
@@ -153,7 +153,7 @@ public abstract class PropertiesPanel extends JPanel {
      * @return the text to be used in the OK Button.
      */
     protected String getOKButtonText() {
-        return OK_BUTTON_TEXT;
+        return UPDATE_CODE_BUTTON_TEXT;
     }
 
     /**

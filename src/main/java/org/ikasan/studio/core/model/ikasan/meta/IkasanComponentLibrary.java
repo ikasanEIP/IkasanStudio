@@ -27,7 +27,7 @@ public class IkasanComponentLibrary {
     private static final String METAPACK_BASE_BASE_DIR = "studio/metapack";
     private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR + "icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
-    public static final String DEFAULT_IKASAN_PACK = "v3.3.x";  // Short term convenience, long term this must be pak driven
+    public static final String DEFAULT_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
 
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";

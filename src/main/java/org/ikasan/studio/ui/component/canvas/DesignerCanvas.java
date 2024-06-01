@@ -92,10 +92,15 @@ public class DesignerCanvas extends JPanel {
                 if (metapackVersion == null) {
                     StudioUIUtils.displayIdeaInfoMessage(projectKey, "A module can't be created until at least one meta-pack is loaded.");
                 } else {
-                    try {
-                        UiContext.setIkasanModule(projectKey, Module.moduleBuilder().version(metapackVersion).build());
-                    } catch (StudioBuildException ex) {
-                        throw new RuntimeException(ex);
+                    Module module = UiContext.getIkasanModule(projectKey);
+                    if (module == null) {
+                        try {
+                            UiContext.setIkasanModule(projectKey, Module.moduleBuilder().version(metapackVersion).build());
+                        } catch (StudioBuildException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    } else {
+                        module.setVersion(metapackVersion);
                     }
                     // Intellij startup is multi-threaded so caution is required.
                     if (UiContext.getPalettePanel(projectKey) != null) {
@@ -108,6 +113,7 @@ public class DesignerCanvas extends JPanel {
                             UiContext.getDesignerCanvas(projectKey),
                             componentPropertiesPanel);
                     if (propertiesPopupDialogue.showAndGet()) {
+                        StudioUIUtils.displayIdeaInfoMessage(projectKey, "Please wait for Intellij to initialise, any code errors will be resolved.");
                         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
                         pipsiIkasanModel.generateJsonFromModelInstance();
                         pipsiIkasanModel.generateSourceFromModelInstance3();
@@ -120,8 +126,8 @@ public class DesignerCanvas extends JPanel {
 
     public void enableModuleInitialiseProcess() {
         if (startButton.getParent() != this) {
-            this.add(startButton);
             this.add(metaDataVersionJComboBox);
+            this.add(startButton);
         }
     }
 

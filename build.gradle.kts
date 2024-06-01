@@ -1,5 +1,6 @@
 // might not need below
 //import io.gitlab.arturbosch.detekt.Detekt
+
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 
@@ -82,13 +83,13 @@ qodana {
 }
 
 // Configure Gradle Kover Plugin - read more: https://github.com/Kotlin/kotlinx-kover#configuration
-koverReport {
-    defaults {
-        xml {
-            onCheck = true
-        }
-    }
-}
+//koverReport {
+//    defaults {
+//        xml {
+//            onCheck = true
+//        }
+//    }
+//}
 
 tasks {
     withType<JavaCompile> {

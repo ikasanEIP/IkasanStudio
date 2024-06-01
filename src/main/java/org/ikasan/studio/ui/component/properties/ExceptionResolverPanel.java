@@ -78,8 +78,8 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected void populatePropertiesEditorPanel() {
-        if (okButton != null) {
-            okButton.setEnabled(dataHasChanged());
+        if (updateCodeButton != null) {
+            updateCodeButton.setEnabled(dataHasChanged());
         }
 
         if (getSelectedComponent() != null) {

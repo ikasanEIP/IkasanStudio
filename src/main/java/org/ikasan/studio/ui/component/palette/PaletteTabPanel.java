@@ -5,6 +5,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -133,8 +134,9 @@ public class PaletteTabPanel extends JPanel {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
 
         // New project created, no module yet
-        if (UiContext.getIkasanModule(projectKey) == null) {
-            LOG.info("STUDIO: New project, no model available yet");
+        Module module = UiContext.getIkasanModule(projectKey);
+        if (module == null || module.getMetaVersion() == null) {
+            LOG.info("STUDIO: New project, no model version available yet");
         } else {
             Collection<ComponentMeta> componentMetaList = null;
             try {
