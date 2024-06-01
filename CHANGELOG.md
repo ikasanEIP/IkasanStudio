@@ -27,8 +27,10 @@ QA
 
 #### June
 
+UX
 - Fix bug in startup meta pack
 - For new Maven generated projects, the app name and package name are pre-populated from the maven values.
+- Swap back to palette panel when property update is completed.
 
 metapackVersion
 

@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -59,7 +60,6 @@ public abstract class PropertiesPanel extends JPanel {
                     if (dataValid) {
                         doOKAction();
                     }
-                   //@todo popup a temp message 'no changes detected'
                }
             );
             JPanel footerPanel = new JPanel();
@@ -70,7 +70,7 @@ public abstract class PropertiesPanel extends JPanel {
 
         populatePropertiesEditorPanel();
         propertiesEditorScrollingContainer = new ScrollableGridbagPanel(propertiesEditorPanel);
-        JScrollPane scrollPane = new JScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JBScrollPane scrollPane = new JBScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);
         scrollPane.setBackground(JBColor.WHITE);
