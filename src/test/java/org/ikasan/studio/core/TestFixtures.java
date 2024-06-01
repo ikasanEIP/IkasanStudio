@@ -248,7 +248,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("cacheLevel", 1);
         flowElement.setPropertyValue("concurrentConsumers", 2);
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configurationId", "__module__flow__component");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
@@ -291,7 +291,7 @@ public class TestFixtures {
                 .componentName("My Basic AMQ JSpring JMS Consumer")
                 .build();
 
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configuredResourceId", "__module__flow__component");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
         flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");

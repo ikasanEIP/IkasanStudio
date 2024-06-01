@@ -20,14 +20,16 @@
       "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial",
+      "usageDataType":"java.lang.String"
     },
     "connectionFactoryName": {
       "propertyName": "connectionFactoryName",
       "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
+      "usageDataType":"java.lang.String"
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
@@ -35,7 +37,8 @@
       "helpText": "Id set on the JMS connection for durable subscribers.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
+      "usageDataType":"java.lang.String"
     },
     "connectionFactoryUsername": {
       "propertyName": "connectionFactoryUsername",
@@ -43,14 +46,16 @@
       "helpText": "Authentication principal.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
+      "usageDataType":"java.lang.String"
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination",
+      "usageDataType":"java.lang.String"
     },
     "autoContentConversion": {
       "propertyName": "autoContentConversion",
@@ -133,7 +138,8 @@
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url",
+      "usageDataType":"java.lang.String"
     },
     "connectionFactoryJndiPropertySecurityCredentials": {
       "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
@@ -171,28 +177,32 @@
       "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
       "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.initial"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.initial",
+      "usageDataType":"java.lang.String"
     },
     "destinationJndiPropertyProviderUrl": {
       "propertyName": "destinationJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.provider.url"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.provider.url",
+      "usageDataType":"java.lang.String"
     },
     "destinationJndiPropertySecurityCredentials": {
       "propertyName": "destinationJndiPropertySecurityCredentials",
       "defaultValue": "admin",
       "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password",
+      "usageDataType":"java.lang.String"
     },
     "destinationJndiPropertySecurityPrincipal": {
       "propertyName": "destinationJndiPropertySecurityPrincipal",
       "defaultValue": "admin",
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.user"
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.user",
+      "usageDataType":"java.lang.String"
     },
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
