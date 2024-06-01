@@ -19,7 +19,6 @@
             .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
             </#if>
             componentFactory.get${flowElement.getJavaClassName()}())
-<#--            componentFactory.get${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, flowElement.getJavaClassName())}())-->
         </#if>
     </#list>
     )
@@ -72,9 +71,16 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
                 <@iterateSubflow childRoute />
             </#list>
         <#else>
-        .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",
+
+            ${flowElement.componentMeta}
+            ${flowElement.componentMeta.flowBuilderMethod}
+            ${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}"
+
+        .${flowElement
+        .componentMeta
+        .flowBuilderMethod}("${flowElement
+        .componentName}",
         componentFactory.get${flowElement.getJavaClassName()}())
-<#--            componentFactory.get${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, flowElement.getJavaClassName())}())-->
         </#if>
     </#list>
 </#compress>
