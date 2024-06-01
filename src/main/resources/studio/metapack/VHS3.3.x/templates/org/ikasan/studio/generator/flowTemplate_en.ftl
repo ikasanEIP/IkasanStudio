@@ -19,7 +19,6 @@
             .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
             </#if>
             componentFactory.get${flowElement.getJavaClassName()}())
-<#--            componentFactory.get${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, flowElement.getJavaClassName())}())-->
         </#if>
     </#list>
     )
@@ -65,16 +64,15 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
 </#list>)
 </#if>
     <#list flow.getFlowRoute().ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
-        <#-- The MRR is always the last element of the list of flowElements -->
+    <#-- The MRR is always the last element of the list of flowElements -->
         <#if flowElement.componentMeta.isRouter()>
             .${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(<#list flowElement.getPropertyValue("routeNames")![] as route> "${route}"<#sep>, </#sep></#list>)))
             <#list flow.getFlowRoute().getChildRoutes()![] as childRoute>
                 <@iterateSubflow childRoute />
             </#list>
         <#else>
-        .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",
-        componentFactory.get${flowElement.getJavaClassName()}())
-<#--            componentFactory.get${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, flowElement.getJavaClassName())}())-->
+            .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.componentName}",
+            componentFactory.get${flowElement.getJavaClassName()}())
         </#if>
     </#list>
 </#compress>

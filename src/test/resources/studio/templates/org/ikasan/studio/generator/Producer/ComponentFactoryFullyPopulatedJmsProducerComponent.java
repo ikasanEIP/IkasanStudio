@@ -48,9 +48,9 @@ org.ikasan.component.endpoint.jms.producer.PostProcessor myPostProcessor;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyJMSProducer() {
-return builderFactory.getComponentBuilder().jMSProducer()
+return builderFactory.getComponentBuilder().jmsProducer()
 .setConfiguration(myConfigurationClass)
-.setConfiguredResourceId(myUniqueConfiguredResourceIdName)
+.setConfiguredResourceId(aToBConvertMyFlow1MyJMSProducer)
 .setConnectionFactory(myConnectionFactory)
 .setConnectionFactoryJNDIProperties(key1value1key2value2)
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiInitial)

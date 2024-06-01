@@ -188,8 +188,7 @@ public class TestFixtures {
 
     public static FlowElement getEndpointForLocalFileConsumer() throws StudioBuildException {
         FlowElement localFileConsumer = getLocalFileConsumer();
-        FlowElement localFileConsumerEndPoint = IkasanComponentLibrary.getEndpointForGivenComponent(TEST_IKASAN_PACK, localFileConsumer);
-        return localFileConsumerEndPoint;
+        return IkasanComponentLibrary.getEndpointForGivenComponent(TEST_IKASAN_PACK, localFileConsumer);
     }
 
     public static FlowElement getLocalFileConsumer() throws StudioBuildException {
@@ -547,7 +546,7 @@ public class TestFixtures {
                 .build();
 
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
+        flowElement.setPropertyValue("configuredResourceId", "__module.__flow.__component");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
