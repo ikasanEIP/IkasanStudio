@@ -50,7 +50,7 @@ org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerCl
 public org.ikasan.spec.component.endpoint.Producer getMyJMSProducer() {
 return builderFactory.getComponentBuilder().jmsProducer()
 .setConfiguration(myConfigurationClass)
-.setConfiguredResourceId(aToBConvertMyFlow1MyJMSProducer)
+.setConfiguredResourceId("aToBConvertMyFlow1MyJMSProducer")
 .setConnectionFactory(myConnectionFactory)
 .setConnectionFactoryJNDIProperties(key1value1key2value2)
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiInitial)

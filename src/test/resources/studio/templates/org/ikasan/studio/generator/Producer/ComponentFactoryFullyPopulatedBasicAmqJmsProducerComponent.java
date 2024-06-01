@@ -38,7 +38,7 @@ java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiUser;
 
 public org.ikasan.spec.component.endpoint.Producer getMyJMSProducer() {
 return builderFactory.getComponentBuilder().jmsProducer()
-.setConfiguredResourceId(myUniqueConfiguredResourceIdName)
+.setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiProviderUrl)
 .setConnectionFactoryName(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryName)
