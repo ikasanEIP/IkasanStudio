@@ -6,6 +6,7 @@ import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -621,6 +622,12 @@ public class DesignerCanvas extends JPanel {
      * @return the populated component or null if the action was cancelled.
      */
     private BasicElement createViableComponent(BasicElement newComponent) {
+        // Now this is a serious components, ensure any property with tag placeholder are updated to real values
+        if (newComponent instanceof FlowElement) {
+            FlowElement newFlowComponent = (FlowElement)newComponent;
+            StudioBuildUtils.substituteAllPlaceholderInPascalCase(UiContext.getIkasanModule(projectKey), newFlowComponent.getContainingFlow(), newFlowComponent);
+        }
+
         if (newComponent.getComponentMeta().isDebug()) {
             newComponent.defaultUnsetMandatoryProperties();
         }

@@ -1,6 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import liquibase.pro.packaged.J;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,6 +10,8 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.ikasan.studio.core.StudioBuildUtils.SUBSTITUTION_PREFIX;
 
 /**
  * Holds the value of a property

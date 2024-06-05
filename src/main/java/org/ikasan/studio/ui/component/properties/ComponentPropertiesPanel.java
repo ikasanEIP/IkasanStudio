@@ -262,6 +262,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     }
 
     protected void setOptionalPropertiesToDefaultVales() {
+//        this.selectedComponent
         for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
             if (componentPropertyEditBox.getMeta().isOptional()) {
                 componentPropertyEditBox.setDefaultValue();

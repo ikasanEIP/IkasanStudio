@@ -10,22 +10,26 @@ public class FlowElementFactory {
      * @param containinfFlow flow that contains this element
      */
     public static FlowElement createFlowElement(String metapackVersion, ComponentMeta type, Flow containinfFlow, FlowRoute containingFlowRoute, String componentName) throws StudioBuildException {
+        FlowElement flowElement = null;
         if (type.isGeneratesUserImplementedClass()) {
-            return FlowUserImplementedElement.flowUserImplementedElementBuilder()
+            flowElement = FlowUserImplementedElement.flowUserImplementedElementBuilder()
                     .componentMeta(type)
                     .containingFlowRoute(containingFlowRoute)
                     .containingFlow(containinfFlow)
                     .componentName(componentName)
                     .build();
         } else if (type.isExceptionResolver()) {
-            return new ExceptionResolver(metapackVersion, containinfFlow);
+            flowElement = new ExceptionResolver(metapackVersion, containinfFlow);
         } else {
-            return FlowElement.flowElementBuilder()
+            flowElement = FlowElement.flowElementBuilder()
                     .componentMeta(type)
                     .containingFlowRoute(containingFlowRoute)
                     .containingFlow(containinfFlow)
                     .componentName(componentName)
                     .build();
         }
+
+//        flowElement.componentProperties()
+        return flowElement;
     }
 }

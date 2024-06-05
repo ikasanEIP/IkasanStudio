@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @Jacksonized
 @AllArgsConstructor
 /*

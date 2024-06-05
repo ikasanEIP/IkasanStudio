@@ -1,8 +1,11 @@
 package org.ikasan.studio.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,10 +218,15 @@ public class StudioBuildUtils {
         return directoriesNames;
     }
 
-    private static final String SUBSTITUTION_PREFIX = "__";
+    public static final String SUBSTITUTION_PREFIX = "__";
     private static final String SUBSTITUTION_PREFIX_FLOW = "__flow";
     private static final String SUBSTITUTION_PREFIX_COMPONENT = "__component";
     private static final String SUBSTITUTION_PREFIX_MODULE = "__module";
+
+    @JsonIgnore
+    public static boolean valueIsAPlaceholder(String value) {
+        return value.startsWith(SUBSTITUTION_PREFIX);
+    }
 
     /**
      * ** Used by FTL ***
@@ -270,6 +278,25 @@ public class StudioBuildUtils {
             }
         }
         return propertyLabel;
+    }
+
+    /**
+     * For the given component, if the value of default is a property placeholder, replace it wuith  real value.
+     * @param module that holds the components.
+     * @param flow that contains the component.
+     * @param ikasanBasicElement itself.
+     */
+    public static void substituteAllPlaceholderInPascalCase(Module module, Flow flow, BasicElement ikasanBasicElement) {
+        for (ComponentProperty componentProperty : ikasanBasicElement.getComponentProperties().values()) {
+            if (StudioBuildUtils.valueIsAPlaceholder(componentProperty.getValueString())) {
+                componentProperty.setValue(substitutePlaceholderInPascalCase(module, flow, ikasanBasicElement, componentProperty.getValueString()));
+            }
+            if (componentProperty.getMeta().getDefaultValue() != null && StudioBuildUtils.valueIsAPlaceholder(componentProperty.getMeta().getDefaultValue().toString())) {
+                ComponentPropertyMeta newMeta = componentProperty.getMeta().toBuilder().build();
+                componentProperty.setMeta(newMeta);
+                newMeta.setDefaultValue(StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, ikasanBasicElement, newMeta.getDefaultValue().toString()));
+            }
+        }
     }
 
     /**
