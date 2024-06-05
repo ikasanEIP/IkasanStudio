@@ -329,6 +329,10 @@ public class StudioPsiUtils {
                 break;
             }
         }
+        if (sourceCodeRoot == null) {
+            Thread thread = Thread.currentThread();
+            LOG.warn("STUDIO: WARN: Could not find any source roots for project " + project + " and contentRoot " + contentRoot + " annd relatveRoot " + relativeRootDir + " trace:" + Arrays.toString(thread.getStackTrace()));
+        }
         return sourceCodeRoot;
     }
 

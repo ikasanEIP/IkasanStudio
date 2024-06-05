@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String UPDATE_CODE_BUTTON_TEXT = "Update Code";
-    private transient IkasanObject selectedComponent;
+    protected transient IkasanObject selectedComponent;
     protected final String projectKey;
     protected final boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);

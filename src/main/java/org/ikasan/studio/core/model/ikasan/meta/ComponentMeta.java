@@ -58,10 +58,7 @@ public class ComponentMeta implements IkasanMeta {
     private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
 
     private String componentType;       // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
-//    private String componentShortType;  // The componentType is a FQN to be persisted to module.json, this is the short form, using in logic.
     private String defaultValue;
-//    private int displayOrder;
-
     private boolean isEndpoint;             // Is this component an endpoint e.g. DB endpoint, sftp location
     private boolean isInternalEndpoint;     // This endpoint is internal to the flow
     private String endpointKey;             // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
