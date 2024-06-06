@@ -16,9 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.ikasan.studio.ui.UiContext.JSON_MODEL_FILE_WITH_EXTENSION;
-
-
 public class StudioUIUtils {
     public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio");
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
@@ -252,8 +249,8 @@ public class StudioUIUtils {
         try {
             StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
         } catch (StudioBuildException se) {
-            LOG.warn("STUDIO: SERIOUS ERROR: during resetModelFromDisk, reported when reading " + JSON_MODEL_FILE_WITH_EXTENSION + " message: " + se.getMessage() +" trace: " + Arrays.asList(se.getStackTrace()));
-            StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + JSON_MODEL_FILE_WITH_EXTENSION + " then use the Refresh Button");
+            LOG.warn("STUDIO: SERIOUS ERROR: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() +" trace: " + Arrays.asList(se.getStackTrace()));
+            StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Refresh Button");
             // The dumb module should contain just enough to prevent the plugin from crashing
             UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
         }

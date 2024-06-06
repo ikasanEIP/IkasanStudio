@@ -121,9 +121,11 @@ public class FlowSerializer extends StdSerializer<Flow> {
                 if (index+1 < flowElements.size()) {
                     to = flowElements.get(index+1);
                 }
-                if (!from.getComponentMeta().isEndpoint() && !from.getComponentMeta().isDebug()) {
+//                if (!from.getComponentMeta().isEndpoint() && !from.getComponentMeta().isDebug()) {
+                if (!from.getComponentMeta().isEndpoint()) {
                     // If a start was provided, it will be the last element of the previous route
-                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
+//                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
+                    if (startElement != null && !startElement.getComponentMeta().isEndpoint()) {
                         transitions.add(Transition.builder()
                                 .from(startElement.getName())
                                 .to(from.getComponentName())
@@ -132,15 +134,15 @@ public class FlowSerializer extends StdSerializer<Flow> {
                         startElement = null;        // Now its been processed, prevent from reprocessing
                     }
 
-                    // Skip debug components
-                    while(  to != null &&
-                            to.getComponentMeta().isDebug() &&
-                            index < flowElements.size()) {
-                        index ++;
-                        if (index+1 < flowElements.size()) {
-                            to = flowElements.get(index+1);
-                        }
-                    }
+//                    // Skip debug components
+//                    while(  to != null &&
+//                            to.getComponentMeta().isDebug() &&
+//                            index < flowElements.size()) {
+//                        index ++;
+//                        if (index+1 < flowElements.size()) {
+//                            to = flowElements.get(index+1);
+//                        }
+//                    }
                     if (to != null && !to.getComponentMeta().isEndpoint()) {
                         transitions.add(
                                 Transition.builder()
@@ -169,9 +171,11 @@ public class FlowSerializer extends StdSerializer<Flow> {
                 if (index+1 < flowElements.size()) {
                     to = flowElements.get(index+1);
                 }
-                if (!from.getComponentMeta().isEndpoint() && !from.getComponentMeta().isDebug()) {
+//                if (!from.getComponentMeta().isEndpoint() && !from.getComponentMeta().isDebug()) {
+                if (!from.getComponentMeta().isEndpoint()) {
                     // If a start was provided, it will be the last element of the previous route
-                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
+//                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
+                    if (startElement != null && !startElement.getComponentMeta().isEndpoint()) {
                         transitions.add(Transition.builder()
                                 .from(startElement.getName())
                                 .to(from.getComponentName())
@@ -179,7 +183,8 @@ public class FlowSerializer extends StdSerializer<Flow> {
                                 .build());
                         startElement = null;        // Now its been processed, prevent from reprocessing
                     }
-                    if (to != null && !to.getComponentMeta().isEndpoint() && !to.getComponentMeta().isDebug()) {
+//                    if (to != null && !to.getComponentMeta().isEndpoint() && !to.getComponentMeta().isDebug()) {
+                    if (to != null && !to.getComponentMeta().isEndpoint()) {
                         transitions.add(
                                 Transition.builder()
                                         .from(from.getComponentName())
@@ -206,7 +211,8 @@ public class FlowSerializer extends StdSerializer<Flow> {
             for (FlowRoute flowRoute : flowRoutes) {
                 if (flowRoute.getFlowElements() != null && !flowRoute.getFlowElements().isEmpty()) {
                     for (FlowElement flowElement : flowRoute.getFlowElements()) {
-                        if (!flowElement.getComponentMeta().isEndpoint() && !flowElement.getComponentMeta().isDebug()) {
+//                        if (!flowElement.getComponentMeta().isEndpoint() && !flowElement.getComponentMeta().isDebug()) {
+                        if (!flowElement.getComponentMeta().isEndpoint()) {
                             jsonGenerator.writeStartObject();
                             flowElementSerializer.serializePayload(flowElement, jsonGenerator, serializerProvider);
                             jsonGenerator.writeEndObject();

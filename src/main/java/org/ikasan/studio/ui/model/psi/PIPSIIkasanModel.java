@@ -94,8 +94,9 @@ public class PIPSIIkasanModel {
         ApplicationManager.getApplication().runReadAction(
                 () -> {
                     LOG.info("STUDIO: ApplicationManager.getApplication().runReadAction");
-                    // reloadProject needed to re-read POM, must not be done till add Dependancies
+                    // reloadProject needed to re-read POM, must not be done till add Dependencies
                     // fully complete, hence in next executeCommand block
+                    // It is expensive and disruptive (screen redraw, model reload) so ONLY done when needed
                     if (dependenciesHaveChanged && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
                         ProjectManager.getInstance().reloadProject(project);
                     }
