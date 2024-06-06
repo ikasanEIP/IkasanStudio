@@ -50,7 +50,7 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
 
 
     private PsiDirectory createPackageFixture(String packageName) {
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.MAIN_JAVA);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
         ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject,
                 () -> StudioPsiUtils.createPackage(baseDir, packageName), "Name of the Command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION));

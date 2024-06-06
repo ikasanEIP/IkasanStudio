@@ -41,12 +41,16 @@ public class StudioPsiUtils {
     public static final String TEMP_CONTENT_ROOT = "temp://";
     public static final String GENERATED_CONTENT_ROOT = "/generated";
     public static final String USER_CONTENT_ROOT = "/user";
-    public static final String JAVA_CODE = "main/java";
-    public static final String SRC_JAVA_CODE = "src/" + JAVA_CODE;
-    public static final String JAVA_RESOURCES = "main/resources";
-    public static final String SRC_JAVA_RESOURCES = "src/" + JAVA_RESOURCES;
+    public static final String MAIN_JAVA = "main/java";
+    public static final String SRC_MAIN_JAVA_CODE = "src/" + MAIN_JAVA;
+    public static final String MAIN_RESOURCES = "main/resources";
+    public static final String SRC_MAIN_RESOURCES = "src/" + MAIN_RESOURCES;
 
-    public static final String JAVA_TESTS = "test";
+    public static final String SRC_MAIN = "src/main";
+    public static final String JSON_MODEL_SUB_DIR = "model";
+    public static final String SRC_MAIN_MODEL = SRC_MAIN + "/" + JSON_MODEL_SUB_DIR;
+    public static final String MODEL_JSON = "model.json";
+    public static final String JSON_MODEL_FULL_PATH = SRC_MAIN_MODEL + "/" + MODEL_JSON;
 
     // Enforce utility nature upon class
     private StudioPsiUtils() {}
@@ -78,14 +82,14 @@ public class StudioPsiUtils {
         PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(UiContext.getProject(projectKey), GENERATED_CONTENT_ROOT);
         if (jsonModelPsiFile != null) {
             String json = jsonModelPsiFile.getText();
-            Module newModule = ComponentIO.deserializeModuleInstanceString(json, UiContext.JSON_MODEL_FULL_PATH);
+            Module newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
                 LOG.error("STUDIO: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
             }
             UiContext.setIkasanModule(projectKey, newModule);
         } else {
-            LOG.info("STUDIO: Could not read the " + UiContext.JSON_MODEL_FULL_PATH + ", this is probably a new project");
+            LOG.info("STUDIO: Could not read the " + JSON_MODEL_FULL_PATH + ", this is probably a new project");
         }
     }
 
@@ -157,11 +161,9 @@ public class StudioPsiUtils {
      */
     public static PsiFile pomGetTopLevel(Project project, String containingDirectory) {
         PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
-        if (pomFiles != null && pomFiles.length > 0) {
-            for (PsiFile pomFile : pomFiles) {
-                if (pomFile != null && pomFile.getContainingDirectory().toString().endsWith(containingDirectory)) {
-                    return pomFile;
-                }
+        for (PsiFile pomFile : pomFiles) {
+            if (pomFile != null && pomFile.getContainingDirectory().toString().endsWith(containingDirectory)) {
+                return pomFile;
             }
         }
         LOG.warn("Studio: Warn: Could not find any pom.xml " + project.getName());
@@ -185,10 +187,10 @@ public class StudioPsiUtils {
     public static PsiJavaFile createJavaSourceFile(final Project project, final String contentRoot, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
         PsiJavaFile newPsiFile = null;
         String fileName = clazzName + ".java";
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, StudioPsiUtils.SRC_JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
         if (sourceRoot == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("Studio: Serious: createJavaSourceFile cant find sourceRoot for a contentRoot of " + contentRoot + " and directory " + StudioPsiUtils.SRC_JAVA_CODE + " trace:" + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("Studio: Serious: createJavaSourceFile cant find sourceRoot for a contentRoot of " + contentRoot + " and directory " + StudioPsiUtils.SRC_MAIN_JAVA_CODE + " trace:" + Arrays.toString(thread.getStackTrace()));
         } else {
             PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
             PsiDirectory myPackage = StudioPsiUtils.createPackage(baseDir, packageName);
@@ -222,12 +224,12 @@ public class StudioPsiUtils {
     }
 
     public static PsiFile createJsonModelFile(final Project project, final String contentRoot, final String content) {
-        return createFile(project, contentRoot, UiContext.JSON_MODEL_PARENT_DIR, UiContext.JSON_MODEL_SUB_DIR,
-                UiContext.JSON_MODEL_FILE_WITH_EXTENSION, content, false);
+        return createFile(project, contentRoot, SRC_MAIN, JSON_MODEL_SUB_DIR,
+                MODEL_JSON, content, false);
     }
 
     public static PsiFile createResourceFile(final Project project, final String contentRoot, final String subDir, final  String fileNameWithExtension, final String content, boolean focus) {
-        return createFile(project, contentRoot, StudioPsiUtils.SRC_JAVA_RESOURCES, subDir, fileNameWithExtension, content, focus);
+        return createFile(project, contentRoot, StudioPsiUtils.SRC_MAIN_RESOURCES, subDir, fileNameWithExtension, content, focus);
     }
 
     public static PsiFile createFile(final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
@@ -254,7 +256,7 @@ public class StudioPsiUtils {
             }
         } else {
             //@todo add this to system alerts in Intellij
-            LOG.warn("STUDIO: The resources directory was missing, please add it and restart the project, could not save file " + fileNameWithExtension);
+            LOG.warn("STUDIO: SERIOUS: Could no create file [" + fileNameWithExtension + "] in contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "]");
         }
 
         return psiFile;
@@ -319,7 +321,7 @@ public class StudioPsiUtils {
      * @param relativeRootDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
-    public static VirtualFile getSourceDirectoryForContentRoot(Project project, final String contentRoot, String relativeRootDir) {
+    public static VirtualFile getSourceDirectoryForContentRoot1(Project project, final String contentRoot, String relativeRootDir) {
         String targetDirectory = contentRoot + "/" +relativeRootDir;
         VirtualFile sourceCodeRoot = null;
         VirtualFile[] srcRootVFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
@@ -331,10 +333,55 @@ public class StudioPsiUtils {
         }
         if (sourceCodeRoot == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: WARN: Could not find any source roots for project " + project + " and contentRoot " + contentRoot + " annd relatveRoot " + relativeRootDir + " trace:" + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("STUDIO: WARN: Could not find any source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relatveRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
         }
         return sourceCodeRoot;
     }
+
+
+    /**
+     * Get the source root that contains the supplied string, possible to get java source, resources or test
+     * @param project to work on
+     * @param relativeRootDir to look for e.g. main/java, main/resources
+     * @return the rood of the module / source directory that contains the supplied string.
+     */
+    public static VirtualFile getSourceDirectoryForContentRoot(Project project, final String contentRoot, String relativeRootDir) {
+
+        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
+        VirtualFile sourceCodeRoot = null;
+        VirtualFile[] srcRootVFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
+        for (VirtualFile vFile : srcRootVFiles) {
+            if (vFile.toString().endsWith(targetDirectory)) {
+                sourceCodeRoot = vFile;
+                break;
+            }
+        }
+
+        // Try any root that mayb contain this directory
+        if (sourceCodeRoot == null) {
+            for (VirtualFile vFile : srcRootVFiles) {
+                if (vFile.toString().contains(targetDirectory)) {
+                    sourceCodeRoot = vFile;
+                    break;
+                }
+            }
+            // Now creep up parent till we get exact match
+            while (sourceCodeRoot != null && sourceCodeRoot.getParent() != null) {
+                sourceCodeRoot = sourceCodeRoot.getParent();
+                if (sourceCodeRoot.toString().endsWith(targetDirectory)) {
+                    break;
+                }
+            }
+        }
+        if (sourceCodeRoot == null) {
+            Thread thread = Thread.currentThread();
+            LOG.warn("STUDIO: WARN: Could not find any source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relatveRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
+        }
+        return sourceCodeRoot;
+    }
+
+
+
 
 
     public static PsiFile getModelFile(final Project project, final String contentRoot) {
@@ -347,9 +394,9 @@ public class StudioPsiUtils {
 //            LOG.warn("STUDIO: Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
 //        } else {
 //            VirtualFile contentRoot = contentRootVFiles[0];
-            jsonModel = getFileFromPath(project, selectedContentRoot, "src/" + UiContext.JSON_MODEL_FULL_PATH);
+            jsonModel = getFileFromPath(project, selectedContentRoot, JSON_MODEL_FULL_PATH);
             if (jsonModel == null) {
-                LOG.warn("STUDIO: Could not get file from path " + "src/" + UiContext.JSON_MODEL_FULL_PATH);
+                LOG.warn("STUDIO: Could not get file from path " + JSON_MODEL_FULL_PATH);
             }
         }
         return jsonModel;
@@ -390,6 +437,35 @@ public class StudioPsiUtils {
             }
         }
         return returnDirectory;
+    }
+
+    public static PsiDirectory getOrCreateDirectory(final Project project, final String contentRoot, final String relativeRootDir) {
+        PsiDirectory targetDir = null;
+
+        // First, does it exist
+        VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, relativeRootDir);
+
+        // if not, create the relevant directories
+        if (sourceCodeRoot == null) {
+
+            VirtualFile selectedContentRoot = getSpecificContentRoot(project, contentRoot);
+            if (selectedContentRoot != null) {
+//            VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
+//
+//
+//            if (contentRootVFiles == null || contentRootVFiles.length != 1) {
+//                LOG.warn("STUDIO: Could not find the source root for directory [" + relativeRootDir + "] or the content root [" + Arrays.toString(contentRootVFiles) + "]");
+//            } else {
+//                // get the content root that end with passed in content rood
+//                VirtualFile selectedContentRoot = contentRootVFiles[0];
+                PsiDirectory contentDir = PsiDirectoryFactory.getInstance(project).createDirectory(selectedContentRoot);
+                PsiDirectory srcDir = StudioPsiUtils.createOrGetDirectory(contentDir, "src");
+                targetDir = StudioPsiUtils.createOrGetDirectory(srcDir, relativeRootDir);
+            }
+        } else {
+            targetDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceCodeRoot);
+        }
+        return targetDir;
     }
 
     public static PsiDirectory getOrCreateDirectoryInContentRoot(final Project project, final String contentRoot, final String relativeRootDir) {
@@ -472,7 +548,7 @@ public class StudioPsiUtils {
      * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
      */
     public static void deleteSubPackagesNotIn(Project project, final String contentRoot, String basePackage, Set<String> subPackagesToKeep) {
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, StudioPsiUtils.SRC_JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
         PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
         if (leafPackageDirectory != null) {

@@ -25,18 +25,15 @@ import java.util.TreeMap;
 public enum UiContext {
     INSTANCE;
     public static final String JAVA_FILE_EXTENSION = "java";
-    public static final String JSON_FILE_EXTENSION = "json";
     public static final String XML_FILE_EXTENSION = "xml";
 
     private static final String CANVAS_PANEL = "canvasPanel";
     private static final String PROJECT = "project";
     private static final String VIEW_HANDLER_FACTORY = "viewHandlerFactory";
-    private static final String APPLICATION_PROPERTIES = "applicationProperties";
     private static final String OPTIONS = "options";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
     private static final String PROPERTIES_TAB_PANEL = "propertiesTabPanel";
     private static final String PALETTE_PANEL = "palettePanel";
-//    private static final String PROPERTIES_AND_CANVAS_SPLITPANE = "propertiesAndCanvasSplitPane";
     private static final String RIGHT_TABBED_PANE = "rightTabbedPane";
     public static final String PROPERTIES_TAB_TITLE = "Properties";
     public static final String PALETTE_TAB_TITLE = "Palette";
@@ -48,11 +45,7 @@ public enum UiContext {
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
 
-    public static final String JSON_MODEL_PARENT_DIR = "main";
-    public static final String JSON_MODEL_SUB_DIR = "model";
-    public static final String JSON_MODEL_DIR = JSON_MODEL_PARENT_DIR + "/" + JSON_MODEL_SUB_DIR;
-    public static final String JSON_MODEL_FILE_WITH_EXTENSION = "model.json";
-    public static final String JSON_MODEL_FULL_PATH = JSON_MODEL_DIR + "/" + JSON_MODEL_FILE_WITH_EXTENSION;
+
 
     // projectName -> region -> value
     // e.g. myProject -> INSTANCE.IKASAN_MODULE -> actualModule
