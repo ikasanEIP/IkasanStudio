@@ -109,11 +109,13 @@ public class StudioPsiUtils {
                 for (Dependency newDependency : newDependencies) {
                     ikasanPomModel.checkIfDependancyAlreadyExists(newDependency);
                 }
-            }
-            pomAddStandardProperties(ikasanPomModel);
-            if (ikasanPomModel.isDirty()) {
-                parentPomSaveToVirtualDisk(project, ikasanPomModel);
+                pomAddStandardProperties(ikasanPomModel);
+                if (ikasanPomModel.isDirty()) {
+                    parentPomSaveToVirtualDisk(project, ikasanPomModel);
 //            ProjectManager.createFlowElement().reloadProject(project);
+                }
+            } else {
+                LOG.warn("STUDIO: WARN: checkForDependencyChangesAndSaveIfChanged invoked but ikasanPomModel was null project [" + projectKey +"] newDependencies [" + newDependencies + "]");
             }
         }
     }
@@ -187,7 +189,7 @@ public class StudioPsiUtils {
     public static PsiJavaFile createJavaSourceFile(final Project project, final String contentRoot, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
         PsiJavaFile newPsiFile = null;
         String fileName = clazzName + ".java";
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, project.getBasePath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
         if (sourceRoot == null) {
             Thread thread = Thread.currentThread();
             LOG.warn("Studio: Serious: createJavaSourceFile cant find sourceRoot for a contentRoot of " + contentRoot + " and directory " + StudioPsiUtils.SRC_MAIN_JAVA_CODE + " trace:" + Arrays.toString(thread.getStackTrace()));
@@ -314,40 +316,16 @@ public class StudioPsiUtils {
         LOG.info("STUDIO: Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
     }
 
-
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
      * @param project to work on
      * @param relativeRootDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
-    public static VirtualFile getSourceDirectoryForContentRoot1(Project project, final String contentRoot, String relativeRootDir) {
-        String targetDirectory = contentRoot + "/" +relativeRootDir;
-        VirtualFile sourceCodeRoot = null;
-        VirtualFile[] srcRootVFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
-        for (VirtualFile vFile : srcRootVFiles) {
-            if (vFile.toString().endsWith(targetDirectory)) {
-                sourceCodeRoot = vFile;
-                break;
-            }
-        }
-        if (sourceCodeRoot == null) {
-            Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: WARN: Could not find any source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relatveRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
-        }
-        return sourceCodeRoot;
-    }
+    public static VirtualFile getSourceDirectoryForContentRoot(Project project, final String basePath, final String contentRoot, String relativeRootDir) {
 
-
-    /**
-     * Get the source root that contains the supplied string, possible to get java source, resources or test
-     * @param project to work on
-     * @param relativeRootDir to look for e.g. main/java, main/resources
-     * @return the rood of the module / source directory that contains the supplied string.
-     */
-    public static VirtualFile getSourceDirectoryForContentRoot(Project project, final String contentRoot, String relativeRootDir) {
-
-        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
+//        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
+        String targetDirectory = basePath + contentRoot + "/" + relativeRootDir;
         VirtualFile sourceCodeRoot = null;
         VirtualFile[] srcRootVFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
         for (VirtualFile vFile : srcRootVFiles) {
@@ -443,7 +421,7 @@ public class StudioPsiUtils {
         PsiDirectory targetDir = null;
 
         // First, does it exist
-        VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, relativeRootDir);
+        VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, project.getBasePath(), contentRoot, relativeRootDir);
 
         // if not, create the relevant directories
         if (sourceCodeRoot == null) {
@@ -472,7 +450,7 @@ public class StudioPsiUtils {
         PsiDirectory targetDir = null;
 
         // First, does it exist
-        VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, relativeRootDir);
+        VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, project.getBasePath(), contentRoot, relativeRootDir);
 
         // if not, create the relevant directories
         if (sourceCodeRoot == null) {
@@ -548,7 +526,7 @@ public class StudioPsiUtils {
      * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
      */
     public static void deleteSubPackagesNotIn(Project project, final String contentRoot, String basePackage, Set<String> subPackagesToKeep) {
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, project.getBasePath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
         PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
         if (leafPackageDirectory != null) {

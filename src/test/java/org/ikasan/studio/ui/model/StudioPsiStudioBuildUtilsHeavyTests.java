@@ -50,7 +50,7 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
 
 
     private PsiDirectory createPackageFixture(String packageName) {
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.MAIN_JAVA);
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, "", StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.MAIN_JAVA);
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
         ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject,
                 () -> StudioPsiUtils.createPackage(baseDir, packageName), "Name of the Command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION));
@@ -118,7 +118,9 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
 
         // Once finished altering the psi document, we need to call the postProcessing (formatting) and commit method
         PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
-        documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
+        if (documentManager != null) {
+            documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
+        }
     }
 
 }

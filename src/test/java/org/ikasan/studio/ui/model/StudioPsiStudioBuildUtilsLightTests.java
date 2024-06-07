@@ -17,7 +17,7 @@ import static org.ikasan.studio.ui.model.StudioPsiUtils.TEMP_CONTENT_ROOT;
 /**
  * Light tests reuse a project from the previous test run when possible, they are quicker and therefore advised
  * </p>
- * https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html
+ * <a href="https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html">...</a>
  * </p>
  * Before executing each test, the project instance will be reused if the test case returns the same project descriptor
  * as the previous one or recreated if the descriptor is different (equals() = false).
@@ -72,7 +72,7 @@ public class StudioPsiStudioBuildUtilsLightTests extends LightJavaCodeInsightFix
 
     private PsiDirectory createPackageFixture(String packageName) {
         Project myProject = myFixture.getProject();
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, TEMP_CONTENT_ROOT, "src");
+        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, "", TEMP_CONTENT_ROOT, "src");
         PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
 
         // This may be an async call but example tests in Intellij community indicate it is safe to assume it completes
@@ -83,7 +83,7 @@ public class StudioPsiStudioBuildUtilsLightTests extends LightJavaCodeInsightFix
                 () -> {
                     StudioPsiUtils.createPackage(baseDir, packageName);
                 }),
-                "Create package fixture",
+                "Create Package Fixture",
                 "Undo group ID");
         return baseDir;
     }
