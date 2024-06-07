@@ -79,7 +79,7 @@ class ComponentIOSerializeTest {
     @Test
     public void testDebugIsNotSerialisedToJson() throws IOException, StudioBuildException {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlowWithDebugOnEachElement());
-        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/debug_populated_flow.json"), jsonString);
     }
 
 }
