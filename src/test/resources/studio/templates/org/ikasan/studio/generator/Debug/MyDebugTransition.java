@@ -1,8 +1,7 @@
 package org.ikasan;
 
 /**
-* The only purpose of this component is to allow the developer to set breakpoints inbetween components.
-* The components will not be saved away when the project closes, do not add any code here you wish to keep
+* The purpose of this component is to allow the developer to set breakpoints in between components and inspect the payload
 */
 
 import org.springframework.stereotype.Component;
@@ -12,9 +11,16 @@ import org.ikasan.studio.component.DebugTransitionComponent;
 
 public class AToBConvertMyFlow1SetByIDEEndingInDebugDebug extends org.ikasan.studio.component.DebugTransitionComponent
 {
-public void debug(java.lang.Object message)
+
+/**
+* Allow use to view a clone of the message payload.
+* This component will have no effect on the payload, and it will not alter the flow of any messages
+* @param clonedMessage is a copy of the payload.
+*/
+public void debug(java.lang.Object clonedMessage)
 {
-System.out.println("Flow Debug Invoked");
+// Add breakpoints here
+System.out.println("Flow Debug Invoked " + clonedMessage.toString());
 }
 
 }
