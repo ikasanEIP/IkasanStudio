@@ -56,17 +56,18 @@
     },
     "connectionFactoryName": {
       "propertyName": "connectionFactoryName",
+      "defaultValue": "ConnectionFactory",
       "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
+      "___propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
       "usageDataType":"java.lang.String"
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
       "defaultValue": "admin",
       "helpText": "Id set on the JMS connection for durable subscribers.",
-      "mandatory": true,
+      "mandatory": false,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
       "usageDataType":"java.lang.String"
@@ -75,7 +76,7 @@
       "propertyName": "connectionFactoryUsername",
       "defaultValue": "admin",
       "helpText": "Authentication principal.",
-      "mandatory": true,
+      "mandatory": false,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
       "usageDataType":"java.lang.String"

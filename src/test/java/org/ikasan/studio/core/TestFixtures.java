@@ -256,7 +256,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityPrincipal", "myConnectionFactoryJndiPropertySecurityPrincipal");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyUrlPkgPrefixes", "myConnectionFactoryJndiPropertyUrlPkgPrefixes");
-        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryName", "ConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
         flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
         flowElement.setPropertyValue("connectionPassword", "myConnectionPassword");
@@ -294,7 +294,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuredResourceId", "__module__flow__component");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
-        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryName", "ConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
         flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
         flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
@@ -554,7 +554,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityPrincipal", "myConnectionFactoryJndiPropertySecurityPrincipal");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyUrlPkgPrefixes", "myConnectionFactoryJndiPropertyUrlPkgPrefixes");
-        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryName", "ConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
         flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
         flowElement.setPropertyValue("connectionPassword", "myConnectionPassword");
@@ -596,7 +596,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
-        flowElement.setPropertyValue("connectionFactoryName", "myConnectionFactoryName");
+        flowElement.setPropertyValue("connectionFactoryName", "ConnectionFactory");
         flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
         flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
         flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");

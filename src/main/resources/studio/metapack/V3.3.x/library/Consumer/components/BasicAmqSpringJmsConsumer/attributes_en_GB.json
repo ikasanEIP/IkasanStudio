@@ -40,7 +40,7 @@
       "propertyName": "configuredResourceId",
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don'twant to update properties that may have already been stored in the override properties database.",
-      "mandatory": true,
+      "mandatory": false,
       "setterProperty": true,
       "usageDataType":"java.lang.String"
     },
@@ -58,23 +58,33 @@
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
-      "setterProperty": true,
+      "mandatory": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url",
-    "usageDataType":"java.lang.String"
+      "setterProperty": true,
+      "usageDataType":"java.lang.String"
     },
     "connectionFactoryName": {
       "propertyName": "connectionFactoryName",
+      "defaultValue": "ConnectionFactory",
       "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
       "mandatory": true,
       "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
+      "___propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
       "usageDataType":"java.lang.String"
+    },
+    "autoContentConversion": {
+      "propertyName": "autoContentConversion",
+      "defaultValue": "true",
+      "helpText": "",
+      "mandatory": false,
+      "setterProperty": true,
+      "usageDataType":"java.lang.Boolean"
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
       "defaultValue": "admin",
       "helpText": "Id set on the JMS connection for durable subscribers.",
-      "mandatory": true,
+      "mandatory": false,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
       "usageDataType":"java.lang.String"
@@ -83,7 +93,7 @@
       "propertyName": "connectionFactoryUsername",
       "defaultValue": "admin",
       "helpText": "Authentication principal.",
-      "mandatory": true,
+      "mandatory": false,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
       "usageDataType":"java.lang.String"

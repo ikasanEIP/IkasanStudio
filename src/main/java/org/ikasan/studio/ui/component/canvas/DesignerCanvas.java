@@ -443,15 +443,15 @@ public class DesignerCanvas extends JPanel {
                 }
             }
 
-            if (targetFlowRoute != null || targetFlow != null) {
+            if ((ikasanBasicElement.getComponentMeta().isDebug() && targetElement instanceof FlowElement && !((FlowElement)targetElement).getComponentMeta().isConsumer()) ||
+                (!ikasanBasicElement.getComponentMeta().isDebug() && (targetFlowRoute != null || targetFlow != null))) {
                 String issue = "";
                 if (targetFlowRoute != null) {
                     issue = targetFlowRoute.issueCausedByAdding(ikasanBasicElement.getComponentMeta());
                 }
                 if (targetFlow != null) {
-                    IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, targetFlow);
                     issue += targetFlow.issueCausedByAdding(ikasanBasicElement.getComponentMeta(), targetFlowRoute);
-
+                    IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, targetFlow);
                     if (issue.isEmpty()) {
                         okToAdd = true;
                         if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
@@ -528,6 +528,7 @@ public class DesignerCanvas extends JPanel {
                 FlowRoute containingFlowRoute = null;
                 if (targetElement instanceof Flow) {
                     containingFlow = (Flow)targetElement;
+                    containingFlowRoute = containingFlow.getFlowRoute();
                 } else if (targetElement instanceof FlowRoute) {
                     containingFlowRoute = (FlowRoute)targetElement;
                     containingFlow = containingFlowRoute.getFlow();
@@ -629,7 +630,8 @@ public class DesignerCanvas extends JPanel {
         }
 
         if (newComponent.getComponentMeta().isDebug()) {
-            newComponent.defaultUnsetMandatoryProperties();
+            FlowElement newFlowComponent = (FlowElement)newComponent;
+            newFlowComponent.defaultUnsetMandatoryProperties();
         }
 
         if (newComponent.hasUnsetMandatoryProperties()) {

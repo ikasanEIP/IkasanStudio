@@ -6,7 +6,6 @@
   "properties": {
     "configurationId": {
       "propertyName": "configurationId",
-      "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
