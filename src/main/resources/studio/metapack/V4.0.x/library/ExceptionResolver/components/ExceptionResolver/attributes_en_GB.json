@@ -54,6 +54,8 @@
       "actionProperties":{
         "cronExpression": {
           "propertyName": "cronExpression",
+          "dataValidationTyppe" : "cronExpression",
+          "defaultValue": "* * * * * ? *",
           "mandatory": true
         },
         "maxRetries": {

@@ -32,7 +32,7 @@ public class PropertiesPopupDialogue extends DialogWrapper {
         super(project, parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
         propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
-        init();  // which calls createCenterPanel() below so make sure any state is initialised first.
+        init();  // from DialogWrapper which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText(propertiesPanel.getOKButtonText());
     }

@@ -97,6 +97,8 @@
     },
     "cronExpression": {
       "propertyName": "cronExpression",
+      "dataValidationTyppe" : "cronExpression",
+      "defaultValue": "* * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
       "setterProperty": true,
       "mandatory": true,

@@ -6,9 +6,12 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.text.NumberFormat;
@@ -24,6 +27,7 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.STR
 public class ComponentPropertyEditBox {
     private static final Logger LOG = Logger.getInstance("#ComponentPropertyEditBox");
     private final JLabel propertyTitleField;
+    private JButton dataValidationHelper;
     private ComboBox<Object> propertyChoiceValueField;
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
@@ -35,12 +39,12 @@ public class ComponentPropertyEditBox {
     private final String projectKey;
     final EditBoxContainer parent;
 
-    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer parent) {
+    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer editBoxContainer) {
         this.projectKey = projectKey;
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
-        this.parent = parent;
+        this.parent = editBoxContainer;
         Object value = componentProperty.getValue();
         // Optionals properties only get set todefaults via UI action
         if (componentInitialisation && value == null && !meta.isOptional()) {
@@ -52,7 +56,7 @@ public class ComponentPropertyEditBox {
             propertyChoiceValueField = new ComboBox<>();
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
-            propertyChoiceValueField.addItemListener(e -> parent.editBoxChangeListener());
+            propertyChoiceValueField.addItemListener(e -> editBoxContainer.editBoxChangeListener());
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
@@ -62,15 +66,15 @@ public class ComponentPropertyEditBox {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
-                        parent.editBoxChangeListener();
+                        editBoxContainer.editBoxChangeListener();
                     }
                     @Override
                     public void removeUpdate(DocumentEvent e) {
-                        parent.editBoxChangeListener();
+                        editBoxContainer.editBoxChangeListener();
                     }
                     @Override
                     public void changedUpdate(DocumentEvent e) {
-                        parent.editBoxChangeListener();
+                        editBoxContainer.editBoxChangeListener();
                     }
                 });
             }
@@ -84,13 +88,13 @@ public class ComponentPropertyEditBox {
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
                 }
-                parent.editBoxChangeListener();
+                editBoxContainer.editBoxChangeListener();
             });
             propertyBooleanFieldFalse.addActionListener(e -> {
                 if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
                     propertyBooleanFieldTrue.setSelected(false);
                 }
-                parent.editBoxChangeListener();
+                editBoxContainer.editBoxChangeListener();
             });
         } else {
             // STRING INPUT
@@ -106,27 +110,62 @@ public class ComponentPropertyEditBox {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
-                        parent.editBoxChangeListener();
+                        editBoxContainer.editBoxChangeListener();
                     }
                     @Override
                     public void removeUpdate(DocumentEvent e) {
-                        parent.editBoxChangeListener();
+                        editBoxContainer.editBoxChangeListener();
                     }
                     @Override
                     public void changedUpdate(DocumentEvent e) {
-                        parent.editBoxChangeListener();
+                        editBoxContainer.editBoxChangeListener();
                     }
                 });
             }
         }
         resetDataEntryComponentsWithNewValues();
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
+        if (componentProperty.getMeta().getDataValidationTyppe() != null) {
+            dataValidationHelper = new JButton();
+            dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon("Help with cron configuration"));
+            dataValidationHelper.setBorder(new EmptyBorder(5, 15, 5, 15));
+            dataValidationHelper.addActionListener(e -> {
+                doDataValidationHelperPopup();
+            });
+        } else {
+            dataValidationHelper = null;
+        }
 
         if (componentProperty.affectsUserImplementedClass() && !componentInitialisation) {
             affectsUserImplementedClass = true;
             // Cant edit unless the regenerateSource is selected
             controlFieldsAffectingUserImplementedClass(false);
         }
+    }
+
+    private void doDataValidationHelperPopup() {
+        CronPanel cronPanel = new CronPanel(projectKey, (String)getValue());
+//        try {
+//            newResolution = new org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion());
+//        } catch (Exception e) {
+//            StudioUIUtils.displayIdeaWarnMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
+//        }
+//        if (newResolution != null) {
+//            cronPanel.updateTargetComponent(newResolution);
+            CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(
+                    UiContext.getProject(projectKey),
+                    UiContext.getDesignerCanvas(projectKey),
+                    cronPanel);
+            if (cronPopupDialogue.showAndGet()) {
+//                StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
+                componentProperty.setValue(cronPanel.getValue());
+                resetDataEntryComponentsWithNewValues();
+//                exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
+//                hasChanged = true;
+//                resolverPanel.populatePropertiesEditorPanel();
+//                resolverPanel.redrawPanel();
+            }
+//        }
     }
 
     private String getListAsText(List<String> stringList) {
@@ -136,6 +175,7 @@ public class ComponentPropertyEditBox {
         }
         return returnValue;
     }
+
     private String getListAsText(String bracketedCommList) {
         String returnValue = "";
         if (bracketedCommList != null) {
@@ -439,6 +479,9 @@ public class ComponentPropertyEditBox {
 
     public JLabel getPropertyTitleField() {
         return propertyTitleField;
+    }
+    public JButton getDataValidationHelper() {
+        return dataValidationHelper;
     }
     public JFormattedTextField getOverridingInputField() {
         return propertyValueField;
