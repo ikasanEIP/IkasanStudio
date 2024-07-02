@@ -4,7 +4,7 @@ package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
@@ -31,7 +31,7 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
 
                 setText(paletteItem.getIkasanPaletteElementViewHandler().getComponentMeta().getName());
                 setFont(new Font(getFont().getFontName(), Font.BOLD, getFont().getSize()));
-                setForeground(StudioUIUtils.IKASAN_ORANGE);
+                setForeground(Styling.IKASAN_ORANGE);
 
                 setIcon(null);
                 this.setFocusable(false);

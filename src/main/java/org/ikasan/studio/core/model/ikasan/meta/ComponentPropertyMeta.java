@@ -95,6 +95,7 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private List<String> choices;           // The value can be only one of the items in this list
     private String componentType;           // Features in the serialised model.json, the interface or short form type for the property
+    private String dataValidationTyppe;     // Support for popup data entry helpers / data types
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private Object defaultValue = "";       // Default value e.g. displayed when property is created.
@@ -121,7 +122,7 @@ public class ComponentPropertyMeta {
     private String standardBuilderMethod;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private String usageDataType = "";      // The interface od properties that are classes i.e. a user implemented class that must implement this interface
+    private String usageDataType = "";      // The interface of properties that are classes i.e. a user implemented class that must implement this interface
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean userDefineResource=false;       // The user will define the details of the resource within the ResourceFactory.

@@ -445,6 +445,9 @@ public class DesignerCanvas extends JPanel {
 
             if ((ikasanBasicElement.getComponentMeta().isDebug() && targetElement instanceof FlowElement && !((FlowElement)targetElement).getComponentMeta().isConsumer()) ||
                 (!ikasanBasicElement.getComponentMeta().isDebug() && (targetFlowRoute != null || targetFlow != null))) {
+
+                LOG.info("Taget element was " + targetElement);
+
                 String issue = "";
                 if (targetFlowRoute != null) {
                     issue = targetFlowRoute.issueCausedByAdding(ikasanBasicElement.getComponentMeta());
@@ -712,7 +715,9 @@ public class DesignerCanvas extends JPanel {
                     int numberOfComponents = components.size();
 
                     for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
-                        if (components.get(ii).equals(surroundingComponents.getRight())) {
+                        if (components.get(ii).equals(surroundingComponents.getRight()) ||
+                           ((components.get(ii).equals(surroundingComponents.getLeft())) && surroundingComponents.getLeft().getComponentMeta().isProducer()))
+                        {
                             components.add(ii, ikasanFlowComponent);
                             break;
                         } else if (components.get(ii).equals(surroundingComponents.getLeft())) {

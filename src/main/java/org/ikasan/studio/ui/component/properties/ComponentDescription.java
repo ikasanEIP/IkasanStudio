@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.Styling;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +11,7 @@ public class ComponentDescription extends JPanel {
         JPanel helpDescriptionHeaderPanel = new JPanel();
         JLabel descriptionLabel = new JLabel("Description");
         descriptionLabel.setFont(new Font(getFont().getFontName(), Font.BOLD, getFont().getSize()));
-        descriptionLabel.setForeground(StudioUIUtils.IKASAN_ORANGE);
+        descriptionLabel.setForeground(Styling.IKASAN_ORANGE);
         helpDescriptionHeaderPanel.add(descriptionLabel);
 
         JPanel paletteHelpBodyPanel = new JPanel(new BorderLayout());

@@ -4,8 +4,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
+//import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -21,8 +20,7 @@ public class StudioUIUtils {
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
     private StudioUIUtils() {}
 
-    public static final Color IKASAN_GREY = Gray._231;
-    public static final Color IKASAN_ORANGE = new JBColor(new Color(241, 90, 35), new Color(241, 90, 35));
+    //    public static final Color IKASAN_ORANGE = new JBColor(new Color(241, 90, 35), new Color(241, 90, 35));
     private static final Logger LOG = Logger.getInstance("#StudioUIUtils");
 
     public static void setLine(Graphics g, float width) {
@@ -38,13 +36,13 @@ public class StudioUIUtils {
 
     public static void displayErrorMessage(String projectKey, String message) {
         JTextArea canvasTextArea = UiContext.getCanvasTextArea(projectKey);
-        canvasTextArea.setForeground(JBColor.RED);
+        canvasTextArea.setForeground(Styling.IKASAN_RED);
         canvasTextArea.setText(message);
     }
 
     public static void displayMessage(String projectKey, String message) {
         JTextArea canvasTextArea = UiContext.getCanvasTextArea(projectKey);
-        canvasTextArea.setForeground(JBColor.BLACK);
+        canvasTextArea.setForeground(Styling.IKASAN_BLACK);
         canvasTextArea.setText(message);
     }
 
@@ -214,15 +212,15 @@ public class StudioUIUtils {
 
             Color oldColor = g.getColor();
             // Central rectangle
-            g.setColor(JBColor.LIGHT_GRAY);
+            g.setColor(Styling.IKASAN_GREY);
             g.fillRect(popupX, popupY, width, height);
 
             // Border
-            g.setColor(JBColor.RED);
+            g.setColor(Styling.IKASAN_RED);
             g.drawRect(popupX, popupY, width, height);
 
             // Text
-            g.setColor(JBColor.BLACK);
+            g.setColor(Styling.IKASAN_BLACK);
             StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, text, popupX + 3, popupY + 3, font);
             g.setColor(oldColor);
         }

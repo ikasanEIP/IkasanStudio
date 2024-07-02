@@ -134,8 +134,11 @@ public class FlowRoute  implements IkasanComponent {
         if (childRoutes != null) {
             status = childRoutes.stream().map(FlowRoute::getFlowIntegrityStatus).collect(Collectors.joining (","));
         }
+        if (!flow.hasConsumer()) {
+            status += "The flow needs a consumer. ";
+        }
         if (! hasProducer()) {
-            status += "The flow needs a producer";
+            status += "The flow needs a producer. ";
         }
         return status;
     }

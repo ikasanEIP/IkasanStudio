@@ -231,8 +231,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                     componentPropertyEditBox.resetDataEntryComponentsWithNoValue();
                 }
             }
-            // set all values to null
-            System.out.println("Here is where I set all optional values to null");
         }
         if (getPropertiesDialogue() != null) {
             getPropertiesDialogue().pack();
@@ -330,7 +328,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      */
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(projectKey, componentProperty, componentInitialisation, this);
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }
 
@@ -344,11 +342,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndParamInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
+    private void addLabelAndParamInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, ComponentInput componentInput) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
         propertiesEditorPanel.add(propertyLabel, gc);
+        ++gc.gridx;
+        if (helpButton != null) {
+            propertiesEditorPanel.add(helpButton, gc);
+        }
         ++gc.gridx;
         if (!componentInput.isBooleanInput()) {
             gc.weightx = 1.0;

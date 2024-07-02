@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.Styling;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,7 +51,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     private void paintFlowRectangle(Graphics g, int x, int y, int width, int height) {
         Color oldColor = g.getColor();
         // Central rectangle
-        g.setColor(StudioUIUtils.IKASAN_GREY);
+        g.setColor(Styling.IKASAN_GREY);
         g.fillRoundRect(x, y, width, height, CONTAINER_CORNER_ARC, CONTAINER_CORNER_ARC);
         g.setColor(oldColor);
     }

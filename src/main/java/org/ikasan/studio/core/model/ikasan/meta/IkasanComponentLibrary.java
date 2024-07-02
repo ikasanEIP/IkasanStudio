@@ -23,9 +23,9 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentMeta.GENERIC_KEY
  * This class aggregates all the defined Ikasan components
  */
 public class IkasanComponentLibrary {
-    private static final String RESOURCE_BASE_BASE_DIR = "studio/";
+    private static final String RESOURCE_BASE_DIR = "studio/";
     private static final String METAPACK_BASE_BASE_DIR = "studio/metapack";
-    private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_BASE_DIR + "icons/";
+    private static final String GENERAL_ICONS_DIR = RESOURCE_BASE_DIR + "icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
     public static final String DEFAULT_IKASAN_PACK = "V3.3.x";  // Short term convenience, long term this must be pak driven
 
@@ -149,6 +149,18 @@ public class IkasanComponentLibrary {
                     returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
                     mandatoryComponents + " so will be ignored");
         }
+    }
+
+    public static Icon getSmallHelpIcon(String description) {
+
+        ImageIcon imageIcon;
+        String iconLocation = GENERAL_ICONS_DIR + "/help.png";
+        URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
+        if (iconURL == null) {
+            LOG.warn("STUDIO: Could not create Icon for " + iconLocation + " using default");
+        }
+        imageIcon = new ImageIcon(iconURL, description);
+        return imageIcon;
     }
 
     /**
