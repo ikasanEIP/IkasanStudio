@@ -714,15 +714,18 @@ public class DesignerCanvas extends JPanel {
                     List<FlowElement> components = targetRoute.getFlowElements();
                     int numberOfComponents = components.size();
 
-                    for (int ii = 0 ; ii < numberOfComponents ; ii++ ) {
-                        if (components.get(ii).equals(surroundingComponents.getRight()) ||
-                           ((components.get(ii).equals(surroundingComponents.getLeft())) && surroundingComponents.getLeft().getComponentMeta().isProducer()))
-                        {
-                            components.add(ii, ikasanFlowComponent);
-                            break;
-                        } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                            components.add(ii+1, ikasanFlowComponent);
-                            break;
+                    if (numberOfComponents == 0) {
+                        components.add(0, ikasanFlowComponent);
+                    } else {
+                        for (int ii = 0; ii < numberOfComponents; ii++) {
+                            if (components.get(ii).equals(surroundingComponents.getRight()) ||
+                                    ((components.get(ii).equals(surroundingComponents.getLeft())) && surroundingComponents.getLeft().getComponentMeta().isProducer())) {
+                                components.add(ii, ikasanFlowComponent);
+                                break;
+                            } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
+                                components.add(ii + 1, ikasanFlowComponent);
+                                break;
+                            }
                         }
                     }
                 }
