@@ -31,6 +31,7 @@ public enum UiContext {
     private static final String PROJECT = "project";
     private static final String VIEW_HANDLER_FACTORY = "viewHandlerFactory";
     private static final String OPTIONS = "options";
+    private static final String APPLICATION_PROPERTIES = "application_properties";
     private static final String PROPERTIES_PANEL = "propertiesPanel";
     private static final String PROPERTIES_TAB_PANEL = "propertiesTabPanel";
     private static final String PALETTE_PANEL = "palettePanel";
@@ -92,9 +93,25 @@ public enum UiContext {
     public static void setProject(String projectKey, Project project) {
         putProjectCache(projectKey, PROJECT, project);
     }
+
     public static ViewHandlerFactoryIntellij getViewHandlerFactory(String projectKey) {
         return (ViewHandlerFactoryIntellij)getProjectCache(projectKey, VIEW_HANDLER_FACTORY);
     }
+    public static Map<String, String> getApplicationProperties(String projectKey) {
+        Map<String, String> applicationProperties = (Map)getProjectCache(projectKey, APPLICATION_PROPERTIES);
+        if (applicationProperties == null) {
+            applicationProperties = StudioPsiUtils.getApplicationPropertiesMapFromVirtualDisk(getProject(projectKey));
+            if (applicationProperties != null) {
+                setApplicationProperties(projectKey, applicationProperties);
+            }
+        }
+        return applicationProperties;
+    }
+
+    public static void setApplicationProperties(String projectKey, Map<String, String> applicationProperties) {
+        putProjectCache(projectKey, APPLICATION_PROPERTIES, applicationProperties);
+    }
+
 
     public static void setViewHandlerFactory(String projectKey, ViewHandlerFactoryIntellij viewHandlerFactory) {
         putProjectCache(projectKey, VIEW_HANDLER_FACTORY, viewHandlerFactory);

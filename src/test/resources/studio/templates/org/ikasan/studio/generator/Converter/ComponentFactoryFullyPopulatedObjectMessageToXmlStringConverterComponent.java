@@ -14,7 +14,8 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-
+@org.springframework.beans.factory.annotation.Value("${myflow1.xml.converter.objectClasses}")
+java.lang.String myFlow1XmlConverterObjectClasses;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -28,7 +29,7 @@ public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToXM
 .setNamespaceURI(myNamespaceURI)
 .setNoNamespaceSchema(true)
 .setObjectClasses(class java.lang.String)
-.setObjectClasses({'String.class','String.class'})
+.setObjectClasses(myFlow1XmlConverterObjectClasses)
 .setRootClassName(java.lang.String)
 .setRootName(myRootName)
 .setRouteOnValidationException(true)

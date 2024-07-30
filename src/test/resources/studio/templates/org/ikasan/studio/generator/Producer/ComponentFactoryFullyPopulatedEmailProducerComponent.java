@@ -14,16 +14,19 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.bccRecipients}'.split(',')}")
+java.util.List<String> myFlow1EmailProducerBccRecipients;
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.ccRecipients}'.split(',')}")
+java.util.List<String> myFlow1EmailProducerCcRecipients;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyEmailProducer() {
 return builderFactory.getComponentBuilder().emailProducer()
 .setBccRecipient(myBccRecipient)
-.setBccRecipients({'bcc1','bcc2'})
+.setBccRecipients(myFlow1EmailProducerBccRecipients)
 .setCcRecipient(myCcRecipient)
-.setCcRecipients( {'cc1','cc2'})
+.setCcRecipients(myFlow1EmailProducerCcRecipients)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setCriticalOnStartup(true)
@@ -47,7 +50,7 @@ return builderFactory.getComponentBuilder().emailProducer()
 .setMailSubject(myMailSubject)
 .setMailhost(myMailhostAddress)
 .setToRecipient(myToRecipient)
-.setToRecipients({'to1','to2'})
+.setToRecipients(to1,to2)
 .setTransportProtocol(myTransportProtocol)
 .setUser(myUser)
 .build();

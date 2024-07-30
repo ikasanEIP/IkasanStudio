@@ -19,6 +19,7 @@ import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
@@ -130,7 +131,19 @@ public class PIPSIIkasanModel {
      * @param module for this code
      */
     private void saveApplication(Project project, Module module) {
-        // First do the template
+        // The H2 Launcher
+        // @TODO this only needs to be done once.
+        String h2StartStopPomString  = null;
+        try {
+            h2StartStopPomString = H2StartStopTemplate.create();
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(projectKey, "An error has occurred generating the h2StartStopPomString, attempting to continue. Error was " + e.getMessage());
+        }
+        if (h2StartStopPomString != null) {
+            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, null, "h2", StudioPsiUtils.POM_XML, h2StartStopPomString, false);
+        }
+
+        // The SpringBoot startup
         String applicationTemplateString  = null;
         try {
             applicationTemplateString = ApplicationTemplate.create(module);
@@ -152,8 +165,6 @@ public class PIPSIIkasanModel {
 //            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, DebugTransitionComponentTemplate.STUDIO_DEBUG_COMPONENT_PACKAGE, DebugTransitionComponentTemplate.STUDIO_DEBUG_COMPONENT_CLASS_NAME, debugTransitionComponentString, true, true);
 //        }
     }
-
-
 
     private void saveFlow(Project project, Module module) {
         Set<String> flowPackageNames = new HashSet<>();
@@ -284,11 +295,13 @@ public class PIPSIIkasanModel {
         String templateString = null;
         try {
             templateString = PropertiesTemplate.create(module);
+            Map<String, String> applicationProperties = StudioBuildUtils.convertStringToMap(templateString);
+            UiContext.setApplicationProperties(projectKey, applicationProperties);
         } catch (StudioGeneratorException e) {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (templateString != null) {
-            StudioPsiUtils.createResourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
+            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
         }
     }
 }

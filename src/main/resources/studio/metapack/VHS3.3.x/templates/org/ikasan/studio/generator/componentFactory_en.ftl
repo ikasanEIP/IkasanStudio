@@ -29,8 +29,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#list flowElement.getStandardComponentProperties()![] as propKey, componentProperty>
         <#if componentProperty.meta.propertyConfigFileLabel?? && componentProperty.value??>
             <#if componentProperty.meta.usageDataType?starts_with("java.util.List")>
-                <#assign f_startTag = r'#{${' >
-                <#assign f_endTag = r'}}' >
+                <#assign f_startTag = r"#{'${" >
+                <#assign f_endTag = r"}'.split(',')}" >
             <#else>
                 <#assign f_startTag = r'${'>
                 <#assign f_endTag = r'}'>

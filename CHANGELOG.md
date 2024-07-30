@@ -3,6 +3,34 @@
 # IkasanStudio Changelog
 
 ## [1.0.0]
+
+#### July
+General
+- Fix property list
+- Improve email producer
+- Expand HelpText
+- Add support for terminal interaction
+- Add support for launching H2 directly from Intellij via use of platform neutral maven commands and Intellij Terminal integratiom
+- Expose application.properties for use inside plugin
+
+Simplify property entry:
+- Add UI helper for any cron based data entry
+- Add dialoge for cron configuration entry
+
+#### June
+General
+- Tune JSM config
+- Simplify prperty substitution into compenent properties
+
+UX
+- Fix bug in startup meta pack
+- For new Maven generated projects, the app name and package name are pre-populated from the maven values.
+- Swap back to palette panel when property update is completed.
+- Enhance debug component look and feel and integration
+
+Fixes
+- Threading issue caused by new release of Intellij
+
 #### May
 General
 - Add further support for user supplied generic components (and their serlaisation).
@@ -17,24 +45,14 @@ MetaPack
 - Fix issues with DefautListSplitter, Local file consumer, JMS consumer, Message Filter
 - Support specific help at component group level (expose in palette)
 
-Simply property entry:
+Simplify property entry:
 - Dialogues have optional properties minimised by default.
 - Provide button to reset to defaults.
 - Provide support to expose and subsequently ignore optional properties.
 
 QA
 - Extend unit tests with Codium AI generated tests.
-
-#### June
-
-UX
-- Fix bug in startup meta pack
-- For new Maven generated projects, the app name and package name are pre-populated from the maven values.
-- Swap back to palette panel when property update is completed.
-- Add UI helper for any cron based data entry
-
-metapackVersion
-
+- 
 #### April - Mature the configuration module and application split
 
 General

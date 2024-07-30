@@ -16,6 +16,8 @@ import com.intellij.testFramework.JavaPsiTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.jetbrains.annotations.NotNull;
 
+import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+
 /**
  * Heavy tests create a new project for each test, where possible use lightweight
  * <a href="https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html">See Jetbrains Documentation</a>
@@ -94,7 +96,7 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
 
     public void test_findFile() {
         StudioPsiUtils.getAllSourceRootsForProject(myProject);
-        String applicationProperties = StudioPsiUtils.findFile(myProject, "application.properties") ;
+        String applicationProperties = StudioPsiUtils.findFile(myProject, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION) ;
         System.out.println(applicationProperties);
         String pom = StudioPsiUtils.findFile(myProject, "pom.xml") ;
         System.out.println(pom);

@@ -16,7 +16,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
 java.lang.String myFlow1FileConsumerCronExpression;
-@org.springframework.beans.factory.annotation.Value("#{${myflow1.file.consumer.filenames}}")
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.file.consumer.filenames}'.split(',')}")
 java.util.List<String> myFlow1FileConsumerFilenames;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;

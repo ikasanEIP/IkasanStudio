@@ -18,8 +18,6 @@ org.ikasan.builder.BuilderFactory builderFactory;
 java.lang.String jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryJndiInitial;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.mybasicamqjspringjmsconsumer.connection.factory.jndi.provider.url}")
 java.lang.String jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryJndiProviderUrl;
-@org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.mybasicamqjspringjmsconsumer.connection.factory.name}")
-java.lang.String jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryName;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.mybasicamqjspringjmsconsumer.connection.factory.password}")
 java.lang.String jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.mybasicamqjspringjmsconsumer.connection.factory.user}")
@@ -41,7 +39,6 @@ return builderFactory.getComponentBuilder().jmsConsumer()
 .setConfiguredResourceId("aToBConvertmyFlow1myBasicAMQJSpringJMSConsumer")
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryJndiProviderUrl)
-.setConnectionFactoryName(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryName)
 .setConnectionFactoryName("ConnectionFactory")
 .setConnectionFactoryPassword(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryPassword)
 .setConnectionFactoryUsername(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryUser)

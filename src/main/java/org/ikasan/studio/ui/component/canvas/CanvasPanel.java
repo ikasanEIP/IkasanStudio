@@ -17,12 +17,13 @@ public class CanvasPanel extends JPanel {
 
         JPanel canvasHeaderButtonPanel = new JPanel();
 
-        addButtonsToPanel(canvasHeaderButtonPanel, "Blue", new LaunchBlueAction(projectKey), "Start the blue consolein a browser");
-        addButtonsToPanel(canvasHeaderButtonPanel, "H2", new LaunchH2Action(projectKey), "Start the H2 console in a browser");
-        addButtonsToPanel(canvasHeaderButtonPanel, "Refresh", new ModelRefreshAction(projectKey), "Refresh the in memory module definition from the JSON");
-        addButtonsToPanel(canvasHeaderButtonPanel, "Rebuild", new ModelRebuildAction(projectKey), "Rebuild the code from the in memory module definition");
-        addButtonsToPanel(canvasHeaderButtonPanel, "Save", new SaveAction(projectKey), "Save the module drawing as an image file");
-        addButtonsToPanel(canvasHeaderButtonPanel, "Debug", new DebugAction(projectKey), "Dump information to log files");
+        JButton h2Button = new JButton("H2 start");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(projectKey), "Start the blue consolein a browser");
+        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(projectKey, h2Button), "Start the H2 console in a browser");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Refresh"), new ModelRefreshAction(projectKey), "Refresh the in memory module definition from the JSON");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Rebuild"), new ModelRebuildAction(projectKey), "Rebuild the code from the in memory module definition");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new SaveAction(projectKey), "Save the module drawing as an image file");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(projectKey), "Dump information to log files");
 
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
@@ -58,10 +59,16 @@ public class CanvasPanel extends JPanel {
         add(canvasScrollPane, BorderLayout.CENTER);
     }
 
-    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al, String tooltip) {
-        JButton newButton = new JButton(title);
+    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, JButton newButton, ActionListener al, String tooltip) {
         newButton.addActionListener(al);
         newButton.setToolTipText(tooltip);
         canvasHeaderButtonPanel.add(newButton);
     }
+
+//    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al, String tooltip) {
+//        JButton newButton = new JButton(title);
+//        newButton.addActionListener(al);
+//        newButton.setToolTipText(tooltip);
+//        canvasHeaderButtonPanel.add(newButton);
+//    }
 }

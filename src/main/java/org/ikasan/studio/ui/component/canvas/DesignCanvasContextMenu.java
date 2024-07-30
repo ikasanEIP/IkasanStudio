@@ -82,7 +82,7 @@ public class DesignCanvasContextMenu {
 
     private static JMenuItem createLaunchH2MenuItem(String projectKey, String label) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new LaunchH2Action(projectKey));
+        item.addActionListener(new LaunchH2Action(projectKey, item));
         return item;
     }
 
