@@ -42,6 +42,14 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.34")
     testCompileOnly("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
+//=======
+//    testImplementation("org.ikasan:ikasan-test:3.3.3")
+//    compileOnly ("org.projectlombok:lombok:1.18.32")
+//    annotationProcessor("org.projectlombok:lombok:1.18.32")
+//    testCompileOnly("org.projectlombok:lombok:1.18.32")
+//    testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
+//    // https://mvnrepository.com/artifact/org.apache.maven/maven-embedder
+//    implementation("org.apache.maven:maven-embedder:3.9.8")
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
