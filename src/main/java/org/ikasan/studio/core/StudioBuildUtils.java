@@ -16,6 +16,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -348,4 +350,96 @@ public class StudioBuildUtils {
         }
         return returnList;
     }
+
+
+    /**
+     * When generating the properties file, there is a multi-lined string containing name value pairs.
+     * This method turns that string into a map, exposing application generated application properties for reuse
+     * inside the plugin.
+     * @param multiLineString containing the name valie pairs
+     * @return a name value pair containing the properties defined in the input.
+     */
+    public static Map<String, String> convertStringToMap(String multiLineString) {
+        Map<String, String> map = new HashMap<>();
+        if (multiLineString != null && multiLineString.length() > 2) {
+            // Split the string by new lines
+            String[] lines = multiLineString.split("\\R");
+            for (String line : lines) {
+                int firstEquals = line.indexOf("=");
+                // Split each line by the equals sign
+                if (firstEquals > 0 && !line.startsWith("#")) {
+                    String name = line.substring(0, firstEquals);
+                    String value = line.substring(firstEquals + 1);
+                    map.put(name.trim(), value != null ? value.trim() : value);
+                }
+            }
+        }
+        // Now attempt to replace placeholders with values
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            String value = entry.getValue();
+            List<String> placeHolders = extractLabels(value);
+            for(String label : placeHolders) {
+                String lookupValue = map.get(label);
+                if (lookupValue != null) {
+                    value = value.replace("${"+label+"}", lookupValue);
+                }
+            }
+            entry.setValue(value);
+        }
+
+        System.out.println(map);
+        return map;
+    }
+
+    /**
+     * Given a string that potentially contains placeholders ${label}, attempt to extract the placeholder labels
+     * @param input to be examined
+     * @return a list of placeholder labels or empty list of there were none
+     */
+    public static List<String> extractLabels(String input) {
+        // Define regex patterns for different placeholder formats and capture the variable name
+        String placeholderPattern = "\\$\\{([^}]+)\\}";
+        Pattern pattern = Pattern.compile(placeholderPattern);
+        Matcher matcher = pattern.matcher(input);
+        List<String> labels = new ArrayList<>();
+
+        // Find and add all labels to the list
+        while (matcher.find()) {
+            if (matcher.group(1) != null) {
+                labels.add(matcher.group(1));
+            } else if (matcher.group(2) != null) {
+                labels.add(matcher.group(2));
+            } else if (matcher.group(3) != null) {
+                labels.add(matcher.group(3));
+            }
+        }
+
+        return labels;
+    }
+
+//    /**
+//     * Gven a string that potentially contains placeholders, attempt to extract the placeholders
+//     * @param input to be examined
+//     * @return a list of placeholders or empty list of there were none
+//     */
+//    public static List<String> extractPlaceholders(String input) {
+//        // Define regex patterns for different placeholder formats
+//        String placeholderPattern = "\\$\\{[^}]+\\}|\\{\\{[^}]+\\}\\}|%[^%]+%";
+//
+//        // Compile the pattern
+//        Pattern pattern = Pattern.compile(placeholderPattern);
+//
+//        // Create a matcher for the input string
+//        Matcher matcher = pattern.matcher(input);
+//
+//        // List to hold the extracted placeholders
+//        List<String> placeholders = new ArrayList<>();
+//
+//        // Find and add all placeholders to the list
+//        while (matcher.find()) {
+//            placeholders.add(matcher.group());
+//        }
+//
+//        return placeholders;
+//    }
 }

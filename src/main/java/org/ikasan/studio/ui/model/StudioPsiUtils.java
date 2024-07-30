@@ -18,6 +18,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_SOURCE;
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_TARGET;
+import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
 public class StudioPsiUtils {
     private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
@@ -50,7 +53,9 @@ public class StudioPsiUtils {
     public static final String JSON_MODEL_SUB_DIR = "model";
     public static final String SRC_MAIN_MODEL = SRC_MAIN + "/" + JSON_MODEL_SUB_DIR;
     public static final String MODEL_JSON = "model.json";
+    public static final String POM_XML = "pom.xml";
     public static final String JSON_MODEL_FULL_PATH = SRC_MAIN_MODEL + "/" + MODEL_JSON;
+    public static final String APPLICATION_PROPERTIES_FULL_PATH = SRC_MAIN_RESOURCES + "/" + MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
     // Enforce utility nature upon class
     private StudioPsiUtils() {}
@@ -62,19 +67,38 @@ public class StudioPsiUtils {
      */
     public static IkasanPomModel pomLoadFromVirtualDisk(Project project, String containingDirectory) {
         IkasanPomModel ikasanPomModel = null;
-            Model model;
-            PsiFile pomPsiFile = pomGetTopLevel(project, containingDirectory);
-            if (pomPsiFile != null) {
-                try (Reader reader = new StringReader(pomPsiFile.getText())) {
-                    MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
-                    model = xpp3Reader.read(reader);
-                    ikasanPomModel = new IkasanPomModel(model);
-                    UiContext.setIkasanPomModel(project.getName(), ikasanPomModel);
-                } catch (IOException | XmlPullParserException ex) {
-                    LOG.warn("STUDIO: Unable to load project ikasanPomModel", ex);
-                }
+        Model model;
+        PsiFile pomPsiFile = pomGetTopLevel(project, containingDirectory);
+        if (pomPsiFile != null) {
+            try (Reader reader = new StringReader(pomPsiFile.getText())) {
+                MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+                model = xpp3Reader.read(reader);
+                ikasanPomModel = new IkasanPomModel(model);
+                UiContext.setIkasanPomModel(project.getName(), ikasanPomModel);
+            } catch (IOException | XmlPullParserException ex) {
+                LOG.warn("STUDIO: Unable to load project ikasanPomModel", ex);
             }
+        }
         return ikasanPomModel;
+    }
+
+    /**
+     * Load the content of the major pom
+     * @param project currently being worked on
+     * @return the studio representation of the POM
+     */
+    public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(Project project) {
+        Map<String, String> applicationProperties = null;
+        VirtualFile selectedContentRoot = getSpecificContentRoot(project, StudioPsiUtils.GENERATED_CONTENT_ROOT);
+        if (selectedContentRoot != null) {
+            PsiFile applicationPropertiesVF = getFileFromPath(project, selectedContentRoot, APPLICATION_PROPERTIES_FULL_PATH);
+            if (applicationPropertiesVF == null) {
+                LOG.warn("STUDIO: Could not get application properties file from path " + APPLICATION_PROPERTIES_FULL_PATH);
+            } else {
+                applicationProperties = StudioBuildUtils.convertStringToMap(applicationPropertiesVF.getText());
+            }
+        }
+        return applicationProperties;
     }
 
     //@ todo make a plugin property to switch on / off assumeModuleConfigClass
@@ -225,14 +249,17 @@ public class StudioPsiUtils {
         CodeStyleManager.getInstance(project).reformat(psiFile);
     }
 
+//    public static PsiFile createPomFile(final Project project, final String contentRoot, final String content) {
+//        return createFile(project, contentRoot, "h2", null, POM_XML, content, false);
+//    }
+
     public static PsiFile createJsonModelFile(final Project project, final String contentRoot, final String content) {
-        return createFile(project, contentRoot, SRC_MAIN, JSON_MODEL_SUB_DIR,
-                MODEL_JSON, content, false);
+        return createFile(project, contentRoot, SRC_MAIN, JSON_MODEL_SUB_DIR, MODEL_JSON, content, false);
     }
 
-    public static PsiFile createResourceFile(final Project project, final String contentRoot, final String subDir, final  String fileNameWithExtension, final String content, boolean focus) {
-        return createFile(project, contentRoot, StudioPsiUtils.SRC_MAIN_RESOURCES, subDir, fileNameWithExtension, content, focus);
-    }
+//    public static PsiFile createResourceFile(final Project project, final String contentRoot, final String subDir, final  String fileNameWithExtension, final String content, boolean focus) {
+//        return createFile(project, contentRoot, StudioPsiUtils.SRC_MAIN_RESOURCES, subDir, fileNameWithExtension, content, focus);
+//    }
 
     public static PsiFile createFile(final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
                                      final String fileNameWithExtension, final String content, boolean focus) {
@@ -325,7 +352,7 @@ public class StudioPsiUtils {
     public static VirtualFile getSourceDirectoryForContentRoot(Project project, final String basePath, final String contentRoot, String relativeRootDir) {
 
 //        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
-        String targetDirectory = basePath + contentRoot + "/" + relativeRootDir;
+        String targetDirectory = basePath + contentRoot + (relativeRootDir != null ? "/" + relativeRootDir : "");
         VirtualFile sourceCodeRoot = null;
         VirtualFile[] srcRootVFiles = ProjectRootManager.getInstance(project).getContentSourceRoots();
         for (VirtualFile vFile : srcRootVFiles) {
@@ -335,7 +362,7 @@ public class StudioPsiUtils {
             }
         }
 
-        // Try any root that mayb contain this directory
+        // Try any root that maybe contain this directory
         if (sourceCodeRoot == null) {
             for (VirtualFile vFile : srcRootVFiles) {
                 if (vFile.toString().contains(targetDirectory)) {
@@ -353,14 +380,10 @@ public class StudioPsiUtils {
         }
         if (sourceCodeRoot == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: WARN: Could not find any source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relatveRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
+            LOG.warn("STUDIO: WARN: Could not find any source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relativeRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
         }
         return sourceCodeRoot;
     }
-
-
-
-
 
     public static PsiFile getModelFile(final Project project, final String contentRoot) {
         PsiFile jsonModel = null;
@@ -379,7 +402,6 @@ public class StudioPsiUtils {
         }
         return jsonModel;
     }
-
 
 
     public static PsiFile getFileFromPath(final Project project, VirtualFile root, String filePath) {
@@ -478,7 +500,7 @@ public class StudioPsiUtils {
     protected static VirtualFile getSpecificContentRoot(final Project project, final String contentRoot) {
         VirtualFile targetContentRoot = null;
         VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
-        if (contentRootVFiles == null || contentRootVFiles.length != 1) {
+        if (contentRootVFiles.length != 1) {
             for (VirtualFile vFile : contentRootVFiles) {
                 if (vFile.toString().endsWith(contentRoot)) {
                     targetContentRoot = vFile;

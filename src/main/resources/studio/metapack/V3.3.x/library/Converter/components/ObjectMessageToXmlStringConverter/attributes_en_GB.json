@@ -63,7 +63,8 @@
     },
     "objectClasses": {
       "propertyName": "objectClasses",
-      "helpText": "Classes of the objects to be serialised.",
+      "helpText": "Classes of the objects to be serialised, enter a comma seperated list of (unquoted) strings",
+      "propertyConfigFileLabel":"__flow.xml.converter.objectClasses",
       "setterProperty": true,
       "usageDataType":"List<java.Lang.Object>"
     },

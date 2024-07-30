@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 import java.util.TreeSet;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -97,5 +98,36 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.toUrlString("as d"), is("as-d"));
         assertThat(StudioBuildUtils.toUrlString("as d    c"), is("as-d-c"));
         assertThat(StudioBuildUtils.toUrlString("Some 1 Text"), is("some-1-text"));
+    }
+
+    @Test
+    public void testConvertStringToMap_with_valid_name_value_map() {
+        String nameValuePairs = "aa=bb\ncc=dd=ee\nff=\n=cc\n#ignore=zz";
+        Map<String, String> nameValueMap = StudioBuildUtils.convertStringToMap(nameValuePairs);
+
+        assertThat(nameValueMap.size(), is(3));
+        assertThat(nameValueMap.get("aa"), is("bb"));
+        assertThat(nameValueMap.get("cc"), is("dd=ee"));
+        assertThat(nameValueMap.get("ff"), is(""));
+    }
+
+    @Test
+    public void testConvertStringToMap_with_valid_name_value_map_replaces_placeholders() {
+        String nameValuePairs = "aa=bb\ncc=${aa}=ee\ndd=xyz\nff=\n=cc\ngg=${aa}-${dd}\nhh=${cat}\n#ignore=zz";
+        Map<String, String> nameValueMap = StudioBuildUtils.convertStringToMap(nameValuePairs);
+
+        assertThat(nameValueMap.size(), is(6));
+        assertThat(nameValueMap.get("aa"), is("bb"));
+        assertThat(nameValueMap.get("cc"), is("bb=ee"));
+        assertThat(nameValueMap.get("ff"), is(""));
+        assertThat(nameValueMap.get("gg"), is("bb-xyz"));
+        assertThat(nameValueMap.get("hh"), is("${cat}"));
+    }
+
+    @Test
+    public void testConvertStringToMap_with_empty_name_value_map() {
+        assertThat(StudioBuildUtils.convertStringToMap("no_equals_signs_present").size(), is(0));
+        assertThat(StudioBuildUtils.convertStringToMap("").size(), is(0));
+        assertThat(StudioBuildUtils.convertStringToMap(null).size(), is(0));
     }
 }

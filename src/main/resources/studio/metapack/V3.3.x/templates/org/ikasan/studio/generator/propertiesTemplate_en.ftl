@@ -35,11 +35,11 @@ datasource.password=sa
 datasource.driver-class-name=org.h2.Driver
 datasource.xadriver-class-name=org.h2.jdbcx.JdbcDataSource
 
-# Comment this out if not running in IDE
-datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-# Use this version when running from command line
-#datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/${r"${module.name}"}-db/esb;IFEXISTS=FALSE; COMPRESS=TRUE MAX OPERATION MEMORY=102400;CACHE_SIZE=16384;DB_CLOSE_ON_EXIT=FALSE
-#datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
+# Use this version when running H2 separately (normal for production)
+datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
+# Use this version if you don't want to start H2 separately
+#datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+
 datasource.dialect=org.hibernate.dialect.H2Dialect
 datasource.show-sql=false
 datasource.hbm2ddl.auto=none

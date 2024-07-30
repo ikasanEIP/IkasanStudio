@@ -232,6 +232,7 @@ class FlowRouteTest {
     @Test
     public void test_getFlowIntegrityStatus_returns_true_when_meets_criteria() throws StudioBuildException {
         FlowElement producer = TestFixtures.getLoggingProducer();
+        testFlow.setConsumer(TestFixtures.getEventGeneratingConsumer());
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(producer);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()

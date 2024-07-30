@@ -21,7 +21,8 @@
     },
     "bccRecipients": {
       "propertyName": "bccRecipients",
-      "helpText": "The list of BCC recipient",
+      "helpText": "The list of BCC recipient, enter a comma seperated list of (unquoted) strings",
+      "propertyConfigFileLabel":"__flow.email.producer.bccRecipients",
       "setterProperty": true,
       "usageDataType": "java.util.List<String>"
     },
@@ -34,7 +35,8 @@
     },
     "ccRecipients": {
       "propertyName": "ccRecipients",
-      "helpText": "The list of CC recipient",
+      "helpText": "The list of CC recipient, enter a comma seperated list of (unquoted) strings",
+      "propertyConfigFileLabel":"__flow.email.producer.ccRecipients",
       "setterProperty": true,
       "usageDataType": "java.util.List<String>"
     },

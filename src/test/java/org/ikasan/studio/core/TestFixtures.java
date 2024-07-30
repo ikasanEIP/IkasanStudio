@@ -205,7 +205,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("eager", true);
         flowElement.setPropertyValue("encoding", "UTF-8");
         flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");
-        flowElement.setPropertyValue("filenames", "{'myFile','anotherFile'}");
+        flowElement.setPropertyValue("filenames", "myFile,anotherFile");
         flowElement.setPropertyValue("ignoreFileRenameWhilstScanning", true);
         flowElement.setPropertyValue("ignoreMisfire", true);
         flowElement.setPropertyValue("includeHeader", true);
@@ -229,7 +229,7 @@ public class TestFixtures {
                 .componentName("My Local File Consumer")
                 .build();
         flowElement.setPropertyValue("cronExpression", TEST_CRON_EXPRESSION);
-        flowElement.setPropertyValue("filenames", "{'myFile','anotherFile'}");
+        flowElement.setPropertyValue("filenames", "myFile,anotherFile");
         flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
@@ -367,7 +367,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("namespaceURI", "myNamespaceURI");
         flowElement.setPropertyValue("noNamespaceSchema", true);
         flowElement.setPropertyValue("objectClass", String.class);
-        flowElement.setPropertyValue("objectClasses", "{'String.class','String.class'}");
+        flowElement.setPropertyValue("objectClasses", "String.class,String.class");
         flowElement.setPropertyValue("rootClassName", "java.lang.String");
         flowElement.setPropertyValue("rootName", "myRootName");
         flowElement.setPropertyValue("routeOnValidationException", true);
@@ -466,9 +466,9 @@ public class TestFixtures {
                 .componentName("My Email Producer")
                 .build();
         flowElement.setPropertyValue("bccRecipient", "myBccRecipient");
-        flowElement.setPropertyValue("bccRecipients", "{'bcc1','bcc2'}");
+        flowElement.setPropertyValue("bccRecipients", "bcc1,bcc2");
         flowElement.setPropertyValue("ccRecipient", "myCcRecipient");
-        flowElement.setPropertyValue("ccRecipients"," {'cc1','cc2'}");
+        flowElement.setPropertyValue("ccRecipients","cc1,cc2");
         flowElement.setPropertyValue("configuration", "myConfigurationClass");
         flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("criticalOnStartup", true);
@@ -492,7 +492,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("mailSubject", "myMailSubject");
         flowElement.setPropertyValue("mailhost", "myMailhostAddress");
         flowElement.setPropertyValue("toRecipient", "myToRecipient");
-        flowElement.setPropertyValue("toRecipients", "{'to1','to2'}");
+        flowElement.setPropertyValue("toRecipients", "to1,to2");
         flowElement.setPropertyValue("transportProtocol", "myTransportProtocol");
         flowElement.setPropertyValue("user", "myUser");
         flowElement.defaultUnsetMandatoryProperties();
