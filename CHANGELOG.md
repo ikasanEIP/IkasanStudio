@@ -4,6 +4,11 @@
 
 ## [1.0.0]
 
+#### August 
+General
+- Add support for generic H2 SQL execution
+
+- 
 #### July
 General
 - Fix property list
