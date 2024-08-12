@@ -37,13 +37,6 @@
                             </arguments>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
                     <execution>
                         <id>StartH2</id>
                         <goals>
@@ -64,6 +57,26 @@
                                 <argument>-webAllowOthers</argument>
                                 <argument>-webPort</argument>
                                 <argument>${r"${h2WebPortNumber}"}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>H2Query</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>org.h2.tools.RunScript</mainClass>
+                            <arguments>
+                                <argument>-url</argument>
+                                <argument>jdbc:h2:tcp://localhost:12451/~/demo1-db/esb</argument>
+                                <argument>-user</argument>
+                                <argument>sa</argument>
+                                <argument>-password</argument>
+                                <argument>sa</argument>
+                                <argument>-script</argument>
+                                <argument>h2query.sql</argument>
+                                <argument>-showResults</argument>
                             </arguments>
                         </configuration>
                     </execution>
