@@ -37,10 +37,10 @@ dependencies {
     testImplementation("org.freemarker:freemarker:2.3.33")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
     testImplementation("org.ikasan:ikasan-test:3.3.4")
-    compileOnly ("org.projectlombok:lombok:1.18.32")
-    annotationProcessor("org.projectlombok:lombok:1.18.32")
-    testCompileOnly("org.projectlombok:lombok:1.18.32")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
+    compileOnly ("org.projectlombok:lombok:1.18.34")
+    annotationProcessor("org.projectlombok:lombok:1.18.34")
+    testCompileOnly("org.projectlombok:lombok:1.18.34")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
