@@ -2,8 +2,9 @@ package org.ikasan.studio.ui.component.properties;
 
 import javax.swing.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Popup test for CronPanel
+ */
 class CronPanelUiTest {
     private static final String TITLE = "Cron Data Entry Panel";
     private static final String TEST_PROJECT = "Test Project";

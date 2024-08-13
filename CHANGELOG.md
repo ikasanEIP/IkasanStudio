@@ -7,6 +7,7 @@
 #### August 
 General
 - Add support for generic H2 SQL execution
+- Add scroll bars to popup and palette component help
 
 - 
 #### July

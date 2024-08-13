@@ -10,7 +10,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.component.properties.ComponentDescription;
+import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
@@ -28,11 +28,10 @@ public class PaletteTabPanel extends JPanel {
     private final String projectKey;
     JScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
-    JPanel paletteHelpBodyPanel;
     JBList<PaletteItem> paletteList;
     final JSplitPane paletteSplitPane;
     JPanel paletteBodyPanel;
-    ComponentDescription componentDescription = new ComponentDescription();
+    HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
 
     public PaletteTabPanel(String projectKey) {
         super();
@@ -51,7 +50,7 @@ public class PaletteTabPanel extends JPanel {
         paletteScrollPane.getViewport().add(paletteList);
 
         // Assemble Body and Footer
-        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, componentDescription);
+        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, htmlScrollingDisplayPanel);
         paletteSplitPane.setDividerSize(3);
 
         // At this point, and even when the method ends, the preferred height only reflects the preferred height of all
@@ -73,7 +72,7 @@ public class PaletteTabPanel extends JPanel {
 //                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
 //                }
-                componentDescription.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
+                htmlScrollingDisplayPanel.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
 
@@ -104,7 +103,7 @@ public class PaletteTabPanel extends JPanel {
 //                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
                     paletteSplitPane.setDividerLocation(0.8);
 //                }
-                componentDescription.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
+                htmlScrollingDisplayPanel.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
 

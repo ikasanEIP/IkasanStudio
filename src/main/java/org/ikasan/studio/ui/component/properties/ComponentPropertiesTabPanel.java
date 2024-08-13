@@ -8,19 +8,19 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ComponentPropertiesTabPanel extends JPanel {
-    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
+//    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     final JSplitPane paletteSplitPane;
 
     ComponentPropertiesPanel componentPropertiesPanel;
-    ComponentDescription componentDescription = new ComponentDescription();
+    HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
     public ComponentPropertiesTabPanel(ComponentPropertiesPanel componentPropertiesPanel) {
         super();
         this.componentPropertiesPanel = componentPropertiesPanel;
-        componentPropertiesPanel.setComponentDescription(componentDescription);
+        componentPropertiesPanel.setComponentDescription(htmlScrollingDisplayPanel);
 
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
-        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, componentPropertiesPanel, componentDescription);
+        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, componentPropertiesPanel, htmlScrollingDisplayPanel);
         paletteSplitPane.setDividerSize(3);
 //        paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
         paletteSplitPane.setDividerLocation(0.8);
