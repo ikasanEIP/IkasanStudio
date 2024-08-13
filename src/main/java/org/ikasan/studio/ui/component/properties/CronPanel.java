@@ -52,7 +52,6 @@ public class CronPanel extends JPanel {
                 CronExpression cronField = CronExpression.values()[index];
                 textFields[index] = new JTextField(10);
                 labelFields[index] = new JLabel();
-//                textFields[index].setMaximumSize(textFields[index].getPreferredSize());
 
                 addRow(gc, dataEntryPanel, new JButton(cronField.fieldName), textFields[index], labelFields[index], cronField.defaultValue, parts[index], toolTip(cronField));
             }
@@ -111,7 +110,7 @@ public class CronPanel extends JPanel {
         return value.toString() ;
     }
 
-    protected static final String toolTip(CronExpression cronField) {
+    protected static String toolTip(CronExpression cronField) {
         return "Enter one of " + cronField.specialCharacters + ", n is " + cronField.allowedValues;
     }
 

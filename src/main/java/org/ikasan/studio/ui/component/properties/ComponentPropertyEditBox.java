@@ -27,7 +27,7 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.STR
 public class ComponentPropertyEditBox {
     private static final Logger LOG = Logger.getInstance("#ComponentPropertyEditBox");
     private final JLabel propertyTitleField;
-    private JButton dataValidationHelper;
+    private final JButton dataValidationHelper;
     private ComboBox<Object> propertyChoiceValueField;
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
@@ -145,27 +145,14 @@ public class ComponentPropertyEditBox {
 
     private void doDataValidationHelperPopup() {
         CronPanel cronPanel = new CronPanel(projectKey, (String)getValue());
-//        try {
-//            newResolution = new org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion());
-//        } catch (Exception e) {
-//            StudioUIUtils.displayIdeaWarnMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
-//        }
-//        if (newResolution != null) {
-//            cronPanel.updateTargetComponent(newResolution);
             CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(
                     UiContext.getProject(projectKey),
                     UiContext.getDesignerCanvas(projectKey),
                     cronPanel);
             if (cronPopupDialogue.showAndGet()) {
-//                StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
                 componentProperty.setValue(cronPanel.getValue());
                 resetDataEntryComponentsWithNewValues();
-//                exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
-//                hasChanged = true;
-//                resolverPanel.populatePropertiesEditorPanel();
-//                resolverPanel.redrawPanel();
             }
-//        }
     }
 
     private String getListAsText(List<String> stringList) {

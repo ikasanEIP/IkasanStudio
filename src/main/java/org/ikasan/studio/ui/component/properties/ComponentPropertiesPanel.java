@@ -31,7 +31,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     private JCheckBox userImplementedComponentOverwriteCheckBox;
-    private ComponentDescription componentDescription;
+    private HtmlScrollingDisplayPanel htmlScrollingDisplayPanel;
     private boolean isExpanded;
     private JPanel optionalPropertiesEditorPanel;
     private JPanel optionalPropertiesExpandPanel;
@@ -216,8 +216,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             }
             UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PROPERTIES_TAB_INDEX);
 
-            if (componentDescription != null) {
-                componentDescription.setText(getSelectedComponent().getComponentMeta().getHelpText());
+            if (htmlScrollingDisplayPanel != null) {
+                htmlScrollingDisplayPanel.setText(getSelectedComponent().getComponentMeta().getHelpText());
             }
         }
     }
@@ -459,7 +459,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         super.paint(g);
     }
 
-    public void setComponentDescription(ComponentDescription componentDescription) {
-        this.componentDescription = componentDescription;
+    public void setComponentDescription(HtmlScrollingDisplayPanel htmlScrollingDisplayPanel) {
+        this.htmlScrollingDisplayPanel = htmlScrollingDisplayPanel;
     }
 }

@@ -4,12 +4,13 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,23 +33,19 @@ public class PopupHelpAction  implements ActionListener {
       IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, ikasanBasicElement);
        if (viewHandler != null) {
          if (webHelp) {
+            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Check your default browser, the help information should be automatically populated.");
             BrowserUtil.browse(viewHandler.getFlowElement().getComponentMeta().getWebHelpURL());
          } else {
-            JTextArea jTextArea = new JTextArea(viewHandler.getFlowElement().getComponentMeta().getHelpText());
-            jTextArea.setLineWrap(true);
-            jTextArea.setWrapStyleWord(true);
-            JComponent helpPanel = new JPanel(new BorderLayout());
-            helpPanel.add(jTextArea, BorderLayout.CENTER);
-
             DesignerCanvas designerCanvas = UiContext.getDesignerCanvas(projectKey);
             int minWidth = Math.max(designerCanvas.getWidth() > 0 ? designerCanvas.getWidth() / 3 : 200, 200);
             int minHeight = Math.max(designerCanvas.getHeight() > 0 ? designerCanvas.getHeight() / 5 : 200, 200);
 
-            JBPopupFactory.getInstance().createComponentPopupBuilder(new JScrollPane(helpPanel), jTextArea)
-                    .setTitle("Generator Description")
+            HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel(null, new Dimension(minWidth, minHeight));
+            htmlScrollingDisplayPanel.setText(viewHandler.getFlowElement().getComponentMeta().getHelpText());
+            JBPopupFactory.getInstance().createComponentPopupBuilder(htmlScrollingDisplayPanel, htmlScrollingDisplayPanel)
+                    .setTitle("Description")
                     .setResizable(true)
                     .setMovable(true)
-                    .setMinSize(new Dimension(minWidth, minHeight))
                     .createPopup()
                     .show(new RelativePoint(mouseEvent));
          }
