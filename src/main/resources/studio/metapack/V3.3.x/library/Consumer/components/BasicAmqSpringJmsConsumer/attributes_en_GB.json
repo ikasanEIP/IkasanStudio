@@ -5,7 +5,7 @@
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
   "flowBuilderMethod": "consumer",
-  "helpText": "<html><body><p><strong>Basic AMQ Spring JMS Consumer</p></strong><p>The JMS consumer is an Event Driven Consumer, used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p></body></html>",
+  "helpText": "<strong>Basic AMQ Spring JMS Consumer</strong><p>The JMS consumer is an Event Driven Consumer, used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p>",
   "ikasanComponentFactoryMethod": "jmsConsumer",
   "implementingClass": "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
   "jarDependencies": [

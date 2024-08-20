@@ -80,7 +80,7 @@ public class DesignerUI {
         );
 
         propertiesAndCanvasSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-        propertiesAndCanvasSplitPane.setDividerSize(3);
+        propertiesAndCanvasSplitPane.setDividerSize(2);
         propertiesAndCanvasSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {

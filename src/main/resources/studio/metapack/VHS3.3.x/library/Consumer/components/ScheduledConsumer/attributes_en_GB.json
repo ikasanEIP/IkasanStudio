@@ -1,6 +1,6 @@
 {
   "name": "Scheduled Consumer",
-  "helpText": "<html><body><p><strong>Scheduled Consumer</p></strong><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule.</p></body></html>",
+  "helpText": "<strong>Scheduled Consumer</strong><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",

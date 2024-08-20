@@ -38,7 +38,7 @@ public class ComponentPropertiesTabPanel extends JPanel {
                 };
             }
         });
-        paletteSplitPane.setDividerSize(3);
+        paletteSplitPane.setDividerSize(2);
         paletteSplitPane.setDividerLocation(0.8);
 
         JPanel linePanel = new JPanel();
