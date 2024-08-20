@@ -84,6 +84,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
 
         if (getSelectedComponent() != null) {
             propertiesEditorPanel = new JPanel(new GridBagLayout());
+            propertiesEditorPanel.setBorder(null);
             propertiesEditorPanel.setBackground(JBColor.WHITE);
             propertiesEditorScrollingContainer.removeAll();
 
@@ -93,6 +94,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             }
 
             JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());
+            exceptionResolutionTablePanel.setBorder(null);
             int exceptionResolutionTabley = 0;
             addDisplayDataToTable(true, exceptionResolutionTablePanel, exceptionResolutionTabley++,
                 exceptionResolverEditBox.getAddButton(),
@@ -105,6 +107,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                     !exceptionResolverEditBox.getExceptionResolutionList().isEmpty()) {
                 for (ExceptionResolution exceptionResolution : exceptionResolverEditBox.getExceptionResolutionList()) {
                     JPanel paramsSubPanel = new JPanel(new GridBagLayout());
+                    paramsSubPanel.setBorder(null);
                     paramsSubPanel.setBackground(JBColor.WHITE);
                     int subPanelY = 0;
 
@@ -127,7 +130,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             // Add the params to the display panels.
-            setSubPanel(propertiesEditorPanel, exceptionResolutionTablePanel, "", JBColor.LIGHT_GRAY, gc1);
+            setSubPanel(propertiesEditorPanel, exceptionResolutionTablePanel, "", StudioUIUtils.getLineColor(), gc1);
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
         }
     }
@@ -175,7 +178,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         if (isHeader) {
             backGroundColor = Gray._242;
         }
-        actionButton.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY,1));
+        actionButton.setBorder(BorderFactory.createLineBorder(StudioUIUtils.getLineColor(),1));
         jPanel.add(formatCell(actionButton, backGroundColor, false), gc);
         gc.gridx += 1;
         jPanel.add(formatCell(theException, backGroundColor, true), gc);
@@ -194,7 +197,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         }
         JPanel tableCell = new JPanel();
         tableCell.setBackground(backgroundColor);
-        tableCell.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
+        tableCell.setBorder(BorderFactory.createLineBorder(StudioUIUtils.getLineColor(),1));
         tableCell.add(theComponent);
         return tableCell;
     }

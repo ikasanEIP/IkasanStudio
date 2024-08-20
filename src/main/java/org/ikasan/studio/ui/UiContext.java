@@ -16,7 +16,6 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-
 /**
  * The UiContext allows all the independent parts of the UI to collaborate with each other.
  * Anything can be placed in the UiContext, some things are so important that they will have their own getters
@@ -188,4 +187,5 @@ public enum UiContext {
     public static PIPSIIkasanModel getPipsiIkasanModel(String projectKey) {
         return (PIPSIIkasanModel) getProjectCache(projectKey, PIPSI_IKASAN_MODEL);
     }
+
 }

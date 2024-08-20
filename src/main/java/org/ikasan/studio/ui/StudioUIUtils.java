@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
 public class StudioUIUtils {
@@ -242,7 +243,6 @@ public class StudioUIUtils {
                 .notify(UiContext.getProject(projectKey));
     }
 
-
     public static void resetModelFromDisk(String projectKey) {
         try {
             StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
@@ -254,4 +254,24 @@ public class StudioUIUtils {
         }
     }
 
+    public static Color getLineColor() {
+//        listColors();
+        return UIManager.getColor("Separator.separatorColor");
+    }
+
+
+    public static void listColors() {
+        Enumeration<Object> keys = UIManager.getDefaults().keys();
+
+        // Print all keys and their corresponding color values
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get(key);
+
+            // Check if the value is a Color instance
+            if (value instanceof Color) {
+                System.out.println(key + " = " + value);
+            }
+        }
+    }
 }

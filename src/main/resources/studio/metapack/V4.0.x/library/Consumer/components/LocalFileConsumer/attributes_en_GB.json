@@ -5,7 +5,7 @@
   "endpointKey": "File Endpoint",
   "endpointTextKey": "filenames",
   "flowBuilderMethod": "consumer",
-  "helpText": "<html><body><h3>Local File Consumer</h3><p>Looks for a file on this host, in the directory where the module is executing, the frequency is configured in the cron expression.</p>You can set optional property 'logMatchedFilenames' so that you can see in the log, the full path of the file being searched for. You will need to move or remove the file(s) otherwise the same file will be repeatedly processed.</p></body></html>",
+  "helpText": "<html><body><p><strong>Local File Consumer</strong></p><p>Looks for a file on this host, in the directory where the module is executing, the frequency is configured in the cron expression.</p>You can set optional property 'logMatchedFilenames' so that you can see in the log, the full path of the file being searched for. You will need to move or remove the file(s) otherwise the same file will be repeatedly processed.</p></body></html>",
   "ikasanComponentFactoryMethod": "fileConsumer",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "usesBuilderInFactory" : true,

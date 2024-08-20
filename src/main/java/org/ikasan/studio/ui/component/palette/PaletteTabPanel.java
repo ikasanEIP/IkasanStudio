@@ -3,7 +3,6 @@ package org.ikasan.studio.ui.component.palette;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -14,6 +13,10 @@ import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
+import javax.swing.plaf.basic.BasicSplitPaneDivider;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -33,11 +36,12 @@ public class PaletteTabPanel extends JPanel {
     JPanel paletteBodyPanel;
     HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
 
+
     public PaletteTabPanel(String projectKey) {
         super();
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
-        this.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+        htmlScrollingDisplayPanel.setBorder(null);
         paletteExportTransferHandler = new PaletteExportTransferHandler(projectKey);
 
         // Body
@@ -51,19 +55,35 @@ public class PaletteTabPanel extends JPanel {
 
         // Assemble Body and Footer
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, htmlScrollingDisplayPanel);
+        paletteSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         paletteSplitPane.setDividerSize(3);
-
+        paletteSplitPane.setUI(new BasicSplitPaneUI() {
+            @Override
+            public BasicSplitPaneDivider createDefaultDivider() {
+                return new BasicSplitPaneDivider(this) {
+                    @Override
+                    public void paint(Graphics g) {
+                        g.setColor(StudioUIUtils.getLineColor());
+                        g.fillRect(0, 0, getSize().width, getSize().height);
+                        // don't call super.paint() which would put in the bevel.
+                    }
+                };
+            }
+        });
         // At this point, and even when the method ends, the preferred height only reflects the preferred height of all
         // the known components, so we deliberately send the divider off the bottom of the screen until the first time we
         // click on a palette component.
         paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
 
         paletteBodyPanel = new JPanel(new BorderLayout());
+        paletteBodyPanel.setBorder(null);
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(JBColor.WHITE);
 
+        JPanel linePanel = new JPanel();
+        linePanel.setBorder(new MatteBorder(1,0,0,0, StudioUIUtils.getLineColor()));
+        add(linePanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
-        setBorder(JBUI.Borders.emptyTop(1));
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
@@ -167,15 +187,6 @@ public class PaletteTabPanel extends JPanel {
 
     @Override
     public void paint(Graphics g) {
-//        LOG.info("StudioYY: 1 Width PP " + getWidth() + ", Height" + getHeight());
-//        LOG.info("StudioYY: 2 Width PP " + getPreferredSize());
-//        setPreferredSize(new Dimension(getWidth(), getHeight()));
-//        setPreferredSize(getPreferredSize());
-//        setSize(getPreferredSize());
-//        revalidate();
         super.paint(g);
-//
-//        LOG.info("StudioYY: 3 Width PP " + getWidth() + ", Height" + getHeight());
-//        LOG.info("StudioYY: 4 Width PP " + getPreferredSize());
     }
 }

@@ -2,7 +2,7 @@
   "name": "Custom Splitter",
   "generatesUserImplementedClass": "true",
   "flowBuilderMethod": "splitter",
-  "helpText": "<html><body><h3>Default List Splitter</h3><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p></body></html>",
+  "helpText": "<html><body><p><strong>Default List Splitter</p></strong><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p></body></html>",
   "_implementingClass": "In this case is just used an a key to indicate for uniqueness",
   "implementingClass": "org.ikasan.component.splitter.Custom",
   "useImplementingClassInFactory": true,

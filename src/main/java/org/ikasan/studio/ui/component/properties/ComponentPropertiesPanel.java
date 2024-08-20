@@ -47,6 +47,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      */
     public ComponentPropertiesPanel(String projectKey, boolean componentInitialisation) {
         super(projectKey, componentInitialisation);
+        this.setBorder(null);
     }
 
     /**
@@ -129,12 +130,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
             propertiesEditorPanel.setBackground(JBColor.WHITE);
 
             JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            mandatoryPropertiesEditorPanel.setBorder(null);
             optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            optionalPropertiesEditorPanel.setBorder(null);
             if (optionalPropertiesExpandPanel == null) {
                 optionalPropertiesExpandPanel = getOptionalPropertiesExpandPanel();
             }
             JPanel regeneratingPropertiesEditorPanel = new JPanel(new GridBagLayout());
-
+            regeneratingPropertiesEditorPanel.setBorder(null);
             componentPropertyEditBoxList = new ArrayList<>();
 
             GridBagConstraints gc = new GridBagConstraints();
@@ -205,7 +208,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                 setToggleOptionalPropertiesButton(false);
                 optionalPropertiesEditorPanel.setVisible(false);
                 setSubPanel(propertiesEditorPanel, optionalPropertiesExpandPanel, null, null, gc1);
-                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", JBColor.LIGHT_GRAY, gc1);
+                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", StudioUIUtils.getLineColor(), gc1);
             } else if (optionalPropertiesExpandPanel != null) {
                 optionalPropertiesExpandPanel.setVisible(false);
             }
@@ -245,6 +248,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
 
     protected JPanel getOptionalPropertiesExpandPanel() {
         JPanel optionalPropertiesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        optionalPropertiesPanel.setBorder(null);
         JLabel optionalPropertiesLabel = new JLabel("Optional Properties");
         // Create the buttons
         toggleOptionalPropertiesButton = new JButton("Expand");
@@ -260,7 +264,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     }
 
     protected void setOptionalPropertiesToDefaultVales() {
-//        this.selectedComponent
         for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
             if (componentPropertyEditBox.getMeta().isOptional()) {
                 componentPropertyEditBox.setDefaultValue();
@@ -293,7 +296,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
         subPanel.setBackground(JBColor.WHITE);
         if (title != null) {
         subPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(borderColor), title,
+                BorderFactory.createLineBorder(borderColor),
+                title,
                 TitledBorder.LEFT,
                 TitledBorder.TOP));
         }

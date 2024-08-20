@@ -8,8 +8,9 @@
 General
 - Add support for generic H2 SQL execution
 - Add scroll bars to popup and palette component help
+- Set look and feel to use Intellij theme.
+- Fix context sensitive popup menu on canvas
 
-- 
 #### July
 General
 - Fix property list

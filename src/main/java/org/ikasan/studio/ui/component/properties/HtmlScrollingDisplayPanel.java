@@ -21,6 +21,7 @@ public class HtmlScrollingDisplayPanel extends JPanel {
         super();
         setLayout(new BorderLayout());
         JPanel helpDescriptionHeaderPanel = new JPanel();
+        helpDescriptionHeaderPanel.setBorder(null);
         if (title != null) {
             JLabel descriptionLabel = new JLabel(title);
             descriptionLabel.setFont(new Font(getFont().getFontName(), Font.BOLD, getFont().getSize()));
@@ -29,12 +30,14 @@ public class HtmlScrollingDisplayPanel extends JPanel {
             add(helpDescriptionHeaderPanel, BorderLayout.NORTH);
         }
         paletteHelpTextArea = new JTextPane();
+        paletteHelpTextArea.setBorder(null);
         paletteHelpTextArea.setContentType("text/html");
 
         if (dimension != null) {
             paletteHelpTextArea.setPreferredSize(dimension);
         }
         JScrollPane helpTextScrollPane = new JScrollPane(paletteHelpTextArea);
+        helpTextScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         add(helpTextScrollPane, BorderLayout.CENTER);
     }
 
