@@ -3,6 +3,7 @@
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
 [docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
 ## Developer Quickstart
+Note that this plugin is still under development and only recommended for beta testers.
 ### Download the zip & jar
 From the downloads directory, get IkasanStudio-1.0.0.zip and  studio-project-archetype-1.0-SNAPSHOT.jar
 Copy them to a local temp directory and open a command prompt in that directory
