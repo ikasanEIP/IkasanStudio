@@ -56,7 +56,7 @@ public class PaletteTabPanel extends JPanel {
         // Assemble Body and Footer
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, htmlScrollingDisplayPanel);
         paletteSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-        paletteSplitPane.setDividerSize(3);
+        paletteSplitPane.setDividerSize(2);
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {
