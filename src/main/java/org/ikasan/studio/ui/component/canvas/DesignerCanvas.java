@@ -756,8 +756,8 @@ public class DesignerCanvas extends JPanel {
                 LOG.warn("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
                 enableModuleInitialiseProcess();
             }
-            int newWidth = moduleViewHandler.getWidth() + 0;
-            int newHeight = moduleViewHandler.getHeight() + 0;
+            int newWidth = moduleViewHandler.getWidth();
+            int newHeight = moduleViewHandler.getHeight();
             this.setPreferredSize(new Dimension(newWidth, newHeight));
             revalidate();
             super.paintComponent(g);

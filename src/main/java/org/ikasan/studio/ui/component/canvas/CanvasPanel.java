@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import com.intellij.ui.JBColor;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;

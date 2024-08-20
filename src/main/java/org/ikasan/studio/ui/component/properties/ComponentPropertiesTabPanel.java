@@ -1,7 +1,5 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.ui.StudioUIUtils;
 
