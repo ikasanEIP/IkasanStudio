@@ -10,6 +10,7 @@ General
 - Add scroll bars to popup and palette component help
 - Set look and feel to use Intellij theme.
 - Fix context sensitive popup menu on canvas
+- Correct fonts on canvas to use antialiasing
 
 #### July
 General
