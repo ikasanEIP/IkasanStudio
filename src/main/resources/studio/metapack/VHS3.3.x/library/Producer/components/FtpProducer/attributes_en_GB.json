@@ -1,6 +1,6 @@
 {
   "name": "FTP Producer",
-  "helpText": "<html><body><h3>FTP Producer</h3><p>Ending component of the flow, or a route in the flow. This producer allows delivery of a file to remote (S)FTP server. The producer is under pined with persistent store which saves meta information about the deliver files.</p></body></html>",
+  "helpText": "<html><body><p><strong>FTP Producer</p></strong><p>Ending component of the flow, or a route in the flow. This producer allows delivery of a file to remote (S)FTP server. The producer is under pined with persistent store which saves meta information about the deliver files.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.producer",

@@ -37,19 +37,21 @@ public abstract class PropertiesPanel extends JPanel {
         super();
         this.projectKey = projectKey ;
         this.componentInitialisation = componentInitialisation;
+        this.setBorder(null);
+        propertiesEditorPanel.setBorder(null);
         setLayout(new BorderLayout());
         setBackground(JBColor.WHITE);
 
         if (! componentInitialisation) {
             JPanel propertiesHeaderPanel = new JPanel();
+            propertiesHeaderPanel.setBorder(null);
             propertiesHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
             propertiesHeaderPanel.add(propertiesHeaderLabel);
-            propertiesHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
             add(propertiesHeaderPanel, BorderLayout.NORTH);
         }
 
         JPanel propertiesBodyPanel = new JPanel(new BorderLayout());
-        propertiesBodyPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+        propertiesBodyPanel.setBorder(null);
         propertiesBodyPanel.setBackground(JBColor.WHITE);
 
         // Palette editor mode, add an OK button at the bottom.
@@ -63,15 +65,17 @@ public abstract class PropertiesPanel extends JPanel {
                }
             );
             JPanel footerPanel = new JPanel();
+            footerPanel.setBorder(null);
             footerPanel.add(updateCodeButton);
-            footerPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
             add(footerPanel, BorderLayout.SOUTH);
         }
 
         populatePropertiesEditorPanel();
         propertiesEditorScrollingContainer = new ScrollableGridbagPanel(propertiesEditorPanel);
-        JBScrollPane scrollPane = new JBScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        propertiesEditorScrollingContainer.setBorder(null);
+        JScrollPane scrollPane = new JScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        scrollPane.setBorder(null);
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);
         scrollPane.setBackground(JBColor.WHITE);
         scrollPane.getViewport().setBackground(JBColor.WHITE);

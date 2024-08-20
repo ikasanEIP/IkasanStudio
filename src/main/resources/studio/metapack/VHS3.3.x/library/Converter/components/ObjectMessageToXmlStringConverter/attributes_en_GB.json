@@ -1,6 +1,6 @@
 {
   "name": "Object Message To XML String Converter",
-  "helpText": "<html><body><h3>Object Message To XML String Converter</h3><p>The main responsibility of a converter is to convert from one POJO type to another.</p><p>The Object Message to XML String Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JAXB Object into an XML representation of that Object as a String.</p></body></html>",
+  "helpText": "<html><body><p><strong>Object Message To XML String Converter</p></strong><p>The main responsibility of a converter is to convert from one POJO type to another.</p><p>The Object Message to XML String Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JAXB Object into an XML representation of that Object as a String.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/ObjectToXmlStringConverter.md",
   "implementingClass": "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder",
   "ikasanComponentFactoryMethod": "objectToXmlStringConverter",

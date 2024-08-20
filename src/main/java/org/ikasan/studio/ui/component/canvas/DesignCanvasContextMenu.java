@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
@@ -11,31 +12,23 @@ public class DesignCanvasContextMenu {
     public static final Logger LOG = Logger.getInstance("DesignCanvasContextMenu");
 
     // Enforce as utility clASS
-    private DesignCanvasContextMenu () {}
+    private DesignCanvasContextMenu () {
+    }
 
     public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
-        menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", ikasanBasicElement));
-        menu.add(createDebugComponentMenuItem(projectKey, "Add Debug to Component", ikasanBasicElement));
+        if (ikasanBasicElement instanceof FlowElement) {
+            menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", ikasanBasicElement));
+            menu.add(createDebugComponentMenuItem(projectKey, "Add Debug to Component", ikasanBasicElement));
+            menu.add(createHelpTextItem(projectKey, "Describe Component", ikasanBasicElement, mouseEvent));
+            menu.add(createWebHelpTextItem(projectKey, "Component Web help", ikasanBasicElement, mouseEvent));
+            menu.add(createNavigateToCode(projectKey, "Jump to code", ikasanBasicElement, false));
+        }
         menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
         menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
         menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
         menu.add(createLaunchH2MenuItem(projectKey, "Launch H2"));
-        menu.add(createHelpTextItem(projectKey, "Description", ikasanBasicElement, mouseEvent));
-        menu.add(createWebHelpTextItem(projectKey, "Web help", ikasanBasicElement, mouseEvent));
-        menu.add(createNavigateToCode(projectKey, "Jump to code", ikasanBasicElement, false));
-        // Currently code line jump is not supported.
-//        menu.add(createNavigateToCode(projectKey, "Jump to code line", ikasanBasicElement, true));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
-    }
-
-    public static void showPopupMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent event) {
-        JPopupMenu menu = new JPopupMenu();
-        menu.add(createSaveAsMenuItem(projectKey, "Save Image"));
-        menu.add(createRefreshMenuItem(projectKey, "Refresh Model"));
-        menu.add(createLaunchDashboardMenuItem(projectKey, "Launch Browser"));
-        menu.add(createLaunchH2MenuItem(projectKey, "Launch H2"));
-        menu.show(designerCanvas, event.getX(), event.getY());
     }
 
     private static JMenuItem createDeleteComponentMenuItem(String projectKey, String label, BasicElement ikasanBasicElement) {

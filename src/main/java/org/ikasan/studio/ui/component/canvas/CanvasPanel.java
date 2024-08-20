@@ -1,10 +1,12 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.ui.JBColor;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -16,7 +18,7 @@ public class CanvasPanel extends JPanel {
         UiContext.setDesignerCanvas(projectKey, designerCanvas);
 
         JPanel canvasHeaderButtonPanel = new JPanel();
-
+        canvasHeaderButtonPanel.setBorder(null);
         JButton h2Button = new JButton("H2 start");
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(projectKey), "Start the blue consolein a browser");
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(projectKey, h2Button), "Start the H2 console in a browser");
@@ -34,12 +36,9 @@ public class CanvasPanel extends JPanel {
             designerCanvasRef.repaint();
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
-
-        JPanel canvasHeaderTitlePanel = new JPanel();
         JPanel canvasHeaderPanel = new JPanel();
-        canvasHeaderPanel.add(canvasHeaderTitlePanel);
+        canvasHeaderPanel.setBorder(new MatteBorder(0,0,1,0, StudioUIUtils.getLineColor()));
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
-        canvasHeaderPanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
         // This may be redundant now we have Intellij Messaging
         JTextArea canvasTextArea = new JTextArea();
@@ -64,11 +63,4 @@ public class CanvasPanel extends JPanel {
         newButton.setToolTipText(tooltip);
         canvasHeaderButtonPanel.add(newButton);
     }
-
-//    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, String title, ActionListener al, String tooltip) {
-//        JButton newButton = new JButton(title);
-//        newButton.addActionListener(al);
-//        newButton.setToolTipText(tooltip);
-//        canvasHeaderButtonPanel.add(newButton);
-//    }
 }

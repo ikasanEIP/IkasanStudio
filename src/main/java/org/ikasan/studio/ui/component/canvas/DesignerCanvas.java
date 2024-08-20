@@ -50,7 +50,6 @@ public class DesignerCanvas extends JPanel {
 
     public DesignerCanvas(String projectKey) {
         this.projectKey = projectKey;
-        setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
         setBackground(JBColor.WHITE);
         addMouseListener(new MouseAdapter() {
             @Override

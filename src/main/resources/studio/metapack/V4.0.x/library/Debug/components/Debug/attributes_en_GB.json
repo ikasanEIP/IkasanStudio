@@ -2,7 +2,7 @@
   "name": "Debug Transition",
   "additionalKey":"DebugTransition",
   "generatesUserImplementedClass": "true",
-  "helpText": "<html><body><h3>Debug Transition</h3><p>This component allows you to set a debug breakpoint on the data as it moves from one component to the next.</p><p>NOTE: debug elements are not saved when the project is closed.</p></body></html>",
+  "helpText": "<html><body><p><strong>Debug Transition</p></strong><p>This component allows you to set a debug breakpoint on the data as it moves from one component to the next.</p><p>NOTE: debug elements are not saved when the project is closed.</p></body></html>",
   "implementingClass": "org.ikasan.studio.ui.component.debug.DebugComponent",
   "flowBuilderMethod": "filter",
   "properties": {

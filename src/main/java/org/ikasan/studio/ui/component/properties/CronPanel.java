@@ -21,7 +21,6 @@ public class CronPanel extends JPanel {
     private String title = "Quartz Cron Configuration";
     JTextField[] textFields = new JTextField[CronExpression.values().length];
     JLabel[] labelFields = new JLabel[CronExpression.values().length];
-    JPanel helpText = new JPanel();
     JTextPane helpTextPane;
     JFrame testFrame;
     JPanel helpPanel;
@@ -35,6 +34,7 @@ public class CronPanel extends JPanel {
         this.projectKey = projectKey;
         this.setLayout(new BorderLayout());
         JPanel dataEntryPanel = new JPanel();
+        dataEntryPanel.setBorder(null);
         dataEntryPanel.setLayout(new GridBagLayout());
 
         GridBagConstraints gc = new GridBagConstraints();
@@ -67,6 +67,7 @@ public class CronPanel extends JPanel {
         add(dataEntryPanel, BorderLayout.NORTH);
 
         JPanel okCancelPanel = new JPanel();
+        okCancelPanel.setBorder(null);
         okCancelPanel.setLayout(new FlowLayout());
 
         JButton helpButton = new JButton("Expand help");

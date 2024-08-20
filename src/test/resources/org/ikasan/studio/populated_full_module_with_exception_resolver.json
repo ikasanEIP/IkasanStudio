@@ -1,1 +1,77 @@
-{"applicationPackageName":"co.uk.test","configuredResourceId":"myResourceId","context":"/myApp","description":"My first module","h2DbPortNumber":"8092","h2WebPortNumber":"8093","name":"A to B convert","port":"8091","protocol":"https","type":"INTEGRATION_MODULE","url":"https://host/myApp","version":"V3.3.x","flows":[{"description":"MyFlowDescription","name":"MyFlow1","exceptionResolver":{"javax.resource.ResourceException.class":{"exceptionsCaught":"javax.resource.ResourceException.class","action":"ignore"},"javax.jms.JMSException.class":{"exceptionsCaught":"javax.jms.JMSException.class","action":"retry","actionProperties":{"delay":"1","interval":"2"}}},"consumer":{"componentName":"My Event Generating Consumer","componentType":"org.ikasan.spec.component.endpoint.Consumer","implementingClass":"org.ikasan.component.endpoint.consumer.EventGeneratingConsumer"},"transitions":[{"from":"My Event Generating Consumer","to":"My Custom Converter","name":"default"},{"from":"My Custom Converter","to":"My DevNull Producer","name":"default"}],"flowElements":[{"componentName":"My Custom Converter","fromType":"java.lang.String","toType":"java.lang.Integer","userImplementedClassName":"myConverter","componentType":"org.ikasan.spec.component.transformation.Converter","implementingClass":"org.ikasan.spec.component.transformation.Converter.Custom"},{"componentName":"My DevNull Producer","componentType":"org.ikasan.spec.component.endpoint.Producer","implementingClass":"org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl"}]}]}
+{
+  "applicationPackageName": "co.uk.test",
+  "configuredResourceId": "myResourceId",
+  "context": "/myApp",
+  "description": "My first module",
+  "h2DbPortNumber": "8092",
+  "h2WebPortNumber": "8093",
+  "name": "A to B convert",
+  "port": "8091",
+  "protocol": "https",
+  "type": "INTEGRATION_MODULE",
+  "url": "https://host/myApp",
+  "version": "V3.3.x",
+  "flows": [
+    {
+      "description": "MyFlowDescription",
+      "name": "MyFlow1",
+      "exceptionResolver": {
+        "javax.resource.ResourceException.class": {
+          "exceptionsCaught": "javax.resource.ResourceException.class",
+          "action": "ignore"
+        },
+        "javax.jms.JMSException.class": {
+          "exceptionsCaught": "javax.jms.JMSException.class",
+          "action": "retry",
+          "actionProperties": {
+            "delay": "1",
+            "interval": "2"
+          }
+        }
+      },
+      "consumer": {
+        "componentName": "My Event Generating Consumer",
+        "componentType": "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass": "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer"
+      },
+      "transitions": [
+        {
+          "from": "My Event Generating Consumer",
+          "to": "My Custom Converter",
+          "name": "default"
+        },
+        {
+          "from": "My Custom Converter",
+          "to": "My DevNull Producer",
+          "name": "default"
+        }
+      ],
+      "flowElements": [
+        {
+          "componentName": "My Custom Converter",
+          "fromType": "java.lang.String",
+          "toType": "java.lang.Integer",
+          "userImplementedClassName": "myConverter",
+          "componentType": "org.ikasan.spec.component.transformation.Converter",
+          "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
+          "decorators" : [ {
+            "type": "Wiretap",
+            "name": "BEFORE My Custom Converter",
+            "configurationId": "360",
+            "configurable": false
+          }, {
+            "type": "LogWiretap",
+            "name": "AFTER My Custom Converter",
+            "configurationId": "361",
+            "configurable": false
+          }]
+        },
+        {
+          "componentName": "My DevNull Producer",
+          "componentType": "org.ikasan.spec.component.endpoint.Producer",
+          "implementingClass": "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl"
+        }
+      ]
+    }
+  ]
+}

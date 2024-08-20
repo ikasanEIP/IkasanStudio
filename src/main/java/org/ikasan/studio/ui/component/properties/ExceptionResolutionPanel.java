@@ -98,6 +98,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             if (! updateActionPropertiesOnly) {
                 propertiesEditorScrollingContainer.removeAll();
                 propertiesEditorPanel = new JPanel(new GridBagLayout());
+                propertiesEditorPanel.setBorder(null);
                 propertiesEditorPanel.setBackground(JBColor.WHITE);
                 propertiesEditorScrollingContainer.add(propertiesEditorPanel);
                 updateExceptionAndAction();
@@ -128,7 +129,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
             addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
             addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
-            addToScrollPanelContent(exceptionActionEditorPanel, "", JBColor.LIGHT_GRAY, 0);
+            addToScrollPanelContent(exceptionActionEditorPanel, "", StudioUIUtils.getLineColor(), 0);
         }
     }
 

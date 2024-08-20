@@ -1,6 +1,6 @@
 {
   "name": "Object Message To Object Converter",
-  "helpText": "<html><body><h3>Object Message To Object Converter</h3><p>The main responsibility of a converter is to convert from one POJO type to another.</p><p>The Map Message to Payload Converter is an implementation of the Converter Interface. The Object Message to Objcet Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JMS ObjectMessge into an Object, by retrieving the content Object from the ObjectMessge and returning this Object.</p></body></html>",
+  "helpText": "<html><body><p><strong>Object Message To Object Converter</p></strong><p>The main responsibility of a converter is to convert from one POJO type to another.</p><p>The Map Message to Payload Converter is an implementation of the Converter Interface. The Object Message to Objcet Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JMS ObjectMessge into an Object, by retrieving the content Object from the ObjectMessge and returning this Object.</p></body></html>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/ObjectMessageToObjectConverter.md",
   "implementingClass": "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
   "useImplementingClassInFactory": true,
