@@ -32,7 +32,10 @@ public class StudioUIUtils {
 
 
     public static Font getBoldFont(Graphics g) {
-        return new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize());
+        Font mainFont = StudioUIUtils.getMainFont();
+//        return new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize());
+        return mainFont;
+//        return new Font(mainFont.getName(), Font.BOLD, mainFont.getSize());
     }
 
     public static void displayErrorMessage(String projectKey, String message) {
@@ -77,7 +80,7 @@ public class StudioUIUtils {
     }
 
     /**
-     * Draw the text string on the screen at thhe given co-ords
+     * Draw the text string on the screen at the given co-ords
      * @param g graphics object
      * @param text to display
      * @param leftX for the text position
@@ -94,8 +97,24 @@ public class StudioUIUtils {
         }
         int stringHeight = StudioUIUtils.getTextHeight(g);
         // remember the y co-ord for drawstring is the baseline, not the top of the string.
-        g.drawString(text, leftX, topY + stringHeight);
-        g.setFont(origFont);
+        drawAliasedText((Graphics2D)g, text, leftX, topY + stringHeight, font);
+    }
+
+    /**
+     * Draw the text string on the screen at the given co-ords using anti-aliased fonts
+     * @param g2d graphics object
+     * @param text to display
+     * @param leftX for the text position
+     * @param topY for the text position
+     * @param font for the text
+     */
+    private static void drawAliasedText(Graphics2D g2d, String text, int leftX, int topY, Font font) {
+        Font origFont = g2d.getFont();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+        g2d.setFont(font);
+        g2d.drawString(text, leftX, topY);
+        g2d.setFont(origFont);
     }
 
     /**
@@ -131,7 +150,7 @@ public class StudioUIUtils {
         for (String subString : textToDisplay) {
             int textX = centerX - (StudioUIUtils.getTextWidth(g, subString) / 2);
             if (paintMode.equals(PaintMode.PAINT)) {
-                g.drawString(subString, textX, textY);
+                drawAliasedText((Graphics2D)g, subString, textX, textY, font);
             }
             numberOfLines ++;
             textY+= stringHeight;
@@ -258,6 +277,14 @@ public class StudioUIUtils {
 //        listColors();
         return UIManager.getColor("Separator.separatorColor");
     }
+    public static Font getMainFont() {
+//        listColors();
+        Font uiFont = UIManager.getFont("TextArea.font");
+        if (uiFont == null) {
+            uiFont = UIManager.getFont("EditorPane.font");
+        }
+        return uiFont;
+    }
 
 
     public static void listColors() {
@@ -269,9 +296,9 @@ public class StudioUIUtils {
             Object value = UIManager.get(key);
 
             // Check if the value is a Color instance
-            if (value instanceof Color) {
+//            if (value instanceof Color) {
                 System.out.println(key + " = " + value);
-            }
+//            }
         }
     }
 }
