@@ -1,1 +1,1 @@
-{"componentName":"My DevNull Producer","componentType":"org.ikasan.spec.component.endpoint.Producer","implementingClass":"org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl","decorators":[{"type":"Wiretap","name":"Before bob","configurationId":"345","configurable":false},{"type":"LoggingWiretap","name":"Before bobie","configurationId":"3451","configurable":true}]}
+{"componentName":"My DevNull Producer","componentType":"org.ikasan.spec.component.endpoint.Producer","implementingClass":"org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl"}

@@ -1,7 +1,7 @@
 package org.ikasan;
 
 /**
-* <html><body><h3>Default List Splitter</h3><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p></body></html>
+* <strong>Default List Splitter</strong><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p>
 *
 * This is an auto generated stub. The user is expected to fill in the details of the conversion below.
 * This stub will not be over-written unless the overwrite checkbox is explicitly selected.

@@ -3,6 +3,7 @@ package org.ikasan.studio.core.model.ikasan.instance.serialization;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.ikasan.studio.core.model.ikasan.instance.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 
@@ -32,17 +33,14 @@ public class FlowElementSerializer extends StdSerializer<FlowElement> {
             jsonGenerator.writeStringField(ComponentMeta.ADDITIONAL_KEY, flowElement.getComponentMeta().getAdditionalKey());
         }
 
-
         if (flowElement.getDecorators() != null && !flowElement.getDecorators().isEmpty()) {
-
                 // Since transitions are simple pojos, we can use the default serialiser
             serializerProvider.defaultSerializeField(FlowElement.DECORATORS_JSON_TAG, flowElement.getDecorators(), jsonGenerator);
 
-
-//            DecoratorSerializer decoratorSerializer = new DecoratorSerializer();
-//            for(Decorator decorator : flowElement.getDecorators()) {
-//                decoratorSerializer.serializePayload(decorator, jsonGenerator);
-//            }
+            DecoratorSerializer decoratorSerializer = new DecoratorSerializer();
+            for(Decorator decorator : flowElement.getDecorators()) {
+                decoratorSerializer.serializePayload(decorator, jsonGenerator);
+            }
         }
     }
 }

@@ -39,7 +39,6 @@ datasource.xadriver-class-name=org.h2.jdbcx.JdbcDataSource
 datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
 # Use this version if you don't want to start H2 separately
 #datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-
 datasource.dialect=org.hibernate.dialect.H2Dialect
 datasource.show-sql=false
 datasource.hbm2ddl.auto=none
