@@ -67,6 +67,14 @@ public class TestFixtures {
                 .build();
     }
 
+    public static FlowElement getEventGeneratingConsumerWithWiretaps() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Event Generating Consumer");
+        return FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Event Generating Consumer")
+                .build();
+    }
+
     public static FlowElement getFtpConsumer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "FTP Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
@@ -439,6 +447,13 @@ public class TestFixtures {
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Dev Null Producer");
+        return FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My DevNull Producer")
+                .build();
+    }
+    public static FlowElement getDevNullProducerWithWiretaps() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Dev Null Producer");
         Decorator decorator1 = Decorator.decoratorBuilder()
                 .type("Wiretap")
                 .name("Before bob")
@@ -744,6 +759,17 @@ public class TestFixtures {
         FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
         FlowElement customConverter = getCustomConverter();
         FlowElement devNullProducer = TestFixtures.getDevNullProducer();
+        Flow flow = getUnbuiltFlow()
+                .consumer(eventGeneratingConsumer)
+                .build();
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build());
+        return flow;
+    }
+
+    public static Flow getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow() throws StudioBuildException {
+        FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
+        FlowElement customConverter = getCustomConverter();
+        FlowElement devNullProducer = TestFixtures.getDevNullProducerWithWiretaps();
         Flow flow = getUnbuiltFlow()
                 .consumer(eventGeneratingConsumer)
                 .build();

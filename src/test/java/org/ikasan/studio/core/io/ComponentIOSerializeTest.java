@@ -45,11 +45,16 @@ class ComponentIOSerializeTest {
     }
 
 
-    //@NEXT EventGeneratingConsumer replicated
+    // XX
     @Test
     public void testPopulatedFlowSerializeToJson() throws IOException, StudioBuildException {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
+    }
+    @Test
+    public void testPopulatedFlowSerializeWithWiretapsToJson() throws IOException, StudioBuildException {
+        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow());
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow_with_wiretaps.json"), jsonString);
     }
     @Test
     public void testPopulatedFlowWithMultiRecipientRouterSerializeToJson() throws IOException, StudioBuildException {
