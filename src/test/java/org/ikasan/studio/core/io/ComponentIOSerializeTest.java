@@ -44,8 +44,6 @@ class ComponentIOSerializeTest {
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/module.json"), ComponentIO.toJson(module));
     }
 
-
-    // XX
     @Test
     public void testPopulatedFlowSerializeToJson() throws IOException, StudioBuildException {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow());
