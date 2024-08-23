@@ -9,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSer
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,6 +53,19 @@ public class FlowElement extends BasicElement {
         }
     }
 
+    /**
+     * Attempt to add the decorator to the flow element, if the decorator is already added, the action is ignored.
+     * @param decorator
+     */
+    public void addDecorator(Decorator decorator) {
+        if (decorator != null) {
+            decorators = new ArrayList<>();
+            decorators.add(decorator);
+        } else if (!decorators.contains(decorator)) {
+            decorators.add(decorator);
+        }
+    }
+
     @Override
     public String toString() {
         return "IkasanFlowComponent {" +
@@ -73,4 +87,6 @@ public class FlowElement extends BasicElement {
                 ", containingFlowRoute ='" + (containingFlowRoute == null ? null : containingFlowRoute.getRouteName()) + '\'' +
                 '}';
     }
+
+
 }

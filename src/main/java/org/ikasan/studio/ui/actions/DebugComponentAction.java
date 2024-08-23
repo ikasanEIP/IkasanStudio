@@ -25,11 +25,10 @@ public class DebugComponentAction implements ActionListener {
     */
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      if (ikasanBasicElement instanceof FlowElement ikasanFlowComponentToRemove) {
-         Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
+      if (ikasanBasicElement instanceof FlowElement ikasanFlowComponent) {
+         Flow parentFlow = ikasanFlowComponent.getContainingFlow();
          if (parentFlow != null) {
-
-            parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
+            parentFlow.removeFlowElement(ikasanFlowComponent);
             StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
          }
       } else {

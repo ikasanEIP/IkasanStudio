@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.actions.*;
 
@@ -20,6 +21,10 @@ public class DesignCanvasContextMenu {
         if (ikasanBasicElement instanceof FlowElement) {
             menu.add(createDeleteComponentMenuItem(projectKey, "Delete Component", ikasanBasicElement));
             menu.add(createDebugComponentMenuItem(projectKey, "Add Debug to Component", ikasanBasicElement));
+            menu.add(createWiretapItem(projectKey, "Wiretap Before", ikasanBasicElement, Decorator.TYPE.Wiretap, Decorator.POSITION.BEFORE));
+            menu.add(createWiretapItem(projectKey, "Wiretap After", ikasanBasicElement, Decorator.TYPE.Wiretap, Decorator.POSITION.AFTER));
+            menu.add(createWiretapItem(projectKey, "Logging Before", ikasanBasicElement, Decorator.TYPE.LogWiretap, Decorator.POSITION.BEFORE));
+            menu.add(createWiretapItem(projectKey, "Logging After", ikasanBasicElement, Decorator.TYPE.LogWiretap, Decorator.POSITION.AFTER));
             menu.add(createHelpTextItem(projectKey, "Describe Component", ikasanBasicElement, mouseEvent));
             menu.add(createWebHelpTextItem(projectKey, "Component Web help", ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(projectKey, "Jump to code", ikasanBasicElement, false));
@@ -43,6 +48,11 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
+    private static JMenuItem createWiretapItem(String projectKey, String label, BasicElement ikasanBasicElement, Decorator.TYPE type, Decorator.POSITION position) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new WiretapComponentAction(projectKey, ikasanBasicElement, type, position));
+        return item;
+    }
     private static JMenuItem createHelpTextItem(String projectKey, String label, BasicElement ikasanBasicElement, MouseEvent mouseEvent) {
         JMenuItem item = new JMenuItem(label);
         item.addActionListener(new PopupHelpAction(projectKey, ikasanBasicElement, mouseEvent, false));
