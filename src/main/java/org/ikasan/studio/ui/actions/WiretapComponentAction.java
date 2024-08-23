@@ -1,9 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
-import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Decorator;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -12,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class WiretapComponentAction implements ActionListener {
-   private static final Logger LOG = Logger.getInstance("#WiretapComponentAction");
    private final String projectKey;
    private final BasicElement ikasanBasicElement;
    private final Decorator.TYPE type;
@@ -31,14 +28,12 @@ public class WiretapComponentAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       if (ikasanBasicElement instanceof FlowElement ikasanFlowComponentToRemove &&
-         !((FlowElement)ikasanBasicElement).getComponentMeta().isDebug()) {
+         !(ikasanBasicElement.getComponentMeta().isDebug())) {
 
-         FlowElement flowElement = ((FlowElement)ikasanFlowComponentToRemove);
-
-         flowElement.addDecorator(
+          ikasanFlowComponentToRemove.addDecorator(
               Decorator.decoratorBuilder()
                    .type(type.toString())
-                   .name(beforeOrAfter.toString() + " " + flowElement.getName())
+                   .name(beforeOrAfter.toString() + " " + ikasanFlowComponentToRemove.getName())
                    .configurationId("0")
                    .configurable(false)
                    .build()

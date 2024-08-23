@@ -55,7 +55,7 @@ public class FlowElement extends BasicElement {
 
     /**
      * Attempt to add the decorator to the flow element, if the decorator is already added, the action is ignored.
-     * @param decorator
+     * @param decorator to be added
      */
     public void addDecorator(Decorator decorator) {
         if (decorator != null) {

@@ -11,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class DebugComponentAction implements ActionListener {
-   private static final Logger LOG = Logger.getInstance("#DeleteComponentAction");
    private final String projectKey;
    private final BasicElement ikasanBasicElement;
 
