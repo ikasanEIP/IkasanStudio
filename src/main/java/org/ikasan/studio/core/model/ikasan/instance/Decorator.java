@@ -11,8 +11,8 @@ import java.util.Objects;
 @Setter
 @ToString
 public class Decorator {
-    public enum TYPE { Wiretap, LogWiretap};
-    public enum POSITION { BEFORE, AFTER };
+    public enum TYPE { Wiretap, LogWiretap}
+    public enum POSITION { BEFORE, AFTER }
 
     private String type;
     private String name;
