@@ -27,7 +27,7 @@ import java.util.List;
 
 public class PaletteTabPanel extends JPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
-    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
+    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Set to push description off the screen
     private final String projectKey;
     JScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
@@ -44,17 +44,7 @@ public class PaletteTabPanel extends JPanel {
         htmlScrollingDisplayPanel.setBorder(null);
         paletteExportTransferHandler = new PaletteExportTransferHandler(projectKey);
 
-        // Body
-        paletteList = new JBList(buildPaletteItems(projectKey).toArray());
-        paletteList.setCellRenderer(new PaletteListCellRenderer());
-        paletteList.setDragEnabled(true);
-        paletteList.setTransferHandler(paletteExportTransferHandler);
-        paletteScrollPane = new JScrollPane();
-        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        paletteScrollPane.getViewport().add(paletteList);
-
-        // Assemble Body and Footer
-        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paletteScrollPane, htmlScrollingDisplayPanel);
+        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         paletteSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         paletteSplitPane.setDividerSize(2);
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
@@ -70,11 +60,10 @@ public class PaletteTabPanel extends JPanel {
                 };
             }
         });
-        // At this point, and even when the method ends, the preferred height only reflects the preferred height of all
-        // the known components, so we deliberately send the divider off the bottom of the screen until the first time we
-        // click on a palette component.
-        paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
 
+        setPaletteList();
+
+        paletteSplitPane.setRightComponent(htmlScrollingDisplayPanel);
         paletteBodyPanel = new JPanel(new BorderLayout());
         paletteBodyPanel.setBorder(null);
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
@@ -84,14 +73,22 @@ public class PaletteTabPanel extends JPanel {
         linePanel.setBorder(new MatteBorder(1,0,0,0, StudioUIUtils.getLineColor()));
         add(linePanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
+    }
+
+    public void setPaletteList() {
+        paletteList = new JBList(buildPaletteItems(projectKey).toArray());
+        paletteList.setCellRenderer(new PaletteListCellRenderer());
+        paletteList.setDragEnabled(true);
+        paletteList.setTransferHandler(paletteExportTransferHandler);
+
+        paletteScrollPane = new JScrollPane();
+        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        paletteScrollPane.getViewport().add(paletteList);
 
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
                 PaletteItem paletteItem = paletteList.getSelectedValue();
-                // Only do this if it's the first time, otherwise it might get annoying.
-//                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
-                    paletteSplitPane.setDividerLocation(0.8);
-//                }
+                paletteSplitPane.setDividerLocation(0.8);
                 htmlScrollingDisplayPanel.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
@@ -104,43 +101,12 @@ public class PaletteTabPanel extends JPanel {
                 handler.exportAsDrag(comp, me, TransferHandler.COPY);
             }
         });
+        paletteSplitPane.setLeftComponent(paletteScrollPane);
+        paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
     }
 
     public void resetPallette() {
-        paletteList = new JBList(buildPaletteItems(projectKey));
-        paletteList.setCellRenderer(new PaletteListCellRenderer());
-        paletteList.setDragEnabled(true);
-        paletteList.setTransferHandler(paletteExportTransferHandler);
-
-        paletteScrollPane = new JScrollPane();
-        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        paletteScrollPane.getViewport().add(paletteList);
-
-        paletteList.addListSelectionListener(listSelectionEvent -> {
-            if (paletteList.getSelectedValue() != null) {
-                PaletteItem PaletteItem = paletteList.getSelectedValue();
-                // Only do this if it's the first time, otherwise it might get annoying.
-//                if (paletteSplitPane.getDividerLocation() > (paletteBodyPanel.getHeight() - 10)) {
-                    paletteSplitPane.setDividerLocation(0.8);
-//                }
-                htmlScrollingDisplayPanel.setText(PaletteItem.getIkasanPaletteElementViewHandler().getHelpText());
-            }
-        });
-
-        paletteList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent me) {
-                JComponent comp = (JComponent) me.getSource();
-                TransferHandler handler = comp.getTransferHandler();
-                handler.exportAsDrag(comp, me, TransferHandler.COPY);
-            }
-        });
-
-        paletteScrollPane = new JScrollPane();
-        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        paletteScrollPane.getViewport().add(paletteList);
-
-        paletteSplitPane.setLeftComponent(paletteList);
+        setPaletteList();
         UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
     }
 
