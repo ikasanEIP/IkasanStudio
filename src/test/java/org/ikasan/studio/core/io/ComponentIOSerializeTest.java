@@ -49,9 +49,16 @@ class ComponentIOSerializeTest {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
     }
+
     @Test
     public void testPopulatedFlowSerializeWithWiretapsToJson() throws IOException, StudioBuildException {
         String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow());
+        assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow_with_wiretaps.json"), jsonString);
+    }
+
+    @Test
+    public void testPopulatedFlowSerializeWithSomeFaultyWiretapsToJsonDoesNotCrashFlow() throws IOException, StudioBuildException {
+        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithFaultyWiretapsFlow());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow_with_wiretaps.json"), jsonString);
     }
     @Test
