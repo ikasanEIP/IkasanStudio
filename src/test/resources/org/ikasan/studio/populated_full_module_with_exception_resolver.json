@@ -71,6 +71,16 @@
           "componentType": "org.ikasan.spec.component.endpoint.Producer",
           "implementingClass": "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl",
           "decorators" : [ {
+            "type": "InvalidWiretap",
+            "name": "BEFORE My Custom Converter",
+            "configurationId": "360",
+            "configurable": false
+          },{
+            "type": "Wiretap",
+            "name": "Invalid BEFORE My Custom Converter",
+            "configurationId": "360",
+            "configurable": false
+          },{
             "type": "Wiretap",
             "name": "BEFORE My Custom Converter",
             "configurationId": "360",

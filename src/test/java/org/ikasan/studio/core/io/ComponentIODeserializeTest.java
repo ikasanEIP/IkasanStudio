@@ -125,8 +125,8 @@ class ComponentIODeserializeTest {
             () -> assertEquals("org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl", devNullProducer.getComponentMeta().getImplementingClass()),
             () -> assertEquals("My DevNull Producer", devNullProducer.getComponentProperties().get(COMPONENT_NAME).getValue()),
             () -> assertEquals(2, devNullProducer.getDecorators().size()),
-            () -> assertEquals("Decorator(type=Wiretap, name=BEFORE My Custom Converter, configurationId=360, configurable=false)", devNullProducer.getDecorators().get(0).toString()),
-            () -> assertEquals("Decorator(type=LogWiretap, name=AFTER My Custom Converter, configurationId=361, configurable=false)", devNullProducer.getDecorators().get(1).toString())
+            () -> assertEquals("Decorator(type=Wiretap, position=BEFORE, name=BEFORE My Custom Converter, configurationId=360, configurable=false)", devNullProducer.getDecorators().get(0).toString()),
+            () -> assertEquals("Decorator(type=LogWiretap, position=AFTER, name=AFTER My Custom Converter, configurationId=361, configurable=false)", devNullProducer.getDecorators().get(1).toString())
         );
     }
 

@@ -711,8 +711,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             for (int i = 0; i < arrayNode.size(); i++) {
                 JsonNode arrayElement = arrayNode.get(i);
                 Decorator decorator = getDecorator(arrayElement);
-                if (decorator != null) {
+                if (decorator != null && decorator.isValid()) {
                     decorators.add(decorator);
+                } else {
+                    LOG.warn("STUDIO: WARN, attempt to add invalid decorator of [" + decorator + "] was ignored");
                 }
             }
         }
