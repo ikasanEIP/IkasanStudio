@@ -17,7 +17,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 public class StudioUIUtils {
-    public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio");
+    public static final String NOTIFICATION_GROUP_ID = "Ikasan Studio";
+//    public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID);
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
     private StudioUIUtils() {}
 
@@ -247,17 +248,17 @@ public class StudioUIUtils {
     }
 
     public static void displayIdeaInfoMessage(String projectKey, String message) {
-        IKASAN_NOTIFICATION_GROUP
+        NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.INFORMATION)
                 .notify(UiContext.getProject(projectKey));
     }
     public static void displayIdeaWarnMessage(String projectKey, String message) {
-        IKASAN_NOTIFICATION_GROUP
+        NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.WARNING)
                 .notify(UiContext.getProject(projectKey));
     }
     public static void displayIdeaErrorMessage(String projectKey, String message) {
-        IKASAN_NOTIFICATION_GROUP
+        NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.ERROR)
                 .notify(UiContext.getProject(projectKey));
     }
@@ -301,4 +302,5 @@ public class StudioUIUtils {
 //            }
         }
     }
+
 }
