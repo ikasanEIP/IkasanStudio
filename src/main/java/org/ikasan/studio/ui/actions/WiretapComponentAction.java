@@ -38,7 +38,7 @@ public class WiretapComponentAction implements ActionListener {
                    .configurable(false)
                    .build()
          );
-            StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
+         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
       } else {
          StudioUIUtils.displayIdeaWarnMessage(projectKey, "Wiretap can only be added to a non-debug flow elements");
       }

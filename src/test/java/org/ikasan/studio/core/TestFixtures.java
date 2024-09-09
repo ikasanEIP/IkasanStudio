@@ -454,24 +454,78 @@ public class TestFixtures {
     }
     public static FlowElement getDevNullProducerWithWiretaps() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Dev Null Producer");
-        Decorator decorator1 = Decorator.decoratorBuilder()
-                .type("Wiretap")
-                .name("Before bob")
-                .configurationId("345")
-                .configurable(false)
-                .build();
-        Decorator decorator2 = Decorator.decoratorBuilder()
-                .type("LoggingWiretap")
-                .name("Before bobie")
-                .configurationId("3451")
-                .configurable(true)
-                .build();
-
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My DevNull Producer")
-                .decorators(Arrays.asList(decorator1, decorator2))
+                .decorators(getGoodWiretaps())
                 .build();
+    }
+
+    private static List<Decorator> getGoodWiretaps() {
+        Decorator decorator1 = Decorator.decoratorBuilder()
+                .type("Wiretap")
+                .name("BEFORE bob")
+                .configurationId("3450")
+                .configurable(false)
+                .build();
+        Decorator decorator2 = Decorator.decoratorBuilder()
+                .type("LogWiretap")
+                .name("BEFORE bob")
+                .configurationId("3451")
+                .configurable(true)
+                .build();
+        Decorator decorator3 = Decorator.decoratorBuilder()
+                .type("LogWiretap")
+                .name("AFTER bob")
+                .configurationId("3452")
+                .configurable(true)
+                .build();
+        Decorator decorator4 = Decorator.decoratorBuilder()
+                .type("Wiretap")
+                .name("AFTER bob")
+                .configurationId("3453")
+                .configurable(true)
+                .build();
+        List<Decorator> decoratorList = new ArrayList<>();
+        decoratorList.add(decorator1);
+        decoratorList.add(decorator2);
+        decoratorList.add(decorator3);
+        decoratorList.add(decorator4);
+        return decoratorList;
+    }
+
+    public static FlowElement getDevNullProducerWithFaultyWiretaps() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Dev Null Producer");
+        List<Decorator> decoratorList = getGoodWiretaps();
+        Decorator badDecorator1 = Decorator.decoratorBuilder()
+                .type("XWiretap")
+                .name("BEFORE bob")
+                .configurationId("3450")
+                .configurable(false)
+                .build();
+        Decorator badDecorator2 = Decorator.decoratorBuilder()
+                .type("LogWiretap")
+                .name("Before bob")
+                .configurationId("3451")
+                .configurable(true)
+                .build();
+        Decorator duplicateDecorator = Decorator.decoratorBuilder()
+                .type("Wiretap")
+                .name("AFTER bob")
+                .configurationId("3453")
+                .configurable(true)
+                .build();
+
+        FlowElement devNullProducer = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My DevNull Producer")
+                .decorators(decoratorList)
+                .build();
+
+        devNullProducer.addDecorator(badDecorator1);
+        devNullProducer.addDecorator(badDecorator2);
+        devNullProducer.addDecorator(duplicateDecorator);
+        return devNullProducer;
     }
 
     public static FlowElement getEmailProducer() throws StudioBuildException {
@@ -770,6 +824,17 @@ public class TestFixtures {
         FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
         FlowElement customConverter = getCustomConverter();
         FlowElement devNullProducer = TestFixtures.getDevNullProducerWithWiretaps();
+        Flow flow = getUnbuiltFlow()
+                .consumer(eventGeneratingConsumer)
+                .build();
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(new ArrayList<>(Arrays.asList(customConverter,devNullProducer))).build());
+        return flow;
+    }
+
+    public static Flow getEventGeneratingConsumerCustomConverterDevNullProducerWithFaultyWiretapsFlow() throws StudioBuildException {
+        FlowElement eventGeneratingConsumer = getEventGeneratingConsumer();
+        FlowElement customConverter = getCustomConverter();
+        FlowElement devNullProducer = TestFixtures.getDevNullProducerWithFaultyWiretaps();
         Flow flow = getUnbuiltFlow()
                 .consumer(eventGeneratingConsumer)
                 .build();

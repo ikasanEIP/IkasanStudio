@@ -737,8 +737,6 @@ public class DesignerCanvas extends JPanel {
      */
     @Override
     public void paintComponent(Graphics g) {
-//LOG.info("1 StudioXX new dimenstions dimension:" + this.getPreferredSize());
-
         Module ikasanModule = getIkasanModule();
         if (ikasanModule != null && ikasanModule.isInitialised()) {
             disableModuleInitialiseProcess();

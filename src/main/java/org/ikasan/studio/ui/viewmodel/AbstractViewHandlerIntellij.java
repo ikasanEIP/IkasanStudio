@@ -9,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.instance.AbstractViewHandler;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,6 +26,9 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     private int leftX;
     private int width;
     private int height;
+    private int trailingGap;
+    private int leadingGap;
+    private int minimumGap;
     boolean isAlreadySelected;
 
     /**
@@ -53,6 +57,9 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         return new Point(getLeftX() + (getWidth()/2), getTopY() + (getHeight()/2));
     }
 
+    protected int getMinimumGap() {
+        return UiContext.getMinimumComponentXSpacing();
+    }
     /**
      *
      * @param graphics object
@@ -142,6 +149,15 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
             }
         }
     }
+
+    public int getLeadingGap() {
+        return Math.max(getMinimumGap(), leadingGap);
+    }
+
+    public int getTrailingGap() {
+        return Math.max(getMinimumGap(), trailingGap);
+    }
+
 
 //    public abstract AbstractViewHandler getViewHandler(String projectKey);
 //

@@ -80,7 +80,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
 
     /**
      * Paint the flow itself and all the components within (technically, the view handler of each component will paint the
-     * component itseld
+     * component itself)
      * @param canvas panel to paint on
      * @param g Swing graphics class
      * @param minimumLeftX of the flow
@@ -158,6 +158,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
             setWidth(flowRouteViewHandler.getAllRouteMaxX(0) - flowRouteViewHandler.getFlowElementsMinX() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(flowRouteViewHandler.getAllRouteMaxY(graphics, 0) - flowRouteViewHandler.getFlowElementsMinY() + (2 * FLOW_CONTAINER_BORDER) + getTextHeight(graphics));
         } else {
+            // No flow routes, maybe an exception handler
             int width = getTextWidth(graphics) + (2 * FLOW_CONTAINER_BORDER);
             if (flow.hasExceptionResolver()) {
                 AbstractViewHandlerIntellij exceptionResolverViewHandler = getOrCreateAbstractViewHandler(projectKey, flow.getExceptionResolver());
