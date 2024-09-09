@@ -2,9 +2,12 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Pair;
+import org.ikasan.studio.core.model.ikasan.instance.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
+import java.util.List;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,13 +18,13 @@ import java.awt.*;
 public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanFlowComponentViewHandler");
     public static final int TEXT_VERTICAL_SPACE = 5;
+    public static final int WIRETAP_HORIZONTAL_SPACE = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 60;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 90;
     int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
     private final FlowElement flowElement;
-
 
     /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
@@ -43,7 +46,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      * @return the y position of the bottom of the text
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        LOG.debug("STUDIO: paintComponent invoked");
+        LOG.debug("STUDIO: paintComponent invoked for component: " + flowElement);
         // here we get the components decide x,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);
@@ -54,6 +57,38 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
             LOG.error("STUDIO: X was negative !!");
         }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
+        paintDecorators(canvas, g);
+    }
+
+    private void paintDecorators(JPanel canvas, Graphics g) {
+        int leftX = getLeftX();
+        int rightX = getLeftX() + flowchartSymbolWidth;
+        if (flowElement.hasWiretap()) {
+            Icon wiretapIcon = IkasanComponentLibrary.getWiretapIcon();
+            List<Decorator> wiretaps = flowElement.getWiretaps();
+
+            if (!wiretaps.isEmpty() && wiretaps.stream().anyMatch(Decorator::isBefore)) {
+                leftX -= (WIRETAP_HORIZONTAL_SPACE + wiretapIcon.getIconWidth());
+                wiretapIcon.paintIcon(canvas, g, leftX, getTopY());
+            }
+            if (!wiretaps.isEmpty() && wiretaps.stream().anyMatch(Decorator::isAfter)) {
+                rightX += WIRETAP_HORIZONTAL_SPACE;
+                wiretapIcon.paintIcon(canvas, g, rightX, getTopY());
+                rightX += wiretapIcon.getIconWidth();
+            }
+        }
+        if (flowElement.hasLogWiretap()) {
+            Icon logWiretapIcon = IkasanComponentLibrary.getLogWiretapIcon();
+            List<Decorator> logWiretaps = flowElement.getLogWiretaps();
+            if (!logWiretaps.isEmpty() && logWiretaps.stream().anyMatch(Decorator::isBefore)) {
+                leftX -= (WIRETAP_HORIZONTAL_SPACE + logWiretapIcon.getIconWidth());
+                logWiretapIcon.paintIcon(canvas, g, leftX, getTopY());
+            }
+            if (!logWiretaps.isEmpty() && logWiretaps.stream().anyMatch(Decorator::isAfter)) {
+                rightX += WIRETAP_HORIZONTAL_SPACE;
+                logWiretapIcon.paintIcon(canvas, g, rightX, getTopY());
+            }
+        }
     }
 
     /**
@@ -84,6 +119,24 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         setLeftX(x);
         setTopY(y);
         setWidth(getCanvasIcon().getIconWidth());
+        int numberOfBeforeDecorators = flowElement.getBeforeDecorators().size();
+        int numberOfAfterDecorators = flowElement.getAfterDecorators().size();
+
+        if (numberOfBeforeDecorators > 0) {
+            int beforeWidth = numberOfBeforeDecorators * (IkasanComponentLibrary.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
+            beforeWidth += WIRETAP_HORIZONTAL_SPACE; // need 1 extra gap leading
+            setLeadingGap(beforeWidth);
+            setLeftX(getLeftX() + beforeWidth);
+        } else {
+            setLeadingGap(0);
+        }
+        if (numberOfAfterDecorators > 0) {
+            int afterWidth = numberOfAfterDecorators * (IkasanComponentLibrary.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
+            afterWidth += WIRETAP_HORIZONTAL_SPACE; // need 1 extra gap leading
+            setTrailingGap(afterWidth);
+        } else {
+            setTrailingGap(0);
+        }
 
         if (getWidth() < -10) {
             LOG.warn("STUDIO: SERIOUS: Width set to negative " + getWidth());
@@ -138,6 +191,5 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      */
     @Override
     public void dispose() {
-
     }
 }

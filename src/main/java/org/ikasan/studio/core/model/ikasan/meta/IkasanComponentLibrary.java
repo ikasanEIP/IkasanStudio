@@ -152,9 +152,32 @@ public class IkasanComponentLibrary {
     }
 
     public static Icon getSmallHelpIcon(String description) {
+//
+//        ImageIcon imageIcon;
+//        String iconLocation = GENERAL_ICONS_DIR + "/help.png";
+//        URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
+//        if (iconURL == null) {
+//            LOG.warn("STUDIO: Could not create Icon for " + iconLocation + " using default");
+//        }
+//        imageIcon = new ImageIcon(iconURL, description);
+//        return imageIcon;
+        return getGeneralIcon("help.png", description);
+    }
+
+    public static Icon WIRETAP_ICON = getGeneralIcon("wiretap.png", "Wiretap");
+    public static Icon getWiretapIcon() {
+        return WIRETAP_ICON;
+    }
+
+    public static Icon LOG_WIRETAP_ICON = getGeneralIcon("log-wiretap.png", "Log Wiretap");
+    public static Icon getLogWiretapIcon() {
+        return LOG_WIRETAP_ICON;
+    }
+
+    public static Icon getGeneralIcon(String iconFilename, String description) {
 
         ImageIcon imageIcon;
-        String iconLocation = GENERAL_ICONS_DIR + "/help.png";
+        String iconLocation = GENERAL_ICONS_DIR + "/" + iconFilename;
         URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
         if (iconURL == null) {
             LOG.warn("STUDIO: Could not create Icon for " + iconLocation + " using default");

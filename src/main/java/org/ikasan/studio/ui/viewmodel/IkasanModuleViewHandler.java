@@ -68,22 +68,23 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         setTopY(topy);
         setWidth(width);
         setHeight(height);
+        // Module title
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         int maxWidth = 0;
-        int maxHeight = 0;
+        int maxHeight;
         int lastFlowHeight = topy;
         for(Flow ikasanFlow : module.getFlows()) {
-            IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
-            if (flowViewViewHandler != null) {
+            IkasanFlowViewHandler flowViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
+            if (flowViewHandler != null) {
                 // initialise width/height to maximum, it will be adjusted down after reset
-                flowViewViewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
-                minimumTopY = flowViewViewHandler.getBottomY();
+                flowViewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
+                minimumTopY = flowViewHandler.getBottomY();
                 minimumTopY += FLOW_VERTICAL_SPACING;
 
                 // Real width of Module = Max flow + left + right
-                maxWidth = Math.max(maxWidth, flowViewViewHandler.getWidth());
-                lastFlowHeight = flowViewViewHandler.getHeight();
+                maxWidth = Math.max(maxWidth, flowViewHandler.getWidth());
+                lastFlowHeight = flowViewHandler.getHeight();
             }
         }
         maxWidth += getFlowXStartPoint() + FLOW_X_RIGHT_BUFFER;

@@ -37,6 +37,7 @@ public enum UiContext {
     private static final String RIGHT_TABBED_PANE = "rightTabbedPane";
     public static final String PROPERTIES_TAB_TITLE = "Properties";
     public static final String PALETTE_TAB_TITLE = "Palette";
+    public static final int MINIMUM_COMPONENT_X_SPACING = 15;
     public static final int PROPERTIES_TAB_INDEX = 0;
     public static final int PALETTE_TAB_INDEX = 1;
     private static final String DESIGNER_UI = "designerUI";
@@ -59,6 +60,15 @@ public enum UiContext {
         // We should always make sure the options cache is available.
         perProjectCache.get(projectKey).putIfAbsent(OPTIONS, new Options());
         // Currently hardcode these options but in future we need to expose via IDE
+    }
+
+    /**
+     * The spacing between flowchart components on the diagram.
+     * @TODO populate from UI config
+     * @return the minimum spacing between flowchart components on the diagram.
+     */
+    public static int getMinimumComponentXSpacing() {
+        return MINIMUM_COMPONENT_X_SPACING;
     }
 
     private static synchronized Object getProjectCache(String projectKey, String key) {

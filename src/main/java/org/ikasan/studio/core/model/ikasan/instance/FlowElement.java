@@ -6,8 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSerializer;
+import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +22,7 @@ import java.util.List;
 @Getter
 @Setter
 public class FlowElement extends BasicElement {
+    private static final Logger LOG = LoggerFactory.getLogger(ModuleDeserializer.class);
     public static final String DECORATORS_JSON_TAG = "decorators";
     @JsonIgnore
     private Flow containingFlow;
@@ -53,16 +57,48 @@ public class FlowElement extends BasicElement {
         }
     }
 
+    public boolean hasWiretap() {
+        return decorators != null && decorators.stream().anyMatch(Decorator::isWiretap);
+    }
+    public boolean hasLogWiretap() {
+        return decorators != null && decorators.stream().anyMatch(Decorator::isLogWiretap);
+    }
+
+    public List<Decorator> getWiretaps() {
+        return hasWiretap() ? decorators.stream().filter(Decorator::isWiretap).toList() : new ArrayList<>();
+    }
+    public List<Decorator> getLogWiretaps() {
+        return hasLogWiretap() ? decorators.stream().filter(Decorator::isLogWiretap).toList() : new ArrayList<>();
+    }
+
+    public boolean hasBeforeDecorators() {
+        return decorators != null && decorators.stream().anyMatch(Decorator::isBefore);
+    }
+    public boolean hasAfterDecorators() {
+        return decorators != null && decorators.stream().anyMatch(Decorator::isAfter);
+    }
+
+    public List<Decorator> getBeforeDecorators() {
+        return hasWiretap() ? decorators.stream().filter(Decorator::isBefore).toList() : new ArrayList<>();
+    }
+    public List<Decorator> getAfterDecorators() {
+        return hasLogWiretap() ? decorators.stream().filter(Decorator::isAfter).toList() : new ArrayList<>();
+    }
+
     /**
      * Attempt to add the decorator to the flow element, if the decorator is already added, the action is ignored.
      * @param decorator to be added
      */
     public void addDecorator(Decorator decorator) {
-        if (decorator != null) {
-            decorators = new ArrayList<>();
-            decorators.add(decorator);
-        } else if (!decorators.contains(decorator)) {
-            decorators.add(decorator);
+        if (decorator != null && decorator.isValid()) {
+            if (decorators == null) {
+                decorators = new ArrayList<>();
+                decorators.add(decorator);
+            } else if (!decorators.contains(decorator)) {
+                decorators.add(decorator);
+            }
+        } else {
+            LOG.warn("STUDIO: WARN, attempt to add invalid decorator of [" + decorator + "] was ignored");
         }
     }
 
@@ -87,6 +123,4 @@ public class FlowElement extends BasicElement {
                 ", containingFlowRoute ='" + (containingFlowRoute == null ? null : containingFlowRoute.getRouteName()) + '\'' +
                 '}';
     }
-
-
 }

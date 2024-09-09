@@ -5,7 +5,6 @@ import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
-import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -16,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
-import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 
 /**
  * A flow route and a flow are similar for non Router flows i.e. the flow contains 1 flow route
@@ -26,7 +24,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 @Getter
 public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final String projectKey;
-    public static final int FLOW_X_SPACING = 30;
+//    public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
     public static final int CONTAINER_CORNER_ARC = 30;
@@ -72,18 +70,18 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         return flowRoute != null ? flowRoute.getRouteName() : "";
     }
 
-    private int getFlowRouteTitleWidth(Graphics g) {
-        return StudioUIUtils.getTextWidth(g, getText());
-    }
-
-    private int getFlowRouteTitleHeight(Graphics g) {
-        return StudioUIUtils.getTextHeight(g);
-    }
-
-    private int paintRouteFlowTitle(Graphics g, PaintMode paintMode) {
-        return StudioUIUtils.drawCenteredStringFromTopCentre
-                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
-    }
+//    private int getFlowRouteTitleWidth(Graphics g) {
+//        return StudioUIUtils.getTextWidth(g, getText());
+//    }
+//
+//    private int getFlowRouteTitleHeight(Graphics g) {
+//        return StudioUIUtils.getTextHeight(g);
+//    }
+//
+//    private int paintRouteFlowTitle(Graphics g, PaintMode paintMode) {
+//        return StudioUIUtils.drawCenteredStringFromTopCentre
+//                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
+//    }
 
     /**
      * Paint the flow itself and all the components within (technically, the view handler of each component will paint the
@@ -163,11 +161,13 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
                 endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
                 if (targetFlowElement.getComponentMeta().isConsumer()) {
-                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+//                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                 } else {
-                    endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+//                    endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                    endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
                 }
@@ -184,9 +184,9 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 end.getLeftConnectorPoint().y);
     }
 
-    private int getYAfterPaintingFlowTitle(Graphics g) {
-        return paintRouteFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;
-    }
+//    private int getYAfterPaintingFlowTitle(Graphics g) {
+//        return paintRouteFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;
+//    }
 
     @Override
     public void initialiseDimensions(Graphics graphics, int newLeftx, int newTopY, int width, int height) {
@@ -208,7 +208,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 AbstractViewHandlerIntellij flowComponentViewHandler = getOrCreateAbstractViewHandler(projectKey, ikasanFlowComponent);
                 if (flowComponentViewHandler != null) {
                     flowComponentViewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
-                    currentX += flowComponentViewHandler.getWidth() + FLOW_X_SPACING;
+//                    currentX += flowComponentViewHandler.getWidth() + FLOW_X_SPACING;
+                    currentX += flowComponentViewHandler.getWidth() + flowComponentViewHandler.getLeadingGap() + flowComponentViewHandler.getTrailingGap();
                 }
             }
         }
@@ -259,7 +260,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            return getOrCreateAbstractViewHandler(projectKey, flowElementList.get(0)).getLeftX();
+            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(projectKey, flowElementList.get(0));
+            return firstElementViewHandler.getLeftX() - firstElementViewHandler.getLeadingGap();
         }
     }
 
@@ -293,7 +295,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            return getOrCreateAbstractViewHandler(projectKey, flowElementList.get(flowElementList.size()-1)).getRightX();
+            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(projectKey, flowElementList.get(flowElementList.size()-1));
+            return lastFlowElementViewHandler.getRightX() + lastFlowElementViewHandler.getTrailingGap();
         }
     }
 

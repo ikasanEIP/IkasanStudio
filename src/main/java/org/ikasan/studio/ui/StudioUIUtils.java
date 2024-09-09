@@ -1,10 +1,8 @@
 package org.ikasan.studio.ui;
 
-import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
-//import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -33,10 +31,7 @@ public class StudioUIUtils {
 
 
     public static Font getBoldFont(Graphics g) {
-        Font mainFont = StudioUIUtils.getMainFont();
-//        return new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize());
-        return mainFont;
-//        return new Font(mainFont.getName(), Font.BOLD, mainFont.getSize());
+        return StudioUIUtils.getMainFont();
     }
 
     public static void displayErrorMessage(String projectKey, String message) {
