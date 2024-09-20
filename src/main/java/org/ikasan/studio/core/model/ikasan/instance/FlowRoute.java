@@ -213,6 +213,10 @@ public class FlowRoute  implements IkasanComponent {
         return reason;
     }
 
+    public String getName() {
+        return routeName;
+    }
+
     @Override
     public String toString() {
         return "FlowRoute{" +

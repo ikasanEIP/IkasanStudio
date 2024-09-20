@@ -2,6 +2,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 
 import java.util.List;

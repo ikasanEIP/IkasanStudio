@@ -174,6 +174,14 @@ public class IkasanComponentLibrary {
         return LOG_WIRETAP_ICON;
     }
 
+    public static int getDecoratorHeight() {
+        return Math.max(getWiretapIcon().getIconHeight(), getLogWiretapIcon().getIconHeight());
+    }
+
+    public static int getDecoratorWidth() {
+        return Math.max(getWiretapIcon().getIconWidth(), getLogWiretapIcon().getIconWidth());
+    }
+
     public static Icon getGeneralIcon(String iconFilename, String description) {
 
         ImageIcon imageIcon;

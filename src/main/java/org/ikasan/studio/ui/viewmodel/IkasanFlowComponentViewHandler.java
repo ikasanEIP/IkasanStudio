@@ -2,7 +2,9 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Pair;
-import org.ikasan.studio.core.model.ikasan.instance.Decorator;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
@@ -59,6 +61,86 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         paintDecorators(canvas, g);
     }
+
+    /**
+     * Return true if this component is at the X and Y coordinate
+     * Remember 0,0 is top, left i.e. Y increases downwards
+     * @param x in question
+     * @param y in question
+     * @return true if this component (or its wiretaps) are at that location
+     */
+    @Override
+    public boolean isComponentAtXY(int x, int y) {
+        boolean result = super.isComponentAtXY(x, y);
+
+        if (!result) {
+            result = getFlowElement().hasDecorators() && isDecoratorAtXY(x, y);
+        }
+        return result;
+    }
+
+    /**
+     * Return true if this component's decorator is at the X and Y coordinate
+     * Remember 0,0 is top, left i.e. Y increases downwards
+     * @param x in question
+     * @param y in question
+     * @return true if this component (or its wiretaps) are at that location
+     */
+    public boolean isDecoratorAtXY(int x, int y) {
+        boolean result = false;
+        if (getFlowElement().hasDecorators()) {
+            result = ((getLeftX() - getLeadingGap() <= x && x <= getLeftX()) ||
+                      (getRightX()                  <= x && x <= getRightX() + getTrailingGap()) ) &&
+                    getTopY() <= y && y <= getTopY() + IkasanComponentLibrary.getDecoratorHeight();
+if (result) {
+LOG.info("Decorator found for " + flowElement.getName());
+}
+        }
+        return result;
+    }
+
+    /**
+     * Decorators are always painted in a specific order.
+     * @param x
+     * @param y
+     * @return
+     */
+    public Decorator getDecoratorAtXY(int x, int y) {
+        Decorator result = null;
+        if (isDecoratorAtXY(x, y)) {
+            DECORATOR_POSITION position;
+            DECORATOR_TYPE type;
+            if (x > getRightX()) {
+                position = DECORATOR_POSITION.AFTER;
+                List<Decorator> afterDecorators = flowElement.getAfterDecorators();
+                if (afterDecorators != null && afterDecorators.size() == 1) {
+                    result = afterDecorators.get(0);
+                }
+            } else {
+                position = DECORATOR_POSITION.BEFORE;
+                List<Decorator> beforeDecorators = flowElement.getBeforeDecorators();
+                if (beforeDecorators != null && beforeDecorators.size() == 1) {
+                    result = beforeDecorators.get(0);
+                }
+            }
+            if (result == null) {
+                if (x > getRightX() + IkasanComponentLibrary.getDecoratorWidth() + WIRETAP_HORIZONTAL_SPACE ||
+                        x < getLeftX() - IkasanComponentLibrary.getDecoratorWidth() - WIRETAP_HORIZONTAL_SPACE) {
+                    type = DECORATOR_TYPE.LogWiretap;
+                } else {
+                    type = DECORATOR_TYPE.Wiretap;
+                }
+            result = flowElement.getDecorators().stream()
+                    .filter(t -> type.equals(t.getType()))
+                    .filter(p -> position.equals(p.getPosition()))
+                    .findFirst()
+                    .orElse(null);
+            }
+        }
+        return result;
+    }
+
+
 
     private void paintDecorators(JPanel canvas, Graphics g) {
         int leftX = getLeftX();

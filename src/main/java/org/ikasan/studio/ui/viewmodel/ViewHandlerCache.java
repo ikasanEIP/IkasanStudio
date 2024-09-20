@@ -9,11 +9,11 @@ import org.ikasan.studio.ui.model.PaletteItem;
 
 import java.util.Arrays;
 
-public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
-    private static final Logger LOG = Logger.getInstance("#ViewHandlerFactoryIntellij");
+public class ViewHandlerCache implements ViewHandlerFactory {
+    private static final Logger LOG = Logger.getInstance("#ViewHandlerCache");
     private final String projectKey;
 
-    public ViewHandlerFactoryIntellij(String projectKey) {
+    public ViewHandlerCache(String projectKey) {
         this.projectKey = projectKey;
     }
 
@@ -39,34 +39,34 @@ public class ViewHandlerFactoryIntellij implements ViewHandlerFactory {
         return returnAbstractViewHandlerIntellij;
     }
 
-    public static IkasanFlowViewHandler getOrCreateFlowViewHandler(String projectKey, Flow flow) {
-        ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
+    public static IkasanFlowViewHandler getFlowViewHandler(String projectKey, Flow flow) {
+        ViewHandlerCache viewHandlerCache = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowViewHandler viewHandler = null;
         try {
-            viewHandler = ((IkasanFlowViewHandler)flow.getOrCreateViewHandler(viewHandlerFactoryIntellij));
+            viewHandler = ((IkasanFlowViewHandler)flow.getOrCreateViewHandler(viewHandlerCache));
         } catch (StudioException se) {
             LOG.warn("STUDIO: A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
 
-    public static IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, IkasanComponent ikasanComponent) {
-        ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
+    public static IkasanFlowComponentViewHandler getFlowComponentViewHandler(String projectKey, IkasanComponent ikasanComponent) {
+        ViewHandlerCache viewHandlerCache = UiContext.getViewHandlerFactory(projectKey);
         IkasanFlowComponentViewHandler viewHandler = null;
         BasicElement ikasanBasicElement = (BasicElement)ikasanComponent;
         try {
-            viewHandler = ((IkasanFlowComponentViewHandler)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
+            viewHandler = ((IkasanFlowComponentViewHandler)ikasanBasicElement.getOrCreateViewHandler(viewHandlerCache));
         } catch (StudioException se) {
             LOG.warn("STUDIO: A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
         return viewHandler;
     }
 
-    public static AbstractViewHandlerIntellij getOrCreateAbstracttViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        ViewHandlerFactoryIntellij viewHandlerFactoryIntellij = UiContext.getViewHandlerFactory(projectKey);
+    public static AbstractViewHandlerIntellij getAbstractViewHandler(String projectKey, BasicElement ikasanBasicElement) {
+        ViewHandlerCache viewHandlerCache = UiContext.getViewHandlerFactory(projectKey);
         AbstractViewHandlerIntellij viewHandler = null;
         try {
-            viewHandler = ((AbstractViewHandlerIntellij)ikasanBasicElement.getOrCreateViewHandler(viewHandlerFactoryIntellij));
+            viewHandler = ((AbstractViewHandlerIntellij)ikasanBasicElement.getOrCreateViewHandler(viewHandlerCache));
         } catch (StudioException se) {
             LOG.warn("STUDIO: A studio exception was raised while trying to get the view handlers, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }

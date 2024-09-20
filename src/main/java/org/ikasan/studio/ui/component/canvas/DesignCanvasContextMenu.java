@@ -2,8 +2,10 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
@@ -16,18 +18,40 @@ public class DesignCanvasContextMenu {
     private DesignCanvasContextMenu () {
     }
 
-    public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
+    public static void showPopupAndNavigateMenu(String projectKey, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement, Decorator decorator) {
         JPopupMenu menu = new JPopupMenu();
         if (ikasanBasicElement instanceof FlowElement) {
+
             menu.add(createDeleteComponentMenuItem(projectKey, ikasanBasicElement));
-            menu.add(createDebugComponentMenuItem(projectKey, ikasanBasicElement));
-            menu.add(createWiretapItem(projectKey, "Wiretap Before", ikasanBasicElement, Decorator.TYPE.Wiretap, Decorator.POSITION.BEFORE));
-            menu.add(createWiretapItem(projectKey, "Wiretap After", ikasanBasicElement, Decorator.TYPE.Wiretap, Decorator.POSITION.AFTER));
-            menu.add(createWiretapItem(projectKey, "Logging Before", ikasanBasicElement, Decorator.TYPE.LogWiretap, Decorator.POSITION.BEFORE));
-            menu.add(createWiretapItem(projectKey, "Logging After", ikasanBasicElement, Decorator.TYPE.LogWiretap, Decorator.POSITION.AFTER));
+            // @TODO add debug is broken, it needs to perform similar action to dragging a debug component from palette
+//            menu.add(createDebugComponentMenuItem(projectKey, ikasanBasicElement));
+            menu.addSeparator();
+            if (decorator != null && decorator.isBefore() && decorator.isWiretap()) {
+                menu.add(removeDecoratorItem(projectKey, "Delete Wiretap Before", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
+            } else {
+                menu.add(createDecoratorItem(projectKey, "Add Wiretap Before", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
+            }
+            if (decorator != null && decorator.isAfter() && decorator.isWiretap()) {
+                menu.add(removeDecoratorItem(projectKey, "Delete Wiretap After", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
+            } else {
+                menu.add(createDecoratorItem(projectKey, "Add Wiretap After", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
+            }
+            if (decorator != null && decorator.isBefore() && decorator.isLogWiretap()) {
+                menu.add(removeDecoratorItem(projectKey, "Delete Logging Before", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
+            } else {
+                menu.add(createDecoratorItem(projectKey, "Add Logging Before", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
+            }
+            if (decorator != null && decorator.isAfter() && decorator.isLogWiretap()) {
+                menu.add(removeDecoratorItem(projectKey, "Delete Logging After", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
+            } else {
+                menu.add(createDecoratorItem(projectKey, "Add Logging After", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
+            }
+
+            menu.addSeparator();
             menu.add(createHelpTextItem(projectKey, ikasanBasicElement, mouseEvent));
             menu.add(createWebHelpTextItem(projectKey, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(projectKey, ikasanBasicElement, false));
+            menu.addSeparator();
         }
         menu.add(createSaveAsMenuItem(projectKey));
         menu.add(createRefreshMenuItem(projectKey));
@@ -48,9 +72,14 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    private static JMenuItem createWiretapItem(String projectKey, String label, BasicElement ikasanBasicElement, Decorator.TYPE type, Decorator.POSITION position) {
+    private static JMenuItem removeDecoratorItem(String projectKey, String label, BasicElement ikasanBasicElement, DECORATOR_TYPE decoratorType, DECORATOR_POSITION decoratorPosition) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(new WiretapComponentAction(projectKey, ikasanBasicElement, type, position));
+        item.addActionListener(new DecoratorComponentAction(projectKey, ikasanBasicElement, false, decoratorType, decoratorPosition));
+        return item;
+    }
+    private static JMenuItem createDecoratorItem(String projectKey, String label, BasicElement ikasanBasicElement, DECORATOR_TYPE decoratorType, DECORATOR_POSITION decoratorPosition) {
+        JMenuItem item = new JMenuItem(label);
+        item.addActionListener(new DecoratorComponentAction(projectKey, ikasanBasicElement, true, decoratorType, decoratorPosition));
         return item;
     }
     private static JMenuItem createHelpTextItem(String projectKey, BasicElement ikasanBasicElement, MouseEvent mouseEvent) {

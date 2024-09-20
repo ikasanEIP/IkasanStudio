@@ -11,7 +11,7 @@ import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -38,7 +38,7 @@ public class DesignerUI {
         this.project = project;
         this.projectKey = project.getName();
         UiContext.setProject(projectKey, project);
-        UiContext.setViewHandlerFactory(projectKey, new ViewHandlerFactoryIntellij(projectKey));
+        UiContext.setViewHandlerFactory(projectKey, new ViewHandlerCache(projectKey));
         paletteAndProperties.setBorder(new EmptyBorder(0,0,0,0));
         paletteAndProperties.setUI(new BasicTabbedPaneUI() {
             @Override
