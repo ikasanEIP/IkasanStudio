@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSerializer;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -71,6 +74,9 @@ public class FlowElement extends BasicElement {
         return hasLogWiretap() ? decorators.stream().filter(Decorator::isLogWiretap).toList() : new ArrayList<>();
     }
 
+    public boolean hasDecorators() {
+        return decorators != null && !decorators.isEmpty();
+    }
     public boolean hasBeforeDecorators() {
         return decorators != null && decorators.stream().anyMatch(Decorator::isBefore);
     }
@@ -99,6 +105,23 @@ public class FlowElement extends BasicElement {
             }
         } else {
             LOG.warn("STUDIO: WARN, attempt to add invalid decorator of [" + decorator + "] was ignored");
+        }
+    }
+    /**
+     * Attempt to delete the decorator from the flow element, if the decorator is absent, the action is ignored.
+     * @param decoratorType to be removed
+     * @param position to be removed
+     */
+    public void removeDecorator(DECORATOR_TYPE decoratorType, DECORATOR_POSITION position) {
+        if (decorators != null) {
+            Decorator toBeRemoved;
+            toBeRemoved = getDecorators().stream()
+                    .filter(t->decoratorType.equals(t.getType()))
+                    .filter(p-> position.equals(p.getPosition()))
+                    .findFirst()
+                    .orElse(null);
+
+            decorators.remove(toBeRemoved);
         }
     }
 

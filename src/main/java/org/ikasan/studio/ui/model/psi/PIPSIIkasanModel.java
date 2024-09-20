@@ -16,7 +16,7 @@ import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -153,7 +153,7 @@ public class PIPSIIkasanModel {
         if (applicationTemplateString != null) {
             StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true);
         }
-        applicationTemplateString = null;
+//        applicationTemplateString = null;
         // Now any studio util helper classes
 //        String debugTransitionComponentString = null;
 //        try {
@@ -186,7 +186,7 @@ public class PIPSIIkasanModel {
         if (!ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements().isEmpty()) {
             // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
             for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
-                IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, component);
+                IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(projectKey, component);
                 if (component.hasUserSuppliedClass()) {
                     for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
@@ -250,7 +250,7 @@ public class PIPSIIkasanModel {
     private PsiJavaFile generateFlow(Project project, Module module,  String flowPackageName, Flow ikasanFlow) {
         PsiJavaFile newFile = null;
 
-        IkasanFlowViewHandler flowViewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, ikasanFlow);
+        IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(projectKey, ikasanFlow);
         String flowTemplateString = null;
         try {
             flowTemplateString = FlowTemplate.create(module, ikasanFlow, flowPackageName);
@@ -282,7 +282,7 @@ public class PIPSIIkasanModel {
         }
         if (templateString != null) {
             PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, module);
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, module);
             if (viewHandler != null) {
                 viewHandler.setPsiJavaFile(newFile);
             }

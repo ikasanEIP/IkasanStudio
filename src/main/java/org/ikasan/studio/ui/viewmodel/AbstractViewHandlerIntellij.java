@@ -115,6 +115,18 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         this.height = height;
     }
 
+    /**
+     * Return true if this component is at the X and Y coordinate
+     * Remember 0,0 is top, left i.e. Y increases downwards
+     * @param x in question
+     * @param y in question
+     * @return true if this component (or its wiretaps) are at that location
+     */
+    public boolean isComponentAtXY(int x, int y) {
+        return getLeftX() <= x && x <= getRightX() &&
+               getTopY()  <= y && y <= getBottomY();
+    }
+
     public abstract String getText();
 
 
@@ -158,11 +170,6 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         return Math.max(getMinimumGap(), trailingGap);
     }
 
-
-//    public abstract AbstractViewHandler getViewHandler(String projectKey);
-//
-//    public abstract void setViewHandler(String projectKey) ;
-
     /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
      * @param projectKey to provide scope
@@ -170,17 +177,17 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
      * @return the view handler for this element.
      */
     public AbstractViewHandlerIntellij getOrCreateAbstractViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        AbstractViewHandlerIntellij viewHandler = ViewHandlerFactoryIntellij.getOrCreateAbstracttViewHandler(projectKey, ikasanBasicElement);
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, ikasanBasicElement);
         return verifyHandler(viewHandler);
     }
 
     public IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, ikasanBasicElement);
+        IkasanFlowComponentViewHandler viewHandler = ViewHandlerCache.getFlowComponentViewHandler(projectKey, ikasanBasicElement);
         return (IkasanFlowComponentViewHandler)verifyHandler(viewHandler);
     }
 
     public IkasanFlowViewHandler getOrCreateFlowViewViewHandler(String projectKey, Flow flow) {
-        IkasanFlowViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow);
+        IkasanFlowViewHandler viewHandler = ViewHandlerCache.getFlowViewHandler(projectKey, flow);
         return (IkasanFlowViewHandler)verifyHandler(viewHandler);
     }
 

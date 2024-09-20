@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.Decorator;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.*;
@@ -111,7 +111,6 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      * @param jsonNode containing the start of the flow definition
      * @param metapackVersion to use for components
      * @return a flow object
-     * @throws IOException if the json could not be read
      * @throws StudioBuildException if there were issues creating the objects
      */
     public Flow getFlow(JsonNode jsonNode, String metapackVersion) throws StudioBuildException {

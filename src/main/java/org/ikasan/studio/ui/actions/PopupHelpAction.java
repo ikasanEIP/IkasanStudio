@@ -9,7 +9,7 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -30,7 +30,7 @@ public class PopupHelpAction  implements ActionListener {
    }
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      IkasanFlowComponentViewHandler viewHandler = ViewHandlerFactoryIntellij.getOrCreateFlowComponentViewHandler(projectKey, ikasanBasicElement);
+      IkasanFlowComponentViewHandler viewHandler = ViewHandlerCache.getFlowComponentViewHandler(projectKey, ikasanBasicElement);
        if (viewHandler != null) {
          if (webHelp) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Check your default browser, the help information should be automatically populated.");

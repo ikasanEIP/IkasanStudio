@@ -24,4 +24,12 @@ public class IkasanObject extends AbstractViewHandler implements IkasanComponent
     protected IkasanObject(ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
     }
+
+    public String getName() {
+        if (componentMeta != null) {
+            return componentMeta.getName();
+        } else {
+            return "Object not yet set";
+        }
+    }
 }

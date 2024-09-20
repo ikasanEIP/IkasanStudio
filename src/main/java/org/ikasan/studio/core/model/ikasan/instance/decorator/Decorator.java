@@ -1,4 +1,4 @@
-package org.ikasan.studio.core.model.ikasan.instance;
+package org.ikasan.studio.core.model.ikasan.instance.decorator;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
@@ -12,33 +12,9 @@ import java.util.Objects;
 @Setter
 @ToString
 public class Decorator {
-    public enum TYPE {
-        Wiretap, LogWiretap, Unknown;
-
-        public static TYPE safeValueOf(String name) {
-            for (TYPE type : TYPE.values()) {
-                if (type.name().equals(name)) {
-                    return type;
-                }
-            }
-            return Unknown;
-        }
-    }
-    public enum POSITION {
-        BEFORE, AFTER, UNKNOWN;
-        public static POSITION safeValueOf(String name) {
-            for (POSITION position : POSITION.values()) {
-                if (position.name().equals(name)) {
-                    return position;
-                }
-            }
-            return UNKNOWN;
-        }
-    }
-
-    private TYPE type;
+    private DECORATOR_TYPE type;
     @JsonIgnore
-    private POSITION position;
+    private DECORATOR_POSITION position;
     private String name;
     private String configurationId;
     private boolean configurable;
@@ -55,9 +31,9 @@ public class Decorator {
      */
     @Builder(builderMethodName = "decoratorBuilder")
     protected Decorator(String type, String name, String configurationId, boolean configurable) {
-        this.type = TYPE.safeValueOf(type);
+        this.type = DECORATOR_TYPE.safeValueOf(type);
         String prefix = name != null && !name.isBlank() ? name.split(" ")[0] : "BEFORE";
-        this.position = POSITION.safeValueOf(prefix);
+        this.position = DECORATOR_POSITION.safeValueOf(prefix);
         this.name = name;
         this.configurationId = configurationId;
         this.configurable = configurable;
@@ -65,7 +41,7 @@ public class Decorator {
 
     @JsonIgnore
     public boolean isInvalid() {
-        return type.equals(TYPE.Unknown) || position.equals(POSITION.UNKNOWN);
+        return type.equals(DECORATOR_TYPE.Unknown) || position.equals(DECORATOR_POSITION.UNKNOWN);
     }
 
     @JsonIgnore
@@ -75,22 +51,22 @@ public class Decorator {
 
     @JsonIgnore
     public boolean isWiretap() {
-        return TYPE.Wiretap.equals(type);
+        return DECORATOR_TYPE.Wiretap.equals(type);
     }
 
     @JsonIgnore
     public boolean isLogWiretap() {
-        return TYPE.LogWiretap.equals(type);
+        return DECORATOR_TYPE.LogWiretap.equals(type);
     }
 
     @JsonIgnore
     public boolean isBefore() {
-        return POSITION.BEFORE.equals(position);
+        return DECORATOR_POSITION.BEFORE.equals(position);
     }
 
     @JsonIgnore
     public boolean isAfter() {
-        return POSITION.AFTER.equals(position);
+        return DECORATOR_POSITION.AFTER.equals(position);
     }
 
     @Override

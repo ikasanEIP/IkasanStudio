@@ -18,7 +18,8 @@ public class DebugComponentAction implements ActionListener {
       this.ikasanBasicElement = ikasanBasicElement;
    }
    /**
-    * doDelete for component under mouse
+    * doDebug for component under mouse
+    * // @TODO this is broken, needs to add a debug like dragging debug component from right hand palette
     * @param actionEvent the event to be processed
     */
    @Override

@@ -10,7 +10,7 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerFactoryIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -45,8 +45,6 @@ public enum UiContext {
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
-
-
 
     // projectName -> region -> value
     // e.g. myProject -> INSTANCE.IKASAN_MODULE -> actualModule
@@ -103,8 +101,8 @@ public enum UiContext {
         putProjectCache(projectKey, PROJECT, project);
     }
 
-    public static ViewHandlerFactoryIntellij getViewHandlerFactory(String projectKey) {
-        return (ViewHandlerFactoryIntellij)getProjectCache(projectKey, VIEW_HANDLER_FACTORY);
+    public static ViewHandlerCache getViewHandlerFactory(String projectKey) {
+        return (ViewHandlerCache)getProjectCache(projectKey, VIEW_HANDLER_FACTORY);
     }
     public static Map<String, String> getApplicationProperties(String projectKey) {
         Map<String, String> applicationProperties = (Map)getProjectCache(projectKey, APPLICATION_PROPERTIES);
@@ -122,7 +120,7 @@ public enum UiContext {
     }
 
 
-    public static void setViewHandlerFactory(String projectKey, ViewHandlerFactoryIntellij viewHandlerFactory) {
+    public static void setViewHandlerFactory(String projectKey, ViewHandlerCache viewHandlerFactory) {
         putProjectCache(projectKey, VIEW_HANDLER_FACTORY, viewHandlerFactory);
     }
 
@@ -197,5 +195,4 @@ public enum UiContext {
     public static PIPSIIkasanModel getPipsiIkasanModel(String projectKey) {
         return (PIPSIIkasanModel) getProjectCache(projectKey, PIPSI_IKASAN_MODEL);
     }
-
 }

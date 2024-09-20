@@ -166,8 +166,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                 } else {
-//                    endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-                    endpointViewHandler.setLeftX(ViewHandlerFactoryIntellij.getOrCreateFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
+//                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
                 }

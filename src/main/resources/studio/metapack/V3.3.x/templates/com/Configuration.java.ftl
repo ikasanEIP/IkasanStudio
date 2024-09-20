@@ -7,6 +7,6 @@ package com;
 */
 public class Configuration implements Cloneable {
 <#list properties as property>
-    private final ${property.type} ${property.name} = 0;
+    private final ${property.decoratorType} ${property.name} = 0;
 </#list>
 }
