@@ -21,26 +21,22 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
 
 install:
-  - mvn -U  --file ikasaneip/pom.xml --settings .settings.xml test -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Dvaadin.proKey=mick_stewart73@hotmail.com/pro-e7494afe-55d8-4b7a-8a76-5dfbed55f637 -Pall -B -V
+  - mvn -U --file pom.xml --settings .settings.xml test -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Pall -B -V
 
 deploy:
   - skip_cleanup: true
-  # deploy develop 3.1.x to oss
+  # deploy
   - provider: script
     skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Dvaadin.proKey=mick_stewart73@hotmail.com/pro-e7494afe-55d8-4b7a-8a76-5dfbed55f637 -Pall -B  -V --settings .settings.xml
+    script: mvn --file pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall -B  -V --settings .settings.xml
     on:
-      branch: 3.2.x
-  # deploy develop 3.2.x to oss
-  - provider: script
-    skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Dvaadin.proKey=mick_stewart73@hotmail.com/pro-e7494afe-55d8-4b7a-8a76-5dfbed55f637 -Pall -B  -V -q --settings .settings.xml
-    on:
-      branch: 3.3.x
+      branch: main
+
+
   # Push release to oss
   - provider: script
     skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Dvaadin.proKey=mick_stewart73@hotmail.com/pro-e7494afe-55d8-4b7a-8a76-5dfbed55f637 -Pall,release-sign-artifacts -B  -V -q --settings .settings.xml
+    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall,release-sign-artifacts -B  -V -q --settings .settings.xml
     on:
       tags: true
 
