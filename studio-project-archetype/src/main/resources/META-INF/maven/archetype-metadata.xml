@@ -18,7 +18,7 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<archetype-descriptor name="${artifactId}">
+<archetype-descriptor name="Archetype to create new Ikasan Studio projects">
 <fileSets>
   <fileSet filtered="true" encoding="UTF-8">
     <directory></directory>
