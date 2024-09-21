@@ -1,7 +1,7 @@
 {
   "name": "Single Recipient Router",
   "componentType": "org.ikasan.spec.component.routing.SingleRecipientRouter",
-  "helpText": "<strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes.</p>",
+  "helpText": "<strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "org.ikasan.spec.component.routing.SingleRecipientRouter",
   "flowBuilderMethod": "singleRecipientRouter",

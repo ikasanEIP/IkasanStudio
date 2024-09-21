@@ -1,7 +1,7 @@
 {
   "name": "Multi Recipient Router",
   "componentType": "org.ikasan.spec.component.routing.MultiRecipientRouter",
-  "helpText": "<strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or many routes.</p>",
+  "helpText": "<strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or many routes e.g. the logic could send the payload to routeA AND routeB.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "org.ikasan.component.router.multirecipient.RecipientListRouter",
   "flowBuilderMethod": "multiRecipientRouter",
