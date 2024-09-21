@@ -5,7 +5,6 @@
     <modelVersion>4.0.0</modelVersion>
     <description>This pom is used to start and stop the H2 database to assist development debugging</description>
     <artifactId>start-h2</artifactId>
-    <groupId>com.studio</groupId>
     <version>1.0.0</version>
 
     <dependencies>
