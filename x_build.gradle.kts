@@ -30,10 +30,11 @@ repositories {
     mavenLocal()
     //jcenter()
 }
+
+
 dependencies {
-    dependencies {
-        implementation(files("tmp-lib/studio-ikasan-extension-1.0-SNAPSHOT.jar"))
-    }
+//    implementation(files("libs/studio-ikasan-extension-1.0-SNAPSHOT.jar"))
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
     implementation("org.freemarker:freemarker:2.3.33")
@@ -104,6 +105,11 @@ qodana {
 //        }
 //    }
 //}
+
+tasks.named("buildPlugin") {
+    dependsOn(configurations.runtimeClasspath)
+}
+
 
 tasks {
     withType<JavaCompile> {
