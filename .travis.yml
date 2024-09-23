@@ -21,7 +21,7 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
 
 install:
-  - mvn -U --file travis-pom.xml --settings .settings.xml test -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom Pall -B -V
+  - mvn -U --file travis-pom.xml --settings .settings.xml test -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Pall -B -V
 
 deploy:
   - skip_cleanup: true
