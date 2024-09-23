@@ -31,7 +31,9 @@ repositories {
     //jcenter()
 }
 dependencies {
-
+    dependencies {
+        implementation(files("tmp-lib/studio-ikasan-extension-1.0-SNAPSHOT.jar"))
+    }
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
     implementation("org.freemarker:freemarker:2.3.33")
@@ -44,9 +46,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.34")
     testCompileOnly("org.projectlombok:lombok:1.18.34")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
-    dependencies {
-        implementation(files("tmp-lib/studio-ikasan-extension-1.0-SNAPSHOT.jar"))
-    }
+
 
 //=======
 //    testImplementation("org.ikasan:ikasan-test:3.3.3")

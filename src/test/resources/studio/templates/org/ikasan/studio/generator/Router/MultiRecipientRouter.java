@@ -17,7 +17,7 @@ public static final String ROUTE1 = "route1";
 public static final String ROUTE2 = "route2";
 
 /**
-* <strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or many routes.</p>
+* <strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or many routes e.g. the logic could send the payload to routeA AND routeB.</p>
 *
 * @param payload to be evaluated and passed to the router routes
 * @return A list of routerNames that payload will be passed to
