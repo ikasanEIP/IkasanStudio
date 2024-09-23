@@ -1,7 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import liquibase.pro.packaged.J;
+//import liquibase.pro.packaged.J;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

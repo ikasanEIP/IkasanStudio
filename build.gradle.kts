@@ -34,11 +34,11 @@ repositories {
 
 dependencies {
 //    implementation(files("libs/studio-ikasan-extension-1.0-SNAPSHOT.jar"))
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+//    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
     implementation("org.freemarker:freemarker:2.3.33")
-    implementation("org.ikasan.studio:studio-ikasan-extension:1.0-SNAPSHOT")
+//    implementation("org.ikasan.studio:studio-ikasan-extension:1.0-SNAPSHOT")
     testImplementation("org.freemarker:freemarker:2.3.33")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
