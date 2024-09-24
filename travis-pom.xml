@@ -480,8 +480,8 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>studio-project-archetype</module>
-                <module>studio-ikasan-extension</module>
+                <module>ikasan-studio-project-archetype</module>
+                <module>ikasan-studio-extension</module>
             </modules>
         </profile>
         <profile>

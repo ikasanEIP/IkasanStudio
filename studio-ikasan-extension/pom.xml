@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.ikasan.studio</groupId>
-  <artifactId>studio-ikasan-extension</artifactId>
+  <artifactId>ikasan-studio-extension</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
 

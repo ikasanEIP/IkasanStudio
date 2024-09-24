@@ -9,8 +9,8 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan.studio",
-      "artifactId": "studio-ikasan-extension",
-      "version": "1.0-SNAPSHOT"
+      "artifactId": "ikasan-studio-extension",
+      "version": "1.0.0"
     },
     {
       "groupId": "org.ikasan",

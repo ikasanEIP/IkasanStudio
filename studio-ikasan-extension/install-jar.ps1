@@ -1,1 +1,1 @@
-mvn install:install-file "-Dfile=studio-ikasan-extension-1.0-SNAPSHOT.jar" "-DgroupId=org.ikasan.studio" "-DartifactId=studio-ikasan-extension" "-Dversion=1.0-SNAPSHOT" "-Dpackaging=jar"
+mvn install:install-file "-Dfile=ikasan-studio-extension-1.0.0.jar" "-DgroupId=org.ikasan.studio" "-DartifactId=ikasan-studio-extension" "-Dversion=1.0.0" "-Dpackaging=jar"

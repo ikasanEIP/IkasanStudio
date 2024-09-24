@@ -5,11 +5,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.ikasan.studio</groupId>
-  <artifactId>studio-project-archetype</artifactId>
+  <artifactId>ikasan-studio-project-archetype</artifactId>
   <version>1.0.0</version>
   <packaging>maven-archetype</packaging>
 
-  <name>Ikasan Studio Archetype</name>
+  <name>Ikasan Studio Project Archetype</name>
 
   <url>http://www.ikasan.org</url>
 
