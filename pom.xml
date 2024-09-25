@@ -68,8 +68,7 @@
     <inceptionYear>2007</inceptionYear>
  
     <modules>
-        <module>ikasan-studio-project-archetype</module>
-        <module>ikasan-studio-extension</module>
+        <module>ikasaneip</module>
     </modules>
 
     <scm>
