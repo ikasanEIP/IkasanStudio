@@ -21,19 +21,19 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
 
 install:
-  - mvn -U --file ikasaneip/pom.xml --settings .settings.xml clean install -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Pall -B -V
+  - mvn -U -X --file ikasaneip/pom.xml --settings .settings.xml clean install -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Pall -B -V
 
 deploy:
   - provider: script
     skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall -B  -V --settings .settings.xml
+    script: mvn -X --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall -B  -V --settings .settings.xml
     on:
       branch: 1.0.x
 
   # Push release to oss
   - provider: script
     skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall,release-sign-artifacts -B  -V -q --settings .settings.xml
+    script: mvn -X --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall,release-sign-artifacts -B  -V -q --settings .settings.xml
     on:
       tags: true
 
