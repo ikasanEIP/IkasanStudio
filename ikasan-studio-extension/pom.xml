@@ -36,20 +36,6 @@
     </dependency>
   </dependencies>
 
-  <!-- Distribution for releases -->
-  <distributionManagement>
-    <repository>
-      <id>ikasaneip-releases</id>
-      <name>Ikasan EIP Releases Repository</name>
-      <url>http://oss.sonatype.org/content/repositories/releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>ikasaneip-snapshots</id>
-      <name>Ikasan EIP Snapshot Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
-  </distributionManagement>
-
   <build>
     <plugins>
       <plugin>
