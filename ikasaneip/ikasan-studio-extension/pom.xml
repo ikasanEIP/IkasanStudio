@@ -2,6 +2,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.ikasan</groupId>
+    <artifactId>ikasan-studio-build</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
   <groupId>org.ikasan.studio</groupId>
   <artifactId>ikasan-studio-extension</artifactId>
   <version>1.0.0</version>
@@ -29,11 +35,11 @@
       <artifactId>ikasan-eip-standalone</artifactId>
       <version>3.1.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-jar-plugin</artifactId>
-      <version>${maven.jar.plugin.version}</version>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.apache.maven.plugins</groupId>-->
+<!--      <artifactId>maven-jar-plugin</artifactId>-->
+<!--      <version>${maven.jar.plugin.version}</version>-->
+<!--    </dependency>-->
   </dependencies>
 
   <build>
@@ -48,19 +54,19 @@
         </configuration>
       </plugin>
       <!-- Configure Maven JAR Plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven.jar.plugin.version}</version>
-        <configuration>
-          <!-- Define the main class for executable JAR (if applicable) -->
-          <!-- <archive>
-              <manifest>
-                  <mainClass>com.example.MainClass</mainClass>
-              </manifest>
-          </archive> -->
-        </configuration>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-jar-plugin</artifactId>-->
+<!--        <version>${maven.jar.plugin.version}</version>-->
+<!--        <configuration>-->
+<!--          &lt;!&ndash; Define the main class for executable JAR (if applicable) &ndash;&gt;-->
+<!--          &lt;!&ndash; <archive>-->
+<!--              <manifest>-->
+<!--                  <mainClass>com.example.MainClass</mainClass>-->
+<!--              </manifest>-->
+<!--          </archive> &ndash;&gt;-->
+<!--        </configuration>-->
+<!--      </plugin>-->
     </plugins>
   </build>
 </project>
