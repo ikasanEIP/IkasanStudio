@@ -11,7 +11,7 @@ The pack consists of
 * Generic meta and icons for the pack as a whole
 * Meta data for each component supported
 
-For each component or meta component or user defined aggregate components, the pack will provide
+For each component or meta component or user defined aggregate components, the pck will provide
 * The icons for the palette and canvas
 * Metadata describing the component
 * Metadata (e.g. type, help, default value, optionality, name) for each property that the component supports

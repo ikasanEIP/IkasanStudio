@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -23,7 +23,7 @@ import static org.ikasan.studio.ui.model.StudioPsiUtils.TEMP_CONTENT_ROOT;
  * as the previous one or recreated if the descriptor is different (equals() = false).
  * Note - LightJavaCodeInsightFixtureTestCase forces Junit4
  */
-public class StudioPsiStudioBuildUtilsLightTests extends LightJavaCodeInsightFixtureTestCase {
+public class StudioPsiStudioBuildUtilsLightTests extends BasePlatformTestCase {
 
     /**
      * @return path to test data file directory relative to root of this module.
