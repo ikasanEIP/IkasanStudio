@@ -11,8 +11,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.testFramework.IdeaTestUtil;
-import com.intellij.testFramework.JavaPsiTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,14 +22,15 @@ import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_
  * <a href="https://plugins.jetbrains.com/docs/intellij/light-and-heavy-tests.html">See Jetbrains Documentation</a>
  * NOTE JavaPsiTestCase provided by Intellij is still JUNIT3 !
  */
-public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
+public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
+{
     private VirtualFile myTestProjectRoot;
     private final static String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
 
     /**
      * @return path to test data file directory relative to root of this module.
      */
-    @Override
+//    @Override
     protected @NotNull String getTestDataPath() {
         return "src/test/testData";
     }
@@ -39,7 +39,7 @@ public class StudioPsiStudioBuildUtilsHeavyTests extends JavaPsiTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         String root = getTestDataPath() + TEST_DATA_DIR;
-        PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
+//        PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
         myTestProjectRoot = createTestProjectStructure(root);
 
     }

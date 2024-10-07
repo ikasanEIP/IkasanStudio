@@ -1,3 +1,4 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.ikasaneip.ikasanstudio</id>
     <name>IkasanStudio</name>
@@ -5,27 +6,24 @@
 
     <description>Ikasan Studio is an IDE tool for the Ikasan Enterprise Service Bus</description>
 
-    <!-- Product and plugin compatibility requirements -->
-    <!-- https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
+    
     <resource-bundle>messages.MyBundle</resource-bundle>
+
     <extensions defaultExtensionNs="com.intellij">
-<!--        <applicationService serviceImplementation="com.github.ikasaneip.ikasanstudio.services.MyProjectService"/>-->
-<!--        <projectService serviceImplementation="com.github.ikasaneip.ikasanstudio.services.MyProjectService"/>-->
-        <toolWindow id="Ikasan Studio"
+        <toolWindow factoryClass="org.ikasan.studio.ui.DesignerToolWindowFactory"
+                    id="Ikasan Studio"
                     anchor="right"
-                    factoryClass="org.ikasan.studio.ui.DesignerToolWindowFactory"
-                    icon="/studio/icons/squid13x13.png"
+		    icon="/studio/icons/squid13x13.png"
         />
     </extensions>
 
-<!--    <applicationListeners>-->
-<!--        <listener class="com.github.ikasaneip.ikasanstudio.listeners.MyApplicationActivationListener"-->
-<!--                  topic="com.intellij.openapi.application.ApplicationActivationListener"/>-->
-<!--    </applicationListeners>-->
+    <applicationListeners>
+        <listener class="com.github.ikasaneip.ikasanstudio.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
+    </applicationListeners>
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Ikasan Studio" displayType="BALLOON"/>
