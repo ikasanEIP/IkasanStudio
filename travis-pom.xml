@@ -48,11 +48,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.ikasan</groupId>
-    <artifactId>ikasan-dashboard-build</artifactId>
-    <version>3.3.8-SNAPSHOT</version>
+    <artifactId>ikasan-studio-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Ikasan Parent Project</name>
-    <description>Ikasan Parent Project</description>
+    <name>Ikasan Studio Parent Project</name>
+    <description>Ikasan Studio Parent Project</description>
     <url>http://www.ikasan.org</url>
 
     <organization>
@@ -62,9 +62,9 @@
     <inceptionYear>2007</inceptionYear>
 
     <scm>
-        <connection>scm:git:https://github.com/ikasanEIP/ikasan-dashboard.git</connection>
-        <developerConnection>scm:git:https://github.com/ikasanEIP/ikasan-dashboard.git</developerConnection>
-        <url>scm:git:https://github.com/ikasanEIP/ikasan-dashboard.git</url>
+        <connection>scm:git:https://github.com/ikasanEIP/IkasanStudio.git</connection>
+        <developerConnection>scm:git:https://github.com/ikasanEIP/IkasanStudio.git</developerConnection>
+        <url>scm:git:https://github.com/ikasanEIP/IkasanStudio.git</url>
     </scm>
 
     <!-- List the core committers -->
@@ -480,8 +480,8 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>studio-project-archetype</module>
-                <module>studio-ikasan-extension</module>
+                <module>ikasan-studio-archetype</module>
+                <module>kasan-studio-extension</module>
             </modules>
         </profile>
         <profile>
