@@ -19,7 +19,7 @@ public abstract class AbstractGeneratorTestFixtures {
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         module.addFlow(flow);
-        String templateString = PropertiesTemplate.generateContents(module);
+        String templateString = PropertiesTemplate.create(module);
         assertNotNull(templateString);
         return templateString;
     }
@@ -36,7 +36,7 @@ public abstract class AbstractGeneratorTestFixtures {
     }
 
     public String generateFlowTemlateStringForModule(Module module) throws StudioGeneratorException {
-        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0));
+        String templateString = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0));
         assertNotNull(templateString);
         return templateString;
     }
@@ -52,7 +52,7 @@ public abstract class AbstractGeneratorTestFixtures {
     }
 
     public String generateUserImplementedComponentTemplateStringForModule(Module module, FlowElement flowElement) throws StudioGeneratorException {
-        String templateString = FlowsUserImplementedComponentTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0), flowElement);
+        String templateString = FlowsUserImplementedComponentTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0), flowElement);
         assertNotNull(templateString);
         return templateString;
     }
@@ -67,11 +67,19 @@ public abstract class AbstractGeneratorTestFixtures {
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).build());
         module.addFlow(flow);
 
-        String templateString = FlowTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        String templateString = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         return templateString;
     }
 
+    /**
+     * Embed the supplied flow element in a standard flow/module, passing it to the FlowsComponentFactoryTemplate to generate the Java code
+     * for the given flow element
+     * @param flowElement to be tested
+     * @return A string containing the generated code for the given flow element + standard module and flow wrapper.
+     * @throws StudioBuildException if problems getting component details
+     * @throws StudioGeneratorException if problems occurred during code generation
+     */
     public String generateFlowsComponentFactoryTemplateString(FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
         Flow flow = TestFixtures.getUnbuiltFlow()
                 .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
@@ -84,7 +92,8 @@ public abstract class AbstractGeneratorTestFixtures {
             flowElement.setContainingFlowRoute(flow.getFlowRoute());
             flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         }
-        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+//        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        String templateString = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         return templateString;
     }

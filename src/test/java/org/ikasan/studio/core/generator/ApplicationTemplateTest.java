@@ -21,7 +21,7 @@ public class ApplicationTemplateTest {
     public void test_generateApplicationClass() throws IOException, StudioBuildException, StudioGeneratorException {
         Module ikasanModule = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
 
-        String templateString = ApplicationTemplate.generateContents(ikasanModule);
+        String templateString = ApplicationTemplate.create(ikasanModule);
 
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(ikasanModule, ApplicationTemplate.APPLICATION_CLASS_NAME + ".java"), templateString);
