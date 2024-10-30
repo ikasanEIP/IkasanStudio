@@ -8,7 +8,7 @@ import java.util.Map;
 public class FlowTemplate extends Generator {
     private static final String FLOW_FTL = "flowTemplate.ftl";
 
-    public static String create(Module ikasanModule, Flow ikasanFlow, String packageName) throws StudioGeneratorException {
+    public static String create(String packageName, Module ikasanModule, Flow ikasanFlow) throws StudioGeneratorException {
         return  generateContents(packageName, ikasanModule, ikasanFlow);
     }
 
