@@ -1,6 +1,6 @@
 {
   "name": "Generic Producer",
-  "helpText": "<strong>Generic Producer</strong><p>Ending component of the flow, or a route in the flow. This type of producer discards all data passed to it and does not perform any processing.</p>",
+  "helpText": "<strong>Generic Producer</strong><p>Ending component of the flow, or a route in the flow. This type of producer discards all data passed to it and does not perform any processing.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",

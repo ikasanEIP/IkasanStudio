@@ -435,7 +435,23 @@ public class TestFixtures {
                 .componentMeta(meta)
                 .componentName("My Message Filter")
                 .build();
-//        flowElement.setPropertyValue(FROM_TYPE, java.lang.String.class);
+
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myFilter");
+        flowElement.setPropertyValue("configurationId", "MyResourceID");
+        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
+        flowElement.setPropertyValue("configuredResource", true);
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
+    public static FlowElement getGenericFilter() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Generic Filter");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Generic Filter")
+                .build();
+
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
         flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myFilter");
         flowElement.setPropertyValue("configurationId", "MyResourceID");
