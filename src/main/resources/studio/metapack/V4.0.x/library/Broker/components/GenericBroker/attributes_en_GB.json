@@ -2,7 +2,7 @@
   "name": "Generic Broker",
   "flowBuilderMethod": "broker",
   "generatesUserImplementedClass": "true",
-  "helpText": "<strong>Generic Broker</strong><p>Brokers enrich the contents of the existing message with additional data or structure in a number of different ways.</p><p>Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.</p>",
+  "helpText": "<strong>Generic Broker</strong><p>Brokers enrich the contents of the existing message with additional data or structure in a number of different ways.</p><p>Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
   "implementingClass": "",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",

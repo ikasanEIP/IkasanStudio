@@ -2,7 +2,7 @@
   "name": "Generic Converter",
   "flowBuilderMethod": "converter",
   "generatesUserImplementedClass": "true",
-  "helpText": "<strong>Generic Converter</strong><p>The main responsibility of a converter is to convert from one form to another. The purpose of this converter is to support any type of transformation required, implemented by a bespoke converter class.</p>",
+  "helpText": "<strong>Generic Converter</strong><p>The main responsibility of a converter is to convert from one form to another. The purpose of this converter is to support any type of transformation required, implemented by a bespoke converter class.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
   "implementingClass": "",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",

@@ -1,7 +1,7 @@
 {
   "name": "Generic Filter",
   "additionalKey": "Generic",
-  "helpText": "<strong>Generic Filter</strong><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.</p>",
+  "helpText": "<strong>Generic Filter</strong><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "",
   "flowBuilderMethod": "filter",
