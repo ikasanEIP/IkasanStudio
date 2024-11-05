@@ -5,6 +5,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 public class DeepCopyUtil {
+    /**
+     * Attempt to deep copy the supplied Object either by serialisation or reflection
+     * @param original object to be duplicated
+     * @return either a copy of the object or a reference to the object if copying was not possible
+     * @param <T> type of object to be duplicated
+     */
     public static <T> T deepCopy(T original) {
         if (original != null) {
             if (original instanceof Serializable) {
