@@ -75,7 +75,12 @@ org.ikasan.builder.BuilderFactory builderFactory;
         <#else>
             return builderFactory.getComponentBuilder().${StudioBuildUtils.toJavaIdentifier(flowElement.componentMeta.name)}()
         </#if>
+    <#else>
+        <#if flowElement.componentMeta.useImplementingClassInFactory>
+            ${flowElement.componentMeta.implementingClass} component = new ${flowElement.componentMeta.implementingClass}();
+        </#if>
     </#if>
+
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if propValue.value?? && propValue.meta.isSetterProperty() >
             <#if propValue.meta.getSetterMethod()?? && propValue.meta.getSetterMethod()!= "">
@@ -98,14 +103,14 @@ org.ikasan.builder.BuilderFactory builderFactory;
             </#if>
         </#if>
     </#list>
-    <#-- Special case for message filter, set configuredResourceId to default -->
-    <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
+    <#-- Special case for custom message filter, set configuredResourceId to default -->
+    <#if flowElement.componentMeta.name=="Custom Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.name)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");
     </#if>
     <#if flowElement.componentMeta.generatesUserImplementedClass>
         return ${flowElement.getJavaVariableName()};
     <#elseif flowElement.componentMeta.useImplementingClassInFactory>
-        return new ${flowElement.componentMeta.implementingClass}();
+        return component;
     <#else>
         .build();
     </#if>

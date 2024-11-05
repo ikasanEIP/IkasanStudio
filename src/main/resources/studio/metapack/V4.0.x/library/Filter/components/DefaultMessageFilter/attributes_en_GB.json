@@ -1,17 +1,17 @@
 {
-  "name": "Message Filter",
-  "helpText": "<strong>Message Filter</strong><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.</p>",
+  "name": "Default Message Filter",
+  "helpText": "<strong>Default Message Filter</strong><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statement in a programming language. The Default Message Filter uses a user supplied <b>Filter Rule</b> to provide the filter criteria.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "implementingClass": "org.ikasan.spec.component.filter.Filter.Custom",
+  "implementingClass": "org.ikasan.filter.DefaultMessageFilter",
   "flowBuilderMethod": "filter",
-  "generatesUserImplementedClass": "true",
+  "_generatesUserImplementedClass": "true",
+  "useImplementingClassInFactory": true,
   "properties": {
     "componentName": {
       "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
-
     "configurable": {
       "propertyName": "configurable",
       "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
@@ -45,18 +45,7 @@
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "usageDataType":"java.lang.String"
     },
-    "fromType": {
-      "propertyName": "fromType",
-      "affectsUserImplementedClass": "true",
-      "defaultValue": "java.lang.String",
-      "helpText": "The type of data we expect to come into the filter. This can be any Java class.",
-      "mandatory": true,
-      "usageDataType":"java.lang.String",
-      "_usageDataType":"java.util.List<String>",
-      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the filter."
-    },
-    "userImplementedClassName": {
+    "_userImplementedClassName": {
       "propertyName": "userImplementedClassName",
       "userImplementClassFtlTemplate": "filterTemplate.ftl",
       "affectsUserImplementedClass": "true",

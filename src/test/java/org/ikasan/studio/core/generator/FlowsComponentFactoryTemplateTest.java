@@ -32,6 +32,13 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedBrokerComponent.java"), templateString);
     }
 
+    @Test
+    public void testCreateFlowWith_genericBrokerComponent() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getGenericBroker();
+        String templateString = generateFlowsComponentFactoryTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedGenericBrokerComponent.java"), templateString);
+    }
+
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedEventGeneratingConsumerComponent.java

@@ -14,10 +14,10 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@javax.annotation.Resource
+co.uk.test.myflow1.myBroker myBroker;
 
 
-
-public org.ikasan.spec.component.splitting.Splitter getMyDefaultListSplitter() {
-org.ikasan.component.splitter.DefaultListSplitter component = new org.ikasan.component.splitter.DefaultListSplitter();
-return component;
+public org.ikasan.spec.component.endpoint.Broker getMyBroker() {
+return myBroker;
 }}

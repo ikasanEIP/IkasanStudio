@@ -3,6 +3,7 @@
   "additionalKey": "Generic",
   "helpText": "<strong>Generic Filter</strong><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statment in a programming language. In order to create your own filter you need to implement Filter Interface.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "_implementingClass": "This should come from model.json",
   "implementingClass": "",
   "flowBuilderMethod": "filter",
   "generatesUserImplementedClass": "true",
@@ -19,12 +20,18 @@
     },
     "configuration": {
       "propertyName": "configuration",
-      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
+      "helpText": "Provide the bean type that contains bespoke configurations for this component.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
+      "validationMessage": "Provide a java classname for the Configuration bean.",
+      "usageDataType":"configurationDefined"
+    },
+    "configuredResource": {
+      "propertyName": "configuredResource",
+      "affectsUserImplementedClass": "true",
+      "helpText": "Allow the Configuration to be exposed in the Ikasan console.",
+      "usageDataType":"java.lang.Boolean"
     },
     "configurationId": {
       "propertyName": "configurationId",
@@ -45,8 +52,9 @@
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to come into the filter. This can be any Java class.",
       "mandatory": true,
-      "usageDataType": "java.util.List<String>",
-      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*",
+      "usageDataType":"java.lang.String",
+      "_usageDataType":"java.util.List<String>",
+      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the filter."
     },
     "requiresStub": {
@@ -55,12 +63,12 @@
     },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
-      "userImplementClassFtlTemplate": "brokerTemplate.ftl",
+      "userImplementClassFtlTemplate": "filterTemplate.ftl",
       "affectsUserImplementedClass": "true",
-      "helpText": "The name of the class that that implements the interface for this generic component.",
+      "helpText": "The name of the class that contain the custom filter, the IDE will create a template for this class, the user  must provide the implementation.",
       "mandatory": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a valid java classname for the broker e.g. starting with upper case, followed by number/characters etc."
+      "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
     }
   }
 }

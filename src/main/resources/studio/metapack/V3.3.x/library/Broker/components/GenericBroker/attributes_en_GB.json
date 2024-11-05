@@ -7,7 +7,6 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "additionalKey": "Generic",
-  "usesBuilderInFactory": true,
   "properties": {
     "componentName": {
       "propertyName": "componentName",
