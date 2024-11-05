@@ -59,6 +59,19 @@ public class TestFixtures {
         return flowElement;
     }
 
+    public static FlowElement getGenericBroker() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Generic Broker");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Broker")
+                .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myBroker");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
     // -------------------------- Consumers -------------------------
     public static FlowElement getEventGeneratingConsumer() throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Event Generating Consumer");
@@ -430,7 +443,7 @@ public class TestFixtures {
     // ------------------------- Filters -------------------------
 
     public static FlowElement getMessageFilter() throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Message Filter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Custom Message Filter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Message Filter")

@@ -22,6 +22,7 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter> myXmlAdapterMap;
 
 public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToXMLStringConverter() {
+org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder component = new org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder();
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setFastFailOnConfigurationLoad(true)
@@ -38,5 +39,5 @@ public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToXM
 .setUseNamespacePrefix(true)
 .setValidate(true)
 .setXmlAdapterMap(myXmlAdapterMap)
-return new org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder();
+return component;
 }}

@@ -92,7 +92,6 @@ public abstract class AbstractGeneratorTestFixtures {
             flowElement.setContainingFlowRoute(flow.getFlowRoute());
             flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
         }
-//        String templateString = FlowsComponentFactoryTemplate.generateContents(TestFixtures.DEFAULT_PACKAGE, module, flow);
         String templateString = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertNotNull(templateString);
         return templateString;
