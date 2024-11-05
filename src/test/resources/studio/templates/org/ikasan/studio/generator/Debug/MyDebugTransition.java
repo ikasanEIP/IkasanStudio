@@ -13,14 +13,14 @@ public class AToBConvertMyFlow1SetByIDEEndingInDebugDebug extends org.ikasan.stu
 {
 
 /**
-* Allow use to view a clone of the message payload.
-* This component will have no effect on the payload, and it will not alter the flow of any messages
-* @param clonedMessage is a copy of the payload.
+* Allow user to view the message payload.
+* The framework will always attempt to supply copy of the payload rather than the payload itself.
+* @param payload is a copy of the payload.
 */
-public void debug(java.lang.Object clonedMessage)
+public void debug(java.lang.Object payload)
 {
 // Add breakpoints here
-System.out.println("Flow Debug Invoked " + clonedMessage.toString());
+System.out.println("Flow Debug Invoked " + payload.toString());
 }
 
 }
