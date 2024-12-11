@@ -285,4 +285,4 @@ Ikasan EIP is a mature and well maintained integration platform based on industr
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
-.
+x
