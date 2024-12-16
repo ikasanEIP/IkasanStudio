@@ -5,15 +5,15 @@
   <parent>
     <groupId>org.ikasan</groupId>
     <artifactId>ikasan-studio-build</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
 
   <groupId>org.ikasan.studio</groupId>
   <artifactId>ikasan-studio-extension</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>StudioIkasanExtension</name>
+  <name>IkasanStudioExtension</name>
   <url>http://maven.apache.org</url>
 
   <properties>

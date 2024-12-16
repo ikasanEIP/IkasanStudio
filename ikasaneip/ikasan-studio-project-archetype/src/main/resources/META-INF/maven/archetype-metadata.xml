@@ -18,58 +18,62 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<archetype-descriptor name="Archetype to create new Ikasan Studio projects">
-<fileSets>
-  <fileSet filtered="true" encoding="UTF-8">
-    <directory></directory>
-    <includes>
-      <include>*.txt</include>
-    </includes>
-  </fileSet>
-</fileSets>
-<modules>
-  <module id="${rootArtifactId}-user" dir="user" name="${rootArtifactId}-user">
-    <fileSets>
-      <fileSet filtered="true" packaged="true" encoding="UTF-8">
-        <directory>src/main/java</directory>
-      </fileSet>
-      <fileSet encoding="UTF-8">
-        <directory>src/main/resources</directory>
-      </fileSet>
-      <fileSet filtered="true" packaged="true" encoding="UTF-8">
-        <directory>src/test/java</directory>
-      </fileSet>
-      <fileSet encoding="UTF-8">
-        <directory>src/test/resources</directory>
-      </fileSet>
-    </fileSets>
-  </module>
-  <module id="${rootArtifactId}-generated" dir="generated" name="${rootArtifactId}-generated">
-    <fileSets>
-      <fileSet filtered="true" encoding="UTF-8">
-        <directory></directory>
-        <includes>
-          <include>*.md</include>
-        </includes>
-      </fileSet>
-
-
-      <fileSet filtered="true" packaged="true" encoding="UTF-8">
-        <directory>src/main/java</directory>
-      </fileSet>
-      <fileSet filtered="true" encoding="UTF-8">
-        <directory>src/main/model</directory>
-      </fileSet>
-      <fileSet filtered="true" encoding="UTF-8">
-        <directory>src/main/resources</directory>
-      </fileSet>
-      <fileSet filtered="true" packaged="true" encoding="UTF-8">
-        <directory>src/test/java</directory>
-      </fileSet>
-      <fileSet filtered="true" encoding="UTF-8">
-        <directory>src/test/resources</directory>
-      </fileSet>
-    </fileSets>
-  </module>
-</modules>
+<archetype-descriptor xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+                      xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0
+                      https://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <id>ikasan-studio-project-archetype</id>
+  <name>Ikasan Studio project archetype</name>
+  <description>Archetype to create new Ikasan Studio project</description>
+  <fileSets>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>*.txt</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <modules>
+    <module id="${rootArtifactId}-user" dir="user" name="${rootArtifactId}-user">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+        </fileSet>
+        <fileSet encoding="UTF-8">
+          <directory>src/main/resources</directory>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+        </fileSet>
+        <fileSet encoding="UTF-8">
+          <directory>src/test/resources</directory>
+        </fileSet>
+      </fileSets>
+    </module>
+    <module id="${rootArtifactId}-generated" dir="generated" name="${rootArtifactId}-generated">
+      <fileSets>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory></directory>
+          <includes>
+            <include>*.md</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/model</directory>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/resources</directory>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/test/resources</directory>
+        </fileSet>
+      </fileSets>
+    </module>
+  </modules>
 </archetype-descriptor>
