@@ -113,6 +113,13 @@
       "propertyName": "url",
       "helpText": "The full URl of the applicationw when invoked in this specific environment."
     },
+    "useEmbeddedH2": {
+      "propertyName": "useEmbeddedH2",
+      "helpText": "If set to true, use an 'in memory' control database.",
+      "setterProperty": false,
+      "propertyDataType": "java.lang.Boolean",
+      "defaultValue": "false"
+    },
     "version": {
       "propertyName": "version",
       "choices": [ "V1.3.x" ],
