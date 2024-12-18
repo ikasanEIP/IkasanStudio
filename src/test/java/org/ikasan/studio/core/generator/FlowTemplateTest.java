@@ -188,6 +188,17 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedMessageFilterComponent.java"), templateString);
     }
 
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMessageFilterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_defaultMessageFilter() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getDefaultMessageFilter();
+        String templateString = generateFlowTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, TEST_FLOW_NAME + "FullyPopulatedDefaultMessageFilterComponent.java"), templateString);
+    }
+
     // ------------------------------------- ROUTER -------------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/MyFlow1FullyPopulatedMultiRecipientRouterComponent.java
