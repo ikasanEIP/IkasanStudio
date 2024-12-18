@@ -69,6 +69,18 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"MessageFilter.java"), templateString);
     }
 
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/MessageFilter.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_defaultMessageFilterComponent() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getDefaultMessageFilter();
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile( flowElement,"DefaultMessageFilter.java"), templateString);
+    }
+
     //  ------------------------------- ROUTER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Router/MultiRecipientRouter.java
