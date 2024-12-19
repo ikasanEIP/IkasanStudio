@@ -30,7 +30,43 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
     }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_emptyFlow_with_use_embeddedH2() throws IOException, StudioGeneratorException {
+        module.setPropertyValue("useEmbeddedH2", true);
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_useEmbeddedH2.properties"), templateString);
+    }
     
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_emptyFlow_with_use_embeddedH2_null() throws IOException, StudioGeneratorException {
+        module.setPropertyValue("useEmbeddedH2", null);
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+    }
+
+//    /**
+//     * See also application_emptyFlow.properties
+//     * @throws IOException, StudioGeneratorException  if the template cant be generated
+//     */
+//    @Test
+//    public void testCreateProperties_emptyFlow_with_use_embeddedH2_string_true() throws IOException, StudioGeneratorException {
+//        module.setPropertyValue("useEmbeddedH2", "true");
+//        String templateString = PropertiesTemplate.generateContents(module);
+//        assertNotNull(templateString);
+//        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+//    }
+
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
      * See also application_fullyPopulatedEventGeneratingConsumerComponent.properties

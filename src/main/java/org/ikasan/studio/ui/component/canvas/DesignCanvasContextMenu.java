@@ -23,6 +23,7 @@ public class DesignCanvasContextMenu {
         if (ikasanBasicElement instanceof FlowElement) {
 
             menu.add(createDeleteComponentMenuItem(projectKey, ikasanBasicElement));
+            menu.add(createDebugMenuItem(projectKey));
             // @TODO add debug is broken, it needs to perform similar action to dragging a debug component from palette
 //            menu.add(createDebugComponentMenuItem(projectKey, ikasanBasicElement));
             menu.addSeparator();
@@ -101,7 +102,7 @@ public class DesignCanvasContextMenu {
     }
 
     private static JMenuItem createRefreshMenuItem(String projectKey) {
-        JMenuItem item = new JMenuItem("Refresh Model");
+        JMenuItem item = new JMenuItem("Read Module");
         item.addActionListener(new ModelRefreshAction(projectKey));
         return item;
     }
@@ -115,6 +116,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createLaunchH2MenuItem(String projectKey) {
         JMenuItem item = new JMenuItem("Launch H2");
         item.addActionListener(new LaunchH2Action(projectKey, item));
+        return item;
+    }
+
+    private static JMenuItem createDebugMenuItem(String projectKey) {
+        JMenuItem item = new JMenuItem("Debug Module to logs");
+        item.addActionListener(new DebugAction(projectKey));
         return item;
     }
 
