@@ -181,7 +181,7 @@ public  class BasicElement extends IkasanObject {
         ComponentProperty componentProperty = componentProperties.get(key);
         if (componentProperty != null) {
             componentProperty.setValue(value);
-        } else {
+        } else { // Attempt to add the meta for this property
             ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
