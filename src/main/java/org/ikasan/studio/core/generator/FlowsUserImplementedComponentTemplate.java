@@ -3,6 +3,7 @@ package org.ikasan.studio.core.generator;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class FlowsUserImplementedComponentTemplate extends Generator {
     }
 
     protected static String generateContents(String packageName, Module ikasanModule, Flow ikasanFow, FlowElement flowElement) throws StudioGeneratorException {
-        String templateName = flowElement.getProperty("userImplementedClassName").getMeta().getUserImplementClassFtlTemplate();
+        String templateName = flowElement.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getMeta().getUserImplementClassFtlTemplate();
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(FLOW_ELEMENT_TAG, flowElement);
