@@ -9,7 +9,7 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan.studio",
-      "artifactId": "ikasan-studio-extension",
+      "artifactId": "ikasan-studio-ide-mediator",
       "version": "1.0.0"
     },
     {

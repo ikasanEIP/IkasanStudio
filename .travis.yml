@@ -2,8 +2,6 @@ sudo: false
 language: java
 jdk:
   - openjdk11
-#node_js:
-#  - 10.17.0
 cache:
   directories:
     - $HOME/.m2
@@ -13,27 +11,24 @@ before_install:
   #  - echo -e "machine github.com\n  login $GITHUB_USER\n  password $GITHUB_PASSWORD" > $HOME/.netrc
   - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
-#  - nvm install 10.17.0
-#  - npm install --save-dev @babel/core
-#  - npm install --save-dev @babel/plugin-proposal-object-rest-spread
   - export M2_HOME=$HOME/apache-maven-3.8.4
   - if [ ! -d $M2_HOME/bin ]; then curl https://archive.apache.org/dist/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz | tar zxf - -C $HOME; fi
   - export PATH=$M2_HOME/bin:$PATH
 
 install:
-  - mvn -U --file ikasaneip/pom.xml --settings .settings.xml clean install -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Pall -B -V
+  - mvn -U --file ikasan-studio-ancillary/pom.xml --settings .settings.xml clean install -Dmaven.javadoc.skip=true -Djava.security.egd=file:/dev/./urandom -Pall -B -V
 
 deploy:
   - provider: script
     skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall -B  -V --settings .settings.xml
+    script: mvn --file ikasan-studio-ancillary/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall -B  -V --settings .settings.xml
     on:
       branch: 1.0.x
 
   # Push release to oss
   - provider: script
     skip_cleanup: true
-    script: mvn --file ikasaneip/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall,release-sign-artifacts -B  -V -q --settings .settings.xml
+    script: mvn --file ikasan-studio-ancillary/pom.xml deploy -DskipTests=true -Djava.security.egd=file:/dev/./urandom -Pall,release-sign-artifacts -B  -V -q --settings .settings.xml
     on:
       tags: true
 

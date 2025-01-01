@@ -47,17 +47,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-      <groupId>org.sonatype.oss</groupId>
-      <artifactId>oss-parent</artifactId>
-      <version>7</version>
-      <relativePath />
-    </parent>
-
-    <groupId>org.ikasan</groupId>
+    <!-- The only purpose this serves is to prevent Travis from defaulting to an ant build
+         The maven targets used by this project are explicitly stated in the .travis.yml file
+         so there is no merit in even mentioning the sub-modules since that will probably result in them being
+         build twice, once by .travis.yml and once by the default build of the top level pom
+    -->
+    <groupId>org.ikasan.studio</groupId>
     <artifactId>ikasan-studio-parent</artifactId>
-    <version>1.0.1</version>
     <packaging>pom</packaging>
+    <!-- Since this pom exists just to suppress an ant build, the version is arbitrary -->
+    <version>1.0.2-SNAPSHOT</version>
     <name>Ikasan Studio Parent</name>
     <description>Ikasan Studio Parent</description>
 
@@ -66,14 +65,5 @@
       <url>http://www.ikasan.org</url>
     </organization>
     <inceptionYear>2007</inceptionYear>
- 
-    <modules>
-        <module>ikasaneip</module>
-    </modules>
 
-    <scm>
-        <connection>scm:git:https://github.com/ikasanEIP/IkasanStudio.git</connection>
-        <developerConnection>scm:git:https://github.com/ikasanEIP/IkasanStudio.git</developerConnection>
-        <url>scm:git:https://github.com/ikasanEIP/IkasanStudio.git</url>
-    </scm>
 </project>
