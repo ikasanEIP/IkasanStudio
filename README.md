@@ -5,18 +5,18 @@
 ## Developer Quickstart
 Note that this plugin is still under development and only recommended for beta testers.
 ### Download the zip & jar
-From the downloads directory, get IkasanStudio-1.0.0.zip and  ikasan-studio-archetype-1.0-SNAPSHOT.jar
+From the downloads directory, get IkasanStudio-1.0.0.zip and  ikasan-studio-project-archetype-1.0.0.jar
 Copy them to a local temp directory and open a command prompt in that directory
 ### Install the Maven archetype
 Install the maven archetype using the following command
 
 **Unix**
 
-`mvn install:install-file -Dfile=./ikasan-studio-archetype-1.0-SNAPSHOT.jar -DgroupId=org.ikasan.studio -DartifactId=ikasan-studio  -Dversion=1.0-SNAPSHOT -Dpackaging=jar`
+`mvn install:install-file -Dfile=./ikasan-studio-project-archetype-1.0.0.jar -DgroupId=org.ikasan.studio -DartifactId=studio-project  -Dversion=1.0.0 -Dpackaging=jar`
 
 **Windows (which needs each -D option surrounded by douple quotes)**
 
-`mvn install:install-file "-Dfile=.\ikasan-studio-archetype-1.0-SNAPSHOT.jar" "-DgroupId=org.ikasan.studio" "-DartifactId=ikasan-studio"  "-Dversion=1.0-SNAPSHOT" "-Dpackaging=jar"`
+`mvn install:install-file "-Dfile=.\ikasan-studio-project-archetype-1.0.0.jar" "-DgroupId=org.ikasan.studio" "-DartifactId=studio-project"  "-Dversion=1.0.0" "-Dpackaging=jar"`
 
 (you may need to also perform mvn.cmd archetype:crawl if you can't find ~/.m2/repository/archetype-catalog.xml)
 
@@ -35,11 +35,11 @@ For now, this needs to be done from the command line, in your normal **workspace
 
 **Unix**
 
-`mvn archetype:generate -DarchetypeGroupId=org.ikasan.studio -DarchetypeArtifactId=ikasan-studio -DarchetypeVersion=1.0-SNAPSHOT -DgroupId=org.me.test  -DartifactId=my-module`
+`mvn archetype:generate -DarchetypeGroupId=org.ikasan.studio -DarchetypeArtifactId=studio-project -DarchetypeVersion=1.0.0 -DgroupId=org.me.test  -DartifactId=my-module`
 
 **Windows (which needs each -D option surrounded by douple quotes)**
 
-`mvn archetype:generate "-DarchetypeGroupId=org.ikasan.studio" "-DarchetypeArtifactId=ikasan-studio" "-DarchetypeVersion=1.0-SNAPSHOT" "-DgroupId=org.me.test" "-DartifactId=my-module"`
+`mvn archetype:generate "-DarchetypeGroupId=org.ikasan.studio" "-DarchetypeArtifactId=studio-project" "-DarchetypeVersion=1.0.0" "-DgroupId=org.me.test" "-DartifactId=my-module"`
 
 (remember so swap org.me.test and my-module for the package and module name for **your project**)
 ### Open the new project

@@ -1,14 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.ikasan</groupId>
+    <artifactId>ikasan-studio-ancillary</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+  </parent>
+
   <groupId>org.ikasan.studio</groupId>
-  <artifactId>ikasan-studio-extension</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <artifactId>ikasan-studio-ide-mediator</artifactId>
+  <version>${version.studio.ancillary}</version>
   <packaging>jar</packaging>
 
-  <name>StudioIkasanExtension</name>
-  <url>http://maven.apache.org</url>
+  <name>Ikasan Studio Ide Mediator</name>
+  <description>Mediates between Ikasan core and supported IDEs</description>
+  <url>http://www.ikasan.org</url>
 
   <properties>
     <maven.compiler.target>11</maven.compiler.target>
@@ -21,19 +29,16 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>${version.junit}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- this is used only to support the IDE extension of Ikasan components e.g. the Debug component -->
       <groupId>org.ikasan</groupId>
-      <artifactId>ikasan-eip-standalone</artifactId>
-      <version>3.1.0</version>
+      <artifactId>ikasan-spec-component</artifactId>
+      <version>${version.ikasan-eip-standalone}</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-jar-plugin</artifactId>
-      <version>${maven.jar.plugin.version}</version>
-    </dependency>
+
   </dependencies>
 
   <build>
@@ -45,20 +50,6 @@
         <configuration>
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
-        </configuration>
-      </plugin>
-      <!-- Configure Maven JAR Plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven.jar.plugin.version}</version>
-        <configuration>
-          <!-- Define the main class for executable JAR (if applicable) -->
-          <!-- <archive>
-              <manifest>
-                  <mainClass>com.example.MainClass</mainClass>
-              </manifest>
-          </archive> -->
         </configuration>
       </plugin>
     </plugins>
