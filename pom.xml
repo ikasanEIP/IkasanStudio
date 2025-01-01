@@ -56,7 +56,7 @@
     <artifactId>ikasan-studio-parent</artifactId>
     <packaging>pom</packaging>
     <!-- Since this pom exists just to suppress an ant build, the version is arbitrary -->
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <name>Ikasan Studio Parent</name>
     <description>Ikasan Studio Parent</description>
 
