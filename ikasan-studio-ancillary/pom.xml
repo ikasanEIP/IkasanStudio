@@ -54,9 +54,9 @@
         <relativePath />
     </parent>
 
-    <groupId>org.ikasan</groupId>
+    <groupId>org.ikasan.studio</groupId>
     <artifactId>ikasan-studio-ancillary</artifactId>
-    <version>${version.studio.ancillary}</version>
+    <version>1.0.2</version>
     <packaging>pom</packaging>
     <name>Ikasan Studio Ancillary</name>
     <description>The maven based support modules for Ikasan Studio</description>
@@ -145,7 +145,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.junit>4.13.1</version.junit>
-        <version.studio.ancillary>1.0.2-SNAPSHOT</version.studio.ancillary>
         <version.ikasan-eip-standalone>3.1.0</version.ikasan-eip-standalone>
     </properties>
 
