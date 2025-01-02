@@ -52,7 +52,7 @@
          so there is no merit in even mentioning the sub-modules since that will probably result in them being
          build twice, once by .travis.yml and once by the default build of the top level pom
     -->
-    <groupId>org.ikasan</groupId>
+    <groupId>org.ikasan.studio</groupId>
     <artifactId>ikasan-studio-parent</artifactId>
     <packaging>pom</packaging>
     <!-- Since this pom exists just to suppress an ant build, the version is arbitrary -->
