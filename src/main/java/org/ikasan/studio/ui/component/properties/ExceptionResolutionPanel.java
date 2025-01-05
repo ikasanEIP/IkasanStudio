@@ -49,11 +49,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         if (dataHasChanged()) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
             updateComponentsWithNewValues();
-            // @TODO below line needs changing to model context
-//            UiContext.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(false);
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance3();
+            pipsiIkasanModel.saveModelJsonToDisk();
+            pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {
@@ -85,7 +83,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     /**
      * When updateTargetComponent is called, it will set the component to be exposed / edited, it will then
      * delegate update of the editor pane to this component so that we can specialise for different components.
-     * @See PropertiesPanel.updateTargetComponent
+     * {@code @See} PropertiesPanel.updateTargetComponent
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected void populatePropertiesEditorPanel() {

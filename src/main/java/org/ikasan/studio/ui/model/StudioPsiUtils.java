@@ -1,9 +1,11 @@
 package org.ikasan.studio.ui.model;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -22,22 +24,26 @@ import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_SOURCE;
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_TARGET;
 import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
+
 
 public class StudioPsiUtils {
     private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
@@ -83,9 +89,9 @@ public class StudioPsiUtils {
     }
 
     /**
-     * Load the content of the major pom
+     * Load the content of the application properties file
      * @param project currently being worked on
-     * @return the studio representation of the POM
+     * @return a map of the Ikasan application properties, typically located in application.properties
      */
     public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(Project project) {
         Map<String, String> applicationProperties = null;
@@ -101,12 +107,28 @@ public class StudioPsiUtils {
         return applicationProperties;
     }
 
-    //@ todo make a plugin property to switch on / off assumeModuleConfigClass
-    public static void generateModelInstanceFromJSON(String projectKey, boolean assumeModuleConfigClass) throws StudioBuildException {
-        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelFile(UiContext.getProject(projectKey), GENERATED_CONTENT_ROOT);
+    /**
+     * Recreate the in-memory Module from the persisted model.json.
+     * WARNING: You MUST not call this from Event Dispatcher Thread, instead call from background e.g.
+     *         ApplicationManager.getApplication().executeOnPooledThread(() -> {
+     *             synchGenerateModelInstanceFromJSON(projectKey);
+     *             ... any other actions relying on above action completion
+     *         });
+     * @param projectKey of project to refresh
+     */
+    public static void synchGenerateModelInstanceFromJSON(String projectKey) {
+        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelJsonPsiFile(UiContext.getProject(projectKey));
         if (jsonModelPsiFile != null) {
-            String json = jsonModelPsiFile.getText();
-            Module newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
+            String json = ApplicationManager.getApplication().runReadAction((Computable<String>) jsonModelPsiFile::getText);
+            Module newModule = null;
+            try {
+                newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
+            } catch (StudioBuildException se) {
+                LOG.warn("STUDIO: SERIOUS ERROR: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
+                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Refresh Button");
+                // The dumb module should contain just enough to prevent the plugin from crashing
+                UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
+            }
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
                 LOG.error("STUDIO: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
@@ -116,7 +138,6 @@ public class StudioPsiUtils {
             LOG.info("STUDIO: Could not read the " + JSON_MODEL_FULL_PATH + ", this is probably a new project");
         }
     }
-
 
     /**
      * Add the new dependencies IF they are not already in the pom
@@ -136,7 +157,6 @@ public class StudioPsiUtils {
                 pomAddStandardProperties(ikasanPomModel);
                 if (ikasanPomModel.isDirty()) {
                     parentPomSaveToVirtualDisk(project, ikasanPomModel);
-//            ProjectManager.createFlowElement().reloadProject(project);
                 }
             } else {
                 LOG.warn("STUDIO: WARN: checkForDependencyChangesAndSaveIfChanged invoked but ikasanPomModel was null project [" + projectKey +"] newDependencies [" + newDependencies + "]");
@@ -186,31 +206,55 @@ public class StudioPsiUtils {
      * @return A PsiFile handle to the pom or null
      */
     public static PsiFile pomGetTopLevel(Project project, String containingDirectory) {
-        PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
-        for (PsiFile pomFile : pomFiles) {
-            if (pomFile != null && pomFile.getContainingDirectory().toString().endsWith(containingDirectory)) {
-                return pomFile;
+        AtomicReference<PsiFile> returnPomFile = new AtomicReference<>();
+
+        ApplicationManager.getApplication().runReadAction(() -> {
+            PsiFile[] pomFiles = PsiShortNamesCache.getInstance(project).getFilesByName("pom.xml");
+            for (PsiFile pomFile : pomFiles) {
+                if (pomFile != null && pomFile.getContainingDirectory().toString().endsWith(containingDirectory)) {
+                    returnPomFile.set(pomFile);
+                    break;
+                }
             }
-        }
+        });
         LOG.warn("Studio: Warn: Could not find any pom.xml " + project.getName());
-        return null;
+        return returnPomFile.get();
     }
 
-    public static PsiFile createFile1(final String filename, final String text, Project project) {
-        //  ************************* PsiJavaParserFacadeImpl ********************************
-//        PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-//        PsiMethodCallExpression equalsCall = (PsiMethodCallExpression) factory.createExpressionFromText("a.equals(b)", null);
-//        @NotNull com.intellij.openapi.module.Module[] module = ModuleManager.getInstance(project).getModules();
-//        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createOrGetDirectory(project.getBaseDir());
-        return PsiFileFactory.getInstance(project).createFileFromText(filename, FileTypeManager.getInstance().getFileTypeByExtension(UiContext.JAVA_FILE_EXTENSION), text);
-    }
 
+    /**
+     * Apply the Intellij formatters to validate the Java source file
+     * @param project to update
+     * @param psiFile to update
+     */
     private static void standardJavaFormatting(final Project project, final PsiFile psiFile) {
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
         CodeStyleManager.getInstance(project).reformat(psiFile);
     }
 
-    public static PsiJavaFile createJavaSourceFile(final Project project, final String contentRoot, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
+    /**
+     * Apply the Intellij formatters to validate the properties source file
+     * @param project to update
+     * @param psiFile to update
+     */
+    private static void standardPropertiesFormatting(final Project project, final PsiFile psiFile) {
+        CodeStyleManager.getInstance(project).reformat(psiFile);
+    }
+
+    /**
+     * Create and save a java source file
+     * @param project to be updated
+     * @param contentRoot for the file
+     * @param packageName for the java file
+     * @param clazzName for the java file
+     * @param content of the file that is to be created / updated
+     * @param focus if true, open this file in the IDE
+     * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
+     * @return the reference to the PsiJavaFile
+     */
+    public static PsiJavaFile createJavaSourceFile(final Project project, final String contentRoot, final String packageName,
+                                                   final  String clazzName, final String content, boolean focus,
+                                                   boolean replaceExisting) {
         PsiJavaFile newPsiFile = null;
         String fileName = clazzName + ".java";
         VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, project.getBasePath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
@@ -220,22 +264,100 @@ public class StudioPsiUtils {
         } else {
             PsiDirectory baseDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
             PsiDirectory myPackage = StudioPsiUtils.createPackage(baseDir, packageName);
-            PsiFile psiFile = myPackage.findFile(fileName);
-            if (psiFile != null) {
-                if (!replaceExisting) {
-                    return null;
-                }
-                // Recreate
-                psiFile.delete();
-            }
 
+            PsiFile oldPsiFile = myPackage.findFile(fileName);
             newPsiFile = (PsiJavaFile) PsiFileFactory.getInstance(project).createFileFromText(
                     fileName,
                     FileTypeManager.getInstance().getFileTypeByExtension(UiContext.JAVA_FILE_EXTENSION),
                     content);
+
+            if (oldPsiFile == null || ! areEqualIgnoringWhitespace(newPsiFile.getText(), oldPsiFile.getText())) {
+                if (oldPsiFile != null) {
+                    if (!replaceExisting) {
+                        return null;
+                    }
+                    // Recreate
+                    oldPsiFile.delete();
+                }
+                newPsiFile = (PsiJavaFile) myPackage.add(newPsiFile);
+                standardJavaFormatting(project, newPsiFile);
+            } else {
+                newPsiFile = (PsiJavaFile) oldPsiFile;
+                LOG.info("File " + clazzName + " unchanged, not re-saving");
+            }
+            if (focus) {
+                newPsiFile.navigate(true); // Open the newly created file
+            }
+        }
+        return newPsiFile;
+    }
+
+//    public static void replaceExistingFile(final Project project, final String contentRoot, final String packageName, final  String clazzName, final String content, boolean focus, boolean replaceExisting) {
+//        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+//        WriteCommandAction.runWriteCommandAction(project, () -> {
+//            PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
+//            Document document = psiDocumentManager.getDocument(psiFile);
+//
+//            if (document != null) {
+//                // Modify the document content
+//                String newContent = "Your new content here";
+//                document.setText(newContent);
+//
+//                // Ensure changes are committed to PSI
+//                psiDocumentManager.commitDocument(document);
+//            }
+//        });
+//    }
+
+
+
+
+
+    public static PsiFile createJsonModelFile(final Project project, final String contentRoot, final String content) {
+        return createFile(project, contentRoot, SRC_MAIN, JSON_MODEL_SUB_DIR, MODEL_JSON, content, false);
+    }
+
+    /**
+     * Generic method to validate and save a file to disk
+     * @param project to be updated
+     * @param contentRoot for this project
+     * @param sourceRootDir for this file
+     * @param subDir under sourceRoot
+     * @param fileNameWithExtension to be saved
+     * @param content of the new file
+     * @param focus if true, set the IDE focus on this file
+     * @return the PsiFile reference to the created file.
+     */
+    public static PsiFile createFile(final Project project, final String contentRoot, final String sourceRootDir,
+                                     final String subDir, final String fileNameWithExtension, final String content, boolean focus) {
+        PsiFile newPsiFile = null;
+        PsiDirectory sourceRoot = StudioPsiUtils.getOrCreateDirectoryInContentRoot(project, contentRoot, sourceRootDir);
+        if (sourceRoot == null) {
+            //@todo add this to system alerts in Intellij
+            LOG.warn("STUDIO: SERIOUS: Could no create file [" + fileNameWithExtension + "] in contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "]");
+        } else {
+            PsiDirectory directory = sourceRoot;
+            if (subDir != null) {
+                directory = StudioPsiUtils.createOrGetDirectory(sourceRoot, subDir);
+            }
+
+            PsiFile oldPsiFile = directory.findFile(fileNameWithExtension) ;
+            String fileType = FilenameUtils.getExtension(fileNameWithExtension);
+            newPsiFile = PsiFileFactory.getInstance(project).createFileFromText(
+                    fileNameWithExtension,
+                    FileTypeManager.getInstance().getFileTypeByExtension(fileType),
+                    content);
             // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
-            standardJavaFormatting(project, newPsiFile);
-            newPsiFile = (PsiJavaFile) myPackage.add(newPsiFile);
+            if (oldPsiFile == null || ! areEqualIgnoringWhitespace(newPsiFile.getText(), oldPsiFile.getText())) {
+                if (oldPsiFile != null) {
+                    oldPsiFile.delete();
+                }
+                newPsiFile = (PsiFile)directory.add(newPsiFile);
+                standardPropertiesFormatting(project, newPsiFile);
+            } else {
+                newPsiFile = oldPsiFile;
+                LOG.info("File " + fileNameWithExtension + " unchanged, not re-saving");
+            }
 
             if (focus) {
                 newPsiFile.navigate(true); // Open the newly created file
@@ -244,53 +366,56 @@ public class StudioPsiUtils {
         return newPsiFile;
     }
 
-
-    private static void standardPropertiesFormatting(final Project project, final PsiFile psiFile) {
-        CodeStyleManager.getInstance(project).reformat(psiFile);
-    }
-
-//    public static PsiFile createPomFile(final Project project, final String contentRoot, final String content) {
-//        return createFile(project, contentRoot, "h2", null, POM_XML, content, false);
-//    }
-
-    public static PsiFile createJsonModelFile(final Project project, final String contentRoot, final String content) {
-        return createFile(project, contentRoot, SRC_MAIN, JSON_MODEL_SUB_DIR, MODEL_JSON, content, false);
-    }
-
-//    public static PsiFile createResourceFile(final Project project, final String contentRoot, final String subDir, final  String fileNameWithExtension, final String content, boolean focus) {
-//        return createFile(project, contentRoot, StudioPsiUtils.SRC_MAIN_RESOURCES, subDir, fileNameWithExtension, content, focus);
-//    }
-
-    public static PsiFile createFile(final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
-                                     final String fileNameWithExtension, final String content, boolean focus) {
-        PsiFile psiFile = null;
-        PsiDirectory srcDir = StudioPsiUtils.getOrCreateDirectoryInContentRoot(project, contentRoot, sourceRootDir);
-        if (srcDir != null) {
-            PsiDirectory directory = srcDir;
-            if (subDir != null) {
-                directory = StudioPsiUtils.createOrGetDirectory(srcDir, subDir);
-            }
-
-            psiFile = directory.findFile(fileNameWithExtension) ;
-            if (psiFile != null) {
-                psiFile.delete();
-            }
-            String fileType = FilenameUtils.getExtension(fileNameWithExtension);
-            psiFile = PsiFileFactory.getInstance(project).createFileFromText(fileNameWithExtension, FileTypeManager.getInstance().getFileTypeByExtension(fileType), content);
-            // When you add the file to the directory, you need the resulting psiFile not the one you sent in.
-            psiFile = (PsiFile)directory.add(psiFile);
-            standardPropertiesFormatting(project, psiFile);
-            if (focus) {
-                psiFile.navigate(true); // Open the newly created file
-            }
-        } else {
-            //@todo add this to system alerts in Intellij
-            LOG.warn("STUDIO: SERIOUS: Could no create file [" + fileNameWithExtension + "] in contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "]");
+    /**
+     * Fail fast string comparison ignoring white space
+     * @TODO maybe allow white space between quotes
+     * @param oldString to be compared
+     * @param newString to be compared
+     * @return true if both string are equal, ignoring any whitespace
+     */
+    public static boolean areEqualIgnoringWhitespace(String oldString, String newString) {
+        if (oldString == null || newString == null) {
+            return false; // Handle null values if needed
         }
 
-        return psiFile;
-    }
+        int ii = 0, jj = 0;
+        int len1 = oldString.length(), len2 = newString.length();
 
+        while (ii < len1 && jj < len2) {
+            // Skip whitespace in str1
+            while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
+                ii++;
+            }
+            // Skip whitespace in str2
+            while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
+                jj++;
+            }
+
+            // If one string has reached its end but the other has not
+            if (ii >= len1 || jj >= len2) {
+                break;
+            }
+
+            // Compare characters
+            if (oldString.charAt(ii) != newString.charAt(jj)) {
+                return false; // Found a mismatch
+            }
+
+            ii++;
+            jj++;
+        }
+
+        // Skip remaining whitespace in both strings
+        while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
+            ii++;
+        }
+        while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
+            jj++;
+        }
+
+        // If both indices have reached the end, strings are equal
+        return ii == len1 && jj == len2;
+    }
 
     /**
      * This class attempts to find a file, it does not attempt to retrieve it
@@ -320,12 +445,11 @@ public class StudioPsiUtils {
         return message.toString();
     }
 
-
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
         // @TODO MODEL
         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-        pipsiIkasanModel.generateJsonFromModelInstance();
-        pipsiIkasanModel.generateSourceFromModelInstance3();
+        pipsiIkasanModel.saveModelJsonToDisk();
+        pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
         causeRedraw(projectKey);
     }
 
@@ -333,8 +457,6 @@ public class StudioPsiUtils {
         UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
         UiContext.getDesignerCanvas(projectKey).repaint();
     }
-
-
 
     public static void getAllSourceRootsForProject(Project project) {
         String projectName = project.getName();
@@ -350,7 +472,6 @@ public class StudioPsiUtils {
      * @return the rood of the module / source directory that contains the supplied string.
      */
     public static VirtualFile getSourceDirectoryForContentRoot(Project project, final String basePath, final String contentRoot, String relativeRootDir) {
-
 //        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
         String targetDirectory = basePath + contentRoot + (relativeRootDir != null ? "/" + relativeRootDir : "");
         VirtualFile sourceCodeRoot = null;
@@ -385,24 +506,27 @@ public class StudioPsiUtils {
         return sourceCodeRoot;
     }
 
-    public static PsiFile getModelFile(final Project project, final String contentRoot) {
-        PsiFile jsonModel = null;
-        VirtualFile selectedContentRoot = getSpecificContentRoot(project, contentRoot);
+    /**
+     * Get the PsiFile that refers to the model.json for this project
+     * @param project to search
+     * @return a PsiFile reference to the model.json
+     */
+    public static PsiFile getModelJsonPsiFile(final Project project) {
+        AtomicReference<PsiFile> jsonModel = new AtomicReference<>();
+        VirtualFile selectedContentRoot = getSpecificContentRoot(project, GENERATED_CONTENT_ROOT);
         if (selectedContentRoot != null) {
-//            VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
-//        VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
-//        if (contentRootVFiles.length != 1) {
-//            LOG.warn("STUDIO: Could not find content root directory [" + Arrays.toString(contentRootVFiles) + "]");
-//        } else {
-//            VirtualFile contentRoot = contentRootVFiles[0];
-            jsonModel = getFileFromPath(project, selectedContentRoot, JSON_MODEL_FULL_PATH);
-            if (jsonModel == null) {
-                LOG.warn("STUDIO: Could not get file from path " + JSON_MODEL_FULL_PATH);
+            VirtualFile virtualModelJson = selectedContentRoot.findFileByRelativePath(JSON_MODEL_FULL_PATH);
+            if (virtualModelJson != null) {
+                ApplicationManager.getApplication().runReadAction(() -> jsonModel.set(PsiManager.getInstance(project).findFile(virtualModelJson)));
+            } else {
+                LOG.warn("STUDIO: Could not get virtual model.json from path " + JSON_MODEL_FULL_PATH);
+            }
+            if (jsonModel.get() == null) {
+                LOG.warn("STUDIO: Could not get psi file from path " + JSON_MODEL_FULL_PATH);
             }
         }
-        return jsonModel;
+        return jsonModel.get();
     }
-
 
     public static PsiFile getFileFromPath(final Project project, VirtualFile root, String filePath) {
         PsiFile returnFile = null;
@@ -424,10 +548,16 @@ public class StudioPsiUtils {
         }
         return null;
     }
+
+    /**
+     * Attempt to access the leaf of 'target' by traversing each directory downwards from root.
+     * @param root One of the project roots e.f. ~/ws/proj
+     * @param target A dir or subdir off that root e.g. 'src' or 'src/main/model'
+     * @return The PsiDirectory that reflects the last directory in target or nulll if not found
+     */
     public static PsiDirectory getDirectory(PsiDirectory root, String target) {
         PsiDirectory returnDirectory = root;
         if (root != null && target != null && !target.isEmpty()) {
-//            String[] subDirs = target.split(Pattern.quote(File.separator));
             String[] subDirs = target.split(Pattern.quote("/"));
             for(String dir : subDirs) {
                 returnDirectory = returnDirectory.findSubdirectory(dir);
@@ -437,35 +567,6 @@ public class StudioPsiUtils {
             }
         }
         return returnDirectory;
-    }
-
-    public static PsiDirectory getOrCreateDirectory(final Project project, final String contentRoot, final String relativeRootDir) {
-        PsiDirectory targetDir = null;
-
-        // First, does it exist
-        VirtualFile sourceCodeRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(project, project.getBasePath(), contentRoot, relativeRootDir);
-
-        // if not, create the relevant directories
-        if (sourceCodeRoot == null) {
-
-            VirtualFile selectedContentRoot = getSpecificContentRoot(project, contentRoot);
-            if (selectedContentRoot != null) {
-//            VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
-//
-//
-//            if (contentRootVFiles == null || contentRootVFiles.length != 1) {
-//                LOG.warn("STUDIO: Could not find the source root for directory [" + relativeRootDir + "] or the content root [" + Arrays.toString(contentRootVFiles) + "]");
-//            } else {
-//                // get the content root that end with passed in content rood
-//                VirtualFile selectedContentRoot = contentRootVFiles[0];
-                PsiDirectory contentDir = PsiDirectoryFactory.getInstance(project).createDirectory(selectedContentRoot);
-                PsiDirectory srcDir = StudioPsiUtils.createOrGetDirectory(contentDir, "src");
-                targetDir = StudioPsiUtils.createOrGetDirectory(srcDir, relativeRootDir);
-            }
-        } else {
-            targetDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceCodeRoot);
-        }
-        return targetDir;
     }
 
     public static PsiDirectory getOrCreateDirectoryInContentRoot(final Project project, final String contentRoot, final String relativeRootDir) {
@@ -521,18 +622,7 @@ public class StudioPsiUtils {
     public static PsiDirectory createOrGetDirectory(PsiDirectory parent, String newDirectoryName) {
         PsiDirectory newDirectory = null;
         if (parent != null && newDirectoryName != null) {
-//            boolean alreadyExists = false;
-
             newDirectory = parent.findSubdirectory(newDirectoryName);
-//            for (PsiDirectory subdirectoryOfParent : parent.getSubdirectories()) {
-//                if (subdirectoryOfParent.getName().equalsIgnoreCase(newDirectoryName)) {
-//                    newDirectory = subdirectoryOfParent;
-//                    alreadyExists = true;
-//                    break;
-//                }
-//            }
-            // doesn't exist, create it.
-//            if (!alreadyExists) {
             if (newDirectory == null) {
                 newDirectory = parent.createSubdirectory(newDirectoryName);
             }

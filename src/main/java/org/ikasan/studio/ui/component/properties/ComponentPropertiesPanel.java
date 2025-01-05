@@ -80,8 +80,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
                 }
             }
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance3();
+            pipsiIkasanModel.saveModelJsonToDisk();
+            pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
             // Intellij startup is multi-threaded so caution is required.
             if (metaPackChanged && UiContext.getPalettePanel(projectKey) != null) {
                 UiContext.getPalettePanel(projectKey).resetPallette();

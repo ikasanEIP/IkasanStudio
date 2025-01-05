@@ -21,6 +21,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
 import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
@@ -49,31 +50,48 @@ public class PIPSIIkasanModel {
     /**
      * An update has been made to the diagram, so we need to reflect this into the code.
      */
-    public void generateSourceFromModelInstance3() {
-        boolean dependenciesHaveChanged = false;
+    public void asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk() {
+        AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
         Project project = UiContext.getProject(projectKey);
         Module module = UiContext.getIkasanModule(project.getName());
-        IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);
-        if (!ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies())) {
-            dependenciesHaveChanged = true;
-        }
-        generateSourceFromModelInstance2(dependenciesHaveChanged);
-    }
 
-    /**
-     * An update has been made to the diagram, so we need to reflect this into the code.
-     * @param dependenciesHaveChanged Set to tru iIf the caller has performed an action that could affect (add/remove) depeendant jars
-     */
-    private void generateSourceFromModelInstance2(Boolean dependenciesHaveChanged) {
-        Project project = UiContext.getProject(projectKey);
-        Module module = UiContext.getIkasanModule(project.getName());
-        LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
-        LOG.debug(UiContext.getIkasanModule(projectKey).toString());
-        CommandProcessor.getInstance().executeCommand(
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            // 1. Determine if the pom needs to be updated
+            IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);        // Not on EDT
+            if (!ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies())) {
+                pomDependenciesHaveChanged.set(true);
+            } else {
+                pomDependenciesHaveChanged.set(false);
+            }
+
+            LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
+            LOG.debug(UiContext.getIkasanModule(projectKey).toString());
+
+            // XX1
+//            WriteCommandAction.runWriteCommandAction(project,
+//                () -> {
+//                    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
+//                    Document document = psiDocumentManager.getDocument(psiFile);
+//
+//                    if (document != null) {
+//                        // Modify the document content
+//                        String newContent = "Your new content here";
+//                        document.setText(newContent);
+//
+//                        // Ensure changes are committed to PSI
+//                        psiDocumentManager.commitDocument(document);
+//                }
+//            });
+//
+            // 2. Re-generate and save all the source code. @TODO going forward we only want to regenerate if its changed.
+            // Switch to UI thread for write action and undo block
+            ApplicationManager.getApplication().invokeLater(() -> {
+                // Using the command processor add support for undo
+                CommandProcessor.getInstance().executeCommand(
                     project,
                     () -> ApplicationManager.getApplication().runWriteAction(
                             () -> {
-                                if (dependenciesHaveChanged) {
+                                if (pomDependenciesHaveChanged.get()) {
                                     // We have checked the in-memory model, below will also verify from the on-disk model.
                                     StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, module.getAllUniqueSortedJarDependencies());
                                 }
@@ -82,44 +100,60 @@ public class PIPSIIkasanModel {
                                 saveFlow(project, module);
                                 saveModuleConfig(project, module);
                                 savePropertiesConfig(project, module);
-
                                 LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - source from model");
                             }),
                     "Generate Source from Flow Diagram",
                     "Undo group ID");
-        LOG.info("STUDIO: ApplicationManager.getApplication().runReadAction");
-        ApplicationManager.getApplication().runReadAction(
-                    () -> {
-                        // reloadProject needed to re-read POM, must not be done till add Dependencies
-                        // fully complete, hence in next executeCommand block
-                        // It is expensive and disruptive (screen redraw, model reload) so ONLY done when needed
-                        if (dependenciesHaveChanged && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
-                            ProjectManager.getInstance().reloadProject(project);
-                        }
-                        LOG.info("STUDIO: End ApplicationManager.getApplication().runReadAction");
-                    });
+            });
 
-
+            LOG.info("STUDIO: ApplicationManager.getApplication().runReadAction");
+            ApplicationManager.getApplication().runReadAction(
+                () -> {
+                    // reloadProject needed to re-read POM, must not be done till add Dependencies
+                    // fully complete, hence in next executeCommand block
+                    // It is expensive and disruptive (screen redraw, model reload) so ONLY done when needed
+                    if (pomDependenciesHaveChanged.get() && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
+                        ProjectManager.getInstance().reloadProject(project);
+                    }
+                    LOG.info("STUDIO: End ApplicationManager.getApplication().runReadAction");
+                });
+        });
     }
 
 
     /**
      * Take the Model from memory and persist it to disk
      */
-    public void generateJsonFromModelInstance() {
+    public void saveModelJsonToDisk() {
         Project project = UiContext.getProject(projectKey);
+        String templateString = ModelTemplate.create(UiContext.getIkasanModule(project.getName()));
+        // Using the command processor add support for undo
         CommandProcessor.getInstance().executeCommand(
-                project,
-                () -> ApplicationManager.getApplication().runWriteAction(
-                        () -> {
-                            LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - json from model");
-                            String templateString = ModelTemplate.create(UiContext.getIkasanModule(project.getName()));
-                            createJsonModelFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, templateString);
-                            LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - json from model");
-                            LOG.debug("STUDIO: model now" + UiContext.getIkasanModule(projectKey));
-                        }),
-                "Generate JSON from Flow Diagram",
-                "Undo group ID");
+            project,
+            () -> ApplicationManager.getApplication().runWriteAction(
+                    () -> {
+                        LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - json from model");
+
+                        createJsonModelFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, templateString);
+                        LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - json from model");
+                        LOG.debug("STUDIO: model now" + UiContext.getIkasanModule(projectKey));
+                    }),
+            "Generate JSON from Flow Diagram",
+            "Undo group ID");
+    }
+
+    public static long timeLog(long startTime, String message) {
+
+        if (startTime == 0) {
+            startTime = System.currentTimeMillis();
+            LOG.warn("STUDIO: time log START- " + message);
+            return startTime;
+        } else {
+            long endNow = java.lang.System.currentTimeMillis();
+            long diff = endNow - startTime;
+            LOG.warn("STUDIO: time log END - " + message + " - " + diff);
+            return 0;
+        }
     }
 
     /**
@@ -150,17 +184,6 @@ public class PIPSIIkasanModel {
         if (applicationTemplateString != null) {
             StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true);
         }
-//        applicationTemplateString = null;
-        // Now any studio util helper classes
-//        String debugTransitionComponentString = null;
-//        try {
-//            debugTransitionComponentString = DebugTransitionComponentTemplate.create(module);
-//        } catch (StudioGeneratorException e) {
-//            displayIdeaWarnMessage(projectKey, "An error has occurred generating the debugTransitionComponent, attempting to continue. Error was " + e.getMessage());
-//        }
-//        if (debugTransitionComponentString != null) {
-//            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, DebugTransitionComponentTemplate.STUDIO_DEBUG_COMPONENT_PACKAGE, DebugTransitionComponentTemplate.STUDIO_DEBUG_COMPONENT_CLASS_NAME, debugTransitionComponentString, true, true);
-//        }
     }
 
     private void saveFlow(Project project, Module module) {

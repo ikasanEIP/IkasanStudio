@@ -40,11 +40,9 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
-            // @TODO MODEL
-//            UiContext.getPipsiIkasanModel(projectKey).generateSourceFromModelInstance3(true);
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance3();
+            pipsiIkasanModel.saveModelJsonToDisk();
+            pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {

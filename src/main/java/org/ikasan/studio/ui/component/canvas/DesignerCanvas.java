@@ -116,8 +116,8 @@ public class DesignerCanvas extends JPanel {
                     if (propertiesPopupDialogue.showAndGet()) {
                         StudioUIUtils.displayIdeaInfoMessage(projectKey, "Please wait for Intellij to initialise, any code errors will be resolved.");
                         PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-                        pipsiIkasanModel.generateJsonFromModelInstance();
-                        pipsiIkasanModel.generateSourceFromModelInstance3();
+                        pipsiIkasanModel.saveModelJsonToDisk();
+                        pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
                         disableModuleInitialiseProcess();
                     }
                 }
@@ -197,8 +197,8 @@ public class DesignerCanvas extends JPanel {
                 if (propertiesPopupDialogue.showAndGet()) {
                     //@TODO MODEL
                     PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-                    pipsiIkasanModel.generateJsonFromModelInstance();
-                    pipsiIkasanModel.generateSourceFromModelInstance3();
+                    pipsiIkasanModel.saveModelJsonToDisk();
+                    pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
                 }
             } else {
                 UiContext.getPropertiesTabPanel(projectKey).updateTargetComponent(basicElement);
@@ -592,8 +592,8 @@ public class DesignerCanvas extends JPanel {
                 }
             }
             PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.generateJsonFromModelInstance();
-            pipsiIkasanModel.generateSourceFromModelInstance3();
+            pipsiIkasanModel.saveModelJsonToDisk();
+            pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
 
             initialiseAllDimensions = true;
             this.repaint();
@@ -757,7 +757,7 @@ public class DesignerCanvas extends JPanel {
             }
 
             if (ikasanModule.hasUnsetMandatoryProperties()) {
-                LOG.warn("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
+                LOG.info("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
                 enableModuleInitialiseProcess();
             }
             int newWidth = moduleViewHandler.getWidth();

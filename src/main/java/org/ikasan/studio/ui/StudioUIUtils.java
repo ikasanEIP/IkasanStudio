@@ -3,14 +3,10 @@ package org.ikasan.studio.ui;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -256,17 +252,6 @@ public class StudioUIUtils {
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.ERROR)
                 .notify(UiContext.getProject(projectKey));
-    }
-
-    public static void resetModelFromDisk(String projectKey) {
-        try {
-            StudioPsiUtils.generateModelInstanceFromJSON(projectKey, false);
-        } catch (StudioBuildException se) {
-            LOG.warn("STUDIO: SERIOUS ERROR: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() +" trace: " + Arrays.asList(se.getStackTrace()));
-            StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Refresh Button");
-            // The dumb module should contain just enough to prevent the plugin from crashing
-            UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
-        }
     }
 
     public static Color getLineColor() {
