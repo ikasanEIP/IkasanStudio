@@ -102,12 +102,6 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         System.out.println(pom);
     }
 
-
-    public void test_createFile1() {
-        StudioPsiUtils.getAllSourceRootsForProject(myProject);
-        PsiFile myFile = StudioPsiUtils.createFile1("bob.java", "public class Bob {} ", myProject);
-    }
-
     public static void ideas(PsiFile psiFile, Project project) {
         // We must use this to unit test utils that update the psiFile, the util below will ensure the update is correct and consistent.
         PsiTestUtil.checkFileStructure(psiFile);

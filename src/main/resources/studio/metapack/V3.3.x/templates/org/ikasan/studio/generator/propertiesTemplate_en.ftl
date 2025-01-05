@@ -36,13 +36,14 @@ datasource.driver-class-name=org.h2.Driver
 datasource.xadriver-class-name=org.h2.jdbcx.JdbcDataSource
 
 # Use this version when running H2 separately (normal for production)
-<#if module.getPropertyValue('useEmbeddedH2')?? && module.getPropertyValue('useEmbeddedH2')!false==true>
+<#if module.getPropertyValue('useEmbeddedH2')?? &&
+module.getPropertyValue('useEmbeddedH2')=='true'>
 #datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
 <#else>
 datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
 </#if>
 # Use this version if you don't want to start H2 separately
-<#if module.getPropertyValue('useEmbeddedH2')?? && module.getPropertyValue('useEmbeddedH2')!false==true>
+<#if module.getPropertyValue('useEmbeddedH2')?? && module.getPropertyValue('useEmbeddedH2')=='true'>
 datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
 <#else>
 #datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1

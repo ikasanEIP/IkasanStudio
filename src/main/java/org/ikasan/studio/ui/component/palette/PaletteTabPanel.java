@@ -117,7 +117,6 @@ public class PaletteTabPanel extends JPanel {
      */
     private java.util.List<PaletteItem> buildPaletteItems(String projectKey) {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
-
         // New project created, no module yet
         Module module = UiContext.getIkasanModule(projectKey);
         if (module == null || module.getMetaVersion() == null) {
@@ -139,6 +138,7 @@ public class PaletteTabPanel extends JPanel {
                         .toList();
 
                 String category = "";
+
                 for (ComponentMeta componentMeta : componentMetaInDisplayOrder) {
                     if (!category.equals(componentMeta.getComponentTypeMeta().getComponentShortType())) {
                         category = componentMeta.getComponentTypeMeta().getComponentShortType();

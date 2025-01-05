@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -10,6 +11,7 @@ import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
@@ -118,11 +120,13 @@ public class DesignerUI {
         dumbService.runWhenSmart(() -> {
             DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {
-                StudioUIUtils.resetModelFromDisk(projectKey);
-                PaletteTabPanel paletteTabPanel = new PaletteTabPanel(projectKey);
-                UiContext.setPalettePanel(projectKey, paletteTabPanel);
-                paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
-                UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
+                ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                    StudioPsiUtils.synchGenerateModelInstanceFromJSON(projectKey);
+                    PaletteTabPanel paletteTabPanel = new PaletteTabPanel(projectKey);
+                    UiContext.setPalettePanel(projectKey, paletteTabPanel);
+                    paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
+                    UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
+                });
             }
         });
     }
