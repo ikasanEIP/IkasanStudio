@@ -3,9 +3,9 @@ package org.ikasan.studio.core.io;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.TestUtils;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,6 +42,111 @@ class ComponentIOSerializeTest {
     public void testModuleSerializeToJson() throws IOException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/module.json"), ComponentIO.toJson(module));
+    }
+
+    @Test
+    public void testBasicBooleanElementSerializeToJson() {
+        String componentMetaKey = "booleanComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Boolean.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, true);
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":true}", ComponentIO.toJson(basicElement));
+    }
+
+    @Test
+    public void testBasicIntegerElementSerializeToJson() {
+        String componentMetaKey = "integerComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Integer.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99);
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":99}", ComponentIO.toJson(basicElement));
+    }
+
+    @Test
+    public void testBasicLongElementSerializeToJson()  {
+        String componentMetaKey = "longComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Long.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99L);
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":99}", ComponentIO.toJson(basicElement));
+    }
+
+    @Test
+    public void testBasicShortElementSerializeToJson() {
+        String componentMetaKey = "shortComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Short.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99);
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":99}", ComponentIO.toJson(basicElement));
+    }
+
+    @Test
+    public void testBasicDoubleElementSerializeToJson() {
+        String componentMetaKey = "doubleComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Double.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99.0);
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":99.0}", ComponentIO.toJson(basicElement));
+    }
+
+    @Test
+    public void testBasicFloatElementSerializeToJson() {
+        String componentMetaKey = "floatComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Double.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99.9);
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":99.9}", ComponentIO.toJson(basicElement));
+    }
+
+    @Test
+    public void testBasicStringElementSerializeToJson() {
+        String componentMetaKey = "stringComponentMeta";
+        ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
+                .propertyName(componentMetaKey)
+                .propertyDataType(java.lang.Double.class)
+                .defaultValue(false)
+                .build();
+        ComponentProperty componentProperty = new ComponentProperty(componentMeta, "bob");
+
+        BasicElement basicElement = new BasicElement();
+        basicElement.setComponentProperties(Collections.singletonMap(componentMetaKey, componentProperty));
+        assertEquals("{\"" + componentMetaKey + "\":\"bob\"}", ComponentIO.toJson(basicElement));
     }
 
     @Test

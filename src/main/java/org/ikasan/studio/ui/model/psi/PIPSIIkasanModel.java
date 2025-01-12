@@ -3,9 +3,6 @@ package org.ikasan.studio.ui.model.psi;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.psi.PsiJavaFile;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -13,7 +10,6 @@ import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
@@ -38,7 +34,7 @@ public class PIPSIIkasanModel {
 
     /**
      * Plugin PSI (Program Structure Interface) Iksanan Model builder
-     * @param projectKey is the key to the cache shared by all components of the model. Note that Intellij shares the
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      *                   memory for multiple open projects, so each plugin IkasanModule virtualization needs to be keyed
      *                   by the project name. Hence, projectKey is passed around most classes.
      */
@@ -52,8 +48,7 @@ public class PIPSIIkasanModel {
      */
     public void asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk() {
         AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
-        Project project = UiContext.getProject(projectKey);
-        Module module = UiContext.getIkasanModule(project.getName());
+        Module module = UiContext.getIkasanModule(UiContext.getProject(projectKey).getName());
 
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             // 1. Determine if the pom needs to be updated
@@ -64,59 +59,39 @@ public class PIPSIIkasanModel {
                 pomDependenciesHaveChanged.set(false);
             }
 
+            LOG.warn("STUDIO: WARN: forging refresh as tempotrary measure");
+            pomDependenciesHaveChanged.set(true);
+
+            // ProjectManager.getInstance().reloadProject(UiContext.getProject(projectKey))
+
             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
             LOG.debug(UiContext.getIkasanModule(projectKey).toString());
 
-            // XX1
-//            WriteCommandAction.runWriteCommandAction(project,
-//                () -> {
-//                    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
-//                    Document document = psiDocumentManager.getDocument(psiFile);
-//
-//                    if (document != null) {
-//                        // Modify the document content
-//                        String newContent = "Your new content here";
-//                        document.setText(newContent);
-//
-//                        // Ensure changes are committed to PSI
-//                        psiDocumentManager.commitDocument(document);
-//                }
-//            });
-//
             // 2. Re-generate and save all the source code. @TODO going forward we only want to regenerate if its changed.
             // Switch to UI thread for write action and undo block
             ApplicationManager.getApplication().invokeLater(() -> {
                 // Using the command processor add support for undo
                 CommandProcessor.getInstance().executeCommand(
-                    project,
-                    () -> ApplicationManager.getApplication().runWriteAction(
-                            () -> {
-                                if (pomDependenciesHaveChanged.get()) {
-                                    // We have checked the in-memory model, below will also verify from the on-disk model.
-                                    StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, module.getAllUniqueSortedJarDependencies());
-                                }
-                                //@todo start making below conditional on state changed.
-                                saveApplication(project, module);
-                                saveFlow(project, module);
-                                saveModuleConfig(project, module);
-                                savePropertiesConfig(project, module);
-                                LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - source from model");
-                            }),
+                        UiContext.getProject(projectKey),
+                    () -> {
+                        if (pomDependenciesHaveChanged.get()) {
+                            // We have checked the in-memory model, below will also verify from the on-disk model.
+                            StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(projectKey, module.getAllUniqueSortedJarDependencies());
+                        }
+                        //@todo start making below conditional on state changed.
+                        Long transactionTimeStamp = UiContext.getProjectRefreshTimestamp(projectKey);
+                        saveApplication(projectKey, module);
+                        saveFlow(projectKey, module);
+                        generateAndSaveJavaCodeModuleConfig(projectKey, module);
+                        generateAndSavePropertiesConfig(projectKey, module);
+                        if (!transactionTimeStamp.equals(UiContext.getProjectRefreshTimestamp(projectKey))) {
+                            displayIdeaWarnMessage(projectKey, "Intellij has changed the project part way through the save, consider resaving");
+                        }
+                        LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - source from model");
+                    },
                     "Generate Source from Flow Diagram",
                     "Undo group ID");
             });
-
-            LOG.info("STUDIO: ApplicationManager.getApplication().runReadAction");
-            ApplicationManager.getApplication().runReadAction(
-                () -> {
-                    // reloadProject needed to re-read POM, must not be done till add Dependencies
-                    // fully complete, hence in next executeCommand block
-                    // It is expensive and disruptive (screen redraw, model reload) so ONLY done when needed
-                    if (pomDependenciesHaveChanged.get() && UiContext.getOptions(projectKey).isAutoReloadMavenEnabled()) {
-                        ProjectManager.getInstance().reloadProject(project);
-                    }
-                    LOG.info("STUDIO: End ApplicationManager.getApplication().runReadAction");
-                });
         });
     }
 
@@ -125,16 +100,15 @@ public class PIPSIIkasanModel {
      * Take the Model from memory and persist it to disk
      */
     public void saveModelJsonToDisk() {
-        Project project = UiContext.getProject(projectKey);
-        String templateString = ModelTemplate.create(UiContext.getIkasanModule(project.getName()));
+        String templateString = ModelTemplate.create(UiContext.getIkasanModule(UiContext.getProject(projectKey).getName()));
         // Using the command processor add support for undo
         CommandProcessor.getInstance().executeCommand(
-            project,
+            UiContext.getProject(projectKey),
             () -> ApplicationManager.getApplication().runWriteAction(
                     () -> {
                         LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - json from model");
 
-                        createJsonModelFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, templateString);
+                        createJsonModelFile(projectKey, templateString);
                         LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - json from model");
                         LOG.debug("STUDIO: model now" + UiContext.getIkasanModule(projectKey));
                     }),
@@ -158,10 +132,10 @@ public class PIPSIIkasanModel {
 
     /**
      * Save the Spring Boot Application class
-     * @param project to key by
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param module for this code
      */
-    private void saveApplication(Project project, Module module) {
+    private void saveApplication(String projectKey, Module module) {
         // The H2 Launcher
         // @TODO this only needs to be done once.
         String h2StartStopPomString  = null;
@@ -170,8 +144,9 @@ public class PIPSIIkasanModel {
         } catch (StudioGeneratorException e) {
             displayIdeaWarnMessage(projectKey, "An error has occurred generating the h2StartStopPomString, attempting to continue. Error was " + e.getMessage());
         }
+
         if (h2StartStopPomString != null) {
-            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, null, "h2", StudioPsiUtils.POM_XML, h2StartStopPomString, false);
+            StudioPsiUtils.createPomFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, "h2", h2StartStopPomString);
         }
 
         // The SpringBoot startup
@@ -182,27 +157,31 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred generating the applicationTemplate, attempting to continue. Error was " + e.getMessage());
         }
         if (applicationTemplateString != null) {
-            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ApplicationTemplate.STUDIO_BOOT_PACKAGE, ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true);
+            StudioPsiUtils.createJavaSourceFile(projectKey,
+                    StudioPsiUtils.GENERATED_CONTENT_ROOT,
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                    ApplicationTemplate.STUDIO_BOOT_PACKAGE,
+                    ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true);
         }
     }
 
-    private void saveFlow(Project project, Module module) {
+    private void saveFlow(String projectKey, Module module) {
         Set<String> flowPackageNames = new HashSet<>();
         for (Flow ikasanFlow : module.getFlows()) {
 
             String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             flowPackageNames.add(ikasanFlow.getJavaPackageName());
             // Component Factory java file
-            generateComponentFactory(project, module, flowPackageName, ikasanFlow);
-            PsiJavaFile flowPsiJavaFile = generateFlow(project, module, flowPackageName, ikasanFlow);
-
-            generteUserImplementClassStubsForFlow(project, module, ikasanFlow, flowPsiJavaFile);
+            generateAndSaveJavaCodeIkasanComponentFactory(projectKey, module, flowPackageName, ikasanFlow);
+            generateAndSaveJavaCodeIkasanFlow(projectKey, module, flowPackageName, ikasanFlow);
+            generateAndSaveUserImplementClassStubsForFlow(projectKey, module, ikasanFlow);
         }
         // we have the flowPackageNames that ARE valid
-        StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+        LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
+//        StudioPsiUtils.deleteSubPackagesNotIn(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
     }
 
-    private void generteUserImplementClassStubsForFlow(Project project, Module module, Flow ikasanFlow, PsiJavaFile flowPsiJavaFile) {
+    private void generateAndSaveUserImplementClassStubsForFlow(String projectKey, Module module, Flow ikasanFlow) {
         if (!ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements().isEmpty()) {
             // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
             for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
@@ -219,11 +198,12 @@ public class PIPSIIkasanModel {
                             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                         }
                         if (templateString != null) {
-                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
+//                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
+                            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, newPackageName, clazzName, templateString, true, true);
 
-                            if (componentViewHandler != null) {
-                                componentViewHandler.setPsiJavaFile(newFile);
-                            }
+//                            if (componentViewHandler != null) {
+//                                componentViewHandler.setPsiJavaFile(newFile);
+//                            }
                         }
                     }
                 }
@@ -240,22 +220,23 @@ public class PIPSIIkasanModel {
                     }
                     if (templateString != null) {
                         boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
-                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
+//                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, StudioPsiUtils.SRC_MAIN_JAVA_CODE, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
+                        StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
-                        if (componentViewHandler != null) {
-                            componentViewHandler.setPsiJavaFile(newFile);
-                        }
+//                        if (componentViewHandler != null) {
+//                            componentViewHandler.setPsiJavaFile(newFile);
+//                        }
                     }
                 }
-                // If we can't navigate anywhere else, we should navigate to the flow
-                if (componentViewHandler != null && componentViewHandler.getPsiJavaFile() == null) {
-                    componentViewHandler.setPsiJavaFile(flowPsiJavaFile);
-                }
+//                // If we can't navigate anywhere else, we should navigate to the flow
+//                if (componentViewHandler != null && componentViewHandler.getPsiJavaFile() == null) {
+//                    componentViewHandler.setPsiJavaFile(flowPsiJavaFile);
+//                }
             }
         }
     }
 
-    private void generateComponentFactory(Project project, Module module, String flowPackageName, Flow ikasanFlow) {
+    private void generateAndSaveJavaCodeIkasanComponentFactory(String projectKey, Module module, String flowPackageName, Flow ikasanFlow) {
         String componentFactoryTemplateString = null;
         try {
             componentFactoryTemplateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
@@ -263,12 +244,13 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (componentFactoryTemplateString != null) {
-            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true);
+            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true);
         }
     }
 
-    private PsiJavaFile generateFlow(Project project, Module module,  String flowPackageName, Flow ikasanFlow) {
-        PsiJavaFile newFile = null;
+//    private PsiJavaFile generateAndSaveJavaCodeIkasanFlow(Project project, Module module, String flowPackageName, Flow ikasanFlow) {
+    private void generateAndSaveJavaCodeIkasanFlow(String projectKey, Module module, String flowPackageName, Flow ikasanFlow) {
+//        PsiJavaFile newFile = null;
 
         IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(projectKey, ikasanFlow);
         String flowTemplateString = null;
@@ -278,22 +260,24 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (flowTemplateString != null) {
-            newFile = StudioPsiUtils.createJavaSourceFile(
-                    project,
+//            newFile = StudioPsiUtils.createJavaSourceFile(
+            StudioPsiUtils.createJavaSourceFile(
+                    projectKey,
                     StudioPsiUtils.GENERATED_CONTENT_ROOT,
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                     flowPackageName,
                     ikasanFlow.getJavaClassName(),
                     flowTemplateString,
                     true,
                     true);
-            if (flowViewHandler != null) {
-                flowViewHandler.setPsiJavaFile(newFile);
-            }
+//            if (flowViewHandler != null) {
+//                flowViewHandler.setPsiJavaFile(newFile);
+//            }
         }
-        return newFile;
+//        return newFile;
     }
 
-    private void saveModuleConfig(Project project, Module module) {
+    private void generateAndSaveJavaCodeModuleConfig(String projectKey, Module module) {
         String templateString = null;
         try {
             templateString = ModuleConfigTemplate.create(module);
@@ -301,17 +285,19 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (templateString != null) {
-            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, module);
-            if (viewHandler != null) {
-                viewHandler.setPsiJavaFile(newFile);
-            }
+//            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
+            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                    ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
+//            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, module);
+//            if (viewHandler != null) {
+//                viewHandler.setPsiJavaFile(newFile);
+//            }
         }
 
     }
 
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";
-    private void savePropertiesConfig(Project project, Module module) {
+    private void generateAndSavePropertiesConfig(String projectKey, Module module) {
         String templateString = null;
         try {
             templateString = PropertiesTemplate.create(module);
@@ -321,7 +307,8 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (templateString != null) {
-            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
+//            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
+            StudioPsiUtils.createPropertiesFile(projectKey, templateString);
         }
     }
 }

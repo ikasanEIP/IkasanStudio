@@ -37,7 +37,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     /**
      * This view handler deals with a flowRoute or a child route (i.e. one of the branches off a multi-recipient router)
      *
-     * @param projectKey to tie the scope
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param flow       that contains this flow route
      * @param flowRoute  which could be the default route or a sub-route (one of the branches off a multi-recipient router)
      */
@@ -69,19 +69,6 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     public String getText() {
         return flowRoute != null ? flowRoute.getRouteName() : "";
     }
-
-//    private int getFlowRouteTitleWidth(Graphics g) {
-//        return StudioUIUtils.getTextWidth(g, getText());
-//    }
-//
-//    private int getFlowRouteTitleHeight(Graphics g) {
-//        return StudioUIUtils.getTextHeight(g);
-//    }
-//
-//    private int paintRouteFlowTitle(Graphics g, PaintMode paintMode) {
-//        return StudioUIUtils.drawCenteredStringFromTopCentre
-//                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
-//    }
 
     /**
      * Paint the flow itself and all the components within (technically, the view handler of each component will paint the
@@ -184,9 +171,6 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 end.getLeftConnectorPoint().y);
     }
 
-//    private int getYAfterPaintingFlowTitle(Graphics g) {
-//        return paintRouteFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;
-//    }
 
     @Override
     public void initialiseDimensions(Graphics graphics, int newLeftx, int newTopY, int width, int height) {

@@ -68,7 +68,7 @@ public class ExceptionResolverEditBox {
         if (newResolution != null) {
             exceptionResolutionPanel.updateTargetComponent(newResolution);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                    UiContext.getProject(projectKey),
+                    projectKey,
                     UiContext.getDesignerCanvas(projectKey),
                     exceptionResolutionPanel);
             if (propertiesPopupDialogue.showAndGet()) {

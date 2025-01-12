@@ -9,7 +9,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -33,7 +33,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * Create the ExceptionResolutionPanel
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     * @param projectKey for this project
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
     public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList, String projectKey, boolean componentInitialisation) {
@@ -49,9 +49,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         if (dataHasChanged()) {
             StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
             updateComponentsWithNewValues();
-            PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.saveModelJsonToDisk();
-            pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
+            StudioPsiUtils.refreshCodeFromModel(projectKey);
             UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
             UiContext.getDesignerCanvas(projectKey).repaint();
         } else {

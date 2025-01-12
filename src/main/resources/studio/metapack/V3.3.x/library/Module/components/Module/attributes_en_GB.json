@@ -118,7 +118,8 @@
       "helpText": "If set to true, use an 'in memory' control database.",
       "setterProperty": false,
       "propertyDataType": "java.lang.Boolean",
-      "defaultValue": "false"
+      "defaultValue": true,
+      "mandatory": true
     },
     "version": {
       "propertyName": "version",

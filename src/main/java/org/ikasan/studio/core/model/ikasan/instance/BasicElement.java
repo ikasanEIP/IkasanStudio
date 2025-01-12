@@ -17,15 +17,12 @@ import java.util.stream.Collectors;
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  * To make the instance model flexible and driven by Ikasan Meta Pack, most attributes are contained within the properties map.
- * This does
  */
 @JsonSerialize(using = BasicElementSerializer.class)
 @Getter
 @Setter
 public  class BasicElement extends IkasanObject {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
-    private static final com.intellij.openapi.diagnostic.Logger LOGI = com.intellij.openapi.diagnostic.Logger.getInstance("#BasicElement");
-//    @JsonPropertyOrder({"componentName", "description"})
     protected Map<String, ComponentProperty> componentProperties;
     public BasicElement() {}
 
@@ -53,9 +50,6 @@ public  class BasicElement extends IkasanObject {
     public void setComponentName(String name) {
         this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
     }
-//    public void setName(String name) {
-//        this.setPropertyValue(ComponentPropertyMeta.NAME, name);
-//    }
 
     public void setName(String name) {
         if (this instanceof Flow || this instanceof Module) {
@@ -63,7 +57,6 @@ public  class BasicElement extends IkasanObject {
         } else {
             // to compily wil JSON, all flow elements use component name not name
             this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
-//            return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
         }
     }
 
@@ -132,13 +125,6 @@ public  class BasicElement extends IkasanObject {
         ComponentProperty componentProperty = componentProperties.get(key);
         return componentProperty != null ? componentProperty.getValue() : null;
     }
-//
-//    @JsonIgnore
-//    public boolean ignoreProperty(ComponentProperty componentProperty) {
-//        componentProperty.
-//        Object value = getPropertyValue("ignoreProperty");
-//        return value == null || Boolean.parseBoolean(value.toString());
-//    }
 
     /**
      * Also used by ftl

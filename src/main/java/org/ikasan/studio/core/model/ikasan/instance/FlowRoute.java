@@ -33,7 +33,7 @@ public class FlowRoute  implements IkasanComponent {
      * Used primarily during deserialization.
      */
     private FlowRoute() {
-        LOG.warn("STUDIO: Serious: Parameterless version of flowRoute called");
+        LOG.warn("STUDIO: SERIOUS: Parameterless version of flowRoute called");
     }
 
     @Builder(builderMethodName = "flowRouteBuilder")

@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
@@ -22,12 +23,16 @@ import java.util.TreeMap;
  * just for convenience.
  */
 public enum UiContext {
+
     INSTANCE;
+    private static final Logger LOG = Logger.getInstance("#UiContext");
+
     public static final String JAVA_FILE_EXTENSION = "java";
     public static final String XML_FILE_EXTENSION = "xml";
 
     private static final String CANVAS_PANEL = "canvasPanel";
     private static final String PROJECT = "project";
+    private static final String PROJECT_REFRESH_TIMESTAMP = "projectRefreshTimeStamp";
     private static final String VIEW_HANDLER_FACTORY = "viewHandlerFactory";
     private static final String OPTIONS = "options";
     private static final String APPLICATION_PROPERTIES = "application_properties";
@@ -83,8 +88,7 @@ public enum UiContext {
     public static IkasanPomModel getIkasanPomModel(String projectKey) {
         IkasanPomModel ikasanPomModel = (IkasanPomModel)getProjectCache(projectKey, IKASAN_POM_MODEL);
         if (ikasanPomModel == null) {
-            Project project = getProject(projectKey);
-            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(project, project.getName());
+            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(projectKey, UiContext.getProject(projectKey).getName());
         }
         return ikasanPomModel;
     }
@@ -97,8 +101,13 @@ public enum UiContext {
         return (Project)getProjectCache(projectKey, PROJECT);
     }
 
+    public static Long getProjectRefreshTimestamp(String projectKey) {
+        return (Long)getProjectCache(projectKey, PROJECT_REFRESH_TIMESTAMP);
+    }
+
     public static void setProject(String projectKey, Project project) {
         putProjectCache(projectKey, PROJECT, project);
+        putProjectCache(projectKey, PROJECT_REFRESH_TIMESTAMP, System.currentTimeMillis());
     }
 
     public static ViewHandlerCache getViewHandlerFactory(String projectKey) {
@@ -107,7 +116,7 @@ public enum UiContext {
     public static Map<String, String> getApplicationProperties(String projectKey) {
         Map<String, String> applicationProperties = (Map)getProjectCache(projectKey, APPLICATION_PROPERTIES);
         if (applicationProperties == null) {
-            applicationProperties = StudioPsiUtils.getApplicationPropertiesMapFromVirtualDisk(getProject(projectKey));
+            applicationProperties = StudioPsiUtils.getApplicationPropertiesMapFromVirtualDisk(projectKey);
             if (applicationProperties != null) {
                 setApplicationProperties(projectKey, applicationProperties);
             }
@@ -134,7 +143,7 @@ public enum UiContext {
 
     /**
      * Set the selected tab
-     * @param projectKey to namespace the project
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param tabIndex one of the defined constants PROPERTIES_TAB_INDEX, PALETTE_TAB_INDEX
      */
     public static void setRightTabbedPaneFocus(String projectKey, int tabIndex) {

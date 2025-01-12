@@ -1,8 +1,6 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiJavaFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.ikasan.studio.core.model.ikasan.instance.AbstractViewHandler;
@@ -19,8 +17,8 @@ import java.util.Arrays;
 @EqualsAndHashCode(callSuper=true)
 public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     private static final Logger LOG = Logger.getInstance("#AbstractViewHandlerIntellij");
-    PsiClass classToNavigateTo;
-    PsiJavaFile psiJavaFile;
+//    PsiClass classToNavigateTo;
+//    PsiJavaFile psiJavaFile;  Previously set by write action but this must be asynch so can't be guaranteed.
     int offsetInclassToNavigateTo;
     private int topY;
     private int leftX;
@@ -151,16 +149,16 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
         isAlreadySelected = alreadySelected;
     }
 
-    public void setPsiJavaFile(PsiJavaFile psiJavaFile) {
-        this.psiJavaFile = psiJavaFile;
-        if (psiJavaFile != null) {
-            PsiClass[] allClasses = psiJavaFile.getClasses();
-            if (allClasses.length > 0) {
-                // for now, assume the main class is the first in the array
-                classToNavigateTo = allClasses[0];
-            }
-        }
-    }
+//    public void setPsiJavaFile(PsiJavaFile psiJavaFile) {
+//        this.psiJavaFile = psiJavaFile;
+//        if (psiJavaFile != null) {
+//            PsiClass[] allClasses = psiJavaFile.getClasses();
+//            if (allClasses.length > 0) {
+//                // for now, assume the main class is the first in the array
+//                classToNavigateTo = allClasses[0];
+//            }
+//        }
+//    }
 
     public int getLeadingGap() {
         return Math.max(getMinimumGap(), leadingGap);
@@ -172,7 +170,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
-     * @param projectKey to provide scope
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param ikasanBasicElement to be examined
      * @return the view handler for this element.
      */

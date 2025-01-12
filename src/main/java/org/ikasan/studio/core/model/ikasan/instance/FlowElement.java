@@ -104,7 +104,7 @@ public class FlowElement extends BasicElement {
                 decorators.add(decorator);
             }
         } else {
-            LOG.warn("STUDIO: WARN, attempt to add invalid decorator of [" + decorator + "] was ignored");
+            LOG.warn("STUDIO: WARNING, attempt to add invalid decorator of [" + decorator + "] was ignored");
         }
     }
     /**

@@ -26,7 +26,7 @@ public class Navigator {
     {
         if (classToNavigateTo == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: WARN, attempt to invoke navigator but the class to navigate to was null " + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the class to navigate to was null " + Arrays.toString(thread.getStackTrace()));
         } else {
             PsiFile containingFile = classToNavigateTo.getContainingFile();
             VirtualFile virtualFile = containingFile.getVirtualFile();
@@ -53,7 +53,7 @@ public class Navigator {
     {
         if (classToNavigateTo == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: WARN, attempt to invoke navigator but the class to navigate to was null " + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the class to navigate to was null " + Arrays.toString(thread.getStackTrace()));
         } else {
             PsiFile containingFile = classToNavigateTo.getContainingFile ();
             VirtualFile virtualFile = containingFile.getVirtualFile ();

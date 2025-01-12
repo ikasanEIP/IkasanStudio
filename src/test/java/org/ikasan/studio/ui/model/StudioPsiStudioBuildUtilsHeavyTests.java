@@ -1,21 +1,20 @@
 package org.ikasan.studio.ui.model;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.UndoConfirmationPolicy;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import com.intellij.testFramework.PsiTestUtil;
+import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 
-import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.ikasan.studio.ui.model.StudioPsiUtils.GENERATED_CONTENT_ROOT;
+import static org.ikasan.studio.ui.model.StudioPsiUtils.SRC_MAIN_JAVA_CODE;
 
 /**
  * Heavy tests create a new project for each test, where possible use lightweight
@@ -30,7 +29,6 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
     /**
      * @return path to test data file directory relative to root of this module.
      */
-//    @Override
     protected @NotNull String getTestDataPath() {
         return "src/test/testData";
     }
@@ -39,9 +37,8 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
     protected void setUp() throws Exception {
         super.setUp();
         String root = getTestDataPath() + TEST_DATA_DIR;
-//        PsiTestUtil.removeAllRoots(myModule, IdeaTestUtil.getMockJdk18());
         myTestProjectRoot = createTestProjectStructure(root);
-
+        UiContext.setProject(myProject.getName(), myProject);
     }
 
     @Override
@@ -50,73 +47,100 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         super.tearDown();
     }
 
-
-    private PsiDirectory createPackageFixture(String packageName) {
-        VirtualFile sourceRoot = StudioPsiUtils.getSourceDirectoryForContentRoot(myProject, "", StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.MAIN_JAVA);
-        PsiDirectory baseDir = PsiDirectoryFactory.getInstance(myProject).createDirectory(sourceRoot);
-        ApplicationManager.getApplication().runWriteAction(() -> CommandProcessor.getInstance().executeCommand(myProject,
-                () -> StudioPsiUtils.createPackage(baseDir, packageName), "Name of the Command", "Undo Group ID", UndoConfirmationPolicy.REQUEST_CONFIRMATION));
-        return baseDir;
+    public void test_createPomXml() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/pom.xml";
+        String content = Files.readString(Paths.get(testFile));
+        StudioPsiUtils.createPomFile(myProject.getName(), GENERATED_CONTENT_ROOT, "", content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/pom.xml");
+        assertThat(actualFile, is(content));
     }
 
-    //public static void addDependancies(String projectKey, Map<String, Dependency> newDependencies) {
-//    public void test_addDependencies_adds_provided_dependencies_and_default_dependencies() {
-//
-//        // The test fixtures set the project name to be the test method name
-//        String testProjectKey = myProject.getName();
-//
-//        StudioPsiUtils.getAllSourceRootsForProject(myProject);
-////        IkasanPomModel ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(myProject, this.getTempDir().toString()) ;
-//        UiContext.setProject(testProjectKey, myProject);
-////        UiContext.setIkasanPomModel(testProjectKey, ikasanPomModel);
-//
-//        Dependency dependency = new Dependency();
-//        dependency.setType("jar");
-//        dependency.setArtifactId("ikasan-connector-base");
-//        dependency.setGroupId("org.ikasan");
-//        dependency.setVersion("3.1.0");
-//
-////        assertThat(ikasanPomModel.hasDependency(dependency), is(false));
-//
-//        Set<Dependency> newDependencies = new HashSet<>();
-//        newDependencies.add(dependency);
-//        // Deliberatley add twice to ensure we de-duplicate
-//        newDependencies.add(dependency);
-//
-//        WriteCommandAction.runWriteCommandAction(
-//            myProject,
-//            () -> StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(testProjectKey, newDependencies)
-//        );
-//
-//        IkasanPomModel updatedPom = StudioPsiUtils.pomLoadFromVirtualDisk(myProject, this.getTempDir().toString()) ;
-//        assertThat(updatedPom.hasDependency(dependency), is(true));
-//        assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_SOURCE), is("1.8"));
-//        assertThat(updatedPom.getProperty(IkasanPomModel.MAVEN_COMPILER_TARGET), is("1.8"));
-//    }
-
-    public void test_findFile() {
-        StudioPsiUtils.getAllSourceRootsForProject(myProject);
-        String applicationProperties = StudioPsiUtils.findFile(myProject, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION) ;
-        System.out.println(applicationProperties);
-        String pom = StudioPsiUtils.findFile(myProject, "pom.xml") ;
-        System.out.println(pom);
+    public void test_updatePomXml() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/pom.xml";
+        String content = Files.readString(Paths.get(testFile));
+        StudioPsiUtils.createPomFile(myProject.getName(), GENERATED_CONTENT_ROOT, "", content);
+        StudioPsiUtils.createPomFile(myProject.getName(), GENERATED_CONTENT_ROOT, "", content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/pom.xml");
+        assertThat(actualFile, is(content));
     }
 
-    public static void ideas(PsiFile psiFile, Project project) {
-        // We must use this to unit test utils that update the psiFile, the util below will ensure the update is correct and consistent.
-        PsiTestUtil.checkFileStructure(psiFile);
+    public void test_createPropertiesFile() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/application.properties";
+        String content = Files.readString(Paths.get(testFile));
+        StudioPsiUtils.createPropertiesFile(myProject.getName(), content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/resources/application.properties");
+        assertThat(actualFile, is(content));
+    }
 
-        // Dont create individual whitespace nodes from test, instead use the formatter
-        // Its normally done automatically at the end of every command, it can also be called explicitly using
-        CodeStyleManager.getInstance(project).reformat(psiFile);
-        // IMPORTS /// Instead of declaring imports, insert fully qualified names into the code then call shortenClassReferences()
-        JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
+    public void test_updatePropertiesFile() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/application.properties";
+        String content = Files.readString(Paths.get(testFile));
+        StudioPsiUtils.createPropertiesFile(myProject.getName(), content);
+        StudioPsiUtils.createPropertiesFile(myProject.getName(), content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/resources/application.properties");
+        assertThat(actualFile, is(content));
+    }
 
-        // Once finished altering the psi document, we need to call the postProcessing (formatting) and commit method
-        PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
-        if (documentManager != null) {
-            documentManager.doPostponedOperationsAndUnblockDocument(documentManager.getDocument(psiFile));
+    public void test_createJsonModelFile() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/populated_flow.json";
+        String content = Files.readString(Paths.get(testFile));
+        StudioPsiUtils.createJsonModelFile(myProject.getName(), content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/model/model.json");
+        assertThat(actualFile, is(content));
+    }
+
+    public void test_updateJsonModelFile() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/populated_flow.json";
+        String content = Files.readString(Paths.get(testFile));
+        StudioPsiUtils.createJsonModelFile(myProject.getName(), content);
+        StudioPsiUtils.createJsonModelFile(myProject.getName(), content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/model/model.json");
+        assertThat(actualFile, is(content));
+    }
+
+    public void test_createJavaFile() throws IOException {
+        String testFile = "src/test/resources/org/ikasan/studio/ComponentFactoryFlow1.java";
+        String content = Files.readString(Paths.get(testFile));
+        // Path shortening needs the pom file to be correct and part of the project
+        StudioPsiUtils.createJavaSourceFile(
+                myProject.getName(),
+                GENERATED_CONTENT_ROOT,
+                SRC_MAIN_JAVA_CODE,
+                "org/ikasan/studio/boot/flow/flow1",
+                "ComponentFactoryFlow1",
+                content,
+                false, true);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/java/org/ikasan/studio/boot/flow/flow1/ComponentFactoryFlow1.java");
+        assertThat(actualFile, is(content));
+    }
+
+    public void test_writePerformance() throws IOException {
+        // This might seem a lot, but build servers like Travis are not highly powered.
+        long TEN_SECONDS = 10000;
+        String content = Files.readString(Paths.get("src/test/resources/performanceTest/largeFile.txt"));
+        long time = System.currentTimeMillis();
+
+        final String myFile = "src/main/resources/testfile.txt";
+        int ii = 0;
+
+        StudioPsiUtils.createFileWithDirectories(myProject, myFile, content + (ii++));
+        String last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject.getName(), myFile));
+        assertThat(last10, is("000 Lines0"));
+        StudioPsiUtils.createFileWithDirectories(myProject, myFile, content + (ii++));
+        last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject.getName(), myFile));
+        assertThat(last10, is("000 Lines1"));
+
+        long runningTime = System.currentTimeMillis() - time;
+        if (runningTime > TEN_SECONDS) {
+            Assert.fail("The test took longer than " + TEN_SECONDS + " milliseconds");
         }
     }
 
+    private String lastXChars(int xx, String input) {
+        return input.chars()
+                .mapToObj(c -> (char) c)
+                .skip(input.length() - xx)
+                .map(String::valueOf)
+                .collect(Collectors.joining());
+    }
 }
