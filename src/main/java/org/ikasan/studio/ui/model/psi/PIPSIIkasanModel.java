@@ -59,8 +59,8 @@ public class PIPSIIkasanModel {
                 pomDependenciesHaveChanged.set(false);
             }
 
-            LOG.warn("STUDIO: WARN: forging refresh as tempotrary measure");
-            pomDependenciesHaveChanged.set(true);
+            LOG.warn("STUDIO: WARN: forcing refresh as tempotrary measure");
+//            pomDependenciesHaveChanged.set(true);
 
             // ProjectManager.getInstance().reloadProject(UiContext.getProject(projectKey))
 
