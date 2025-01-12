@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -10,6 +11,7 @@ import java.awt.event.ActionListener;
 
 public class ModelRebuildAction implements ActionListener {
    private final String projectKey;
+   public static final Logger LOG = Logger.getInstance("#ModelRebuildAction");
 
    public ModelRebuildAction(String projectKey) {
       this.projectKey = projectKey;

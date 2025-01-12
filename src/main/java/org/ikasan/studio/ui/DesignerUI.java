@@ -3,7 +3,6 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBPanel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
@@ -27,19 +26,16 @@ import java.awt.*;
 public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final String projectKey;
-    private final Project project;
     private final JBPanel mainJPanel = new JBPanel();
     JTabbedPane paletteAndProperties = new JTabbedPane();
 
     /**
      * Create the main Designer window
      * @param toolWindow is the Intellij frame in which this resides
-     * @param project is the Java project
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      */
-    public DesignerUI(ToolWindow toolWindow, Project project) {
-        this.project = project;
-        this.projectKey = project.getName();
-        UiContext.setProject(projectKey, project);
+    public DesignerUI(ToolWindow toolWindow, String projectKey) {
+        this.projectKey = projectKey;
         UiContext.setViewHandlerFactory(projectKey, new ViewHandlerCache(projectKey));
         paletteAndProperties.setBorder(new EmptyBorder(0,0,0,0));
         paletteAndProperties.setUI(new BasicTabbedPaneUI() {
@@ -59,7 +55,6 @@ public class DesignerUI {
                 // Optionally, remove or customize the content border
             }
         });
-
 
         paletteAndProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
         UiContext.setRightTabbedPane(projectKey, paletteAndProperties);
@@ -116,7 +111,7 @@ public class DesignerUI {
      * Note, it may result in an IndexNotReadyException but seems to retry successfully.
      */
     public void initialiseIkasanModel() {
-        DumbService dumbService = DumbService.getInstance(project);
+        DumbService dumbService = DumbService.getInstance(UiContext.getProject(projectKey));
         dumbService.runWhenSmart(() -> {
             DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
             if (canvasPanel != null) {

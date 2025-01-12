@@ -24,7 +24,7 @@ public class CanvasPanel extends JPanel {
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Read Module"), new ModelRefreshAction(projectKey), "Refresh the in memory module definition from saved code");
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(projectKey), "Regenrate the code from the in-memory module definition");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(projectKey), "Save the module drawing as an image file");
-//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(projectKey), "Dump information to log files");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(projectKey), "Dump information to log files");
 
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);

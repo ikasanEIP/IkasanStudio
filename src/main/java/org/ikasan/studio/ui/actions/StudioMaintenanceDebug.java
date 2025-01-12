@@ -13,7 +13,7 @@ public class StudioMaintenanceDebug extends AnAction
 
    /**
     * This constructor support test data injection.
-    * @param projectKey for the current project
+    * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
     */
    public StudioMaintenanceDebug(String projectKey) {
       super();

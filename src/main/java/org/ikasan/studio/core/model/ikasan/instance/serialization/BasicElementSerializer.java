@@ -30,9 +30,37 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
             if (!properties.isEmpty()) {
                 for (ComponentProperty componentProperty : properties.values()) {
                     if (componentProperty.getValue() != null) {
-                        jsonGenerator.writeStringField(
-                            componentProperty.getMeta().getPropertyName(),
-                            componentProperty.getValue().toString());
+                        // Since we need to cast, have to identify type explicitly
+                        Class clazz = componentProperty.getValue().getClass();
+                        if (clazz == Boolean.class) {
+                            jsonGenerator.writeBooleanField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    (Boolean) componentProperty.getValue());
+                        } else if (clazz == Short.class) {
+                            jsonGenerator.writeNumberField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    (Short)componentProperty.getValue());
+                        } else if (clazz == Integer.class) {
+                            jsonGenerator.writeNumberField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    (Integer)componentProperty.getValue());
+                        } else if (clazz == Long.class) {
+                            jsonGenerator.writeNumberField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    (Long)componentProperty.getValue());
+                        } else if (clazz == Float.class) {
+                            jsonGenerator.writeNumberField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    (Float)componentProperty.getValue());
+                        } else if (clazz == Double.class) {
+                            jsonGenerator.writeNumberField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    (Double)componentProperty.getValue());
+                        } else {
+                            jsonGenerator.writeStringField(
+                                    componentProperty.getMeta().getPropertyName(),
+                                    componentProperty.getValue().toString());
+                        }
                     }
                 }
             }

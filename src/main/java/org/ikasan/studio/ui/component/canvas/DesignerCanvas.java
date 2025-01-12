@@ -3,7 +3,6 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
-import org.ikasan.studio.Navigator;
 import org.ikasan.studio.Pair;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -17,7 +16,7 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
@@ -110,14 +109,12 @@ public class DesignerCanvas extends JPanel {
                     ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
                     componentPropertiesPanel.updateTargetComponent(getIkasanModule());
                     PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                            UiContext.getProject(projectKey),
+                            projectKey,
                             UiContext.getDesignerCanvas(projectKey),
                             componentPropertiesPanel);
                     if (propertiesPopupDialogue.showAndGet()) {
                         StudioUIUtils.displayIdeaInfoMessage(projectKey, "Please wait for Intellij to initialise, any code errors will be resolved.");
-                        PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-                        pipsiIkasanModel.saveModelJsonToDisk();
-                        pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
+                        StudioPsiUtils.refreshCodeFromModel(projectKey);
                         disableModuleInitialiseProcess();
                     }
                 }
@@ -170,16 +167,16 @@ public class DesignerCanvas extends JPanel {
         } // Double click -> go to source
         else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
-            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, basicElement);
-            if (viewHandler != null) {
-                if (viewHandler.getOffsetInclassToNavigateTo() != 0) {
-                    Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
-                } else {
-                    if (viewHandler.getClassToNavigateTo() != null) {
-                        Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo());
-                    }
-                }
-            }
+//            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, basicElement);
+//            if (viewHandler != null) {
+//                if (viewHandler.getOffsetInclassToNavigateTo() != 0) {
+//                    Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
+//                } else {
+//                    if (viewHandler.getClassToNavigateTo() != null) {
+//                        Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo());
+//                    }
+//                }
+//            }
         } // Single click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
                  (  ViewHandlerCache.getAbstractViewHandler(projectKey, basicElement) != null &&
@@ -191,14 +188,12 @@ public class DesignerCanvas extends JPanel {
                 ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
                 exceptionResolverPanel.updateTargetComponent(basicElement);
                 PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                        UiContext.getProject(projectKey),
+                        projectKey,
                         UiContext.getDesignerCanvas(projectKey),
                         exceptionResolverPanel);
                 if (propertiesPopupDialogue.showAndGet()) {
                     //@TODO MODEL
-                    PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-                    pipsiIkasanModel.saveModelJsonToDisk();
-                    pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
+                    StudioPsiUtils.refreshCodeFromModel(projectKey);
                 }
             } else {
                 UiContext.getPropertiesTabPanel(projectKey).updateTargetComponent(basicElement);
@@ -450,8 +445,8 @@ public class DesignerCanvas extends JPanel {
 
             if ((ikasanBasicElement.getComponentMeta().isDebug() && targetElement instanceof FlowElement && !((FlowElement)targetElement).getComponentMeta().isConsumer()) ||
                 (!ikasanBasicElement.getComponentMeta().isDebug() && (targetFlowRoute != null || targetFlow != null))) {
-
-                LOG.info("Taget element was " + targetElement);
+                // Enabled when trcing UI drop issues
+                //LOG.info("Taget element was " + targetElement);
 
                 String issue = "";
                 if (targetFlowRoute != null) {
@@ -560,7 +555,7 @@ public class DesignerCanvas extends JPanel {
                     newComponent = createViableFlowComponent(ikasanComponentType, containingFlow, containingFlowRoute);
                 } catch (Exception ex) {
                     // Any exceptions raised here were silently handled, now exposed at least as logs
-                    LOG.warn("ERROR: Intercept silent popup box failure, " + ex + " trace: " + Arrays.toString(ex.getStackTrace()));
+                    LOG.warn("STUDIO: ERROR: Intercept silent popup box failure, " + ex + " trace: " + Arrays.toString(ex.getStackTrace()));
                 }
                 if (newComponent != null) {
                     if (newComponent instanceof ExceptionResolver) {
@@ -591,9 +586,7 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-            PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
-            pipsiIkasanModel.saveModelJsonToDisk();
-            pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
+            StudioPsiUtils.refreshCodeFromModel(projectKey);
 
             initialiseAllDimensions = true;
             this.repaint();
@@ -647,7 +640,7 @@ public class DesignerCanvas extends JPanel {
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, true);
             componentPropertiesPanel.updateTargetComponent(newComponent);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                    UiContext.getProject(projectKey),
+                    projectKey,
                     UiContext.getDesignerCanvas(projectKey),
                     componentPropertiesPanel);
             if (! propertiesPopupDialogue.showAndGet()) {
@@ -671,7 +664,7 @@ public class DesignerCanvas extends JPanel {
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
             exceptionResolverPanel.updateTargetComponent(newExceptionResolver);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                    UiContext.getProject(projectKey),
+                    projectKey,
                     UiContext.getDesignerCanvas(projectKey),
                     exceptionResolverPanel);
             if (! propertiesPopupDialogue.showAndGet()) {

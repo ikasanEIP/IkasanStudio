@@ -132,7 +132,7 @@ public class IkasanComponentLibrary {
                 if (componentTypeMeta.getProperties() != null) {
                     for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getProperties().entrySet()) {
                         if (componentMeta.getProperties().containsKey(propertiesFromType.getKey())) {
-                            LOG.warn("Studio: Warning: the property with key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
+                            LOG.warn("STUDIO: Warning: the property with key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
                         }
                         componentMeta.getProperties().put(propertiesFromType.getKey(), propertiesFromType.getValue());
                     }

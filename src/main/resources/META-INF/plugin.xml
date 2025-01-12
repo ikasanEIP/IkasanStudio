@@ -9,21 +9,19 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
-    
+
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="org.ikasan.studio.ui.DesignerToolWindowFactory"
                     id="Ikasan Studio"
                     anchor="right"
+
 		    icon="/studio/icons/squid13x13.png"
         />
     </extensions>
-
-    <applicationListeners>
-        <listener class="com.github.ikasaneip.ikasanstudio.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Ikasan Studio" displayType="BALLOON"/>

@@ -168,7 +168,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
         if (!transitions.isEmpty()) {
             String startKey = getStartKey(transitions);
-            if (startKey.isEmpty() || startKey.isBlank()) {
+            if (startKey.isBlank()) {
                 ILOG.warn("STUDIO: ERROR: Could not find the start of the transition chain " + transitions);
                 LOG.warn("STUDIO: ERROR: Could not find the start of the transition chain " + transitions);
             } else {
@@ -328,7 +328,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if (currentTransition != null) {
             FlowElement fromElement = flowElementsMap.get(currentTransition.getFrom());
             if (fromElement == null) {
-                LOG.warn("STUDIO: WARN: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
+                LOG.warn("STUDIO: WARNING: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
             // We never add the consumer
             // We never add the router as a fromElement, the endpoint is its connector in the new route
             } else {
@@ -403,17 +403,17 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             Object typeSafeAttempt = router.getPropertyValue(ROUTE_NAMES);
             List<String> routeNames = null;
             if (typeSafeAttempt==null) {
-                LOG.warn("Studio: Serious: Attempt to setup routes but routeNames was null");
+                LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames was null");
             }
             else if (! (typeSafeAttempt instanceof List)) {
-                LOG.warn("Studio: Serious: Attempt to setup routes but routeNames does not contain a list, routeNames was [" + typeSafeAttempt + "]");
+                LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames does not contain a list, routeNames was [" + typeSafeAttempt + "]");
             }
             else {
                 routeNames = (List) typeSafeAttempt;
             }
             if (routeNames == null) {
                 routeNames = guessRouteNames(router, transitionsMap);
-                LOG.warn("Studio: Attempted to guess routename, got [" + routeNames + "]");
+                LOG.warn("STUDIO: Attempted to guess routename, got [" + routeNames + "]");
             }
 
             for(String routeName : routeNames) {
@@ -713,7 +713,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 if (decorator != null && decorator.isValid()) {
                     decorators.add(decorator);
                 } else {
-                    LOG.warn("STUDIO: WARN, attempt to add invalid decorator of [" + decorator + "] was ignored");
+                    LOG.warn("STUDIO: WARNING, attempt to add invalid decorator of [" + decorator + "] was ignored");
                 }
             }
         }

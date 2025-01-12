@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.actions;
 
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.terminal.JBTerminalWidget;
@@ -9,9 +9,12 @@ import com.intellij.ui.content.ContentManager;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.jetbrains.plugins.terminal.ShellTerminalWidget;
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
 import org.jetbrains.plugins.terminal.TerminalView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +24,7 @@ import java.io.IOException;
 import java.util.Map;
 
 public class LaunchH2Action implements ActionListener {
+   private static final Logger LOG = LoggerFactory.getLogger(LaunchH2Action.class);
    private final String projectKey;
    private final JComponent jComponent;
    private boolean start=true;
@@ -49,19 +53,26 @@ public class LaunchH2Action implements ActionListener {
          } else {
             connectionString = "see 'datasource.url in you application.properties file,";
          }
-         Project project = UiContext.getProject(projectKey);
-         String command = start ?
-           "mvn exec:java@StartH2 -Dh2DbPortNumber=" + module.getH2PortNumber() + " -Dh2WebPortNumber=" + module.getH2WebPortNumber() :
-           "mvn exec:java@StopH2 -Dh2DbPortNumber=" + module.getH2PortNumber();
-         String path = project.getBasePath() + "/generated/h2";
-         try {
-            executeCommandInTerminal(project, path, (start ? "H2 start" : "H2 stop"), command);
-            StudioUIUtils.displayIdeaInfoMessage(projectKey,
-                 (start ? "Starting H2 server, console should appear in your browser, for JDBC URL " + connectionString + " username and password is sa, review H2 Terminal tabs for output"
-                        : "Stopping H2 server, review H2 Terminal tabs for output"));
-         } catch (IOException e) {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Attempt to run command failed due to IOException: " + e.getMessage());
+
+         VirtualFile virtualProjectRoot = StudioPsiUtils.getProjectBaseDir(projectKey);
+         if (virtualProjectRoot == null) {
+            LOG.warn("STUDIO: WARN: Could not get virtual project root for project [" + projectKey+ "], consider resaving");
+         } else {
+            String basePath = virtualProjectRoot.getPath();
+            String command = start ?
+                    "mvn exec:java@StartH2 -Dh2DbPortNumber=" + module.getH2PortNumber() + " -Dh2WebPortNumber=" + module.getH2WebPortNumber() :
+                    "mvn exec:java@StopH2 -Dh2DbPortNumber=" + module.getH2PortNumber();
+            String path = basePath + "/generated/h2";
+            try {
+               executeCommandInTerminal(projectKey, path, (start ? "H2 start" : "H2 stop"), command);
+               StudioUIUtils.displayIdeaInfoMessage(projectKey,
+                       (start ? "Starting H2 server, console should appear in your browser, for JDBC URL " + connectionString + " username and password is sa, review H2 Terminal tabs for output"
+                               : "Stopping H2 server, review H2 Terminal tabs for output"));
+            } catch (IOException e) {
+               StudioUIUtils.displayIdeaWarnMessage(projectKey, "Attempt to run command failed due to IOException: " + e.getMessage());
+            }
          }
+
          start = !start;
          toggleButtonText();
       } else {
@@ -81,8 +92,8 @@ public class LaunchH2Action implements ActionListener {
       }
    }
 
-   private void executeCommandInTerminal(Project project, String path, String title, String command) throws IOException {
-      ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID);
+   private void executeCommandInTerminal(String projectKey, String path, String title, String command) throws IOException {
+      ToolWindow window = ToolWindowManager.getInstance(UiContext.getProject(projectKey)).getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID);
       if (window == null) return;
 
       ContentManager contentManager = window.getContentManager();
@@ -93,7 +104,7 @@ public class LaunchH2Action implements ActionListener {
       }
 
       if (!(terminalWidget instanceof ShellTerminalWidget)) {
-         TerminalView terminalView = TerminalView.getInstance(project);
+         TerminalView terminalView = TerminalView.getInstance(UiContext.getProject(projectKey));
          terminalWidget = terminalView.createLocalShellWidget(path, title);
       } else {
          contentManager.setSelectedContent(h2ContentTab);

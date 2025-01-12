@@ -57,10 +57,5 @@ public class SaveAction implements ActionListener {
       } else {
          StudioUIUtils.displayIdeaWarnMessage(projectKey, "Save of image can't be launched unless a module is defined.");
       }
-
-
-
-
-
    }
 }

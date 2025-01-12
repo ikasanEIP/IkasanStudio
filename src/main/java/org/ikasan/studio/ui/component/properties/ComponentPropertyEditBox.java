@@ -146,7 +146,7 @@ public class ComponentPropertyEditBox {
     private void doDataValidationHelperPopup() {
         CronPanel cronPanel = new CronPanel(projectKey, (String)getValue());
             CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(
-                    UiContext.getProject(projectKey),
+                    projectKey,
                     UiContext.getDesignerCanvas(projectKey),
                     cronPanel);
             if (cronPopupDialogue.showAndGet()) {

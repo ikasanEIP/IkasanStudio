@@ -2,11 +2,11 @@ package org.ikasan.studio.ui.model;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -15,10 +15,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
@@ -28,7 +25,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.io.ComponentIO;
@@ -37,7 +33,6 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
-import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +41,7 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -55,7 +51,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
 import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
 
-public class StudioPsiUtils {
+public class LargeJava {
     private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
     public static final String TEMP_CONTENT_ROOT = "temp://";
     public static final String GENERATED_CONTENT_ROOT = "/generated";
@@ -187,11 +183,8 @@ public class StudioPsiUtils {
                 }
                 pomAddStandardProperties(ikasanPomModel);
                 if (ikasanPomModel.isDirty()) {
-                    createPomFile(projectKey, "", "", ikasanPomModel.getModelAsString());
-                    MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(UiContext.getProject(projectKey));
-                    if (mavenProjectsManager != null) {
-                        mavenProjectsManager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
-                    }
+
+                    createPomFile(projectKey, "", "", "", POM_XML, ikasanPomModel.getModelAsString(), false, true);
                 }
             } else {
                 LOG.warn("STUDIO: WARN: checkForDependencyChangesAndSaveIfChanged invoked but ikasanPomModel was null project [" + projectKey +"] newDependencies [" + newDependencies + "]");
@@ -215,6 +208,8 @@ public class StudioPsiUtils {
      * @return A PsiFile handle to the pom or null
      */
     public static PsiFile pomGetTopLevel(String projectKey, String containingDirectory) {
+        LOG.info("STUDIO: 1111 pomGetTopLevel " + containingDirectory);
+
         VirtualFile virtualProjectRoot = getProjectBaseDir(projectKey);
         if (virtualProjectRoot == null) {
             Thread thread = Thread.currentThread();
@@ -228,8 +223,8 @@ public class StudioPsiUtils {
                 } catch (Exception ee) {
                     // ReadAction.compute can swallow exceptions if not explicitly caught
                     LOG.warn("STUDIO: WARN: The read action of pomGetTopLevel for params " +
-                    " projectKey [" + projectKey + "] containingDirectory [" + containingDirectory + "] " +
-                    " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
+                            " projectKey [" + projectKey + "] containingDirectory [" + containingDirectory + "] " +
+                            " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
                 }
                 return returnFile;
             }
@@ -242,24 +237,22 @@ public class StudioPsiUtils {
      * Create and save a java source file
      * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
+     * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
+     * @param fileNameWithExtension for the java file
      * @param content of the file that is to be created / updated
+     * @param focus if true, open this file in the IDE
+     * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
      * @return the reference to the PsiJavaFile
      */
-    // StudioPsiUtils.createPomFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, "h2", h2StartStopPomString);
-    public static void createPomFile(final String projectKey, final String contentRoot, final String subDir,final String content) {
-        if (projectKey == null || content == null) {
+    public static void createPomFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+                                     final  String fileNameWithExtension, final String content, boolean focus,
+                                     final boolean replaceExisting) {
+        if (projectKey == null || fileNameWithExtension == null || content == null) {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile projectKey [" + projectKey + "] contentRoot [" + contentRoot +
-                    "] subDir [" + subDir + "] content [" + content + "]");
+                    "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + fileNameWithExtension + "] content [" + content + "]");
         }
-        String relativeFilePath =
-                (!isBlank(contentRoot) ? contentRoot : "") +
-                        (!isBlank(subDir) ? "/" + subDir : "") +
-                        "/" + POM_XML;
-
-        createFileWithDirectories(UiContext.getProject(projectKey),
-                relativeFilePath,
-                content);
+        createSourceFile(projectKey, contentRoot, sourceRootDir, subDir.replace(".", "/"), fileNameWithExtension+".java", content, focus, replaceExisting);
     }
 
     /**
@@ -281,14 +274,19 @@ public class StudioPsiUtils {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile projectKey [" + projectKey + "] contentRoot [" + contentRoot +
                     "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + clazzName + "] content [" + content + "]");
         }
-        String relativeFilePath =
-                (!isBlank(contentRoot) ? contentRoot : "") +
-                (!isBlank(sourceRootDir) ? "/" + sourceRootDir : "")  +
-                (!isBlank(subDir) ? "/" + subDir.replace(".", "/") : "") +
-                "/" + clazzName+".java";
-        createFileWithDirectories(UiContext.getProject(projectKey),
-                relativeFilePath,
-                content);
+        createSourceFile(projectKey, contentRoot, sourceRootDir, subDir.replace(".", "/"), clazzName+".java", content, focus, replaceExisting);
+    }
+
+    private static com.intellij.openapi.module.Module getModule(String projectKey, String moduleName) {
+        moduleName = moduleName.replace("/", "");
+        ModuleManager moduleManager = ModuleManager.getInstance(UiContext.getProject(projectKey));
+        com.intellij.openapi.module.Module[] modules = moduleManager.getModules();
+        for (com.intellij.openapi.module.Module module : modules) {
+            if (module.getName().equals(moduleName)) {
+                return module;
+            };
+        }
+        return null;
     }
 
 
@@ -298,32 +296,151 @@ public class StudioPsiUtils {
      * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param content of the file that is to be created / updated
      */
-    public static void createPropertiesFile(final String projectKey, final String content) {
-        LOG.info("STUDIO: INFO: Saving properties, projectKey [" + projectKey + "] content size " + content.length() + " bytes");
-
-        createFileWithDirectories(UiContext.getProject(projectKey),
-                GENERATED_CONTENT_ROOT + "/" + SRC_MAIN_RESOURCES + "/" + MODULE_PROPERTIES_FILENAME_WITH_EXTENSION,
-                content);
+    public static CompletableFuture createJsonModelFile(final String projectKey, final String content) {
+        LOG.warn("STUDIO: Savaing Json Model, content [" + content + "]");
+        return createSourceFile(projectKey, GENERATED_CONTENT_ROOT, SRC_MAIN, JSON_MODEL_SUB_DIR, MODEL_JSON, content, false, true);
     }
 
     /**
-     * Conveniance method to create a model.json for the supplied content. The location of the
-     * model.json is standard so does not need to be supplied
+     * Create and save a java source file
      * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param contentRoot for the file, typically generated or user
+     * @param sourceRootDir for this file  e.g. src/main, src/test
+     * @param subDir under the sourceRoodDir, this can be dot delimited or slash delimited x/y
+     * @param fileName for the java file
      * @param content of the file that is to be created / updated
+     * @param focus if true, open this file in the IDE
+     * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
+     * @return the reference to the PsiJavaFile
      */
-    public static void createJsonModelFile(final String projectKey, final String content) {
-        LOG.info("STUDIO: INFO: Saving Json Model, projectKey [" + projectKey + "] content size " + content.length() + " bytes");
+//    public static PsiJavaFile createJavaSourceFile(final Project project, final String contentRoot, final String packageName,
+    public static CompletableFuture createSourceFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+                                                     final  String fileName, final String content, boolean focus,
+                                                     final boolean replaceExisting) {
 
-        createFileWithDirectories(UiContext.getProject(projectKey),
-                GENERATED_CONTENT_ROOT + "/" + SRC_MAIN + "/" + JSON_MODEL_SUB_DIR + "/" + MODEL_JSON,
-                content);
+        LOG.warn("STUDIO ZZZZZ0 createSourceFile contentRoot " + contentRoot + " sourceRootDir " + sourceRootDir + " subDir " + subDir + " fileName " +
+                fileName);
+//        AtomicReference<PsiFile> returnPsiFile = new AtomicReference<>();
+
+        CompletableFuture newPsiFileReadFuture = null;
+        VirtualFile virtualProjectRoot = getProjectBaseDir(projectKey);
+        if (virtualProjectRoot == null) {
+            Thread thread = Thread.currentThread();
+            LOG.warn("STUDIO: SERIOUS: createSourceFile cant find basePath for project " + projectKey + " trace:" + Arrays.toString(thread.getStackTrace()));
+        } else {
+
+            doReadAction(
+                    projectKey, contentRoot, sourceRootDir, subDir,
+                    fileName, content,
+                    virtualProjectRoot);
+
+//            final FileType fileType = FileType.fromFileName(fileName);
+//            String basePathTrailingSlash = virtualProjectRoot.getPath();
+//            String relativeDir =
+//                    (!isBlank(contentRoot) ? contentRoot : "") +
+//                    (!isBlank(sourceRootDir) ? "/" + sourceRootDir : "")  +
+//                    (!isBlank(subDir) ? "/" + subDir : "");
+//            String relativeFilePath = relativeDir + fileName;
+//            String targetDir = basePathTrailingSlash + relativeDir;
+//            AtomicReference<PsiDirectory> psiDirectoryPath = new AtomicReference<>();
+//
+//            // By placing the declaration here, hoping that will prevent them from going out of scope
+//            AtomicReference<PsiFile> oldPsiFile = new AtomicReference<>();
+//            AtomicReference<PsiFile> newPsiFile = new AtomicReference<>();
+//            AtomicReference<PsiFile>[] readResults = new AtomicReference[2];
+//            newPsiFileReadFuture = CompletableFuture.supplyAsync(() -> {
+//                try {
+//                    ReadAction.compute(() -> {
+//                        LOG.info("STUDIO: createSourceFile ZZZZZ0.2 " + fileName + " asynch Start " + targetDir);
+//                        String oldFileContent = readFileAsString(projectKey, relativeFilePath);
+//                        newPsiFile.set(PsiFileFactory
+//                                .getInstance(UiContext.getProject(projectKey))
+//                                .createFileFromText(
+//                                    fileName,
+//                                    FileTypeManager.getInstance().getFileTypeByExtension(fileType.getExtension()),
+//                                    content));
+//                        // Removed the fully qualified packages and adds relevant imports
+//                        if (fileType == FileType.JAVA) {
+//                            JavaCodeStyleManager.getInstance(UiContext.getProject(projectKey)).shortenClassReferences(newPsiFile.get()); // Not on EDT
+//                        }
+//                        CodeStyleManager.getInstance(UiContext.getProject(projectKey)).reformat(newPsiFile.get());
+//
+//
+//                        // If the files have not changed, no point continuing
+//                        if (!areEqualIgnoringWhitespace(oldFileContent, newPsiFile.get().getText())) {
+//                            readResults[1] = newPsiFile;
+//                            // if old file was null, it didn't exist so create new
+//                            // This is a replacement
+//                            if (oldFileContent != null) {
+//                                VirtualFile oldFile = getVirtualFile(projectKey, relativeFilePath);
+//                                if (oldFile != null && oldFile.isValid()) {
+//                                    oldPsiFile.set(PsiManager.getInstance(UiContext.getProject(projectKey)).findFile(oldFile));
+//                                    readResults[0] = oldPsiFile;
+//                                }
+//
+//                            }
+//                        }
+//System.out.println("Read thread return result 1");
+//                        return readResults;
+//                    });
+//                } catch (Exception ee) {
+//                    LOG.warn("STUDIO: SERIOUS: An exception occurred during the read thread of createSourceFile for params " +
+//                            "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+//                            "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
+//                            "] messages was [" + ee.getMessage() + "] Stack trace [" + Arrays.asList(ee.getStackTrace()) + "]");
+//System.out.println("Read thread return result 2");
+//                    return null;
+//                }
+//System.out.println("Read thread return result 3");
+//                return readResults;
+//            });
+
+            newPsiFileReadFuture.thenAccept(resultsObject ->
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        // Many things can prevent the first phase from working, including a project refresh
+                        // Intellij best practice is abort gracefully and rely on caller to reissue if needed.
+
+
+                    }));
+        }
+        return newPsiFileReadFuture;
     }
+
+//
+//    /**
+//     * Retrieves the Document corresponding to the given VirtualFile.
+//     *
+//     * @param file the VirtualFile to retrieve the Document for.
+//     * @return the corresponding Document, or null if the file is not a text file or doesn't support documents.
+//     */
+//    public static Document getDocumentForVirtualFile(VirtualFile file) {
+//        if (file == null || file.isDirectory()) {
+//            throw new IllegalArgumentException("Invalid file: " + file);
+//        }
+//
+//        FileDocumentManager documentManager = FileDocumentManager.getInstance();
+//        return documentManager.getDocument(file);
+//    }
+//
+//    public static String getTextFromVirtualFile(VirtualFile file) {
+//        if (file == null || file.isDirectory()) {
+//            throw new IllegalArgumentException("Invalid file: " + file);
+//        }
+//
+//        FileDocumentManager documentManager = FileDocumentManager.getInstance();
+//        Document document = documentManager.getDocument(file);
+//
+//        if (document != null) {
+//            return document.getText(); // Returns the text content of the file
+//        } else {
+//            throw new IllegalStateException("Could not retrieve a document for the file: " + file.getPath());
+//        }
+//    }
 
 
     /**
      * Fail fast string comparison ignoring white space
-     * {@code @TODO} maybe allow white space between quotes
+     * @TODO maybe allow white space between quotes
      * @param oldString to be compared
      * @param newString to be compared
      * @return true if both string are equal, ignoring any whitespace
@@ -332,8 +449,10 @@ public class StudioPsiUtils {
         if (oldString == null || newString == null) {
             return false; // Handle null values if needed
         }
+
         int ii = 0, jj = 0;
         int len1 = oldString.length(), len2 = newString.length();
+
         while (ii < len1 && jj < len2) {
             // Skip whitespace in str1
             while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
@@ -343,17 +462,21 @@ public class StudioPsiUtils {
             while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
                 jj++;
             }
+
             // If one string has reached its end but the other has not
             if (ii >= len1 || jj >= len2) {
                 break;
             }
+
             // Compare characters
             if (oldString.charAt(ii) != newString.charAt(jj)) {
                 return false; // Found a mismatch
             }
+
             ii++;
             jj++;
         }
+
         // Skip remaining whitespace in both strings
         while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
             ii++;
@@ -361,9 +484,38 @@ public class StudioPsiUtils {
         while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
             jj++;
         }
+
         // If both indices have reached the end, strings are equal
         return ii == len1 && jj == len2;
     }
+
+//    /**
+//     * This class attempts to find a file, it does not attempt to retrieve it
+//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param filename to search for
+//     * @return A message string to indicate progress.
+//     */
+//    public static String findFile(String projectKey, String filename) {
+//        StringBuilder message = new StringBuilder();
+//
+//        PsiFile[] files2 = PsiShortNamesCache.getInstance(UiContext.getProject(projectKey)).getFilesByName(filename);
+//        long t1 = System.currentTimeMillis();
+//        message
+//                .append("looking for file ")
+//                .append(filename)
+//                .append(" method 1 found [");
+//        for (PsiFile myFile : files2) {
+//            message.append(myFile.getName());
+//        }
+//        long t2 = System.currentTimeMillis();
+//        long t3 = System.currentTimeMillis();
+//
+//        message.append("] method 1 = ")
+//                .append(t2-t1)
+//                .append(" ms method 2 = ")
+//                .append(t3-t2);
+//        return message.toString();
+//    }
 
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
@@ -383,6 +535,46 @@ public class StudioPsiUtils {
         UiContext.getDesignerCanvas(projectKey).repaint();
     }
 
+//    public static void getAllSourceRootsForProject(String projectKey) {
+//        String projectName = UiContext.getProject(projectKey).getName();
+//        VirtualFile[] vFiles = ProjectRootManager.getInstance(UiContext.getProject(projectKey)).getContentSourceRoots();
+//        String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
+//        LOG.info("STUDIO: Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
+//    }
+
+
+//    public static void getProjectSourceRoots(Project project) {
+//        System.out.println("STUDIO: getProjectSourceRoots started " + project);
+//        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
+//        fileIndex.iterateContent(file -> {
+//            if (fileIndex.isInSource(file)) {
+//                System.out.println("STUDIO: getProjectSourceRoots Source Root: " + file.getPath());
+//            }
+//            return true; // Continue iterating
+//        });
+//    }
+
+//    public static VirtualFile[] getModuleSourceRoots(com.intellij.openapi.module.Module module) {
+//System.out.println("STUDIO: getModuleSourceRoots started " + module);
+//        VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
+//        for (VirtualFile sourceRoot : sourceRoots) {
+//            System.out.println("STUDIO: Source Root: " + sourceRoot.getPath());
+//        }
+//
+//
+//        return ModuleRootManager.getInstance(module).getSourceRoots();
+//    }
+//
+//    public static VirtualFile[] getContentRoots(com.intellij.openapi.module.Module module) {
+//System.out.println("STUDIO: getContentRoots started " + module);
+//        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+//        for (VirtualFile contentRoot : contentRoots) {
+//            System.out.println("STUDIO: Content Root: " + contentRoot.getPath());
+//        }
+//        return ModuleRootManager.getInstance(module).getContentRoots();
+//    }
+
+
 
     /**
      * Get the Virtual file for the project root
@@ -391,6 +583,137 @@ public class StudioPsiUtils {
     public static VirtualFile getProjectBaseDir(String projectKey) {
         String basePath = UiContext.getProject(projectKey).getBasePath();
         return LocalFileSystem.getInstance().findFileByPath(basePath);
+//        com.intellij.openapi.module.Module projectModule = getModule(projectKey, UiContext.getProject(projectKey).getName());
+//        VirtualFile[] contentRoots = getContentRoots(projectModule);
+//        if (contentRoots.length == 0) {
+//            throw new StudioException("No content roots found for " + UiContext.getProject(projectKey).getName());
+//        } else {
+//            return contentRoots[0];
+//        }
+    }
+
+    public static final AtomicReference<PsiFile>[] doReadAction(
+            final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+            final  String fileName, final String content,
+
+            final VirtualFile virtualProjectRoot) {
+
+        final FileType fileType = FileType.fromFileName(fileName);
+        String basePathTrailingSlash = virtualProjectRoot.getPath();
+        String relativeDir =
+                (!isBlank(contentRoot) ? contentRoot : "") +
+                        (!isBlank(sourceRootDir) ? "/" + sourceRootDir : "")  +
+                        (!isBlank(subDir) ? "/" + subDir : "");
+        String relativeFilePath = relativeDir + fileName;
+        String targetDir = basePathTrailingSlash + relativeDir;
+
+        AtomicReference<PsiDirectory> psiDirectoryPath = new AtomicReference<>();
+
+        // By placing the declaration here, hoping that will prevent them from going out of scope
+        AtomicReference<PsiFile> oldPsiFile = new AtomicReference<>();
+        AtomicReference<PsiFile> newPsiFile = new AtomicReference<>();
+        AtomicReference<PsiFile>[] readResults = new AtomicReference[2];
+
+        LOG.info("STUDIO: createSourceFile ZZZZZ0.2 " + fileName + " asynch Start " + targetDir);
+        String oldFileContent = readFileAsString(projectKey, relativeFilePath);
+        newPsiFile.set(PsiFileFactory
+                .getInstance(UiContext.getProject(projectKey))
+                .createFileFromText(
+                        fileName,
+                        FileTypeManager.getInstance().getFileTypeByExtension(fileType.getExtension()),
+                        content));
+        // Removed the fully qualified packages and adds relevant imports
+        if (fileType == FileType.JAVA) {
+            JavaCodeStyleManager.getInstance(UiContext.getProject(projectKey)).shortenClassReferences(newPsiFile.get()); // Not on EDT
+        }
+        CodeStyleManager.getInstance(UiContext.getProject(projectKey)).reformat(newPsiFile.get());
+
+
+        // If the files have not changed, no point continuing
+        if (!areEqualIgnoringWhitespace(oldFileContent, newPsiFile.get().getText())) {
+            readResults[1] = newPsiFile;
+            // if old file was null, it didn't exist so create new
+            // This is a replacement
+            if (oldFileContent != null) {
+                VirtualFile oldFile = getVirtualFile(projectKey, relativeFilePath);
+                if (oldFile != null && oldFile.isValid()) {
+                    oldPsiFile.set(PsiManager.getInstance(UiContext.getProject(projectKey)).findFile(oldFile));
+                    readResults[0] = oldPsiFile;
+                }
+
+            }
+        }
+        System.out.println("Read thread return result 1");
+        return readResults;
+    }
+
+    private static void doWriteAction(
+            final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+            final  String fileName, final String content, boolean focus,
+            final boolean replaceExisting,
+            final AtomicReference<PsiFile>[] results) {
+
+        if (UiContext.getProject(projectKey).isDisposed()) {
+            System.out.println("pSTUDIO: SERIOUS: Stage 1 project shutdown "+ System.currentTimeMillis());
+            LOG.warn("STUDIO: SERIOUS: Stage 1 project shutdown "+ System.currentTimeMillis());
+        }
+
+//    if (resultsObject == null) {
+//        LOG.warn("STUDIO: SERIOUS: An exception occurred during the read thread of previous createSourceFile for params " +
+//                "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+//                "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
+//                "] Stack trace " + Arrays.asList(Thread.currentThread().getStackTrace()));
+//    } else {
+//        AtomicReference<PsiFile>[] results = (AtomicReference<PsiFile>[]) resultsObject;
+
+        if (results[0] == null && results[1] == null) {
+            // There were no changes, no further action required
+            LOG.warn("STUDIO: Attempt made to update " + fileName + " was ignored because relaceExisting is false");
+        } else if (results[0] == null) {
+            // This is a new file, there was no old fie
+            PsiFile futureNewPsiFile = ((AtomicReference<PsiFile>) results[1]).get();
+            if (UiContext.getProject(projectKey).isDisposed()) {
+                LOG.warn("STUDIO: SERIOUS: Stage 2 project shutdown"+ System.currentTimeMillis());
+            }
+
+            if (!futureNewPsiFile.isValid()) {
+                LOG.warn("STUDIO: SERIOUS: During the write phase of createSourceFile, the new file has become invalid, params " +
+                        "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+                        "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
+                        " Stack trace " + Arrays.asList(Thread.currentThread().getStackTrace()));
+                return;
+            }
+//            WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
+//                psiDirectoryPath.get().add(futureNewPsiFile.copy());
+////                                returnPsiFile.set(futureNewPsiFile);
+//            });
+        } else {
+
+            if (UiContext.getProject(projectKey).isDisposed()) {
+                LOG.warn("STUDIO: SERIOUS: Stage 3 project shutdown"+ System.currentTimeMillis());
+            }
+
+            // This is a replacement of the olf dile with the new file.
+            PsiFile futureOldPsiFile = ((AtomicReference<PsiFile>) results[0]).get();
+            PsiFile futureNewPsiFile = ((AtomicReference<PsiFile>) results[1]).get();
+            if (!futureOldPsiFile.isValid() || !futureNewPsiFile.isValid()) {
+                LOG.warn("STUDIO: SERIOUS: During the write phase of createSourceFile, one of the files have become invalid, params " +
+                        "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+                        "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
+                        " Stack trace " + Arrays.asList(Thread.currentThread().getStackTrace()));
+                return;
+            }
+            Document document = PsiDocumentManager.getInstance(UiContext.getProject(projectKey)).getDocument(futureOldPsiFile);
+//                        Document document = getDocumentForVirtualFile(oldVirtualFile);
+            // Replace content inside a write action
+            WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
+                document.setText(futureNewPsiFile.getText());
+                PsiDocumentManager.getInstance(UiContext.getProject(projectKey)).commitDocument(document);
+            });
+//                            returnPsiFile.set(futureNewPsiFile);
+//                            changed.set(true);
+//        }
+        }
     }
 
     /**
@@ -406,13 +729,6 @@ public class StudioPsiUtils {
         String directoryPath = lastSeparatorIndex == -1 ? "" : relativePath.substring(0, lastSeparatorIndex);
         String fileName = relativePath.substring(lastSeparatorIndex + 1);
 
-        LOG.info("STUDIO: INFO: createFileWithDirectories " +
-                "relativePath [" + relativePath + "]" +
-                "] directoryPath [" + directoryPath + "]" +
-                "] fileName [" + fileName + "]"
-//                "] fileContent [" + fileContent + "]"
-        );
-
         WriteCommandAction.runWriteCommandAction(project, () -> {
             try {
                 // Get the base directory of the project
@@ -426,66 +742,41 @@ public class StudioPsiUtils {
                 // Handle the file
                 if (targetDir != null) {
                     VirtualFile file = targetDir.findChild(fileName);
+                    long now = System.currentTimeMillis();
                     if (file == null) {
                         // File does not exist; create it
+
+                        System.out.println("XX Writing new file '" + fileName + "' to '" + relativePath + "'" + (System.currentTimeMillis() - now) + "ms");
                         file = targetDir.createChildData(StudioPsiUtils.class, fileName);
                         writeContentAndFormat(project, file, fileContent);
                     } else {
+                        System.out.println("XX Writing existing file '" + fileName + "' to '" + relativePath + "'" + (System.currentTimeMillis() - now) + "ms");
                         // File exists; decide what to do (e.g., overwrite)
                         writeContentAndFormat(project, file, fileContent);
                     }
+                    System.out.println("XX Writing finished '" + file.getPath());
+                    System.out.println("XX Writing finished '" + fileName + "' to '" + relativePath + "'" + (System.currentTimeMillis() - now) + "ms");
                 }
             } catch (IOException e) {
-                LOG.info("STUDIO: ERROR: createFileWithDirectories " + relativePath + " " + fileContent +
-                        " message [" + e.getMessage() + "] stackTrace [" + Arrays.toString(e.getStackTrace())+ "]");
-                throw new StudioRuntimeException("Failed to create file or directories", e);
+                throw new RuntimeException("Failed to create file or directories", e);
             }
         });
     }
 
-    private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent) {
-        try {
-            if (fileContent != null) {
-                FileDocumentManager documentManager = FileDocumentManager.getInstance();
-                Document document = documentManager.getDocument(file);
+    private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent) throws IOException {
+        if (fileContent != null) {
+            // Write the content to the file
+            file.setBinaryContent(fileContent.getBytes(StandardCharsets.UTF_8));
 
-                if (document != null) {
-                    // File is open in the editor; update the document
-                    WriteCommandAction.runWriteCommandAction(project, () -> {
-                        document.setText(fileContent);
-                    });
-
-                    // Commit the document to sync it with the PSI, otherwise format below will error
-                    PsiDocumentManager.getInstance(project).commitDocument(document);
-
-                    // Save the document to persist changes to the VirtualFile
-                    documentManager.saveDocument(document);
-                } else {
-                    // File is not open in the editor; update the VirtualFile directly
-                    WriteAction.run(() -> {
-                        file.setBinaryContent(fileContent.getBytes(StandardCharsets.UTF_8));
-                        file.refresh(false, false); // Refresh the file after modification
-                    });
-                }
-
+            if (file.getName().endsWith(".java")) {
+                // Format the Java file
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-
                 if (psiFile != null) {
-                    WriteCommandAction.runWriteCommandAction(project, () -> {
-                        // Format the Java file
-                        if (file.getName().endsWith(".java")) {
-                            JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
-                        }
-                        CodeStyleManager.getInstance(project).reformat(psiFile);
-                    });
+                    CodeStyleManager.getInstance(project).reformat(psiFile);
                 }
             }
-        } catch (IOException e) {
-            LOG.warn("STUDIO: ERROR: writeContentAndFormat " + file + " message [" + e.getMessage() + "] trace [" + Arrays.toString(e.getStackTrace())+ "]");
-            throw new StudioRuntimeException("Failed to write or format the file", e);
         }
     }
-
 
     /**
      * Creates directories recursively in the IntelliJ VFS.
@@ -495,7 +786,7 @@ public class StudioPsiUtils {
      * @return The VirtualFile representing the final directory, or null if creation fails.
      * @throws IOException If an error occurs during directory creation.
      */
-    private static VirtualFile createDirectories(VirtualFile baseDir, String relativePath) throws IOException {
+    public static VirtualFile createDirectories(VirtualFile baseDir, String relativePath) throws IOException {
         if (relativePath.isEmpty()) {
             return baseDir;
         }
@@ -504,21 +795,17 @@ public class StudioPsiUtils {
         VirtualFile currentDir = baseDir;
 
         for (String part : parts) {
-            if (!part.isEmpty()) {
-                VirtualFile child = currentDir.findChild(part);
-                if (child == null) {
-                    child = currentDir.createChildDirectory(StudioPsiUtils.class, part);
-                }
-                currentDir = child;
+            VirtualFile child = currentDir.findChild(part);
+            if (child == null) {
+                child = currentDir.createChildDirectory(StudioPsiUtils.class, part);
             }
+            currentDir = child;
         }
 
-        // Refresh the directory after creation
-        currentDir.refresh(true, true);
         return currentDir;
     }
 
-private static final Map<String, VirtualFile> virtualRoots = new HashMap<String, VirtualFile>();
+    private static final Map<String, VirtualFile> virtualRoots = new HashMap<String, VirtualFile>();
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
      * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
@@ -526,9 +813,11 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
      * @return the rood of the module / source directory that contains the supplied string.
      */
     public static VirtualFile getExistingSourceDirectoryForContentRoot(String projectKey, final String basePath, final String contentRoot, String relativeRootDir) {
+//        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
+
         String targetDirectory = basePath + contentRoot + (relativeRootDir != null ? "/" + relativeRootDir : "");
-        LOG.info("STUDIO: INFO: getExistingSourceDirectoryForContentRoot basePath = " + basePath + " contentRoot" + contentRoot +
-        " relativeRootDir = " + relativeRootDir + " targetDirectory = " + targetDirectory);
+        LOG.warn("STUDIO XXXXXXXXXXXXXXXXXXXX5.1 getExistingSourceDirectoryForContentRoot basePath = " + basePath + " contentRoot" + contentRoot +
+                " relativeRootDir = " + relativeRootDir + " targetDirectory = " + targetDirectory);
         String targetDirectoryKey = UiContext.getProject(projectKey).getName() + "-" + targetDirectory;
 
         VirtualFile sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
@@ -549,6 +838,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
             Thread thread = Thread.currentThread();
             LOG.warn("STUDIO: WARNING: Could not find any existing source roots for project [" + projectKey + "] and contentRoot [" + contentRoot + "] and relativeRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
         }
+        LOG.warn("STUDIO XXXXXXXXXXXXXXXXXXXX5.2 getExistingSourceDirectoryForContentRoot sourceCodeRoot = " + sourceCodeRoot);
         return sourceCodeRoot;
     }
 
@@ -566,10 +856,74 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
         return sourceCodeRoot;
     }
 
+    /**
+     * Get the source root that contains the supplied string, possible to get java source, resources or test
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param targetDir to look for e.g. main/java, main/resources
+     * @return the rood of the module / source directory that contains the supplied string.
+     */
+    public static VirtualFile getExistingVirtualDirectoryFromCache(String projectKey, String targetDir) {
+//        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
+        LOG.warn("STUDIO XXXXXXXXXXXXXXXXXXXX5.1a getExistingSourceVirtualDirectory targetDir = " + targetDir);
+        String targetDirectoryKey = UiContext.getProject(projectKey).getName() + "-" + targetDir;
+
+        VirtualFile sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
+        if (sourceCodeRoot == null) {
+            // ProjectRoots are more likely to provide an exact match
+            ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(UiContext.getProject(projectKey));
+            fileIndex.iterateContent(file -> {
+                if (fileIndex.isInSource(file)) {
+                    if (file.isValid() && file.isDirectory()) {
+                        virtualRoots.put(UiContext.getProject(projectKey).getName() + "-" + file.getPath(), file);
+                    }
+                }
+                return true; // Continue iterating
+            });
+        }
+        sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
+        return sourceCodeRoot;
+    }
+
+
+
 
     public static boolean isBlank(String str) {
         return str == null || str.isBlank();
     }
+
+//    public static String findAndReadFile(String filePath) {
+//        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(filePath);
+//        if (file == null) {
+//            throw new IllegalArgumentException("File not found: " + filePath);
+//        }
+//        return readFileContents(file);
+//    }
+//    public static String readFileContents(VirtualFile file) {
+//        if (file == null || !file.exists()) {
+//            throw new IllegalArgumentException("File does not exist");
+//        }
+//
+//        try (BufferedReader reader = new BufferedReader(
+//                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+//
+//            StringBuilder content = new StringBuilder();
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                content.append(line).append("\n");
+//            }
+//            return content.toString();
+//        } catch (Exception e) {
+//            throw new RuntimeException("Error reading file: " + file.getPath(), e);
+//        }
+//    }
+//
+//    public static String readPsiFile(Project project, VirtualFile file) {
+//        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+//        if (psiFile == null) {
+//            throw new IllegalArgumentException("PSI File not found: " + file.getPath());
+//        }
+//        return psiFile.getText(); // Returns the file's text content
+//    }
 
     /**
      * Get the virtual file representing the relative (to the project root) of the supplied file.
@@ -671,8 +1025,10 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
      * @return the content root if its found, nulll otherwise.
      */
     protected static VirtualFile getSpecificContentRootFromCache(final String projectKey, final String contentRoot) {
+        LOG.warn("STUDIO: INFO: getSpecificContentRootFromCache contentRoot = " + contentRoot);
         VirtualFile targetContentRoot = null;
         VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(UiContext.getProject(projectKey)).getContentRoots();
+        LOG.warn("STUDIO: INFO: getSpecificContentRootFromCache contentRootVFiles = " + Arrays.asList(contentRootVFiles));
 
         if (contentRootVFiles.length != 1) {
             for (VirtualFile vFile : contentRootVFiles) {
@@ -683,8 +1039,57 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
         } else {
             LOG.warn("STUDIO: Could not find the content root for directory [" + contentRoot + "] from content roots [" + Arrays.toString(contentRootVFiles) + "]");
         }
+        LOG.warn("STUDIO: INFO: getSpecificContentRootFromCache targetContentRoot = " + targetContentRoot);
         return targetContentRoot;
     }
+
+//    /**
+//     * Create the supplied directory in the PSI file system if it does not already exist
+//     * @param parent directory to contain the new directory
+//     * @param newDirectoryName to be created
+//     * @return the directory created or a handle to the existing directory if it exists
+//     */
+//    public static PsiDirectory createOrGetDirectory(PsiDirectory parent, String newDirectoryName) {
+//        PsiDirectory newDirectory = null;
+//        if (parent != null && newDirectoryName != null) {
+//            newDirectory = parent.findSubdirectory(newDirectoryName);
+//            if (newDirectory == null) {
+//                newDirectory = parent.createSubdirectory(newDirectoryName);
+//            }
+//        }
+//        return newDirectory;
+//    }
+
+    /**
+     * Ensures all directories in the specified path exist, creating them if necessary.
+     *
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param parentDir The VirtualFile of the parent directory, this is typically the content root of the project.
+     * @param relativePath      The directory path relative to parentDir
+     * @param token     Used to split the relative path into individual directories
+     * @return The PsiDirectory for the final directory in the path.
+     * @throws IllegalArgumentException if the parent directory is null or invalid.
+     */
+    public static PsiDirectory createOrGetDirectory2(String projectKey, VirtualFile parentDir, String relativePath, String token) {
+        LOG.info("STUDIO: started createOrGetDirectory2 : parentDir was " + parentDir + " is directory " + parentDir.isDirectory() + " projectKey " + projectKey + " relativePath " + relativePath + " token " + token) ;
+        if (parentDir == null || !parentDir.isDirectory()) {
+            LOG.info("STUDIO: SERIOUS: parentDir was " + parentDir + " is directory " + parentDir.isDirectory() + " projectKey " + projectKey + " relativePath " + relativePath + " token " + token) ;
+            throw new IllegalArgumentException("Invalid parent directory: " + (parentDir == null ? "null" : parentDir.getPath()));
+        }
+        String[] pathComponents = relativePath.split(token); // Split the path into components
+        VirtualFile currentDir = parentDir;
+        LOG.info("STUDIO: INFO: pathComponents = " + Arrays.asList(pathComponents));
+        for (String component : pathComponents) {
+            LOG.info("STUDIO: INFO: component = " + component);
+            // skip leading slash or accidental //
+            if (!component.isBlank()) {
+                currentDir = ensureDirectoryExists(projectKey, currentDir, component).getVirtualFile();
+            }
+        }
+        // Return the PsiDirectory for the final directory in the path
+        return PsiManager.getInstance(UiContext.getProject(projectKey)).findDirectory(currentDir);
+    }
+
 
     /**
      * Ensures the directory exists at the specified level, creating it if necessary.
@@ -696,7 +1101,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
      */
     private static PsiDirectory ensureDirectoryExists(String projectKey, VirtualFile parentDir, String directoryName) {
         final VirtualFile[] newDir = new VirtualFile[1]; // To hold the created directory
-
+        ;
         VirtualFile existingDir = parentDir.findChild(directoryName);
         WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
 
@@ -707,7 +1112,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
                 } catch (IOException e) {
                     String messages = "An error attempting tp create directory " + directoryName + " message was " + e.getMessage();
                     displayIdeaWarnMessage(UiContext.getProject(projectKey).getName(), messages);
-                    LOG.warn("STUDIO: SERIOUS: " + messages);
+                    LOG.warn("Studio: Serious: " + messages);
                 }
             } else if (!existingDir.isDirectory()) {
                 throw new IllegalStateException("A file with the name " + directoryName + " already exists but is not a directory.");
@@ -729,7 +1134,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
      * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
      */
     public static void deleteSubPackagesNotIn(String projectKey, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
-        LOG.info("STUDIO: INFO: deleteSubPackagesNotIn will keep the following packages " + subPackagesToKeep);
         VirtualFile baseDir = getProjectBaseDir(projectKey);
 
         if (baseDir == null) {
@@ -754,23 +1158,24 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
                 return null;
             });
             leafPackageDirectoryFuture.thenAccept(resultsObject ->
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    if (resultsObject == null) {
-                        LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
-                                " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
-                                " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
-                    } else {
-                        for (PsiDirectory directory : resultsObject) {
-                            if (!subPackagesToKeep.contains(directory.getName())) {
-                                LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
-                                directory.delete();
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        if (resultsObject == null) {
+                            LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
+                                    " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+                                    " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
+                        } else {
+                            for (PsiDirectory directory : resultsObject) {
+                                if (!subPackagesToKeep.contains(directory.getName())) {
+                                    LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
+                                    directory.delete();
+                                }
                             }
                         }
-                    }
 
-                })
+                    })
             );
         }
+
     }
 
     /**
@@ -795,4 +1200,65 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
         }
         return parentDir;
     }
+//    /**
+//     * Create the directories for the supplied package name, returning the handle to the leaf directory
+//     * @param sourceRootDir that contains the package
+//     * @param qualifiedPackage i.e. dotted notation
+//     * @return parent directory of package
+//     */
+//    public static PsiDirectory createPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
+//            throws IncorrectOperationException {
+//        PsiDirectory parentDir = sourceRootDir;
+//        if (sourceRootDir != null) {
+//            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
+//            while (token.hasMoreTokens()) {
+//                String dirName = token.nextToken();
+//                parentDir = createOrGetDirectory(parentDir, dirName);
+//            }
+//        }
+//        return parentDir;
+//    }
+//
+//    /**
+//     * Wrapper for creating directories within a WriteCommandAction.
+//     *
+//     * @param parentDirectory The parent directory VirtualFile.
+//     * @param relativePath    The relative path to create.
+//     * @param token           Used to split the relative path into individual directories
+//     * @return The VirtualFile for the deepest subdirectory created or found.
+//     */
+//    public static VirtualFile createDirectoriesInWriteAction(VirtualFile parentDirectory, String relativePath, String token) {
+//        return WriteCommandAction.writeCommandAction(null).compute(() -> {
+//            try {
+//                return createVirtualDirectories(parentDirectory, relativePath, token);
+//            } catch (Exception e) {
+//                throw new RuntimeException("Failed to create directories: " + relativePath, e);
+//            }
+//        });
+//    }
+//
+//    /**
+//     * Ensures the directory structure exists, creating any missing directories along the path.
+//     * This must be executed in a writeCommandAction
+//     * @param parentDirectory The parent directory VirtualFile.
+//     * @param relativePath    The relative path to create (e.g., "dir1/dir2" or "dir1.dir2").
+//     * @param token           Used to split the relative path into individual directories
+//     * @return The VirtualFile for the deepest subdirectory created or found.
+//     * @throws Exception if directory creation fails.
+//     */
+//    public static VirtualFile createVirtualDirectories(VirtualFile parentDirectory, String relativePath, String token) throws Exception {
+//        String[] parts = relativePath.split(token);
+//        VirtualFile current = parentDirectory;
+//        for (String part : parts) {
+//            VirtualFile next = current.findChild(part);
+//            if (next == null) {
+//                // Create the missing directory
+//                current = current.createChildDirectory(null, part);
+//            } else {
+//                current = next;
+//            }
+//        }
+//        LOG.warn("MMM returning created directory " + current);
+//        return current;
+//    }
 }
