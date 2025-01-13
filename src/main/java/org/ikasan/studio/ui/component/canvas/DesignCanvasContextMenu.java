@@ -23,7 +23,7 @@ public class DesignCanvasContextMenu {
         if (ikasanBasicElement instanceof FlowElement) {
 
             menu.add(createDeleteComponentMenuItem(projectKey, ikasanBasicElement));
-            menu.add(createDebugMenuItem(projectKey));
+
             // @TODO add debug is broken, it needs to perform similar action to dragging a debug component from palette
 //            menu.add(createDebugComponentMenuItem(projectKey, ikasanBasicElement));
             menu.addSeparator();
@@ -58,6 +58,7 @@ public class DesignCanvasContextMenu {
         menu.add(createRefreshMenuItem(projectKey));
         menu.add(createLaunchDashboardMenuItem(projectKey));
         menu.add(createLaunchH2MenuItem(projectKey));
+        menu.add(createDebugMenuItem(projectKey));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 

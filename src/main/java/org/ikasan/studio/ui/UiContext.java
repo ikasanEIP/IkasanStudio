@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
@@ -25,8 +26,6 @@ import java.util.TreeMap;
 public enum UiContext {
 
     INSTANCE;
-    private static final Logger LOG = Logger.getInstance("#UiContext");
-
     public static final String JAVA_FILE_EXTENSION = "java";
     public static final String XML_FILE_EXTENSION = "xml";
 
@@ -48,6 +47,7 @@ public enum UiContext {
     private static final String DESIGNER_UI = "designerUI";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
+    private static final String APPSERVER_PROCESS_HANDLE = "appserverProcessHandle";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
 
@@ -197,6 +197,12 @@ public enum UiContext {
     }
     public static Module getIkasanModule(String projectKey) {
         return (Module) getProjectCache(projectKey, IKASAN_MODULE);
+    }
+    public static void setAppserverProcessHandle(String projectKey, ProcessHandler processHandler) {
+        putProjectCache(projectKey, APPSERVER_PROCESS_HANDLE, processHandler);
+    }
+    public static ProcessHandler getAppserverProcessHandle(String projectKey) {
+        return (ProcessHandler) getProjectCache(projectKey, APPSERVER_PROCESS_HANDLE);
     }
     public static void setPipsiIkasanModel(String projectKey, PIPSIIkasanModel ikasanModule) {
         putProjectCache(projectKey, PIPSI_IKASAN_MODEL, ikasanModule);

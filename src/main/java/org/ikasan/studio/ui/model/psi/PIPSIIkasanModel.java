@@ -10,6 +10,7 @@ import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
@@ -161,7 +162,7 @@ public class PIPSIIkasanModel {
                     StudioPsiUtils.GENERATED_CONTENT_ROOT,
                     StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                     ApplicationTemplate.STUDIO_BOOT_PACKAGE,
-                    ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true);
+                    ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true, null);
         }
     }
 
@@ -198,12 +199,8 @@ public class PIPSIIkasanModel {
                             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                         }
                         if (templateString != null) {
-//                            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, newPackageName, clazzName, templateString, true, true);
-                            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, newPackageName, clazzName, templateString, true, true);
-
-//                            if (componentViewHandler != null) {
-//                                componentViewHandler.setPsiJavaFile(newFile);
-//                            }
+                            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                                    newPackageName, clazzName, templateString, true, true, componentViewHandler);
                         }
                     }
                 }
@@ -220,18 +217,11 @@ public class PIPSIIkasanModel {
                     }
                     if (templateString != null) {
                         boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
-//                        PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, StudioPsiUtils.SRC_MAIN_JAVA_CODE, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
-                        StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, newPackageName, newClassName, templateString, true, overwriteClassIfExists);
+                        StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                                newPackageName, newClassName, templateString, true, overwriteClassIfExists, componentViewHandler);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
-//                        if (componentViewHandler != null) {
-//                            componentViewHandler.setPsiJavaFile(newFile);
-//                        }
                     }
                 }
-//                // If we can't navigate anywhere else, we should navigate to the flow
-//                if (componentViewHandler != null && componentViewHandler.getPsiJavaFile() == null) {
-//                    componentViewHandler.setPsiJavaFile(flowPsiJavaFile);
-//                }
             }
         }
     }
@@ -244,14 +234,12 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (componentFactoryTemplateString != null) {
-            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, flowPackageName, COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true);
+            StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, flowPackageName,
+                    COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true, null);
         }
     }
 
-//    private PsiJavaFile generateAndSaveJavaCodeIkasanFlow(Project project, Module module, String flowPackageName, Flow ikasanFlow) {
     private void generateAndSaveJavaCodeIkasanFlow(String projectKey, Module module, String flowPackageName, Flow ikasanFlow) {
-//        PsiJavaFile newFile = null;
-
         IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(projectKey, ikasanFlow);
         String flowTemplateString = null;
         try {
@@ -260,7 +248,6 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (flowTemplateString != null) {
-//            newFile = StudioPsiUtils.createJavaSourceFile(
             StudioPsiUtils.createJavaSourceFile(
                     projectKey,
                     StudioPsiUtils.GENERATED_CONTENT_ROOT,
@@ -269,12 +256,9 @@ public class PIPSIIkasanModel {
                     ikasanFlow.getJavaClassName(),
                     flowTemplateString,
                     true,
-                    true);
-//            if (flowViewHandler != null) {
-//                flowViewHandler.setPsiJavaFile(newFile);
-//            }
+                    true,
+                    flowViewHandler);
         }
-//        return newFile;
     }
 
     private void generateAndSaveJavaCodeModuleConfig(String projectKey, Module module) {
@@ -285,13 +269,9 @@ public class PIPSIIkasanModel {
             displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
         }
         if (templateString != null) {
-//            PsiJavaFile newFile = StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
+            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, module);
             StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
-                    ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true);
-//            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, module);
-//            if (viewHandler != null) {
-//                viewHandler.setPsiJavaFile(newFile);
-//            }
+                    ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true, viewHandler);
         }
 
     }
