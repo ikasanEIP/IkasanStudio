@@ -59,9 +59,10 @@ public class LaunchH2Action implements ActionListener {
             LOG.warn("STUDIO: WARN: Could not get virtual project root for project [" + projectKey+ "], consider resaving");
          } else {
             String basePath = virtualProjectRoot.getPath();
-            String command = start ?
+            String command =
+                 (start ?
                     "mvn exec:java@StartH2 -Dh2DbPortNumber=" + module.getH2PortNumber() + " -Dh2WebPortNumber=" + module.getH2WebPortNumber() :
-                    "mvn exec:java@StopH2 -Dh2DbPortNumber=" + module.getH2PortNumber();
+                    "mvn exec:java@StopH2 -Dh2DbPortNumber=" + module.getH2PortNumber());
             String path = basePath + "/generated/h2";
             try {
                executeCommandInTerminal(projectKey, path, (start ? "H2 start" : "H2 stop"), command);

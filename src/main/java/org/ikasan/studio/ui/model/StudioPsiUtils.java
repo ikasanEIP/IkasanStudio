@@ -1,15 +1,26 @@
 package org.ikasan.studio.ui.model;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessHandlerFactory;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -23,6 +34,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -37,12 +49,11 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import com.intellij.openapi.roots.OrderEnumerator;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -244,7 +255,6 @@ public class StudioPsiUtils {
      * @param contentRoot for the file, typically generated or user
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
      * @param content of the file that is to be created / updated
-     * @return the reference to the PsiJavaFile
      */
     // StudioPsiUtils.createPomFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, "h2", h2StartStopPomString);
     public static void createPomFile(final String projectKey, final String contentRoot, final String subDir,final String content) {
@@ -257,9 +267,10 @@ public class StudioPsiUtils {
                         (!isBlank(subDir) ? "/" + subDir : "") +
                         "/" + POM_XML;
 
-        createFileWithDirectories(UiContext.getProject(projectKey),
+        createFileWithDirectories(projectKey,
                 relativeFilePath,
-                content);
+                content,
+                null);
     }
 
     /**
@@ -272,11 +283,10 @@ public class StudioPsiUtils {
      * @param content of the file that is to be created / updated
      * @param focus if true, open this file in the IDE
      * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
-     * @return the reference to the PsiJavaFile
      */
     public static void createJavaSourceFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
                                             final  String clazzName, final String content, boolean focus,
-                                            final boolean replaceExisting) {
+                                            final boolean replaceExisting, AbstractViewHandlerIntellij componentViewHandler) {
         if (projectKey == null || content == null || sourceRootDir == null || subDir == null || clazzName == null || content == null) {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile projectKey [" + projectKey + "] contentRoot [" + contentRoot +
                     "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + clazzName + "] content [" + content + "]");
@@ -286,9 +296,10 @@ public class StudioPsiUtils {
                 (!isBlank(sourceRootDir) ? "/" + sourceRootDir : "")  +
                 (!isBlank(subDir) ? "/" + subDir.replace(".", "/") : "") +
                 "/" + clazzName+".java";
-        createFileWithDirectories(UiContext.getProject(projectKey),
+        createFileWithDirectories(projectKey,
                 relativeFilePath,
-                content);
+                content,
+                componentViewHandler);
     }
 
 
@@ -301,9 +312,9 @@ public class StudioPsiUtils {
     public static void createPropertiesFile(final String projectKey, final String content) {
         LOG.info("STUDIO: INFO: Saving properties, projectKey [" + projectKey + "] content size " + content.length() + " bytes");
 
-        createFileWithDirectories(UiContext.getProject(projectKey),
+        createFileWithDirectories(projectKey,
                 GENERATED_CONTENT_ROOT + "/" + SRC_MAIN_RESOURCES + "/" + MODULE_PROPERTIES_FILENAME_WITH_EXTENSION,
-                content);
+                content, null);
     }
 
     /**
@@ -315,9 +326,9 @@ public class StudioPsiUtils {
     public static void createJsonModelFile(final String projectKey, final String content) {
         LOG.info("STUDIO: INFO: Saving Json Model, projectKey [" + projectKey + "] content size " + content.length() + " bytes");
 
-        createFileWithDirectories(UiContext.getProject(projectKey),
+        createFileWithDirectories(projectKey,
                 GENERATED_CONTENT_ROOT + "/" + SRC_MAIN + "/" + JSON_MODEL_SUB_DIR + "/" + MODEL_JSON,
-                content);
+                content, null);
     }
 
 
@@ -396,11 +407,13 @@ public class StudioPsiUtils {
     /**
      * Creates a file and all necessary directories in the IntelliJ VFS.
      *
-     * @param project     The current IntelliJ project.
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativePath The relative path (including the file name) from the project's base directory.
      * @param fileContent The content to write into the file (optional).
      */
-    public static void createFileWithDirectories(Project project, String relativePath, String fileContent) {
+    public static void createFileWithDirectories(final String projectKey, final String relativePath,
+                                                 final String fileContent, final AbstractViewHandlerIntellij componentViewHandler) {
+        Project project = UiContext.getProject(projectKey);
         // Separate the path and file name
         int lastSeparatorIndex = relativePath.lastIndexOf('/');
         String directoryPath = lastSeparatorIndex == -1 ? "" : relativePath.substring(0, lastSeparatorIndex);
@@ -429,11 +442,8 @@ public class StudioPsiUtils {
                     if (file == null) {
                         // File does not exist; create it
                         file = targetDir.createChildData(StudioPsiUtils.class, fileName);
-                        writeContentAndFormat(project, file, fileContent);
-                    } else {
-                        // File exists; decide what to do (e.g., overwrite)
-                        writeContentAndFormat(project, file, fileContent);
                     }
+                    writeContentAndFormat(project, file, fileContent, componentViewHandler);
                 }
             } catch (IOException e) {
                 LOG.info("STUDIO: ERROR: createFileWithDirectories " + relativePath + " " + fileContent +
@@ -443,7 +453,7 @@ public class StudioPsiUtils {
         });
     }
 
-    private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent) {
+    private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent, final AbstractViewHandlerIntellij componentViewHandler) {
         try {
             if (fileContent != null) {
                 FileDocumentManager documentManager = FileDocumentManager.getInstance();
@@ -478,6 +488,9 @@ public class StudioPsiUtils {
                         }
                         CodeStyleManager.getInstance(project).reformat(psiFile);
                     });
+                    if (componentViewHandler != null) {
+                        componentViewHandler.setPsiFile(psiFile);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -518,7 +531,7 @@ public class StudioPsiUtils {
         return currentDir;
     }
 
-private static final Map<String, VirtualFile> virtualRoots = new HashMap<String, VirtualFile>();
+private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
      * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
@@ -611,7 +624,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
         }
 
         try (InputStream is = absoluteFilePath.getInputStream();
-             Scanner scanner = new Scanner(is, StandardCharsets.UTF_8.name())) {
+             Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
 
             scanner.useDelimiter("\\A"); // Read entire file content
             return scanner.hasNext() ? scanner.next() : "";
@@ -794,5 +807,112 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<String,
             }
         }
         return parentDir;
+    }
+
+    /**
+     * Execute a Java command line, displaying the results in the Application output Window
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param virtualFile of the class to be executed
+     * @param fullyQualifiedClassName of the class to be executed
+     */
+    public static void runClassFromEditor(String projectKey, VirtualFile virtualFile, String fullyQualifiedClassName) {
+        Project project = UiContext.getProject(projectKey);
+        // Perform slow operations on a background thread
+        AppExecutorUtil.getAppExecutorService().execute(() -> {
+            try {
+                // Retrieve the Module of the file
+                com.intellij.openapi.module.Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+                if (module == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij module, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module for virtual files [" + virtualFile.getPath() + "] for project [" + projectKey + "]");
+                    return;
+                }
+
+                // Get the output directory for the module
+                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+                if (moduleExtension == null || moduleExtension.getCompilerOutputPath() == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
+                    return;
+                }
+
+                // Retrieve the SDK for the module
+                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+                if (moduleSdk == null || !(moduleSdk.getSdkType() instanceof JavaSdk)) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij sdk, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module SDK for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+                    return;
+                }
+
+                // Locate the Java executable
+                String javaExecutablePath = JavaSdk.getInstance().getVMExecutablePath(moduleSdk);
+                if (javaExecutablePath == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the JDK, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module java executable path for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+                    return;
+                }
+
+                String userClasses = project.getBasePath() + USER_CONTENT_ROOT + "/target/classes";
+                // Resolve the classpath for the module
+                List<String> classPathElements = new ArrayList<>();
+                OrderEnumerator.orderEntries(module).recursively().forEachLibrary(library -> {
+                    VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+                    for (VirtualFile fileEntry : files) {
+                        String path = fileEntry.getPath();
+                        // !/ is appended when OrderEnumerator retrieves the URLs, need to strip
+                        if (path.endsWith("!/")) {
+                            path = path.substring(0, path.length() - 2);
+                        }
+                        classPathElements.add(path);
+                    }
+                    classPathElements.add(userClasses);
+                    return true;
+                });
+
+                String outputPath = moduleExtension.getCompilerOutputPath().getPath();
+                classPathElements.add(outputPath);
+                String classPath = String.join(File.pathSeparator, classPathElements);
+                GeneralCommandLine commandLine = new GeneralCommandLine()
+                        .withExePath(javaExecutablePath)
+                        .withParameters("-cp", classPath, fullyQualifiedClassName);
+
+                // Switch back to the EDT to execute UI-related tasks
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    try {
+                        ConsoleView consoleView = new ConsoleViewImpl(project, true);
+                        ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
+                        consoleView.attachToProcess(processHandler);
+                        RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
+                        RunContentManager.getInstance(project)
+                                .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
+                        UiContext.setAppserverProcessHandle(projectKey, processHandler);
+                        processHandler.startNotify();
+                    } catch (Exception e) {
+                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
+                                "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+                    }
+                }, ModalityState.defaultModalityState());
+
+            } catch (Exception e) {
+                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+                LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during getAppExecutorService for virtual file [" + virtualFile.getPath() +
+                        "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+            }
+        });
+    }
+
+    /**
+     * Attempt to stop the java process currently running in the console.
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     */
+    public static void stopRunningProcess(String projectKey) {
+        ProcessHandler processHandler = UiContext.getAppserverProcessHandle(projectKey);
+        if (processHandler != null && !processHandler.isProcessTerminated()) {
+            processHandler.destroyProcess(); // Stops the process
+        }
     }
 }

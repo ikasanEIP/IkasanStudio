@@ -92,18 +92,18 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
             result = ((getLeftX() - getLeadingGap() <= x && x <= getLeftX()) ||
                       (getRightX()                  <= x && x <= getRightX() + getTrailingGap()) ) &&
                     getTopY() <= y && y <= getTopY() + IkasanComponentLibrary.getDecoratorHeight();
-if (result) {
-LOG.info("Decorator found for " + flowElement.getName());
-}
+            if (result) {
+            LOG.info("Decorator found for " + flowElement.getName());
+            }
         }
         return result;
     }
 
     /**
      * Decorators are always painted in a specific order.
-     * @param x
-     * @param y
-     * @return
+     * @param x of mouse
+     * @param y of mouse
+     * @return the decorator ar this location.
      */
     public Decorator getDecoratorAtXY(int x, int y) {
         Decorator result = null;
@@ -139,8 +139,6 @@ LOG.info("Decorator found for " + flowElement.getName());
         }
         return result;
     }
-
-
 
     private void paintDecorators(JPanel canvas, Graphics g) {
         int leftX = getLeftX();

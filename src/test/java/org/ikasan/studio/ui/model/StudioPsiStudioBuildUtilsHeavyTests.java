@@ -109,7 +109,7 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
                 "org/ikasan/studio/boot/flow/flow1",
                 "ComponentFactoryFlow1",
                 content,
-                false, true);
+                false, true, null);
         String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/java/org/ikasan/studio/boot/flow/flow1/ComponentFactoryFlow1.java");
         assertThat(actualFile, is(content));
     }
@@ -123,10 +123,10 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         final String myFile = "src/main/resources/testfile.txt";
         int ii = 0;
 
-        StudioPsiUtils.createFileWithDirectories(myProject, myFile, content + (ii++));
+        StudioPsiUtils.createFileWithDirectories(myProject.getName(), myFile, content + (ii++), null);
         String last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject.getName(), myFile));
         assertThat(last10, is("000 Lines0"));
-        StudioPsiUtils.createFileWithDirectories(myProject, myFile, content + (ii++));
+        StudioPsiUtils.createFileWithDirectories(myProject.getName(), myFile, content + (ii++), null);
         last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject.getName(), myFile));
         assertThat(last10, is("000 Lines1"));
 
