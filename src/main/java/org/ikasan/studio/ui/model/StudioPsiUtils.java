@@ -828,15 +828,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                     return;
                 }
 
-                // Get the output directory for the module
-                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
-                if (moduleExtension == null || moduleExtension.getCompilerOutputPath() == null) {
-                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
-                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
-                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
-                    return;
-                }
-
                 // Retrieve the SDK for the module
                 Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
                 if (moduleSdk == null || !(moduleSdk.getSdkType() instanceof JavaSdk)) {
@@ -872,7 +863,34 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                     return true;
                 });
 
-                String outputPath = moduleExtension.getCompilerOutputPath().getPath();
+
+
+                String outputPath = null;
+                // Get the output directory for the module
+                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+                if (moduleExtension == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
+                    return;
+                }
+
+                if (moduleExtension.getCompilerOutputPath() == null) {
+                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
+                    if (projectExtension != null || projectExtension.getCompilerOutputUrl()==null) {
+                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
+                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
+                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
+                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
+                        return;
+                    }
+                    else {
+                        outputPath = projectExtension.getCompilerOutputUrl();
+                    }
+                } else {
+                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
+                }
+
                 classPathElements.add(outputPath);
                 String classPath = String.join(File.pathSeparator, classPathElements);
                 GeneralCommandLine commandLine = new GeneralCommandLine()
