@@ -877,7 +877,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
                 if (moduleExtension.getCompilerOutputPath() == null) {
                     CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
-                    if (projectExtension != null || projectExtension.getCompilerOutputUrl()==null) {
+                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
                         StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
                         LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
                                 "] for project [" + projectKey + "] projectExtension [" + projectExtension +
