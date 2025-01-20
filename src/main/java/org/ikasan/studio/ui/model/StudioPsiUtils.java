@@ -13,6 +13,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -51,7 +52,6 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
-import com.intellij.openapi.roots.OrderEnumerator;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -863,7 +863,138 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                     return true;
                 });
 
+                String outputPath = null;
+                // Get the output directory for the module
+                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+                if (moduleExtension == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
+                    return;
+                }
 
+                if (moduleExtension.getCompilerOutputPath() == null) {
+                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
+                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
+                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
+                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
+                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
+                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
+                        return;
+                    }
+                    else {
+                        outputPath = projectExtension.getCompilerOutputUrl();
+                    }
+                } else {
+                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
+                }
+
+                classPathElements.add(outputPath);
+                String classPath = String.join(File.pathSeparator, classPathElements);
+                GeneralCommandLine commandLine = new GeneralCommandLine()
+                        .withExePath(javaExecutablePath)
+                        .withParameters("-cp", classPath, fullyQualifiedClassName);
+
+                VirtualFile[] filesToCompile = new VirtualFile[]{virtualFile};
+                // Run the task in a background thread
+//                ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+                // Switch back to the EDT to execute UI-related tasks
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    CompilerManager compilerManager = CompilerManager.getInstance(project);
+
+                    // Compile the file
+                    compilerManager.compile(filesToCompile, (aborted, errors, warnings, compileContext) -> {
+                        if (aborted) {
+                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "The build of the Spring application seems to have been aborted, launch is unavailable at this time");
+                            LOG.warn("STUDIO: SERIOUS: compilerManager compile for Application.java was aborted");
+                            return;
+                        }
+
+                        if (errors > 0) {
+                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting building the Spring application, , launch is unavailable at this time");
+                            LOG.warn("STUDIO: SERIOUS: compilerManager errors building Application.java");
+                            return;
+                        }
+
+                        try {
+                            ConsoleView consoleView = new ConsoleViewImpl(project, true);
+                            ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
+                            consoleView.attachToProcess(processHandler);
+                            RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
+                            RunContentManager.getInstance(project)
+                                    .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
+                            UiContext.setAppserverProcessHandle(projectKey, processHandler);
+                            processHandler.startNotify();
+                        } catch (Exception e) {
+                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+                            LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
+                                    "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+                        }
+                    });
+
+                }, ModalityState.nonModal());
+            } catch (Exception e) {
+                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+                LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during getAppExecutorService for virtual file [" + virtualFile.getPath() +
+                        "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+            }
+        });
+    }
+
+
+    /**
+     * Execute a Java command line, displaying the results in the Application output Window
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param virtualFile of the class to be executed
+     * @param fullyQualifiedClassName of the class to be executed
+     */
+    public static void runClassFromEditor2(String projectKey, VirtualFile virtualFile, String fullyQualifiedClassName) {
+        Project project = UiContext.getProject(projectKey);
+        // Perform slow operations on a background thread
+        AppExecutorUtil.getAppExecutorService().execute(() -> {
+            try {
+                // Retrieve the Module of the file
+                com.intellij.openapi.module.Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+                if (module == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij module, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module for virtual files [" + virtualFile.getPath() + "] for project [" + projectKey + "]");
+                    return;
+                }
+
+                // Retrieve the SDK for the module
+                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+                if (moduleSdk == null || !(moduleSdk.getSdkType() instanceof JavaSdk)) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij sdk, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module SDK for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+                    return;
+                }
+
+                // Locate the Java executable
+                String javaExecutablePath = JavaSdk.getInstance().getVMExecutablePath(moduleSdk);
+                if (javaExecutablePath == null) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the JDK, launch is unavailable at this time");
+                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module java executable path for virtual file [" + virtualFile.getPath() +
+                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+                    return;
+                }
+
+                String userClasses = project.getBasePath() + USER_CONTENT_ROOT + "/target/classes";
+                // Resolve the classpath for the module
+                List<String> classPathElements = new ArrayList<>();
+                OrderEnumerator.orderEntries(module).recursively().forEachLibrary(library -> {
+                    VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+                    for (VirtualFile fileEntry : files) {
+                        String path = fileEntry.getPath();
+                        // !/ is appended when OrderEnumerator retrieves the URLs, need to strip
+                        if (path.endsWith("!/")) {
+                            path = path.substring(0, path.length() - 2);
+                        }
+                        classPathElements.add(path);
+                    }
+                    classPathElements.add(userClasses);
+                    return true;
+                });
 
                 String outputPath = null;
                 // Get the output directory for the module
