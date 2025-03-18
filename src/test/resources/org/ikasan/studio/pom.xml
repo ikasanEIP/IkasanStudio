@@ -65,8 +65,8 @@
         </dependency>
         <dependency>
             <groupId>org.ikasan.studio</groupId>
-            <artifactId>studio-ikasan-extension</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>ikasan-studio-ide-mediator</artifactId>
+            <version>1.0.2</version>
         </dependency>
     </dependencies>
     <build>
