@@ -287,6 +287,11 @@ These bubble up to the IDE with the recommendation to disable the plugin and rep
 Anything greater than warn results in a stack trace reported directly to the user with the recommendation to disable the plugin and report it to Idea.
 ### Defensive coding is essential
 You don't have to make many mistakes to get blacklisted.
+### Current Branching Strategy
+* **main** is used for the current development stream and producing SNAPSHOT builds.
+* **1_0_x** is used for formal builds / deployment to Maven Central.
+
+
 ![Build](https://github.com/davidhilton68/ikasanstudio/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
