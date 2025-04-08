@@ -37,16 +37,15 @@ public class ComponentPropertyEditBox {
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
     private final String projectKey;
-    final EditBoxContainer parent;
 
-    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, EditBoxContainer editBoxContainer) {
+
+    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges) {
         this.projectKey = projectKey;
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
-        this.parent = editBoxContainer;
         Object value = componentProperty.getValue();
-        // Optionals properties only get set todefaults via UI action
+        // Optional properties only get set to defaults via UI action
         if (componentInitialisation && value == null && !meta.isOptional()) {
             componentProperty.setValue(componentProperty.getDefaultValue());
         }
@@ -56,7 +55,7 @@ public class ComponentPropertyEditBox {
             propertyChoiceValueField = new ComboBox<>();
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
-            propertyChoiceValueField.addItemListener(e -> editBoxContainer.editBoxChangeListener());
+            propertyChoiceValueField.addItemListener(e -> listenerFoAnyEditChanges.actionEvent());
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
@@ -66,15 +65,15 @@ public class ComponentPropertyEditBox {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
-                        editBoxContainer.editBoxChangeListener();
+                        listenerFoAnyEditChanges.actionEvent();
                     }
                     @Override
                     public void removeUpdate(DocumentEvent e) {
-                        editBoxContainer.editBoxChangeListener();
+                        listenerFoAnyEditChanges.actionEvent();
                     }
                     @Override
                     public void changedUpdate(DocumentEvent e) {
-                        editBoxContainer.editBoxChangeListener();
+                        listenerFoAnyEditChanges.actionEvent();
                     }
                 });
             }
@@ -88,13 +87,13 @@ public class ComponentPropertyEditBox {
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
                 }
-                editBoxContainer.editBoxChangeListener();
+                listenerFoAnyEditChanges.actionEvent();
             });
             propertyBooleanFieldFalse.addActionListener(e -> {
                 if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
                     propertyBooleanFieldTrue.setSelected(false);
                 }
-                editBoxContainer.editBoxChangeListener();
+                listenerFoAnyEditChanges.actionEvent();
             });
         } else {
             // STRING INPUT
@@ -110,15 +109,13 @@ public class ComponentPropertyEditBox {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
-                        editBoxContainer.editBoxChangeListener();
+                        listenerFoAnyEditChanges.actionEvent();
                     }
                     @Override
-                    public void removeUpdate(DocumentEvent e) {
-                        editBoxContainer.editBoxChangeListener();
-                    }
+                    public void removeUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
                     @Override
                     public void changedUpdate(DocumentEvent e) {
-                        editBoxContainer.editBoxChangeListener();
+                        listenerFoAnyEditChanges.actionEvent();
                     }
                 });
             }
@@ -129,9 +126,7 @@ public class ComponentPropertyEditBox {
             dataValidationHelper = new JButton();
             dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon("Help with cron configuration"));
             dataValidationHelper.setBorder(new EmptyBorder(5, 15, 5, 15));
-            dataValidationHelper.addActionListener(e -> {
-                doDataValidationHelperPopup();
-            });
+            dataValidationHelper.addActionListener(e -> doDataValidationHelperPopup());
         } else {
             dataValidationHelper = null;
         }

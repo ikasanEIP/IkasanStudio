@@ -27,7 +27,7 @@ import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
  */
-public class ComponentPropertiesPanel extends PropertiesPanel implements EditBoxContainer {
+public class ComponentPropertiesPanel extends PropertiesPanel {
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     private JCheckBox userImplementedComponentOverwriteCheckBox;
@@ -37,6 +37,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     private JPanel optionalPropertiesExpandPanel;
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
+    private final SimpleChangeListener listenerFoAnyEditChanges;
     /**
      * Create the ComponentPropertiesPanel
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
@@ -48,17 +49,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
     public ComponentPropertiesPanel(String projectKey, boolean componentInitialisation) {
         super(projectKey, componentInitialisation);
         this.setBorder(null);
+        listenerFoAnyEditChanges = () -> {
+            if (updateCodeButton != null) {
+                updateCodeButton.setEnabled(dataHasChanged());
+            }
+        };
     }
 
-    /**
-     *
-     */
-    @Override
-    public void editBoxChangeListener() {
-        if (updateCodeButton != null) {
-            updateCodeButton.setEnabled(dataHasChanged());
-        }
-     }
     /**
      * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
      */
@@ -329,7 +326,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel implements EditBox
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(projectKey, componentProperty, componentInitialisation, this);
+        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(projectKey, componentProperty, componentInitialisation, listenerFoAnyEditChanges);
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }

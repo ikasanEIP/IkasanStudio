@@ -15,7 +15,7 @@ import java.util.List;
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ExceptionResolutionEditBox implements EditBoxContainer {
+public class ExceptionResolutionEditBox {
     private final String projectKey;
     ExceptionResolverMeta exceptionResolverMeta;
     private final ExceptionResolutionPanel resolutionPanel;
@@ -25,7 +25,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     private String currentAction = null;
     private final JComboBox actionJComboBox;
     private final JLabel paramsTitleField;
-    private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
+    private List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
     private final boolean componentInitialisation;
     private final ExceptionResolution exceptionResolution;
 
@@ -63,10 +63,10 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
             currentAction = exceptionResolution.getTheAction();
             actionJComboBox.setSelectedItem(currentAction);
             if (!exceptionResolution.getComponentProperties().isEmpty()) {
-                actionParamEditBoxList = new ArrayList<>();
+                componentPropertyEditBoxList = new ArrayList<>();
                 for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
                     ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, property, this.componentInitialisation, null);
-                    actionParamEditBoxList.add(actionParam);
+                    componentPropertyEditBoxList.add(actionParam);
                 }
             }
         }
@@ -83,7 +83,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         String actionSelected = (String)actionJComboBox.getSelectedItem();
         if (actionSelected != null && ! actionSelected.equals(currentAction)) {
             currentAction = (String)actionJComboBox.getSelectedItem();
-            actionParamEditBoxList = new ArrayList<>();
+            componentPropertyEditBoxList = new ArrayList<>();
             ExceptionActionMeta exceptionActionMeta = exceptionResolverMeta.getExceptionActionWithName(currentAction);
 
             if (exceptionActionMeta != null) {
@@ -94,7 +94,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
                         // The property has to be added to this exception resolution so that it can be updated later.
                         exceptionResolution.addComponentProperty(newActionProperty.getMeta().getPropertyName(), newActionProperty);
                         ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, newActionProperty, this.componentInitialisation, null);
-                        actionParamEditBoxList.add(actionParam);
+                        componentPropertyEditBoxList.add(actionParam);
                     }
                 }
             }
@@ -106,20 +106,18 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     /**
      * Usually the final step of edit, update the original value object with the entered data
      */
-    public ExceptionResolution updateValueObjectWithEnteredValues() {
+    public void updateValueObjectWithEnteredValues() {
         String theException = (String)exceptionJComboBox.getSelectedItem();
         if (theException != null && ! theException.endsWith(".class")) {
             theException += ".class";
         }
         exceptionResolution.setExceptionsCaught(theException);
         exceptionResolution.setTheAction((String)actionJComboBox.getSelectedItem());
-        if (!actionParamEditBoxList.isEmpty()) {
-            for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
+        if (!componentPropertyEditBoxList.isEmpty()) {
+            for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
                 componentPropertyEditBox.updateValueObjectWithEnteredValues();
             }
         }
-
-        return exceptionResolution;
     }
 
 
@@ -134,7 +132,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         String selectedAction = (String)actionJComboBox.getSelectedItem();
         if (selectedException != null && ! selectedException.isEmpty() &&
             selectedAction != null && ! selectedAction.isEmpty()) {
-            if (actionParamEditBoxList.isEmpty()) {
+            if (componentPropertyEditBoxList.isEmpty()) {
                 hasValue = true;
             } else {
 
@@ -142,7 +140,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
                 boolean nonMandatoryHasValue = false;
                 boolean hasNonMandatory = false;
                 boolean mandatoryHasValue = true;
-                for(ComponentPropertyEditBox editBox : actionParamEditBoxList) {
+                for(ComponentPropertyEditBox editBox : componentPropertyEditBoxList) {
                     if (!editBox.isMandatory()) {
                         hasNonMandatory = true ;
                     }
@@ -171,13 +169,13 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
         String selectedException = (String) exceptionJComboBox.getSelectedItem();
         String selectedAction = (String) actionJComboBox.getSelectedItem();
 
-        if (editBoxHasValue()) {
+        if (editBoxHasValue() && selectedAction != null && selectedException != null) {
             if (!selectedException.equals(exceptionResolution.getExceptionsCaught()) ||
                     !selectedAction.equals(exceptionResolution.getTheAction())) {
                 hasChanged = true;
             } else if (selectedAction.equals(exceptionResolution.getTheAction())) {
                 // Check to see if the values of any action params has changed
-                for (ComponentPropertyEditBox componentPropertyEditBox : actionParamEditBoxList) {
+                for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
                     if (componentPropertyEditBox.propertyValueHasChanged()) {
                         hasChanged = true;
                         break;
@@ -195,7 +193,7 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
     }
 
     public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
-        return actionParamEditBoxList;
+        return componentPropertyEditBoxList;
     }
 
     /**
@@ -214,8 +212,8 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
             result.add(new ValidationInfo("The action " + actionJComboBox.getSelectedItem() + " is not recognised"));
         } else {
             // By now the action params should have been set (if there are any)
-            if (!actionParamEditBoxList.isEmpty()) {
-                for (ComponentPropertyEditBox param : actionParamEditBoxList) {
+            if (!componentPropertyEditBoxList.isEmpty()) {
+                for (ComponentPropertyEditBox param : componentPropertyEditBoxList) {
                     result.addAll(param.doValidateAll());
                 }
             }
@@ -241,10 +239,5 @@ public class ExceptionResolutionEditBox implements EditBoxContainer {
 
     public JLabel getParamsTitleField() {
         return paramsTitleField;
-    }
-
-    @Override
-    public void editBoxChangeListener() {
-
     }
 }

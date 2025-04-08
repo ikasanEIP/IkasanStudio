@@ -4,11 +4,12 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.google.common.primitives.Ints;
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
 
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 @Getter
 public enum CronExpression {
@@ -21,12 +22,12 @@ public enum CronExpression {
     DAY_OF_WEEK( 5, "Day of Week",  true, "?", "1-7 or SUN-SAT",  "*  n  n1-n12   n1,n2,..  n1/n2  ?  L  #"),
     YEARS(       6, "Year",         true, "*", "1970-2099",       "*  n  n1-n12   n1,n2,..  n1/n2");
 
-    int index;
-    String fieldName;
-    boolean mandatory;
-    String defaultValue;
-    String allowedValues;
-    String specialCharacters;
+    final int index;
+    final String fieldName;
+    final boolean mandatory;
+    final String defaultValue;
+    final String allowedValues;
+    final String specialCharacters;
 
     CronExpression(int index, String fieldName, boolean mandatory, String defaultValue, String allowedValues, String specialCharacters) {
         this.index = index;
@@ -189,15 +190,15 @@ public enum CronExpression {
     /**
      * Allowed values;
      * day of month: Wn
-     * @param field
-     * @param fieldName
-     * @return
+     * @param field to examine
+     * @param fieldName to examine
+     * @return text describing the weekday
      */
-    protected static String weekday(String field, String fieldName) {
+    private static String weekday(String field, String fieldName) {
         String description = "";
-        if (fieldName.equals(DAY_OF_MONTH)) {
+        if (fieldName.equals("Day of Week")) {
             // e.g. W12
-            if (description.isEmpty() && field.length() > 2 && field.endsWith("W")) {
+            if (field.length() > 2 && field.endsWith("W")) {
                 String possibleCount = field.substring(0, field.length() - 2);
                 Integer day = Ints.tryParse(possibleCount);
                 if (day != null && day > 0 && day < 32) {
@@ -209,22 +210,22 @@ public enum CronExpression {
     }
 
     /**
-     * Allowed values\;
+     * Allowed values
      * day of month: L or L-n
      * day of week:  L or nL
-     * @param field
-     * @param cronField
-     * @return
+     * @param field to examine
+     * @param cronField to examine
+     * @return text describing what this is the last of
      */
-    protected static String last(String field, CronExpression cronField) {
+    private static String last(String field, CronExpression cronField) {
         String description = "";
         if (cronField.equals(DAY_OF_MONTH)) {
             // e.g. L-6
-            if (description.isEmpty() && field.length() > 2 && field.startsWith("L")) {
+            if (field.length() > 2 && field.startsWith("L")) {
                 String possibleCount = field.substring(1, field.length() - 1);
                 Integer day = Ints.tryParse(possibleCount);
                 if (day != null && day < 0 && (day * -1 < 32)) {
-                    description = "" + (day * -1) + "days before the end of the month";
+                    description = (day * -1) + "days before the end of the month";
                 }
             }
         } else if (cronField.equals(DAY_OF_WEEK)) {
@@ -243,36 +244,36 @@ public enum CronExpression {
         return description;
     }
 
-    protected static String dayOfWeekFromString(String dayString) {
+    private static String dayOfWeekFromString(String dayString) {
         Integer day = Ints.tryParse(dayString);
-        if (day == null) {
-            return dayOfWeek.get(day);
+        if (day != null) {
+            return dayOfWeek.get(day.toString());
         }
         return null;
     }
-    protected static Integer dayOfMonthFromString(String dayString) {
+    private static Integer dayOfMonthFromString(String dayString) {
         Integer day = Ints.tryParse(dayString);
-        if (day >0 && day < 32) {
+        if (day!= null && day >0 && day < 32) {
             return day;
         }
         return null;
     }
 
-    protected static String wildcard(String field, CronExpression cronField) {
+    private static String wildcard(String field, CronExpression cronField) {
         if (field.equals("*")) {
             return "every " + cronField.fieldName.toLowerCase();
         }
         return "";
     }
 
-    protected static String at(String field, CronExpression cronField, Map<String, String> lookup) {
-        if (StringUtils.isNumeric(field)) {
+    private static String at(String field, CronExpression cronField, Map<String, String> lookup) {
+        if (isNumeric(field)) {
             return "at " + cronField.fieldName.toLowerCase() + " " + (lookup != null ? lookup.get(field) : field);
         }
         return "";
     }
 
-    protected static String every(String field, CronExpression cronField) {
+    private static String every(String field, CronExpression cronField) {
         if (field.contains("/")) {
             String[] parts = field.split("/");
             if (parts.length > 1) {
@@ -281,7 +282,7 @@ public enum CronExpression {
         }
         return "";
     }
-    protected static String list(String field, Map<String, String> lookup) {
+    private static String list(String field, Map<String, String> lookup) {
         if (field.contains(",")) {
             String[] parts = field.split(",");
             if (parts.length > 1) {
@@ -295,7 +296,7 @@ public enum CronExpression {
         return "";
     }
 
-    protected static String range(String field, CronExpression cronField, Map<String, String> lookup) {
+    private static String range(String field, CronExpression cronField, Map<String, String> lookup) {
         if (field.contains("-")) {
             String[] parts = field.split("-");
             if (parts.length > 1) {
@@ -306,10 +307,10 @@ public enum CronExpression {
         }
         return "";
     }
-    protected static String noSpecific(String field, String fieldName) {
+    private static String noSpecific(String field, String fieldName) {
         if (field.equals("?")) {
             return "no specific "+ fieldName.toLowerCase();
-        };
+        }
         return "";
     }
 
