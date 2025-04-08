@@ -12,9 +12,9 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 @Data
-public class ExceptionResolution implements EditBoxContainer {
+public class ExceptionResolution {
     private final JLabel actionField = new JLabel();
-    private List<ComponentPropertyEditBox> actionParamEditBoxList = new ArrayList<>();
+    private List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
     private final org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution exceptionResolution;
     private final JButton deleteButton = new JButton("DEL");
     JLabel exceptionField = new JLabel();
@@ -37,26 +37,19 @@ public class ExceptionResolution implements EditBoxContainer {
         if (exceptionResolution.getTheAction() != null &&
                 exceptionResolution.getComponentProperties() != null &&
                 !exceptionResolution.getComponentProperties().isEmpty()) {
-            actionParamEditBoxList = new ArrayList<>();
+            componentPropertyEditBoxList = new ArrayList<>();
             for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProjectKey(), property, componentInitialisation, this);
-                actionParamEditBoxList.add(actionParam);
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProjectKey(), property, componentInitialisation, () -> {});
+                componentPropertyEditBoxList.add(actionParam);
             }
         }
     }
 
     public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
-
-        return actionParamEditBoxList;
+        return componentPropertyEditBoxList;
     }
 
     public org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution getIkasanExceptionResolution() {
         return exceptionResolution;
-    }
-
-
-    @Override
-    public void editBoxChangeListener() {
-        // deliberately blank
     }
 }
