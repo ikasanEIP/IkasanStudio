@@ -1,6 +1,5 @@
 package org.ikasan.studio.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -19,6 +18,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
 
 /**
  * Studio Utils
@@ -220,16 +221,6 @@ public class StudioBuildUtils {
         return directoriesNames;
     }
 
-    public static final String SUBSTITUTION_PREFIX = "__";
-    private static final String SUBSTITUTION_PREFIX_FLOW = "__flow";
-    private static final String SUBSTITUTION_PREFIX_COMPONENT = "__component";
-    private static final String SUBSTITUTION_PREFIX_MODULE = "__module";
-
-    @JsonIgnore
-    public static boolean valueIsAPlaceholder(String value) {
-        return value.startsWith(SUBSTITUTION_PREFIX);
-    }
-
     /**
      * ** Used by FTL ***
      * The supplied string template e.g. __flow.ftp.consumer.cron-expression, replacing meta tags so that the final
@@ -290,10 +281,10 @@ public class StudioBuildUtils {
      */
     public static void substituteAllPlaceholderInPascalCase(Module module, Flow flow, BasicElement ikasanBasicElement) {
         for (ComponentProperty componentProperty : ikasanBasicElement.getComponentProperties().values()) {
-            if (StudioBuildUtils.valueIsAPlaceholder(componentProperty.getValueString())) {
+            if (ComponentPropertyMeta.isSubstitutionValue(componentProperty.getValueString())) {
                 componentProperty.setValue(substitutePlaceholderInPascalCase(module, flow, ikasanBasicElement, componentProperty.getValueString()));
             }
-            if (componentProperty.getMeta().getDefaultValue() != null && StudioBuildUtils.valueIsAPlaceholder(componentProperty.getMeta().getDefaultValue().toString())) {
+            if (componentProperty.getMeta().getDefaultValue() != null && ComponentPropertyMeta.isSubstitutionValue(componentProperty.getMeta().getDefaultValue().toString())) {
                 ComponentPropertyMeta newMeta = componentProperty.getMeta().toBuilder().build();
                 componentProperty.setMeta(newMeta);
                 newMeta.setDefaultValue(StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, ikasanBasicElement, newMeta.getDefaultValue().toString()));
