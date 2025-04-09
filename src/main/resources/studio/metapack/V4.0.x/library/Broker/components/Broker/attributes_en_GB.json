@@ -22,6 +22,7 @@
     },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
       "userImplementClassFtlTemplate": "brokerTemplate.ftl",
       "affectsUserImplementedClass": "true",
       "helpText": "The name of the class that contain the broker, the IDE will create a template for this class, the user  must provide the implementation.",

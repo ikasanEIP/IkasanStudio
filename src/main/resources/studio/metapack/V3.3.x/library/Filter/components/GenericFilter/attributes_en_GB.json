@@ -63,6 +63,7 @@
     },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
       "userImplementClassFtlTemplate": "filterTemplate.ftl",
       "affectsUserImplementedClass": "true",
       "helpText": "The name of the class that contain the custom filter, the IDE will create a template for this class, the user  must provide the implementation.",
