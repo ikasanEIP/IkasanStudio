@@ -47,6 +47,7 @@
     },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
       "userImplementClassFtlTemplate": "brokerTemplate.ftl",
       "affectsUserImplementedClass": "true",
       "helpText": "The name of the class that that implements the interface for this generic component.",

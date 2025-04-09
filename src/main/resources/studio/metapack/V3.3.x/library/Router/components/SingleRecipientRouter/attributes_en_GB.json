@@ -15,6 +15,7 @@
     },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
       "userImplementClassFtlTemplate": "routerTemplate.ftl",
       "affectsUserImplementedClass": "true",
       "helpText": "The name of the class that contain the logic to decide which route a payload will be delivered to, the IDE will create a template for this class, the user  must provide the implementation.",

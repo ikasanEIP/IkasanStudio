@@ -19,6 +19,7 @@
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
       "affectsUserImplementedClass": "true",
+      "defaultValue": "__fieldName:componentName",
       "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
       "mandatory": true,
       "userImplementClassFtlTemplate": "converterTemplate.ftl",
