@@ -51,9 +51,16 @@ public class ComponentPropertyMeta {
     public static final String TO = "to";
     public static final String FROM = "from";
 
+    // The substitution constants are used to indicate that the valud is not literal and should be replaced with a substitution field.
+    public static final String SUBSTITUTION_PREFIX = "__";
+    public static final String SUBSTITUTION_PREFIX_FLOW = "__flow";
+    public static final String SUBSTITUTION_PREFIX_COMPONENT = "__component";
+    public static final String SUBSTITUTION_PREFIX_MODULE = "__module";
+    public static final String SUBSTITUTION_FIELD_NAME = "__fieldName:";
+
     public static final String STRING_LIST = "java.util.List<String>";
 
-        public static final ComponentPropertyMeta DUMB_VERSION =
+    public static final ComponentPropertyMeta DUMB_VERSION =
             ComponentPropertyMeta.builder()
                     .propertyName(ComponentPropertyMeta.VERSION)
                     .build();
@@ -101,7 +108,9 @@ public class ComponentPropertyMeta {
     private String dataValidationTyppe;     // Support for popup data entry helpers / data types
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private Object defaultValue = "";       // Default value e.g. displayed when property is created.
+//    private Object defaultValue = "";     // Default value e.g. displayed when property is created.
+    private Object defaultValue = null;     // Default value e.g. displayed when property is created.
+
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String helpText = "";           // Describes the property, typically popping up on tooltips.
@@ -170,5 +179,9 @@ public class ComponentPropertyMeta {
             this.validationPattern = Pattern.compile(validation);
         }
         return validationPattern;
+    }
+
+    public static boolean isSubstitutionValue(Object value) {
+        return value instanceof String && ((String) value).startsWith(SUBSTITUTION_PREFIX);
     }
 }

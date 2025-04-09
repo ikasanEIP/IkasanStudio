@@ -103,7 +103,7 @@ public class DesignCanvasContextMenu {
     }
 
     private static JMenuItem createRefreshMenuItem(String projectKey) {
-        JMenuItem item = new JMenuItem("Read Module");
+        JMenuItem item = new JMenuItem("Refresh");
         item.addActionListener(new ModelRefreshAction(projectKey));
         return item;
     }

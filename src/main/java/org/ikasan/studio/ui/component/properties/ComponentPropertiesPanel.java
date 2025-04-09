@@ -18,6 +18,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
     private final SimpleChangeListener listenerFoAnyEditChanges;
+    private final Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap = new HashMap<>();
     /**
      * Create the ComponentPropertiesPanel
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
@@ -326,7 +328,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(projectKey, componentProperty, componentInitialisation, listenerFoAnyEditChanges);
+        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(projectKey, componentProperty, componentInitialisation, listenerFoAnyEditChanges, componentPropertyEditBoxMap);
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }

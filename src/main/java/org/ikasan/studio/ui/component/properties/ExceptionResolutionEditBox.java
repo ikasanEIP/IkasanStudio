@@ -65,7 +65,7 @@ public class ExceptionResolutionEditBox {
             if (!exceptionResolution.getComponentProperties().isEmpty()) {
                 componentPropertyEditBoxList = new ArrayList<>();
                 for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, property, this.componentInitialisation, null);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, property, this.componentInitialisation);
                     componentPropertyEditBoxList.add(actionParam);
                 }
             }
@@ -93,7 +93,7 @@ public class ExceptionResolutionEditBox {
 //                        ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                         // The property has to be added to this exception resolution so that it can be updated later.
                         exceptionResolution.addComponentProperty(newActionProperty.getMeta().getPropertyName(), newActionProperty);
-                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, newActionProperty, this.componentInitialisation, null);
+                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, newActionProperty, this.componentInitialisation);
                         componentPropertyEditBoxList.add(actionParam);
                     }
                 }

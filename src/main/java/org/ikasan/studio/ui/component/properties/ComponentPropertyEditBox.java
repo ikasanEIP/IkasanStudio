@@ -14,6 +14,10 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,15 +42,39 @@ public class ComponentPropertyEditBox {
     private final ComponentProperty componentProperty;
     private final String projectKey;
 
+    /**
+     * Constructor
+     * @param projectKey identity of the users current Java project
+     * @param componentProperty to be exposed for edit
+     * @param componentInitialisation only default the value if this is true
+     */
+    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation) {
+        this(projectKey, componentProperty, componentInitialisation, null, null);
+    }
 
-    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges) {
+    /**
+     * Constructor
+     * @param projectKey identity of the users current Java project
+     * @param componentProperty to be exposed for edit
+     * @param componentInitialisation only default the value if this is true
+     * @param listenerFoAnyEditChanges used by the parent to detect changes to the values being edited. If this is not required, use the other constructor.
+     * @param componentPropertyEditBoxMap a growing list of propertyName -> ComponentPropertyEditBox, this instance will be added to it in the constructor. This is needed if fields could default off each other. If this is not required, use the other constructor.
+     */
+    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap) {
         this.projectKey = projectKey;
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
+        if (componentPropertyEditBoxMap != null) {
+            componentPropertyEditBoxMap.put(getPropertyKey(), this);
+        }
+
         Object value = componentProperty.getValue();
-        // Optional properties only get set to defaults via UI action
-        if (componentInitialisation && value == null && !meta.isOptional()) {
+        if (    componentInitialisation &&
+                value == null &&
+                !meta.isOptional() &&
+                meta.getDefaultValue() != null &&
+                !ComponentPropertyMeta.isSubstitutionValue(meta.getDefaultValue())) {
             componentProperty.setValue(componentProperty.getDefaultValue());
         }
 
@@ -55,12 +83,14 @@ public class ComponentPropertyEditBox {
             propertyChoiceValueField = new ComboBox<>();
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
-            propertyChoiceValueField.addItemListener(e -> listenerFoAnyEditChanges.actionEvent());
+            if (listenerFoAnyEditChanges != null) {
+                propertyChoiceValueField.addItemListener(e -> listenerFoAnyEditChanges.actionEvent());
+            }
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.propertyValueField = new JFormattedTextField(amountFormat);
-            if (!componentInitialisation) {
+            if (!componentInitialisation && listenerFoAnyEditChanges != null) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
@@ -87,13 +117,17 @@ public class ComponentPropertyEditBox {
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
                 }
-                listenerFoAnyEditChanges.actionEvent();
+                if (listenerFoAnyEditChanges != null) {
+                    listenerFoAnyEditChanges.actionEvent();
+                }
             });
             propertyBooleanFieldFalse.addActionListener(e -> {
                 if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
                     propertyBooleanFieldTrue.setSelected(false);
                 }
-                listenerFoAnyEditChanges.actionEvent();
+                if (listenerFoAnyEditChanges != null) {
+                    listenerFoAnyEditChanges.actionEvent();
+                }
             });
         } else {
             // STRING INPUT
@@ -104,20 +138,44 @@ public class ComponentPropertyEditBox {
                 isList = true;
             }
 
-            if (!componentInitialisation) {
+            if (!componentInitialisation && listenerFoAnyEditChanges != null) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
-                    public void insertUpdate(DocumentEvent e) {
-                        listenerFoAnyEditChanges.actionEvent();
-                    }
+                    public void insertUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
                     @Override
                     public void removeUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
                     @Override
-                    public void changedUpdate(DocumentEvent e) {
-                        listenerFoAnyEditChanges.actionEvent();
-                    }
+                    public void changedUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
                 });
+            }
+
+            // These fields attempt to take their default value from another e.g. a bespoke method named after the propertyName
+            if (componentInitialisation && componentPropertyEditBoxMap!= null && meta.getDefaultValue() != null && meta.getDefaultValue().toString().startsWith("__fieldName:")) {
+
+                String[] components = componentProperty.getDefaultValue().toString().split(":");
+                if (components.length > 1) {
+                    String targetComponentName = components[1];
+                    ComponentPropertyEditBox targetComponentPropertyEditBox = componentPropertyEditBoxMap.get(targetComponentName);
+                    if (targetComponentPropertyEditBox != null) {
+                        targetComponentPropertyEditBox.registerActionListener(event -> {
+                            if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
+                                propertyValueField.setValue(targetComponentPropertyEditBox.getValue());
+                            }
+                        });
+                        targetComponentPropertyEditBox.registerFocusListener(new FocusListener() {
+                            @Override
+                            public void focusGained(FocusEvent e) { }
+
+                            @Override
+                            public void focusLost(FocusEvent e) {
+                                if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
+                                    propertyValueField.setValue(targetComponentPropertyEditBox.getValue());
+                                }
+                            }
+                        });
+                    }
+                }
             }
         }
         resetDataEntryComponentsWithNewValues();
@@ -135,6 +193,27 @@ public class ComponentPropertyEditBox {
             affectsUserImplementedClass = true;
             // Cant edit unless the regenerateSource is selected
             controlFieldsAffectingUserImplementedClass(false);
+        }
+    }
+
+    /**
+     * Register an action listener (press enter) for the input field, currently this would only make sense for the propertyValueField
+     * Its typical use might be to default another field to the value entered in this field.
+     * @param listener
+     */
+    public void registerActionListener(ActionListener listener) {
+        if (propertyValueField != null) {
+            propertyValueField.addActionListener(listener);
+        }
+    }
+    /**
+     * Register a focus listener (tab off) for the input field, currently this would only make sense for the propertyValueField
+     * Its typical use might be to default another field to the value entered in this field.
+     * @param listener
+     */
+    public void registerFocusListener(FocusListener listener) {
+        if (propertyValueField != null) {
+            propertyValueField.addFocusListener(listener);
         }
     }
 

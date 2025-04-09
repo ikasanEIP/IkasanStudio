@@ -11,8 +11,6 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.ikasan.studio.core.StudioBuildUtils.SUBSTITUTION_PREFIX;
-
 /**
  * Holds the value of a property
  */
@@ -20,6 +18,7 @@ import static org.ikasan.studio.core.StudioBuildUtils.SUBSTITUTION_PREFIX;
 @Setter
 @ToString
 public class ComponentProperty {
+
     private Object value;
     @JsonIgnore
     private ComponentPropertyMeta meta;

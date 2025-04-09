@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
@@ -39,7 +40,7 @@ public class ExceptionResolution {
                 !exceptionResolution.getComponentProperties().isEmpty()) {
             componentPropertyEditBoxList = new ArrayList<>();
             for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProjectKey(), property, componentInitialisation, () -> {});
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProjectKey(), property, componentInitialisation);
                 componentPropertyEditBoxList.add(actionParam);
             }
         }
