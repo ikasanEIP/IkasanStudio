@@ -14,7 +14,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -151,7 +150,7 @@ public class ComponentPropertyEditBox {
             }
 
             // These fields attempt to take their default value from another e.g. a bespoke method named after the propertyName
-            if (componentInitialisation && componentPropertyEditBoxMap!= null && meta.getDefaultValue() != null && meta.getDefaultValue().toString().startsWith("__fieldName:")) {
+            if (componentPropertyEditBoxMap!= null && meta.getDefaultValue() != null && meta.getDefaultValue().toString().startsWith("__fieldName:")) {
 
                 String[] components = componentProperty.getDefaultValue().toString().split(":");
                 if (components.length > 1) {
