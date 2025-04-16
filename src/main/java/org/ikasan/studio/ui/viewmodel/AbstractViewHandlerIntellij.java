@@ -30,7 +30,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     private int trailingGap;
     private int leadingGap;
     private int minimumGap;
-    boolean isAlreadySelected;
+    boolean isAlreadySelected;  // Determines if a component is already selected e.g. to prevent a reclick from resetting edit changes.
 
     /**
      * Paint the components belonging to the view handler

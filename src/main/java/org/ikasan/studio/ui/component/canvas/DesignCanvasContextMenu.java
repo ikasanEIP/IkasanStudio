@@ -3,9 +3,11 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
@@ -22,8 +24,15 @@ public class DesignCanvasContextMenu {
         JPopupMenu menu = new JPopupMenu();
         if (ikasanBasicElement instanceof FlowElement) {
 
-            menu.add(createDeleteComponentMenuItem(projectKey, ikasanBasicElement));
+            JMenu moduleNavigation = new JMenu("Module Navigation");
 
+            Module module = UiContext.getIkasanModule(projectKey);
+            menusForModuleNavigation(module, moduleNavigation);
+            menu.add(moduleNavigation);
+
+            menu.add(createDeleteComponentMenuItem(projectKey, ikasanBasicElement));
+            menu.add(createEditComponentMenuItem(projectKey, ikasanBasicElement));
+            // @TODO look to optimise this and store in context rather than create each time.
             // @TODO add debug is broken, it needs to perform similar action to dragging a debug component from palette
 //            menu.add(createDebugComponentMenuItem(projectKey, ikasanBasicElement));
             menu.addSeparator();
@@ -62,6 +71,27 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
+
+
+    private static void menusForModuleNavigation(Module module, JMenu parent) {
+//        if (module != null && module.)
+//        JMenuItem item = new JMenuItem("Save Image");
+//        item.addActionListener(new SaveAction(projectKey));
+//        return null;
+    }
+
+    private static JMenuItem menusForFlows(FlowElement flowElement) {
+//        JMenuItem item = new JMenuItem("Save Image");
+//        item.addActionListener(new SaveAction(projectKey));
+        return null;
+    }
+
+    private static JMenuItem menusForComponent(BasicElement ikasanBasicElement) {
+//        JMenuItem item = new JMenuItem("Save Image");
+//        item.addActionListener(new SaveAction(projectKey));
+        return null;
+    }
+
     private static JMenuItem createDeleteComponentMenuItem(String projectKey, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem("Delete Component");
         item.addActionListener(new DeleteComponentAction(projectKey, ikasanBasicElement));
@@ -71,6 +101,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createDebugComponentMenuItem(String projectKey, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem("Add Debug to Component");
         item.addActionListener(new DebugComponentAction(projectKey, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createEditComponentMenuItem(String projectKey, BasicElement ikasanBasicElement) {
+        JMenuItem item = new JMenuItem("Edit Component");
+        item.addActionListener(new EditComponentAction(projectKey, ikasanBasicElement));
         return item;
     }
 

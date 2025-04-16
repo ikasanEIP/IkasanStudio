@@ -147,27 +147,27 @@ public class DesignerCanvas extends JPanel {
     private void mouseClickAction(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
-        IkasanComponent mouseSelectedComponent = getComponentAtXY(x, y);
+        IkasanComponent selectedComponent = getComponentAtXY(x, y);
 
-        if (!(mouseSelectedComponent instanceof BasicElement basicElement)) {
+        if (!(selectedComponent instanceof BasicElement ikasanBasicElement)) {
             return;
         }
         // Right click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
             Decorator decorator = null;
-            if (basicElement instanceof FlowElement flowElement) {
+            if (ikasanBasicElement instanceof FlowElement flowElement) {
                 IkasanFlowComponentViewHandler viewHandler = ViewHandlerCache.getFlowComponentViewHandler(projectKey, flowElement);
                 decorator = viewHandler.getDecoratorAtXY(x, y);
             }
-            DesignCanvasContextMenu.showPopupAndNavigateMenu(projectKey, this, me, basicElement, decorator);
-//            if (mouseSelectedComponent != null) {
+            DesignCanvasContextMenu.showPopupAndNavigateMenu(projectKey, this, me, ikasanBasicElement, decorator);
+//            if (selectedComponent != null) {
 //            } else {
 //                DesignCanvasContextMenu.showPopupMenu(projectKey,this, me);
 //            }
         } // Double click -> go to source
         else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
-//            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, basicElement);
+//            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, ikasanBasicElement);
 //            if (viewHandler != null) {
 //                if (viewHandler.getOffsetInclassToNavigateTo() != 0) {
 //                    Navigator.navigateToSource(projectKey, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
@@ -179,26 +179,34 @@ public class DesignerCanvas extends JPanel {
 //            }
         } // Single click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
-                 (  ViewHandlerCache.getAbstractViewHandler(projectKey, basicElement) != null &&
-                    ! ViewHandlerCache.getAbstractViewHandler(projectKey, basicElement).isAlreadySelected()
+                 (  ViewHandlerCache.getAbstractViewHandler(projectKey, ikasanBasicElement) != null &&
+                    ! ViewHandlerCache.getAbstractViewHandler(projectKey, ikasanBasicElement).isAlreadySelected()
 
                  )) {
-            setSelectedComponent(basicElement);
-            if (mouseSelectedComponent instanceof ExceptionResolver) {
-                ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
-                exceptionResolverPanel.updateTargetComponent(basicElement);
-                PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                        projectKey,
-                        UiContext.getDesignerCanvas(projectKey),
-                        exceptionResolverPanel);
-                if (propertiesPopupDialogue.showAndGet()) {
-                    //@TODO MODEL
-                    StudioPsiUtils.refreshCodeFromModel(projectKey);
-                }
-            } else {
-                UiContext.getPropertiesTabPanel(projectKey).updateTargetComponent(basicElement);
-                UiContext.getPropertiesPanel(projectKey).updateTargetComponent(basicElement);
+            editComponent(ikasanBasicElement);
+        }
+    }
+
+    /**
+     * Place the provided Ikasan Basic Element into the properties panel in edit mode
+     * @param basicElement to be edited.
+     */
+    public void editComponent(BasicElement basicElement) {
+        setSelectedComponent(basicElement);
+        if (basicElement instanceof ExceptionResolver) {
+            ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(projectKey, true);
+            exceptionResolverPanel.updateTargetComponent(basicElement);
+            PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
+                    projectKey,
+                    UiContext.getDesignerCanvas(projectKey),
+                    exceptionResolverPanel);
+            if (propertiesPopupDialogue.showAndGet()) {
+                //@TODO MODEL
+                StudioPsiUtils.refreshCodeFromModel(projectKey);
             }
+        } else {
+            UiContext.getPropertiesTabPanel(projectKey).updateTargetComponent(basicElement);
+            UiContext.getPropertiesPanel(projectKey).updateTargetComponent(basicElement);
         }
     }
 
@@ -238,8 +246,7 @@ public class DesignerCanvas extends JPanel {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         LOG.trace("STUDIO: Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
-        if (mouseSelectedComponent instanceof FlowElement) {
-            FlowElement flowElement = (FlowElement) mouseSelectedComponent;
+        if (mouseSelectedComponent instanceof FlowElement flowElement) {
             screenChanged = true;
             AbstractViewHandlerIntellij vh = ViewHandlerCache.getAbstractViewHandler(projectKey, flowElement);
             if (vh != null) {
@@ -528,7 +535,7 @@ public class DesignerCanvas extends JPanel {
             IkasanObject newComponent;
             if (targetElement instanceof FlowElement || targetElement instanceof Flow || targetElement instanceof FlowRoute) {
                 Flow containingFlow;
-                FlowRoute containingFlowRoute = null;
+                FlowRoute containingFlowRoute;
                 if (targetElement instanceof Flow) {
                     containingFlow = (Flow)targetElement;
                     containingFlowRoute = containingFlow.getFlowRoute();
@@ -625,8 +632,7 @@ public class DesignerCanvas extends JPanel {
      */
     private BasicElement createViableComponent(BasicElement newComponent) {
         // Now this is a serious components, ensure any property with tag placeholder are updated to real values
-        if (newComponent instanceof FlowElement) {
-            FlowElement newFlowComponent = (FlowElement)newComponent;
+        if (newComponent instanceof FlowElement newFlowComponent) {
             StudioBuildUtils.substituteAllPlaceholderInPascalCase(UiContext.getIkasanModule(projectKey), newFlowComponent.getContainingFlow(), newFlowComponent);
         }
 
@@ -744,22 +750,22 @@ public class DesignerCanvas extends JPanel {
         }
         if (ikasanModule != null) {
             AbstractViewHandlerIntellij moduleViewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, ikasanModule);
-            if (initialiseAllDimensions && moduleViewHandler != null) {
-                moduleViewHandler.initialiseDimensions(g, 0, 0, this.getWidth(), this.getHeight());
-                initialiseAllDimensions = false;
-            }
-
-            if (ikasanModule.hasUnsetMandatoryProperties()) {
-                LOG.info("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
-                enableModuleInitialiseProcess();
-            }
-            int newWidth = moduleViewHandler.getWidth();
-            int newHeight = moduleViewHandler.getHeight();
-            this.setPreferredSize(new Dimension(newWidth, newHeight));
-            revalidate();
-            super.paintComponent(g);
-
+            // If it was null, we have already logged
             if (moduleViewHandler != null) {
+                if (initialiseAllDimensions) {
+                    moduleViewHandler.initialiseDimensions(g, 0, 0, this.getWidth(), this.getHeight());
+                    initialiseAllDimensions = false;
+                }
+
+                if (ikasanModule.hasUnsetMandatoryProperties()) {
+                    LOG.info("STUDIO: Ikasan Module is not in the context, assuming this is a new buildRouteTree");
+                    enableModuleInitialiseProcess();
+                }
+                int newWidth = moduleViewHandler.getWidth();
+                int newHeight = moduleViewHandler.getHeight();
+                this.setPreferredSize(new Dimension(newWidth, newHeight));
+                revalidate();
+                super.paintComponent(g);
                 moduleViewHandler.paintComponent(this, g, -1, -1);
             }
         }
