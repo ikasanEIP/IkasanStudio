@@ -26,6 +26,7 @@ install:
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
   - rm -rf ~/.gradle/caches/8.10.2/transforms/0e122ea88a328fb62315f008a3ceb166/transformed/ideaIC-2024.1.7
+  - rm -rf ~/.gradle/caches/8.10.2/transforms/0e122ea88a328fb62315f008a3ceb166-8592289b-4c42-412b-9b19-7848c6d50824
   - ./gradlew clean build --refresh-dependencies
   - ./gradlew test
   - ./gradlew clean verifyPlugin --refresh-dependencies
