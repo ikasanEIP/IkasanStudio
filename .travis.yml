@@ -26,4 +26,4 @@ install:
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
   - ./gradlew test
-  - ./gradlew verifyPlugin -Dorg.gradle.jvmargs="-Xmx768m"
+  - ./gradlew verifyPlugin -Dorg.gradle.jvmargs="-Xmx1g"
