@@ -22,6 +22,9 @@ install:
   - chmod +x gradlew
   - ./gradlew dependencies
 
+env:
+  - GRADLE_OPTS="-Xmx2g"
+
 # Note that most of the current SDLC CI is done in .github/workflows/build.yml i.e. the github workflow actions
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
