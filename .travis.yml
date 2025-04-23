@@ -23,10 +23,10 @@ install:
   - ./gradlew dependencies
 
 env:
-  - GRADLE_OPTS="-Xmx2g"
+  - GRADLE_OPTS="-Xmx3g"
 
 # Note that most of the current SDLC CI is done in .github/workflows/build.yml i.e. the github workflow actions
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
   - ./gradlew test
-  - ./gradlew verifyPlugin -Dorg.gradle.jvmargs="-Xmx2g"
+  - ./gradlew verifyPlugin -Dorg.gradle.jvmargs="-Xmx3g"

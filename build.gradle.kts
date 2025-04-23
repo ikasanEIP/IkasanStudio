@@ -151,7 +151,7 @@ tasks {
 //        systemProperty("idea.home.path", intellijRootDir().canonicalPath)
     }
     verifyPlugin {
-        setMaxHeapSize("2048m") // Increase to 2GB, or more if needed
+        setMaxHeapSize("3048m") // Increase to 2GB, or more if needed
     }
 }
 
