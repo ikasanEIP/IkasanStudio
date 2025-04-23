@@ -4,6 +4,7 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java") // Java support
+    id("org.jetbrains.intellij") version "1.17.3" // Use latest compatible version
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
@@ -40,7 +41,6 @@ dependencies {
     testImplementation("org.freemarker:freemarker:2.3.34")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
-    testImplementation(libs.opentest4j)
     testImplementation("org.ikasan:ikasan-test:4.0.5")
     compileOnly ("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
@@ -140,6 +140,12 @@ kover {
 }
 
 tasks {
+    patchPluginXml {
+        setVersion(project.version.toString())
+        sinceBuild.set("241") // match your plugin's compatibility range
+        untilBuild.set("252.*")
+    }
+
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
