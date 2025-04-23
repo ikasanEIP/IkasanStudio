@@ -40,6 +40,7 @@ dependencies {
     testImplementation("org.freemarker:freemarker:2.3.34")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
+    testImplementation("libs.opentest4j")
     testImplementation("org.ikasan:ikasan-test:4.0.5")
     compileOnly ("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
@@ -65,6 +66,7 @@ dependencies {
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {
+        name = providers.gradleProperty("pluginName")
         version = providers.gradleProperty("pluginVersion")
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
@@ -149,9 +151,6 @@ tasks {
     test {
         useJUnitPlatform()
 //        systemProperty("idea.home.path", intellijRootDir().canonicalPath)
-    }
-    verifyPlugin {
-        setMaxHeapSize("3048m") // Increase to 2GB, or more if needed
     }
 }
 
