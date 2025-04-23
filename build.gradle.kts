@@ -40,7 +40,7 @@ dependencies {
     testImplementation("org.freemarker:freemarker:2.3.34")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
-    testImplementation("libs.opentest4j")
+    testImplementation(libs.opentest4j)
     testImplementation("org.ikasan:ikasan-test:4.0.5")
     compileOnly ("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
