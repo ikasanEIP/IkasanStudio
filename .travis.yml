@@ -24,6 +24,8 @@ install:
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
   - sdk install java 21-tem
   - echo $JAVA_HOME
+  - export JAVA_HOME=/home/travis/.sdkman/candidates/java/current/bin/java
+  - echo $JAVA_HOME
   - ls -l $JAVA_HOME
   - which java
   - java -version
