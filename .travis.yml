@@ -19,12 +19,22 @@ cache:
 #  - export PATH=$M2_HOME/bin:$PATH
 
 install:
+  - curl -s "https://get.sdkman.io" | bash
+  - source "$HOME/.sdkman/bin/sdkman-init.sh"
+  - sdk install java 21-tem
+  - java -version
+  - javac -version
+  - sdk list java
   - chmod +x gradlew
   - ./gradlew dependencies
 
 # Note that most of the current SDLC CI is done in .github/workflows/build.yml i.e. the github workflow actions
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
+  - echo $JAVA_HOME
+  - ls -l $JAVA_HOME
+  - which java
+  - java -version
   - ./gradlew buildPlugin
   - ./gradlew test
-  - ./gradlew verifyPlugin -Dorg.gradle.jvmargs="-Xmx2g" --info
+  - ./gradlew verifyPlugin --info
