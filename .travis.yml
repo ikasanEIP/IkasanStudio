@@ -1,7 +1,7 @@
 sudo: false
 language: java
-jdk:
-  - openjdk21
+#jdk:
+#  - openjdk21
 
 cache:
   directories:
