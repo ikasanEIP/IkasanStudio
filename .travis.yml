@@ -1,5 +1,6 @@
 sudo: false
 language: java
+# defer JDK to install step.
 #jdk:
 #  - 21.0.2-open
 #  - openjdk21
@@ -20,28 +21,24 @@ cache:
 #  - export PATH=$M2_HOME/bin:$PATH
 
 install:
-  - rm -rf ~/.gradle/caches/8.13/transforms
   - curl -s "https://get.sdkman.io" | bash
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
   - sdk install java 21.0.6-jbr
-  - echo $JAVA_HOME
   - export JAVA_HOME=/home/travis/.sdkman/candidates/java/current
   - echo $JAVA_HOME
-  - ls -l $JAVA_HOME
   - which java
   - java -version
   - javac -version
-  - sdk list java
   - chmod +x gradlew
   - ./gradlew dependencies
 
 # Note that most of the current SDLC CI is done in .github/workflows/build.yml i.e. the github workflow actions
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
-  - echo $JAVA_HOME
-  - ls -l $JAVA_HOME
-  - which java
-  - java -version
   - ./gradlew buildPlugin
   - ./gradlew test
-  - ./gradlew verifyPlugin --info
+  - |
+  - echo "Fetching latest IntelliJ IDEA IC version..."
+  - LATEST_IDEA_VERSION=$(curl -s https://data.services.jetbrains.com/products/releases?code=IC&latest=true&type=release | jq -r '.IC[0].version')
+  - echo "Latest version is $LATEST_IDEA_VERSION"
+  - ./gradlew verifyPlugin
