@@ -4,7 +4,6 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java") // Java support
-    id("org.jetbrains.intellij") version "1.17.3" // Use latest compatible version
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
@@ -140,12 +139,6 @@ kover {
 }
 
 tasks {
-    patchPluginXml {
-        setVersion(project.version.toString())
-        sinceBuild.set("241") // match your plugin's compatibility range
-        untilBuild.set("252.*")
-    }
-
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
