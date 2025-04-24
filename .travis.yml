@@ -1,6 +1,7 @@
 sudo: false
 language: java
 #jdk:
+#  - 21.0.2-open
 #  - openjdk21
 
 cache:
@@ -22,6 +23,9 @@ install:
   - curl -s "https://get.sdkman.io" | bash
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
   - sdk install java 21-tem
+  - echo $JAVA_HOME
+  - ls -l $JAVA_HOME
+  - which java
   - java -version
   - javac -version
   - sdk list java
