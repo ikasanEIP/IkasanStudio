@@ -20,9 +20,10 @@ cache:
 #  - export PATH=$M2_HOME/bin:$PATH
 
 install:
+  - rm -rf ~/.gradle/caches/8.13/transforms
   - curl -s "https://get.sdkman.io" | bash
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
-  - sdk install java 21-tem
+  - sdk install java 21.0.6-jbr
   - echo $JAVA_HOME
   - export JAVA_HOME=/home/travis/.sdkman/candidates/java/current
   - echo $JAVA_HOME
