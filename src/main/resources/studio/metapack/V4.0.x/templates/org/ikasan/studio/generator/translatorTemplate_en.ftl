@@ -20,8 +20,8 @@ public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userI
 * @param payload Event to transform
 * @throws TransformationException Exception if we could not transform
 */
-public ${flowElement.getPropertyValue('type')} translate(${flowElement.getPropertyValue('type')} payload) throws TransformationException
+public void translate(${flowElement.getPropertyValue('type')} payload) throws TransformationException
 {
-return payload;
+System.out.println("Payload was" + payload);
 }
 }

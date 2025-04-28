@@ -19,8 +19,8 @@ public class MyTranslator implements Translator<java.lang.String>
 * @param payload Event to transform
 * @throws TransformationException Exception if we could not transform
 */
-public java.lang.String translate(java.lang.String payload) throws TransformationException
+public void translate(java.lang.String payload) throws TransformationException
 {
-return payload;
+System.out.println("Payload was" + payload);
 }
 }
