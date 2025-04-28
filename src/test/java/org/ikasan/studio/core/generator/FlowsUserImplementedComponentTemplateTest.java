@@ -44,6 +44,20 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyConverter.java"), templateString);
     }
+
+    //  ------------------------------- CONVERTER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyTranslator.java
+     * @throws IOException if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_customTranslatorComponent() throws IOException, StudioBuildException, StudioGeneratorException {
+        FlowElement flowElement = TestFixtures.getCustomTranslator();
+        String templateString = generateUserImplementedComponentTemplate(flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, "MyTranslator.java"), templateString);
+    }
+
     //  ------------------------------- DEBUG ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyConverter.java

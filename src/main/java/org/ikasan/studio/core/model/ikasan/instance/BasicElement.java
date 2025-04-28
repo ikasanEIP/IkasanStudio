@@ -171,7 +171,7 @@ public  class BasicElement extends IkasanObject {
             ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
-                LOG.error("STUDIO: SERIOUS ERROR - Attempt to set property [" + key + "] on Element [" + this.getName() +
+                LOG.error("STUDIO: SERIOUS ERROR - There is no meta data for property [" + key + "] on Element [" + this.getName() +
                         "], class [" + this.getClass() +
                         "], implemnting class [" + getComponentMeta().getImplementingClass() +
                         "], additional key [" + getComponentMeta().getAdditionalKey() +

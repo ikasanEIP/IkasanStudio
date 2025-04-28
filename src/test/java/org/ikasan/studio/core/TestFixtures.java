@@ -402,6 +402,20 @@ public class TestFixtures {
         return flowElement;
     }
 
+    // ------------------------- Translators -------------------------
+
+    public static FlowElement getCustomTranslator() throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(TEST_IKASAN_PACK, "Custom Translator");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Custom Translator")
+                .build();
+        flowElement.setPropertyValue(TYPE, "java.lang.String");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myTranslator");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
     // ------------------------- Debug -------------------------
 
     public static FlowElement getDebugTransition() throws StudioBuildException {

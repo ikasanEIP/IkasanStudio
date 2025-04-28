@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "displayOrder": 5,
   "componentShortType": "Converter",
-  "helpText": "<strong>Converter</strong><p>The main responsibility of a converter is to convert the payload from one form to another.</p>",
+  "helpText": "<strong>Converter</strong><p>The main responsibility of a converter is to convert the payload from one type to another e.g. JSON to XML.</p>",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",

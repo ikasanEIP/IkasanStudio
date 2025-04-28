@@ -1,0 +1,26 @@
+package org.ikasan;
+
+/**
+ * The main responsibility of a translator is to translate the payload (not the type).
+ *
+ * This is an auto generated stub. The user is expected to fill in the details of the conversion below.
+ * This stub will not be over-written unless the overwrite checkbox is explicitly selected.
+ */
+
+import org.ikasan.spec.component.transformation.Translator;
+import org.ikasan.spec.component.transformation.TransformationException;
+
+@org.springframework.stereotype.Component
+public class MyTranslator implements Translator<java.lang.String>
+{
+/**
+* Transforms or otherwise changes the passed in <code>Event</code>
+*
+* @param payload Event to transform
+* @throws TransformationException Exception if we could not transform
+*/
+public java.lang.String translate(java.lang.String payload) throws TransformationException
+{
+return payload;
+}
+}

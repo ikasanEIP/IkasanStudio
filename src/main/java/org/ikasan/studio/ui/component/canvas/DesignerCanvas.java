@@ -756,16 +756,16 @@ public class DesignerCanvas extends JPanel {
                     moduleViewHandler.initialiseDimensions(g, 0, 0, this.getWidth(), this.getHeight());
                     initialiseAllDimensions = false;
                 }
-
-                // Typically when pasting in a model.json from an Ikasan module, some studio specific properties might be absent.
+                // Typically, when pasting in a model.json from an Ikasan module, some studio-specific properties might be absent.
+                // Note this is the main paint loop, so DO NOT pop up any dialogues here.
                 if (ikasanModule.hasUnsetMandatoryProperties()) {
                     String msg = "The model has the following unset mandatory properties [" + ikasanModule.listUnsetMandatoryProperties() +
                             "] setting to defaults";
-                    LOG.info("STUDIO: WARN: " + msg);
-                    StudioUIUtils.displayIdeaInfoMessage(projectKey, msg + ". Please save the design if this is acceptable.");
                     ikasanModule.defaultUnsetMandatoryProperties();
-//                    enableModuleInitialiseProcess();
-//                    xx
+                    if (ikasanModule.hasUnsetMandatoryProperties()) {
+                        msg += " failed. Please add these manually and 'Refresh' design.";
+                    }
+                    LOG.info("STUDIO: WARN: " + msg);
                 }
                 int newWidth = moduleViewHandler.getWidth();
                 int newHeight = moduleViewHandler.getHeight();

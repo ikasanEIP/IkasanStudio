@@ -200,6 +200,20 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(10, module.getAllUniqueSortedJarDependencies().size());
     }
 
+    // ------------------------------------- TRANSLATORS -------------------------------------
+    /**
+     * See also application_fullyPopulatedCustomConverterComponent.properties
+     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     */
+    @Test
+    public void testCreateFlowWith_customTranslator() throws IOException, StudioGeneratorException , StudioBuildException {
+        FlowElement flowElement = TestFixtures.getCustomTranslator();
+        assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
+        String templateString = generatePropertiesTemplateString(flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomTranslatorComponent.properties"), templateString);
+        // The Translator requires a new jar dependency
+        assertEquals(10, module.getAllUniqueSortedJarDependencies().size());
+    }
 
     // ------------------------------------- PRODUCERS -------------------------------------
     /**
