@@ -109,7 +109,7 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
 //    private Object defaultValue = "";     // Default value e.g. displayed when property is created.
-    private Object defaultValue = null;     // Default value e.g. displayed when property is created.
+    private Object defaultValue = null;     // Default value e.g. displayed when a property is created.
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -128,7 +128,7 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean setterProperty=false;   // The component features in the component factory setter
-    @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String setterMethod="";         // Some properties in Ikasan do not follow convention e.g. configurationId is a property but its setter is setConfiguredResourceId
     private String standardBuilderMethod;

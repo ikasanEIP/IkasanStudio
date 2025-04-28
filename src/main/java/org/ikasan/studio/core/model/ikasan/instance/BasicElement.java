@@ -256,6 +256,17 @@ public  class BasicElement extends IkasanObject {
     }
 
     /**
+     * Determine if there are some mandatory properties that have not yet been set and return that as a list
+     * @return a list of unset mandatory properties.
+     */
+    public List<String> listUnsetMandatoryProperties() {
+        return componentProperties.values().stream()
+            .filter(componentProperty -> componentProperty.getMeta().isMandatory() && componentProperty.valueNotSet())
+            .map(componentProperty -> componentProperty.getMeta().getPropertyName())
+            .collect(Collectors.toList());
+    }
+
+    /**
      * If there are any unset mandatory properties, set them to their default value.
      */
     public void defaultUnsetMandatoryProperties() {
