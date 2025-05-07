@@ -23,8 +23,8 @@ public class CanvasPanel extends JPanel {
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(projectKey), "Start the blue console in a browser (user/pass - admin/admin)");
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(projectKey, h2Button), "Start the H2 console in a browser");
         addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(projectKey, applicationButton), "Start the Module");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Refresh"), new ModelRefreshAction(projectKey), "Refresh the in memory module definition from saved code");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(projectKey), "Regenrate the code from the in-memory module definition");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Load"), new ModelLoadAction(projectKey), "Load the in module from disk");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(projectKey), "Regenerate the code from the in-memory module definition");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(projectKey), "Save the module drawing as an image file");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(projectKey), "Dump information to log files");
 

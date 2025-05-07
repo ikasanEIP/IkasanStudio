@@ -64,7 +64,7 @@ public class DesignCanvasContextMenu {
             menu.addSeparator();
         }
         menu.add(createSaveAsMenuItem(projectKey));
-        menu.add(createRefreshMenuItem(projectKey));
+        menu.add(createLoadMenuItem(projectKey));
         menu.add(createLaunchDashboardMenuItem(projectKey));
         menu.add(createLaunchH2MenuItem(projectKey));
         menu.add(createDebugMenuItem(projectKey));
@@ -138,9 +138,9 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    private static JMenuItem createRefreshMenuItem(String projectKey) {
-        JMenuItem item = new JMenuItem("Refresh");
-        item.addActionListener(new ModelRefreshAction(projectKey));
+    private static JMenuItem createLoadMenuItem(String projectKey) {
+        JMenuItem item = new JMenuItem("Load");
+        item.addActionListener(new ModelLoadAction(projectKey));
         return item;
     }
 

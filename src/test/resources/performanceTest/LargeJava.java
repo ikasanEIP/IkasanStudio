@@ -153,7 +153,7 @@ public class LargeJava {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             } catch (StudioBuildException se) {
                 LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Refresh Button");
+                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Load Button");
                 // The dumb module should contain just enough to prevent the plugin from crashing
                 UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
             }

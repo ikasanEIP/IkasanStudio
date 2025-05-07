@@ -113,7 +113,7 @@ public class StudioPsiUtils {
      */
     public static PsiFile getModelJsonPsiFile(final String projectKey) {
         AtomicReference<PsiFile> jsonModel = new AtomicReference<>();
-        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(projectKey, GENERATED_CONTENT_ROOT);
+        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(projectKey);
         if (selectedContentRoot != null) {
             VirtualFile virtualModelJson = selectedContentRoot.findFileByRelativePath(JSON_MODEL_FULL_PATH);
             if (virtualModelJson != null) {
@@ -135,7 +135,7 @@ public class StudioPsiUtils {
      */
     public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(String projectKey) {
         Map<String, String> applicationProperties = null;
-        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT);
+        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(projectKey);
         if (selectedContentRoot != null) {
             PsiFile applicationPropertiesVF = getPsiFileFromPath(projectKey, selectedContentRoot, APPLICATION_PROPERTIES_FULL_PATH);
             if (applicationPropertiesVF == null) {
@@ -165,7 +165,7 @@ public class StudioPsiUtils {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             } catch (StudioBuildException se) {
                 LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix model.json then Refresh, error was [" + se.getMessage() + "]");
+                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix model.json then click 'Load', error was [" + se.getMessage() + "]");
                 // The dumb module should contain just enough to prevent the plugin from crashing
                 UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
             }
@@ -673,22 +673,22 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Search the project root cache for the supplied content root.
      * Note, virtualFiles can become invalid if the IDE refreshes the project, use isValid() before use.
+     *
      * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
-     * @param contentRoot to ve searched for
      * @return the content root if its found, nulll otherwise.
      */
-    protected static VirtualFile getSpecificContentRootFromCache(final String projectKey, final String contentRoot) {
+    protected static VirtualFile getSpecificContentRootFromCache(final String projectKey) {
         VirtualFile targetContentRoot = null;
         VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(UiContext.getProject(projectKey)).getContentRoots();
 
         if (contentRootVFiles.length != 1) {
             for (VirtualFile vFile : contentRootVFiles) {
-                if (vFile.toString().endsWith(contentRoot)) {
+                if (vFile.toString().endsWith(StudioPsiUtils.GENERATED_CONTENT_ROOT)) {
                     targetContentRoot = vFile;
                 }
             }
         } else {
-            LOG.warn("STUDIO: Could not find the content root for directory [" + contentRoot + "] from content roots [" + Arrays.toString(contentRootVFiles) + "]");
+            LOG.warn("STUDIO: Could not find the content root for directory [" + StudioPsiUtils.GENERATED_CONTENT_ROOT + "] from content roots [" + Arrays.toString(contentRootVFiles) + "]");
         }
         return targetContentRoot;
     }
