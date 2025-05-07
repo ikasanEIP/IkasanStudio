@@ -39,7 +39,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
         String metapackVersion = DEFAULT_IKASAN_PACK;
         JsonNode versionNode = jsonNode.get(VERSION);
-        if (versionNode != null) {
+        if (versionNode != null &&  versionNode.asText() != null ) {
             metapackVersion = versionNode.asText();
             LOG.info("STUDIO: Loading metapackVersion version " + metapackVersion);
         } else {
@@ -409,7 +409,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames does not contain a list, routeNames was [" + typeSafeAttempt + "]");
             }
             else {
-                routeNames = (List) typeSafeAttempt;
+                routeNames = (List<String>) typeSafeAttempt;
             }
             if (routeNames == null) {
                 routeNames = guessRouteNames(router, transitionsMap);

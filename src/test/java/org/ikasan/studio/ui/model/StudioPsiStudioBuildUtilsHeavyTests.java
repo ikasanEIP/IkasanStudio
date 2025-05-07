@@ -109,7 +109,7 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
                 "org/ikasan/studio/boot/flow/flow1",
                 "ComponentFactoryFlow1",
                 content,
-                false, true, null);
+                null);
         String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/java/org/ikasan/studio/boot/flow/flow1/ComponentFactoryFlow1.java");
         assertThat(actualFile, is(content));
     }

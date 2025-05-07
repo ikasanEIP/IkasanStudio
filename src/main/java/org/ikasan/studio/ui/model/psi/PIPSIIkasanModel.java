@@ -117,19 +117,19 @@ public class PIPSIIkasanModel {
             "Undo group ID");
     }
 
-    public static long timeLog(long startTime, String message) {
-
-        if (startTime == 0) {
-            startTime = System.currentTimeMillis();
-            LOG.warn("STUDIO: time log START- " + message);
-            return startTime;
-        } else {
-            long endNow = java.lang.System.currentTimeMillis();
-            long diff = endNow - startTime;
-            LOG.warn("STUDIO: time log END - " + message + " - " + diff);
-            return 0;
-        }
-    }
+//    public static long timeLog(long startTime, String message) {
+//
+//        if (startTime == 0) {
+//            startTime = System.currentTimeMillis();
+//            LOG.warn("STUDIO: time log START- " + message);
+//            return startTime;
+//        } else {
+//            long endNow = java.lang.System.currentTimeMillis();
+//            long diff = endNow - startTime;
+//            LOG.warn("STUDIO: time log END - " + message + " - " + diff);
+//            return 0;
+//        }
+//    }
 
     /**
      * Save the Spring Boot Application class
@@ -162,7 +162,7 @@ public class PIPSIIkasanModel {
                     StudioPsiUtils.GENERATED_CONTENT_ROOT,
                     StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                     ApplicationTemplate.STUDIO_BOOT_PACKAGE,
-                    ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, true, true, null);
+                    ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, null);
         }
     }
 
@@ -200,7 +200,7 @@ public class PIPSIIkasanModel {
                         }
                         if (templateString != null) {
                             StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
-                                    newPackageName, clazzName, templateString, true, true, componentViewHandler);
+                                    newPackageName, clazzName, templateString, componentViewHandler);
                         }
                     }
                 }
@@ -216,9 +216,9 @@ public class PIPSIIkasanModel {
                         displayIdeaWarnMessage(projectKey, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                     }
                     if (templateString != null) {
-                        boolean overwriteClassIfExists = ((FlowUserImplementedElement)component).isOverwriteEnabled();
+                        ((FlowUserImplementedElement)component).isOverwriteEnabled();
                         StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
-                                newPackageName, newClassName, templateString, true, overwriteClassIfExists, componentViewHandler);
+                                newPackageName, newClassName, templateString, componentViewHandler);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
                     }
                 }
@@ -235,7 +235,7 @@ public class PIPSIIkasanModel {
         }
         if (componentFactoryTemplateString != null) {
             StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, flowPackageName,
-                    COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, true, true, null);
+                    COMPONENT_FACTORY_CLASS_NAME + ikasanFlow.getJavaClassName(), componentFactoryTemplateString, null);
         }
     }
 
@@ -255,8 +255,6 @@ public class PIPSIIkasanModel {
                     flowPackageName,
                     ikasanFlow.getJavaClassName(),
                     flowTemplateString,
-                    true,
-                    true,
                     flowViewHandler);
         }
     }
@@ -271,7 +269,7 @@ public class PIPSIIkasanModel {
         if (templateString != null) {
             AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, module);
             StudioPsiUtils.createJavaSourceFile(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
-                    ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, true, true, viewHandler);
+                    ModuleConfigTemplate.STUDIO_BOOT_PACKAGE, ModuleConfigTemplate.MODULE_CLASS_NAME, templateString, viewHandler);
         }
 
     }

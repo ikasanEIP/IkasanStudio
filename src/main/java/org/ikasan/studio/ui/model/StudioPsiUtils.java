@@ -34,7 +34,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.Dependency;
@@ -56,19 +55,17 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_SOURCE;
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_TARGET;
-import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
 import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
 
 public class StudioPsiUtils {
     private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
-    public static final String TEMP_CONTENT_ROOT = "temp://";
+//    public static final String TEMP_CONTENT_ROOT = "temp://";
     public static final String GENERATED_CONTENT_ROOT = "/generated";
     public static final String USER_CONTENT_ROOT = "/user";
     public static final String MAIN_JAVA = "main/java";
@@ -168,13 +165,13 @@ public class StudioPsiUtils {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             } catch (StudioBuildException se) {
                 LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Refresh Button");
+                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix model.json then Refresh, error was [" + se.getMessage() + "]");
                 // The dumb module should contain just enough to prevent the plugin from crashing
                 UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
             }
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
-                LOG.error("STUDIO: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
+                LOG.warn("STUDIO: SERIOUS: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
             }
             UiContext.setIkasanModule(projectKey, newModule);
         } else {
@@ -281,13 +278,11 @@ public class StudioPsiUtils {
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
      * @param clazzName for the java file
      * @param content of the file that is to be created / updated
-     * @param focus if true, open this file in the IDE
-     * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
+     * @param componentViewHandler to sue for this component
      */
     public static void createJavaSourceFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
-                                            final  String clazzName, final String content, boolean focus,
-                                            final boolean replaceExisting, AbstractViewHandlerIntellij componentViewHandler) {
-        if (projectKey == null || content == null || sourceRootDir == null || subDir == null || clazzName == null || content == null) {
+                                            final  String clazzName, final String content, AbstractViewHandlerIntellij componentViewHandler) {
+        if (projectKey == null || content == null || sourceRootDir == null || subDir == null || clazzName == null) {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile projectKey [" + projectKey + "] contentRoot [" + contentRoot +
                     "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + clazzName + "] content [" + content + "]");
         }
@@ -332,49 +327,49 @@ public class StudioPsiUtils {
     }
 
 
-    /**
-     * Fail fast string comparison ignoring white space
-     * {@code @TODO} maybe allow white space between quotes
-     * @param oldString to be compared
-     * @param newString to be compared
-     * @return true if both string are equal, ignoring any whitespace
-     */
-    public static boolean areEqualIgnoringWhitespace(String oldString, String newString) {
-        if (oldString == null || newString == null) {
-            return false; // Handle null values if needed
-        }
-        int ii = 0, jj = 0;
-        int len1 = oldString.length(), len2 = newString.length();
-        while (ii < len1 && jj < len2) {
-            // Skip whitespace in str1
-            while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
-                ii++;
-            }
-            // Skip whitespace in str2
-            while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
-                jj++;
-            }
-            // If one string has reached its end but the other has not
-            if (ii >= len1 || jj >= len2) {
-                break;
-            }
-            // Compare characters
-            if (oldString.charAt(ii) != newString.charAt(jj)) {
-                return false; // Found a mismatch
-            }
-            ii++;
-            jj++;
-        }
-        // Skip remaining whitespace in both strings
-        while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
-            ii++;
-        }
-        while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
-            jj++;
-        }
-        // If both indices have reached the end, strings are equal
-        return ii == len1 && jj == len2;
-    }
+//    /**
+//     * Fail fast string comparison ignoring white space
+//     * {@code @TODO} maybe allow white space between quotes
+//     * @param oldString to be compared
+//     * @param newString to be compared
+//     * @return true if both string are equal, ignoring any whitespace
+//     */
+//    public static boolean areEqualIgnoringWhitespace(String oldString, String newString) {
+//        if (oldString == null || newString == null) {
+//            return false; // Handle null values if needed
+//        }
+//        int ii = 0, jj = 0;
+//        int len1 = oldString.length(), len2 = newString.length();
+//        while (ii < len1 && jj < len2) {
+//            // Skip whitespace in str1
+//            while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
+//                ii++;
+//            }
+//            // Skip whitespace in str2
+//            while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
+//                jj++;
+//            }
+//            // If one string has reached its end but the other has not
+//            if (ii >= len1 || jj >= len2) {
+//                break;
+//            }
+//            // Compare characters
+//            if (oldString.charAt(ii) != newString.charAt(jj)) {
+//                return false; // Found a mismatch
+//            }
+//            ii++;
+//            jj++;
+//        }
+//        // Skip remaining whitespace in both strings
+//        while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
+//            ii++;
+//        }
+//        while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
+//            jj++;
+//        }
+//        // If both indices have reached the end, strings are equal
+//        return ii == len1 && jj == len2;
+//    }
 
 
     public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
@@ -461,9 +456,7 @@ public class StudioPsiUtils {
 
                 if (document != null) {
                     // File is open in the editor; update the document
-                    WriteCommandAction.runWriteCommandAction(project, () -> {
-                        document.setText(fileContent);
-                    });
+                    WriteCommandAction.runWriteCommandAction(project, () -> document.setText(fileContent));
 
                     // Commit the document to sync it with the PSI, otherwise format below will error
                     PsiDocumentManager.getInstance(project).commitDocument(document);
@@ -621,16 +614,17 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
             LOG.warn("STUDIO: WARN: readFileAsString invalid parameters absoluteFilePath " + absoluteFilePath +
                     " exists " + absoluteFilePath +
                     " StackTrace: " + Arrays.asList( Thread.currentThread().getStackTrace()));
-        }
+        } else {
 
-        try (InputStream is = absoluteFilePath.getInputStream();
-             Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
+            try (InputStream is = absoluteFilePath.getInputStream();
+                 Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
 
-            scanner.useDelimiter("\\A"); // Read entire file content
-            return scanner.hasNext() ? scanner.next() : "";
-        } catch (Exception ee) {
-            LOG.warn("STUDIO: WARN: readFileAsString failed to read the file " + absoluteFilePath.getPresentableUrl() + " exception was " + ee.getMessage() +
-                    " StackTrace: " + Arrays.asList( Thread.currentThread().getStackTrace()));
+                scanner.useDelimiter("\\A"); // Read entire file content
+                return scanner.hasNext() ? scanner.next() : "";
+            } catch (Exception ee) {
+                LOG.warn("STUDIO: WARN: readFileAsString failed to read the file " + absoluteFilePath.getPresentableUrl() + " exception was " + ee.getMessage() +
+                        " StackTrace: " + Arrays.asList(Thread.currentThread().getStackTrace()));
+            }
         }
         return null;
     }
@@ -699,115 +693,115 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         return targetContentRoot;
     }
 
-    /**
-     * Ensures the directory exists at the specified level, creating it if necessary.
-     *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
-     * @param parentDir    The VirtualFile of the parent directory.
-     * @param directoryName The name of the directory to ensure.
-     * @return The PsiDirectory for the created or existing directory.
-     */
-    private static PsiDirectory ensureDirectoryExists(String projectKey, VirtualFile parentDir, String directoryName) {
-        final VirtualFile[] newDir = new VirtualFile[1]; // To hold the created directory
+//    /**
+//     * Ensures the directory exists at the specified level, creating it if necessary.
+//     *
+//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param parentDir    The VirtualFile of the parent directory.
+//     * @param directoryName The name of the directory to ensure.
+//     * @return The PsiDirectory for the created or existing directory.
+//     */
+//    private static PsiDirectory ensureDirectoryExists(String projectKey, VirtualFile parentDir, String directoryName) {
+//        final VirtualFile[] newDir = new VirtualFile[1]; // To hold the created directory
+//
+//        VirtualFile existingDir = parentDir.findChild(directoryName);
+//        WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
+//
+//            if (existingDir == null) {
+//                // Directory doesn't exist, create it
+//                try {
+//                    newDir[0] = parentDir.createChildDirectory(null, directoryName);
+//                } catch (IOException e) {
+//                    String messages = "An error attempting tp create directory " + directoryName + " message was " + e.getMessage();
+//                    displayIdeaWarnMessage(UiContext.getProject(projectKey).getName(), messages);
+//                    LOG.warn("STUDIO: SERIOUS: " + messages);
+//                }
+//            } else if (!existingDir.isDirectory()) {
+//                throw new IllegalStateException("A file with the name " + directoryName + " already exists but is not a directory.");
+//            } else {
+//                // Directory already exists
+//                newDir[0] = existingDir;
+//            }
+//        });
+//
+//        // Wrap the VirtualFile as a PsiDirectory
+//        return PsiManager.getInstance(UiContext.getProject(projectKey)).findDirectory(newDir[0]);
+//    }
 
-        VirtualFile existingDir = parentDir.findChild(directoryName);
-        WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
 
-            if (existingDir == null) {
-                // Directory doesn't exist, create it
-                try {
-                    newDir[0] = parentDir.createChildDirectory(null, directoryName);
-                } catch (IOException e) {
-                    String messages = "An error attempting tp create directory " + directoryName + " message was " + e.getMessage();
-                    displayIdeaWarnMessage(UiContext.getProject(projectKey).getName(), messages);
-                    LOG.warn("STUDIO: SERIOUS: " + messages);
-                }
-            } else if (!existingDir.isDirectory()) {
-                throw new IllegalStateException("A file with the name " + directoryName + " already exists but is not a directory.");
-            } else {
-                // Directory already exists
-                newDir[0] = existingDir;
-            }
-        });
-
-        // Wrap the VirtualFile as a PsiDirectory
-        return PsiManager.getInstance(UiContext.getProject(projectKey)).findDirectory(newDir[0]);
-    }
-
-
-    /**
-     * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
-     * @param basePackage the package that contains the subpackage leaves
-     * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
-     */
-    public static void deleteSubPackagesNotIn(String projectKey, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
-        LOG.info("STUDIO: INFO: deleteSubPackagesNotIn will keep the following packages " + subPackagesToKeep);
-        VirtualFile baseDir = getProjectBaseDir(projectKey);
-
-        if (baseDir == null) {
-            LOG.warn("Studio: WARN: Could not get project root for directory for project [" + projectKey + "]");
-        } else {
-            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
-            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
-
-            CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->
-            {
-                try {
-                    ReadAction.compute(() -> {
-                        PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
-                        return leafPackageDirectory.getSubdirectories();
-                    });
-                } catch (Exception ee) {
-                    // ReadAction.compute can swallow exceptions if not explicitly caught
-                    LOG.warn("STUDIO: SERIOUS: The read action of pomGetTopLevel for params " +
-                            " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
-                            " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
-                }
-                return null;
-            });
-            leafPackageDirectoryFuture.thenAccept(resultsObject ->
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    if (resultsObject == null) {
-                        LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
-                                " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
-                                " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
-                    } else {
-                        for (PsiDirectory directory : resultsObject) {
-                            if (!subPackagesToKeep.contains(directory.getName())) {
-                                LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
-                                directory.delete();
-                            }
-                        }
-                    }
-
-                })
-            );
-        }
-    }
-
-    /**
-     * Traverse from the provided root directory to the leaf directory representing the leaf package
-     * @param sourceRootDir to start from
-     * @param qualifiedPackage to search
-     * @return either a PsiDirectory representing the leaf package or null if not found
-     * @throws IncorrectOperationException if there issues with the virtual file system
-     */
-    public static PsiDirectory getDirectoryForPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
-            throws IncorrectOperationException {
-        PsiDirectory parentDir = sourceRootDir;
-        if (sourceRootDir != null) {
-            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
-            while (token.hasMoreTokens()) {
-                String dirName = token.nextToken();
-                parentDir = parentDir.findSubdirectory(dirName);
-                if (parentDir==null) {
-                    break;
-                }
-            }
-        }
-        return parentDir;
-    }
+//    /**
+//     * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
+//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param basePackage the package that contains the subpackage leaves
+//     * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
+//     */
+//    public static void deleteSubPackagesNotIn(String projectKey, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
+//        LOG.info("STUDIO: INFO: deleteSubPackagesNotIn will keep the following packages " + subPackagesToKeep);
+//        VirtualFile baseDir = getProjectBaseDir(projectKey);
+//
+//        if (baseDir == null) {
+//            LOG.warn("Studio: WARN: Could not get project root for directory for project [" + projectKey + "]");
+//        } else {
+//            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+//            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
+//
+//            CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->
+//            {
+//                try {
+//                    ReadAction.compute(() -> {
+//                        PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
+//                        return leafPackageDirectory.getSubdirectories();
+//                    });
+//                } catch (Exception ee) {
+//                    // ReadAction.compute can swallow exceptions if not explicitly caught
+//                    LOG.warn("STUDIO: SERIOUS: The read action of pomGetTopLevel for params " +
+//                            " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+//                            " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
+//                }
+//                return null;
+//            });
+//            leafPackageDirectoryFuture.thenAccept(resultsObject ->
+//                ApplicationManager.getApplication().invokeLater(() -> {
+//                    if (resultsObject == null) {
+//                        LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
+//                                " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+//                                " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
+//                    } else {
+//                        for (PsiDirectory directory : resultsObject) {
+//                            if (!subPackagesToKeep.contains(directory.getName())) {
+//                                LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
+//                                directory.delete();
+//                            }
+//                        }
+//                    }
+//
+//                })
+//            );
+//        }
+//    }
+//
+//    /**
+//     * Traverse from the provided root directory to the leaf directory representing the leaf package
+//     * @param sourceRootDir to start from
+//     * @param qualifiedPackage to search
+//     * @return either a PsiDirectory representing the leaf package or null if not found
+//     * @throws IncorrectOperationException if there issues with the virtual file system
+//     */
+//    public static PsiDirectory getDirectoryForPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
+//            throws IncorrectOperationException {
+//        PsiDirectory parentDir = sourceRootDir;
+//        if (sourceRootDir != null) {
+//            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
+//            while (token.hasMoreTokens()) {
+//                String dirName = token.nextToken();
+//                parentDir = parentDir.findSubdirectory(dirName);
+//                if (parentDir==null) {
+//                    break;
+//                }
+//            }
+//        }
+//        return parentDir;
+//    }
 
     /**
      * Execute a Java command line, displaying the results in the Application output Window
@@ -863,7 +857,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                     return true;
                 });
 
-                String outputPath = null;
+
                 // Get the output directory for the module
                 CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
                 if (moduleExtension == null) {
@@ -873,186 +867,315 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                     return;
                 }
 
-                if (moduleExtension.getCompilerOutputPath() == null) {
-                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
-                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
-                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
-                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
-                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
-                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
-                        return;
-                    }
-                    else {
-                        outputPath = projectExtension.getCompilerOutputUrl();
-                    }
-                } else {
-                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
-                }
 
-                classPathElements.add(outputPath);
-                String classPath = String.join(File.pathSeparator, classPathElements);
-                GeneralCommandLine commandLine = new GeneralCommandLine()
-                        .withExePath(javaExecutablePath)
-                        .withParameters("-cp", classPath, fullyQualifiedClassName);
 
-                VirtualFile[] filesToCompile = new VirtualFile[]{virtualFile};
+//                VirtualFile[] filesToCompile = new VirtualFile[]{virtualFile};
                 // Run the task in a background thread
 //                ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 // Switch back to the EDT to execute UI-related tasks
                 ApplicationManager.getApplication().invokeLater(() -> {
                     CompilerManager compilerManager = CompilerManager.getInstance(project);
-
-                    // Compile the file
-                    compilerManager.compile(filesToCompile, (aborted, errors, warnings, compileContext) -> {
+                    compilerManager.rebuild((aborted, errors, warnings, compileContext) -> {
                         if (aborted) {
                             StudioUIUtils.displayIdeaWarnMessage(projectKey, "The build of the Spring application seems to have been aborted, launch is unavailable at this time");
                             LOG.warn("STUDIO: SERIOUS: compilerManager compile for Application.java was aborted");
-                            return;
-                        }
-
-                        if (errors > 0) {
+                        } else if (errors > 0) {
                             StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting building the Spring application, , launch is unavailable at this time");
                             LOG.warn("STUDIO: SERIOUS: compilerManager errors building Application.java");
-                            return;
-                        }
+                        } else {
+                            try {
+                                String outputPath;
 
-                        try {
-                            ConsoleView consoleView = new ConsoleViewImpl(project, true);
-                            ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
-                            consoleView.attachToProcess(processHandler);
-                            RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
-                            RunContentManager.getInstance(project)
-                                    .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
-                            UiContext.setAppserverProcessHandle(projectKey, processHandler);
-                            processHandler.startNotify();
-                        } catch (Exception e) {
-                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
-                            LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
-                                    "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+                                if (moduleExtension.getCompilerOutputPath() == null) {
+                                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
+                                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
+                                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
+                                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
+                                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
+                                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
+                                        return;
+                                    }
+                                    else {
+                                        outputPath = projectExtension.getCompilerOutputUrl();
+                                    }
+                                } else {
+                                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
+                                }
+
+                                classPathElements.add(outputPath);
+                                String classPath = String.join(File.pathSeparator, classPathElements);
+                                GeneralCommandLine commandLine = new GeneralCommandLine()
+                                        .withExePath(javaExecutablePath)
+                                        .withParameters("-cp", classPath, fullyQualifiedClassName);
+
+                                ConsoleView consoleView = new ConsoleViewImpl(project, true);
+                                ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
+                                consoleView.attachToProcess(processHandler);
+                                RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
+                                RunContentManager.getInstance(project)
+                                        .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
+                                UiContext.setAppserverProcessHandle(projectKey, processHandler);
+                                processHandler.startNotify();
+                            } catch (Exception e) {
+                                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced launching the application, launch is unavailable at this time");
+                                LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
+                                        "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+                            }
                         }
                     });
-
                 }, ModalityState.nonModal());
             } catch (Exception e) {
-                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced launching the application, launch is unavailable at this time");
                 LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during getAppExecutorService for virtual file [" + virtualFile.getPath() +
                         "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
             }
         });
     }
 
+//    /**
+//     * Execute a Java command line, displaying the results in the Application output Window
+//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param virtualFile of the class to be executed
+//     * @param fullyQualifiedClassName of the class to be executed
+//     */
+//    public static void runClassFromEditor3(String projectKey, VirtualFile virtualFile, String fullyQualifiedClassName) {
+//        Project project = UiContext.getProject(projectKey);
+//        // Perform slow operations on a background thread
+//        AppExecutorUtil.getAppExecutorService().execute(() -> {
+//            try {
+//                // Retrieve the Module of the file
+//                com.intellij.openapi.module.Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+//                if (module == null) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij module, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module for virtual files [" + virtualFile.getPath() + "] for project [" + projectKey + "]");
+//                    return;
+//                }
+//
+//                // Retrieve the SDK for the module
+//                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+//                if (moduleSdk == null || !(moduleSdk.getSdkType() instanceof JavaSdk)) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij sdk, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module SDK for virtual file [" + virtualFile.getPath() +
+//                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+//                    return;
+//                }
+//
+//                // Locate the Java executable
+//                String javaExecutablePath = JavaSdk.getInstance().getVMExecutablePath(moduleSdk);
+//                if (javaExecutablePath == null) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the JDK, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module java executable path for virtual file [" + virtualFile.getPath() +
+//                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+//                    return;
+//                }
+//
+//                String userClasses = project.getBasePath() + USER_CONTENT_ROOT + "/target/classes";
+//                // Resolve the classpath for the module
+//                List<String> classPathElements = new ArrayList<>();
+//                OrderEnumerator.orderEntries(module).recursively().forEachLibrary(library -> {
+//                    VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+//                    for (VirtualFile fileEntry : files) {
+//                        String path = fileEntry.getPath();
+//                        // !/ is appended when OrderEnumerator retrieves the URLs, need to strip
+//                        if (path.endsWith("!/")) {
+//                            path = path.substring(0, path.length() - 2);
+//                        }
+//                        classPathElements.add(path);
+//                    }
+//                    classPathElements.add(userClasses);
+//                    return true;
+//                });
+//
+//                String outputPath;
+//                // Get the output directory for the module
+//                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+//                if (moduleExtension == null) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
+//                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
+//                    return;
+//                }
+//
+//                if (moduleExtension.getCompilerOutputPath() == null) {
+//                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
+//                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
+//                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
+//                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
+//                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
+//                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
+//                        return;
+//                    }
+//                    else {
+//                        outputPath = projectExtension.getCompilerOutputUrl();
+//                    }
+//                } else {
+//                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
+//                }
+//
+//                classPathElements.add(outputPath);
+//                String classPath = String.join(File.pathSeparator, classPathElements);
+//                GeneralCommandLine commandLine = new GeneralCommandLine()
+//                        .withExePath(javaExecutablePath)
+//                        .withParameters("-cp", classPath, fullyQualifiedClassName);
+//
+//                VirtualFile[] filesToCompile = new VirtualFile[]{virtualFile};
+//                // Run the task in a background thread
+////                ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+//                // Switch back to the EDT to execute UI-related tasks
+//                ApplicationManager.getApplication().invokeLater(() -> {
+//                    CompilerManager compilerManager = CompilerManager.getInstance(project);
+//
+//                    // Compile the file
+//                    compilerManager.compile(filesToCompile, (aborted, errors, warnings, compileContext) -> {
+//                        if (aborted) {
+//                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "The build of the Spring application seems to have been aborted, launch is unavailable at this time");
+//                            LOG.warn("STUDIO: SERIOUS: compilerManager compile for Application.java was aborted");
+//                            return;
+//                        }
+//
+//                        if (errors > 0) {
+//                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting building the Spring application, , launch is unavailable at this time");
+//                            LOG.warn("STUDIO: SERIOUS: compilerManager errors building Application.java");
+//                            return;
+//                        }
+//
+//                        try {
+//                            ConsoleView consoleView = new ConsoleViewImpl(project, true);
+//                            ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
+//                            consoleView.attachToProcess(processHandler);
+//                            RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
+//                            RunContentManager.getInstance(project)
+//                                    .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
+//                            UiContext.setAppserverProcessHandle(projectKey, processHandler);
+//                            processHandler.startNotify();
+//                        } catch (Exception e) {
+//                            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+//                            LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
+//                                    "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+//                        }
+//                    });
+//
+//                }, ModalityState.nonModal());
+//            } catch (Exception e) {
+//                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+//                LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during getAppExecutorService for virtual file [" + virtualFile.getPath() +
+//                        "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+//            }
+//        });
+//    }
 
-    /**
-     * Execute a Java command line, displaying the results in the Application output Window
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
-     * @param virtualFile of the class to be executed
-     * @param fullyQualifiedClassName of the class to be executed
-     */
-    public static void runClassFromEditor2(String projectKey, VirtualFile virtualFile, String fullyQualifiedClassName) {
-        Project project = UiContext.getProject(projectKey);
-        // Perform slow operations on a background thread
-        AppExecutorUtil.getAppExecutorService().execute(() -> {
-            try {
-                // Retrieve the Module of the file
-                com.intellij.openapi.module.Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
-                if (module == null) {
-                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij module, launch is unavailable at this time");
-                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module for virtual files [" + virtualFile.getPath() + "] for project [" + projectKey + "]");
-                    return;
-                }
 
-                // Retrieve the SDK for the module
-                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-                if (moduleSdk == null || !(moduleSdk.getSdkType() instanceof JavaSdk)) {
-                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij sdk, launch is unavailable at this time");
-                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module SDK for virtual file [" + virtualFile.getPath() +
-                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
-                    return;
-                }
-
-                // Locate the Java executable
-                String javaExecutablePath = JavaSdk.getInstance().getVMExecutablePath(moduleSdk);
-                if (javaExecutablePath == null) {
-                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the JDK, launch is unavailable at this time");
-                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module java executable path for virtual file [" + virtualFile.getPath() +
-                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
-                    return;
-                }
-
-                String userClasses = project.getBasePath() + USER_CONTENT_ROOT + "/target/classes";
-                // Resolve the classpath for the module
-                List<String> classPathElements = new ArrayList<>();
-                OrderEnumerator.orderEntries(module).recursively().forEachLibrary(library -> {
-                    VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
-                    for (VirtualFile fileEntry : files) {
-                        String path = fileEntry.getPath();
-                        // !/ is appended when OrderEnumerator retrieves the URLs, need to strip
-                        if (path.endsWith("!/")) {
-                            path = path.substring(0, path.length() - 2);
-                        }
-                        classPathElements.add(path);
-                    }
-                    classPathElements.add(userClasses);
-                    return true;
-                });
-
-                String outputPath = null;
-                // Get the output directory for the module
-                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
-                if (moduleExtension == null) {
-                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
-                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
-                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
-                    return;
-                }
-
-                if (moduleExtension.getCompilerOutputPath() == null) {
-                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
-                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
-                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
-                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
-                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
-                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
-                        return;
-                    }
-                    else {
-                        outputPath = projectExtension.getCompilerOutputUrl();
-                    }
-                } else {
-                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
-                }
-
-                classPathElements.add(outputPath);
-                String classPath = String.join(File.pathSeparator, classPathElements);
-                GeneralCommandLine commandLine = new GeneralCommandLine()
-                        .withExePath(javaExecutablePath)
-                        .withParameters("-cp", classPath, fullyQualifiedClassName);
-
-                // Switch back to the EDT to execute UI-related tasks
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    try {
-                        ConsoleView consoleView = new ConsoleViewImpl(project, true);
-                        ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
-                        consoleView.attachToProcess(processHandler);
-                        RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
-                        RunContentManager.getInstance(project)
-                                .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
-                        UiContext.setAppserverProcessHandle(projectKey, processHandler);
-                        processHandler.startNotify();
-                    } catch (Exception e) {
-                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
-                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
-                                "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
-                    }
-                }, ModalityState.defaultModalityState());
-
-            } catch (Exception e) {
-                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
-                LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during getAppExecutorService for virtual file [" + virtualFile.getPath() +
-                        "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
-            }
-        });
-    }
+//    /**
+//     * Execute a Java command line, displaying the results in the Application output Window
+//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param virtualFile of the class to be executed
+//     * @param fullyQualifiedClassName of the class to be executed
+//     */
+//    public static void runClassFromEditor2(String projectKey, VirtualFile virtualFile, String fullyQualifiedClassName) {
+//        Project project = UiContext.getProject(projectKey);
+//        // Perform slow operations on a background thread
+//        AppExecutorUtil.getAppExecutorService().execute(() -> {
+//            try {
+//                // Retrieve the Module of the file
+//                com.intellij.openapi.module.Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+//                if (module == null) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij module, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module for virtual files [" + virtualFile.getPath() + "] for project [" + projectKey + "]");
+//                    return;
+//                }
+//
+//                // Retrieve the SDK for the module
+//                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+//                if (moduleSdk == null || !(moduleSdk.getSdkType() instanceof JavaSdk)) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the Intellij sdk, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module SDK for virtual file [" + virtualFile.getPath() +
+//                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+//                    return;
+//                }
+//
+//                // Locate the Java executable
+//                String javaExecutablePath = JavaSdk.getInstance().getVMExecutablePath(moduleSdk);
+//                if (javaExecutablePath == null) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the JDK, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find module java executable path for virtual file [" + virtualFile.getPath() +
+//                            "] for project [" + projectKey + "] moduleSDK [" + moduleSdk + "]");
+//                    return;
+//                }
+//
+//                String userClasses = project.getBasePath() + USER_CONTENT_ROOT + "/target/classes";
+//                // Resolve the classpath for the module
+//                List<String> classPathElements = new ArrayList<>();
+//                OrderEnumerator.orderEntries(module).recursively().forEachLibrary(library -> {
+//                    VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+//                    for (VirtualFile fileEntry : files) {
+//                        String path = fileEntry.getPath();
+//                        // !/ is appended when OrderEnumerator retrieves the URLs, need to strip
+//                        if (path.endsWith("!/")) {
+//                            path = path.substring(0, path.length() - 2);
+//                        }
+//                        classPathElements.add(path);
+//                    }
+//                    classPathElements.add(userClasses);
+//                    return true;
+//                });
+//
+//                String outputPath;
+//                // Get the output directory for the module
+//                CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+//                if (moduleExtension == null) {
+//                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the moduleExtension, launch is unavailable at this time");
+//                    LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find moduleExtension for virtual file [" + virtualFile.getPath() +
+//                            "] for project [" + projectKey + "] moduleExtension [" + moduleExtension + "]");
+//                    return;
+//                }
+//
+//                if (moduleExtension.getCompilerOutputPath() == null) {
+//                    CompilerProjectExtension projectExtension = CompilerProjectExtension.getInstance(project);
+//                    if (projectExtension == null || projectExtension.getCompilerOutputUrl() == null) {
+//                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were experienced getting the projectExtension, launch is unavailable at this time");
+//                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor could not find projectExtension for virtual file [" + virtualFile.getPath() +
+//                                "] for project [" + projectKey + "] projectExtension [" + projectExtension +
+//                                "] path [" + (projectExtension != null ? projectExtension.getCompilerOutputUrl() : "null") + "]");
+//                        return;
+//                    }
+//                    else {
+//                        outputPath = projectExtension.getCompilerOutputUrl();
+//                    }
+//                } else {
+//                    outputPath = moduleExtension.getCompilerOutputPath().getPath();
+//                }
+//
+//                classPathElements.add(outputPath);
+//                String classPath = String.join(File.pathSeparator, classPathElements);
+//                GeneralCommandLine commandLine = new GeneralCommandLine()
+//                        .withExePath(javaExecutablePath)
+//                        .withParameters("-cp", classPath, fullyQualifiedClassName);
+//
+//                // Switch back to the EDT to execute UI-related tasks
+//                ApplicationManager.getApplication().invokeLater(() -> {
+//                    try {
+//                        ConsoleView consoleView = new ConsoleViewImpl(project, true);
+//                        ProcessHandler processHandler = ProcessHandlerFactory.getInstance().createProcessHandler(commandLine);
+//                        consoleView.attachToProcess(processHandler);
+//                        RunContentDescriptor descriptor = new RunContentDescriptor(consoleView, processHandler, consoleView.getComponent(), "Console Output");
+//                        RunContentManager.getInstance(project)
+//                                .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor);
+//                        UiContext.setAppserverProcessHandle(projectKey, processHandler);
+//                        processHandler.startNotify();
+//                    } catch (Exception e) {
+//                        StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+//                        LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during invokeLater for virtual file [" + virtualFile.getPath() +
+//                                "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+//                    }
+//                }, ModalityState.defaultModalityState());
+//
+//            } catch (Exception e) {
+//                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Problems were launching the application, launch is unavailable at this time");
+//                LOG.warn("STUDIO: SERIOUS: runClassFromEditor threw an exception during getAppExecutorService for virtual file [" + virtualFile.getPath() +
+//                        "] for project [" + projectKey + "] message [" + e.getMessage() + "] trace [" + Arrays.asList(e.getStackTrace()) + "]");
+//            }
+//        });
+//    }
 
     /**
      * Attempt to stop the java process currently running in the console.
