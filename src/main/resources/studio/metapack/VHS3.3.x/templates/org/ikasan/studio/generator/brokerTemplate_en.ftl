@@ -16,7 +16,7 @@ import org.ikasan.spec.component.endpoint.Broker;
 import org.ikasan.spec.component.endpoint.EndpointException;
 
 @org.springframework.stereotype.Component
-public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Broker<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
+public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Broker<${flowElement.getPropertyValue('fromType')!'java.lang.Object'}, ${flowElement.getPropertyValue('toType')!'java.lang.Object'}>
 {
 
 @Override

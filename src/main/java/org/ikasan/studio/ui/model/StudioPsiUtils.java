@@ -34,6 +34,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.Dependency;
@@ -55,6 +56,7 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -729,79 +731,79 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 //    }
 
 
-//    /**
-//     * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
-//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
-//     * @param basePackage the package that contains the subpackage leaves
-//     * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
-//     */
-//    public static void deleteSubPackagesNotIn(String projectKey, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
-//        LOG.info("STUDIO: INFO: deleteSubPackagesNotIn will keep the following packages " + subPackagesToKeep);
-//        VirtualFile baseDir = getProjectBaseDir(projectKey);
-//
-//        if (baseDir == null) {
-//            LOG.warn("Studio: WARN: Could not get project root for directory for project [" + projectKey + "]");
-//        } else {
-//            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
-//            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
-//
-//            CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->
-//            {
-//                try {
-//                    ReadAction.compute(() -> {
-//                        PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
-//                        return leafPackageDirectory.getSubdirectories();
-//                    });
-//                } catch (Exception ee) {
-//                    // ReadAction.compute can swallow exceptions if not explicitly caught
-//                    LOG.warn("STUDIO: SERIOUS: The read action of pomGetTopLevel for params " +
-//                            " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
-//                            " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
-//                }
-//                return null;
-//            });
-//            leafPackageDirectoryFuture.thenAccept(resultsObject ->
-//                ApplicationManager.getApplication().invokeLater(() -> {
-//                    if (resultsObject == null) {
-//                        LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
-//                                " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
-//                                " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
-//                    } else {
-//                        for (PsiDirectory directory : resultsObject) {
-//                            if (!subPackagesToKeep.contains(directory.getName())) {
-//                                LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
-//                                directory.delete();
-//                            }
-//                        }
-//                    }
-//
-//                })
-//            );
-//        }
-//    }
-//
-//    /**
-//     * Traverse from the provided root directory to the leaf directory representing the leaf package
-//     * @param sourceRootDir to start from
-//     * @param qualifiedPackage to search
-//     * @return either a PsiDirectory representing the leaf package or null if not found
-//     * @throws IncorrectOperationException if there issues with the virtual file system
-//     */
-//    public static PsiDirectory getDirectoryForPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
-//            throws IncorrectOperationException {
-//        PsiDirectory parentDir = sourceRootDir;
-//        if (sourceRootDir != null) {
-//            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
-//            while (token.hasMoreTokens()) {
-//                String dirName = token.nextToken();
-//                parentDir = parentDir.findSubdirectory(dirName);
-//                if (parentDir==null) {
-//                    break;
-//                }
-//            }
-//        }
-//        return parentDir;
-//    }
+    /**
+     * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
+     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param basePackage the package that contains the subpackage leaves
+     * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
+     */
+    public static void deleteSubPackagesNotIn(String projectKey, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
+        LOG.info("STUDIO: INFO: deleteSubPackagesNotIn will keep the following packages " + subPackagesToKeep);
+        VirtualFile baseDir = getProjectBaseDir(projectKey);
+
+        if (baseDir == null) {
+            LOG.warn("Studio: WARN: Could not get project root for directory for project [" + projectKey + "]");
+        } else {
+            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
+
+            CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->
+            {
+                try {
+                    ReadAction.compute(() -> {
+                        PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
+                        return leafPackageDirectory.getSubdirectories();
+                    });
+                } catch (Exception ee) {
+                    // ReadAction.compute can swallow exceptions if not explicitly caught
+                    LOG.warn("STUDIO: SERIOUS: The read action of pomGetTopLevel for params " +
+                            " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+                            " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
+                }
+                return null;
+            });
+            leafPackageDirectoryFuture.thenAccept(resultsObject ->
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    if (resultsObject == null) {
+                        LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
+                                " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+                                " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
+                    } else {
+                        for (PsiDirectory directory : resultsObject) {
+                            if (!subPackagesToKeep.contains(directory.getName())) {
+                                LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
+                                directory.delete();
+                            }
+                        }
+                    }
+
+                })
+            );
+        }
+    }
+
+    /**
+     * Traverse from the provided root directory to the leaf directory representing the leaf package
+     * @param sourceRootDir to start from
+     * @param qualifiedPackage to search
+     * @return either a PsiDirectory representing the leaf package or null if not found
+     * @throws IncorrectOperationException if there issues with the virtual file system
+     */
+    public static PsiDirectory getDirectoryForPackage(PsiDirectory sourceRootDir, String qualifiedPackage)
+            throws IncorrectOperationException {
+        PsiDirectory parentDir = sourceRootDir;
+        if (sourceRootDir != null) {
+            StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
+            while (token.hasMoreTokens()) {
+                String dirName = token.nextToken();
+                parentDir = parentDir.findSubdirectory(dirName);
+                if (parentDir==null) {
+                    break;
+                }
+            }
+        }
+        return parentDir;
+    }
 
     /**
      * Execute a Java command line, displaying the results in the Application output Window

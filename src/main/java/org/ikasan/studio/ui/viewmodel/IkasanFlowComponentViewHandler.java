@@ -174,7 +174,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     /**
      * Draw the text for the symbol on the screen
      * @param g graphics object
-     * @param paintMode if DIMENSION_ONLY, don't actually paint, just get dimentions
+     * @param paintMode if DIMENSION_ONLY don't actually paint, just get dimensions
      * @return the bottom for the painted text
      */
     private int paintSymbolText(Graphics g, PaintMode paintMode) {
@@ -191,8 +191,8 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      * @param graphics object
      * @param x new x location
      * @param y new y location
-     * @param width of container which may be ignored if it is set by the component
-     * @param height of container which may be ignored if it is set by the component
+     * @param width of container, which may be ignored if it is set by the component
+     * @param height of container, which may be ignored if it is set by the component
      */
     @Override
     public void initialiseDimensions(Graphics graphics, int x, int y, int width, int height) {

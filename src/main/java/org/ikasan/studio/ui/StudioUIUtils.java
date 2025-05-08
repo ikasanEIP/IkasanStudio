@@ -123,31 +123,34 @@ public class StudioUIUtils {
      * //@todo turn all strings into components to support better x,y,width,height
      */
     public static int drawCenteredStringFromTopCentre(Graphics g, PaintMode paintMode, String text, int centerX, int topY, int maxWidth, Font font) {
-        if (maxWidth <= 0) {
-            LOG.warn("STUDIO: Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
-            maxWidth = 1;
-        }
-        Font origFont = g.getFont();
-        if (font != null) {
-            g.setFont(font);
-        }
-        if (text == null) {
-            text = "";
-        }
-        int stringHeight = StudioUIUtils.getTextHeight(g);
-        int stringWidth = StudioUIUtils.getTextWidth(g, text);
-        List<String> textToDisplay = StudioUIUtils.splitStringIntoMultipleRows(text, (stringWidth/maxWidth)+1);
-        int textY = topY + stringHeight;  // remember the y co-ord for drawstring is the baseline, not the top of the string.
-        int numberOfLines = 0;  // debugging
-        for (String subString : textToDisplay) {
-            int textX = centerX - (StudioUIUtils.getTextWidth(g, subString) / 2);
-            if (paintMode.equals(PaintMode.PAINT)) {
-                drawAliasedText((Graphics2D)g, subString, textX, textY, font);
+        int numberOfLines = 0;
+        int stringHeight = 0;
+        int textY = 0;
+        if (text != null && !text.isEmpty() &&  !"null".equals(text)) {
+            if (maxWidth <= 0) {
+                LOG.warn("STUDIO: Call to drawCenteredStringFromTopCentre with non-positive width, was [" + maxWidth + "]");
+                maxWidth = 1;
             }
-            numberOfLines ++;
-            textY+= stringHeight;
+            Font origFont = g.getFont();
+            if (font != null) {
+                g.setFont(font);
+            }
+             stringHeight = StudioUIUtils.getTextHeight(g);
+            int stringWidth = StudioUIUtils.getTextWidth(g, text);
+            List<String> textToDisplay = StudioUIUtils.splitStringIntoMultipleRows(text, (stringWidth/maxWidth)+1);
+            textY = topY + stringHeight;  // remember the y co-ord for drawstring is the baseline, not the top of the string.
+
+            for (String subString : textToDisplay) {
+                int textX = centerX - (StudioUIUtils.getTextWidth(g, subString) / 2);
+                if (paintMode.equals(PaintMode.PAINT)) {
+                    drawAliasedText((Graphics2D)g, subString, textX, textY, font);
+                }
+                numberOfLines ++;
+                textY+= stringHeight;
+            }
+            g.setFont(origFont);
         }
-        g.setFont(origFont);
+
         return numberOfLines > 0 ? textY - stringHeight : topY;
     }
 
