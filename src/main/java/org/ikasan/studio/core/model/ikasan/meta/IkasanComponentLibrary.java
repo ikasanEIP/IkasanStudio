@@ -310,7 +310,7 @@ public class IkasanComponentLibrary {
         }
         Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
-            String message = "STUDIO: Attempt to get a metamap for key " + ikasanComponentMetaMap + " resulted in an empty map";
+            String message = "STUDIO: Attempt to get a metamap for key " + ikasanMetaDataPackVersion + " resulted in an empty map";
             LOG.warn(message);
             throw new StudioBuildException(message);
         }
@@ -329,7 +329,7 @@ public class IkasanComponentLibrary {
         }
         Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndDeserialisationKey.get(ikasanMetaDataPackVersion);
         if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
-            String message = "STUDIO: Attempt to get a metamap for key " + ikasanComponentMetaMap + " resulted in an empty map";
+            String message = "STUDIO: Attempt to get a metamap for deserialisation key " + ikasanMetaDataPackVersion + " resulted in an empty map";
             LOG.warn(message);
             throw new StudioBuildException(message);
         }

@@ -84,26 +84,32 @@ public class IkasanPomModel {
         return cv1.compareTo(cv2) > 0;
     }
 
-    public boolean hasDependency(Dependency newDependency) {
-        return newDependency != null && dependencyMap.containsKey(getMapKey(newDependency));
+
+    /**
+     * Check if the supplied dependency is new i.e. not already in the pom
+     * @param newDependency to check
+     * @return true if the 'newDependency' is not already in the pom
+     */
+    public boolean isNewDependency(Dependency newDependency) {
+        return newDependency != null && !dependencyMap.containsKey(getMapKey(newDependency));
     }
 
     /**
      * Check if the dependencies are already known.
      * @param newDependencies to check
-     * @return true if all the provided jar dependenies are already in IkasanPomModel
+     * @return true if any of the supplied newDependencies are not already in the pom
      */
-    public boolean hasDependency(Collection<Dependency> newDependencies) {
-        boolean hasDependency = true;
+    public boolean isNewDependency(Collection<Dependency> newDependencies) {
+        boolean isNewDependency = false;
         if (newDependencies != null && !newDependencies.isEmpty()) {
             for (Dependency dependency : newDependencies) {
-                if (!hasDependency(dependency)) {
-                    hasDependency = false;
+                if (isNewDependency(dependency)) {
+                    isNewDependency = true;
                     break;
                 }
             }
         }
-        return hasDependency;
+        return isNewDependency;
     }
 
     /**
@@ -132,11 +138,7 @@ public class IkasanPomModel {
             Set<Dependency> sortedUniqueDependencies = ModelUtils.getAllUniqueSortedDependenciesSet(rawDependencies);
             List<Dependency> dependencyListUniqueSorted = new ArrayList<>(sortedUniqueDependencies);
             model.setDependencies(dependencyListUniqueSorted);
-            if (dependencyListUniqueSorted != null) {
-                resetKeys(dependencyListUniqueSorted);
-            } else {
-                LOG.warn("STUDIO: WARN, dependencyListUniqueSorted is null.");
-            }
+            resetKeys(dependencyListUniqueSorted);
         } else {
             LOG.warn("STUDIO: WARN, rawDependencies is null.");
         }

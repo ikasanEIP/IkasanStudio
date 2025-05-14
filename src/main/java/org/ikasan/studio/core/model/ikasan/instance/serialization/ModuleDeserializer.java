@@ -39,7 +39,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
         String metapackVersion = DEFAULT_IKASAN_PACK;
         JsonNode versionNode = jsonNode.get(VERSION);
-        if (versionNode != null &&  versionNode.asText() != null ) {
+        if (versionNode != null &&  versionNode.asText() != null && !"null".equals(versionNode.asText())) {
             metapackVersion = versionNode.asText();
             LOG.info("STUDIO: Loading metapackVersion version " + metapackVersion);
         } else {
