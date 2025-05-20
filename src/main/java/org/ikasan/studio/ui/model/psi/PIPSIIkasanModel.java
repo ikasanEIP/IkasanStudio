@@ -54,14 +54,11 @@ public class PIPSIIkasanModel {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             // 1. Determine if the pom needs to be updated
             IkasanPomModel ikasanPomModel = UiContext.getIkasanPomModel(projectKey);        // Not on EDT
-            if (!ikasanPomModel.hasDependency(module.getAllUniqueSortedJarDependencies())) {
+            if (ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())) {
                 pomDependenciesHaveChanged.set(true);
             } else {
                 pomDependenciesHaveChanged.set(false);
             }
-
-            LOG.warn("STUDIO: WARN: forcing refresh as tempotrary measure");
-//            pomDependenciesHaveChanged.set(true);
 
             // ProjectManager.getInstance().reloadProject(UiContext.getProject(projectKey))
 
@@ -71,9 +68,9 @@ public class PIPSIIkasanModel {
             // 2. Re-generate and save all the source code. @TODO going forward we only want to regenerate if its changed.
             // Switch to UI thread for write action and undo block
             ApplicationManager.getApplication().invokeLater(() -> {
-                // Using the command processor add support for undo
+                // Using the command  processor adds support for undo
                 CommandProcessor.getInstance().executeCommand(
-                        UiContext.getProject(projectKey),
+                    UiContext.getProject(projectKey),
                     () -> {
                         if (pomDependenciesHaveChanged.get()) {
                             // We have checked the in-memory model, below will also verify from the on-disk model.
@@ -178,8 +175,11 @@ public class PIPSIIkasanModel {
             generateAndSaveUserImplementClassStubsForFlow(projectKey, module, ikasanFlow);
         }
         // we have the flowPackageNames that ARE valid
-        LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
-//        StudioPsiUtils.deleteSubPackagesNotIn(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+//        LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            StudioPsiUtils.deleteSubPackagesNotIn(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+        });
+
     }
 
     private void generateAndSaveUserImplementClassStubsForFlow(String projectKey, Module module, Flow ikasanFlow) {
