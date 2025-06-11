@@ -35,7 +35,7 @@ repositories {
 dependencies {
     testImplementation(libs.junit)
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.freemarker:freemarker:2.3.34")
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
