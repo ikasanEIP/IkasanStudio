@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Pair;
@@ -95,12 +96,19 @@ public class DesignerCanvas extends JPanel {
                     Module module = UiContext.getIkasanModule(projectKey);
                     if (module == null) {
                         try {
-                            UiContext.setIkasanModule(projectKey, Module.moduleBuilder().version(metapackVersion).build());
+                            module = Module.moduleBuilder().version(metapackVersion).build();
+                            UiContext.setIkasanModule(projectKey, module);
                         } catch (StudioBuildException ex) {
                             throw new RuntimeException(ex);
                         }
                     } else {
                         module.setVersion(metapackVersion);
+                    }
+                    if (module.getName() == null) {
+                        Project project = UiContext.getProject(projectKey);
+                        if (project != null) {
+                            module.setName(project.getName());
+                        }
                     }
                     // Intellij startup is multi-threaded so caution is required.
                     if (UiContext.getPalettePanel(projectKey) != null) {
