@@ -36,10 +36,11 @@ install:
 # Note that most of the current SDLC CI is done in .github/workflows/build.yml i.e. the github workflow actions
 # Maybe going forward these need to be either migrated to or replicated in Travis.
 script:
+  # The wait is needed because sometimes the cache needs to be rebuilt which takes upto 20 mins
   - ./gradlew buildPlugin
   - ./gradlew test
   - |
   #- echo "Fetching latest IntelliJ IDEA IC version..."
   #- LATEST_IDEA_VERSION=$(curl -s https://data.services.jetbrains.com/products/releases?code=IC&latest=true&type=release | jq -r '.IC[0].version')
   #- echo "Latest version is $LATEST_IDEA_VERSION"
-  - ./gradlew verifyPlugin
+  - travid_wait 20 ./gradlew verifyPlugin
