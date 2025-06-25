@@ -25,6 +25,7 @@ install:
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
   - sdk install java 21.0.6-jbr
   - export JAVA_HOME=/home/travis/.sdkman/candidates/java/current
+  - export PATH=$JAVA_HOME/bin:$PATH
   - echo $JAVA_HOME
   - which java
   - java -version
