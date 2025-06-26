@@ -38,11 +38,10 @@ install:
 script:
   # The wait is needed because sometimes the cache needs to be rebuilt which takes upto 20 mins
   - date
-  #- rm -rf /home/travis/.gradle/caches/8.13
   #- cat /home/travis/.travis/functions
-  - travis_wait 20 ./gradlew buildPlugin
-  - travis_wait 20 ./gradlew test
+  - ./gradlew buildPlugin
+  - ./gradlew test
   #- echo "Fetching latest IntelliJ IDEA IC version..."
   #- LATEST_IDEA_VERSION=$(curl -s https://data.services.jetbrains.com/products/releases?code=IC&latest=true&type=release | jq -r '.IC[0].version')
   #- echo "Latest version is $LATEST_IDEA_VERSION"
-  - travis_wait 20 ./gradlew verifyPlugin
+  - ./gradlew verifyPlugin
