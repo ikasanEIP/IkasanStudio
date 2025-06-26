@@ -121,6 +121,14 @@
       "defaultValue": true,
       "mandatory": true
     },
+    "flowAutoStartup": {
+      "propertyName": "flowAutoStartup",
+      "helpText": "If set to true, the flows will be started automatically when the module starts, otherwise they must be started from the console.",
+      "setterProperty": false,
+      "propertyDataType": "java.lang.Boolean",
+      "defaultValue": true,
+      "mandatory": true
+    },
     "version": {
       "propertyName": "version",
       "choices": [ "V1.3.x" ],

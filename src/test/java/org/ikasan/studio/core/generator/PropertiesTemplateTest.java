@@ -22,7 +22,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_emptyFlow.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateProperties_emptyFlow_with_non_default_port() throws IOException, StudioGeneratorException {
@@ -33,7 +33,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_emptyFlow.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateProperties_emptyFlow_with_use_embeddedH2() throws IOException, StudioGeneratorException {
@@ -42,10 +42,10 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_useEmbeddedH2.properties"), templateString);
     }
-    
+
     /**
      * See also application_emptyFlow.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateProperties_emptyFlow_with_use_embeddedH2_null() throws IOException, StudioGeneratorException {
@@ -55,10 +55,34 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
     }
 
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_emptyFlow_with_use_flowAutoStartup() throws IOException, StudioGeneratorException {
+        module.setPropertyValue("flowAutoStartup", true);
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_flowAutoStartup.properties"), templateString);
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException if the template cant be generated
+     */
+    @Test
+    public void testCreateProperties_emptyFlow_with_use_flowAutoStartup_null() throws IOException, StudioGeneratorException {
+        module.setPropertyValue("flowAutoStartup", null);
+        String templateString = PropertiesTemplate.generateContents(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+    }
+
     //  ------------------------------- CONSUMERS ----------------------------------
     /**
      * See also application_fullyPopulatedEventGeneratingConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_eventGeneratingConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -69,7 +93,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedFtpConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_ftpConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -80,7 +104,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedLocalFileConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_localFileConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -90,7 +114,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     }
     /**
      * See also application_fullyPopulatedLocalFileConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_localFileConsumerMandatoryOnly() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -101,7 +125,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedScheduledConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_scheduledConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -112,7 +136,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedSftpConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_sftpConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -124,7 +148,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedSpringJmsConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_springJmsConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -135,7 +159,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedBasicAmqSpringJmsConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_basicAmqSpringJmsConsumer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -148,7 +172,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     // ------------------------------------- FILTER -------------------------------------
     /**
      * See also application_fullyPopulatedMessageFilterComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_messageFilter() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -160,7 +184,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     // ------------------------------------- CONVERTERS -------------------------------------
     /**
      * See also application_fullyPopulatedCustomConverterComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_customConverter() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -174,7 +198,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedObjectMessageToObjectConverterComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_objectMessageToObjectConverter() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -188,7 +212,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_objectMessageToXmlStringConverter() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -203,7 +227,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     // ------------------------------------- TRANSLATORS -------------------------------------
     /**
      * See also application_fullyPopulatedCustomConverterComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_customTranslator() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -218,7 +242,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     // ------------------------------------- PRODUCERS -------------------------------------
     /**
      * See also application_fullyPopulatedDevNullProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_devNullProducer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -229,7 +253,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedEmailProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_emailProducer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -240,7 +264,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedFtpProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_ftpProducer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -251,7 +275,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedJmsProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_jmsProducer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -262,7 +286,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedBasicAmqJmsProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_basicAmqJmsProducer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -273,7 +297,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedSftpProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_SftpProducer() throws IOException, StudioGeneratorException , StudioBuildException {
@@ -284,7 +308,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * See also application_fullyPopulatedLoggingProducerComponent.properties
-     * @throws IOException, StudioGeneratorException  if the template cant be generated
+     * @throws IOException, StudioGeneratorException if the template cant be generated
      */
     @Test
     public void testCreateFlowWith_loggingProducer() throws IOException, StudioGeneratorException , StudioBuildException {

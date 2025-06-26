@@ -56,7 +56,7 @@ The Palette contains new components for you to use by dragging them onto the cen
 From the dropdown in the Canvas, choose meta-pack V3.3.x (**not VHS3.3.x**), then click the button to the **right** of the chooser
 
 You should see the **Module Properties** popup below, pre-populate with the project name and version you have chosen, 
-feel free to update the properties as you wish (you may want to click 'true' for the field **useEmbeddedH2** to make your startups easier). Fihish by click the **Update Code** button.
+feel free to update the properties as you wish (you may want to click 'true' for the field **useEmbeddedH2** to make your startups easier, or set **flowAutoStartup** to true so that the flows start up when the module starts up). Finish by clicking the **Update Code** button.
 
 <img src="docs/images/20241416-ModuleForm.png" alt="Install Plugin from Disk" width="300">
 
