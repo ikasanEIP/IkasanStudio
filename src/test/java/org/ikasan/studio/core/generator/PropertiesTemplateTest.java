@@ -67,6 +67,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_flowAutoStartup.properties"), templateString);
     }
 
+
     /**
      * See also application_emptyFlow.properties
      * @throws IOException, StudioGeneratorException if the template cant be generated

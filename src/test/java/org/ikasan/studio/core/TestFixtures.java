@@ -20,6 +20,7 @@ public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
 //    public static final String TEST_IKASAN_PACK = "Vtest.x";
     public static final String TEST_IKASAN_PACK = "V3.3.x";
+//    public static final String TEST_IKASAN_PACK = "V3.3.7";
 //    public static final String V3_IKASAN_PACK = "V3.3.x";
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";

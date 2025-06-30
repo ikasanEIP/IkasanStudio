@@ -33,7 +33,4 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
     }
-    
-
-
 }
