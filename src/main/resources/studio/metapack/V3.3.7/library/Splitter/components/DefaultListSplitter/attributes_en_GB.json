@@ -1,0 +1,15 @@
+{
+  "name": "Default List Splitter",
+  "flowBuilderMethod": "splitter",
+  "helpText": "<strong>Default List Splitter</strong><ul><li><strong>Input</strong>- A list of 1 to n objects (see ‘fromType’ e.g. String)</li><li><strong>Output</strong>- 1 to n separate messages, each message containing one of the objects</li></ul><table border=\"1\"><tbody><tr><td>Input</td><td>&nbsp;</td><td>&nbsp;</td><td>Output</td><td>&nbsp;</td></tr><tr><td>Message</td><td>Payload</td><td>&nbsp;</td><td>Message</td><td>Payload</td></tr><tr><td>1</td><td>“AA”, “BB”, “CC”</td><td>&nbsp;</td><td>1</td><td>“AA”</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>2</td><td>“BB”</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>3</td><td>“CC”</td></tr></tbody></table>",
+  "implementingClass": "org.ikasan.component.splitter.DefaultListSplitter",
+  "useImplementingClassInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/splitter/DefaultSplitter.md",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "name": "Single Recipient Router",
+  "componentType": "org.ikasan.spec.component.routing.SingleRecipientRouter",
+  "helpText": "<strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "implementingClass": "org.ikasan.spec.component.routing.SingleRecipientRouter",
+  "flowBuilderMethod": "singleRecipientRouter",
+  "endpointKey": "Router Endpoint",
+  "generatesUserImplementedClass": "true",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
+      "userImplementClassFtlTemplate": "routerTemplate.ftl",
+      "affectsUserImplementedClass": "true",
+      "helpText": "The name of the class that contain the logic to decide which route a payload will be delivered to, the IDE will create a template for this class, the user  must provide the implementation.",
+      "mandatory": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a valid java classname for the router e.g. starting with upper case, followed by number/characters etc."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the bean type that contains bespoke configurations for this component.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean.",
+      "usageDataType":"configurationDefined"
+    },
+    "configuredResource": {
+      "propertyName": "configuredResource",
+      "affectsUserImplementedClass": "true",
+      "helpText": "Allow the Configuration to be exposed in the Ikasan console.",
+      "usageDataType":"java.lang.Boolean"
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "setterMethod" : "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The type of data we expect to come into the router. This can be any Java class.",
+      "mandatory": true,
+      "usageDataType":"java.lang.Class",
+      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the router."
+    },
+    "toType": {
+      "propertyName": "toType",
+      "defaultValue": "java.lang.String",
+      "hiddenProperty" : true,
+      "mandatory": true
+    },
+    "routeNames": {
+      "propertyName": "routeNames",
+      "affectsUserImplementedClass": "true",
+      "helpText": "The commma seperated list of names to identify the different routes",
+      "mandatory": true,
+      "usageDataType":"java.util.List<java.lang.String>",
+      "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
+      "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
+
+    }
+  }
+}
+

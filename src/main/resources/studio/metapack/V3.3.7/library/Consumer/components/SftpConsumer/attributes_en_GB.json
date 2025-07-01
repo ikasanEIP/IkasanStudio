@@ -1,0 +1,324 @@
+{
+  "name": "SFTP Consumer",
+  "helpText": "<strong>SFTP Consumer</strong><p>This consumer is variation of Scheduled Consumer which is a \"time event\" based consumer configured to be either an absolute or relative time schedule, backed by (S)FTP Message provider.</p>\n",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "additionalKey": "SFTP Consumer",
+  "usesBuilderInFactory": true,
+  "flowBuilderMethod": "consumer",
+  "endpointKey": "FTP Endpoint",
+  "endpointTextKey": "remoteHost",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "ageOfFiles": {
+      "propertyName": "ageOfFiles",
+      "helpText": "Default(-1) file filter related option expressed in days. Given that meta data of processed files is being collected on every successful file consumptions, the ageOfFiles option relates to housekeeping of the meta information. On every successful file consumption as part of postcommit process file (S)FTP consumer will attempt to delete records older than ageOfFiles records from file filter persistence table. The operation is skipped when ageOfFiles=-1.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "checksum": {
+      "propertyName": "checksum",
+      "helpText": "Default(False) Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "chronological": {
+      "propertyName": "chronological",
+      "helpText": "Default(False) Flag indicating whether the file processing should be based on chronological order of file latest updates.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "chunkSize": {
+      "propertyName": "chunkSize",
+      "helpText": "Optional only applicable when chunking=true. Default(1048576) 1MB.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "chunking": {
+      "propertyName": "chunking",
+      "helpText": "Default(False) Flag indicating whether the file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "cleanupJournalOnComplete": {
+      "propertyName": "cleanupJournalOnComplete",
+      "helpText": "Default(true) Existing (S)FTP consumer is using DB persistence tables to establish different operations it is performing as part of the usage of command pattern (FileDiscovery, FileRename, FileRetrive). That persistent information is by defaultcleaned up when cleanupJournalOnComplete=true. It can be occasionally useful to cleanupJournalOnComplete=false when performing some debugging.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "clientID": {
+      "propertyName": "clientID",
+      "helpText": "File filter related option identifying consumer. clientId is stored as part of the meta information persisted about the processed file.",
+      "setterProperty": true
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "setterMethod": "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
+    },
+    "connectionTimeout": {
+      "propertyName": "connectionTimeout",
+      "helpText": "Default(60000) expressed in milliseconds. Internal (S)FTP connector connection timeout value.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "criticalOnStartup": {
+      "propertyName": "criticalOnStartup",
+      "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "cronExpression": {
+      "propertyName": "cronExpression",
+      "dataValidationTyppe" : "cronExpression",
+      "defaultValue": "* * * * * ? *",
+      "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
+      "setterProperty": true,
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.cron-expression"
+    },
+    "dataTimeout": {
+      "propertyName": "dataTimeout",
+      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "destructive": {
+      "propertyName": "destructive",
+      "helpText": "Default(False) Flag indicating whether the processed file should be deleted after successful consumption.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "eager": {
+      "propertyName": "eager",
+      "helpText": "When true the scheduled consumer is immediately called back on completion of flow execution i.e. attempts to consume all messages available. If false the scheduled consumers cron expression determines the callback.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "eventFactory": {
+      "propertyName": "eventFactory",
+      "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.spec.event.EventFactory",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "filenamePattern": {
+      "propertyName": "filenamePattern",
+      "helpText": "Regular expression for matching file names to be transported.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.filename-pattern",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "ignoreMisfire": {
+      "propertyName": "ignoreMisfire",
+      "helpText": "Default(True). Whether to ignore call back failures.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "isRecursive": {
+      "propertyName": "isRecursive",
+      "helpText": "Default(False) Flag indicating whether the sourceDirectory file read should be performed in recursive manner. The option can be useful if once consumes files from top level directory without knowing the lower lever dir structure.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "knownHostFilename": {
+      "propertyName": "knownHostFilename",
+      "helpText": "The location of the known hosts file.",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.known-hosts-filename",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "managedEventIdentifierService": {
+      "propertyName": "managedEventIdentifierService",
+      "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.spec.event.ManagedEventIdentifierService",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the consumer event provider bean."
+    },
+    "managedResourceRecoveryManager": {
+      "propertyName": "managedResourceRecoveryManager",
+      "helpText": "Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managedresource recovery manager.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.spec.management.ManagedResourceRecoveryManager",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "maxEagerCallbacks": {
+      "propertyName": "maxEagerCallbacks",
+      "helpText": "The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "maxRetryAttempts": {
+      "propertyName": "maxRetryAttempts",
+      "helpText": "Default(3) internal (S)FTP connector retry count.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.max-retry-attempts"
+    },
+    "maxRows": {
+      "propertyName": "maxRows",
+      "helpText": "Default(-1) file filter related option. Given that meta data of processed files is being collected on every successful file consumptions, the maxRows option relates to housekeeping of the meta information. On every successful file consumption as part of post commit process file(S)FTP consumer will attempt to delete maxRows records from file filter persistence table. The operation is skipped when maxRows=-1.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "messageProvider": {
+      "propertyName": "messageProvider",
+      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Message Provider bean."
+    },
+    "minAge": {
+      "propertyName": "maxRows",
+      "helpText": "efault(120) file filter related option, expressed in seconds, used to indicate minimum age of the file on the remote filesystem before file can be processed. This setting is in place to prevent (S)FTP consumer from picking up file which is still being written to.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Long"
+    },
+    "moveOnSuccessNewPath": {
+      "propertyName": "moveOnSuccessNewPath",
+      "helpText": "Optional only applicable when moveOnSuccess=true, it provides new directory path when the processed file is moved to.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.move-on-success-new-path"
+    },
+    "password": {
+      "propertyName": "password",
+      "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.password",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "preferredKeyExchangeAlgorithm": {
+      "propertyName": "preferredKeyExchangeAlgorithm",
+      "helpText": "The key algorithm.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.preferred-key-exchange-algorithm"
+    },
+    "privateKeyFilename": {
+      "propertyName": "privateKeyFilename",
+      "helpText": "Flename for the private key.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.private-key-filename"
+    },
+    "remoteHost": {
+      "propertyName": "remoteHost",
+      "helpText": "Default('localhost') host name of the remote SFTP server where consumer needs to connect.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.remote-host",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "remotePort": {
+      "propertyName": "remotePort",
+      "helpText": "Default(22) port of the remote SFTP server where consumer needs to connect.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.remote-port",
+      "setterProperty": true,
+      "usageDataType": "java.lang.Integer"
+    },
+    "renameOnSuccess": {
+      "propertyName": "renameOnSuccess",
+      "helpText": "Default(False) Flag indicating whether to rename the processed file after successful consumption.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "renameOnSuccessExtension": {
+      "propertyName": "renameOnSuccessExtension",
+      "helpText": "Optional only applicable when renameOnSuccess=true, renameOnSuccessExtension is suffixed to the processed fileName.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "scheduledJobGroupName": {
+      "propertyName": "scheduledJobGroupName",
+      "helpText": "Group for scheduled jobs within the internal Ikasan scheduler.",
+      "setterProperty": true
+    },
+    "scheduledJobName": {
+      "propertyName": "scheduledJobName",
+      "helpText": "Name to identify this job within the internal Ikasan scheduler.",
+      "setterProperty": true
+    },
+    "sourceDirectory": {
+      "propertyName": "sourceDirectory",
+      "helpText": "Remote directory from which to discover files.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.source-directory",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "sourceDirectoryURLFactory": {
+      "propertyName": "sourceDirectoryURLFactory",
+      "helpText": "Provide the classname that overrides and implements the DirectoryURLFactory interface. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instancebased on date.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.framework.factory.DirectoryURLFactory",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Source Directory URL Factory bean."
+    },
+    "systemKey": {
+      "propertyName": "systemKey",
+      "helpText": "Optional only available on SFTP consumer.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.system-key"
+    },
+    "timezone": {
+      "propertyName": "timezone",
+      "helpText": "Support for overriding the default timezone.",
+      "setterProperty": true
+    },
+    "transactionManager": {
+      "propertyName": "transactionManager",
+      "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the transaction manager bean."
+    },
+    "username": {
+      "propertyName": "username",
+      "helpText": "User name used to login to SFTP server where consumer needs to connect.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.username",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    }
+  }
+}

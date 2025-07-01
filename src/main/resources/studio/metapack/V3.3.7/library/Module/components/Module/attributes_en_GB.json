@@ -1,0 +1,115 @@
+{
+  "name": "Module",
+  "helpText": "The module is the container for all flows",
+  "componentType": "org.ikasan.spec.module.Module",
+  "generatesUserImplementedClass": true,
+  "implementingClass": "",
+  "ikasanComponentFactoryMethod": "",
+  "usesBuilderInFactory" : true,
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan.studio",
+      "artifactId": "ikasan-studio-ide-mediator",
+      "version": "1.0.2"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone",
+      "version": "3.3.7"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-h2-standalone-persistence<",
+      "version": "3.3.7"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-test-endpoint",
+      "version": "3.3.7"
+    }
+  ],
+  "properties": {
+    "name": {
+      "propertyName": "name",
+      "affectsUserImplementedClass": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "applicationPackageName": {
+      "propertyName": "applicationPackageName",
+      "affectsUserImplementedClass": true,
+      "helpText": "The java package name for the new module.",
+      "mandatory": true
+    },
+    "configuredResourceId": {
+      "propertyName": "configuredResourceId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "usageDataType":"java.lang.String"
+    },
+    "context": {
+      "propertyName": "context",
+      "helpText": "The name of module prepended by slash."
+    },
+    "h2DbPortNumber": {
+      "propertyName": "h2DbPortNumber",
+      "helpText": "The port to be used by the embedded H2 database.",
+      "defaultValue": "12451",
+      "mandatory": true
+    },
+    "h2WebPortNumber": {
+      "propertyName": "h2WebPortNumber",
+      "helpText": "The port to be used by the embedded H2 database to expose its web interface.",
+      "defaultValue": "12452",
+      "mandatory": true
+    },
+    "host": {
+      "propertyName": "host",
+      "helpText": "Hostname for the current environment."
+    },
+    "port": {
+      "propertyName": "port",
+      "helpText": "The http port to be used by the blue console for this module.",
+      "defaultValue": "12450",
+      "mandatory": true
+    },
+    "protocol": {
+      "propertyName": "protocol",
+      "helpText": "The http protocol required to access the blue console.",
+      "defaultValue": "https"
+    },
+    "type": {
+      "propertyName": "type",
+      "helpText": "The type of module to be created.",
+      "defaultValue": "INTEGRATION_MODULE"
+    },
+    "url": {
+      "propertyName": "url",
+      "helpText": "The full URl of the applicationw when invoked in this specific environment."
+    },
+    "useEmbeddedH2": {
+      "propertyName": "useEmbeddedH2",
+      "helpText": "If set to true, use an 'in memory' control database.",
+      "setterProperty": false,
+      "propertyDataType": "java.lang.Boolean",
+      "defaultValue": true,
+      "mandatory": true
+    },
+    "flowAutoStartup": {
+      "propertyName": "flowAutoStartup",
+      "helpText": "If set to true, the flows will be started automatically when the module starts, otherwise they must be started from the console.",
+      "setterProperty": false,
+      "propertyDataType": "java.lang.Boolean",
+      "defaultValue": true,
+      "mandatory": true
+    },
+    "version": {
+      "propertyName": "version",
+      "choices": [ "V1.3.x" ],
+      "affectsUserImplementedClass": true,
+      "helpText": "The ikasan version used to build this module."
+    }
+  }
+}
+

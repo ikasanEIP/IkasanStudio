@@ -1,0 +1,38 @@
+{
+  "name": "Debug Transition",
+  "additionalKey":"DebugTransition",
+  "generatesUserImplementedClass": "true",
+  "helpText": "<strong>Debug Transition</strong><p>This component allows you to set a debug breakpoint on the data as it moves from one component to the next.</p><p>NOTE: debug elements are not saved when the project is closed.</p>",
+  "implementingClass": "org.ikasan.studio.ui.component.debug.DebugComponent",
+  "flowBuilderMethod": "filter",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "defaultValue": "setByIDEEndingInDebug",
+      "readOnlyProperty" : true,
+      "mandatory": true,
+      "helpText": "For a debug element, this will be the name of the component into which the debug flows."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "__module__flow__componentDebug",
+      "mandatory": true,
+      "readOnlyProperty" : true,
+      "userImplementClassFtlTemplate": "debugTransitionTemplate.ftl"
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.Object",
+      "hiddenProperty" : true,
+      "mandatory": true
+    }
+  }
+}
+

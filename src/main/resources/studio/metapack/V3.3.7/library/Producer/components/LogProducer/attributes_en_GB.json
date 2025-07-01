@@ -1,0 +1,46 @@
+{
+  "name": "Logging Producer",
+  "builder": "",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "flowBuilderMethod": "producer",
+  "helpText": "<strong>Logging Producer</strong><p>Ending component of the flow, or a route in the flow. This type of producer logs all data passed to it. Payload in: Any java Object. Process: call toString on the supplied payload, output the results to a log. Payload out: N/A.</p>",
+  "ikasanComponentFactoryMethod": "logProducer",
+  "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
+  "usesBuilderInFactory" : true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
+    },
+    "logEveryNth": {
+      "propertyName": "logEveryNth",
+      "helpText": "Only display every 'nth' log message.",
+      "propertyDataType": "java.lang.Long",
+      "setterProperty": true
+    },
+    "replacementText": {
+      "propertyName": "replacementText",
+      "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText.",
+      "setterProperty": true
+    },
+    "regExpPattern": {
+      "propertyName": "regExpPattern",
+      "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText.",
+      "setterProperty": true
+    }
+  }
+}
+

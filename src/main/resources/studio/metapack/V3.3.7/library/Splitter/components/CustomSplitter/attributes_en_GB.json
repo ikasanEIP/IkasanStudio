@@ -1,0 +1,50 @@
+{
+  "name": "Custom Splitter",
+  "generatesUserImplementedClass": "true",
+  "flowBuilderMethod": "splitter",
+  "helpText": "<strong>Default List Splitter</strong><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p>",
+  "_implementingClass": "In this case is just used an a key to indicate for uniqueness",
+  "implementingClass": "org.ikasan.component.splitter.Custom",
+  "_useImplementingClassInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/splitter/Readme.md",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
+      "userImplementClassFtlTemplate": "splitterTemplate.ftl",
+      "affectsUserImplementedClass": "true",
+      "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
+      "mandatory": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The data type of the objects in the list being sent to this splitter.",
+      "mandatory": true,
+      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+    },
+    "toType": {
+      "propertyName": "toType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The data type of the objects being sent to the downstream consumer.",
+      "mandatory": true,
+      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+    }
+  }
+}

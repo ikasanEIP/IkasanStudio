@@ -1,0 +1,71 @@
+{
+  "name": "Custom Message Filter",
+  "helpText": "<strong>Custom Message Filter</strong><p>Filter will allow given event to be passed to next component or it will end the flow. You can think of filter as of an 'IF' statement in a programming language. In order to create your own filter you need to implement Filter Interface.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "implementingClass": "org.ikasan.spec.component.filter.Filter.Custom",
+  "flowBuilderMethod": "filter",
+  "generatesUserImplementedClass": "true",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the bean type that contains bespoke configurations for this component.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean.",
+      "usageDataType":"configurationDefined"
+    },
+    "configuredResource": {
+      "propertyName": "configuredResource",
+      "affectsUserImplementedClass": "true",
+      "helpText": "Allow the Configuration to be exposed in the Ikasan console.",
+      "usageDataType":"java.lang.Boolean"
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "setterMethod" : "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The type of data we expect to come into the filter. This can be any Java class.",
+      "mandatory": true,
+      "usageDataType":"java.lang.String",
+      "_usageDataType":"java.util.List<String>",
+      "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the filter."
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
+      "userImplementClassFtlTemplate": "filterTemplate.ftl",
+      "affectsUserImplementedClass": "true",
+      "helpText": "The name of the class that contain the custom filter, the IDE will create a template for this class, the user  must provide the implementation.",
+      "mandatory": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
+    }
+  }
+}
+

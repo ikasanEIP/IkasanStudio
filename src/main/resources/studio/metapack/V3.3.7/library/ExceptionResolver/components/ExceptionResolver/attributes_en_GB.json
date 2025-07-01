@@ -1,0 +1,69 @@
+{
+  "name": "Exception Resolver",
+  "helpText": "<strong>Exception Resolver</strong><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/hospital/Readme.md",
+  "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
+  "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
+  "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",
+  "usesBuilderInFactory" : true,
+  "flowBuilderMethod": "withExceptionResolver",
+  "exceptionsCaught" : [
+    "javax.jms.JMSException.class",
+    "javax.resource.ResourceException.class",
+    "org.ikasan.spec.component.endpoint.EndpointException.class",
+    "org.ikasan.spec.component.filter.FilterException.class",
+    "org.ikasan.spec.component.routing.RouterException.class",
+    "org.ikasan.spec.component.splitting.SplitterException.class",
+    "org.ikasan.spec.component.transformation.TransformationException.class"
+  ],
+  "actionList" : [
+    {
+      "actionName" : "ignoreException",
+      "actionProperties":{}
+    },{
+      "actionName" : "excludeEvent",
+      "actionProperties":{}
+    },{
+      "actionName" : "retry",
+      "actionProperties":{
+        "delay": {
+          "propertyName": "delay",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer",
+          "defaultValue": 100
+        },
+        "interval": {
+          "propertyName": "interval",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer",
+          "defaultValue": 10
+        }
+      }
+    },{
+      "actionName" : "retryIndefinitely",
+      "actionProperties":{
+        "delay": {
+          "propertyName": "delay",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer",
+          "defaultValue": 5
+        }
+      }
+    },{
+      "actionName" : "scheduledCronEntry",
+      "actionProperties":{
+        "cronExpression": {
+          "propertyName": "cronExpression",
+          "dataValidationTyppe" : "cronExpression",
+          "defaultValue": "* * * * * ? *",
+          "mandatory": true
+        },
+        "maxRetries": {
+          "propertyName": "maxRetries",
+          "mandatory": true,
+          "propertyDataType" : "java.lang.Integer"
+        }
+      }
+    }
+  ]
+}

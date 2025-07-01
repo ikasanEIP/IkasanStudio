@@ -1,0 +1,11 @@
+{
+  "componentType": "org.ikasan.spec.module.Module",
+  "displayOrder": -1,
+  "componentShortType": "Module",
+  "properties": {
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    }
+  }
+}
