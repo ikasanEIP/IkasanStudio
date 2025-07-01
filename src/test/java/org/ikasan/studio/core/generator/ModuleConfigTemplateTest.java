@@ -4,7 +4,8 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,26 +20,28 @@ public class ModuleConfigTemplateTest {
      * @See resources/studio/templates/org/ikasan/studio/generator/ModuleConfigEmptyIkasanModel.java
      * @throws IOException if the template cant be generated
      */
-    @Test
-    public void testCreateModuleWith_emptyIkasanModel() throws IOException, StudioBuildException, StudioGeneratorException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(new ArrayList<>());
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateModuleWith_emptyIkasanModel(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
 
         String templateString = ModuleConfigTemplate.generateContents(module);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, ModuleConfigTemplate.MODULE_CLASS_NAME + "EmptyIkasanModel.java"), templateString);
     }
 
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/ModuleConfigOneFlow.java
      * @throws IOException if the template cant be generated
      */
-    @Test
-    public void testCreateModuleWith_oneFlow() throws IOException, StudioBuildException, StudioGeneratorException {
-        Flow flow1 = TestFixtures.getUnbuiltFlow().build();
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(Collections.singletonList(flow1));
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateModuleWith_oneFlow(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Flow flow1 = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, Collections.singletonList(flow1));
 
         String templateString = ModuleConfigTemplate.generateContents(module);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(module, ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, ModuleConfigTemplate.MODULE_CLASS_NAME + "OneFlow.java"), templateString);
     }
 }

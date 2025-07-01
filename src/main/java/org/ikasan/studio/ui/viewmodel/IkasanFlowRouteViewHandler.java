@@ -149,11 +149,19 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
                 if (targetFlowElement.getComponentMeta().isConsumer()) {
 //                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+//XXXX
+if (targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth() < -10) {
+LOG.error("STUDIO: 1 Left X being set to a -ve of " + (targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth()));
+}
                     endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                 } else {
 //                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+//XXXX
+if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing() < -10) {
+    LOG.error("STUDIO: 2 Left X being set to a -ve of " + (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing()));
+}
                     endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);

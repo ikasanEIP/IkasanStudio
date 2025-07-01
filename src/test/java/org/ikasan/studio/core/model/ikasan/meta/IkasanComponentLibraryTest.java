@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeSet;
 
+import static org.ikasan.studio.core.TestFixtures.META_IKASAN_PACK_3_3_3;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getDeserialisationKey;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getIkasanComponentByKey;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -14,15 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IkasanComponentLibraryTest {
     public static final String TEST_IKASAN_PACK = "Vtest.x";
-//    public static final String TEST_IKASAN_PACK = "V4.0.x";
-    public static final String TEST_V3_IKASAN_PACK = "V3.3.x";
     @Test
     void testDescerialisationKey() throws StudioBuildException {
-        String key1 = getDeserialisationKey(getIkasanComponentByKey(TEST_V3_IKASAN_PACK, "DB Endpoint"));
+        String key1 = getDeserialisationKey(getIkasanComponentByKey(META_IKASAN_PACK_3_3_3, "DB Endpoint"));
         assertEquals("DBEndpoint-Endpoint-", key1);
-        String key2 = getDeserialisationKey(getIkasanComponentByKey(TEST_V3_IKASAN_PACK, "Module"));
+        String key2 = getDeserialisationKey(getIkasanComponentByKey(META_IKASAN_PACK_3_3_3, "Module"));
         assertEquals("org.ikasan.spec.module.Module-", key2);
-        String key3 = getDeserialisationKey(getIkasanComponentByKey(TEST_V3_IKASAN_PACK, "FTP Consumer"));
+        String key3 = getDeserialisationKey(getIkasanComponentByKey(META_IKASAN_PACK_3_3_3, "FTP Consumer"));
         assertEquals("org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer-org.ikasan.spec.component.endpoint.Consumer-FTP Consumer", key3);
     }
 

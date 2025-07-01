@@ -10,7 +10,7 @@
   "protocol": "https",
   "type": "INTEGRATION_MODULE",
   "url": "https://host/myApp",
-  "version": "V3.3.x",
+  "version": "V3.3.3",
   "flows": [
     {
       "description": "MyFlowDescription",

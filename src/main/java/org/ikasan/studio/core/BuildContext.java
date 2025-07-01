@@ -18,7 +18,7 @@ public enum BuildContext {
     }
 
     // @todo needs to be version configurable
-    public static final String FREEMARKER_TEMPLATE_PATH = "/studio/metapack/V3.3.x/templates/org/ikasan/studio/generator/";
+    public static final String FREEMARKER_TEMPLATE_PATH = "/studio/metapack/V3.3.3/templates/org/ikasan/studio/generator/";
     public static final String FREEMARKER_OUTPUT_PATH = "/studio/templates/org/ikasan/studio/generator/";
     private final Configuration freemarkerConfiguration ;
 

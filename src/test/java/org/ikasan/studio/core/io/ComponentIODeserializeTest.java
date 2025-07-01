@@ -88,7 +88,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals("https", module.getPropertyValue("protocol")),
             () -> assertEquals("INTEGRATION_MODULE", module.getPropertyValue("type")),
             () -> assertEquals("https://host/myApp", module.getPropertyValue("url")),
-            () -> assertEquals("V3.3.x", module.getVersion()),
+            () -> assertEquals("V3.3.3", module.getVersion()),
 
             () -> assertEquals(1, flows.size()),
             () -> assertEquals(2, flow1.getComponentProperties().size()),
@@ -162,7 +162,7 @@ class ComponentIODeserializeTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals("V3.3.x", module.getVersion()),
+            () -> assertEquals("V3.3.3", module.getVersion()),
             () -> assertEquals("A to B convert", module.getName()),
             () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("co.uk.test", module.getApplicationPackageName()),

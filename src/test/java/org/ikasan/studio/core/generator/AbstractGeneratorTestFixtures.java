@@ -2,19 +2,18 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public abstract class AbstractGeneratorTestFixtures {
-    Module module;
 
-    public String generatePropertiesTemplateString(FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+    public String generatePropertiesTemplateString(String metaPackVersion, Module module, FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
                 .build();
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
@@ -25,9 +24,9 @@ public abstract class AbstractGeneratorTestFixtures {
     }
 
 
-    public String generateFlowTemplateString(FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+    public String generateFlowTemplateString(String metaPackVersion, Module module, FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
                 .build();
         module.addFlow(flow);
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
@@ -41,26 +40,26 @@ public abstract class AbstractGeneratorTestFixtures {
         return templateString;
     }
 
-    public String generateUserImplementedComponentTemplate(FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+    public String generateUserImplementedComponentTemplate(String metaPackVersion, Module module, FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
                 .build();
         module.addFlow(flow);
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
-        return generateUserImplementedComponentTemplateStringForModule(module, flowElement);
+        return generateUserImplementedComponentTemplateStringForModule(metaPackVersion, module, flowElement);
     }
 
-    public String generateUserImplementedComponentTemplateStringForModule(Module module, FlowElement flowElement) throws StudioGeneratorException {
+    public String generateUserImplementedComponentTemplateStringForModule(String metaPackVersion, Module module, FlowElement flowElement) throws StudioGeneratorException {
         String templateString = FlowsUserImplementedComponentTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0), flowElement);
         assertNotNull(templateString);
         return templateString;
     }
 
 
-    public String generateFlowWithExceptionResolverTemplateString(ExceptionResolver exceptionResolver) throws StudioBuildException, StudioGeneratorException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+    public String generateFlowWithExceptionResolverTemplateString(String metaPackVersion, Module module, ExceptionResolver exceptionResolver) throws StudioBuildException, StudioGeneratorException {
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
                 .exceptionResolver(exceptionResolver)
                 .build();
         exceptionResolver.setContainingFlowRoute(flow.getFlowRoute());
@@ -80,9 +79,9 @@ public abstract class AbstractGeneratorTestFixtures {
      * @throws StudioBuildException if problems getting component details
      * @throws StudioGeneratorException if problems occurred during code generation
      */
-    public String generateFlowsComponentFactoryTemplateString(FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
-        Flow flow = TestFixtures.getUnbuiltFlow()
-                .metapackVersion(TestFixtures.TEST_IKASAN_PACK)
+    public String generateFlowsComponentFactoryTemplateString(String metaPackVersion, Module module, FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
                 .build();
         module.addFlow(flow);
 
