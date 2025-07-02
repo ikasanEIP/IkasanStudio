@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.ikasan.studio.core.TestFixtures.META_IKASAN_PACK_3_3_3;
-
+import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -21,13 +20,13 @@ class FlowRouteTest {
 
     @BeforeEach
     public void setUp() throws StudioBuildException {
-        testFlow = TestFixtures.getUnbuiltFlow(META_IKASAN_PACK_3_3_3).build();
+        testFlow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();
     }
 
 
     @Test
     public void test_flow_route_instantiation() throws StudioBuildException {
-        Flow testFlow = TestFixtures.getUnbuiltFlow(META_IKASAN_PACK_3_3_3).build();
+        Flow testFlow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();
         String routeName = "route1";
         List<FlowRoute> childRoutes = new ArrayList<>();
         List<FlowElement> flowElements = new ArrayList<>();
@@ -45,7 +44,7 @@ class FlowRouteTest {
     }
 
     @Test
-    public void test_default_route_name_and_default_child_routes_abd_default_flow_elements() throws StudioBuildException {
+    public void test_default_route_name_and_default_child_routes_and_default_flow_elements() throws StudioBuildException {
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
                 .build();
@@ -82,7 +81,7 @@ class FlowRouteTest {
     public void test_isEmpty_returns_false_if_childRoutes_exist_and_is_not_empty_and_top_level_route_is_empty() throws StudioBuildException {
         FlowRoute childFlowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(Collections.singletonList(TestFixtures.getBroker(META_IKASAN_PACK_3_3_3)))
+                .flowElements(Collections.singletonList(TestFixtures.getBroker(BASE_META_PACK)))
                 .build();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
@@ -97,7 +96,7 @@ class FlowRouteTest {
     public void test_isEmpty_returns_false_if_childRoutes_empty_but_top_level_route_is_not_empty() throws StudioBuildException {
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
             .flow(testFlow)
-            .flowElements(Collections.singletonList(TestFixtures.getBroker(META_IKASAN_PACK_3_3_3)))
+            .flowElements(Collections.singletonList(TestFixtures.getBroker(BASE_META_PACK)))
             .build();
 
         boolean result = flowRoute.isEmpty();
@@ -159,7 +158,7 @@ class FlowRouteTest {
 
     @Test
     public void test_removeFlowElement_where_we_remove_flow_element_from_flow_elements_list() throws StudioBuildException {
-        FlowElement broker = TestFixtures.getBroker(META_IKASAN_PACK_3_3_3);
+        FlowElement broker = TestFixtures.getBroker(BASE_META_PACK);
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(broker);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
@@ -174,7 +173,7 @@ class FlowRouteTest {
 
     @Test
     public void test_removeFlowElement_where_we_remove_child_route_if_no_flow_elements_and_router() throws StudioBuildException {
-        FlowElement router = TestFixtures.getMultiRecipientRouter(META_IKASAN_PACK_3_3_3);
+        FlowElement router = TestFixtures.getMultiRecipientRouter(BASE_META_PACK);
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(router);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
@@ -191,7 +190,7 @@ class FlowRouteTest {
     public void test_hasProducer_returns_true_when_producer_exists() throws StudioBuildException {
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer(META_IKASAN_PACK_3_3_3)))
+                .flowElements(Collections.singletonList(TestFixtures.getLoggingProducer(BASE_META_PACK)))
                 .build();
 
         boolean result = flowRoute.hasProducer();
@@ -214,7 +213,7 @@ class FlowRouteTest {
     public void test_hasRouter_returns_true_when_producer_exists() throws StudioBuildException {
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
-                .flowElements(Collections.singletonList(TestFixtures.getMultiRecipientRouter(META_IKASAN_PACK_3_3_3)))
+                .flowElements(Collections.singletonList(TestFixtures.getMultiRecipientRouter(BASE_META_PACK)))
                 .build();
 
         boolean result = flowRoute.hasRouter();
@@ -235,8 +234,8 @@ class FlowRouteTest {
 
     @Test
     public void test_getFlowIntegrityStatus_returns_true_when_meets_criteria() throws StudioBuildException {
-        FlowElement producer = TestFixtures.getLoggingProducer(META_IKASAN_PACK_3_3_3);
-        testFlow.setConsumer(TestFixtures.getEventGeneratingConsumer(META_IKASAN_PACK_3_3_3));
+        FlowElement producer = TestFixtures.getLoggingProducer(BASE_META_PACK);
+        testFlow.setConsumer(TestFixtures.getEventGeneratingConsumer(BASE_META_PACK));
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(producer);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
@@ -253,11 +252,11 @@ class FlowRouteTest {
     @Test
     public void test_returns_all_flow_elements_including_consumer_in_default_route() throws StudioBuildException {
         // Create a FlowRoute object
-        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(META_IKASAN_PACK_3_3_3);
-        FlowElement broker = TestFixtures.getBroker(META_IKASAN_PACK_3_3_3);
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(BASE_META_PACK);
+        FlowElement broker = TestFixtures.getBroker(BASE_META_PACK);
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(broker);
-        Flow flow = TestFixtures.getUnbuiltFlow(META_IKASAN_PACK_3_3_3)
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK)
                 .consumer(consumer)
                 .build();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
@@ -273,9 +272,9 @@ class FlowRouteTest {
 
     @Test
     public void test_getFlowElementsNoExternalEndPoints_returns_empty_list_even_when_not_flow_elements() throws StudioBuildException {
-        FlowElement endPoint = TestFixtures.getEndpointForLocalFileConsumer(META_IKASAN_PACK_3_3_3);
-        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(META_IKASAN_PACK_3_3_3);
-        FlowElement broker = TestFixtures.getBroker(META_IKASAN_PACK_3_3_3);
+        FlowElement endPoint = TestFixtures.getEndpointForLocalFileConsumer(BASE_META_PACK);
+        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+        FlowElement broker = TestFixtures.getBroker(BASE_META_PACK);
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(endPoint);
         flowElements.add(localFileConsumer);
@@ -289,14 +288,14 @@ class FlowRouteTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(broker, result.get(0));
+        assertEquals(broker, result.getFirst());
     }
 
     @Test
     public void test_ftlGetConsumerAndFlowElementsNoEndPoints_returns_empty_list_even_when_not_flow_elements() throws StudioBuildException {
-        FlowElement endPoint = TestFixtures.getEndpointForLocalFileConsumer(META_IKASAN_PACK_3_3_3);
-        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(META_IKASAN_PACK_3_3_3);
-        FlowElement broker = TestFixtures.getBroker(META_IKASAN_PACK_3_3_3);
+        FlowElement endPoint = TestFixtures.getEndpointForLocalFileConsumer(BASE_META_PACK);
+        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+        FlowElement broker = TestFixtures.getBroker(BASE_META_PACK);
         List<FlowElement> flowElements = new ArrayList<>();
         flowElements.add(endPoint);
         flowElements.add(localFileConsumer);
@@ -316,7 +315,7 @@ class FlowRouteTest {
 
     @Test
     public void test_isValidToAdd_returns_true_when_adding_producer_and_no_existing_producer() throws StudioBuildException {
-        FlowElement producer = TestFixtures.getLoggingProducer(META_IKASAN_PACK_3_3_3);
+        FlowElement producer = TestFixtures.getLoggingProducer(BASE_META_PACK);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
                 .build();
@@ -328,7 +327,7 @@ class FlowRouteTest {
 
     @Test
     public void test_isValidToAdd_returns_true_when_adding_consumer_and_no_existing_consumer() throws StudioBuildException {
-        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(META_IKASAN_PACK_3_3_3);
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(BASE_META_PACK);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
                 .build();
@@ -340,7 +339,7 @@ class FlowRouteTest {
 
     @Test
     public void test_isValidToAdd_returns_false_when_adding_producer_and_existing_producer() throws StudioBuildException {
-        FlowElement producer = TestFixtures.getLoggingProducer(META_IKASAN_PACK_3_3_3);
+        FlowElement producer = TestFixtures.getLoggingProducer(BASE_META_PACK);
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
                 .flow(testFlow)
                 .flowElements(Collections.singletonList(producer))
@@ -353,8 +352,8 @@ class FlowRouteTest {
 
     @Test
     public void test_isValidToAdd_returns_false_when_adding_consumer_and_existing_consumer() throws StudioBuildException {
-        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(META_IKASAN_PACK_3_3_3);
-        Flow flow = TestFixtures.getUnbuiltFlow(META_IKASAN_PACK_3_3_3)
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(BASE_META_PACK);
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK)
                 .consumer(consumer)
                 .build();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
@@ -368,9 +367,9 @@ class FlowRouteTest {
 
     @Test
     public void test_isValidToAdd_returns_true_when_adding_a_broker_where_consumer_and_producer_exist() throws StudioBuildException {
-        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(META_IKASAN_PACK_3_3_3);
-        FlowElement producer = TestFixtures.getLoggingProducer(META_IKASAN_PACK_3_3_3);
-        Flow flow = TestFixtures.getUnbuiltFlow(META_IKASAN_PACK_3_3_3)
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(BASE_META_PACK);
+        FlowElement producer = TestFixtures.getLoggingProducer(BASE_META_PACK);
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK)
                 .consumer(consumer)
                 .build();
         FlowRoute flowRoute = new FlowRoute.FlowRouteBuilder()
@@ -378,7 +377,7 @@ class FlowRouteTest {
                 .flowElements(Collections.singletonList(producer))
                 .build();
 
-        boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker(META_IKASAN_PACK_3_3_3).getComponentMeta());
+        boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker(BASE_META_PACK).getComponentMeta());
 
         assertTrue(result);
     }
@@ -389,7 +388,7 @@ class FlowRouteTest {
                 .flow(testFlow)
                 .build();
 
-        boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker(META_IKASAN_PACK_3_3_3).getComponentMeta());
+        boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker(BASE_META_PACK).getComponentMeta());
 
         assertTrue(result);
     }

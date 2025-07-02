@@ -2,12 +2,9 @@ package org.ikasan.studio.core.io;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.generator.ApplicationTemplate;
-import org.ikasan.studio.core.generator.GeneratorTestUtils;
-import org.ikasan.studio.core.generator.StudioGeneratorException;
 import org.ikasan.studio.core.generator.TestUtils;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,28 +14,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static org.ikasan.studio.core.TestFixtures.META_IKASAN_PACK_3_3_3;
-import static org.ikasan.studio.core.TestFixtures.VERSION_INDEPENDENT_META_PACK;
+import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ComponentIOSerializeTest {
 
-
     @BeforeAll
     public static void classSetup() throws StudioBuildException {
-        IkasanComponentLibrary.refreshComponentLibrary(VERSION_INDEPENDENT_META_PACK);
+        IkasanComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
     }
 
     @Test
     public void testFlowElementSerializeToJson() throws IOException, StudioBuildException {
-        FlowElement devNullProducer = TestFixtures.getDevNullProducer(VERSION_INDEPENDENT_META_PACK);
+        FlowElement devNullProducer = TestFixtures.getDevNullProducer(BASE_META_PACK);
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));
     }
 
     @Test
     public void testFlowSerializeToJson() throws IOException, StudioBuildException {
-        Flow flow1 = TestFixtures.getUnbuiltFlow(VERSION_INDEPENDENT_META_PACK).build();
+        Flow flow1 = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();
         String jsonString = ComponentIO.toJson(flow1);
 
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flow.json"), jsonString);
@@ -46,7 +40,7 @@ class ComponentIOSerializeTest {
 
     @Test
     public void testModuleSerializeToJson() throws IOException, StudioBuildException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(VERSION_INDEPENDENT_META_PACK, new ArrayList<>());
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/module.json"), ComponentIO.toJson(module));
     }
 
@@ -157,50 +151,50 @@ class ComponentIOSerializeTest {
 
     @Test
     public void testPopulatedFlowSerializeToJson() throws IOException, StudioBuildException {
-        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(VERSION_INDEPENDENT_META_PACK));
+        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(BASE_META_PACK));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow.json"), jsonString);
     }
 
     @Test
     public void testPopulatedFlowSerializeWithWiretapsToJson() throws IOException, StudioBuildException {
-        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow(VERSION_INDEPENDENT_META_PACK));
+        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow(BASE_META_PACK));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow_with_wiretaps.json"), jsonString);
     }
 
     @Test
     public void testPopulatedFlowSerializeWithSomeFaultyWiretapsToJsonDoesNotCrashFlow() throws IOException, StudioBuildException {
-        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithFaultyWiretapsFlow(VERSION_INDEPENDENT_META_PACK));
+        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithFaultyWiretapsFlow(BASE_META_PACK));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_flow_with_wiretaps.json"), jsonString);
     }
     @Test
     public void testPopulatedFlowWithMultiRecipientRouterSerializeToJson() throws IOException, StudioBuildException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(META_IKASAN_PACK_3_3_3, Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow(META_IKASAN_PACK_3_3_3)));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK)));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module_with_router.json"), ComponentIO.toJson(module));
 
     }
 
     @Test
     public void testPopulatedModuleSerializeToJson() throws IOException, StudioBuildException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(VERSION_INDEPENDENT_META_PACK, Collections.singletonList(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(VERSION_INDEPENDENT_META_PACK)));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, Collections.singletonList(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(BASE_META_PACK)));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module.json"), ComponentIO.toJson(module));
     }
 
     @Test
     public void testExceptionResolverModuleSerializeToJson() throws IOException, StudioBuildException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(VERSION_INDEPENDENT_META_PACK,
-                Collections.singletonList(TestFixtures.getExceptionResolverFlow(VERSION_INDEPENDENT_META_PACK)));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK,
+                Collections.singletonList(TestFixtures.getExceptionResolverFlow(BASE_META_PACK)));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/populated_module_with_exception_resolver.json"), ComponentIO.toJson(module));
     }
 
     @Test
     public void testDevNullFlowElementSerialiseToJson() throws IOException, StudioBuildException {
-        FlowElement devNullProducer = TestFixtures.getDevNullProducer(VERSION_INDEPENDENT_META_PACK);
+        FlowElement devNullProducer = TestFixtures.getDevNullProducer(BASE_META_PACK);
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/flowElement.json"), ComponentIO.toJson(devNullProducer));
     }
 
     @Test
     public void testDebugIsNotSerialisedToJson() throws IOException, StudioBuildException {
-        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlowWithDebugOnEachElement(META_IKASAN_PACK_3_3_3));
+        String jsonString = ComponentIO.toJson(TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlowWithDebugOnEachElement(BASE_META_PACK));
         assertEquals(TestUtils.getFileAsString("/org/ikasan/studio/debug_populated_flow.json"), jsonString);
     }
 

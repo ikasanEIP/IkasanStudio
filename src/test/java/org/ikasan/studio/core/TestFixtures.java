@@ -19,19 +19,19 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String VERSION_INDEPENDENT_META_PACK = "Vtest.x";
-//    public static final String metaPackVersion = "Vtest.x";
-//    public static final String metaPackVersion = "V3.3.x";
-//    public static final String metaPackVersion = "V3.3.7";
-    public static final String META_IKASAN_PACK_3_3_7 = "V3.3.7";
     public static final String META_IKASAN_PACK_3_3_3 = "V3.3.3";
-//    public static final String V3_IKASAN_PACK = "V3.3.x";
+    public static final String META_IKASAN_PACK_3_3_7 = "V3.3.7";
+
+    // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
+    // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
+    public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_3;
+
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
     public static final String TEST_CRON_EXPRESSION = "0 0/1 * * * ?";
 
     public static Stream<String> metaPacksToTest() {
-        return Stream.of("V3.3.3", "V3.3.7");
+        return Stream.of(META_IKASAN_PACK_3_3_3, META_IKASAN_PACK_3_3_7);
     }
 
     public static Module getMyFirstModuleIkasanModule(String metaPackVersion, List<Flow> flows) throws StudioBuildException {
@@ -46,19 +46,6 @@ public class TestFixtures {
             .flows(flows)
             .build();
     }
-//
-//    public static Module getMyFirstModuleIkasanModule(List<Flow> flowsString metaPackVersion) throws StudioBuildException {
-//        return Module.moduleBuilder()
-//            .version(metaPackVersion)
-//            .name("A to B convert")
-//            .description("My first module")
-//            .applicationPackageName("co.uk.test")
-//            .port("8091")
-//            .h2PortNumber("8092")
-//            .h2WebPortNumber("8093")
-//            .flows(flows)
-//            .build();
-//    }
 
     public static Flow.FlowBuilder getUnbuiltFlow(String metaPackVersion) {
         return Flow.flowBuilder()

@@ -14,7 +14,6 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ComponentIODeserializeTest {
-    //@NEXT EventGeneratingConsumer replicated
 
     @Test
     public void testModuleMetaDeserialise() throws StudioBuildException {
@@ -55,9 +54,8 @@ class ComponentIODeserializeTest {
 
     @Test
     public void testNullPropertiesDoesNotGetSet() throws StudioBuildException {
-//        IkasanMeta module = ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/BadComponentMeta/null_property_en_GB.json");
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_just_consumer_and_null_properties.json");
-        FlowElement consumer = module.getFlows().get(0).getConsumer();
+        FlowElement consumer = module.getFlows().getFirst().getConsumer();
         assertNull(consumer.getDescription());
     }
 
@@ -65,7 +63,7 @@ class ComponentIODeserializeTest {
     public void testModuleInstanceDeserialize() throws StudioBuildException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_full_module_with_exception_resolver.json");
         List<Flow> flows = module.getFlows();
-        Flow flow1 = flows.get(0);
+        Flow flow1 = flows.getFirst();
         FlowElement eventGeneratingConsumer = flow1.getConsumer();
 
         FlowElement customConverter = flow1.getFlowRoute().getFlowElements().get(0);
@@ -134,7 +132,7 @@ class ComponentIODeserializeTest {
     public void testModuleInstanceWithRouterDeserialize() throws StudioBuildException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_with_router.json");
         List<Flow> flows = module.getFlows();
-        Flow flow1 = flows.get(0);
+        Flow flow1 = flows.getFirst();
 
         assertAll(
             "Check the module contains the flow routes",
@@ -142,13 +140,13 @@ class ComponentIODeserializeTest {
             () -> assertEquals(2, flow1.getComponentProperties().size(), "Component properties"),
             () -> assertEquals("MyFlow1", flow1.getName(), "Flow name"),
             () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().size(), "Child routes"),
-            () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().get(0).getChildRoutes().size(), "Child route 1"),
+            () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().getFirst().getChildRoutes().size(), "Child route 1"),
             () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().get(1).getChildRoutes().size(), "Child route 2"),
 
             // Flow Element + Router endPoint
-            () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().get(0).getFlowElements().size(), "Route 1 Flow Elements Size"),
+            () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().getFirst().getFlowElements().size(), "Route 1 Flow Elements Size"),
             () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().get(1).getFlowElements().size(), "Route 2 Flow Elements Size"),
-            () -> assertEquals("route1", flow1.getFlowRoute().getChildRoutes().get(0).getRouteName()),
+            () -> assertEquals("route1", flow1.getFlowRoute().getChildRoutes().getFirst().getRouteName()),
             () -> assertEquals("route2", flow1.getFlowRoute().getChildRoutes().get(1).getRouteName())
         );
     }
@@ -157,7 +155,7 @@ class ComponentIODeserializeTest {
     public void testModuleInstanceDeserializeIsRobustNotFailingWithEmptyElements() throws StudioBuildException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_with_empty_elements.json");
         List<Flow> flows = module.getFlows();
-        Flow flow1 = flows.get(0);
+        Flow flow1 = flows.getFirst();
         FlowElement elements = flow1.getConsumer();
 
         assertAll(
@@ -184,7 +182,6 @@ class ComponentIODeserializeTest {
 //        List<Flow> flows = module.getFlows();
 //        Flow flow1 = flows.get(0);
 //        FlowElement elements = flow1.getConsumer();
-//        List<Transition> transition = flow1.getTransitions();
 //
 //        assertAll(
 //            "Check the module contains the expected values",
@@ -200,8 +197,7 @@ class ComponentIODeserializeTest {
 //            () -> assertEquals(1, flow1.getComponentProperties().size()),
 //            () -> assertEquals("Flow1", flow1.getName()),
 //
-//            () -> Assertions.assertNull(elements),
-//            () -> Assertions.assertTrue(transition.isEmpty())
+//            () -> Assertions.assertNull(elements)
 //        );
 //    }
 //
