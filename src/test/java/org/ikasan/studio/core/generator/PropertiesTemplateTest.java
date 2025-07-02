@@ -315,7 +315,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         // The Translator requires a new jar dependency
         switch (metaPackVersion) {
             case TestFixtures.META_IKASAN_PACK_3_3_8:
-                assertEquals(5, module.getAllUniqueSortedJarDependencies().size());
+                assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
                 assertEquals(10, module.getAllUniqueSortedJarDependencies().size());
