@@ -2,7 +2,7 @@
   "name": "Custom Translator",
   "flowBuilderMethod": "translator",
   "generatesUserImplementedClass": "true",
-  "helpText": "<strong>Custom Translator</strong><p>The main responsibility of a translator is to convert the contents of the payload, not the type. The purpose of this translator is to support any type of transformation required, implemented by a bespoke translator class.</p>",
+  "helpText": "<strong>Custom Translator</strong><p>The main responsibility of a translator is to convert the contents of the payload, not the type. This means it is expected that the payload it a mutable class. The purpose of this translator is to support any type of transformation required, implemented by a bespoke translator class.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Translator.Custom",
   "properties": {
     "userImplementedClassName": {

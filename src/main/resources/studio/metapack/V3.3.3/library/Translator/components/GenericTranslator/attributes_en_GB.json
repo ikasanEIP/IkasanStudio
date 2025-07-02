@@ -2,7 +2,7 @@
   "name": "Generic Translator",
   "flowBuilderMethod": "translator",
   "generatesUserImplementedClass": "true",
-  "helpText": "<strong>Generic Translator</strong><p>The main responsibility of a translator is to convert the contents of the payload, not the type. The purpose of this translator is to support any type of transformation required, implemented by a bespoke translator class.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
+  "helpText": "<strong>Generic Translator</strong><p>The main responsibility of a translator is to convert the contents of the payload, not the type. This means it is expected that the payload it a mutable class. The purpose of this translator is to support any type of transformation required, implemented by a bespoke translator class.</p><p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p>",
   "implementingClass": "",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "additionalKey": "Generic",

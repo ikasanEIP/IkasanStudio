@@ -19,7 +19,7 @@
     },
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-h2-standalone-persistence<",
+      "artifactId": "ikasan-h2-standalone-persistence",
       "version": "3.3.8"
     },
     {
