@@ -4,6 +4,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <description>This pom is used to start and stop the H2 database to assist development debugging</description>
+    <groupId>org.ikasan</groupId>
     <artifactId>start-h2</artifactId>
     <version>1.0.0</version>
 
