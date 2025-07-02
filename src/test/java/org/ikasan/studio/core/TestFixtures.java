@@ -20,7 +20,7 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
     public static final String META_IKASAN_PACK_3_3_3 = "V3.3.3";
-    public static final String META_IKASAN_PACK_3_3_7 = "V3.3.7";
+    public static final String META_IKASAN_PACK_3_3_8 = "V3.3.8";
 
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
@@ -31,7 +31,7 @@ public class TestFixtures {
     public static final String TEST_CRON_EXPRESSION = "0 0/1 * * * ?";
 
     public static Stream<String> metaPacksToTest() {
-        return Stream.of(META_IKASAN_PACK_3_3_3, META_IKASAN_PACK_3_3_7);
+        return Stream.of(META_IKASAN_PACK_3_3_3, META_IKASAN_PACK_3_3_8);
     }
 
     public static Module getMyFirstModuleIkasanModule(String metaPackVersion, List<Flow> flows) throws StudioBuildException {

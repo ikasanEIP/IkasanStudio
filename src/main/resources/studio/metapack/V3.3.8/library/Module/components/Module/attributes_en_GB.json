@@ -15,17 +15,17 @@
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-eip-standalone",
-      "version": "3.3.7"
+      "version": "3.3.8"
     },
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-h2-standalone-persistence<",
-      "version": "3.3.7"
+      "version": "3.3.8"
     },
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-test-endpoint",
-      "version": "3.3.7"
+      "version": "3.3.8"
     }
   ],
   "properties": {

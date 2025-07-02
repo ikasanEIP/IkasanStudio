@@ -216,7 +216,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -226,7 +226,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(5, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -244,7 +244,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter(metaPackVersion);
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -254,7 +254,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToObjectConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(5, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -273,7 +273,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter(metaPackVersion);
 
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -283,7 +283,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(5, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -303,7 +303,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         FlowElement flowElement = TestFixtures.getCustomTranslator(metaPackVersion);
 
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
@@ -314,7 +314,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomTranslatorComponent.properties"), templateString);
         // The Translator requires a new jar dependency
         switch (metaPackVersion) {
-            case TestFixtures.META_IKASAN_PACK_3_3_7:
+            case TestFixtures.META_IKASAN_PACK_3_3_8:
                 assertEquals(5, module.getAllUniqueSortedJarDependencies().size());
                 break;
             default:
