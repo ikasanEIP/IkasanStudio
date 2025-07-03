@@ -15,6 +15,6 @@ public class MyConverter implements Converter<java.lang.String, java.lang.Intege
 {
 public java.lang.Integer convert(java.lang.String payload) throws TransformationException
 {
-return new java.lang.Integer.valueOf(payload);
+return new java.lang.Integer(payload);
 }
 }
