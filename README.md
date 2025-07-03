@@ -53,7 +53,7 @@ On the **far right** hand side of the screen, click on the **Mr Squid** icon to 
 
 The Palette contains new components for you to use by dragging them onto the central canvas. First though, we need to choose the version of Ikasan and 'component set' to use.
 
-From the dropdown in the Canvas, choose meta-pack V3.3.x (**not VHS3.3.x**), then click the button to the **right** of the chooser
+From the drop-down in the Canvas, choose meta-pack V3.3.x (**not VHS3.3.x**), then click the button to the **right** of the chooser
 
 You should see the **Module Properties** popup below, pre-populate with the project name and version you have chosen, 
 feel free to update the properties as you wish (you may want to click 'true' for the field **useEmbeddedH2** to make your startups easier, or set **flowAutoStartup** to true so that the flows start up when the module starts up). Finish by clicking the **Update Code** button.
@@ -123,7 +123,7 @@ Please see the YouTube library for further documentation and help.
 
 ## Application Split
 
-Offering is split into 3 artefects with independent lifecycles
+Offering is split into 3 artefacts with independent lifecycles
 
 <img src="docs/images/20240511-CodeSplit.png" alt="Install Plugin from Disk" width="800">
 
@@ -132,7 +132,7 @@ Offering is split into 3 artefects with independent lifecycles
 * Framework for code generation (ftl supplied by meta pack), 
 * Framework for unit test support for meta pack, abstract support for meta pack
 
-### Metapack (resources/studio/metapack) - depdends on Core
+### Metapack (resources/studio/metapack) - depends on Core
 * One per supported Ikasan version
 * Reduces the number of updates to the core (UI) plugin, the metapack can be added to (almost) any version of the plugin
 * Distribution / exposed via web / repo / something
@@ -140,12 +140,12 @@ Offering is split into 3 artefects with independent lifecycles
 * Provides extensive unit testing to self certify
 * End user encouraged to create their own, only official metapacks are 'supported'
 
-### UI (org.ikasan.studio.ui) - Depends on Core and Metapackbs
+### UI (org.ikasan.studio.ui) - Depends on Core and Metapacks
 * Business driver is cost saving resulting from standard coding of components, reduced build times, reduced migration between versions of Ikasan, reduced complexity in legacy code base
 * The UI should be easy to use, intuitive, dumb down usage for junior / mid-tier devs
 * Abstracted to be driven from the content of a meta pack
 * Support for multiple simultaneous metapacks
-* Resilient and defensive, the UI needs to accommodate developer errors (misconfigured flows or metapacks) without resulting in serious errors in the IDE (Intellij are very keen to expose even slightly wonky plugins). Where possible the IDE should recover misconfiguration and inform the user via popup / message baloons.
+* Resilient and defensive, the UI needs to accommodate developer errors (misconfigured flows or metapacks) without resulting in serious errors in the IDE (Intellij are very keen to expose even slightly wonky plugins). Where possible, the IDE should recover misconfiguration and inform the user via popup / message balloons.
 
 ## Epics / major stories
 
@@ -153,7 +153,7 @@ Core
 * Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github).
 * Create builder / Maven integration for non-UI code regeneration, integrate into maven.
 * Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI).
-* Parameterize meta pack version in build.
+* Parametrise meta pack version in build.
 * Explore DB driven configuration.
 * Explore how to integrate with environment configurations solutions.
 
@@ -183,8 +183,8 @@ UI
 * Support archetype to build the project, maybe partially implemented projects.
 * Sort out icons with correct scaling and transparency to support standard IntelliJ themes.
 * Update UI look and feel for all modes of Intellij themes.
-* Parameterise meta pack version in model startup.
-* Data exchange / XML mmapping of payload for simple transitions / mappers.
+* Parametrise meta pack version in model startup.
+* Data exchange / XML mapping of payload for simple transitions / mappers.
 * Explore DB driven configuration.
 * Robustness tests.
 * Eclipse, Vaaden, Javascript based IDE.
@@ -276,7 +276,7 @@ To get  project to build, the flows must be valid i.e. they must have at least a
 ### Dependencies not satisfied
 When you first create a project, you may find red highlights and basic Spring dependencies are not satisfied. Use the (standard) Maven update for the project, it will re-pull the dependencies (the root casue is a threading issue inside Intellij, this will be fixed eventually)
 ### Deleted components are not always removed
-Please work around this for now, it wwill be fixed shortly.
+Please work around this for now, it will be fixed shortly.
 
 ## Plugin Development Guidelines
 These guidelines are for developers working on the plugin itself.
@@ -311,7 +311,7 @@ You don't have to make many mistakes to get blacklisted.
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-This plugin provides a visual designer and integrated development environment for the Ikasan Enterprise Integration Plantform
+This plugin provides a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform
 
 * https://github.com/ikasanEIP
 * https://www.youtube.com/@Ikasan-nq3js
