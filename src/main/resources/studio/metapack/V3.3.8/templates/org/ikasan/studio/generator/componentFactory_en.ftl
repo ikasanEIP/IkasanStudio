@@ -105,7 +105,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#list>
     <#-- Special case for custom message filter, set configuredResourceId to default -->
     <#if flowElement.componentMeta.name=="Custom Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
-        ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.name)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");
+        ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.identity)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");
     </#if>
     <#if flowElement.componentMeta.generatesUserImplementedClass>
         return ${flowElement.getJavaVariableName()};

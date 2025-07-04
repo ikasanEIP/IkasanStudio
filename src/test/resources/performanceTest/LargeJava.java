@@ -74,7 +74,7 @@ public class LargeJava {
 
     /**
      * Load the content of the major pom
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return the studio representation of the POM
      */
     public static IkasanPomModel pomLoadFromVirtualDisk(String projectKey, String containingDirectory) {
@@ -96,7 +96,7 @@ public class LargeJava {
 
     /**
      * Get the PsiFile that refers to the model.json for this project
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return a PsiFile reference to the model.json
      */
     public static PsiFile getModelJsonPsiFile(final String projectKey) {
@@ -118,7 +118,7 @@ public class LargeJava {
 
     /**
      * Load the content of the application properties file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return a map of the Ikasan application properties, typically located in application.properties
      */
     public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(String projectKey) {
@@ -142,7 +142,7 @@ public class LargeJava {
      *             synchGenerateModelInstanceFromJSON(projectKey);
      *             ... any other actions relying on above action completion
      *         });
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      */
     public static void synchGenerateModelInstanceFromJSON(String projectKey) {
         PsiFile jsonModelPsiFile = StudioPsiUtils.getModelJsonPsiFile(projectKey);
@@ -169,7 +169,7 @@ public class LargeJava {
 
     /**
      * Add the new dependencies IF they are not already in the pom
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
     public static void checkForDependencyChangesAndSaveIfChanged(String projectKey, Set<Dependency> newDependencies) {
@@ -204,7 +204,7 @@ public class LargeJava {
 
     /**
      * Attempt to get the top level pom for the project
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return A PsiFile handle to the pom or null
      */
     public static PsiFile pomGetTopLevel(String projectKey, String containingDirectory) {
@@ -235,7 +235,7 @@ public class LargeJava {
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
@@ -257,7 +257,7 @@ public class LargeJava {
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
@@ -293,7 +293,7 @@ public class LargeJava {
     /**
      * Conveniance method to create a model.json for the supplied content. The location of the
      * model.json is standard so does not need to be supplied
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param content of the file that is to be created / updated
      */
     public static CompletableFuture createJsonModelFile(final String projectKey, final String content) {
@@ -303,7 +303,7 @@ public class LargeJava {
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited or slash delimited x/y
@@ -491,7 +491,7 @@ public class LargeJava {
 
 //    /**
 //     * This class attempts to find a file, it does not attempt to retrieve it
-//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
 //     * @param filename to search for
 //     * @return A message string to indicate progress.
 //     */
@@ -505,7 +505,7 @@ public class LargeJava {
 //                .append(filename)
 //                .append(" method 1 found [");
 //        for (PsiFile myFile : files2) {
-//            message.append(myFile.getName());
+//            message.append(myFile.getIdentity());
 //        }
 //        long t2 = System.currentTimeMillis();
 //        long t3 = System.currentTimeMillis();
@@ -536,7 +536,7 @@ public class LargeJava {
     }
 
 //    public static void getAllSourceRootsForProject(String projectKey) {
-//        String projectName = UiContext.getProject(projectKey).getName();
+//        String projectName = UiContext.getProject(projectKey).getIdentity();
 //        VirtualFile[] vFiles = ProjectRootManager.getInstance(UiContext.getProject(projectKey)).getContentSourceRoots();
 //        String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
 //        LOG.info("STUDIO: Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
@@ -578,15 +578,15 @@ public class LargeJava {
 
     /**
      * Get the Virtual file for the project root
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      */
     public static VirtualFile getProjectBaseDir(String projectKey) {
         String basePath = UiContext.getProject(projectKey).getBasePath();
         return LocalFileSystem.getInstance().findFileByPath(basePath);
-//        com.intellij.openapi.module.Module projectModule = getModule(projectKey, UiContext.getProject(projectKey).getName());
+//        com.intellij.openapi.module.Module projectModule = getModule(projectKey, UiContext.getProject(projectKey).getIdentity());
 //        VirtualFile[] contentRoots = getContentRoots(projectModule);
 //        if (contentRoots.length == 0) {
-//            throw new StudioException("No content roots found for " + UiContext.getProject(projectKey).getName());
+//            throw new StudioException("No content roots found for " + UiContext.getProject(projectKey).getIdentity());
 //        } else {
 //            return contentRoots[0];
 //        }
@@ -808,7 +808,7 @@ public class LargeJava {
     private static final Map<String, VirtualFile> virtualRoots = new HashMap<String, VirtualFile>();
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativeRootDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
@@ -858,7 +858,7 @@ public class LargeJava {
 
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param targetDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
@@ -928,7 +928,7 @@ public class LargeJava {
     /**
      * Get the virtual file representing the relative (to the project root) of the supplied file.
      * Note virtual files will miss any unsaved changes currently in the editor and may become invalid if a project is refreshed
-     * @param projecKey  essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projecKey  essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativeFilePath from the project root e.g. pom.xml, src/main/resources/application.properties
      * @return the virtual file reflecting the file path
      */
@@ -939,7 +939,7 @@ public class LargeJava {
     /**
      * Read the physical file from the file system and return as a String.
      * Note that the VFS is used to obtain the file so any unsaved edits will be missed.
-     * @param projecKey  essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projecKey  essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativeFilePath from the project root e.g. pom.xml, src/main/resources/application.properties
      * @return the String contents of the file, or null if it does not exist
      */
@@ -1020,7 +1020,7 @@ public class LargeJava {
     /**
      * Search the project root cache for the supplied content root.
      * Note, virtualFiles can become invalid if the IDE refreshes the project, use isValid() before use.
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot to ve searched for
      * @return the content root if its found, nulll otherwise.
      */
@@ -1063,7 +1063,7 @@ public class LargeJava {
     /**
      * Ensures all directories in the specified path exist, creating them if necessary.
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param parentDir The VirtualFile of the parent directory, this is typically the content root of the project.
      * @param relativePath      The directory path relative to parentDir
      * @param token     Used to split the relative path into individual directories
@@ -1094,7 +1094,7 @@ public class LargeJava {
     /**
      * Ensures the directory exists at the specified level, creating it if necessary.
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param parentDir    The VirtualFile of the parent directory.
      * @param directoryName The name of the directory to ensure.
      * @return The PsiDirectory for the created or existing directory.
@@ -1129,7 +1129,7 @@ public class LargeJava {
 
     /**
      * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param basePackage the package that contains the subpackage leaves
      * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
      */

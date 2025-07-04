@@ -236,7 +236,7 @@ public class Flow extends BasicElement {
     @Override
     public String toSimpleString() {
 
-        return getName() + "[" + super.toSimpleString() +
+        return getIdentity() + "[" + super.toSimpleString() +
                 " consumer=" + (consumer!=null ? consumer.toSimpleString() : null) + "\n" +
                 ", exceptionResolver=" + (exceptionResolver!=null ? exceptionResolver.toSimpleString() : null) + "\n" +
                 ", flowRoute [" + (flowRoute!=null ? flowRoute.toSimpleString() : null) + "]" + "\n" +

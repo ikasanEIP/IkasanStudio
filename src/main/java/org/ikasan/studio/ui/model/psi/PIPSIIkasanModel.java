@@ -35,7 +35,7 @@ public class PIPSIIkasanModel {
 
     /**
      * Plugin PSI (Program Structure Interface) Iksanan Model builder
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      *                   memory for multiple open projects, so each plugin IkasanModule virtualization needs to be keyed
      *                   by the project name. Hence, projectKey is passed around most classes.
      */
@@ -130,7 +130,7 @@ public class PIPSIIkasanModel {
 
     /**
      * Save the Spring Boot Application class
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param module for this code
      */
     private void saveApplication(String projectKey, Module module) {

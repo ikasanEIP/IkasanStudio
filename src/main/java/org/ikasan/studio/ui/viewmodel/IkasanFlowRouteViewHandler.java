@@ -37,7 +37,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     /**
      * This view handler deals with a flowRoute or a child route (i.e. one of the branches off a multi-recipient router)
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param flow       that contains this flow route
      * @param flowRoute  which could be the default route or a sub-route (one of the branches off a multi-recipient router)
      */

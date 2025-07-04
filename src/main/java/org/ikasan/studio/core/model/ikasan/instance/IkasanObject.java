@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
@@ -15,7 +16,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 @Getter
 @Setter
 @ToString
-public class IkasanObject extends AbstractViewHandler implements IkasanComponent {
+public abstract class IkasanObject extends AbstractViewHandler implements IkasanComponent {
     @JsonPropertyOrder(alphabetic = true)
     @JsonIgnore
     protected ComponentMeta componentMeta;
@@ -23,13 +24,5 @@ public class IkasanObject extends AbstractViewHandler implements IkasanComponent
     public IkasanObject() {}
     protected IkasanObject(ComponentMeta componentMeta) {
         this.componentMeta = componentMeta;
-    }
-
-    public String getName() {
-        if (componentMeta != null) {
-            return componentMeta.getName();
-        } else {
-            return "Object not yet set";
-        }
     }
 }

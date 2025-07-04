@@ -45,7 +45,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
 
     @Override
     public String getText() {
-        return flow.getName() != null ? flow.getName() : flow.getDescription();
+        return flow.getIdentity() != null ? flow.getIdentity() : flow.getDescription();
     }
 
     private void paintFlowRectangle(Graphics g, int x, int y, int width, int height) {
@@ -75,7 +75,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
-//        LOG.info("StudioXX: planted flow " + this.getFlow().getName() + " flow box x:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
+//        LOG.info("StudioXX: planted flow " + this.getFlow().getIdentity() + " flow box x:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
     }
 
     /**

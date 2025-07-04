@@ -143,7 +143,7 @@ public enum UiContext {
 
     /**
      * Set the selected tab
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param tabIndex one of the defined constants PROPERTIES_TAB_INDEX, PALETTE_TAB_INDEX
      */
     public static void setRightTabbedPaneFocus(String projectKey, int tabIndex) {

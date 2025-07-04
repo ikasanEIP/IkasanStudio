@@ -104,7 +104,7 @@ public class DesignerCanvas extends JPanel {
                     } else {
                         module.setVersion(metapackVersion);
                     }
-                    if (module.getName() == null) {
+                    if (module.getIdentity() == null) {
                         Project project = UiContext.getProject(projectKey);
                         if (project != null) {
                             module.setName(project.getName());
@@ -717,7 +717,7 @@ public class DesignerCanvas extends JPanel {
                 }
 
                 if (ikasanFlowComponent.getComponentMeta().isDebug() && surroundingComponents.getRight() != null) {
-                    ikasanFlowComponent.setName(surroundingComponents.getRight().getName()+"Debug");
+                    ikasanFlowComponent.setIdentity(surroundingComponents.getRight().getIdentity()+"Debug");
                     String rawClassname = ikasanFlowComponent.getPropertyValueAsString(USER_IMPLEMENTED_CLASS_NAME);
                     String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, ikasanFlowComponent, rawClassname);
                     ikasanFlowComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);

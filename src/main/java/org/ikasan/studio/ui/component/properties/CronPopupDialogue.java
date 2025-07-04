@@ -12,7 +12,7 @@ public class CronPopupDialogue extends DialogWrapper {
     /**
      * CronPopupDialogue Modal window to support entry of cron configurations.
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param parentComponent of this popup
      * @param cronPanel to display and have entries taken on.
      */

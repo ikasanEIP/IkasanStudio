@@ -24,7 +24,7 @@ public class PropertiesPopupDialogue extends DialogWrapper {
      *
      * @todo maybe use this in non modal form for the in-canvas properties editing.
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param parentComponent of this popup
      * @param propertiesPanel to display and have entries taken on.
      */

@@ -261,13 +261,13 @@ public class StudioBuildUtils {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
-                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_MODULE, toPascalCase(module.getName()));
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_MODULE, toPascalCase(module.getIdentity()));
             }
             if (flow != null) {
-                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, toPascalCase(flow.getName()));
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_FLOW, toPascalCase(flow.getIdentity()));
             }
             if (ikasanBasicElement != null ) {
-                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, toPascalCase(ikasanBasicElement.getName()));
+                propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_COMPONENT, toPascalCase(ikasanBasicElement.getIdentity()));
             }
         }
         return propertyLabel;

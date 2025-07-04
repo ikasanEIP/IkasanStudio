@@ -69,7 +69,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         setWidth(width);
         setHeight(height);
         // Module title
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getName(),10,10, StudioUIUtils.getBoldFont(graphics));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getIdentity(),10,10, StudioUIUtils.getBoldFont(graphics));
         int minimumTopY = FLOW_Y_START_POINT;
         int maxWidth = 0;
         int maxHeight;
@@ -95,7 +95,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
 
     @Override
     public String getText() {
-        return module.getName();
+        return module.getIdentity();
     }
 
     /**

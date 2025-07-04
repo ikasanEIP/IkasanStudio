@@ -81,7 +81,7 @@ class ComponentIODeserializeTest {
             () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("8092", module.getH2PortNumber()),
             () -> assertEquals("8093", module.getH2WebPortNumber()),
-            () -> assertEquals("A to B convert", module.getName()),
+            () -> assertEquals("A to B convert", module.getIdentity()),
             () -> assertEquals("8091", module.getPort()),
             () -> assertEquals("https", module.getPropertyValue("protocol")),
             () -> assertEquals("INTEGRATION_MODULE", module.getPropertyValue("type")),
@@ -90,7 +90,7 @@ class ComponentIODeserializeTest {
 
             () -> assertEquals(1, flows.size()),
             () -> assertEquals(2, flow1.getComponentProperties().size()),
-            () -> assertEquals("MyFlow1", flow1.getName()),
+            () -> assertEquals("MyFlow1", flow1.getIdentity()),
 
             () -> assertEquals(2, exceptionResolver.getIkasanExceptionResolutionMap().size()),
 
@@ -138,7 +138,7 @@ class ComponentIODeserializeTest {
             "Check the module contains the flow routes",
             () -> assertEquals(1, flows.size(), "Flow size"),
             () -> assertEquals(2, flow1.getComponentProperties().size(), "Component properties"),
-            () -> assertEquals("MyFlow1", flow1.getName(), "Flow name"),
+            () -> assertEquals("MyFlow1", flow1.getIdentity(), "Flow name"),
             () -> assertEquals(2, flow1.getFlowRoute().getChildRoutes().size(), "Child routes"),
             () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().getFirst().getChildRoutes().size(), "Child route 1"),
             () -> assertEquals(0, flow1.getFlowRoute().getChildRoutes().get(1).getChildRoutes().size(), "Child route 2"),
@@ -161,7 +161,7 @@ class ComponentIODeserializeTest {
         assertAll(
             "Check the module contains the expected values",
             () -> assertEquals("V3.3.3", module.getVersion()),
-            () -> assertEquals("A to B convert", module.getName()),
+            () -> assertEquals("A to B convert", module.getIdentity()),
             () -> assertEquals("My first module", module.getDescription()),
             () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
             () -> assertEquals("1", module.getH2PortNumber()),
@@ -170,7 +170,7 @@ class ComponentIODeserializeTest {
 
             () -> assertEquals(1, flows.size()),
             () -> assertEquals(1, flow1.getComponentProperties().size()),
-            () -> assertEquals("Flow1", flow1.getName()),
+            () -> assertEquals("Flow1", flow1.getIdentity()),
 
             () -> Assertions.assertNull(elements)
         );
@@ -186,7 +186,7 @@ class ComponentIODeserializeTest {
 //        assertAll(
 //            "Check the module contains the expected values",
 //            () -> assertEquals("V3.3.x", module.getVersion()),
-//            () -> assertEquals("A to B convert", module.getName()),
+//            () -> assertEquals("A to B convert", module.getIdentity()),
 //            () -> assertEquals("My first module", module.getDescription()),
 //            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
 //            () -> assertEquals("1", module.getH2PortNumber()),
@@ -195,7 +195,7 @@ class ComponentIODeserializeTest {
 //
 //            () -> assertEquals(1, flows.size()),
 //            () -> assertEquals(1, flow1.getComponentProperties().size()),
-//            () -> assertEquals("Flow1", flow1.getName()),
+//            () -> assertEquals("Flow1", flow1.getIdentity()),
 //
 //            () -> Assertions.assertNull(elements)
 //        );

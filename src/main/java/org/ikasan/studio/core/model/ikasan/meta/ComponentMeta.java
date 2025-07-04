@@ -118,11 +118,6 @@ public class ComponentMeta implements IkasanMeta {
     public boolean isConsumer() {
         return COMSUMER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
-
-    /**
-     * Thie component is a generic component e.g. a broker or consumer, the user will supply the implementing class.
-     * @return true if the meta represents a generic component.
-     */
     public boolean isDebug() {
         return DEBUG_KEY.equals(additionalKey);
     }

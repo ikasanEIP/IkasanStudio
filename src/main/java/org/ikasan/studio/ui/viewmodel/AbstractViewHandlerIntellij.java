@@ -173,7 +173,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param ikasanBasicElement to be examined
      * @return the view handler for this element.
      */

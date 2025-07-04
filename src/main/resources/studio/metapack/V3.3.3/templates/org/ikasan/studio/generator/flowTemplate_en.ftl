@@ -49,7 +49,7 @@ ComponentFactory${flow.getJavaClassName()} componentFactory;
 public org.ikasan.spec.flow.Flow get${flow.getJavaClassName()}()
 {
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
-org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("${flow.name}");
+org.ikasan.builder.FlowBuilder flowBuilder = moduleBuilder.getFlowBuilder("${flow.identity}");
 
 <#compress>
 org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder

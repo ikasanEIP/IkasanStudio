@@ -127,7 +127,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
 //                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
                     if (startElement != null && !startElement.getComponentMeta().isEndpoint()) {
                         transitions.add(Transition.builder()
-                                .from(startElement.getName())
+                                .from(startElement.getIdentity())
                                 .to(from.getComponentName())
                                 .name(routeName)
                                 .build());
@@ -177,7 +177,7 @@ public class FlowSerializer extends StdSerializer<Flow> {
 //                    if (startElement != null && !startElement.getComponentMeta().isEndpoint() && !startElement.getComponentMeta().isDebug()) {
                     if (startElement != null && !startElement.getComponentMeta().isEndpoint()) {
                         transitions.add(Transition.builder()
-                                .from(startElement.getName())
+                                .from(startElement.getIdentity())
                                 .to(from.getComponentName())
                                 .name(routeName)
                                 .build());

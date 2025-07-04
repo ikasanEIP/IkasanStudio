@@ -95,6 +95,7 @@ public class IkasanComponentLibrary {
         String[] componentTypeDirectories = getSubdirectories(baseDirectory);
         assert componentTypeDirectories != null;
         for (String componentTypeDirectory : componentTypeDirectories) {
+            // Each component type e.g. Consumer, Producer, etc. get the top level type meta
             ComponentTypeMeta componentTypeMeta;
             try {
                 componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/type-meta_en_GB.json");
@@ -107,6 +108,7 @@ public class IkasanComponentLibrary {
 
             String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
 
+            // For each component .e.g. BasicJamConsumer, FtpConsumer, etc.
             for (String componentDirectory : componentDirectories) {
                 IkasanMeta ikasanMeta;
                 try {
@@ -132,7 +134,7 @@ public class IkasanComponentLibrary {
                 if (componentTypeMeta.getProperties() != null) {
                     for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getProperties().entrySet()) {
                         if (componentMeta.getProperties().containsKey(propertiesFromType.getKey())) {
-                            LOG.warn("STUDIO: Warning: the property with key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
+                            LOG.warn("STUDIO: Warning: the property with path " + componentDirectory + " and key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
                         }
                         componentMeta.getProperties().put(propertiesFromType.getKey(), propertiesFromType.getValue());
                     }
@@ -435,7 +437,7 @@ public class IkasanComponentLibrary {
                 LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
             }
             if (endpointFlowElement == null) {
-                LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getName() + " the key was " + endpointComponentName + " but no endpoint was found");
+                LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getIdentity() + " the key was " + endpointComponentName + " but no endpoint was found");
             }
         }
         return endpointFlowElement;

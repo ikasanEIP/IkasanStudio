@@ -44,7 +44,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * Create the ComponentPropertiesPanel
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param componentInitialisation true if this is for the popup version i.e. the first configuration of this component,
      *                                false if this is for the canvas sidebar.
      */
@@ -152,17 +152,20 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 }
             }
 
-            if (getSelectedComponent().getProperty(ComponentPropertyMeta.NAME) != null) {
-                componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(mandatoryPropertiesEditorPanel,
-                        getSelectedComponent().getProperty(ComponentPropertyMeta.NAME), gc, mandatoryTabley++));
+            // Component identity should be the first property if it exists
+            if (getSelectedComponent().getIdentityPropertyMetaKey() != null) {
+                componentPropertyEditBoxList.add(
+                    addNameValueToPropertiesEditPanel(
+                        mandatoryPropertiesEditorPanel, getSelectedComponent().getProperty(getSelectedComponent().getIdentityPropertyMetaKey()), gc, mandatoryTabley++));
             }
+
             if (!getSelectedComponent().getComponentMeta().getProperties().isEmpty()) {
                 if (!componentInitialisation && getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(regeneratingPropertiesEditorPanel, gc, regenerateTabley++);
                 }
                 for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getProperties().entrySet()) {
                     String key = entry.getKey();
-                    if (!key.equals(ComponentPropertyMeta.NAME) && !entry.getValue().isHiddenProperty() && !entry.getValue().isIgnoreProperty()) {
+                    if (!ComponentPropertyMeta.isIdentityKey(key) && !entry.getValue().isHiddenProperty() && !entry.getValue().isIgnoreProperty()) {
                         ComponentProperty property = getSelectedComponent().getProperty(key);
                         if (property == null) {
                             // This property has not yet been set for the component
@@ -270,13 +273,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
-     * Get the field that should be given the focus in popup or inscreen form
+     * Get the field that should be given the focus in popup or in-screen form
      * @return the component that should be given focus or null
      */
     public JComponent getFirstFocusField() {
         JComponent firstComponent = null;
         if (componentPropertyEditBoxList != null && !componentPropertyEditBoxList.isEmpty()) {
-            firstComponent = componentPropertyEditBoxList.get(0).getInputField().getFirstFocusComponent();
+            firstComponent = componentPropertyEditBoxList.getFirst().getInputField().getFirstFocusComponent();
         }
         return firstComponent;
     }

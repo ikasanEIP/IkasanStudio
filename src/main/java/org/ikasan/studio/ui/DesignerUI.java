@@ -32,7 +32,7 @@ public class DesignerUI {
     /**
      * Create the main Designer window
      * @param toolWindow is the Intellij frame in which this resides
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      */
     public DesignerUI(ToolWindow toolWindow, String projectKey) {
         this.projectKey = projectKey;

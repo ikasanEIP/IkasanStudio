@@ -444,7 +444,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      */
     private List<String> guessRouteNames(FlowElement router, Map<String, List<Transition>> transitionsMap) {
         List<String> routeNames = new ArrayList<>();
-        String routerName = router.getName();
+        String routerName = router.getIdentity();
         List<Transition> transitions = transitionsMap.get(routerName);
         if (transitions != null) {
             routeNames = transitions.stream()

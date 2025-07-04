@@ -129,7 +129,7 @@ public class FlowElement extends BasicElement {
     public String toString() {
         return "IkasanFlowComponent {" +
                 ", name='" + getComponentName() + '\'' +
-                ", containingFlow ='" + (containingFlow == null ? null : containingFlow.getName()) + '\'' +
+                ", containingFlow ='" + (containingFlow == null ? null : containingFlow.getIdentity()) + '\'' +
                 ", containingFlowRoute ='" + (containingFlowRoute == null ? null : containingFlowRoute.getRouteName()) + '\'' +
                 ", flowComponent='" + getComponentMeta().getName() + '\'' +
                 ", properties=" + componentProperties +
@@ -142,7 +142,7 @@ public class FlowElement extends BasicElement {
                 super.toSimpleString() +
                 ", flowComponent='" + getComponentMeta().getName() + '\'' +
                 ", flowName='" + getComponentName() + '\'' +
-                ", containingFlow ='" + (containingFlow == null ? null : containingFlow.getName()) + '\'' +
+                ", containingFlow ='" + (containingFlow == null ? null : containingFlow.getIdentity()) + '\'' +
                 ", containingFlowRoute ='" + (containingFlowRoute == null ? null : containingFlowRoute.getRouteName()) + '\'' +
                 '}';
     }

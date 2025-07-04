@@ -21,7 +21,7 @@ public class LaunchBlueAction implements ActionListener {
       Module module = UiContext.getIkasanModule(projectKey);
       if (module != null) {
          StudioUIUtils.displayIdeaInfoMessage(projectKey, "Sent request to your browser to launch the blue console.");
-         BrowserUtil.browse("http:localhost:" + (module.getPort() != null ? module.getPort() : "8080") + "/" + module.getName().toLowerCase());
+         BrowserUtil.browse("http:localhost:" + (module.getPort() != null ? module.getPort() : "8080") + "/" + module.getIdentity().toLowerCase());
       } else {
          StudioUIUtils.displayIdeaWarnMessage(projectKey, "Blue console can't be launched unless a module is defined.");
       }

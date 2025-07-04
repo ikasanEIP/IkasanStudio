@@ -93,7 +93,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
                       (getRightX()                  <= x && x <= getRightX() + getTrailingGap()) ) &&
                     getTopY() <= y && y <= getTopY() + IkasanComponentLibrary.getDecoratorHeight();
             if (result) {
-            LOG.info("Decorator found for " + flowElement.getName());
+            LOG.info("Decorator found for " + flowElement.getIdentity());
             }
         }
         return result;

@@ -213,7 +213,8 @@ public class FlowRoute  implements IkasanComponent {
         return reason;
     }
 
-    public String getName() {
+    @Override
+    public String getIdentity() {
         return routeName;
     }
 
@@ -230,7 +231,7 @@ public class FlowRoute  implements IkasanComponent {
         StringBuilder flowElementsBuilder = new StringBuilder();
         if (flowElements != null && !flowElements.isEmpty()) {
             for(FlowElement flowElement : flowElements) {
-                flowElementsBuilder.append(flowElement.getName()).append(",");
+                flowElementsBuilder.append(flowElement.getIdentity()).append(",");
             }
         }
 
@@ -242,7 +243,7 @@ public class FlowRoute  implements IkasanComponent {
         }
 
         return "FlowRouteName='" + routeName + '\'' +
-                ",parentFlow='" + (flow!=null ? flow.getName() : null) + '\'' +
+                ",parentFlow='" + (flow!=null ? flow.getIdentity() : null) + '\'' +
                 "[flowElements [" + flowElementsBuilder + "]\n" +
                 "childRoutes [" + childRoutesBuilder + "]" +
                 ']';

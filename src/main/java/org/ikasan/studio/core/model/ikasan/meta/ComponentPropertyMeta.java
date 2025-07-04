@@ -21,6 +21,11 @@ import java.util.regex.Pattern;
  * This class holds the metadata about a single property e.g. 'description' - is i mandatory, what data type is it
  */
 public class ComponentPropertyMeta {
+    public static final String NAME = "name";                       // The identity of Flows and Modules (according to Ikasan metadata.json)
+    public static final String COMPONENT_NAME = "componentName";    // The identity of components (according to Ikasan metadata.json)
+    public static final String VERSION = "version";
+    public static final String DESCRIPTION = "description";
+
     public static final String USER_IMPLEMENTED_CLASS_NAME = "userImplementedClassName";    // Special meta for a user implemented class used as a property
     public static final String CONFIGURATION = "configuration";                             // Bean containing user defined, Ikasan maintained properties
     public static final String CONFIGURED_RESOURCE_INTERFACE = "configuredResource";        // Is the configuration exposed in the dashboard.
@@ -29,12 +34,6 @@ public class ComponentPropertyMeta {
     public static final String TO_TYPE = "toType";                                          // Special meta for converter, the type of the outbound payload
     public static final String ROUTE_NAMES = "routeNames";                                  // Special meta for converter, the type of the outbound payload
     public static final String TYPE = "type";                                               // Special meta for translator, the type of the outbound payload
-
-    // Special META for component NAME, this standard for each component.
-    public static final String NAME = "name";
-    public static final String VERSION = "version";
-    public static final String COMPONENT_NAME = "componentName";
-    public static final String DESCRIPTION = "description";
 
     public static final String APPLICATION_PORT_NUMBER_NAME = "port";
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";
@@ -64,33 +63,6 @@ public class ComponentPropertyMeta {
     public static final ComponentPropertyMeta DUMB_VERSION =
             ComponentPropertyMeta.builder()
                     .propertyName(ComponentPropertyMeta.VERSION)
-                    .build();
-
-    public static final ComponentPropertyMeta STD_NAME_META_COMPONENT =
-            ComponentPropertyMeta.builder()
-                    .propertyName(NAME)
-                    .mandatory(true)
-                    .build();
-
-    public static final ComponentPropertyMeta STD_DESCRIPTION_META_COMPONENT =
-        ComponentPropertyMeta.builder()
-            .propertyName(DESCRIPTION)
-            .helpText("A more detailed description of the component that may assist in support.")
-            .build();
-
-    public static final ComponentPropertyMeta STD_PACKAGE_NAME_META_COMPONENT =
-        ComponentPropertyMeta.builder()
-            .propertyName(APPLICATION_PACKAGE_NAME)
-            .mandatory(true)
-            .helpText("The base java package for your application.")
-            .build();
-
-    // Special META to model the port number to be used to launch the app and part of its user driven config.
-    public static final ComponentPropertyMeta STD_PORT_NUMBER_META_COMPONENT =
-            ComponentPropertyMeta.builder()
-                    .propertyName(APPLICATION_PORT_NUMBER_NAME)
-                    .mandatory(true)
-                    .helpText("The port number that the running application will use locally.")
                     .build();
 
     @JsonKey
@@ -155,6 +127,9 @@ public class ComponentPropertyMeta {
         return propertyDataType == null;
     }
 
+    public static boolean isIdentityKey(String propertyName) {
+        return propertyName != null && (propertyName.equals(NAME) || propertyName.equals(COMPONENT_NAME));
+    }
 
     public void setPropertyDataType(String dataType) {
         if (dataType != null && !dataType.isEmpty()) {

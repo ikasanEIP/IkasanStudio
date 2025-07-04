@@ -35,32 +35,6 @@ public  class BasicElement extends IkasanObject {
     }
 
 
-    /**
-     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
-     * @return the component description
-     */
-    public String getComponentName() {
-        return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
-    }
-
-    /**
-     * Set the screen name (and indicate the java variable name) for this component
-     * @param name for the instance of this component.
-     */
-    public void setComponentName(String name) {
-        this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
-    }
-
-    public void setName(String name) {
-        if (this instanceof Flow || this instanceof Module) {
-            this.setPropertyValue(ComponentPropertyMeta.NAME, name);
-        } else {
-            // to compily wil JSON, all flow elements use component name not name
-            this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
-        }
-    }
-
-
     public void setVersion(String version) {
         this.setPropertyValue(ComponentPropertyMeta.VERSION, version);
     }
@@ -72,16 +46,61 @@ public  class BasicElement extends IkasanObject {
      * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
      * @return the component description
      */
-    @JsonIgnore
-    public String getName() {
-        if (this instanceof Flow || this instanceof Module) {
-            return (String) getPropertyValue(ComponentPropertyMeta.NAME);
-        } else {
-            // to compily wil JSON, all flow elements use component name not name
-            return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
-        }
+    public String getComponentName() {
+        return (String) getPropertyValue(ComponentPropertyMeta.COMPONENT_NAME);
     }
 
+    /**
+     * Standard setter for the componentName, note that Flows and Modules use the property 'name' to identify them,
+     * whereas all other components use 'componentName'.
+     * @param name for the instance of this component.
+     */
+    public void setComponentName(String name) {
+        this.setPropertyValue(ComponentPropertyMeta.COMPONENT_NAME, name);
+    }
+
+    /**
+     * Standard setter for the name, note that Flows and Modules use the property 'name' to identify them,
+     * whereas all other components use 'componentName'.
+     */
+    public void setName(String name) {
+        this.setPropertyValue(getIdentityPropertyMetaKey(), name);
+    }
+
+
+    /**
+     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    @JsonIgnore
+    public void setIdentity(String name) {
+        this.setPropertyValue(getIdentityPropertyMetaKey(), name);
+    }
+
+    /**
+     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
+     * @return the component description
+     */
+    @JsonIgnore
+    public String getIdentity() {
+        return (String) getPropertyValue(getIdentityPropertyMetaKey());
+    }
+
+    /**
+     * Convenience method to access the standard property for the component identity. Since this is in properties, set JsonIgnore
+     * Note that the Ikasan Standard topology (https://github.com/ikasanEIP/ikasan/blob/4.0.x/ikasaneip/topology/README.md) dictates that
+     * Flows and Modules use the property 'name' to identify them, whereas all other components use 'componentName'.
+     * @return the component description
+     */
+    @JsonIgnore
+    public String getIdentityPropertyMetaKey() {
+        if (this instanceof Flow || this instanceof Module) {
+            return ComponentPropertyMeta.NAME;
+        } else {
+            // to compily wil JSON, all flow elements use component name not name
+            return ComponentPropertyMeta.COMPONENT_NAME;
+        }
+    }
     /**
      * Convenience method to access the standard property called description. Since this is in properties, set JsonIgnore
      * @return the component description
@@ -106,12 +125,12 @@ public  class BasicElement extends IkasanObject {
      */
     @JsonIgnore
     public String getJavaPackageName() {
-        return StudioBuildUtils.toJavaPackageName(getName());
+        return StudioBuildUtils.toJavaPackageName(getIdentity());
     }
 
     @JsonIgnore
     public String getJavaVariableName() {
-        return StudioBuildUtils.toJavaIdentifier(getName());
+        return StudioBuildUtils.toJavaIdentifier(getIdentity());
     }
 
 
@@ -171,7 +190,7 @@ public  class BasicElement extends IkasanObject {
             ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
             if (properyMeta == null) {
                 Thread thread = Thread.currentThread();
-                LOG.error("STUDIO: SERIOUS ERROR - There is no meta data for property [" + key + "] on Element [" + this.getName() +
+                LOG.error("STUDIO: SERIOUS ERROR - There is no meta data for property [" + key + "] on Element [" + this.getIdentity() +
                         "], class [" + this.getClass() +
                         "], implemnting class [" + getComponentMeta().getImplementingClass() +
                         "], additional key [" + getComponentMeta().getAdditionalKey() +
@@ -243,7 +262,7 @@ public  class BasicElement extends IkasanObject {
      */
     @JsonIgnore
     public String getJavaClassName() {
-        return StudioBuildUtils.toJavaClassName(getName());
+        return StudioBuildUtils.toJavaClassName(getIdentity());
     }
 
     /**

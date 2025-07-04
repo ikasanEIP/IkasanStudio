@@ -33,7 +33,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * Create the ExceptionResolutionPanel
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
     public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList, String projectKey, boolean componentInitialisation) {

@@ -34,10 +34,10 @@ public class StudioPsiStudioBuildUtilsLightTests extends BasePlatformTestCase {
 //        assertThat(baseDir, is(notNullValue()));
 //        PsiDirectory[] subDirs = baseDir.getSubdirectories();
 //        assertThat(subDirs.length, is(1));
-//        assertThat(subDirs[0].getName(), is("org"));
+//        assertThat(subDirs[0].getIdentity(), is("org"));
 //        PsiDirectory[] subSubDirs = subDirs[0].getSubdirectories();
 //        assertThat(subSubDirs.length, is(1));
-//        assertThat(subSubDirs[0].getName(), is("test"));
+//        assertThat(subSubDirs[0].getIdentity(), is("test"));
 //
 //        assertThat(subSubDirs[0].getSubdirectories().length, is(0));
 //    }
@@ -55,7 +55,7 @@ public class StudioPsiStudioBuildUtilsLightTests extends BasePlatformTestCase {
 //        PsiDirectory baseDir = createPackageFixture("com");
 //        PsiDirectory[] psiJavaDirectory = baseDir.getSubdirectories();
 //        assertThat(psiJavaDirectory.length, is(1));
-//        assertThat(psiJavaDirectory[0].getName(), is("com"));
+//        assertThat(psiJavaDirectory[0].getIdentity(), is("com"));
 //    }
 //
 //    private PsiDirectory createPackageFixture(String packageName) {

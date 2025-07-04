@@ -85,7 +85,7 @@ public class Module extends BasicElement {
     @JsonIgnore
     public boolean isInitialised() {
         return (
-                getName() != null && !getName().isBlank() &&
+                getIdentity() != null && !getIdentity().isBlank() &&
                 getVersion() != null && !getVersion().isBlank() &&
                 getApplicationPackageName() != null && !getApplicationPackageName().isBlank() &&
                 getPort() != null && !getPort().isBlank() &&

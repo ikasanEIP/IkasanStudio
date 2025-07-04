@@ -38,7 +38,7 @@ public class DecoratorComponentAction implements ActionListener {
             ikasanFlowComponent.addDecorator(
                     Decorator.decoratorBuilder()
                             .type(decoratorType.toString())
-                            .name(beforeOrAfter.toString() + " " + ikasanFlowComponent.getName())
+                            .name(beforeOrAfter.toString() + " " + ikasanFlowComponent.getIdentity())
                             .configurationId("0")
                             .configurable(false)
                             .build()
