@@ -175,10 +175,10 @@ public class PIPSIIkasanModel {
             generateAndSaveUserImplementClassStubsForFlow(projectKey, module, ikasanFlow);
         }
         // we have the flowPackageNames that ARE valid
-//        LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            StudioPsiUtils.deleteSubPackagesNotIn(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
-        });
+        LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
+//        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+//            StudioPsiUtils.deleteSubPackagesNotIn(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+//        });
 
     }
 
