@@ -5,7 +5,7 @@
   "helpText": "<strong>Custom Converter</strong><p>The main responsibility of a converter is to convert the payload from one type to another e.g. JSON to XML. The purpose of this converter is to support any type of conversion required, implemented by a bespoke converter class.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
-  "properties": {
+  "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,

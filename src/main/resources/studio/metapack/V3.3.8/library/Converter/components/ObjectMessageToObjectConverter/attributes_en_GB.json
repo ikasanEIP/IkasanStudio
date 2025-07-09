@@ -5,7 +5,7 @@
   "implementingClass": "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
   "useImplementingClassInFactory": true,
   "flowBuilderMethod": "converter",
-  "properties": {
+  "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,

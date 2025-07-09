@@ -29,7 +29,7 @@ public class ComponentTypeMeta {
     @Builder.Default
     private String helpText = "";
     @Builder.Default
-    private Map<String, ComponentPropertyMeta> properties = new HashMap<>();
+    private Map<String, ComponentPropertyMeta> allowableProperties = new HashMap<>();
 
     public String getHelpText() {
         if (helpText == null) {

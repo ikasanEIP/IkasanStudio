@@ -8,7 +8,7 @@
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "additionalKey": "Generic",
   "usesBuilderInFactory": true,
-  "properties": {
+  "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",

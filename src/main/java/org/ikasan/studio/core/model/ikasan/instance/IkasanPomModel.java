@@ -15,7 +15,7 @@ import java.util.*;
  * Used to model the top level pom for the project
  * </p>
  * As new components are added that might have specific dependencies, the top level pom needs to be updated
- * For efficiency, we only flush the IDE with the new pom (quite expensive) WHEN there are new changes.
+ * For efficiency; we only flush the IDE with the new pom (quite expensive) WHEN there are new changes.
  * </p>
  * Typically, this object is thrown away once its dirty and re-read anew (to safeguard against simultaneous updates)
  */
@@ -86,12 +86,14 @@ public class IkasanPomModel {
 
 
     /**
-     * Check if the supplied dependency is new i.e. not already in the pom
+     * Check if the supplied dependency is new its name/group is unknown or its verison differs.
      * @param newDependency to check
      * @return true if the 'newDependency' is not already in the pom
      */
     public boolean isNewDependency(Dependency newDependency) {
-        return newDependency != null && !dependencyMap.containsKey(getMapKey(newDependency));
+        return newDependency != null &&
+                (!dependencyMap.containsKey(getMapKey(newDependency)) ||
+                !newDependency.getVersion().equals(dependencyMap.get(getMapKey(newDependency))));
     }
 
     /**

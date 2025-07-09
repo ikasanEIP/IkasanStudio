@@ -53,7 +53,7 @@
       "version": "2.12.3"
     }
   ],
-  "properties": {
+  "allowableProperties": {
     "name": {
       "propertyName": "name",
       "affectsUserImplementedClass": true,

@@ -5,7 +5,7 @@
   "implementingClass": "org.ikasan.component.splitter.DefaultListSplitter",
   "useImplementingClassInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/splitter/DefaultSplitter.md",
-  "properties": {
+  "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,

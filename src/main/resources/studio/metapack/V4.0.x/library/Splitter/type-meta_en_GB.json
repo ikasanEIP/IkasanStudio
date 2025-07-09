@@ -3,7 +3,7 @@
   "displayOrder": 9,
   "componentShortType": "Splitter",
   "helpText": "<strong>Splitter</strong><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p>",
-  "properties": {
+  "allowableProperties": {
     "description": {
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."

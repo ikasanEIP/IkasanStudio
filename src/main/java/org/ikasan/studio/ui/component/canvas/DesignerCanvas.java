@@ -34,6 +34,7 @@ import java.util.List;
 
 import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.isIdentityKey;
 
 /**
  * The main painting / design panel
@@ -94,6 +95,13 @@ public class DesignerCanvas extends JPanel {
                     StudioUIUtils.displayIdeaInfoMessage(projectKey, "A module can't be created until at least one meta-pack is loaded.");
                 } else {
                     Module module = UiContext.getIkasanModule(projectKey);
+                    if (!IkasanComponentLibrary.containVersion(metapackVersion)) {
+                        try {
+                            IkasanComponentLibrary.refreshComponentLibrary(metapackVersion);
+                        } catch (StudioBuildException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
                     if (module == null) {
                         try {
                             module = Module.moduleBuilder().version(metapackVersion).build();
@@ -101,7 +109,15 @@ public class DesignerCanvas extends JPanel {
                         } catch (StudioBuildException ex) {
                             throw new RuntimeException(ex);
                         }
-                    } else {
+                    } else if (module.getComponentMeta() == null) {
+                        try {
+                            module.setComponentMeta(IkasanComponentLibrary.getModuleComponentMetaMandatory(metapackVersion));
+                            module.setVersion(metapackVersion);
+                        } catch (StudioBuildException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    else {
                         module.setVersion(metapackVersion);
                     }
                     if (module.getIdentity() == null) {

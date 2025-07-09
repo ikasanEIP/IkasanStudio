@@ -7,7 +7,7 @@
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "additionalKey": "Generic",
   "usesBuilderInFactory": true,
-  "properties": {
+  "allowableProperties": {
     "configuration": {
       "propertyName": "configuration",
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",

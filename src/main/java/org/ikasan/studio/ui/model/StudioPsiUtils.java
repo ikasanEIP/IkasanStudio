@@ -18,6 +18,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -88,7 +89,7 @@ public class StudioPsiUtils {
 
     /**
      * Load the content of the major pom
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return the studio representation of the POM
      */
     public static IkasanPomModel pomLoadFromVirtualDisk(String projectKey, String containingDirectory) {
@@ -110,7 +111,7 @@ public class StudioPsiUtils {
 
     /**
      * Get the PsiFile that refers to the model.json for this project
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return a PsiFile reference to the model.json
      */
     public static PsiFile getModelJsonPsiFile(final String projectKey) {
@@ -132,7 +133,7 @@ public class StudioPsiUtils {
 
     /**
      * Load the content of the application properties file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return a map of the Ikasan application properties, typically located in application.properties
      */
     public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(String projectKey) {
@@ -156,7 +157,7 @@ public class StudioPsiUtils {
      *             synchGenerateModelInstanceFromJSON(projectKey);
      *             ... any other actions relying on above action completion
      *         });
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      */
     public static void synchGenerateModelInstanceFromJSON(String projectKey) {
         PsiFile jsonModelPsiFile = StudioPsiUtils.getModelJsonPsiFile(projectKey);
@@ -183,7 +184,7 @@ public class StudioPsiUtils {
 
     /**
      * Add the new dependencies IF they are not already in the pom
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
     public static void checkForDependencyChangesAndSaveIfChanged(String projectKey, Set<Dependency> newDependencies) {
@@ -221,7 +222,7 @@ public class StudioPsiUtils {
 
     /**
      * Attempt to get the top level pom for the project
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return A PsiFile handle to the pom or null
      */
     public static PsiFile pomGetTopLevel(String projectKey, String containingDirectory) {
@@ -250,7 +251,7 @@ public class StudioPsiUtils {
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
      * @param content of the file that is to be created / updated
@@ -274,7 +275,7 @@ public class StudioPsiUtils {
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
@@ -303,7 +304,7 @@ public class StudioPsiUtils {
     /**
      * Conveniance method to create a model.json for the supplied content. The location of the
      * model.json is standard so does not need to be supplied
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param content of the file that is to be created / updated
      */
     public static void createPropertiesFile(final String projectKey, final String content) {
@@ -317,7 +318,7 @@ public class StudioPsiUtils {
     /**
      * Conveniance method to create a model.json for the supplied content. The location of the
      * model.json is standard so does not need to be supplied
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param content of the file that is to be created / updated
      */
     public static void createJsonModelFile(final String projectKey, final String content) {
@@ -394,7 +395,7 @@ public class StudioPsiUtils {
 
     /**
      * Get the Virtual file for the project root
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      */
     public static VirtualFile getProjectBaseDir(String projectKey) {
         String basePath = UiContext.getProject(projectKey).getBasePath();
@@ -404,7 +405,7 @@ public class StudioPsiUtils {
     /**
      * Creates a file and all necessary directories in the IntelliJ VFS.
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativePath The relative path (including the file name) from the project's base directory.
      * @param fileContent The content to write into the file (optional).
      */
@@ -475,18 +476,19 @@ public class StudioPsiUtils {
 
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
-                if (psiFile != null) {
-                    WriteCommandAction.runWriteCommandAction(project, () -> {
-                        // Format the Java file
-                        if (file.getName().endsWith(".java")) {
-                            JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
-                        }
-                        CodeStyleManager.getInstance(project).reformat(psiFile);
-                    });
-                    if (componentViewHandler != null) {
-                        componentViewHandler.setPsiFile(psiFile);
+                DumbService.getInstance(project).runWhenSmart(() -> {
+                    if (psiFile != null && psiFile.isWritable()) {
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            if (file.getName().endsWith(".java")) {
+                                JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
+                            }
+                            CodeStyleManager.getInstance(project).reformat(psiFile);
+                            if (componentViewHandler != null) {
+                                componentViewHandler.setPsiFile(psiFile);
+                            }
+                        });
                     }
-                }
+                });
             }
         } catch (IOException e) {
             LOG.warn("STUDIO: ERROR: writeContentAndFormat " + file + " message [" + e.getMessage() + "] trace [" + Arrays.toString(e.getStackTrace())+ "]");
@@ -529,7 +531,7 @@ public class StudioPsiUtils {
 private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativeRootDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
@@ -582,7 +584,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Get the virtual file representing the relative (to the project root) of the supplied file.
      * Note virtual files will miss any unsaved changes currently in the editor and may become invalid if a project is refreshed
-     * @param projecKey  essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projecKey  essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativeFilePath from the project root e.g. pom.xml, src/main/resources/application.properties
      * @return the virtual file reflecting the file path
      */
@@ -593,7 +595,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Read the physical file from the file system and return as a String.
      * Note that the VFS is used to obtain the file so any unsaved edits will be missed.
-     * @param projecKey  essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projecKey  essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param relativeFilePath from the project root e.g. pom.xml, src/main/resources/application.properties
      * @return the String contents of the file, or null if it does not exist
      */
@@ -676,7 +678,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
      * Search the project root cache for the supplied content root.
      * Note, virtualFiles can become invalid if the IDE refreshes the project, use isValid() before use.
      *
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @return the content root if its found, nulll otherwise.
      */
     protected static VirtualFile getSpecificContentRootFromCache(final String projectKey) {
@@ -698,7 +700,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 //    /**
 //     * Ensures the directory exists at the specified level, creating it if necessary.
 //     *
-//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
 //     * @param parentDir    The VirtualFile of the parent directory.
 //     * @param directoryName The name of the directory to ensure.
 //     * @return The PsiDirectory for the created or existing directory.
@@ -715,7 +717,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 //                    newDir[0] = parentDir.createChildDirectory(null, directoryName);
 //                } catch (IOException e) {
 //                    String messages = "An error attempting tp create directory " + directoryName + " message was " + e.getMessage();
-//                    displayIdeaWarnMessage(UiContext.getProject(projectKey).getName(), messages);
+//                    displayIdeaWarnMessage(UiContext.getProject(projectKey).getIdentity(), messages);
 //                    LOG.warn("STUDIO: SERIOUS: " + messages);
 //                }
 //            } else if (!existingDir.isDirectory()) {
@@ -733,7 +735,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
     /**
      * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param basePackage the package that contains the subpackage leaves
      * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
      */
@@ -744,19 +746,20 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         if (baseDir == null) {
             LOG.warn("Studio: WARN: Could not get project root for directory for project [" + projectKey + "]");
         } else {
-            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
-            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
+//            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+//            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
 
-            CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->
-            {
+            CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() -> {
                 try {
-                    ReadAction.compute(() -> {
+                    return ReadAction.compute(() -> {
+                        final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+                        final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
                         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
-                        return leafPackageDirectory.getSubdirectories();
+                        System.out.println("XXXXXXXX leafPackageDirectory.getSubdirectories() = " + Arrays.toString(leafPackageDirectory.getSubdirectories()));
+                        return leafPackageDirectory.getSubdirectories(); // ✅ this is now returned
                     });
                 } catch (Exception ee) {
-                    // ReadAction.compute can swallow exceptions if not explicitly caught
-                    LOG.warn("STUDIO: SERIOUS: The read action of pomGetTopLevel for params " +
+                    LOG.warn("STUDIO: SERIOUS: The read action of deleteSubPackagesNotIn for params " +
                             " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
                             " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
                 }
@@ -765,7 +768,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
             leafPackageDirectoryFuture.thenAccept(resultsObject ->
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (resultsObject == null) {
-                        LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
+                        LOG.warn("STUDIO: SERIOUS: The previous read action of deleteSubPackagesNotIn returned null for params " +
                                 " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
                                 " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
                     } else {
@@ -807,7 +810,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
     /**
      * Execute a Java command line, displaying the results in the Application output Window
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param virtualFile of the class to be executed
      * @param fullyQualifiedClassName of the class to be executed
      */
@@ -936,7 +939,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
 //    /**
 //     * Execute a Java command line, displaying the results in the Application output Window
-//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
 //     * @param virtualFile of the class to be executed
 //     * @param fullyQualifiedClassName of the class to be executed
 //     */
@@ -1069,7 +1072,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
 //    /**
 //     * Execute a Java command line, displaying the results in the Application output Window
-//     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
 //     * @param virtualFile of the class to be executed
 //     * @param fullyQualifiedClassName of the class to be executed
 //     */
@@ -1181,7 +1184,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
     /**
      * Attempt to stop the java process currently running in the console.
-     * @param projectKey essentially project.getName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      */
     public static void stopRunningProcess(String projectKey) {
         ProcessHandler processHandler = UiContext.getAppserverProcessHandle(projectKey);

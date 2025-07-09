@@ -7,12 +7,13 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
-
+import org.ikasan.studio.core.StudioBuildUtils;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
@@ -72,6 +73,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
+            if (metaPackChanged) {
+                Module module = UiContext.getIkasanModule(projectKey);
+                // If the version has changed, we need to update the component meta
+                // Can't update the metapack until all changes are inthe current model.
+                StudioBuildUtils.changeMetaPack(module);
+            }
             // This will force a regeneration of the component
             if (userImplementedComponentOverwriteCheckBox == null || userImplementedComponentOverwriteCheckBox.isSelected()) {
                 if (getSelectedComponent() instanceof FlowUserImplementedElement) {
@@ -148,7 +155,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 // Always refresh the list of choosable metapacks
                 List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
                 if (installedMetapacks != null && ! installedMetapacks.isEmpty()) {
-                    getSelectedComponent().getComponentMeta().getProperties().get(VERSION).setChoices(installedMetapacks);
+                    getSelectedComponent().getComponentMeta().getAllowableProperties().get(VERSION).setChoices(installedMetapacks);
                 }
             }
 
@@ -159,11 +166,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         mandatoryPropertiesEditorPanel, getSelectedComponent().getProperty(getSelectedComponent().getIdentityPropertyMetaKey()), gc, mandatoryTabley++));
             }
 
-            if (!getSelectedComponent().getComponentMeta().getProperties().isEmpty()) {
+            if (!getSelectedComponent().getComponentMeta().getAllowableProperties().isEmpty()) {
                 if (!componentInitialisation && getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(regeneratingPropertiesEditorPanel, gc, regenerateTabley++);
                 }
-                for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getProperties().entrySet()) {
+                for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getAllowableProperties().entrySet()) {
                     String key = entry.getKey();
                     if (!ComponentPropertyMeta.isIdentityKey(key) && !entry.getValue().isHiddenProperty() && !entry.getValue().isIgnoreProperty()) {
                         ComponentProperty property = getSelectedComponent().getProperty(key);

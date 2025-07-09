@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.BasicElementSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,8 +171,8 @@ public  class BasicElement extends IkasanObject {
     public List<ComponentProperty> getComponentPropertyList() {
         if (componentProperties != null && !componentProperties.isEmpty()) {
             return componentProperties.values().stream()
-                    .filter(x-> !x.getMeta().isIgnoreProperty())
-                    .collect(Collectors.toList());
+                .filter(x-> !x.getMeta().isIgnoreProperty())
+                .collect(Collectors.toList());
         } else {
             return Collections.EMPTY_LIST;
         }
@@ -296,6 +298,41 @@ public  class BasicElement extends IkasanObject {
                 }
             }
         }
+    }
+
+
+    // Maybe this needs to be abstract
+    public BasicElement cloneToVersion(BasicElement target) throws StudioBuildException {
+
+        target.setComponentMeta(IkasanComponentLibrary.getIkasanComponentByKey(this.getVersion(), this.getComponentName()));
+        if (target.getComponentMeta() == null) {
+            throw new StudioBuildException("Could not find component meta for version [" + this.getVersion() + "] and component name [" + this.getComponentName() + "]");
+        }
+        for(Map.Entry<String, ComponentProperty> entry : this.componentProperties.entrySet()) {
+            ComponentPropertyMeta propertyMeta = target.getComponentMeta().getMetadata(entry.getKey());
+            if (propertyMeta != null) {
+                target.addComponentProperty(entry.getKey(), new ComponentProperty(propertyMeta, entry.getValue().getValue()));
+            } else {
+                LOG.warn("Could not find property meta for key [" + entry.getKey() + "] in component [" + this.getComponentName() + "]");
+            }
+        }
+//
+//
+//        BasicElement clonedElement = new BasicElement();
+//        clonedElement.setComponentMeta(this.getComponentMeta());
+//        clonedElement.setDescription(this.getDescription());
+//        clonedElement.setVersion(version);
+//        clonedElement.setComponentName(this.getComponentName());
+//        clonedElement.setIdentity(this.getIdentity());
+//
+//        if (this.componentProperties != null) {
+//            clonedElement.componentProperties = this.componentProperties.entrySet().stream()
+//                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().clone()));
+//        } else {
+//            clonedElement.componentProperties = new HashMap<>();
+//        }
+
+        return null;
     }
 
     @Override

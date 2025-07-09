@@ -10,7 +10,7 @@
       "version": "3.1.0"
     }
     ],
-  "properties": {
+  "allowableProperties": {
     "description": {
       "propertyName": "description",
       "helpText": "A more detailed description of the component that may assist in support."

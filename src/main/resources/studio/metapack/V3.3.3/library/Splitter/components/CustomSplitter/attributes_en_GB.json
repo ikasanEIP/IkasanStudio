@@ -7,7 +7,7 @@
   "implementingClass": "org.ikasan.component.splitter.Custom",
   "_useImplementingClassInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/splitter/Readme.md",
-  "properties": {
+  "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,

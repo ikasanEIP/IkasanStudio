@@ -6,7 +6,7 @@
   "ikasanComponentFactoryMethod": "objectToXmlStringConverter",
   "useImplementingClassInFactory": true,
   "flowBuilderMethod": "converter",
-  "properties": {
+  "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,

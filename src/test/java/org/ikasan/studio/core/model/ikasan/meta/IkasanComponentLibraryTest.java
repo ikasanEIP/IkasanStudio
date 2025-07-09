@@ -51,7 +51,7 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
             () -> assertEquals("Small Flow icon", flow.getSmallIcon().getDescription()),
             () -> assertEquals("Medium Flow icon", flow.getCanvasIcon().getDescription()),
-            () -> assertEquals(5, flow.getProperties().size())
+            () -> assertEquals(5, flow.getAllowableProperties().size())
         );
     }
     protected void verifyDefaultModuleMeta(ComponentMeta module) {
@@ -63,7 +63,7 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
             () -> assertEquals("Small Module icon", module.getSmallIcon().getDescription()),
             () -> assertEquals("Medium Module icon", module.getCanvasIcon().getDescription()),
-            () -> assertEquals(15, module.getProperties().size())
+            () -> assertEquals(15, module.getAllowableProperties().size())
         );
     }
 
@@ -75,7 +75,7 @@ class IkasanComponentLibraryTest {
                 () -> assertEquals("<strong>Exception Resolver</strong><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>", exceptionResolver.getHelpText()),
                 () -> assertEquals("Small Exception Resolver icon", exceptionResolver.getSmallIcon().getDescription()),
                 () -> assertEquals("Medium Exception Resolver icon", exceptionResolver.getCanvasIcon().getDescription()),
-                () -> assertEquals(0, exceptionResolver.getProperties().size()),
+                () -> assertEquals(0, exceptionResolver.getAllowableProperties().size()),
                 () -> assertEquals(5, exceptionResolver.getActionList().size())
         );
     }

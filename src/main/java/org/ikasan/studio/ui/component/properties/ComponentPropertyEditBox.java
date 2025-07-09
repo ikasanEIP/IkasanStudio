@@ -453,14 +453,13 @@ public class ComponentPropertyEditBox {
         boolean fieldNotSet = false;
         // For boolean we don't current support unset @todo support unset if we need to
 
-
-        if (meta.getPropertyDataType() == java.lang.String.class) {
-            fieldNotSet = propertyValueField.getText() == null || propertyValueField.getText().isEmpty();
+        Object value = getValue();
+        if (value == null) {
+            fieldNotSet = true;
+        } else if (meta.getPropertyDataType() == java.lang.String.class) {
+            fieldNotSet = ((String)value).isEmpty();
         } else if (meta.getPropertyDataType() == java.lang.Long.class || meta.getPropertyDataType() == java.lang.Integer.class) {
-            Object value = propertyValueField.getValue();
-            if (value == null) {
-                fieldNotSet = true;
-            } else if (value instanceof Long) {
+            if (value instanceof Long) {
                 fieldNotSet = ((Long)value == 0);
             } else if (value instanceof Integer) {
                 fieldNotSet = ((Integer)value == 0);

@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
+
 public class PaletteTabPanel extends JPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Set to push description off the screen
@@ -123,28 +125,30 @@ public class PaletteTabPanel extends JPanel {
             LOG.info("STUDIO: New project, no model version available yet");
         } else {
             Collection<ComponentMeta> componentMetaList = null;
-            try {
-                componentMetaList = IkasanComponentLibrary.getPaletteComponentList(UiContext.getIkasanModule(projectKey).getMetaVersion());
-            } catch (StudioBuildException e) {
-                StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
-            }
-            if (componentMetaList != null) {
-                List<ComponentMeta> componentMetaInDisplayOrder = componentMetaList
-                        .stream()
-                        .filter(meta -> !meta.isModule())
-                        .sorted(Comparator
-                                .comparing(ComponentMeta::getDisplayOrder)
-                                .thenComparing(ComponentMeta::getName))
-                        .toList();
+            if (!DUMB_MODULE_VERSION.equals(UiContext.getIkasanModule(projectKey).getMetaVersion())) {
+                try {
+                    componentMetaList = IkasanComponentLibrary.getPaletteComponentList(UiContext.getIkasanModule(projectKey).getMetaVersion());
+                } catch (StudioBuildException e) {
+                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                }
+                if (componentMetaList != null) {
+                    List<ComponentMeta> componentMetaInDisplayOrder = componentMetaList
+                            .stream()
+                            .filter(meta -> !meta.isModule())
+                            .sorted(Comparator
+                                    .comparing(ComponentMeta::getDisplayOrder)
+                                    .thenComparing(ComponentMeta::getName))
+                            .toList();
 
-                String category = "";
+                    String category = "";
 
-                for (ComponentMeta componentMeta : componentMetaInDisplayOrder) {
-                    if (!category.equals(componentMeta.getComponentTypeMeta().getComponentShortType())) {
-                        category = componentMeta.getComponentTypeMeta().getComponentShortType();
-                        paletteItems.add(new PaletteItem(category, componentMeta));
+                    for (ComponentMeta componentMeta : componentMetaInDisplayOrder) {
+                        if (!category.equals(componentMeta.getComponentTypeMeta().getComponentShortType())) {
+                            category = componentMeta.getComponentTypeMeta().getComponentShortType();
+                            paletteItems.add(new PaletteItem(category, componentMeta));
+                        }
+                        paletteItems.add(new PaletteItem(componentMeta));
                     }
-                    paletteItems.add(new PaletteItem(componentMeta));
                 }
             }
         }

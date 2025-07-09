@@ -50,39 +50,47 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 //            LOG.warn("STUDIO: The metapackVersion of the module was not stated, using default metapackVersion");
         }
 
-        Module module;
-        try {
-            module = new Module(metapackVersion);
-            module.setName("Initialising module"); // A temp name to aid any issue resolution.
-        } catch (StudioBuildException se) {
-            String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
-            LOG.error(message);
-            throw new IOException(message, se);
-        }
-        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-        while(fields.hasNext()) {
-            Map.Entry<String, JsonNode> field = fields.next();
-            String fieldName  = field.getKey();
-            if (FLOWS_TAG.equals(fieldName)) {
-                try {
-                    module.setFlows(getFlows(field.getValue(), metapackVersion));
-                } catch (StudioBuildException se) {
-                    String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
-                    LOG.error(message);
-                    throw new StudioBuildRuntimeException(message, se);
-                }
-            } else {
-                // These tags are for the top level flow properties
-                if (fieldName != null && fieldName.equals(VERSION)) {
-                    module.setPropertyValue(fieldName, metapackVersion);
+        Module module ;
+        if (metapackVersion == null || metapackVersion.isBlank()) {
+            // If the version is not set, we assume the default metapack
+            module = Module.getDumbModuleVersion();
+            LOG.warn("STUDIO: WARN The metapackVersion of the module was not stated, assuming propject startup");
+        } else {
+
+
+            try {
+                module = new Module(metapackVersion);
+                module.setName("Initialising module"); // A temp name to aid any issue resolution.
+            } catch (StudioBuildException se) {
+                String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
+                LOG.error(message);
+                throw new IOException(message, se);
+            }
+            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> field = fields.next();
+                String fieldName = field.getKey();
+                if (FLOWS_TAG.equals(fieldName)) {
+                    try {
+                        module.setFlows(getFlows(field.getValue(), metapackVersion));
+                    } catch (StudioBuildException se) {
+                        String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
+                        LOG.error(message);
+                        throw new StudioBuildRuntimeException(message, se);
+                    }
                 } else {
-                    Object value = getTypedValue(field);
-                    module.setPropertyValue(fieldName, value);
+                    // These tags are for the top level flow properties
+                    if (fieldName != null && fieldName.equals(VERSION)) {
+                        module.setPropertyValue(fieldName, metapackVersion);
+                    } else {
+                        Object value = getTypedValue(field);
+                        module.setPropertyValue(fieldName, value);
+                    }
                 }
             }
-        }
-        if (module.getVersion() == null) {
-            module.setVersion(DEFAULT_IKASAN_PACK);
+            if (module.getVersion() == null) {
+                module.setVersion(DEFAULT_IKASAN_PACK);
+            }
         }
         return module;
     }

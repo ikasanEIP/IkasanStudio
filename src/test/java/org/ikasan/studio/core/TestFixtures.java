@@ -35,7 +35,7 @@ public class TestFixtures {
     }
 
     public static Module getMyFirstModuleIkasanModule(String metaPackVersion, List<Flow> flows) throws StudioBuildException {
-        return Module.moduleBuilder()
+        Module newModule = Module.moduleBuilder()
             .version(metaPackVersion)
             .name("A to B convert")
             .description("My first module")
@@ -45,6 +45,8 @@ public class TestFixtures {
             .h2WebPortNumber("8093")
             .flows(flows)
             .build();
+//        newModule.setComponentMeta(IkasanComponentLibrary.getModuleComponentMetaMandatory(metaPackVersion));
+        return newModule;
     }
 
     public static Flow.FlowBuilder getUnbuiltFlow(String metaPackVersion) {

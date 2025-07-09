@@ -73,7 +73,7 @@ public class ComponentMeta implements IkasanMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private Set<Dependency> jarDependencies;
     @Builder.Default
-    private Map<String, ComponentPropertyMeta> properties = new HashMap<>();
+    private Map<String, ComponentPropertyMeta> allowableProperties = new HashMap<>();
     private boolean usesBuilderInFactory;
     private boolean useImplementingClassInFactory;
 
@@ -98,8 +98,8 @@ public class ComponentMeta implements IkasanMeta {
      */
     public Map<String, ComponentProperty> getMandatoryInstanceProperties() {
         Map<String, ComponentProperty> mandatoryProperties = new TreeMap<>();
-        if (properties != null) {
-            for (Map.Entry<String, ComponentPropertyMeta> entry : properties.entrySet()) {
+        if (allowableProperties != null) {
+            for (Map.Entry<String, ComponentPropertyMeta> entry : allowableProperties.entrySet()) {
                 if (entry.getValue().isMandatory()) {
                     mandatoryProperties.put(entry.getKey(), new ComponentProperty(entry.getValue()));
                 }
@@ -109,11 +109,11 @@ public class ComponentMeta implements IkasanMeta {
     }
 
     public Set<String> getPropertyKeys() {
-        return properties.keySet();
+        return allowableProperties.keySet();
     }
 
     public ComponentPropertyMeta getMetadata(String propertyName) {
-        return properties.get(propertyName);
+        return allowableProperties.get(propertyName);
     }
     public boolean isConsumer() {
         return COMSUMER_TYPE.equals(componentTypeMeta.getComponentShortType());

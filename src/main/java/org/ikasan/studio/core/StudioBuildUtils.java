@@ -408,6 +408,10 @@ public class StudioBuildUtils {
         return labels;
     }
 
+    public static void changeMetaPack(Module module) {
+        module.getComponentPropertyList();
+    }
+
 //    /**
 //     * Gven a string that potentially contains placeholders, attempt to extract the placeholders
 //     * @param input to be examined

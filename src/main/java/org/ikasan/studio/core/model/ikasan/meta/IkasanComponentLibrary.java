@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentMeta.GENERIC_KEY;
 
 /**
@@ -52,7 +53,7 @@ public class IkasanComponentLibrary {
         }
         Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
 
-        if (libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion)) {
+        if (containVersion(ikasanMetaDataPackVersion)) {
             returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         } else {
             returnedIkasanComponentMetaMapByKey = new HashMap<>();
@@ -73,6 +74,10 @@ public class IkasanComponentLibrary {
         return returnedIkasanComponentMetaMapByKey;
     }
 
+    public static boolean containVersion(String ikasanMetaDataPackVersion) {
+        return libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion);
+    }
+
     /**
      * Refresh the component library.
      * By making this protected, we intend to limit that only the test can state an alternate root
@@ -84,72 +89,75 @@ public class IkasanComponentLibrary {
                              Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey) {
         if (ikasanMetaDataPackVersion == null || ikasanMetaDataPackVersion.isEmpty()) {
             LOG.error("STUDIO: ikasanMetaDataPackVersion should not be null");
-        }
+        } else if (ikasanMetaDataPackVersion.equals(DUMB_MODULE_VERSION)) {
+            LOG.info("STUDIO: Module set to dumb, no metapack will be loaded");
+        } else {
 
-        String baseDirectory = METAPACK_BASE_BASE_DIR + "/" + ikasanMetaDataPackVersion + "/library";
-        // The structure of the Meta-Pack directory is
-        // 1:  'Category'/'typpe-meta'
-        // 0:n 'Category'/'Component'
-        // e.g. Consumer/type-meta_en_GB.json, Consumer/EventGeneratingConsumer, Consumer/FtpConsumer ...
+            String baseDirectory = METAPACK_BASE_BASE_DIR + "/" + ikasanMetaDataPackVersion + "/library";
+            // The structure of the Meta-Pack directory is
+            // 1:  'Category'/'typpe-meta'
+            // 0:n 'Category'/'Component'
+            // e.g. Consumer/type-meta_en_GB.json, Consumer/EventGeneratingConsumer, Consumer/FtpConsumer ...
 
-        String[] componentTypeDirectories = getSubdirectories(baseDirectory);
-        assert componentTypeDirectories != null;
-        for (String componentTypeDirectory : componentTypeDirectories) {
-            // Each component type e.g. Consumer, Producer, etc. get the top level type meta
-            ComponentTypeMeta componentTypeMeta;
-            try {
-                componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/type-meta_en_GB.json");
-            } catch (StudioBuildException e) {
-                LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
-                        " there was an error generating the details for component " + componentTypeDirectory +
-                        " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
-                continue;
-            }
-
-            String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
-
-            // For each component .e.g. BasicJamConsumer, FtpConsumer, etc.
-            for (String componentDirectory : componentDirectories) {
-                IkasanMeta ikasanMeta;
+            String[] componentTypeDirectories = getSubdirectories(baseDirectory);
+            assert componentTypeDirectories != null;
+            for (String componentTypeDirectory : componentTypeDirectories) {
+                // Each component type e.g. Consumer, Producer, etc. get the top level type meta
+                ComponentTypeMeta componentTypeMeta;
                 try {
-                    ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
+                    componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/type-meta_en_GB.json");
                 } catch (StudioBuildException e) {
                     LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
-                            " there was an error generating the details for component " + componentDirectory +
+                            " there was an error generating the details for component " + componentTypeDirectory +
                             " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                     continue;
                 }
-                ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
-                componentMeta.setComponentTypeMeta(componentTypeMeta);
 
-                // Merge the jar depencies once only at load time rather than every time we need them
-                if (componentTypeMeta.getJarDependencies() != null) {
-                    if (componentMeta.getJarDependencies() == null) {
-                        componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
-                    } else {
-                        componentMeta.getJarDependencies().addAll(componentTypeMeta.getJarDependencies());
+                String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
+
+                // For each component .e.g. BasicJamConsumer, FtpConsumer, etc.
+                for (String componentDirectory : componentDirectories) {
+                    IkasanMeta ikasanMeta;
+                    try {
+                        ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
+                    } catch (StudioBuildException e) {
+                        LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
+                                " there was an error generating the details for component " + componentDirectory +
+                                " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
+                        continue;
                     }
-                }
-                // Merge the properties once only at load time rather than every time we need them
-                if (componentTypeMeta.getProperties() != null) {
-                    for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getProperties().entrySet()) {
-                        if (componentMeta.getProperties().containsKey(propertiesFromType.getKey())) {
-                            LOG.warn("STUDIO: Warning: the property with path " + componentDirectory + " and key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
+                    ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
+                    componentMeta.setComponentTypeMeta(componentTypeMeta);
+
+                    // Merge the jar depencies once only at load time rather than every time we need them
+                    if (componentTypeMeta.getJarDependencies() != null) {
+                        if (componentMeta.getJarDependencies() == null) {
+                            componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
+                        } else {
+                            componentMeta.getJarDependencies().addAll(componentTypeMeta.getJarDependencies());
                         }
-                        componentMeta.getProperties().put(propertiesFromType.getKey(), propertiesFromType.getValue());
                     }
-                }
+                    // Merge the properties once only at load time rather than every time we need them
+                    if (componentTypeMeta.getAllowableProperties() != null) {
+                        for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getAllowableProperties().entrySet()) {
+                            if (componentMeta.getAllowableProperties().containsKey(propertiesFromType.getKey())) {
+                                LOG.warn("STUDIO: Warning: the property with path " + componentDirectory + " and key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
+                            }
+                            componentMeta.getAllowableProperties().put(propertiesFromType.getKey(), propertiesFromType.getValue());
+                        }
+                    }
 
-                final String componentName = componentMeta.getName();
-                componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-                componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
-                returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
+                    final String componentName = componentMeta.getName();
+                    componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                    componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+                    returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
+                }
             }
-        }
-        if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
-            LOG.error("STUDIO: The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
-                    returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
-                    mandatoryComponents + " so will be ignored");
+            if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
+                LOG.error("STUDIO: The ikasan version pack " + ikasanMetaDataPackVersion + " contained these components [" +
+                        returnedIkasanComponentMetaMapByKey.keySet() + "] but did not contain all the mandatory components " +
+                        mandatoryComponents + " so will be ignored");
+            }
         }
     }
 
