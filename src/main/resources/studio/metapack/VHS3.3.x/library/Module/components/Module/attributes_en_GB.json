@@ -133,7 +133,8 @@
       "propertyName": "version",
       "choices": [ "V1.3.x" ],
       "affectsUserImplementedClass": true,
-      "helpText": "The ikasan version used to build this module."
+      "helpText": "The ikasan version used to build this module.",
+      "mandatory": true
     }
   }
 }

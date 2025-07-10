@@ -16,6 +16,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 
+/**
+ * Abstract class for view handlers residing in the UI package. Its parent resides in the core package in order to bridge
+ * the gap between the core model and the UI representation of that model.
+ * Provides methods for painting components, managing dimensions, and handling navigation.
+ */
 @Data
 @EqualsAndHashCode(callSuper=true)
 public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
