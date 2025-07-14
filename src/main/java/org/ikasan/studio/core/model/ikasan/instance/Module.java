@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.maven.model.Dependency;
-import org.bouncycastle.math.raw.Mod;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
@@ -43,14 +42,14 @@ public class Module extends BasicElement {
     private List<Flow> flows;
 
     /**
-     * Create a temporary instance of the Module.
-     * When the module is first loaded by ModuleDeserializer, we need a partial instance to bootstrap from.
-     * The rest of the module is generated in ModuleDeserializer.
+     * Create a new basic module with a specific meta-pack version.
+     * This is used for creating a new project
      * @param metaPackVersion to use for the module
      * @throws StudioBuildException if the component could not be created
      */
     public Module(String metaPackVersion) throws StudioBuildException {
         super (IkasanComponentLibrary.getModuleComponentMetaMandatory(metaPackVersion), null);
+        this.setVersion(metaPackVersion);
         flows = new ArrayList<>();
     }
 
@@ -169,36 +168,13 @@ public class Module extends BasicElement {
         return ModelUtils.getAllUniqueSortedDependenciesSet(allJarDepedencies);
     }
 
-//    @Override
-    public Module cloneModule(String version) throws StudioBuildException {
+    public Module cloneToVersion(String version) throws StudioBuildException {
         if (version == null || version.isBlank()) {
             LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but version was null or blank");
             return null;
         }
-        Module clonedModule = new Module(version);
-        return (Module)super.cloneToVersion(clonedModule);
-    }
-
-    /**
-     * This is called when a meta-pack change is detected.
-     * It will iterate over all flows / components, swap their properties from the current meta-pack set to the new meta-pack set.
-     */
-    public void resetMetaPack() throws StudioBuildException {
-
-        List<ComponentProperty> properties = getComponentPropertyList();
-//        String newMetaPackVersion = getMetaVersion();
-//        List<Flow> flows = this.flows;
-//        Set<String> componentNames = IkasanComponentLibrary.getIkasanComponentNames(newMetaPackVersion);
-//        if (flows != null && ! flows.isEmpty()) {
-//            for (Flow flow : flows) {
-//
-//            }
-//        }
-        List<ComponentProperty> componentProperties1 = getComponentPropertyList();
-
-        getComponentMeta().getName();
-        Module convertedModule = cloneModule(this.getVersion())
-;        // listUnsetMandatoryProperties();
+        Module newTragetModule = new Module(version);
+        return (Module)super.cloneToVersion(newTragetModule);
     }
 
 

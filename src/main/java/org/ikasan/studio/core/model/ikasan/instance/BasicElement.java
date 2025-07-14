@@ -3,18 +3,19 @@ package org.ikasan.studio.core.model.ikasan.instance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
-import org.ikasan.studio.core.StudioBuildException;
+import lombok.Getter;
+import lombok.Setter;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.BasicElementSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
 
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
@@ -38,10 +39,10 @@ public  class BasicElement extends IkasanObject {
 
 
     public void setVersion(String version) {
-        this.setPropertyValue(ComponentPropertyMeta.VERSION, version);
+        this.setPropertyValue(VERSION, version);
     }
     public String getVersion() {
-        return (String)this.getPropertyValue(ComponentPropertyMeta.VERSION);
+        return (String)this.getPropertyValue(VERSION);
     }
 
     /**
@@ -71,8 +72,7 @@ public  class BasicElement extends IkasanObject {
 
 
     /**
-     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
-     * @return the component description
+     * Convenience method to access the standard property called identity. Since this is in properties, set JsonIgnore
      */
     @JsonIgnore
     public void setIdentity(String name) {
@@ -80,8 +80,8 @@ public  class BasicElement extends IkasanObject {
     }
 
     /**
-     * Convenience method to access the standard property called name. Since this is in properties, set JsonIgnore
-     * @return the component description
+     * Convenience method to access the standard property called identity. Since this is in properties, set JsonIgnore
+     * @return the component identity
      */
     @JsonIgnore
     public String getIdentity() {
@@ -302,37 +302,26 @@ public  class BasicElement extends IkasanObject {
 
 
     // Maybe this needs to be abstract
-    public BasicElement cloneToVersion(BasicElement target) throws StudioBuildException {
+    public BasicElement cloneToVersion(BasicElement newTarget) {
+        for(Map.Entry<String, ComponentProperty> surceEntry : this.componentProperties.entrySet()) {
+            String sourceKey = surceEntry.getKey();
 
-        target.setComponentMeta(IkasanComponentLibrary.getIkasanComponentByKey(this.getVersion(), this.getComponentName()));
-        if (target.getComponentMeta() == null) {
-            throw new StudioBuildException("Could not find component meta for version [" + this.getVersion() + "] and component name [" + this.getComponentName() + "]");
-        }
-        for(Map.Entry<String, ComponentProperty> entry : this.componentProperties.entrySet()) {
-            ComponentPropertyMeta propertyMeta = target.getComponentMeta().getMetadata(entry.getKey());
-            if (propertyMeta != null) {
-                target.addComponentProperty(entry.getKey(), new ComponentProperty(propertyMeta, entry.getValue().getValue()));
+            // We don't want to duplicate the version property since the newTraget will have its own version
+            if (VERSION.equals(sourceKey)) {
+                continue;
+            }
+            Object sourceValue = surceEntry.getValue().getValue();
+            // 1 - Is property allowed in the new component meta?
+            ComponentPropertyMeta allowableComponentPropertyMeta = newTarget.getComponentMeta().getAllowableProperties().get(sourceKey);
+            if (allowableComponentPropertyMeta == null) {
+                LOG.warn("Trying to set old propery of name [" + sourceKey + "] but this is not supported in version [" + newTarget.getVersion() + "] of component [" + newTarget.getComponentName() + "]");
+                continue; // skip this property
             } else {
-                LOG.warn("Could not find property meta for key [" + entry.getKey() + "] in component [" + this.getComponentName() + "]");
+            // 2 - Old peroperty is alowed in new components, set the property in the new component
+                newTarget.setPropertyValue(sourceKey, sourceValue);
             }
         }
-//
-//
-//        BasicElement clonedElement = new BasicElement();
-//        clonedElement.setComponentMeta(this.getComponentMeta());
-//        clonedElement.setDescription(this.getDescription());
-//        clonedElement.setVersion(version);
-//        clonedElement.setComponentName(this.getComponentName());
-//        clonedElement.setIdentity(this.getIdentity());
-//
-//        if (this.componentProperties != null) {
-//            clonedElement.componentProperties = this.componentProperties.entrySet().stream()
-//                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().clone()));
-//        } else {
-//            clonedElement.componentProperties = new HashMap<>();
-//        }
-
-        return null;
+        return newTarget;
     }
 
     @Override

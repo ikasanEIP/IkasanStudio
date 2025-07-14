@@ -45,7 +45,6 @@ public class TestFixtures {
             .h2WebPortNumber("8093")
             .flows(flows)
             .build();
-//        newModule.setComponentMeta(IkasanComponentLibrary.getModuleComponentMetaMandatory(metaPackVersion));
         return newModule;
     }
 

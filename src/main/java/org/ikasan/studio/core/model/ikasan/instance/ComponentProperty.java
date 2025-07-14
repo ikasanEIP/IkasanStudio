@@ -2,6 +2,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 //import liquibase.pro.packaged.J;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -17,6 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class ComponentProperty {
 
     private Object value;
@@ -56,7 +58,7 @@ public class ComponentProperty {
 
 
     public boolean affectsUserImplementedClass() {
-        return Boolean.TRUE.equals(getMeta().isAffectsUserImplementedClass());
+        return getMeta().isAffectsUserImplementedClass();
     }
 
     /**
