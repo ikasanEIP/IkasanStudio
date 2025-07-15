@@ -78,7 +78,7 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private List<String> choices;           // The value can be only one of the items in this list
     private String componentType;           // Features in the serialised model.json, the interface or short form type for the property
-    private String dataValidationTyppe;     // Support for popup data entry helpers / data types
+    private String dataValidationType;      // Support for popup data entry helpers / data types
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
 //    private Object defaultValue = "";     // Default value e.g. displayed when property is created.

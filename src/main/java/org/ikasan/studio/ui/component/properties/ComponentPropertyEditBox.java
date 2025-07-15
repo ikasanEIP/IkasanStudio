@@ -179,7 +179,7 @@ public class ComponentPropertyEditBox {
         }
         resetDataEntryComponentsWithNewValues();
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
-        if (componentProperty.getMeta().getDataValidationTyppe() != null) {
+        if (componentProperty.getMeta().getDataValidationType() != null) {
             dataValidationHelper = new JButton();
             dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon("Help with cron configuration"));
             dataValidationHelper.setBorder(new EmptyBorder(5, 15, 5, 15));

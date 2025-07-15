@@ -233,6 +233,33 @@ public class Flow extends BasicElement {
         return reason;
     }
 
+    /**
+     * The intent is to clone the existing flow but to a different meta-pack metapackVersion.
+     * @param metapackVersion for cloned flow
+     * @return the cloned module with the new meta pack version
+     * @throws StudioBuildException when cloning is not possible.
+     */
+    public Flow cloneToVersion(String metapackVersion) throws StudioBuildException {
+        if (metapackVersion == null || metapackVersion.isBlank()) {
+            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            return null;
+        }
+        Flow clonedFlow = new Flow(metapackVersion);
+
+        if (this.flowRoute != null) {
+            clonedFlow.setFlowRoute(this.flowRoute.cloneToVersion(metapackVersion, clonedFlow));
+        } else {
+            clonedFlow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(clonedFlow).build());
+        }
+        if (this.getConsumer() != null) {
+            clonedFlow.setConsumer(this.getConsumer().cloneToVersion(metapackVersion, clonedFlow, clonedFlow.getFlowRoute()));
+        }
+        if (this.getExceptionResolver() != null) {
+            clonedFlow.setExceptionResolver(this.getExceptionResolver().cloneToVersion(metapackVersion, clonedFlow));
+        }
+        return clonedFlow;
+    }
+
     @Override
     public String toSimpleString() {
 

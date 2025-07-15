@@ -1,10 +1,15 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ExceptionResolverSerializer;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -17,6 +22,7 @@ import java.util.*;
 @Setter
 @ToString
 public class ExceptionResolver extends FlowElement {
+    private static final Logger LOG = LoggerFactory.getLogger(FlowElement.class);
     private Map<String, ExceptionResolution> ikasanExceptionResolutionMap ;
     public ExceptionResolver(String metapackVersion, Flow containingFlow) throws StudioBuildException {
         super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
@@ -55,6 +61,22 @@ public class ExceptionResolver extends FlowElement {
             exceptionResolutions.addAll(ikasanExceptionResolutionMap.values());
         }
         return exceptionResolutions;
+    }
+
+    /**
+     * The intent is to clone the existing ExceptionResolver but to a different meta-pack metapackVersion.
+     * @param metapackVersion
+     * @return the cloned module with the new meta pack version
+     * @throws StudioBuildException when cloning is not possible.
+     */
+    public ExceptionResolver cloneToVersion(String metapackVersion, Flow containingFlow) throws StudioBuildException {
+        if (metapackVersion == null || metapackVersion.isBlank()) {
+            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            return null;
+        }
+        ExceptionResolver clonedExceptionResolver = new ExceptionResolver(metapackVersion, containingFlow, this.ikasanExceptionResolutionMap);
+        super.cloneToVersion(clonedExceptionResolver);
+        return clonedExceptionResolver;
     }
 
     @Override

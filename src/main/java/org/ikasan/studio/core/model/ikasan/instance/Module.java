@@ -168,13 +168,23 @@ public class Module extends BasicElement {
         return ModelUtils.getAllUniqueSortedDependenciesSet(allJarDepedencies);
     }
 
-    public Module cloneToVersion(String version) throws StudioBuildException {
-        if (version == null || version.isBlank()) {
-            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but version was null or blank");
+    /**
+     * The intent is to clone the existing module but to a different meta-pack metapackVersion.
+     * @param metapackVersion for cloned module
+     * @return the cloned module with the new meta pack version
+     * @throws StudioBuildException when cloning is not possible.
+     */
+    public Module cloneToVersion(String metapackVersion) throws StudioBuildException {
+        if (metapackVersion == null || metapackVersion.isBlank()) {
+            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
             return null;
         }
-        Module newTragetModule = new Module(version);
-        return (Module)super.cloneToVersion(newTragetModule);
+        Module newTragetModule = new Module(metapackVersion);
+        super.cloneToVersion(newTragetModule);
+        for(Flow flow : this.getFlows()) {
+            newTragetModule.addFlow(flow.cloneToVersion(metapackVersion));
+        }
+        return newTragetModule;
     }
 
 

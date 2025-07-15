@@ -16,8 +16,8 @@ import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TR
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROUTE_NAMES;
 
 /**
- * The 'default' flow is contained in a single FlowRoute i.e. each node
- * And additional branches
+ * Most of the time, a flow contains a single flow route. The flow route itself
+ * can have multiple child routes when a router is used.
  */
 @Getter
 @Setter
@@ -32,7 +32,7 @@ public class FlowRoute  implements IkasanComponent {
     /**
      * Used primarily during deserialization.
      */
-    private FlowRoute() {
+    private FlowRoute() throws StudioBuildException {
         LOG.warn("STUDIO: SERIOUS: Parameterless version of flowRoute called");
     }
 
@@ -217,6 +217,31 @@ public class FlowRoute  implements IkasanComponent {
     public String getIdentity() {
         return routeName;
     }
+
+    /**
+     * The intent is to clone the existing FlowRoute but to a different meta-pack metapackVersion.
+     * @param metapackVersion of the cloned FlowRoute
+     * @return the cloned module with the new meta pack version
+     * @throws StudioBuildException when cloning is not possible.
+     */
+    public FlowRoute cloneToVersion(String metapackVersion, Flow newContainingFlow) throws StudioBuildException {
+        if (metapackVersion == null || metapackVersion.isBlank()) {
+            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            return null;
+        }
+        if (this.getChildRoutes() != null && !this.getChildRoutes().isEmpty()) {
+            LOG.warn("STUDIO: SERIOUS: Attempt to clone a FlowRoute with no child routes, this is not expected. " + this);
+        }
+        FlowRoute clonedFlowRoute = new FlowRoute(newContainingFlow, this.getRouteName(), new ArrayList<>(), new  ArrayList<>());
+        for (FlowRoute childRoute : this.getChildRoutes()) {
+            clonedFlowRoute.getChildRoutes().add(childRoute.cloneToVersion(metapackVersion, newContainingFlow));
+        }
+        for (FlowElement flowElement : this.getFlowElements()) {
+            clonedFlowRoute.getFlowElements().add(flowElement.cloneToVersion(metapackVersion, newContainingFlow, clonedFlowRoute));
+        }
+        return clonedFlowRoute;
+    }
+
 
     @Override
     public String toString() {

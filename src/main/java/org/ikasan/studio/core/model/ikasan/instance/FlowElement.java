@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
@@ -12,6 +13,7 @@ import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSer
 import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,6 +125,27 @@ public class FlowElement extends BasicElement {
 
             decorators.remove(toBeRemoved);
         }
+    }
+
+    /**
+     * The intent is to clone the existing flow element but to a different meta-pack metapackVersion.
+     * @param metapackVersion for cloned flow element
+     * @return the cloned module with the new meta pack version
+     * @throws StudioBuildException when cloning is not possible.
+     */
+    public FlowElement cloneToVersion(String metapackVersion, Flow containingFlow, FlowRoute containingFlowRoute) throws StudioBuildException {
+        if (metapackVersion == null || metapackVersion.isBlank()) {
+            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            return null;
+        }
+        ComponentMeta newComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(metapackVersion, this.getComponentMeta().getName());
+        if (newComponentMeta == null) {
+            throw new StudioBuildException("Component [" + this.getComponentMeta().getName() + "] not found in metapack version [" + metapackVersion + "]");
+        }
+        FlowElement clonedFlowElement = new FlowElement(newComponentMeta, containingFlow, containingFlowRoute, this.getComponentName(), this.getDecorators());
+        super.cloneToVersion(clonedFlowElement);
+        clonedFlowElement.setVersion(metapackVersion);
+        return clonedFlowElement;
     }
 
     @Override
