@@ -66,12 +66,7 @@ public class ComponentPropertyMeta {
                     .build();
 
     @JsonKey
-    private String propertyName;
-
-    // userImplementedClass vs userSuppliedClass
-    // userImplementedClass - A component that the user implements, we generate the component stub from the interface
-    // userSuppliedClass - A class used by a component, the implementation of which the use supplies
-    private String userImplementClassFtlTemplate;
+    private String propertyName;            // The name / identity of the property, e.g. 'name' (used only for flows and modules), 'componentName', 'description', 'configuredResourceId', 'port'
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean affectsUserImplementedClass=false;  // A change to this property should result in an update to the user implemnted class
@@ -87,7 +82,6 @@ public class ComponentPropertyMeta {
     @Builder.Default
     private String helpText = "";           // Describes the property, typically popping up on tooltips.
     private boolean hiddenProperty;         // The property is used by the templates but is not edited / shown to the user
-    private boolean readOnlyProperty;       // The property can be viewed but not changed
     private boolean ignoreProperty;         // The property is consumed but not featured in any screens or used to update ftl
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
@@ -97,6 +91,7 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private Class propertyDataType = java.lang.String.class;    // Of the property
+    private boolean readOnlyProperty;       // The property can be viewed but not changed
     @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean setterProperty=false;   // The component features in the component factory setter
@@ -109,6 +104,11 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean userDefineResource=false;       // The user will define the details of the resource within the ResourceFactory.
+
+    // userImplementedClass vs userSuppliedClass - here is the difference:
+    // userImplementedClass - A component that the user implements, we generate the component stub from the interface
+    // userSuppliedClass - A class used by a component, the implementation of which the use supplies
+    private String userImplementClassFtlTemplate;
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean userSuppliedClass=false;     // The user will define their own class that implements the interface, we will generate the spring property but leave implementation to client code.

@@ -73,36 +73,34 @@ public class ComponentMeta implements IkasanMeta {
     // These fields map directly onto the values in component-meta_en_GB.json
     // DO NOT RENAME !!
     @lombok.NonNull
-    private String name;                    // Name of the component e.g. Email Producer, FTP Consumer
-    private String additionalKey;           // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
-    private String componentType;           // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
-    private String defaultValue;            // The default value for this component, used in the component properties dialog.
-    private boolean isEndpoint;             // Is this component an endpoint e.g. DB endpoint, sftp location
-    private boolean isInternalEndpoint;     // This endpoint is internal to the flow
-    private String endpointKey;             // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
-    private String endpointTextKey;         // The name of the property in the real component that the endpoint will display as text e.g. queuename
-
-    private String flowBuilderMethod;
-    private boolean generatesUserImplementedClass;
-    private String helpText;
-    private String ikasanComponentFactoryMethod;
-    @lombok.NonNull
-    private String implementingClass;
-    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
-    private Set<Dependency> jarDependencies;
-    @Builder.Default
+    private String name;                            // Name of the component e.g. Email Producer, FTP Consumer
+    private String additionalKey;                   // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
+    @Builder.Default                                // The list of properties that this component is allowed to have e.g. 'name', 'port', 'url', these will be added to ComponentTypeMeta allowableProperties
     private Map<String, ComponentPropertyMeta> allowableProperties = new HashMap<>();
-    private boolean usesBuilderInFactory;
-    private boolean useImplementingClassInFactory;
-
+    private String componentType;                   // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
+    @JsonIgnore
+    private ComponentTypeMeta componentTypeMeta;    // The meta associated with the component type from the metapack, e.g. broker, producer, consumer, router, etc.
+    private String defaultValue;                    // The default value for this component, used in the component properties' dialog.
+    private String endpointKey;                     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
+    private String endpointTextKey;                 // The name of the property in the real component that the endpoint will display as text e.g. queuename
+    private String flowBuilderMethod;               // used by ftl to invoke the correct flow builder method for this component
+    private boolean generatesUserImplementedClass;  // If true, the component will generate a user-implemented class, e.g. a custom filter or transformer.
+    private String helpText;                        // The help text for this component, used in the component properties' dialog.
+    private String ikasanComponentFactoryMethod;    // used by ftl to invoke the correct factory method for this component
+    @lombok.NonNull
+    private String implementingClass;               // e.g. org.ikasan.spec.component.filter.Filter.Custom
+    private boolean isEndpoint;                     // Is this component an endpoint e.g. DB endpoint, sftp location
+    private boolean isInternalEndpoint;             // This endpoint is internal to the flow
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    private Set<Dependency> jarDependencies;        // for this component, these will be added to the pom if this compponent is dragged into the flow
+    private boolean usesBuilderInFactory;           // used by ftl to generate the correct builder code
+    private boolean useImplementingClassInFactory;  // When true, 'implementingClass' is used in the factory method to create a new instance of the component.
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     private String webHelpURL = DEFAULT_README;
 
     @JsonIgnore
     private ImageIcon smallIcon;
-    @JsonIgnore
-    private ComponentTypeMeta componentTypeMeta;
     @JsonIgnore
     private ImageIcon canvasIcon;
 

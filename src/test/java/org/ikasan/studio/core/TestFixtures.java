@@ -1,12 +1,10 @@
 package org.ikasan.studio.core;
 
+import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.meta.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -948,5 +946,158 @@ public class TestFixtures {
                 .childRoutes(childRoutes)
                 .build());
         return flow;
+    }
+
+    /**
+     * Only Flow and Module has this property.
+     * @return the component property meta for the flow or module name.
+     */
+    public static ComponentPropertyMeta getNameComponentPropertyMeta() {
+        return ComponentPropertyMeta.builder()
+                .propertyName("name")
+                .helpText("The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
+                .build();
+    }
+
+    /**
+     * Every component that is not a flow or modules has this property.
+     * @return the component property meta for the component name.
+     */
+    public static ComponentPropertyMeta getComponentNameComponentPropertyMeta() {
+        return ComponentPropertyMeta.builder()
+                .propertyName("componentName")
+                .helpText("The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
+                .build();
+    }
+
+    /**
+     * Every component has this property.
+     * @return the component property meta for the description.
+     */
+    public static ComponentPropertyMeta getDescriptionComponentPropertyMeta() {
+        return ComponentPropertyMeta.builder()
+                .propertyName("description")
+                .helpText("A more detailed description of the component that may assist in support.")
+                .build();
+    }
+
+    /**
+     * Get made up component property meta for a string producer property that we can change depending on the meta pack version.
+     * @param metaPackVersion to which this component property meta applies.
+     * @return the component property meta for a string consumer property.
+     */
+    public static ComponentPropertyMeta getStringXProducerComponentPropertyMeta(String metaPackVersion) {
+
+        return ComponentPropertyMeta.builder()
+                .propertyName("simpleStringProperty")
+                .userImplementClassFtlTemplate("v1".equals(metaPackVersion) ? "org/ikasan/spec/component/endpoint/Producer.ftl" : "org/ikasan/spec/component/endpoint/ProducerV2.ftl")
+                .affectsUserImplementedClass(false)
+                .choices(Arrays.asList("choice1", "choice2", "choice3"))
+                .componentType("org.ikasan.spec.component.endpoint.Producer")
+                .dataValidationType("Used For Testing Only")
+                .defaultValue("defaultValue")
+                .helpText("My ComponentPropertyMeta helpText")
+                .hiddenProperty(false)
+                .readOnlyProperty(false)
+                .ignoreProperty(false)
+                .mandatory(true)
+                .propertyConfigFileLabel("__flow.ftp.producer.cron-expression")
+                .propertyDataType(String.class)
+                .setterProperty(true)
+                .setterMethod("v1".equals(metaPackVersion) ? "setCronExpression" : "setCronExpression2")
+                .usageDataType("java.lang.String")
+                .userDefineResource(false)
+                .userSuppliedClass(false)
+                .validation("^[A-Z_$][a-zA-Z\\d_$£]*$")
+                .validationMessage("String Producer value validation message")
+                .build();
+    }
+
+    public static ComponentPropertyMeta getIntegerComponentPropertyMeta() {
+        return ComponentPropertyMeta.builder()
+                .propertyName("simpleIntegerProperty")
+                .userImplementClassFtlTemplate("org/ikasan/spec/component/endpoint/Producer.ftl")
+                .affectsUserImplementedClass(false)
+                .choices(Arrays.asList("choice4", "choice5", "choice6"))
+                .componentType("org.ikasan.spec.component.endpoint.Producer")
+                .dataValidationType("Used For Testing Only")
+                .defaultValue("defaultValue")
+                .helpText("My Producer ComponentPropertyMeta helpText")
+                .hiddenProperty(false)
+                .readOnlyProperty(false)
+                .ignoreProperty(false)
+                .mandatory(true)
+                .propertyConfigFileLabel("__flow.ftp.producer.cron-expression")
+                .propertyDataType(String.class)
+                .setterProperty(true)
+                .setterMethod("setTTL")
+                .usageDataType("java.lang.Integer")
+                .userDefineResource(false)
+                .userSuppliedClass(false)
+                .validation("^[0-9]+$")
+                .validationMessage("Integer Producer value validation message")
+                .build();
+    }
+
+    /**
+     * Get made up component type meta for a producer.
+     * @return the component type meta for a producer.
+     */
+    public static ComponentTypeMeta getTestProducerComponentTypeMeta() {
+        Dependency dependency = new Dependency();
+        dependency.setGroupId("org.ikasan");
+        dependency.setArtifactId("ikasan-component-producer");
+        dependency.setVersion("3.1.0");
+        return ComponentTypeMeta.builder()
+                .displayOrder(1)
+                .componentType("org.ikasan.spec.component.endpoint.Producer")
+                .componentShortType("Producer")
+                .jarDependencies(Set.of(dependency))
+                .helpText("Default help text")
+                .allowableProperties(Map.of(
+                        "description", getDescriptionComponentPropertyMeta()
+                ))
+                .build();
+    }
+
+    /**
+     * Get made up component meta for an X producer that we can change depending on the meta pack version.
+     * @param metaPackVersion to which this component property meta applies.
+     * @return the component meta for an X Producer.
+     */
+    public static ComponentMeta getXProducerComponentMeta(String metaPackVersion) {
+        Dependency dependency = new Dependency();
+        dependency.setGroupId("org.ikasan");
+        dependency.setArtifactId("ikasan-component-producer-X-jar");
+        if ("v1".equals(metaPackVersion))
+            dependency.setVersion("3.1.0");
+        else
+            dependency.setVersion("3.2.0");
+
+        return ComponentMeta.builder()
+            .name("Test X Producer")
+            .additionalKey("Additonal Test Key")
+            .allowableProperties(Map.of(
+                    "componentName", getComponentNameComponentPropertyMeta(),
+                    "simpleStringProperty", getStringXProducerComponentPropertyMeta("v1"),
+                    "simpleIntegerProperty", getIntegerComponentPropertyMeta()
+            ))
+            .componentType("Producer")
+            .componentTypeMeta(getTestProducerComponentTypeMeta())
+            .defaultValue("myTesXProducer")
+            .endpointKey("FileIconEndpoints")
+            .endpointTextKey("X Files")
+            .flowBuilderMethod("buildXProducer")
+            .generatesUserImplementedClass(false)
+            .helpText("Default help text")
+            .ikasanComponentFactoryMethod("createXProducer")
+            .implementingClass("org.ikasan.spec.component.endpoint.Producer")
+            .isEndpoint(true)
+            .isInternalEndpoint(false)
+            .jarDependencies(Set.of(dependency))
+            .usesBuilderInFactory(false)
+            .useImplementingClassInFactory(false)
+            .webHelpURL("Readme.md")
+            .build();
     }
 }
