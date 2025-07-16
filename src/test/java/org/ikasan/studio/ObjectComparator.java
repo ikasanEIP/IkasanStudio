@@ -25,7 +25,7 @@ public class ObjectComparator {
                 if (valA instanceof String && valB instanceof String) {
                     String strA = ((String) valA).trim();
                     String strB = ((String) valB).trim();
-                    if (!strA.equalsIgnoreCase(strB)) {
+                    if (!strA.equals(strB)) {
                         differences.add(String.format("Field '%s': \"%s\" != \"%s\"", field.getName(), strA, strB));
                     }
 
