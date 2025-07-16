@@ -1,0 +1,83 @@
+{
+  "name": "Module",
+  "helpText": "The module is the container for all flows",
+  "componentType": "org.ikasan.spec.module.Module",
+  "implementingClass": "",
+  "ikasanComponentFactoryMethod": "",
+  "usesBuilderInFactory" : true,
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-connector-base",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-ftp-endpoint",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-h2-standalone-persistence",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-test-endpoint",
+      "version": "3.1.0"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-annotations",
+      "version": "2.12.3"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-core",
+      "version": "2.12.3"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-databind",
+      "version": "2.12.3"
+    }
+  ],
+  "properties": {
+    "version": {
+      "propertyName": "version",
+      "helpText": "The ikasan version used to build this module."
+    },
+    "name": {
+      "propertyName": "name",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    },
+    "applicationPackageName": {
+      "propertyName": "applicationPackageName",
+      "helpText": "The java package name for the new module.",
+      "mandatory": true
+    },
+    "port": {
+      "propertyName": "port",
+      "helpText": "The http port to be used by the blue console for this module."
+    },
+    "h2DbPortNumber": {
+      "propertyName": "h2DbPortNumber",
+      "helpText": "The port to be used by the embedded H2 database."
+    },
+    "h2WebPortNumber": {
+      "propertyName": "h2WebPortNumber",
+      "helpText": "The port to be used by the embedded H2 database to expose its web interface."
+    }
+  }
+}
+

@@ -1,0 +1,17 @@
+{
+  "name": "Dev Null Producer",
+  "helpText": "Ending component of the flow, or a route in the flow. This type of producer discards all data passed to it and does not perform any processing.",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl",
+  "usesBuilderInFactory" : true,
+  "flowBuilderMethod": "producer",
+  "properties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    }
+  }
+}
+

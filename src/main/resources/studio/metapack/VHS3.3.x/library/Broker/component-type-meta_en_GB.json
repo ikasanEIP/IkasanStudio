@@ -1,0 +1,12 @@
+{
+  "componentType": "org.ikasan.spec.component.endpoint.Broker",
+  "displayOrder": 4,
+  "componentShortType": "Broker",
+  "helpText": "<strong>Broker</strong><p>Brokers enrich the contents of the existing message with additional data or structure in a number of different ways.</p><p>Request Response Brokers can make calls to other systems such as a database or HTTP(s) RESTful services. Aggregating Brokers consume all incoming messages until a condition is met ie aggregate every 10 messages. Re-Sequencing Brokers consume all incoming messages until a condition is met and then release them messages as a list of newly ordered events. This can provide a powerful function when combined with a Splitter as the next component.</p>",
+  "allowableProperties": {
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    }
+  }
+}

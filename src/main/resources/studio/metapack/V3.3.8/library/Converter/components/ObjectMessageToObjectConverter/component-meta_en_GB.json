@@ -1,0 +1,20 @@
+{
+  "name": "Object Message To Object Converter",
+  "helpText": "<strong>Object Message To Object Converter</strong><p>The main responsibility of a converter is to convert from one POJO type to another.</p><p>The Map Message to Payload Converter is an implementation of the Converter Interface. The Object Message to Objcet Converter is an implementation of the Converter Interface. It provides a mechanism that translates a JMS ObjectMessge into an Object, by retrieving the content Object from the ObjectMessge and returning this Object.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/ObjectMessageToObjectConverter.md",
+  "implementingClass": "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
+  "useImplementingClassInFactory": true,
+  "flowBuilderMethod": "converter",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "configurable": {
+        "propertyName": "configurable",
+        "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+        "ignoreProperty": true
+      }
+    }
+  }
+}

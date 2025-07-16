@@ -1,0 +1,39 @@
+{
+  "componentType": "org.ikasan.spec.component.transformation.Translator",
+  "displayOrder": 6,
+  "componentShortType": "Translator",
+  "helpText": "<strong>Converter</strong><p>The main responsibility of a translator is to convert the contents of the payload, not the type. This means it is expected that the payload it a mutable class.</p>",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-component-converter",
+      "version": "3.1.0"
+    }
+  ],
+
+  "allowableProperties": {
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    },
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "type": {
+      "propertyName": "type",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.Object",
+      "helpText": "The type of data we expect to come into the translator. This must be a <b>mutable<b> instance that can be updated via its reference within the translator",
+      "mandatory": true,
+      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the translator."
+    }
+  }
+}

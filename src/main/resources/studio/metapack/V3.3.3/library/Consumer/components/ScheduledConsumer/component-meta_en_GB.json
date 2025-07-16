@@ -1,0 +1,117 @@
+{
+  "name": "Scheduled Consumer",
+  "helpText": "<strong>Scheduled Consumer</strong><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
+  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "usesBuilderInFactory" : true,
+  "flowBuilderMethod": "consumer",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    },
+    "cronExpression": {
+      "propertyName": "cronExpression",
+      "dataValidationTyppe" : "cronExpression",
+      "defaultValue": "* * * * * ? *",
+      "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
+      "setterProperty": true,
+      "mandatory": true,
+      "propertyConfigFileLabel":"__flow.scheduled.consumer.cron-expression"
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "setterMethod" : "setConfiguredResourceId",
+      "usageDataType":"java.lang.String"
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
+    },
+    "criticalOnStartup": {
+      "propertyName": "criticalOnStartup",
+      "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "eager": {
+      "propertyName": "eager",
+      "helpText": "When true the scheduled consumer is immediately called back on completion of flow execution i.e. attempts to consume all messages available. If false the scheduled consumers cron expression determines the callback.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "eventFactory": {
+      "propertyName": "eventFactory",
+      "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.spec.event.EventFactory",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "ignoreMisfire": {
+      "propertyName": "ignoreMisfire",
+      "helpText": "Default(True). Whether to ignore call back failures.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "managedEventIdentifierService": {
+      "propertyName": "managedEventIdentifierService",
+      "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.spec.event.ManagedEventIdentifierService",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "managedResourceRecoveryManager": {
+      "propertyName": "managedResourceRecoveryManager",
+      "helpText": "Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managed resource recovery manager.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.spec.management.ManagedResourceRecoveryManager",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "maxEagerCallbacks": {
+      "propertyName": "maxEagerCallbacks",
+      "helpText": "The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "messageProvider": {
+      "propertyName": "messageProvider",
+      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType":"org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
+      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "timezone": {
+      "propertyName": "timezone",
+      "helpText": "Support for overriding the default timezone.",
+      "setterProperty": true
+    }
+  }
+}

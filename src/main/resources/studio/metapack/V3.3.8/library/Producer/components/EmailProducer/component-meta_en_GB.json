@@ -1,0 +1,202 @@
+{
+  "name": "Email Producer",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
+  "flowBuilderMethod": "producer",
+  "helpText": "<strong>Email Producer</strong><p>Ending component of the flow, or a route in the flow. This type of producer sends an email. This requires an incoming EmailPayload event instance.</p>",
+  "implementingClass": "org.ikasan.component.endpoint.email.producer.EmailProducer",
+  "usesBuilderInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "bccRecipient": {
+      "propertyName": "bccRecipient",
+      "helpText": "The Bcc recipient",
+      "setterProperty": true,
+      "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
+      "validationMessage": "Please provide a valid formatted email address."
+    },
+    "bccRecipients": {
+      "propertyName": "bccRecipients",
+      "helpText": "The list of BCC recipient, enter a comma seperated list of (unquoted) strings",
+      "propertyConfigFileLabel":"__flow.email.producer.bccRecipients",
+      "setterProperty": true,
+      "usageDataType": "java.util.List<String>"
+    },
+    "ccRecipient": {
+      "propertyName": "ccRecipient",
+      "helpText": "The BCC recipient",
+      "setterProperty": true,
+      "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
+      "validationMessage": "Please provide a valid formatted email address."
+    },
+    "ccRecipients": {
+      "propertyName": "ccRecipients",
+      "helpText": "The list of CC recipient, enter a comma seperated list of (unquoted) strings",
+      "propertyConfigFileLabel":"__flow.email.producer.ccRecipients",
+      "setterProperty": true,
+      "usageDataType": "java.util.List<String>"
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "invokerConfigurationId": {
+      "propertyName": "invokerConfigurationId",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "usageDataType":"java.lang.String"
+    },
+    "createParentDirectory": {
+      "propertyName": "createParentDirectory",
+      "helpText": "Default(false) Flag indicating whether outputDirectory should be created if it does not exist.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "criticalOnStartup": {
+      "propertyName": "criticalOnStartup",
+      "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "emailBody": {
+      "propertyName": "emailBody",
+      "helpText": "Text body for the email.",
+      "setterProperty": true
+    },
+    "emailFormat": {
+      "propertyName": "emailFormat",
+      "helpText": "Set the format for this email e.g. plain text, html.",
+      "setterProperty": true
+    },
+    "extendedMailSessionProperties": {
+      "propertyName": "extendedMailSessionProperties",
+      "helpText": "Extended set of email properties.",
+      "setterProperty": true,
+      "usageDataType": "java.util.Map<String, String>"
+    },
+    "from": {
+      "propertyName": "from",
+      "helpText": "Email address of the sender",
+      "setterProperty": true,
+      "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
+      "validationMessage": "Please provide a valid formatted email address."
+    },
+    "hasAttachments": {
+      "propertyName": "hasAttachments",
+      "helpText": "Set to true if there attachments.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailDebug": {
+      "propertyName": "mailDebug",
+      "helpText": "Set to true to start debugging.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailhost": {
+      "propertyName": "mailhost",
+      "helpText": "The default host name of the mail server for both Stores and Transports. Used if the mail.protocol.host property isn't set.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailMimeAddressStrict": {
+      "propertyName": "mailMimeAddressStrict",
+      "helpText": "The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method. The default is true.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailPopClass": {
+      "propertyName": "mailPopClass",
+      "helpText": "Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.",
+      "setterProperty": true
+    },
+    "mailPopPort": {
+      "propertyName": "mailPopPort",
+      "helpText": "The port number of the mail server for the specified protocol. If not specified the protocol's default port number is used.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "mailPopUser": {
+      "propertyName": "mailPopUser",
+      "helpText": "The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.",
+      "setterProperty": true
+    },
+    "mailSmtpClass": {
+      "propertyName": "mailSmtpClass",
+      "helpText": "Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.",
+      "setterProperty": true
+    },
+    "mailSmtpHost": {
+      "propertyName": "mailSmtpHost",
+      "helpText": "Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.",
+      "setterProperty": true
+    },
+    "mailSmtpPort": {
+      "propertyName": "mailSmtpPort",
+      "helpText": "The port number of the mail server for the specified protocol. If not specified the protocol's default port number is used.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "mailSmtpUser": {
+      "propertyName": "mailSmtpUser",
+      "helpText": "The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.",
+      "setterProperty": true
+    },
+    "mailStoreProtocol": {
+      "propertyName": "mailStoreProtocol",
+      "helpText": "Specifies the default message access protocol.",
+      "setterProperty": true
+    },
+    "mailSubject": {
+      "propertyName": "mailSubject",
+      "helpText": "Email subject line.",
+      "setterProperty": true
+    },
+    "mailPassword": {
+      "propertyName": "mailPassword",
+      "helpText": "Password for the mail server.",
+      "setterProperty": true
+    },
+    "mailRuntimeEnvironment": {
+      "propertyName": "mailRuntimeEnvironment",
+      "helpText": "Addition property which may be specified to denote the runtime instance generating the email. ie. dev, uat.",
+      "setterProperty": true
+    },
+    "toRecipient": {
+      "propertyName": "toRecipient",
+      "helpText": "The To recipient.",
+      "setterProperty": true,
+      "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
+      "validationMessage": "Please provide a valid formatted email address."
+    },
+    "toRecipients": {
+      "propertyName": "toRecipients",
+      "helpText": "The list of To recipients.",
+      "setterProperty": true,
+      "usageDataType": "java.util.List<String>"
+    },
+    "transportProtocol": {
+      "propertyName": "transportProtocol",
+      "helpText": "Specifies the default message transport protocol.",
+      "setterProperty": true
+    },
+    "user": {
+      "propertyName": "user",
+      "helpText": "The default user name to use when connecting to the mail server. Used if the mail.protocol.user property isn't set.",
+      "setterProperty": true
+    }
+  }
+}
