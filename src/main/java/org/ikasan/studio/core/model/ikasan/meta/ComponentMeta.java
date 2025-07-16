@@ -18,6 +18,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * See Readme.md for a description of the meta-pack and how it is used.
+ *
+ * This class holds the metadata for an Ikasan component e.g. an email producer, ftp consumer.
+ *
+ * The purpose of this metadata is to describe the component e.g.
+ * * what does it do (help text),
+ * * is it a component that is used at the start / end of a flow or within the body of the flow,
+ * * what jars are required when this component is used,
+ * * what properties does it have.
+ *
+ * This metadata is populated from the meta-pack, so there will be an instance of this class
+ * - for each component
+ * -   for each version of Ikasan supported by the plugin.
+ *
+ * These classes are used to generate the Java code, help the user fill in the correct details for each component, help the UI
+ * to display the component and provide validation for the use of the component in a flow or on the visualiser.
+ */
 @Getter
 @Setter
 @SuperBuilder(toBuilder = true)
@@ -52,13 +70,13 @@ public class ComponentMeta implements IkasanMeta {
     public static final String ACTION_KEY = "action";
     public static final String ACTION_PROPERTIES_KEY = "actionProperties";
 
-    // DO NOT RENAME - Will affect model.json
+    // These fields map directly onto the values in component-meta_en_GB.json
+    // DO NOT RENAME !!
     @lombok.NonNull
-    private String name;
-    private String additionalKey;  // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
-
-    private String componentType;       // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
-    private String defaultValue;
+    private String name;                    // Name of the component e.g. Email Producer, FTP Consumer
+    private String additionalKey;           // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
+    private String componentType;           // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
+    private String defaultValue;            // The default value for this component, used in the component properties dialog.
     private boolean isEndpoint;             // Is this component an endpoint e.g. DB endpoint, sftp location
     private boolean isInternalEndpoint;     // This endpoint is internal to the flow
     private String endpointKey;             // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey

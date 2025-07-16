@@ -97,7 +97,7 @@ public class IkasanComponentLibrary {
             // The structure of the Meta-Pack directory is
             // 1:  'Category'/'typpe-meta'
             // 0:n 'Category'/'Component'
-            // e.g. Consumer/type-meta_en_GB.json, Consumer/EventGeneratingConsumer, Consumer/FtpConsumer ...
+            // e.g. Consumer/component-type-meta_en_GB.json, Consumer/EventGeneratingConsumer, Consumer/FtpConsumer ...
 
             String[] componentTypeDirectories = getSubdirectories(baseDirectory);
             assert componentTypeDirectories != null;
@@ -105,7 +105,7 @@ public class IkasanComponentLibrary {
                 // Each component type e.g. Consumer, Producer, etc. get the top level type meta
                 ComponentTypeMeta componentTypeMeta;
                 try {
-                    componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/type-meta_en_GB.json");
+                    componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/component-type-meta_en_GB.json");
                 } catch (StudioBuildException e) {
                     LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
                             " there was an error generating the details for component " + componentTypeDirectory +
@@ -119,7 +119,7 @@ public class IkasanComponentLibrary {
                 for (String componentDirectory : componentDirectories) {
                     IkasanMeta ikasanMeta;
                     try {
-                        ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/attributes_en_GB.json");
+                        ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/component-meta_en_GB.json");
                     } catch (StudioBuildException e) {
                         LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
                                 " there was an error generating the details for component " + componentDirectory +

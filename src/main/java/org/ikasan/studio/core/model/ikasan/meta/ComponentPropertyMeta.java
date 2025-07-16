@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 /*
  * Each Ikasan Component will have multiple properties e.g. name, description, configuredResourceID
- * This class holds the metadata about a single property e.g. 'description' - is i mandatory, what data type is it
+ * This class holds the metadata about a single property e.g. 'description' - is it mandatory, what data type is it
  */
 public class ComponentPropertyMeta {
     public static final String NAME = "name";                       // The identity of Flows and Modules (according to Ikasan metadata.json)
@@ -81,7 +81,6 @@ public class ComponentPropertyMeta {
     private String dataValidationType;      // Support for popup data entry helpers / data types
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-//    private Object defaultValue = "";     // Default value e.g. displayed when property is created.
     private Object defaultValue = null;     // Default value e.g. displayed when a property is created.
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
@@ -104,7 +103,6 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String setterMethod="";         // Some properties in Ikasan do not follow convention e.g. configurationId is a property but its setter is setConfiguredResourceId
-    private String standardBuilderMethod;
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String usageDataType = "";      // The interface of properties that are classes i.e. a user implemented class that must implement this interface
