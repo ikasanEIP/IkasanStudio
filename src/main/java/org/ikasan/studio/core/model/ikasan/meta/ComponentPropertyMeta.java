@@ -10,12 +10,14 @@ import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Data
 @Builder(toBuilder = true)
 @Jacksonized
 @AllArgsConstructor
+
 /*
  * Each Ikasan Component will have multiple properties e.g. name, description, configuredResourceID
  * This class holds the metadata about a single property e.g. 'description' - is it mandatory, what data type is it
@@ -69,7 +71,7 @@ public class ComponentPropertyMeta {
     private String propertyName;            // The name / identity of the property, e.g. 'name' (used only for flows and modules), 'componentName', 'description', 'configuredResourceId', 'port'
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean affectsUserImplementedClass=false;  // A change to this property should result in an update to the user implemnted class
+    private boolean affectsUserImplementedClass = false;  // A change to this property should result in an update to the user implemnted class
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private List<String> choices;           // The value can be only one of the items in this list
     private String componentType;           // Features in the serialised model.json, the interface or short form type for the property
@@ -86,7 +88,7 @@ public class ComponentPropertyMeta {
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean mandatory=false;        // The value must be supplied for the component to be valid
+    private boolean mandatory = false;        // The value must be supplied for the component to be valid
     private String propertyConfigFileLabel; // Identifies the spring injected property name
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -94,16 +96,16 @@ public class ComponentPropertyMeta {
     private boolean readOnlyProperty;       // The property can be viewed but not changed
     @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean setterProperty=false;   // The component features in the component factory setter
+    private boolean setterProperty = false;   // The component features in the component factory setter
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private String setterMethod="";         // Some properties in Ikasan do not follow convention e.g. configurationId is a property but its setter is setConfiguredResourceId
+    private String setterMethod = "";         // Some properties in Ikasan do not follow convention e.g. configurationId is a property but its setter is setConfiguredResourceId
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String usageDataType = "";      // The interface of properties that are classes i.e. a user implemented class that must implement this interface
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean userDefineResource=false;       // The user will define the details of the resource within the ResourceFactory.
+    private boolean userDefineResource = false;       // The user will define the details of the resource within the ResourceFactory.
 
     // userImplementedClass vs userSuppliedClass - here is the difference:
     // userImplementedClass - A component that the user implements, we generate the component stub from the interface
@@ -111,7 +113,7 @@ public class ComponentPropertyMeta {
     private String userImplementClassFtlTemplate;
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean userSuppliedClass=false;     // The user will define their own class that implements the interface, we will generate the spring property but leave implementation to client code.
+    private boolean userSuppliedClass = false;     // The user will define their own class that implements the interface, we will generate the spring property but leave implementation to client code.
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -146,6 +148,7 @@ public class ComponentPropertyMeta {
 
     /**
      * Patterns are expensive, so only generate one when we need it but share the same one thereafter.
+     *
      * @return a compiled Pattern
      */
     public Pattern getValidationPattern() {
@@ -157,5 +160,49 @@ public class ComponentPropertyMeta {
 
     public static boolean isSubstitutionValue(Object value) {
         return value instanceof String && ((String) value).startsWith(SUBSTITUTION_PREFIX);
+    }
+
+    /**
+     * Standard equals method to compare two ComponentPropertyMeta objects.
+     * Note we can't use annotation bases because Pattern is a library class that does not expose field based equals.
+     *
+     * @param o to check
+     * @return true if the value is a substitution value
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ComponentPropertyMeta that)) return false;
+        return affectsUserImplementedClass == that.affectsUserImplementedClass &&
+                hiddenProperty == that.hiddenProperty &&
+                ignoreProperty == that.ignoreProperty &&
+                mandatory == that.mandatory &&
+                readOnlyProperty == that.readOnlyProperty &&
+                setterProperty == that.setterProperty &&
+                userDefineResource == that.userDefineResource &&
+                userSuppliedClass == that.userSuppliedClass &&
+                Objects.equals(propertyName, that.propertyName) &&
+                Objects.equals(choices, that.choices) &&
+                Objects.equals(componentType, that.componentType) &&
+                Objects.equals(dataValidationType, that.dataValidationType) &&
+                Objects.equals(defaultValue, that.defaultValue) &&
+                Objects.equals(helpText, that.helpText) &&
+                Objects.equals(propertyConfigFileLabel, that.propertyConfigFileLabel) &&
+                Objects.equals(propertyDataType, that.propertyDataType) &&
+                Objects.equals(setterMethod, that.setterMethod) &&
+                Objects.equals(usageDataType, that.usageDataType) &&
+                Objects.equals(userImplementClassFtlTemplate, that.userImplementClassFtlTemplate) &&
+                Objects.equals(validation, that.validation) &&
+                Objects.equals(validationMessage, that.validationMessage) &&
+                this.getValidationPattern() == null && that.getValidationPattern() == null ||
+                this.getValidationPattern().pattern().equals(that.getValidationPattern().pattern());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(propertyName, affectsUserImplementedClass, choices, componentType, dataValidationType, defaultValue, helpText,
+                hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
+                setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
+                validation, validationMessage, validationPattern.pattern());
     }
 }

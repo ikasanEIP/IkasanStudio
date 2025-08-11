@@ -35,7 +35,7 @@ class ModuleTest {
                 () -> assertEquals(META_IKASAN_PACK_3_3_8, newModule.getVersion()),
 
                 // componentMeta
-                () -> assertEquals(Collections.emptyList(), ObjectComparator.compareFieldsExcept(oldModule.getComponentMeta(), newModule.getComponentMeta(), List.of("jarDependencies"))),
+                () -> assertEquals(Collections.emptyList(), ObjectComparator.compareAttributesExcept(oldModule.getComponentMeta(), newModule.getComponentMeta(), List.of("jarDependencies"))),
                 () -> assertEquals(jarDependencies333, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
                 () -> assertEquals(jarDependencies338, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())
         );

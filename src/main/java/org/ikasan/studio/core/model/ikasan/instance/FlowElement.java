@@ -144,7 +144,6 @@ public class FlowElement extends BasicElement {
         }
         FlowElement clonedFlowElement = new FlowElement(newComponentMeta, containingFlow, containingFlowRoute, this.getComponentName(), this.getDecorators());
         super.cloneToVersion(clonedFlowElement);
-        clonedFlowElement.setVersion(metapackVersion);
         return clonedFlowElement;
     }
 

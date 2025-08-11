@@ -983,6 +983,10 @@ public class TestFixtures {
 
     /**
      * Get made up component property meta for a string producer property that we can change depending on the meta pack version.
+     * The following fields are deliberatly different:
+     *   ComponentPropertyMeta.userImplementClassFtlTemplate
+     *   ComponentPropertyMeta.setterMethod
+     *   ComponentPropertyMeta.validation
      * @param metaPackVersion to which this component property meta applies.
      * @return the component property meta for a string consumer property.
      */
@@ -1004,11 +1008,14 @@ public class TestFixtures {
                 .propertyConfigFileLabel("__flow.ftp.producer.cron-expression")
                 .propertyDataType(String.class)
                 .setterProperty(true)
+
+                // Create an obvious difference between the two versions
                 .setterMethod("v1".equals(metaPackVersion) ? "setCronExpression" : "setCronExpression2")
+                .validation("v1".equals(metaPackVersion) ? "^v1[A-Z_$][a-zA-Z\\d_$£]*$": "^v2[A-Z_$][a-zA-Z\\d_$£]*$")
+
                 .usageDataType("java.lang.String")
                 .userDefineResource(false)
                 .userSuppliedClass(false)
-                .validation("^[A-Z_$][a-zA-Z\\d_$£]*$")
                 .validationMessage("String Producer value validation message")
                 .build();
     }
@@ -1040,7 +1047,7 @@ public class TestFixtures {
     }
 
     /**
-     * Get made up component type meta for a producer.
+     * Get made up component type meta for a producer. The ComponentTypeMeta are characteristics of the general type e.g. Broker/Producer etc
      * @return the component type meta for a producer.
      */
     public static ComponentTypeMeta getTestProducerComponentTypeMeta() {
@@ -1062,6 +1069,9 @@ public class TestFixtures {
 
     /**
      * Get made up component meta for an X producer that we can change depending on the meta pack version.
+     * The following attributes are deliberately different between "v1" and any other version
+     *   ComponentMeta.jarDependencies
+     *   ComponentMeta.allowableProperties.simpleStringProperty
      * @param metaPackVersion to which this component property meta applies.
      * @return the component meta for an X Producer.
      */
@@ -1079,12 +1089,14 @@ public class TestFixtures {
             .additionalKey("Additonal Test Key")
             .allowableProperties(Map.of(
                     "componentName", getComponentNameComponentPropertyMeta(),
-                    "simpleStringProperty", getStringXProducerComponentPropertyMeta("v1"),
+                    "description", getDescriptionComponentPropertyMeta(),
+                    "simpleStringProperty", getStringXProducerComponentPropertyMeta(metaPackVersion),
                     "simpleIntegerProperty", getIntegerComponentPropertyMeta()
             ))
             .componentType("Producer")
+
+            // ComponentTypeMeta relates to generic properties of a Producer/Broker/Consumer etc
             .componentTypeMeta(getTestProducerComponentTypeMeta())
-            .defaultValue("myTesXProducer")
             .endpointKey("FileIconEndpoints")
             .endpointTextKey("X Files")
             .flowBuilderMethod("buildXProducer")

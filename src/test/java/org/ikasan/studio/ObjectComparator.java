@@ -6,20 +6,29 @@ import java.util.List;
 
 public class ObjectComparator {
 
-    public static List<String> compareFieldsExcept(Object a, Object b, List<String> excludedFields) {
-        if (a == null || b == null) throw new IllegalArgumentException("Objects must not be null");
-        if (!a.getClass().equals(b.getClass())) throw new IllegalArgumentException("Objects must be of same class");
+    /**
+     * Attempts to compare the attributes of two objects of the same class, excluding specified attributes.
+     * This method uses reflection to access the fields of the objects and compares their string representation, this is limited.
+     * It returns a list of differences found in the attributes, formatted as strings.
+     * @param first object to compare
+     * @param second object to compare
+     * @param excludedAttributes to ignore during comparison
+     * @return list of differences found in the attributes, formatted as strings.
+     */
+    public static List<String> compareAttributesExcept(Object first, Object second, List<String> excludedAttributes) {
+        if (first == null || second == null) throw new IllegalArgumentException("Objects must not be null");
+        if (!first.getClass().equals(second.getClass())) throw new IllegalArgumentException("Objects must be of same class");
 
         List<String> differences = new ArrayList<>();
-        Field[] fields = a.getClass().getDeclaredFields();
+        Field[] fields = first.getClass().getDeclaredFields();
 
         for (Field field : fields) {
-            if (excludedFields.contains(field.getName())) continue;
+            if (excludedAttributes.contains(field.getName())) continue;
 
             field.setAccessible(true);
             try {
-                Object valA = field.get(a);
-                Object valB = field.get(b);
+                Object valA = field.get(first);
+                Object valB = field.get(second);
 
                 // Special handling for Strings
                 if (valA instanceof String && valB instanceof String) {

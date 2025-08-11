@@ -80,7 +80,6 @@ public class ComponentMeta implements IkasanMeta {
     private String componentType;                   // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
     @JsonIgnore
     private ComponentTypeMeta componentTypeMeta;    // The meta associated with the component type from the metapack, e.g. broker, producer, consumer, router, etc.
-    private String defaultValue;                    // The default value for this component, used in the component properties' dialog.
     private String endpointKey;                     // Implies this component is not an endpoint, but has an endpoint, the name of which is endpointtKey
     private String endpointTextKey;                 // The name of the property in the real component that the endpoint will display as text e.g. queuename
     private String flowBuilderMethod;               // used by ftl to invoke the correct flow builder method for this component
@@ -103,8 +102,6 @@ public class ComponentMeta implements IkasanMeta {
     private ImageIcon smallIcon;
     @JsonIgnore
     private ImageIcon canvasIcon;
-
-
 
     public ComponentMeta() {}
 

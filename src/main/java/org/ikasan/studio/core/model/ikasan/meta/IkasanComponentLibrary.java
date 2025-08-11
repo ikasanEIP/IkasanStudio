@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.meta;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
@@ -8,7 +9,6 @@ import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -33,8 +33,7 @@ public class IkasanComponentLibrary {
     private static final String SMALL_ICON_NAME = "small.png";
     private static final String NORMAL_ICON_NAME = "normal.png";
 
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(IkasanComponentLibrary.class);
-
+    private static final Logger LOG = Logger.getInstance(IkasanComponentLibrary.class);
     // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
     protected static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new HashMap<>(new HashMap<>());
     protected static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndDeserialisationKey = new HashMap<>(new HashMap<>());

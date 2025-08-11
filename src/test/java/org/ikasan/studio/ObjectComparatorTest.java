@@ -30,7 +30,7 @@ class ObjectComparatorTest {
         Employee a = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
         Employee b = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
 
-        List<String> differences = ObjectComparator.compareFieldsExcept(a, b, List.of());
+        List<String> differences = ObjectComparator.compareAttributesExcept(a, b, List.of());
         assertTrue(differences.isEmpty(), "Expected no differences but was: " + differences);
     }
 
@@ -39,7 +39,7 @@ class ObjectComparatorTest {
         Employee a = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
         Employee b = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 35);
 
-        List<String> differences = ObjectComparator.compareFieldsExcept(a, b, List.of());
+        List<String> differences = ObjectComparator.compareAttributesExcept(a, b, List.of());
         assertFalse(differences.isEmpty(), "Expected a difference in age but was: " + differences);
         assertTrue(differences.getFirst().contains("age"));
     }
@@ -49,7 +49,7 @@ class ObjectComparatorTest {
         Employee a = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
         Employee b = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 99);
 
-        List<String> differences = ObjectComparator.compareFieldsExcept(a, b, List.of("age"));
+        List<String> differences = ObjectComparator.compareAttributesExcept(a, b, List.of("age"));
         assertTrue(differences.isEmpty(), "Expected no differences when age is excluded but was: " + differences);
     }
 
@@ -58,7 +58,7 @@ class ObjectComparatorTest {
         Employee a = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
         Employee b = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
 
-        List<String> differences = ObjectComparator.compareFieldsExcept(a, b, List.of());
+        List<String> differences = ObjectComparator.compareAttributesExcept(a, b, List.of());
         assertTrue(differences.isEmpty(), "Expected no differences but was: " + differences);
     }
 
@@ -67,7 +67,7 @@ class ObjectComparatorTest {
         Employee a = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
         Employee b = new Employee("alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
 
-        List<String> differences = ObjectComparator.compareFieldsExcept(a, b, List.of());
+        List<String> differences = ObjectComparator.compareAttributesExcept(a, b, List.of());
         assertFalse(differences.isEmpty(), "Expected a difference in name but was: " + differences);
         assertTrue(differences.getFirst().contains("name"));
     }
@@ -77,7 +77,7 @@ class ObjectComparatorTest {
         Employee a = new Employee("Alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
         Employee b = new Employee("alice", new BigDecimal("1000.00"), LocalDate.of(2020, 1, 1), 30);
 
-        List<String> differences = ObjectComparator.compareFieldsExcept(a, b, List.of("name"));
+        List<String> differences = ObjectComparator.compareAttributesExcept(a, b, List.of("name"));
         assertTrue(differences.isEmpty(), "Expected no differences when age is excluded but was: " + differences);
     }
 }
