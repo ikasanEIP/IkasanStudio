@@ -1,14 +1,18 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.ObjectComparator;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.ikasan.studio.core.TestFixtures.META_IKASAN_PACK_3_3_8;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +39,21 @@ class ModuleTest {
                 () -> assertEquals(META_IKASAN_PACK_3_3_8, newModule.getVersion()),
 
                 // componentMeta
-                () -> assertEquals(Collections.emptyList(), ObjectComparator.compareAttributesExcept(oldModule.getComponentMeta(), newModule.getComponentMeta(), List.of("jarDependencies"))),
+                () -> assertThat(newModule.getComponentMeta())
+                        .usingRecursiveComparison()
+                        .ignoringFields("jarDependencies")
+                        .withEqualsForType(
+                                (ImageIcon a, ImageIcon b) -> {
+                                    if (a == null && b == null) return true;
+                                    if (a == null || b == null) return false;
+
+                                    // Example: compare by image dimensions
+                                    return a.getIconWidth() == b.getIconWidth()
+                                            && a.getIconHeight() == b.getIconHeight();
+                                },
+                                ImageIcon.class
+                        )
+                        .isEqualTo(oldModule.getComponentMeta()),
                 () -> assertEquals(jarDependencies333, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
                 () -> assertEquals(jarDependencies338, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())
         );

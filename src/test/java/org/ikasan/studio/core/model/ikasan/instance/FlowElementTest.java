@@ -1,7 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import org.apache.maven.model.Dependency;
-import org.ikasan.studio.ObjectComparator;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -10,9 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Comparator;
+import java.util.regex.Pattern;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.ikasan.studio.core.TestFixtures.getXProducerComponentMeta;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -63,28 +63,45 @@ class FlowElementTest {
 
             assertNotNull(clonedXProducerComponent);
             // ignore anything thats mocked.
-            // Expected difference
+
+            // *** COMPONENT META ***
+            // Should be same except for jar dependencies
             assertEquals("3.1.0", ((Dependency) xProducerComponent.getComponentMeta().getJarDependencies().toArray()[0]).getVersion());
             assertEquals("3.2.0", ((Dependency) clonedXProducerComponent.getComponentMeta().getJarDependencies().toArray()[0]).getVersion());
+            // same except for the above
 
+            assertThat(clonedXProducerComponent.getComponentMeta())
+                    .usingRecursiveComparison()
+                    .ignoringFields(
+                            "jarDependencies",              // These are set in test fixture as different
+                            "allowableProperties")          // These are different, the differences being tested in Component Properties below, all allowables are used for componentProperties.
+                    .isEqualTo(xProducerComponent.getComponentMeta());
+
+
+            // *** COMPONENT PROPERTIES ***
+            // For the property named "simpleStringProperty" the meta should be the same except for tUserImplementClassFtlTemplate, SetterMethod, Validatio
             assertEquals("org/ikasan/spec/component/endpoint/Producer.ftl", xProducerComponent.getProperty("simpleStringProperty").getMeta().getUserImplementClassFtlTemplate());
             assertEquals("org/ikasan/spec/component/endpoint/ProducerV2.ftl", clonedXProducerComponent.getProperty("simpleStringProperty").getMeta().getUserImplementClassFtlTemplate());
             assertEquals("setCronExpression", xProducerComponent.getProperty("simpleStringProperty").getMeta().getSetterMethod());
             assertEquals("setCronExpression2", clonedXProducerComponent.getProperty("simpleStringProperty").getMeta().getSetterMethod());
             assertEquals("^v1[A-Z_$][a-zA-Z\\d_$£]*$", xProducerComponent.getProperty("simpleStringProperty").getMeta().getValidation());
             assertEquals("^v2[A-Z_$][a-zA-Z\\d_$£]*$", clonedXProducerComponent.getProperty("simpleStringProperty").getMeta().getValidation());
+            // same except for the above
+            assertThat(clonedXProducerComponent.getProperty("simpleStringProperty").getMeta())
+                .usingRecursiveComparison()
+                .ignoringFields("cronExpression", "validation", "validationPattern", "userImplementClassFtlTemplate", "setterMethod")
+                .isEqualTo(xProducerComponent.getProperty("simpleStringProperty").getMeta());
+            // expected to be the same
 
             assertEquals(xProducerComponent.getComponentProperties().entrySet().toArray()[0], clonedXProducerComponent.getComponentProperties().entrySet().toArray()[0]);
-            assertEquals(Collections.emptyList(), ObjectComparator.compareAttributesExcept(
-                    xProducerComponent.getProperty("simpleStringProperty").getMeta(),
-                    clonedXProducerComponent.getProperty("simpleStringProperty").getMeta(),
-                    List.of("cronExpression", "validation", "userImplementClassFtlTemplate", "setterMethod")));
 
-            //            assertThat(clonedXProducerComponent.getComponentProperties()).usingRecursiveComparison()
-//                .withComparatorForType(
-//                    Comparator.nullsFirst(
-//                        Comparator.comparing(Pattern::pattern)), Pattern.class)
-//                .isEqualTo(xProducerComponent.getComponentProperties());
+            assertThat(clonedXProducerComponent.getComponentProperties())
+                .usingRecursiveComparison()
+                .ignoringFields("simpleStringProperty")
+                .withComparatorForType(
+                Comparator.nullsFirst(
+                    Comparator.comparing(Pattern::pattern)), Pattern.class)
+                .isEqualTo(xProducerComponent.getComponentProperties());
         }
     }
 

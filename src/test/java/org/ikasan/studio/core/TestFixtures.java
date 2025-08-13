@@ -986,7 +986,7 @@ public class TestFixtures {
      * The following fields are deliberatly different:
      *   ComponentPropertyMeta.userImplementClassFtlTemplate
      *   ComponentPropertyMeta.setterMethod
-     *   ComponentPropertyMeta.validation
+     *   ComponentPropertyMeta.validation/validationPattern
      * @param metaPackVersion to which this component property meta applies.
      * @return the component property meta for a string consumer property.
      */
