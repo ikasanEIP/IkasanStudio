@@ -33,21 +33,24 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         super(Module.class);
     }
 
+    /**
+     * Deserialize the module from the JSON parser, this includes all recursive elements such as flows, flow elements, transitions, etc.
+     * @param jp the JsonParser to read from
+     * @param ctxt the DeserializationContext
+     * @return a Module object
+     * @throws IOException if there are issues reading the JSON
+     * @throws StudioBuildRuntimeException if there are issues with the build
+     */
     @Override
     public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, StudioBuildRuntimeException {
         JsonNode jsonNode = jp.getCodec().readTree(jp);
-
         String metapackVersion = null;
-//        String metapackVersion = DEFAULT_IKASAN_PACK;
         JsonNode versionNode = jsonNode.get(VERSION);
 
         // @TODO
         // Not sure if we want to assume meta-pack version, maybe if only 1 is installed we can ?
         if (versionNode != null &&  versionNode.asText() != null && !"null".equals(versionNode.asText())) {
             metapackVersion = versionNode.asText();
-//            LOG.info("STUDIO: Loading metapackVersion version " + metapackVersion);
-//        } else {
-//            LOG.warn("STUDIO: The metapackVersion of the module was not stated, using default metapackVersion");
         }
 
         Module module ;

@@ -20,12 +20,12 @@ public class Decorator {
     private boolean configurable;
 
     /**
-     * Create a new decorator.
+     * Create a new decorator i.e. A wiretap, log wiretap designated as before the current compponent (e.g. broker) or after it.
      * It is essential that the IDE does not encounter an exception, the builder will tollarate invalid data
      * but will identify the decorator as invalid, it is left for the consumer of the builder to call isValid
      * before using the decorator.
      * @param type e.g. Wiretap.
-     * @param name e.g. BEFORE widget xx.
+     * @param name e.g. Contains its position and the name of the component it is decorating, e.g. "BEFORE Broker", "AFTER Producer".
      * @param configurationId for the component.
      * @param configurable true if this is exposed via blue console.
      */

@@ -24,6 +24,13 @@ public class ExceptionResolverSerializer extends StdSerializer<ExceptionResolver
         jsonGenerator.writeEndObject();
     }
 
+    /**
+     * Serializes the properties of an ExceptionResolver into JSON fields.
+     *
+     * @param exceptionResolver the ExceptionResolver to serialize
+     * @param jsonGenerator the JsonGenerator used for writing JSON
+     * @throws IOException if an I/O error occurs
+     */
     protected void serializePayload(ExceptionResolver exceptionResolver, JsonGenerator jsonGenerator) throws IOException {
         // First serialise any BasicElement i.e. configured properties (for ExceptionResolver there are currently non be keep this here for extensibility)
         BasicElementSerializer basicElementSerializer = new BasicElementSerializer();

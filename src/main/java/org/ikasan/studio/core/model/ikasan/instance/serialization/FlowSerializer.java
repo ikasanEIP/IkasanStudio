@@ -26,6 +26,14 @@ public class FlowSerializer extends StdSerializer<Flow> {
         jsonGenerator.writeEndObject();
     }
 
+    /**
+     * Serializes the properties of a Flow into JSON fields.
+     *
+     * @param flow the Flow to serialize
+     * @param jsonGenerator the JsonGenerator used for writing JSON
+     * @param serializerProvider the SerializerProvider used for serialization
+     * @throws IOException if an I/O error occurs
+     */
     protected void serializePayload(Flow flow, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         List<Transition> transitions = new ArrayList<>();
         BasicElementSerializer basicElementSerializer = new BasicElementSerializer();

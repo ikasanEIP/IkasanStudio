@@ -23,7 +23,6 @@ class FlowRouteTest {
         testFlow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();
     }
 
-
     @Test
     public void test_flow_route_instantiation() throws StudioBuildException {
         Flow testFlow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();

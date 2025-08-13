@@ -36,14 +36,17 @@ repositories {
 dependencies {
     testImplementation(libs.junit)
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.assertj:assertj-core:4.0.0-M1")
     implementation("org.freemarker:freemarker:2.3.34")
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.34")
     testImplementation("org.mockito:mockito-core:5.18.0")
     implementation("org.mockito:mockito-inline:5.2.0")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
+
+    testImplementation("ch.qos.logback:logback-classic:1.5.18")
 
     testImplementation("org.ikasan:ikasan-test:4.1.0")
     compileOnly ("org.projectlombok:lombok:1.18.38")
@@ -160,6 +163,19 @@ tasks {
     test {
         useJUnitPlatform()
 //        systemProperty("idea.home.path", intellijRootDir().canonicalPath)
+        // Suppress SLF4J "multiple bindings" warning (SLF4J 2.x+)
+//        systemProperty("org.slf4j.suppressMultipleBindingsWarning", "true")
+//
+//        // Make sure output isn't buffered
+//        systemProperty("java.util.logging.ConsoleHandler.level", "ALL")
+//        systemProperty("org.slf4j.simpleLogger.showDateTime", "true")
+//        systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
+//
+//        // Always show println / System.err immediately
+//        testLogging {
+//            showStandardStreams = true
+//            events("passed", "skipped", "failed")
+//        }
     }
 }
 

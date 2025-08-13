@@ -22,6 +22,14 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
         jsonGenerator.writeEndObject();
     }
 
+    /**
+     * Serializes the properties of a BasicElement into JSON fields.
+     * Handles null elements and supports multiple value types (Boolean, Short, Integer, Long, Float, Double, String).
+     *
+     * @param basicElement the BasicElement to serialize
+     * @param jsonGenerator the JsonGenerator used for writing JSON
+     * @throws IOException if an I/O error occurs
+     */
     protected void serializePayload(BasicElement basicElement, JsonGenerator jsonGenerator) throws IOException {
         // because we are serializing many nested elements, its possible the element is null, in which case we do nothing.
         if (basicElement != null) {

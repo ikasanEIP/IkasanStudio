@@ -6,6 +6,13 @@ import com.fasterxml.jackson.databind.node.JsonNodeType;
 import java.util.Map;
 
 public class SerializerUtils {
+    /**
+     * Utility method to extract a typed value from a JSON field.
+     * It handles Boolean, Number, and String types.
+     *
+     * @param field the Map.Entry containing the field name and JsonNode value
+     * @return the extracted value as types Java Object, or null if the JsonNode is null
+     */
     public static Object getTypedValue(Map.Entry<String, JsonNode> field) {
         Object value = null;
         if (field.getValue() != null) {

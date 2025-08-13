@@ -31,6 +31,14 @@ public class ModuleSerializer extends StdSerializer<Module> {
         super(src);
     }
 
+    /**
+     * Serializes the properties of a Module into JSON fields.
+     *
+     * @param module the Module to serialize
+     * @param jsonGenerator the JsonGenerator used for writing JSON
+     * @param serializerProvider the SerializerProvider used for serialization
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public void serialize(Module module, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         BasicElementSerializer basicElementSerializer = new BasicElementSerializer();

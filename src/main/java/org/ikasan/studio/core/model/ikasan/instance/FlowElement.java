@@ -10,7 +10,6 @@ import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSerializer;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -27,7 +26,7 @@ import java.util.List;
 @Getter
 @Setter
 public class FlowElement extends BasicElement {
-    private static final Logger LOG = LoggerFactory.getLogger(ModuleDeserializer.class);
+    static Logger LOG = LoggerFactory.getLogger(FlowElement.class);
     public static final String DECORATORS_JSON_TAG = "decorators";
     @JsonIgnore
     private Flow containingFlow;
@@ -35,6 +34,9 @@ public class FlowElement extends BasicElement {
     private List<Decorator> decorators;
 
     public FlowElement() {}
+    protected void resetLogger(Logger logger) {
+        LOG = logger;
+    }
 
     /**
      * FlowElement e.g. filter, producer, consumer
