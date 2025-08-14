@@ -36,7 +36,7 @@ repositories {
 dependencies {
     testImplementation(libs.junit)
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core:4.0.0-M1")
     implementation("org.freemarker:freemarker:2.3.34")
