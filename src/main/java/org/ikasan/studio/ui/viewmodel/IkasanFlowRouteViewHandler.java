@@ -244,8 +244,8 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
     }
 
     /**
-     * For a given flowRoute, the first element will be the leftmost i.e. min x
-     * @return the smallest (most left) x value for the route
+     * For a given flowRoute, the first element will be the leftmost i.e. min TestV1
+     * @return the smallest (most left) TestV1 value for the route
      */
     public int getFlowElementsMinX() {
         java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
@@ -276,7 +276,7 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
 
     /**
      * For a given flowRoute, the first element will be the leftmost
-     * @return the smallest (most lext) x value for the route
+     * @return the smallest (most lext) TestV1 value for the route
      */
     public int getFlowElementsLeftX() {
         return getFlowElementsMinX();

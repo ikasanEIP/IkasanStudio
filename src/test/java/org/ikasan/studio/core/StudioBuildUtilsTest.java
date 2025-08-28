@@ -17,14 +17,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class StudioBuildUtilsTest {
     @Test
     public void test_get_directories() throws URISyntaxException, IOException {
-        String[] expectedDirs = new String[]{"studio/metapack/Vtest.x/library/Consumer, studio/metapack/Vtest.x/library/Converter, studio/metapack/Vtest.x/library/ExceptionResolver, studio/metapack/Vtest.x/library/Flow, studio/metapack/Vtest.x/library/Module, studio/metapack/Vtest.x/library/Producer"};
-        String[] actualDirs = StudioBuildUtils.getDirectories("studio/metapack/Vtest.x/library");
+        String[] expectedDirs = new String[]{"studio/metapack/TestV1/library/ExceptionResolver, studio/metapack/TestV1/library/Flow, studio/metapack/TestV1/library/Module, studio/metapack/TestV1/library/Producer"};
+        String[] actualDirs = StudioBuildUtils.getDirectories("studio/metapack/TestV1/library");
         Set<String> expectedDirsSorted = new TreeSet<>(List.of(expectedDirs)) ;
         Set<String> actualDirsSorted = new TreeSet<>(List.of(actualDirs)) ;
 
         assertAll(
                 "Check the module contains the expected values",
-                () -> assertEquals(6, actualDirs.length),
+                () -> assertEquals(4, actualDirs.length),
                 () -> assertEquals(expectedDirsSorted.toString(), actualDirsSorted.toString())
         );
     }

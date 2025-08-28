@@ -149,6 +149,13 @@ public class IkasanComponentLibrary {
                     final String componentName = componentMeta.getName();
                     componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
                     componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+
+                    if (componentMeta.getSmallIcon().getIconWidth() == -1) {
+                        LOG.warn("STUDIO: The small icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
+                    }
+                    if (componentMeta.getCanvasIcon().getIconWidth() == -1) {
+                        LOG.warn("STUDIO: The canvas icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
+                    }
                     returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
                 }
             }

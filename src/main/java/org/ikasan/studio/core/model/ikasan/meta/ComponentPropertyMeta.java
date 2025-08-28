@@ -194,7 +194,7 @@ public class ComponentPropertyMeta {
                 Objects.equals(validation, that.validation) &&
                 Objects.equals(validationMessage, that.validationMessage) &&
                 this.getValidationPattern() == null && that.getValidationPattern() == null ||
-                this.getValidationPattern().pattern().equals(that.getValidationPattern().pattern());
+                this.getValidationPattern() != null && this.getValidationPattern().pattern().equals(that.getValidationPattern().pattern());
     }
 
     @Override
@@ -203,6 +203,7 @@ public class ComponentPropertyMeta {
         return Objects.hash(propertyName, affectsUserImplementedClass, choices, componentType, dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
-                validation, validationMessage, validationPattern.pattern());
+                validation, validationMessage,
+                validationPattern!= null ? validationPattern.pattern() : "");
     }
 }

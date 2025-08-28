@@ -75,7 +75,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
-//        LOG.info("StudioXX: planted flow " + this.getFlow().getIdentity() + " flow box x:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
+//        LOG.info("StudioXX: planted flow " + this.getFlow().getIdentity() + " flow box TestV1:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
     }
 
     /**
@@ -118,7 +118,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     /**
-     * Look at the current components and work out the required x, y , width and height of this container
+     * Look at the current components and work out the required TestV1, y , width and height of this container
      * @param graphics object
      * @param newLeftx to use
      * @param newTopY to use

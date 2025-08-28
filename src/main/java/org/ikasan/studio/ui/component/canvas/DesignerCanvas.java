@@ -7,8 +7,8 @@ import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Pair;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -34,7 +34,6 @@ import java.util.List;
 
 import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.isIdentityKey;
 
 /**
  * The main painting / design panel
@@ -56,21 +55,21 @@ public class DesignerCanvas extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                LOG.trace("STUDIO: Mouse press x "+ e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: Mouse press TestV1 "+ e.getX() + " y " + e.getY());
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                LOG.trace("STUDIO: Mouse release click x "+ e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: Mouse release click TestV1 "+ e.getX() + " y " + e.getY());
                 mouseReleaseAction();
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                LOG.trace("STUDIO: DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: DesignerCanvas listening to mouse drag TestV1 " + e.getX() + " y " + e.getY());
                 mouseDragAction(e.getX(),e.getY());
             }
         });
@@ -78,7 +77,7 @@ public class DesignerCanvas extends JPanel {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    LOG.trace("STUDIO: DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
+                    LOG.trace("STUDIO: DesignerCanvas listening to mouse move TestV1 " + e.getX() + " y " + e.getY());
                 mouseMoveAction(e.getX(),e.getY());
                 }
             });
@@ -268,14 +267,14 @@ public class DesignerCanvas extends JPanel {
      */
     private void mouseDragAction(int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
-        LOG.trace("STUDIO: Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
+        LOG.trace("STUDIO: Mouse Motion listening TestV1 " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
         if (mouseSelectedComponent instanceof FlowElement flowElement) {
             screenChanged = true;
             AbstractViewHandlerIntellij vh = ViewHandlerCache.getAbstractViewHandler(projectKey, flowElement);
             if (vh != null) {
-                LOG.trace("STUDIO: Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
-                        "] Generator selected [" + flowElement.getComponentName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
+                LOG.trace("STUDIO: Mouse drag start TestV1[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  TestV1 [" + mouseX + "] y [" + mouseY +
+                        "] Generator selected [" + flowElement.getComponentName() + "] TestV1 [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
 
                 final int componentX = vh.getLeftX();
                 final int componentY = vh.getTopY();
@@ -340,7 +339,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the x and y coords, return the ikasan elements that resides at that x,y.
+     * Given the TestV1 and y coords, return the ikasan elements that resides at that TestV1,y.
      * This will either be an ikasan flows component, an ikasan flow or the whole module.
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -373,7 +372,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the x and y coords, return the ikasan flow exception resolver that resides at that x,y.
+     * Given the TestV1 and y coords, return the ikasan flow exception resolver that resides at that TestV1,y.
      * or null if no resoler resides at that XY
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -403,7 +402,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the x and y coords, return the ikasan flow that resides at that x,y.
+     * Given the TestV1 and y coords, return the ikasan flow that resides at that TestV1,y.
      *
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -424,7 +423,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the x and y coords, return the ikasan flow route that resides at that x,y.
+     * Given the TestV1 and y coords, return the ikasan flow route that resides at that TestV1,y.
      *
      * @param xpos of the mouse click
      * @param ypos of the mouse click

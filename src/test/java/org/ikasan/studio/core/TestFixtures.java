@@ -1112,4 +1112,20 @@ public class TestFixtures {
             .webHelpURL("Readme.md")
             .build();
     }
+
+
+    // Test fixtures to support clone testing
+    public static final String SIMPLE_STRING_PROPERTY = "simpleStringProperty";
+    public static FlowElement getXProducerComponent(String metaPackVersion) throws StudioBuildException {
+        FlowElement newXProducerComponent =  FlowElement.flowElementBuilder()
+                .componentMeta(IkasanComponentLibrary.getIkasanComponentByKey(metaPackVersion, "X Producer"))
+//                .componentMeta(getXProducerComponentMeta(metaPackVersion))
+                .decorators(new ArrayList<>())
+                .build();
+        // The properties reflect the state of an instance used in a specific route.
+        newXProducerComponent.setDescription("myXProducerInFlow1");
+        newXProducerComponent.setPropertyValue(SIMPLE_STRING_PROPERTY, "myXProducerInFlow1testStringValue");
+        newXProducerComponent.setPropertyValue("simpleIntegerProperty", 10);
+        return newXProducerComponent;
+    }
 }

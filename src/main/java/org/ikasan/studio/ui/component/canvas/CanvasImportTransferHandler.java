@@ -85,11 +85,11 @@ public class CanvasImportTransferHandler extends TransferHandler // implements T
         Point currentMouse = support.getDropLocation().getDropPoint();
         BasicElement ikasanBasicElement = getDraggedComponent(support);
 //        if (ikasanBasicElement != null && ikasanBasicElement.getComponentMeta().isFlow() ||
-//            designerCanvas.isFlowAtXY(currentMouse.x, currentMouse.y)) {
+//            designerCanvas.isFlowAtXY(currentMouse.TestV1, currentMouse.y)) {
 //        if (ikasanBasicElement != null && ikasanBasicElement.getComponentMeta().isFlow()) {
 //            okToAdd = true;
 //        }
-//        okToAdd = designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanBasicElement);
+//        okToAdd = designerCanvas.componentDraggedToFlowAction(currentMouse.TestV1, currentMouse.y, ikasanBasicElement);
         return designerCanvas.componentDraggedToFlowAction(currentMouse.x, currentMouse.y, ikasanBasicElement);
     }
     /**

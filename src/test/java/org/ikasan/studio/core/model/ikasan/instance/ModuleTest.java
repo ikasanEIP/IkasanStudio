@@ -2,6 +2,7 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -42,17 +43,7 @@ class ModuleTest {
                 () -> assertThat(newModule.getComponentMeta())
                         .usingRecursiveComparison()
                         .ignoringFields("jarDependencies")
-                        .withEqualsForType(
-                                (ImageIcon a, ImageIcon b) -> {
-                                    if (a == null && b == null) return true;
-                                    if (a == null || b == null) return false;
-
-                                    // Example: compare by image dimensions
-                                    return a.getIconWidth() == b.getIconWidth()
-                                            && a.getIconHeight() == b.getIconHeight();
-                                },
-                                ImageIcon.class
-                        )
+                        .withEqualsForType(StudioComparitors::imageIconsEqual, ImageIcon.class)
                         .isEqualTo(oldModule.getComponentMeta()),
                 () -> assertEquals(jarDependencies333, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
                 () -> assertEquals(jarDependencies338, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())

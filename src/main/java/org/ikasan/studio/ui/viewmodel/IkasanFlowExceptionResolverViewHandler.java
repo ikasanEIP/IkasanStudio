@@ -54,7 +54,7 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         LOG.debug("STUDIO: paintComponent invoked");
-        // here we ket the components decide x,y
+        // here we ket the components decide TestV1,y
         paintFlowchartSymbol(canvas, g);
         return minimumTopY + flowchartSymbolHeight;
     }
@@ -64,9 +64,9 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
     }
 
     /**
-     * Set the x and y co-ordinates of this component.
+     * Set the TestV1 and y co-ordinates of this component.
      * @param graphics object
-     * @param x new x location
+     * @param x new TestV1 location
      * @param y new y location
      * @param width of container which may be ignored if it is set by the component
      * @param height of container which may be ignored if it is set by the component

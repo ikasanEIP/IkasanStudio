@@ -306,7 +306,7 @@ public class LargeJava {
      * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
-     * @param subDir under the sourceRoodDir, this can be dot delimited or slash delimited x/y
+     * @param subDir under the sourceRoodDir, this can be dot delimited or slash delimited TestV1/y
      * @param fileName for the java file
      * @param content of the file that is to be created / updated
      * @param focus if true, open this file in the IDE

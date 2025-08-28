@@ -34,7 +34,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         // Module name
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont(g));
         for (Flow ikasanFlow : module.getFlows()) {
-            // remember initialise has already set x,y, but we may be dealing with component move
+            // remember initialise has already set TestV1,y, but we may be dealing with component move
             IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
             if (flowViewViewHandler != null) {
 
@@ -55,7 +55,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     }
 
     /**
-     * Look at the current components and work out the required x, y , width and height of this container
+     * Look at the current components and work out the required TestV1, y , width and height of this container
      * @param graphics object
      * @param xx to use
      * @param topy to use

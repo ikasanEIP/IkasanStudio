@@ -17,7 +17,7 @@ class ComponentIODeserializeTest {
 
     @Test
     public void testModuleMetaDeserialise() throws StudioBuildException {
-        ComponentMeta component = (ComponentMeta) ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/library/Module/components/Module/component-meta_en_GB.json");
+        ComponentMeta component = (ComponentMeta) ComponentIO.deserializeMetaComponent("studio/metapack/TestV1/library/Module/components/Module/component-meta_en_GB.json");
         Dependency firstDependency = new Dependency();
         firstDependency.setArtifactId("ikasan-connector-base");
         firstDependency.setGroupId("org.ikasan");
@@ -32,11 +32,11 @@ class ComponentIODeserializeTest {
     public void testMissingNameAttributesCausesError() {
         StudioBuildException thrown = assertThrowsExactly(
                 StudioBuildException.class,
-            () ->  ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/BadComponentMeta/no_name_component-meta_en_GB.json")
+            () ->  ComponentIO.deserializeMetaComponent("studio/metapack/TestV1/BadComponentMeta/no_name_component-meta_en_GB.json")
         );
 
         assertTrue(thrown.getMessage().contains(
-            "The serialised data in [studio/metapack/Vtest.x/BadComponentMeta/no_name_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
+            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_name_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
                 "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 
@@ -44,11 +44,11 @@ class ComponentIODeserializeTest {
     public void testMissingImplementingClassAttributesCausesError() {
         StudioBuildException thrown = assertThrowsExactly(
                 StudioBuildException.class,
-            () ->  ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/BadComponentMeta/no_implementing_class_component-meta_en_GB.json")
+            () ->  ComponentIO.deserializeMetaComponent("studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json")
         );
 
         assertTrue(thrown.getMessage().contains(
-            "The serialised data in [studio/metapack/Vtest.x/BadComponentMeta/no_implementing_class_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: implementingClass is marked non-null but is null"),
+            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: implementingClass is marked non-null but is null"),
                 "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 
@@ -185,7 +185,7 @@ class ComponentIODeserializeTest {
 //
 //        assertAll(
 //            "Check the module contains the expected values",
-//            () -> assertEquals("V3.3.x", module.getVersion()),
+//            () -> assertEquals("V3.3.TestV1", module.getVersion()),
 //            () -> assertEquals("A to B convert", module.getIdentity()),
 //            () -> assertEquals("My first module", module.getDescription()),
 //            () -> assertEquals("co.uk.test", module.getApplicationPackageName()),
@@ -205,11 +205,11 @@ class ComponentIODeserializeTest {
 //    public void testMissingNameAttributesCausesError() {
 //        StudioBuildException thrown = assertThrowsExactly(
 //                StudioBuildException.class,
-//                () ->  ComponentIO.deserializeMetaComponent("studio/metapack/Vtest.x/BadComponentMeta/no_name_component-meta_en_GB.json")
+//                () ->  ComponentIO.deserializeMetaComponent("studio/metapack/TestV1/BadComponentMeta/no_name_component-meta_en_GB.json")
 //        );
 //
 //        assertTrue(thrown.getMessage().contains(
-//                        "The serialised data in [studio/metapack/Vtest.x/BadComponentMeta/no_name_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
+//                        "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_name_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
 //                "Incorrect exception message, was [" + thrown.getMessage() + "]");
 //    }
 }

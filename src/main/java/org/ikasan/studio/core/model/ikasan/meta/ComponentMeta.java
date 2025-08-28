@@ -3,10 +3,7 @@ package org.ikasan.studio.core.model.ikasan.meta;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.apache.maven.model.Dependency;
@@ -41,6 +38,7 @@ import java.util.TreeMap;
 @SuperBuilder(toBuilder = true)
 @Jacksonized
 @AllArgsConstructor
+@EqualsAndHashCode
 public class ComponentMeta implements IkasanMeta {
 
     // Essential Ikasan Components

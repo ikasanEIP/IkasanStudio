@@ -38,6 +38,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:4.0.0-M1")
     implementation("org.freemarker:freemarker:2.3.34")
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
@@ -162,20 +163,6 @@ tasks {
 
     test {
         useJUnitPlatform()
-//        systemProperty("idea.home.path", intellijRootDir().canonicalPath)
-        // Suppress SLF4J "multiple bindings" warning (SLF4J 2.x+)
-//        systemProperty("org.slf4j.suppressMultipleBindingsWarning", "true")
-//
-//        // Make sure output isn't buffered
-//        systemProperty("java.util.logging.ConsoleHandler.level", "ALL")
-//        systemProperty("org.slf4j.simpleLogger.showDateTime", "true")
-//        systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
-//
-//        // Always show println / System.err immediately
-//        testLogging {
-//            showStandardStreams = true
-//            events("passed", "skipped", "failed")
-//        }
     }
 }
 

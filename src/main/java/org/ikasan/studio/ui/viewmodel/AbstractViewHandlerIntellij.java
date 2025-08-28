@@ -92,8 +92,8 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     }
 
     /**
-     * Get the x position of the right hand side of the component
-     * @return x position of the right hand side of the component
+     * Get the TestV1 position of the right hand side of the component
+     * @return TestV1 position of the right hand side of the component
      */
     public int getRightX() {
         return leftX + width;

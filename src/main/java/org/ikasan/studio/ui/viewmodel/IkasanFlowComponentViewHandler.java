@@ -49,7 +49,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         LOG.debug("STUDIO: paintComponent invoked for component: " + flowElement);
-        // here we get the components decide x,y
+        // here we get the components decide TestV1,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);
     }
@@ -187,9 +187,9 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     }
 
     /**
-     * Set the x and y co-ordinates of this component.
+     * Set the TestV1 and y co-ordinates of this component.
      * @param graphics object
-     * @param x new x location
+     * @param x new TestV1 location
      * @param y new y location
      * @param width of container, which may be ignored if it is set by the component
      * @param height of container, which may be ignored if it is set by the component
@@ -235,8 +235,8 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     }
 
     /**
-     * How close (x,y) does a dragged component need to be to the centre of this component so that we consider it attachable.
-     * @return the x,y coords
+     * How close (TestV1,y) does a dragged component need to be to the centre of this component so that we consider it attachable.
+     * @return the TestV1,y coords
      */
     public static Pair<Integer, Integer> getProximityDetect() {
         return new Pair<>(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));

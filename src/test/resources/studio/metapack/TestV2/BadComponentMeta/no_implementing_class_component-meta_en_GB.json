@@ -1,0 +1,14 @@
+{
+  "name": "BadComponent",
+  "helpText": "The module is the container for all flows",
+  "componentType": "org.ikasan.spec.component.transformation.Converter",
+  "ikasanComponentFactoryMethod": "",
+  "usesBuilderInFactory" : true,
+  "jarDependencies": [
+
+  ],
+  "properties": {
+
+  }
+}
+

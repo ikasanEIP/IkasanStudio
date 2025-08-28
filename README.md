@@ -1,9 +1,13 @@
 ![IKASAN](docs/images/Ikasan-title-transparent.png)
 # Ikasan Studio
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+Ikasan Studio is a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform (EIP). 
+
+When combined as a plugin to Intellij, it provides a fully functiona, standalone IDE for designing and maintaining Ikasan modules.
 ## Developer Quickstart
-Note that this plugin is still under development and only recommended for beta testers.
+Ikasan Studio is coming towards the end of its Beta testing phase and a formal first release is expected soon.
+The formal will be available from the Intellij plugin marketplace. 
+In the meantime, the plugin can be installed manually into Intellij using the instructions below.
+If you encounter any issues, please raise them on the IkasanStudio github project or email me directly at david@davihilton.net
 ### Download the zip & jar
 A prebuilt version of the plugin is available from https://github.com/ikasanEIP/IkasanStudio/blob/main/downloads/ikasanstudio-1.0.0.zip
 

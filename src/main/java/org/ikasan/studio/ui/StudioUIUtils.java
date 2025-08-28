@@ -120,7 +120,7 @@ public class StudioUIUtils {
      * @param maxWidth for the text
      * @param font for the text
      * @return the bottom y value of the last string (se we know how far down we went)
-     * //@todo turn all strings into components to support better x,y,width,height
+     * //@todo turn all strings into components to support better TestV1,y,width,height
      */
     public static int drawCenteredStringFromTopCentre(Graphics g, PaintMode paintMode, String text, int centerX, int topY, int maxWidth, Font font) {
         int numberOfLines = 0;
