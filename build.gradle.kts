@@ -49,7 +49,7 @@ dependencies {
 
     testImplementation("ch.qos.logback:logback-classic:1.5.18")
 
-    testImplementation("org.ikasan:ikasan-test:4.1.0")
+    testImplementation("org.ikasan:ikasan-test:4.1.1")
     compileOnly ("org.projectlombok:lombok:1.18.40")
     annotationProcessor("org.projectlombok:lombok:1.18.40")
     testCompileOnly("org.projectlombok:lombok:1.18.40")
