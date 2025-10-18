@@ -1,18 +1,26 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.*;
 
-
+@ExtendWith(SharedResourceExtension.class)
 class FlowRouteTest {
     Flow testFlow;
 
@@ -390,5 +398,64 @@ class FlowRouteTest {
         boolean result = flowRoute.isValidToAdd(TestFixtures.getBroker(BASE_META_PACK).getComponentMeta());
 
         assertTrue(result);
+    }
+
+    @Test
+    public void test_cloneToVersion_clones_route_and_elements() throws StudioBuildException {
+        FlowElement xProducerComponent = TestFixtures.getXProducerComponent("TestV1");
+        Flow newFlow = TestFixtures.getUnbuiltFlow("TestV1").build();
+        FlowRoute originalFlowRoute = new FlowRoute.FlowRouteBuilder()
+                .flow(testFlow)
+                .routeName("route1")
+                .flowElements(Collections.singletonList(xProducerComponent))
+                .build();
+        originalFlowRoute.setFlowElements(Collections.singletonList(xProducerComponent));
+
+        FlowRoute clonedFlowRoute = originalFlowRoute.cloneToVersion("TestV2", newFlow);
+
+        assertNotNull(clonedFlowRoute);
+        // ignore anything thats mocked.
+
+        FlowElement clonedXProducerComponent = clonedFlowRoute.getFlowElements().getFirst();
+        // *** COMPONENT META ***
+        // Should be same except for jar dependencies
+        assertEquals("3.1.0", ((Dependency) xProducerComponent.getComponentMeta().getJarDependencies().toArray()[0]).getVersion());
+        assertEquals("3.2.0", ((Dependency) clonedXProducerComponent.getComponentMeta().getJarDependencies().toArray()[0]).getVersion());
+        // same except for the above
+
+        assertThat(clonedXProducerComponent.getComponentMeta())
+                .usingRecursiveComparison()
+                .withEqualsForType(StudioComparitors::imageIconsEqual, ImageIcon.class)
+                .ignoringFields(
+                        "jarDependencies",              // These are set in test fixture as different
+                        "allowableProperties")          // These are different, the differences being tested in Component Properties below, all allowables are used for componentProperties.
+                .isEqualTo(xProducerComponent.getComponentMeta());
+
+        ComponentProperty originalSimpleStringProperty = xProducerComponent.getProperty(TestFixtures.SIMPLE_STRING_PROPERTY);
+        ComponentProperty clonedSimpleStringProperty = clonedXProducerComponent.getProperty(TestFixtures.SIMPLE_STRING_PROPERTY);
+        // *** COMPONENT PROPERTIES ***
+        // For the property named SIMPLE_STRING_PROPERTY the meta should be the same except for tUserImplementClassFtlTemplate, SetterMethod, Validatio
+        assertEquals("org/ikasan/spec/component/endpoint/Producer.ftl", originalSimpleStringProperty.getMeta().getUserImplementClassFtlTemplate());
+        assertEquals("org/ikasan/spec/component/endpoint/ProducerV2.ftl", clonedSimpleStringProperty.getMeta().getUserImplementClassFtlTemplate());
+        assertEquals("setCronExpression", originalSimpleStringProperty.getMeta().getSetterMethod());
+        assertEquals("setCronExpression2", clonedSimpleStringProperty.getMeta().getSetterMethod());
+        assertEquals("^v1[A-Z_$][a-zA-Z\\d_$£]*$", originalSimpleStringProperty.getMeta().getValidation());
+        assertEquals("^v2[A-Z_$][a-zA-Z\\d_$£]*$", clonedSimpleStringProperty.getMeta().getValidation());
+        // same except for the above
+        assertThat(clonedSimpleStringProperty.getMeta())
+                .usingRecursiveComparison()
+                .ignoringFields("cronExpression", "validation", "validationPattern", "userImplementClassFtlTemplate", "setterMethod")
+                .isEqualTo(originalSimpleStringProperty.getMeta());
+        // expected to be the same
+
+        assertEquals(xProducerComponent.getComponentProperties().entrySet().toArray()[0], clonedXProducerComponent.getComponentProperties().entrySet().toArray()[0]);
+
+        assertThat(clonedXProducerComponent.getComponentProperties())
+                .usingRecursiveComparison()
+                .ignoringFields(TestFixtures.SIMPLE_STRING_PROPERTY)
+                .withComparatorForType(
+                        Comparator.nullsFirst(
+                                Comparator.comparing(Pattern::pattern)), Pattern.class)
+                .isEqualTo(xProducerComponent.getComponentProperties());
     }
 }
