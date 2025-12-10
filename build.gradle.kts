@@ -43,7 +43,7 @@ dependencies {
     implementation("org.freemarker:freemarker:2.3.34")
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.34")
-    testImplementation("org.mockito:mockito-core:5.20.0")
+    testImplementation("org.mockito:mockito-core:5.21.0")
     implementation("org.mockito:mockito-inline:5.2.0")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
