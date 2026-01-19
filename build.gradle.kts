@@ -47,7 +47,7 @@ dependencies {
     implementation("org.mockito:mockito-inline:5.2.0")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
-    testImplementation("ch.qos.logback:logback-classic:1.5.24")
+    testImplementation("ch.qos.logback:logback-classic:1.5.25")
 
     testImplementation("org.ikasan:ikasan-test:4.1.3")
     compileOnly ("org.projectlombok:lombok:1.18.42")
