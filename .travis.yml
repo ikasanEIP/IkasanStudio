@@ -30,11 +30,9 @@ install:
   - which java
   - java -version
   - javac -version
+  - rm -rf $HOME/.gradle/caches
   - chmod +x gradlew
   - ./gradlew dependencies
-
-before_cache:
-  - rm -rf $HOME/.gradle/caches
 
 # Note that most of the current SDLC CI is done in .github/workflows/build.yml i.e. the github workflow actions
 # Maybe going forward these need to be either migrated to or replicated in Travis.
