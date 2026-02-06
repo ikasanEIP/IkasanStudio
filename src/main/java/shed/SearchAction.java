@@ -9,49 +9,74 @@ import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiFile;
 
+import java.util.Locale;
+
 public class SearchAction extends AnAction
 {
-   /**
-    * Convert selected text to a URL friendly string.
-    * @param e the event
-    */
-   @Override
-   public void actionPerformed(AnActionEvent e)
-   {
-      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-      CaretModel caretModel = editor.getCaretModel();
+    /**
+     * Convert selected text to a URL friendly string.
+     * @param e the event
+     */
+    @Override
+    public void actionPerformed(AnActionEvent e)
+    {
+        final Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (editor == null) {
+            return;
+        }
 
-      // For searches from the editor, we should also get file type information
-      // to help add scope to the search using the Stack overflow search syntax.
-      //
-      // https://stackoverflow.com/help/searching
+        final CaretModel caretModel = editor.getCaretModel();
+        if (!caretModel.getCurrentCaret().hasSelection()) {
+            return;
+        }
 
-      String languageTag = "";
-      PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
-      if(file != null)
-      {
-         Language lang = e.getData(CommonDataKeys.PSI_FILE).getLanguage();
-         languageTag = "+[" + lang.getDisplayName().toLowerCase() + "]";
-      }
+        final String query = caretModel.getCurrentCaret().getSelectedText();
+        if (query == null || query.isBlank()) {
+            return;
+        }
 
-      // The update method below is only called periodically so need
-      // to be careful to check for selected text
-      if(caretModel.getCurrentCaret().hasSelection())
-      {
-         String query = caretModel.getCurrentCaret().getSelectedText().replace(' ', '+') + languageTag;
-         BrowserUtil.browse("https://stackoverflow.com/search?q=" + query);
-      }
-   }
+        // For searches from the editor, we should also get file type information
+        // to help add scope to the search using the Stack overflow search syntax.
+        //
+        // https://stackoverflow.com/help/searching
 
-   /**
-    * Only make this action visible when text is selected.
-    * @param e the event
-    */
-   @Override
-   public void update(AnActionEvent e)
-   {
-      final Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-      CaretModel caretModel = editor.getCaretModel();
-      e.getPresentation().setEnabledAndVisible(caretModel.getCurrentCaret().hasSelection());
-   }
+        final String languageTag = buildLanguageTag(e);
+
+        BrowserUtil.browse(
+                "https://stackoverflow.com/search?q=" + query.replace(' ', '+') + languageTag
+        );
+    }
+
+    private static String buildLanguageTag(AnActionEvent e)
+    {
+        final PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
+        if (file == null) {
+            return "";
+        }
+
+        final Language language = file.getLanguage();
+        final String displayName = language.getDisplayName();
+        if (displayName.isBlank()) {
+            return "";
+        }
+
+        return "+[" + displayName.toLowerCase(Locale.ROOT) + "]";
+    }
+
+    /**
+     * Only make this action visible when text is selected.
+     * @param e the event
+     */
+    @Override
+    public void update(AnActionEvent e)
+    {
+        final Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (editor == null) {
+            e.getPresentation().setEnabledAndVisible(false);
+            return;
+        }
+
+        CaretModel caretModel = editor.getCaretModel();
+        e.getPresentation().setEnabledAndVisible(caretModel.getCurrentCaret().hasSelection());
+    }
 }
