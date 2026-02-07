@@ -2,9 +2,9 @@
 <idea-plugin>
     <id>com.github.ikasaneip.ikasanstudio</id>
     <name>IkasanStudio</name>
-    <vendor email="davidhilton68@gmail.com" url="http://www.ikasan.org">Ikasan</vendor>
+    <vendor email="david.hilton@realistisolutions.co.uk" url="http://www.ikasan.org">Ikasan</vendor>
 
-    <description>Ikasan Studio is an IDE tool for the Ikasan Enterprise Service Bus</description>
+    <description>Ikasan Studio is the IDE for Ikasan Enterprise Service Bus</description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
@@ -12,20 +12,18 @@
     <depends>org.jetbrains.idea.maven</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.studioBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="org.ikasan.studio.ui.DesignerToolWindowFactory"
+        <toolWindow factoryClass="org.ikasan.studio.ui.intellij.toolWindow.DesignerToolWindowFactory"
                     id="Ikasan Studio"
                     anchor="right"
-
 		    icon="/studio/icons/squid13x13.png"
         />
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Ikasan Studio" displayType="BALLOON"/>
-<!--        <postStartupActivity implementation="com.github.cameltooling.idea.CamelPluginStartup"/>-->
     </extensions>
 
     <actions>
@@ -35,30 +33,6 @@
                 icon="/studio/icons/squid13x13.png"
                 description="Invoke services to assist in the debugging of an issue">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
-        <!-- Add Ask question action to Tools Menu -->
-        <action id="StackOverflow.AskQuestion.ToolsMenu"
-                class="shed.AskQuestionAction"
-                text="Ask Question on Stack Overflow"
-                icon="/studio/icons/squid13x13.png"
-                description="Ask a question on stack overflow">
-            <add-to-group group-id="ToolsMenu" anchor="last"/>
-        </action>
-        <!-- Add action to search Stack Overflow from file editor -->
-        <action id="StackOverflow.Search.Editor"
-                class="shed.SearchAction"
-                text="Search on Stack Overflow"
-                icon="/studio/icons/squid13x13.png"
-                description="Search on stack overflow">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
-        <!-- Add action to search Stack Overflow from console editor -->
-        <action id="StackOverflow.Search.Console"
-                class="shed.SearchAction"
-                text="Search on Stack Overflow"
-                icon="/studio/icons/squid13x13.png"
-                description="Search on stack overflow">
-            <add-to-group group-id="ConsoleEditorPopupMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>

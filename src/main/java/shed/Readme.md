@@ -1,1 +1,0 @@
-The files here will most likely be deleted in the near future, they are left over from the initial dev, kept just in case they became useful.
