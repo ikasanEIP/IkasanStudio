@@ -30,7 +30,8 @@ install:
   - which java
   - java -version
   - javac -version
-  - rm -rf $HOME/.gradle/caches
+  # This is only needed when the caches get stale.
+  #- rm -rf $HOME/.gradle/caches
   - chmod +x gradlew
   - ./gradlew dependencies
 
