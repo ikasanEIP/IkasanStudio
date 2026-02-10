@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,12 +27,12 @@ public class CronPanel extends JPanel {
     JPanel helpPanel;
     boolean helpEnabled = false;
 
-    protected final String projectKey;
+    protected final Project project;
     private transient CronPopupDialogue cronPopupDialogue;
 
-    public CronPanel(String projectKey, String currentValue) {
+    public CronPanel(Project project, String currentValue) {
         super();
-        this.projectKey = projectKey;
+        this.project = project;
         this.setLayout(new BorderLayout());
         JPanel dataEntryPanel = new JPanel();
         dataEntryPanel.setBorder(null);

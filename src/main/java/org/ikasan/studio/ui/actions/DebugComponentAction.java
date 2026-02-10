@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -10,11 +11,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class DebugComponentAction implements ActionListener {
-   private final String projectKey;
+   private final Project project;
    private final BasicElement ikasanBasicElement;
 
-   public DebugComponentAction(String projectKey, BasicElement ikasanBasicElement) {
-      this.projectKey = projectKey;
+   public DebugComponentAction(Project project, BasicElement ikasanBasicElement) {
+      this.project = project;
       this.ikasanBasicElement = ikasanBasicElement;
    }
    /**
@@ -28,10 +29,10 @@ public class DebugComponentAction implements ActionListener {
          Flow parentFlow = ikasanFlowComponent.getContainingFlow();
          if (parentFlow != null) {
             parentFlow.removeFlowElement(ikasanFlowComponent);
-            StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
+            StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
          }
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(projectKey, "Debug can only be added to flow elements");
+         StudioUIUtils.displayIdeaWarnMessage(project, "Debug can only be added to flow elements");
       }
    }
 }

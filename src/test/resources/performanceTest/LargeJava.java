@@ -41,7 +41,6 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -74,19 +73,20 @@ public class LargeJava {
 
     /**
      * Load the content of the major pom
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @return the studio representation of the POM
      */
-    public static IkasanPomModel pomLoadFromVirtualDisk(String projectKey, String containingDirectory) {
+    public static IkasanPomModel pomLoadFromVirtualDisk(Project project, String containingDirectory) {
         IkasanPomModel ikasanPomModel = null;
         Model model;
-        PsiFile pomPsiFile = pomGetTopLevel(projectKey, containingDirectory);
+        PsiFile pomPsiFile = pomGetTopLevel(project, containingDirectory);
         if (pomPsiFile != null) {
             try (Reader reader = new StringReader(pomPsiFile.getText())) {
                 MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
                 model = xpp3Reader.read(reader);
                 ikasanPomModel = new IkasanPomModel(model);
-                UiContext.setIkasanPomModel(UiContext.getProject(projectKey).getName(), ikasanPomModel);
+                UiContext uiContext = project.getService(UiContext.class);
+                uiContext.setIkasanPomModel(project.getName(), ikasanPomModel);
             } catch (IOException | XmlPullParserException ex) {
                 LOG.warn("STUDIO: Unable to load project ikasanPomModel", ex);
             }
@@ -96,16 +96,16 @@ public class LargeJava {
 
     /**
      * Get the PsiFile that refers to the model.json for this project
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @return a PsiFile reference to the model.json
      */
-    public static PsiFile getModelJsonPsiFile(final String projectKey) {
+    public static PsiFile getModelJsonPsiFile(final Project project) {
         AtomicReference<PsiFile> jsonModel = new AtomicReference<>();
-        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(projectKey, GENERATED_CONTENT_ROOT);
+        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(project, GENERATED_CONTENT_ROOT);
         if (selectedContentRoot != null) {
             VirtualFile virtualModelJson = selectedContentRoot.findFileByRelativePath(JSON_MODEL_FULL_PATH);
             if (virtualModelJson != null) {
-                ApplicationManager.getApplication().runReadAction(() -> jsonModel.set(PsiManager.getInstance(UiContext.getProject(projectKey)).findFile(virtualModelJson)));
+                ApplicationManager.getApplication().runReadAction(() -> jsonModel.set(PsiManager.getInstance(UiContext.getProject(project)).findFile(virtualModelJson)));
             } else {
                 LOG.warn("STUDIO: Could not get virtual model.json from path " + JSON_MODEL_FULL_PATH);
             }
@@ -118,14 +118,14 @@ public class LargeJava {
 
     /**
      * Load the content of the application properties file
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @return a map of the Ikasan application properties, typically located in application.properties
      */
-    public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(String projectKey) {
+    public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(Project project) {
         Map<String, String> applicationProperties = null;
-        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(projectKey, StudioPsiUtils.GENERATED_CONTENT_ROOT);
+        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(project, StudioPsiUtils.GENERATED_CONTENT_ROOT);
         if (selectedContentRoot != null) {
-            PsiFile applicationPropertiesVF = getPsiFileFromPath(projectKey, selectedContentRoot, APPLICATION_PROPERTIES_FULL_PATH);
+            PsiFile applicationPropertiesVF = getPsiFileFromPath(project, selectedContentRoot, APPLICATION_PROPERTIES_FULL_PATH);
             if (applicationPropertiesVF == null) {
                 LOG.warn("STUDIO: Could not get application properties file from path " + APPLICATION_PROPERTIES_FULL_PATH);
             } else {
@@ -139,13 +139,13 @@ public class LargeJava {
      * Recreate the in-memory Module from the persisted model.json.
      * WARNING: You MUST not call this from Event Dispatcher Thread, instead call from background e.g.
      *         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-     *             synchGenerateModelInstanceFromJSON(projectKey);
+     *             synchGenerateModelInstanceFromJSON(project);
      *             ... any other actions relying on above action completion
      *         });
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      */
-    public static void synchGenerateModelInstanceFromJSON(String projectKey) {
-        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelJsonPsiFile(projectKey);
+    public static void synchGenerateModelInstanceFromJSON(Project project) {
+        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelJsonPsiFile(project);
         if (jsonModelPsiFile != null) {
             String json = ApplicationManager.getApplication().runReadAction((Computable<String>) jsonModelPsiFile::getText);
             Module newModule = null;
@@ -153,15 +153,15 @@ public class LargeJava {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             } catch (StudioBuildException se) {
                 LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(projectKey, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Load Button");
+                StudioUIUtils.displayIdeaErrorMessage(project, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Load Button");
                 // The dumb module should contain just enough to prevent the plugin from crashing
-                UiContext.setIkasanModule(projectKey, Module.getDumbModuleVersion());
+                UiContext.setIkasanModule(project, Module.getDumbModuleVersion());
             }
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
                 LOG.error("STUDIO: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
             }
-            UiContext.setIkasanModule(projectKey, newModule);
+            UiContext.setIkasanModule(project, newModule);
         } else {
             LOG.info("STUDIO: Could not read the " + JSON_MODEL_FULL_PATH + ", this is probably a new project");
         }
@@ -169,13 +169,13 @@ public class LargeJava {
 
     /**
      * Add the new dependencies IF they are not already in the pom
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
      */
-    public static void checkForDependencyChangesAndSaveIfChanged(String projectKey, Set<Dependency> newDependencies) {
+    public static void checkForDependencyChangesAndSaveIfChanged(Project project, Set<Dependency> newDependencies) {
         IkasanPomModel ikasanPomModel;
         if (newDependencies != null && !newDependencies.isEmpty()) {
-            ikasanPomModel = pomLoadFromVirtualDisk(projectKey, UiContext.getProject(projectKey).getName()); // Have to load each time because might have been independently updated.
+            ikasanPomModel = pomLoadFromVirtualDisk(project, UiContext.getProject(project).getName()); // Have to load each time because might have been independently updated.
 
             if (ikasanPomModel != null) {
                 for (Dependency newDependency : newDependencies) {
@@ -184,10 +184,10 @@ public class LargeJava {
                 pomAddStandardProperties(ikasanPomModel);
                 if (ikasanPomModel.isDirty()) {
 
-                    createPomFile(projectKey, "", "", "", POM_XML, ikasanPomModel.getModelAsString(), false, true);
+                    createPomFile(project, "", "", "", POM_XML, ikasanPomModel.getModelAsString(), false, true);
                 }
             } else {
-                LOG.warn("STUDIO: WARN: checkForDependencyChangesAndSaveIfChanged invoked but ikasanPomModel was null project [" + projectKey +"] newDependencies [" + newDependencies + "]");
+                LOG.warn("STUDIO: WARN: checkForDependencyChangesAndSaveIfChanged invoked but ikasanPomModel was null project [" + project +"] newDependencies [" + newDependencies + "]");
             }
         }
     }
@@ -204,38 +204,38 @@ public class LargeJava {
 
     /**
      * Attempt to get the top level pom for the project
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @return A PsiFile handle to the pom or null
      */
-    public static PsiFile pomGetTopLevel(String projectKey, String containingDirectory) {
+    public static PsiFile pomGetTopLevel(Project project, String containingDirectory) {
         LOG.info("STUDIO: 1111 pomGetTopLevel " + containingDirectory);
 
-        VirtualFile virtualProjectRoot = getProjectBaseDir(projectKey);
+        VirtualFile virtualProjectRoot = getProjectBaseDir(project);
         if (virtualProjectRoot == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: Serious: createSourceFile cant find basePath for project " + projectKey + " trace:" + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("STUDIO: Serious: createSourceFile cant find basePath for project " + project + " trace:" + Arrays.toString(thread.getStackTrace()));
         } else {
             VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl("file://" + virtualProjectRoot.getPath() + "/" + POM_XML);
             if (virtualFile != null) {
                 PsiFile returnFile = null;
                 try {
-                    returnFile = ReadAction.compute(() -> PsiManager.getInstance(UiContext.getProject(projectKey)).findFile(virtualFile));
+                    returnFile = ReadAction.compute(() -> PsiManager.getInstance(UiContext.getProject(project)).findFile(virtualFile));
                 } catch (Exception ee) {
                     // ReadAction.compute can swallow exceptions if not explicitly caught
                     LOG.warn("STUDIO: WARN: The read action of pomGetTopLevel for params " +
-                            " projectKey [" + projectKey + "] containingDirectory [" + containingDirectory + "] " +
+                            " project [" + project + "] containingDirectory [" + containingDirectory + "] " +
                             " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
                 }
                 return returnFile;
             }
         }
-        LOG.warn("STUDIO: WARNING: Could not find any " + POM_XML + " " + UiContext.getProject(projectKey).getName() + " project root " + virtualProjectRoot.getPath());
+        LOG.warn("STUDIO: WARNING: Could not find any " + POM_XML + " " + UiContext.getProject(project).getName() + " project root " + virtualProjectRoot.getPath());
         return null;
     }
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
@@ -245,19 +245,19 @@ public class LargeJava {
      * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
      * @return the reference to the PsiJavaFile
      */
-    public static void createPomFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+    public static void createPomFile(final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
                                      final  String fileNameWithExtension, final String content, boolean focus,
                                      final boolean replaceExisting) {
-        if (projectKey == null || fileNameWithExtension == null || content == null) {
-            LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile projectKey [" + projectKey + "] contentRoot [" + contentRoot +
+        if (project == null || fileNameWithExtension == null || content == null) {
+            LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile project [" + project + "] contentRoot [" + contentRoot +
                     "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + fileNameWithExtension + "] content [" + content + "]");
         }
-        createSourceFile(projectKey, contentRoot, sourceRootDir, subDir.replace(".", "/"), fileNameWithExtension+".java", content, focus, replaceExisting);
+        createSourceFile(project, contentRoot, sourceRootDir, subDir.replace(".", "/"), fileNameWithExtension+".java", content, focus, replaceExisting);
     }
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
@@ -267,19 +267,19 @@ public class LargeJava {
      * @param replaceExisting if false, will only allow creation of a new file if it doesn't exist, it can't overwrite an existing file.
      * @return the reference to the PsiJavaFile
      */
-    public static void createJavaSourceFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+    public static void createJavaSourceFile(final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
                                             final  String clazzName, final String content, boolean focus,
                                             final boolean replaceExisting) {
-        if (projectKey == null || content == null || sourceRootDir == null || subDir == null || clazzName == null || content == null) {
-            LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile projectKey [" + projectKey + "] contentRoot [" + contentRoot +
+        if (project == null || content == null || sourceRootDir == null || subDir == null || clazzName == null || content == null) {
+            LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile project [" + project + "] contentRoot [" + contentRoot +
                     "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + clazzName + "] content [" + content + "]");
         }
-        createSourceFile(projectKey, contentRoot, sourceRootDir, subDir.replace(".", "/"), clazzName+".java", content, focus, replaceExisting);
+        createSourceFile(project, contentRoot, sourceRootDir, subDir.replace(".", "/"), clazzName+".java", content, focus, replaceExisting);
     }
 
-    private static com.intellij.openapi.module.Module getModule(String projectKey, String moduleName) {
+    private static com.intellij.openapi.module.Module getModule(Project project, String moduleName) {
         moduleName = moduleName.replace("/", "");
-        ModuleManager moduleManager = ModuleManager.getInstance(UiContext.getProject(projectKey));
+        ModuleManager moduleManager = ModuleManager.getInstance(UiContext.getProject(project));
         com.intellij.openapi.module.Module[] modules = moduleManager.getModules();
         for (com.intellij.openapi.module.Module module : modules) {
             if (module.getName().equals(moduleName)) {
@@ -293,17 +293,17 @@ public class LargeJava {
     /**
      * Conveniance method to create a model.json for the supplied content. The location of the
      * model.json is standard so does not need to be supplied
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param content of the file that is to be created / updated
      */
-    public static CompletableFuture createJsonModelFile(final String projectKey, final String content) {
+    public static CompletableFuture createJsonModelFile(final Project project, final String content) {
         LOG.warn("STUDIO: Savaing Json Model, content [" + content + "]");
-        return createSourceFile(projectKey, GENERATED_CONTENT_ROOT, SRC_MAIN, JSON_MODEL_SUB_DIR, MODEL_JSON, content, false, true);
+        return createSourceFile(project, GENERATED_CONTENT_ROOT, SRC_MAIN, JSON_MODEL_SUB_DIR, MODEL_JSON, content, false, true);
     }
 
     /**
      * Create and save a java source file
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param contentRoot for the file, typically generated or user
      * @param sourceRootDir for this file  e.g. src/main, src/test
      * @param subDir under the sourceRoodDir, this can be dot delimited or slash delimited TestV1/y
@@ -314,7 +314,7 @@ public class LargeJava {
      * @return the reference to the PsiJavaFile
      */
 //    public static PsiJavaFile createJavaSourceFile(final Project project, final String contentRoot, final String packageName,
-    public static CompletableFuture createSourceFile(final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+    public static CompletableFuture createSourceFile(final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
                                                      final  String fileName, final String content, boolean focus,
                                                      final boolean replaceExisting) {
 
@@ -323,14 +323,14 @@ public class LargeJava {
 //        AtomicReference<PsiFile> returnPsiFile = new AtomicReference<>();
 
         CompletableFuture newPsiFileReadFuture = null;
-        VirtualFile virtualProjectRoot = getProjectBaseDir(projectKey);
+        VirtualFile virtualProjectRoot = getProjectBaseDir(project);
         if (virtualProjectRoot == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: SERIOUS: createSourceFile cant find basePath for project " + projectKey + " trace:" + Arrays.toString(thread.getStackTrace()));
+            LOG.warn("STUDIO: SERIOUS: createSourceFile cant find basePath for project " + project + " trace:" + Arrays.toString(thread.getStackTrace()));
         } else {
 
             doReadAction(
-                    projectKey, contentRoot, sourceRootDir, subDir,
+                    project, contentRoot, sourceRootDir, subDir,
                     fileName, content,
                     virtualProjectRoot);
 
@@ -352,18 +352,18 @@ public class LargeJava {
 //                try {
 //                    ReadAction.compute(() -> {
 //                        LOG.info("STUDIO: createSourceFile ZZZZZ0.2 " + fileName + " asynch Start " + targetDir);
-//                        String oldFileContent = readFileAsString(projectKey, relativeFilePath);
+//                        String oldFileContent = readFileAsString(project, relativeFilePath);
 //                        newPsiFile.set(PsiFileFactory
-//                                .getInstance(UiContext.getProject(projectKey))
+//                                .getInstance(UiContext.getProject(project))
 //                                .createFileFromText(
 //                                    fileName,
 //                                    FileTypeManager.getInstance().getFileTypeByExtension(fileType.getExtension()),
 //                                    content));
 //                        // Removed the fully qualified packages and adds relevant imports
 //                        if (fileType == FileType.JAVA) {
-//                            JavaCodeStyleManager.getInstance(UiContext.getProject(projectKey)).shortenClassReferences(newPsiFile.get()); // Not on EDT
+//                            JavaCodeStyleManager.getInstance(UiContext.getProject(project)).shortenClassReferences(newPsiFile.get()); // Not on EDT
 //                        }
-//                        CodeStyleManager.getInstance(UiContext.getProject(projectKey)).reformat(newPsiFile.get());
+//                        CodeStyleManager.getInstance(UiContext.getProject(project)).reformat(newPsiFile.get());
 //
 //
 //                        // If the files have not changed, no point continuing
@@ -372,9 +372,9 @@ public class LargeJava {
 //                            // if old file was null, it didn't exist so create new
 //                            // This is a replacement
 //                            if (oldFileContent != null) {
-//                                VirtualFile oldFile = getVirtualFile(projectKey, relativeFilePath);
+//                                VirtualFile oldFile = getVirtualFile(project, relativeFilePath);
 //                                if (oldFile != null && oldFile.isValid()) {
-//                                    oldPsiFile.set(PsiManager.getInstance(UiContext.getProject(projectKey)).findFile(oldFile));
+//                                    oldPsiFile.set(PsiManager.getInstance(UiContext.getProject(project)).findFile(oldFile));
 //                                    readResults[0] = oldPsiFile;
 //                                }
 //
@@ -385,7 +385,7 @@ public class LargeJava {
 //                    });
 //                } catch (Exception ee) {
 //                    LOG.warn("STUDIO: SERIOUS: An exception occurred during the read thread of createSourceFile for params " +
-//                            "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+//                            "project [" + project + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
 //                            "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
 //                            "] messages was [" + ee.getMessage() + "] Stack trace [" + Arrays.asList(ee.getStackTrace()) + "]");
 //System.out.println("Read thread return result 2");
@@ -491,14 +491,14 @@ public class LargeJava {
 
 //    /**
 //     * This class attempts to find a file, it does not attempt to retrieve it
-//     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+//     * @param project is the Intellij project instance
 //     * @param filename to search for
 //     * @return A message string to indicate progress.
 //     */
-//    public static String findFile(String projectKey, String filename) {
+//    public static String findFile(String project, String filename) {
 //        StringBuilder message = new StringBuilder();
 //
-//        PsiFile[] files2 = PsiShortNamesCache.getInstance(UiContext.getProject(projectKey)).getFilesByName(filename);
+//        PsiFile[] files2 = PsiShortNamesCache.getInstance(UiContext.getProject(project)).getFilesByName(filename);
 //        long t1 = System.currentTimeMillis();
 //        message
 //                .append("looking for file ")
@@ -518,26 +518,26 @@ public class LargeJava {
 //    }
 
 
-    public static void refreshCodeFromModelAndCauseRedraw(String projectKey) {
+    public static void refreshCodeFromModelAndCauseRedraw(Project project) {
         // @TODO MODEL
-        refreshCodeFromModel(projectKey);
-        causeRedraw(projectKey);
+        refreshCodeFromModel(project);
+        causeRedraw(project);
     }
 
-    public static void refreshCodeFromModel(String projectKey) {
-        PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(projectKey);
+    public static void refreshCodeFromModel(Project project) {
+        PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(project);
         pipsiIkasanModel.saveModelJsonToDisk();
         pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
     }
 
-    public static void causeRedraw(String projectKey) {
-        UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-        UiContext.getDesignerCanvas(projectKey).repaint();
+    public static void causeRedraw(Project project) {
+        UiContext.getDesignerCanvas(project).setInitialiseAllDimensions(true);
+        UiContext.getDesignerCanvas(project).repaint();
     }
 
-//    public static void getAllSourceRootsForProject(String projectKey) {
-//        String projectName = UiContext.getProject(projectKey).getIdentity();
-//        VirtualFile[] vFiles = ProjectRootManager.getInstance(UiContext.getProject(projectKey)).getContentSourceRoots();
+//    public static void getAllSourceRootsForProject(String project) {
+//        String projectName = UiContext.getProject(project).getIdentity();
+//        VirtualFile[] vFiles = ProjectRootManager.getInstance(UiContext.getProject(project)).getContentSourceRoots();
 //        String sourceRootsList = Arrays.stream(vFiles).map(VirtualFile::getUrl).collect(Collectors.joining("\n"));
 //        LOG.info("STUDIO: Source roots for the " + projectName + " plugin:\n" + sourceRootsList +  "Project Properties");
 //    }
@@ -578,22 +578,22 @@ public class LargeJava {
 
     /**
      * Get the Virtual file for the project root
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      */
-    public static VirtualFile getProjectBaseDir(String projectKey) {
-        String basePath = UiContext.getProject(projectKey).getBasePath();
+    public static VirtualFile getProjectBaseDir(Project project) {
+        String basePath = UiContext.getProject(project).getBasePath();
         return LocalFileSystem.getInstance().findFileByPath(basePath);
-//        com.intellij.openapi.module.Module projectModule = getModule(projectKey, UiContext.getProject(projectKey).getIdentity());
+//        com.intellij.openapi.module.Module projectModule = getModule(project, UiContext.getProject(project).getIdentity());
 //        VirtualFile[] contentRoots = getContentRoots(projectModule);
 //        if (contentRoots.length == 0) {
-//            throw new StudioException("No content roots found for " + UiContext.getProject(projectKey).getIdentity());
+//            throw new StudioException("No content roots found for " + UiContext.getProject(project).getIdentity());
 //        } else {
 //            return contentRoots[0];
 //        }
     }
 
     public static final AtomicReference<PsiFile>[] doReadAction(
-            final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+            final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
             final  String fileName, final String content,
 
             final VirtualFile virtualProjectRoot) {
@@ -615,18 +615,18 @@ public class LargeJava {
         AtomicReference<PsiFile>[] readResults = new AtomicReference[2];
 
         LOG.info("STUDIO: createSourceFile ZZZZZ0.2 " + fileName + " asynch Start " + targetDir);
-        String oldFileContent = readFileAsString(projectKey, relativeFilePath);
+        String oldFileContent = readFileAsString(project, relativeFilePath);
         newPsiFile.set(PsiFileFactory
-                .getInstance(UiContext.getProject(projectKey))
+                .getInstance(UiContext.getProject(project))
                 .createFileFromText(
                         fileName,
                         FileTypeManager.getInstance().getFileTypeByExtension(fileType.getExtension()),
                         content));
         // Removed the fully qualified packages and adds relevant imports
         if (fileType == FileType.JAVA) {
-            JavaCodeStyleManager.getInstance(UiContext.getProject(projectKey)).shortenClassReferences(newPsiFile.get()); // Not on EDT
+            JavaCodeStyleManager.getInstance(UiContext.getProject(project)).shortenClassReferences(newPsiFile.get()); // Not on EDT
         }
-        CodeStyleManager.getInstance(UiContext.getProject(projectKey)).reformat(newPsiFile.get());
+        CodeStyleManager.getInstance(UiContext.getProject(project)).reformat(newPsiFile.get());
 
 
         // If the files have not changed, no point continuing
@@ -635,9 +635,9 @@ public class LargeJava {
             // if old file was null, it didn't exist so create new
             // This is a replacement
             if (oldFileContent != null) {
-                VirtualFile oldFile = getVirtualFile(projectKey, relativeFilePath);
+                VirtualFile oldFile = getVirtualFile(project, relativeFilePath);
                 if (oldFile != null && oldFile.isValid()) {
-                    oldPsiFile.set(PsiManager.getInstance(UiContext.getProject(projectKey)).findFile(oldFile));
+                    oldPsiFile.set(PsiManager.getInstance(UiContext.getProject(project)).findFile(oldFile));
                     readResults[0] = oldPsiFile;
                 }
 
@@ -648,19 +648,19 @@ public class LargeJava {
     }
 
     private static void doWriteAction(
-            final String projectKey, final String contentRoot, final String sourceRootDir, final String subDir,
+            final Project project, final String contentRoot, final String sourceRootDir, final String subDir,
             final  String fileName, final String content, boolean focus,
             final boolean replaceExisting,
             final AtomicReference<PsiFile>[] results) {
 
-        if (UiContext.getProject(projectKey).isDisposed()) {
+        if (UiContext.getProject(project).isDisposed()) {
             System.out.println("pSTUDIO: SERIOUS: Stage 1 project shutdown "+ System.currentTimeMillis());
             LOG.warn("STUDIO: SERIOUS: Stage 1 project shutdown "+ System.currentTimeMillis());
         }
 
 //    if (resultsObject == null) {
 //        LOG.warn("STUDIO: SERIOUS: An exception occurred during the read thread of previous createSourceFile for params " +
-//                "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+//                "project [" + project + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
 //                "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
 //                "] Stack trace " + Arrays.asList(Thread.currentThread().getStackTrace()));
 //    } else {
@@ -672,24 +672,24 @@ public class LargeJava {
         } else if (results[0] == null) {
             // This is a new file, there was no old fie
             PsiFile futureNewPsiFile = ((AtomicReference<PsiFile>) results[1]).get();
-            if (UiContext.getProject(projectKey).isDisposed()) {
+            if (UiContext.getProject(project).isDisposed()) {
                 LOG.warn("STUDIO: SERIOUS: Stage 2 project shutdown"+ System.currentTimeMillis());
             }
 
             if (!futureNewPsiFile.isValid()) {
                 LOG.warn("STUDIO: SERIOUS: During the write phase of createSourceFile, the new file has become invalid, params " +
-                        "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+                        "project [" + project + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
                         "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
                         " Stack trace " + Arrays.asList(Thread.currentThread().getStackTrace()));
                 return;
             }
-//            WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
+//            WriteCommandAction.runWriteCommandAction(UiContext.getProject(project), () -> {
 //                psiDirectoryPath.get().add(futureNewPsiFile.copy());
 ////                                returnPsiFile.set(futureNewPsiFile);
 //            });
         } else {
 
-            if (UiContext.getProject(projectKey).isDisposed()) {
+            if (UiContext.getProject(project).isDisposed()) {
                 LOG.warn("STUDIO: SERIOUS: Stage 3 project shutdown"+ System.currentTimeMillis());
             }
 
@@ -698,17 +698,17 @@ public class LargeJava {
             PsiFile futureNewPsiFile = ((AtomicReference<PsiFile>) results[1]).get();
             if (!futureOldPsiFile.isValid() || !futureNewPsiFile.isValid()) {
                 LOG.warn("STUDIO: SERIOUS: During the write phase of createSourceFile, one of the files have become invalid, params " +
-                        "projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
+                        "project [" + project + "] contentRoot [" + contentRoot + "] sourceRootDir [" + sourceRootDir +
                         "] subDir [" + subDir + "] fileName [" + fileName + "] content [" + content + "] focus [" + focus + "] replaceExisting [" + replaceExisting +
                         " Stack trace " + Arrays.asList(Thread.currentThread().getStackTrace()));
                 return;
             }
-            Document document = PsiDocumentManager.getInstance(UiContext.getProject(projectKey)).getDocument(futureOldPsiFile);
+            Document document = PsiDocumentManager.getInstance(UiContext.getProject(project)).getDocument(futureOldPsiFile);
 //                        Document document = getDocumentForVirtualFile(oldVirtualFile);
             // Replace content inside a write action
-            WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
+            WriteCommandAction.runWriteCommandAction(UiContext.getProject(project), () -> {
                 document.setText(futureNewPsiFile.getText());
-                PsiDocumentManager.getInstance(UiContext.getProject(projectKey)).commitDocument(document);
+                PsiDocumentManager.getInstance(UiContext.getProject(project)).commitDocument(document);
             });
 //                            returnPsiFile.set(futureNewPsiFile);
 //                            changed.set(true);
@@ -808,26 +808,26 @@ public class LargeJava {
     private static final Map<String, VirtualFile> virtualRoots = new HashMap<String, VirtualFile>();
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param relativeRootDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
-    public static VirtualFile getExistingSourceDirectoryForContentRoot(String projectKey, final String basePath, final String contentRoot, String relativeRootDir) {
+    public static VirtualFile getExistingSourceDirectoryForContentRoot(Project project, final String basePath, final String contentRoot, String relativeRootDir) {
 //        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
 
         String targetDirectory = basePath + contentRoot + (relativeRootDir != null ? "/" + relativeRootDir : "");
         LOG.warn("STUDIO XXXXXXXXXXXXXXXXXXXX5.1 getExistingSourceDirectoryForContentRoot basePath = " + basePath + " contentRoot" + contentRoot +
                 " relativeRootDir = " + relativeRootDir + " targetDirectory = " + targetDirectory);
-        String targetDirectoryKey = UiContext.getProject(projectKey).getName() + "-" + targetDirectory;
+        String targetDirectoryKey = UiContext.getProject(project).getName() + "-" + targetDirectory;
 
         VirtualFile sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
         if (sourceCodeRoot == null) {
             // ProjectRoots are more likely to provide an exact match
-            ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(UiContext.getProject(projectKey));
+            ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(UiContext.getProject(project));
             fileIndex.iterateContent(file -> {
                 if (fileIndex.isInSource(file)) {
                     if (file.isValid() && file.isDirectory()) {
-                        virtualRoots.put(UiContext.getProject(projectKey).getName() + "-" + file.getPath(), file);
+                        virtualRoots.put(UiContext.getProject(project).getName() + "-" + file.getPath(), file);
                     }
                 }
                 return true; // Continue iterating
@@ -836,7 +836,7 @@ public class LargeJava {
         sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
         if (sourceCodeRoot == null) {
             Thread thread = Thread.currentThread();
-            LOG.warn("STUDIO: WARNING: Could not find any existing source roots for project [" + projectKey + "] and contentRoot [" + contentRoot + "] and relativeRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
+            LOG.warn("STUDIO: WARNING: Could not find any existing source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relativeRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
         }
         LOG.warn("STUDIO XXXXXXXXXXXXXXXXXXXX5.2 getExistingSourceDirectoryForContentRoot sourceCodeRoot = " + sourceCodeRoot);
         return sourceCodeRoot;
@@ -858,23 +858,23 @@ public class LargeJava {
 
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param targetDir to look for e.g. main/java, main/resources
      * @return the rood of the module / source directory that contains the supplied string.
      */
-    public static VirtualFile getExistingVirtualDirectoryFromCache(String projectKey, String targetDir) {
+    public static VirtualFile getExistingVirtualDirectoryFromCache(Project project, String targetDir) {
 //        String targetDirectory = project.getBasePath() + contentRoot + "/" + relativeRootDir;
         LOG.warn("STUDIO XXXXXXXXXXXXXXXXXXXX5.1a getExistingSourceVirtualDirectory targetDir = " + targetDir);
-        String targetDirectoryKey = UiContext.getProject(projectKey).getName() + "-" + targetDir;
+        String targetDirectoryKey = UiContext.getProject(project).getName() + "-" + targetDir;
 
         VirtualFile sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
         if (sourceCodeRoot == null) {
             // ProjectRoots are more likely to provide an exact match
-            ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(UiContext.getProject(projectKey));
+            ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(UiContext.getProject(project));
             fileIndex.iterateContent(file -> {
                 if (fileIndex.isInSource(file)) {
                     if (file.isValid() && file.isDirectory()) {
-                        virtualRoots.put(UiContext.getProject(projectKey).getName() + "-" + file.getPath(), file);
+                        virtualRoots.put(UiContext.getProject(project).getName() + "-" + file.getPath(), file);
                     }
                 }
                 return true; // Continue iterating
@@ -932,7 +932,7 @@ public class LargeJava {
      * @param relativeFilePath from the project root e.g. pom.xml, src/main/resources/application.properties
      * @return the virtual file reflecting the file path
      */
-    public static VirtualFile getVirtualFile(String projecKey, String relativeFilePath) {
+    public static VirtualFile getVirtualFile(Project projecKey, String relativeFilePath) {
         return VfsUtil.findRelativeFile(relativeFilePath, getProjectBaseDir(projecKey));
     }
 
@@ -943,7 +943,7 @@ public class LargeJava {
      * @param relativeFilePath from the project root e.g. pom.xml, src/main/resources/application.properties
      * @return the String contents of the file, or null if it does not exist
      */
-    public static String readFileAsString(String projecKey, String relativeFilePath) {
+    public static String readFileAsString(Project projecKey, String relativeFilePath) {
         VirtualFile virtualFilePathPath = getVirtualFile(projecKey, relativeFilePath);
         if (virtualFilePathPath != null && virtualFilePathPath.isValid()) {
             return readVirtualFileAsString(virtualFilePathPath);
@@ -976,13 +976,13 @@ public class LargeJava {
         return null;
     }
 
-    public static PsiFile getPsiFileFromPath(final String projectKey, VirtualFile root, String filePath) {
+    public static PsiFile getPsiFileFromPath(final Project project, VirtualFile root, String filePath) {
         PsiFile returnFile = null;
 
         if (root != null && filePath != null && filePath.length() > 1) {
             String fileName = FilenameUtils.getName(filePath);
             String directoryPath = FilenameUtils.getFullPathNoEndSeparator(filePath);
-            PsiDirectory psiDirectory = getPsiDirectoryLeafFromPath(projectKey, root, directoryPath);
+            PsiDirectory psiDirectory = getPsiDirectoryLeafFromPath(project, root, directoryPath);
             if (psiDirectory != null) {
                 returnFile = psiDirectory.findFile(fileName);
             }
@@ -990,9 +990,9 @@ public class LargeJava {
         return returnFile;
     }
 
-    public static PsiDirectory getPsiDirectoryLeafFromPath(final String projectKey, VirtualFile root, String target) {
+    public static PsiDirectory getPsiDirectoryLeafFromPath(final Project project, VirtualFile root, String target) {
         if (root.isDirectory()) {
-            return getPsiDirectoryLeafFromPath(PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(root), target);
+            return getPsiDirectoryLeafFromPath(PsiDirectoryFactory.getInstance(UiContext.getProject(project)).createDirectory(root), target);
         }
         return null;
     }
@@ -1020,14 +1020,14 @@ public class LargeJava {
     /**
      * Search the project root cache for the supplied content root.
      * Note, virtualFiles can become invalid if the IDE refreshes the project, use isValid() before use.
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param contentRoot to ve searched for
      * @return the content root if its found, nulll otherwise.
      */
-    protected static VirtualFile getSpecificContentRootFromCache(final String projectKey, final String contentRoot) {
+    protected static VirtualFile getSpecificContentRootFromCache(final Project project, final String contentRoot) {
         LOG.warn("STUDIO: INFO: getSpecificContentRootFromCache contentRoot = " + contentRoot);
         VirtualFile targetContentRoot = null;
-        VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(UiContext.getProject(projectKey)).getContentRoots();
+        VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(UiContext.getProject(project)).getContentRoots();
         LOG.warn("STUDIO: INFO: getSpecificContentRootFromCache contentRootVFiles = " + Arrays.asList(contentRootVFiles));
 
         if (contentRootVFiles.length != 1) {
@@ -1063,17 +1063,17 @@ public class LargeJava {
     /**
      * Ensures all directories in the specified path exist, creating them if necessary.
      *
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param parentDir The VirtualFile of the parent directory, this is typically the content root of the project.
      * @param relativePath      The directory path relative to parentDir
      * @param token     Used to split the relative path into individual directories
      * @return The PsiDirectory for the final directory in the path.
      * @throws IllegalArgumentException if the parent directory is null or invalid.
      */
-    public static PsiDirectory createOrGetDirectory2(String projectKey, VirtualFile parentDir, String relativePath, String token) {
-        LOG.info("STUDIO: started createOrGetDirectory2 : parentDir was " + parentDir + " is directory " + parentDir.isDirectory() + " projectKey " + projectKey + " relativePath " + relativePath + " token " + token) ;
+    public static PsiDirectory createOrGetDirectory2(Project project, VirtualFile parentDir, String relativePath, String token) {
+        LOG.info("STUDIO: started createOrGetDirectory2 : parentDir was " + parentDir + " is directory " + parentDir.isDirectory() + " project " + project + " relativePath " + relativePath + " token " + token) ;
         if (parentDir == null || !parentDir.isDirectory()) {
-            LOG.info("STUDIO: SERIOUS: parentDir was " + parentDir + " is directory " + parentDir.isDirectory() + " projectKey " + projectKey + " relativePath " + relativePath + " token " + token) ;
+            LOG.info("STUDIO: SERIOUS: parentDir was " + parentDir + " is directory " + parentDir.isDirectory() + " project " + project + " relativePath " + relativePath + " token " + token) ;
             throw new IllegalArgumentException("Invalid parent directory: " + (parentDir == null ? "null" : parentDir.getPath()));
         }
         String[] pathComponents = relativePath.split(token); // Split the path into components
@@ -1083,27 +1083,27 @@ public class LargeJava {
             LOG.info("STUDIO: INFO: component = " + component);
             // skip leading slash or accidental //
             if (!component.isBlank()) {
-                currentDir = ensureDirectoryExists(projectKey, currentDir, component).getVirtualFile();
+                currentDir = ensureDirectoryExists(project, currentDir, component).getVirtualFile();
             }
         }
         // Return the PsiDirectory for the final directory in the path
-        return PsiManager.getInstance(UiContext.getProject(projectKey)).findDirectory(currentDir);
+        return PsiManager.getInstance(UiContext.getProject(project)).findDirectory(currentDir);
     }
 
 
     /**
      * Ensures the directory exists at the specified level, creating it if necessary.
      *
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param parentDir    The VirtualFile of the parent directory.
      * @param directoryName The name of the directory to ensure.
      * @return The PsiDirectory for the created or existing directory.
      */
-    private static PsiDirectory ensureDirectoryExists(String projectKey, VirtualFile parentDir, String directoryName) {
+    private static PsiDirectory ensureDirectoryExists(Project project, VirtualFile parentDir, String directoryName) {
         final VirtualFile[] newDir = new VirtualFile[1]; // To hold the created directory
         ;
         VirtualFile existingDir = parentDir.findChild(directoryName);
-        WriteCommandAction.runWriteCommandAction(UiContext.getProject(projectKey), () -> {
+        WriteCommandAction.runWriteCommandAction(UiContext.getProject(project), () -> {
 
             if (existingDir == null) {
                 // Directory doesn't exist, create it
@@ -1111,7 +1111,7 @@ public class LargeJava {
                     newDir[0] = parentDir.createChildDirectory(null, directoryName);
                 } catch (IOException e) {
                     String messages = "An error attempting tp create directory " + directoryName + " message was " + e.getMessage();
-                    displayIdeaWarnMessage(UiContext.getProject(projectKey).getName(), messages);
+                    displayIdeaWarnMessage(UiContext.getProject(project).getName(), messages);
                     LOG.warn("Studio: Serious: " + messages);
                 }
             } else if (!existingDir.isDirectory()) {
@@ -1123,24 +1123,24 @@ public class LargeJava {
         });
 
         // Wrap the VirtualFile as a PsiDirectory
-        return PsiManager.getInstance(UiContext.getProject(projectKey)).findDirectory(newDir[0]);
+        return PsiManager.getInstance(UiContext.getProject(project)).findDirectory(newDir[0]);
     }
 
 
     /**
      * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param basePackage the package that contains the subpackage leaves
      * @param subPackagesToKeep a set of package names tha are valid i.e. you want to kepp
      */
-    public static void deleteSubPackagesNotIn(String projectKey, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
-        VirtualFile baseDir = getProjectBaseDir(projectKey);
+    public static void deleteSubPackagesNotIn(Project project, final String contentRoot, final String basePackage, Set<String> subPackagesToKeep) {
+        VirtualFile baseDir = getProjectBaseDir(project);
 
         if (baseDir == null) {
-            LOG.warn("Studio: WARN: Could not get project root for directory for project [" + projectKey + "]");
+            LOG.warn("Studio: WARN: Could not get project root for directory for project [" + project + "]");
         } else {
-            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(projectKey, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
-            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(projectKey)).createDirectory(sourceRoot);
+            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(project)).createDirectory(sourceRoot);
 
             CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->
             {
@@ -1152,7 +1152,7 @@ public class LargeJava {
                 } catch (Exception ee) {
                     // ReadAction.compute can swallow exceptions if not explicitly caught
                     LOG.warn("STUDIO: SERIOUS: The read action of pomGetTopLevel for params " +
-                            " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+                            " project [" + project + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
                             " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
                 }
                 return null;
@@ -1161,7 +1161,7 @@ public class LargeJava {
                     ApplicationManager.getApplication().invokeLater(() -> {
                         if (resultsObject == null) {
                             LOG.warn("STUDIO: SERIOUS: The previous read action of pomGetTopLevel returned null for params " +
-                                    " projectKey [" + projectKey + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
+                                    " project [" + project + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
                                     " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
                         } else {
                             for (PsiDirectory directory : resultsObject) {

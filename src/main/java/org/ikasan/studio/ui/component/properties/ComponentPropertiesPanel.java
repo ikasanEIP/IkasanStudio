@@ -1,9 +1,11 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
@@ -13,7 +15,7 @@ import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.core.StudioBuildUtils;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
@@ -45,12 +47,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * Create the ComponentPropertiesPanel
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param componentInitialisation true if this is for the popup version i.e. the first configuration of this component,
      *                                false if this is for the canvas sidebar.
      */
-    public ComponentPropertiesPanel(String projectKey, boolean componentInitialisation) {
-        super(projectKey, componentInitialisation);
+    public ComponentPropertiesPanel(Project project, boolean componentInitialisation) {
+        super(project, componentInitialisation);
         this.setBorder(null);
         listenerFoAnyEditChanges = () -> {
             if (updateCodeButton != null) {
@@ -67,14 +69,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         // If the user has selected the checkbox, that indicates they wish to force a re-write
 
         if (userImplementedComponentOverwriteCheckBox != null && !userImplementedComponentOverwriteCheckBox.isSelected() ) {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Update is not allowed unless overwrite box is ticked.");
+            StudioUIUtils.displayIdeaWarnMessage(project, "Update is not allowed unless overwrite box is ticked.");
         } else if (dataHasChanged()) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
+            UiContext uiContext = project.getService(UiContext.class);
+            StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
             if (metaPackChanged) {
-                Module module = UiContext.getIkasanModule(projectKey);
+                Module module = uiContext.getIkasanModule();
                 // If the version has changed, we need to update the component meta
                 // Can't update the metapack until all changes are inthe current model.
                 StudioBuildUtils.changeMetaPack(module);
@@ -85,19 +88,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     ((FlowUserImplementedElement)getSelectedComponent()).setOverwriteEnabled(true);
                 }
             }
-            StudioPsiUtils.refreshCodeFromModel(projectKey);
+            StudioPsiUtils.refreshCodeFromModel(project);
             // Intellij startup is multi-threaded so caution is required.
-            if (metaPackChanged && UiContext.getPalettePanel(projectKey) != null) {
-                UiContext.getPalettePanel(projectKey).resetPallette();
+            if (metaPackChanged && uiContext.getPalettePanel() != null) {
+                uiContext.getPalettePanel().resetPallette();
             }
 
-            UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-            UiContext.getDesignerCanvas(projectKey).repaint();
-            UiContext.getPalettePanel(projectKey).repaint();
+            uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
+            uiContext.getDesignerCanvas().repaint();
+            uiContext.getPalettePanel().repaint();
             disablePermissionToOverwriteUserImplementedClass();
-            UiContext.setRightTabbedPaneFocus(projectKey, PALETTE_TAB_INDEX);
+            uiContext.setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Data hasn't changed, ignoring OK action.");
+            StudioUIUtils.displayIdeaWarnMessage(project, "Data hasn't changed, ignoring OK action.");
         }
     }
 
@@ -224,7 +227,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             if (!componentInitialisation && !getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
                 updateCodeButton.setEnabled(true);
             }
-            UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PROPERTIES_TAB_INDEX);
+            UiContext uiContext = project.getService(UiContext.class);
+            uiContext.setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
 
             if (htmlScrollingDisplayPanel != null) {
                 htmlScrollingDisplayPanel.setText(getSelectedComponent().getComponentMeta().getHelpText());
@@ -338,7 +342,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(projectKey, componentProperty, componentInitialisation, listenerFoAnyEditChanges, componentPropertyEditBoxMap);
+        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(project, componentProperty, componentInitialisation, listenerFoAnyEditChanges, componentPropertyEditBoxMap);
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }
@@ -443,7 +447,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                         // If its new this will insert, existing will just overwrite.
                         getSelectedComponent().addComponentProperty(componentPropertyEditBox.getPropertyKey(), componentProperty);
                     }
-                    UiContext.setRightTabbedPaneFocus(projectKey, PALETTE_TAB_INDEX);
+                    UiContext uiContext = project.getService(UiContext.class);
+                    uiContext.setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
                 }
             }
         }

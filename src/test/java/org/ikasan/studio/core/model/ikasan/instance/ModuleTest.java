@@ -25,7 +25,6 @@ class ModuleTest {
      */
     @Test
     void cloneVersion3_3_3_to_3_3_8() throws StudioBuildException {
-//        Module oldModule = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, Collections.singletonList(TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK)));
         Module oldModule = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
         assertNotNull(oldModule);
         Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_3_3_8);

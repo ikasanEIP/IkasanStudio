@@ -14,7 +14,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.ikasan.studio.ui.UiContext;
 
 import java.util.Arrays;
 
@@ -45,7 +44,7 @@ public class Navigator {
      * Navigates to source of given class at specified offset.
      * @param classToNavigateTo navigate to source of this class
      */
-    public static void navigateToSource(String projectKey, PsiElement classToNavigateTo)
+    public static void navigateToSource(Project project, PsiElement classToNavigateTo)
     {
         if (classToNavigateTo == null || !classToNavigateTo.isValid()) {
             LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the class to navigate to was null or invalid [" +
@@ -54,12 +53,12 @@ public class Navigator {
             PsiFile containingFile = classToNavigateTo.getContainingFile();
             VirtualFile virtualFile = containingFile.getVirtualFile();
             if (virtualFile != null) {
-                FileEditorManager manager = FileEditorManager.getInstance(UiContext.getProject(projectKey));
+                FileEditorManager manager = FileEditorManager.getInstance(project);
                 FileEditor[] fileEditors = manager.openFile(virtualFile, true);
                 if (fileEditors.length > 0) {
                     FileEditor fileEditor = fileEditors[0];
                     if (fileEditor instanceof NavigatableFileEditor navigatableFileEditor) {
-                        Navigatable descriptor = new OpenFileDescriptor(UiContext.getProject(projectKey), virtualFile, classToNavigateTo.getTextOffset());
+                        Navigatable descriptor = new OpenFileDescriptor(project, virtualFile, classToNavigateTo.getTextOffset());
                         navigatableFileEditor.navigateTo(descriptor);
                     }
                 }
@@ -72,7 +71,7 @@ public class Navigator {
      * @param classToNavigateTo navigate to source of this class
      * @param offset navigate to this offset within source
      */
-    public static void navigateToSource(String projectKey, PsiElement classToNavigateTo, int offset)
+    public static void navigateToSource(Project project, PsiElement classToNavigateTo, int offset)
     {
         if (classToNavigateTo == null || !classToNavigateTo.isValid()) {
             Thread thread = Thread.currentThread();
@@ -82,14 +81,14 @@ public class Navigator {
             VirtualFile virtualFile = containingFile.getVirtualFile ();
             if (virtualFile != null && containingFile.isValid())
             {
-                FileEditorManager manager = FileEditorManager.getInstance (UiContext.getProject(projectKey));
+                FileEditorManager manager = FileEditorManager.getInstance (project);
                 FileEditor[] fileEditors = manager.openFile (virtualFile, true);
                 if (fileEditors.length > 0)
                 {
                     FileEditor fileEditor = fileEditors [0];
                     if (fileEditor instanceof NavigatableFileEditor navigatableFileEditor)
                     {
-                        Navigatable descriptor = new OpenFileDescriptor (UiContext.getProject(projectKey), virtualFile, offset);
+                        Navigatable descriptor = new OpenFileDescriptor (project, virtualFile, offset);
                         navigatableFileEditor.navigateTo (descriptor);
                     }
                 }

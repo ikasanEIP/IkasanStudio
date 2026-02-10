@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -19,7 +20,7 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 @Getter
 public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     IkasanFlowRouteViewHandler flowRouteViewHandler;
-    private final String projectKey;
+    private final Project project;
     public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
@@ -37,10 +38,10 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flow for view handler
      */
-    public IkasanFlowViewHandler(String projectKey, Flow flow) {
-        this.projectKey = projectKey;
+    public IkasanFlowViewHandler(Project project, Flow flow) {
+        this.project = project;
         this.flow = flow;
-        this.flowRouteViewHandler = new IkasanFlowRouteViewHandler(projectKey, flow, flow.getFlowRoute());
+        this.flowRouteViewHandler = new IkasanFlowRouteViewHandler(project, flow, flow.getFlowRoute());
     }
 
     @Override
@@ -100,7 +101,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         paintFlowBox(g);
 
         if (flow.hasExceptionResolver()) {
-            AbstractViewHandlerIntellij viewHandler = getOrCreateAbstractViewHandler(projectKey, flow.getExceptionResolver());
+            AbstractViewHandlerIntellij viewHandler = getOrCreateAbstractViewHandler(project, flow.getExceptionResolver());
             if (viewHandler != null) {
                 viewHandler.paintComponent(canvas, g, -1, -1);
             }
@@ -141,7 +142,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
 
         // Needs to be after all routes of flow so its rightmost
         if (flow.hasExceptionResolver()) {
-            AbstractViewHandlerIntellij viewHandler = getOrCreateAbstractViewHandler(projectKey, flow.getExceptionResolver());
+            AbstractViewHandlerIntellij viewHandler = getOrCreateAbstractViewHandler(project, flow.getExceptionResolver());
             if (viewHandler != null) {
                 viewHandler.initialiseDimensions(
                     graphics,
@@ -161,7 +162,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
             // No flow routes, maybe an exception handler
             int width = getTextWidth(graphics) + (2 * FLOW_CONTAINER_BORDER);
             if (flow.hasExceptionResolver()) {
-                AbstractViewHandlerIntellij exceptionResolverViewHandler = getOrCreateAbstractViewHandler(projectKey, flow.getExceptionResolver());
+                AbstractViewHandlerIntellij exceptionResolverViewHandler = getOrCreateAbstractViewHandler(project, flow.getExceptionResolver());
                 width += (exceptionResolverViewHandler.getWidth() * 2);
             }
             setWidth(width);

@@ -2,7 +2,6 @@ package org.ikasan.studio.ui.model;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
@@ -38,7 +37,6 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         super.setUp();
         String root = getTestDataPath() + TEST_DATA_DIR;
         myTestProjectRoot = createTestProjectStructure(root);
-        UiContext.setProject(myProject.getName(), myProject);
     }
 
     @Override
@@ -50,51 +48,51 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
     public void test_createPomXml() throws IOException {
         String testFile = "src/test/resources/org/ikasan/studio/pom.xml";
         String content = Files.readString(Paths.get(testFile));
-        StudioPsiUtils.createPomFile(myProject.getName(), GENERATED_CONTENT_ROOT, "", content);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/pom.xml");
+        StudioPsiUtils.createPomFile(myProject, GENERATED_CONTENT_ROOT, "", content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/pom.xml");
         assertThat(actualFile, is(content));
     }
 
     public void test_updatePomXml() throws IOException {
         String testFile = "src/test/resources/org/ikasan/studio/pom.xml";
         String content = Files.readString(Paths.get(testFile));
-        StudioPsiUtils.createPomFile(myProject.getName(), GENERATED_CONTENT_ROOT, "", content);
-        StudioPsiUtils.createPomFile(myProject.getName(), GENERATED_CONTENT_ROOT, "", content);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/pom.xml");
+        StudioPsiUtils.createPomFile(myProject, GENERATED_CONTENT_ROOT, "", content);
+        StudioPsiUtils.createPomFile(myProject, GENERATED_CONTENT_ROOT, "", content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/pom.xml");
         assertThat(actualFile, is(content));
     }
 
     public void test_createPropertiesFile() throws IOException {
         String testFile = "src/test/resources/org/ikasan/studio/application.properties";
         String content = Files.readString(Paths.get(testFile));
-        StudioPsiUtils.createPropertiesFile(myProject.getName(), content);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/resources/application.properties");
+        StudioPsiUtils.createPropertiesFile(myProject, content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/src/main/resources/application.properties");
         assertThat(actualFile, is(content));
     }
 
     public void test_updatePropertiesFile() throws IOException {
         String testFile = "src/test/resources/org/ikasan/studio/application.properties";
         String content = Files.readString(Paths.get(testFile));
-        StudioPsiUtils.createPropertiesFile(myProject.getName(), content);
-        StudioPsiUtils.createPropertiesFile(myProject.getName(), content);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/resources/application.properties");
+        StudioPsiUtils.createPropertiesFile(myProject, content);
+        StudioPsiUtils.createPropertiesFile(myProject, content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/src/main/resources/application.properties");
         assertThat(actualFile, is(content));
     }
 
     public void test_createJsonModelFile() throws IOException {
         String testFile = "src/test/resources/org/ikasan/studio/populated_flow.json";
         String content = Files.readString(Paths.get(testFile));
-        StudioPsiUtils.createJsonModelFile(myProject.getName(), content);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/model/model.json");
+        StudioPsiUtils.createJsonModelFile(myProject, content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/src/main/model/model.json");
         assertThat(actualFile, is(content));
     }
 
     public void test_updateJsonModelFile() throws IOException {
         String testFile = "src/test/resources/org/ikasan/studio/populated_flow.json";
         String content = Files.readString(Paths.get(testFile));
-        StudioPsiUtils.createJsonModelFile(myProject.getName(), content);
-        StudioPsiUtils.createJsonModelFile(myProject.getName(), content);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/model/model.json");
+        StudioPsiUtils.createJsonModelFile(myProject, content);
+        StudioPsiUtils.createJsonModelFile(myProject, content);
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/src/main/model/model.json");
         assertThat(actualFile, is(content));
     }
 
@@ -103,14 +101,14 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         String content = Files.readString(Paths.get(testFile));
         // Path shortening needs the pom file to be correct and part of the project
         StudioPsiUtils.createJavaSourceFile(
-                myProject.getName(),
+                myProject,
                 GENERATED_CONTENT_ROOT,
                 SRC_MAIN_JAVA_CODE,
                 "org/ikasan/studio/boot/flow/flow1",
                 "ComponentFactoryFlow1",
                 content,
                 null);
-        String actualFile = StudioPsiUtils.readFileAsString(myProject.getName(), "generated/src/main/java/org/ikasan/studio/boot/flow/flow1/ComponentFactoryFlow1.java");
+        String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/src/main/java/org/ikasan/studio/boot/flow/flow1/ComponentFactoryFlow1.java");
         assertThat(actualFile, is(content));
     }
 
@@ -123,11 +121,11 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         final String myFile = "src/main/resources/testfile.txt";
         int ii = 0;
 
-        StudioPsiUtils.createFileWithDirectories(myProject.getName(), myFile, content + (ii++), null);
-        String last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject.getName(), myFile));
+        StudioPsiUtils.createFileWithDirectories(myProject, myFile, content + (ii++), null);
+        String last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject, myFile));
         assertThat(last10, is("000 Lines0"));
-        StudioPsiUtils.createFileWithDirectories(myProject.getName(), myFile, content + (ii++), null);
-        last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject.getName(), myFile));
+        StudioPsiUtils.createFileWithDirectories(myProject, myFile, content + (ii++), null);
+        last10 = lastXChars(10, StudioPsiUtils.readFileAsString(myProject, myFile));
         assertThat(last10, is("000 Lines1"));
 
         long runningTime = System.currentTimeMillis() - time;

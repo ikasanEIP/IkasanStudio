@@ -110,7 +110,7 @@ class FlowElementTest {
 
     /**
      * Test the cloning of the fictitious flow element named "X Producer" to a new version
-     * @throws StudioBuildException
+     * @throws StudioBuildException if the component cant be found
      */
     @Test
     void test_cloneWithEmptyMetaPackRaisesError() throws StudioBuildException {
@@ -142,7 +142,7 @@ class FlowElementTest {
 
     /**
      * Test the cloning of the fictitious flow element named "X Producer" to a new version
-     * @throws StudioBuildException
+     * @throws StudioBuildException if the component cant be found
      */
     @Test
     void test_cloneToOlderVersionCFlowElement() throws StudioBuildException {
@@ -353,6 +353,4 @@ class FlowElementTest {
                 .type(DECORATOR_TYPE.Unknown.name())
                 .build();
     }
-
-
 }

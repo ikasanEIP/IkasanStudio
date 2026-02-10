@@ -3,6 +3,7 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBPanel;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
@@ -21,22 +22,22 @@ import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
 /**
- * Create all onscreen components and register inter-thread communication components with UiContext
+ * Create all onscreen components and register inter-thread communication components with uiContext
  */
 public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
-    private final String projectKey;
+    private final Project project;
     private final JBPanel mainJPanel = new JBPanel();
     JTabbedPane paletteAndProperties = new JTabbedPane();
 
     /**
      * Create the main Designer window
      * @param toolWindow is the Intellij frame in which this resides
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the current Intellij project
      */
-    public DesignerUI(ToolWindow toolWindow, String projectKey) {
-        this.projectKey = projectKey;
-        UiContext.setViewHandlerFactory(projectKey, new ViewHandlerCache(projectKey));
+    public DesignerUI(ToolWindow toolWindow, Project project) {
+        this.project = project; // assign correctly
+        project.getService(UiContext.class).setViewHandlerFactory(new ViewHandlerCache(this.project));
         paletteAndProperties.setBorder(new EmptyBorder(0,0,0,0));
         paletteAndProperties.setUI(new BasicTabbedPaneUI() {
             @Override
@@ -57,22 +58,23 @@ public class DesignerUI {
         });
 
         paletteAndProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
-        UiContext.setRightTabbedPane(projectKey, paletteAndProperties);
-        if (UiContext.getPipsiIkasanModel(projectKey) == null) {
-            UiContext.setPipsiIkasanModel(projectKey, new PIPSIIkasanModel(projectKey));
+        UiContext uiContext = project.getService(UiContext.class);
+        uiContext.setRightTabbedPane(paletteAndProperties);
+        if (uiContext.getPipsiIkasanModel() == null) {
+            uiContext.setPipsiIkasanModel(new PIPSIIkasanModel(this.project));
         }
 
-        ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(projectKey, false);
-        UiContext.setPropertiesPanel(projectKey, componentPropertiesPanel);
+        ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(project, false);
+        uiContext.setPropertiesPanel(componentPropertiesPanel);
         ComponentPropertiesTabPanel componentPropertiesTabPanel = new ComponentPropertiesTabPanel(componentPropertiesPanel);
-        UiContext.setPropertiesTabPanel(projectKey, componentPropertiesTabPanel);
+        uiContext.setPropertiesTabPanel(componentPropertiesTabPanel);
 
         paletteAndProperties.addTab(null, componentPropertiesTabPanel);
-        paletteAndProperties.setTabComponentAt(0, createSpacedLabel(UiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
+        paletteAndProperties.setTabComponentAt(0, createSpacedLabel(uiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
         paletteAndProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
-                new CanvasPanel(projectKey),
+                new CanvasPanel(this.project),
                 paletteAndProperties
         );
 
@@ -93,7 +95,7 @@ public class DesignerUI {
         });
         mainJPanel.setLayout(new BorderLayout());
         mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
-        UiContext.setDesignerUI(projectKey, this);
+        uiContext.setDesignerUI(this);
     }
 
     protected JLabel createSpacedLabel(String title, int top, int left, int bottom, int right) {
@@ -111,16 +113,20 @@ public class DesignerUI {
      * Note, it may result in an IndexNotReadyException but seems to retry successfully.
      */
     public void initialiseIkasanModel() {
-        DumbService dumbService = DumbService.getInstance(UiContext.getProject(projectKey));
+        DumbService dumbService = DumbService.getInstance(project);
         dumbService.runWhenSmart(() -> {
-            DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
+            UiContext uiContext = project.getService(UiContext.class);
+            DesignerCanvas canvasPanel = uiContext.getDesignerCanvas();
             if (canvasPanel != null) {
                 ApplicationManager.getApplication().executeOnPooledThread(() -> {
-                    StudioPsiUtils.synchGenerateModelInstanceFromJSON(projectKey);
-                    PaletteTabPanel paletteTabPanel = new PaletteTabPanel(projectKey);
-                    UiContext.setPalettePanel(projectKey, paletteTabPanel);
-                    paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
-                    UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
+                    StudioPsiUtils.synchGenerateModelInstanceFromJSON(project);
+                    // PaletteTabPanel construction and UI changes must run on the EDT. Move to invokeLater.
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        PaletteTabPanel paletteTabPanel = new PaletteTabPanel(project);
+                        uiContext.setPalettePanel(paletteTabPanel);
+                        paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
+                        uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
+                    });
                 });
             }
         });

@@ -1,23 +1,26 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class CronPopupDialogue extends DialogWrapper {
-    private CronPanel cronPanel;
+    private final CronPanel cronPanel;
     /**
      * CronPopupDialogue Modal window to support entry of cron configurations.
      *
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param parentComponent of this popup
      * @param cronPanel to display and have entries taken on.
      */
-    public CronPopupDialogue(String projectKey, Component parentComponent, CronPanel cronPanel) {
-        super(UiContext.getProject(projectKey), parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
+    public CronPopupDialogue(Project project, Component parentComponent, CronPanel cronPanel) {
+        // Modern approach: DialogWrapper with project scoping
+        // The boolean parameter indicates if this dialog can be a parent (true = can be parent)
+        // This replaces the deprecated IdeModalityType.PROJECT
+        super(project, true);
         cronPanel.setCronPopupDialogue(this);
         this.cronPanel = cronPanel;
         init();  // from DialogWrapper which calls createCenterPanel() below so make sure any state is initialised first.

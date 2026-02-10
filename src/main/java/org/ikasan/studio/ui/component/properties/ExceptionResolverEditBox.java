@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import lombok.Data;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
@@ -18,7 +19,7 @@ import java.util.List;
 @Data
 public class ExceptionResolverEditBox {
     private final ExceptionResolverPanel resolverPanel;
-    private final String projectKey;
+    private final Project project;
     private final JLabel exceptionTitleField;
     private final JLabel actionTitleField;
     private final JLabel paramsTitleField;
@@ -28,9 +29,9 @@ public class ExceptionResolverEditBox {
     private final ExceptionResolver exceptionResolver;
     private boolean hasChanged = false;
 
-    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, String projectKey, ExceptionResolver exceptionResolver, boolean componentInitialisation) {
+    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, Project project, ExceptionResolver exceptionResolver, boolean componentInitialisation) {
         this.resolverPanel = resolverPanel;
-        this.projectKey = projectKey;
+        this.project = project;
         this.exceptionResolver = exceptionResolver;
         this.componentInitialisation = componentInitialisation;
 
@@ -58,21 +59,22 @@ public class ExceptionResolverEditBox {
     }
 
     private void doAdd() {
-        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, projectKey, true);
+        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, project, true);
         ExceptionResolution newResolution = null;
+        UiContext uiContext = project.getService(UiContext.class);
         try {
-            newResolution = new ExceptionResolution(UiContext.getIkasanModule(projectKey).getMetaVersion());
+            newResolution = new ExceptionResolution(uiContext.getIkasanModule().getMetaVersion());
         } catch (Exception e) {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
+            StudioUIUtils.displayIdeaWarnMessage(project, "There was a problem trying to get meta data (" + e.getMessage() + "), please review your logs");
         }
         if (newResolution != null) {
             exceptionResolutionPanel.updateTargetComponent(newResolution);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
-                    projectKey,
-                    UiContext.getDesignerCanvas(projectKey),
+                    project,
+                    uiContext.getDesignerCanvas(),
                     exceptionResolutionPanel);
             if (propertiesPopupDialogue.showAndGet()) {
-                StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
+                StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
                 exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
                 hasChanged = true;
                 resolverPanel.populatePropertiesEditorPanel();
@@ -84,21 +86,11 @@ public class ExceptionResolverEditBox {
     /**
      * Usually the final step of edit, update the original value object with the entered data
      */
-    public ExceptionResolver updateValueObjectWithEnteredValues() {
+    public void  updateValueObjectWithEnteredValues() {
         exceptionResolver.resetIkasanExceptionResolutionList();
         for (org.ikasan.studio.ui.component.properties.ExceptionResolution exceptionResolution : exceptionResolutionList) {
             exceptionResolver.addExceptionResolution(exceptionResolution.getIkasanExceptionResolution());
         }
-        return exceptionResolver;
-    }
-
-
-    /**
-     * Determine if the edit box has values in all mandatory fields.
-     * @return true if the editbox has a non-whitespace / real value.
-     */
-    public boolean editBoxHasValue() {
-        return !exceptionResolutionList.isEmpty();
     }
 
     /**

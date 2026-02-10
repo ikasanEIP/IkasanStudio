@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -15,11 +16,11 @@ import java.awt.event.ActionListener;
 
 public class DeleteComponentAction implements ActionListener {
    private static final Logger LOG = Logger.getInstance("#DeleteComponentAction");
-   private final String projectKey;
+   private final Project project;
    private final BasicElement ikasanBasicElement;
 
-   public DeleteComponentAction(String projectKey, BasicElement ikasanBasicElement) {
-      this.projectKey = projectKey;
+   public DeleteComponentAction(Project project, BasicElement ikasanBasicElement) {
+      this.project = project;
       this.ikasanBasicElement = ikasanBasicElement;
    }
 
@@ -34,7 +35,7 @@ public class DeleteComponentAction implements ActionListener {
 
          if (parentFlow != null) {
             if (((FlowElement)ikasanBasicElement).getComponentMeta().isRouter()) {
-               final int answer = Messages.showYesNoDialog(UiContext.getProject(projectKey),
+               final int answer = Messages.showYesNoDialog(project,
                        "Deleting a route will also delete all downstream elements, do you wish to proceed", "Warning", null);
                if (answer != Messages.YES) {
                   return;
@@ -44,19 +45,20 @@ public class DeleteComponentAction implements ActionListener {
          } else {
             LOG.warn("STUDIO: Attempt to remove flow element " + ikasanBasicElement + " failed because its containing flow could not be found.");
          }
-         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
+         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
       } else if (ikasanBasicElement instanceof Flow ikasanFlowToRemove) {
          if (((Flow)ikasanBasicElement).hasAnyComponents()) {
-            final int answer = Messages.showYesNoDialog(UiContext.getProject(projectKey),
+            final int answer = Messages.showYesNoDialog(project,
                     "Deleteing a flow will delete all the elements, do you wish to proceed", "Warning", null);
             if (answer == Messages.YES) {
-               Module ikasanModule = UiContext.getIkasanModule(projectKey);
+               UiContext uiContext = project.getService(UiContext.class);
+               Module ikasanModule = uiContext.getIkasanModule();
                ikasanModule.getFlows().remove(ikasanFlowToRemove);
-               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(projectKey);
+               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
             }
          }
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(projectKey, "Action ignored, you can only delete flow elements or flows");
+         StudioUIUtils.displayIdeaWarnMessage(project, "Action ignored, you can only delete flow elements or flows");
       }
    }
 }

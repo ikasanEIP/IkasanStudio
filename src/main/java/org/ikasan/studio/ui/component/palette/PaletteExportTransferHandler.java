@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -23,12 +24,12 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
     private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
     private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
-    private final String projectKey;
+    private final Project project;
 
     // Source actions i.e. methods called for the source of the copy
 
-    public PaletteExportTransferHandler(String projectKey) {
-        this.projectKey = projectKey;
+    public PaletteExportTransferHandler(Project project) {
+        this.project = project;
     }
 
     /**
@@ -47,13 +48,13 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                 ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem &&
                 ! ((PaletteItem)((JList<PaletteItem>)sourceComponent).getSelectedValue()).isCategory()) {
             PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
-
-            if (UiContext.getIkasanModule(projectKey) == null) {
+            UiContext uiContext = project.getService(UiContext.class);
+            if (uiContext.getIkasanModule() == null) {
                 LOG.warn("STUDIO: Module should never be null");
             }
 
             BasicElement ikasanComponent;
-            String metapackVersion = UiContext.getIkasanModule(projectKey).getMetaVersion();
+            String metapackVersion = uiContext.getIkasanModule().getMetaVersion();
             try {
                 if (item.getIkasanPaletteElementViewHandler().getComponentMeta().isFlow()) {
                     ikasanComponent = Flow.flowBuilder().metapackVersion(metapackVersion).build();
@@ -61,7 +62,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                     ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getIkasanPaletteElementViewHandler().getComponentMeta(), null, null, null);
                 }
             } catch (StudioBuildException e) {
-                StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                StudioUIUtils.displayIdeaWarnMessage(project, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
                 return null;
             }
 

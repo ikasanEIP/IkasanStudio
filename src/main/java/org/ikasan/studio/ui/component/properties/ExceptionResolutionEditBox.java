@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
@@ -16,7 +17,7 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 public class ExceptionResolutionEditBox {
-    private final String projectKey;
+    private final Project project;
     ExceptionResolverMeta exceptionResolverMeta;
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
@@ -29,8 +30,8 @@ public class ExceptionResolutionEditBox {
     private final boolean componentInitialisation;
     private final ExceptionResolution exceptionResolution;
 
-    public ExceptionResolutionEditBox(String projectKey, ExceptionResolverMeta exceptionResolverMeta, ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
-        this.projectKey = projectKey;
+    public ExceptionResolutionEditBox(Project project, ExceptionResolverMeta exceptionResolverMeta, ExceptionResolutionPanel resolutionPanel, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
+        this.project = project;
         this.exceptionResolverMeta = exceptionResolverMeta;
         this.resolutionPanel = resolutionPanel;
         this.exceptionResolution = exceptionResolution;
@@ -65,7 +66,7 @@ public class ExceptionResolutionEditBox {
             if (!exceptionResolution.getComponentProperties().isEmpty()) {
                 componentPropertyEditBoxList = new ArrayList<>();
                 for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, property, this.componentInitialisation);
+                    ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(project, property, this.componentInitialisation);
                     componentPropertyEditBoxList.add(actionParam);
                 }
             }
@@ -93,7 +94,7 @@ public class ExceptionResolutionEditBox {
 //                        ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                         // The property has to be added to this exception resolution so that it can be updated later.
                         exceptionResolution.addComponentProperty(newActionProperty.getMeta().getPropertyName(), newActionProperty);
-                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(projectKey, newActionProperty, this.componentInitialisation);
+                        ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(project, newActionProperty, this.componentInitialisation);
                         componentPropertyEditBoxList.add(actionParam);
                     }
                 }

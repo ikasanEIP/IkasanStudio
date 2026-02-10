@@ -3,6 +3,7 @@ package org.ikasan.studio.ui;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,14 +31,14 @@ public class StudioUIUtils {
         return StudioUIUtils.getMainFont();
     }
 
-    public static void displayErrorMessage(String projectKey, String message) {
-        JTextArea canvasTextArea = UiContext.getCanvasTextArea(projectKey);
+    public static void displayErrorMessage(Project project, String message) {
+        JTextArea canvasTextArea = project.getService(UiContext.class).getCanvasTextArea();
         canvasTextArea.setForeground(Styling.IKASAN_RED);
         canvasTextArea.setText(message);
     }
 
-    public static void displayMessage(String projectKey, String message) {
-        JTextArea canvasTextArea = UiContext.getCanvasTextArea(projectKey);
+    public static void displayMessage(Project project, String message) {
+        JTextArea canvasTextArea = project.getService(UiContext.class).getCanvasTextArea();
         canvasTextArea.setForeground(Styling.IKASAN_BLACK);
         canvasTextArea.setText(message);
     }
@@ -241,20 +242,20 @@ public class StudioUIUtils {
         }
     }
 
-    public static void displayIdeaInfoMessage(String projectKey, String message) {
+    public static void displayIdeaInfoMessage(Project project, String message) {
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.INFORMATION)
-                .notify(UiContext.getProject(projectKey));
+                .notify(project);
     }
-    public static void displayIdeaWarnMessage(String projectKey, String message) {
+    public static void displayIdeaWarnMessage(Project project, String message) {
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.WARNING)
-                .notify(UiContext.getProject(projectKey));
+                .notify(project);
     }
-    public static void displayIdeaErrorMessage(String projectKey, String message) {
+    public static void displayIdeaErrorMessage(Project project, String message) {
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.ERROR)
-                .notify(UiContext.getProject(projectKey));
+                .notify(project);
     }
 
     public static Color getLineColor() {

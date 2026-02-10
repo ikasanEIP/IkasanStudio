@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -17,13 +18,13 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     public static final int FLOW_Y_BOTTTOM_BUFFER = 100;
     public static final int SCROLL_BAR_HEIGHT = 10;
     private final Module module;
-    private final String projectKey;
+    private final Project project;
 
     /**
      * @param module for the view handler
      */
-    public IkasanModuleViewHandler(String projectKey, Module module) {
-        this.projectKey = projectKey;
+    public IkasanModuleViewHandler(Project project, Module module) {
+        this.project = project;
         this.module = module;
     }
 
@@ -35,7 +36,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont(g));
         for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set TestV1,y, but we may be dealing with component move
-            IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(project, ikasanFlow);
             if (flowViewViewHandler != null) {
 
                 if (currentY == 0) {
@@ -75,7 +76,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         int maxHeight;
         int lastFlowHeight = topy;
         for(Flow ikasanFlow : module.getFlows()) {
-            IkasanFlowViewHandler flowViewHandler = getOrCreateFlowViewViewHandler(projectKey, ikasanFlow);
+            IkasanFlowViewHandler flowViewHandler = getOrCreateFlowViewViewHandler(project, ikasanFlow);
             if (flowViewHandler != null) {
                 // initialise width/height to maximum, it will be adjusted down after reset
                 flowViewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);

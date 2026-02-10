@@ -40,7 +40,7 @@ public class ExceptionResolution {
                 !exceptionResolution.getComponentProperties().isEmpty()) {
             componentPropertyEditBoxList = new ArrayList<>();
             for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProjectKey(), property, componentInitialisation);
+                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProject(), property, componentInitialisation);
                 componentPropertyEditBoxList.add(actionParam);
             }
         }

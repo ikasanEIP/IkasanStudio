@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui;
 
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
@@ -15,22 +15,30 @@ import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-/**
- * The UiContext allows all the independent parts of the UI to collaborate with each other.
- * Anything can be placed in the UiContext, some things are so important that they will have their own getters
- * just for convenience.
- */
-public enum UiContext {
 
-    INSTANCE;
+/**
+ * Project-level service that manages UI context and state for a given project.
+ *
+ * This service replaces the previous singleton pattern with IntelliJ's ProjectService framework,
+ * providing:
+ * - Better lifecycle management (automatically disposed when project closes)
+ * - Thread-safe initialization and access via the service locator
+ * - Separation of concerns per project
+ * - Simplified testing and dependency injection
+ *
+ * Usage: {@code UiContext service = project.getService(UiContext.class);}
+ *
+ * @see com.intellij.openapi.components.Service
+ */
+@Service(Service.Level.PROJECT)
+public final class UiContext {
+
     public static final String JAVA_FILE_EXTENSION = "java";
     public static final String XML_FILE_EXTENSION = "xml";
 
     private static final String CANVAS_PANEL = "canvasPanel";
-    private static final String PROJECT = "project";
     private static final String PROJECT_REFRESH_TIMESTAMP = "projectRefreshTimeStamp";
     private static final String VIEW_HANDLER_FACTORY = "viewHandlerFactory";
     private static final String OPTIONS = "options";
@@ -51,163 +59,175 @@ public enum UiContext {
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
 
-    // projectName -> region -> value
-    // e.g. myProject -> INSTANCE.IKASAN_MODULE -> actualModule
-    //      myProject -> INSTANCE.PIPSI_IKASAN_MODEL -> actualPipsoModule
-    //      myProject -> INSTANCE.PROJECT -> intellijProjectConfigurationData
-    private static final Map<String, Map<String, Object>> perProjectCache = new HashMap<>();
+    private final Project project;
+    private final Map<String, Object> cache = new TreeMap<>();
 
-    private static synchronized void putProjectCache(String projectKey, String key, Object value) {
-        perProjectCache.putIfAbsent(projectKey, new TreeMap<>());
-        perProjectCache.get(projectKey).put(key, value);
-        // We should always make sure the options cache is available.
-        perProjectCache.get(projectKey).putIfAbsent(OPTIONS, new Options());
-        // Currently hardcode these options but in future we need to expose via IDE
+    public UiContext(Project project) {
+        this.project = project;
+        // Initialize options cache as these are essential
+        this.cache.putIfAbsent(OPTIONS, new Options());
     }
 
     /**
      * The spacing between flowchart components on the diagram.
-     * @TODO populate from UI config
+     * TODO: populate from UI config
      * @return the minimum spacing between flowchart components on the diagram.
      */
     public static int getMinimumComponentXSpacing() {
         return MINIMUM_COMPONENT_X_SPACING;
     }
 
-    private static synchronized Object getProjectCache(String projectKey, String key) {
-        Map<String, Object> cache = perProjectCache.get(projectKey);
-        if (cache != null) {
-            return cache.get(key);
-        }
-        return null;
-    }
-    public static Options getOptions(String projectKey) {
-        return (Options)getProjectCache(projectKey, OPTIONS);
+    private synchronized Object getFromCache(String key) {
+        return cache.get(key);
     }
 
-    public static IkasanPomModel getIkasanPomModel(String projectKey) {
-        IkasanPomModel ikasanPomModel = (IkasanPomModel)getProjectCache(projectKey, IKASAN_POM_MODEL);
+    private synchronized void putInCache(String key, Object value) {
+        cache.put(key, value);
+    }
+
+    public Options getOptions() {
+        return (Options) getFromCache(OPTIONS);
+    }
+
+    public IkasanPomModel getIkasanPomModel() {
+        IkasanPomModel ikasanPomModel = (IkasanPomModel) getFromCache(IKASAN_POM_MODEL);
         if (ikasanPomModel == null) {
-            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(projectKey, UiContext.getProject(projectKey).getName());
+            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(project);
+            if (ikasanPomModel != null) {
+                setIkasanPomModel(ikasanPomModel);
+            }
         }
         return ikasanPomModel;
     }
 
-    public static void setIkasanPomModel(String projectKey, IkasanPomModel pom) {
-        putProjectCache(projectKey, IKASAN_POM_MODEL, pom);
+    public void setIkasanPomModel(IkasanPomModel pom) {
+        putInCache(IKASAN_POM_MODEL, pom);
     }
 
-    public static Project getProject(String projectKey) {
-        return (Project)getProjectCache(projectKey, PROJECT);
+    public Long getProjectRefreshTimestamp() {
+        Long timestamp = (Long) getFromCache(PROJECT_REFRESH_TIMESTAMP);
+        if (timestamp == null) {
+            timestamp = System.currentTimeMillis();
+            setProjectRefreshTimestamp(timestamp);
+        }
+        return timestamp;
     }
 
-    public static Long getProjectRefreshTimestamp(String projectKey) {
-        return (Long)getProjectCache(projectKey, PROJECT_REFRESH_TIMESTAMP);
+    public void setProjectRefreshTimestamp(Long timestamp) {
+        putInCache(PROJECT_REFRESH_TIMESTAMP, timestamp);
     }
 
-    public static void setProject(String projectKey, Project project) {
-        putProjectCache(projectKey, PROJECT, project);
-        putProjectCache(projectKey, PROJECT_REFRESH_TIMESTAMP, System.currentTimeMillis());
+    public ViewHandlerCache getViewHandlerFactory() {
+        return (ViewHandlerCache) getFromCache(VIEW_HANDLER_FACTORY);
     }
 
-    public static ViewHandlerCache getViewHandlerFactory(String projectKey) {
-        return (ViewHandlerCache)getProjectCache(projectKey, VIEW_HANDLER_FACTORY);
+    public void setViewHandlerFactory(ViewHandlerCache viewHandlerFactory) {
+        putInCache(VIEW_HANDLER_FACTORY, viewHandlerFactory);
     }
-    public static Map<String, String> getApplicationProperties(String projectKey) {
-        Map<String, String> applicationProperties = (Map)getProjectCache(projectKey, APPLICATION_PROPERTIES);
+
+    public Map<String, String> getApplicationProperties() {
+        Map<String, String> applicationProperties = (Map<String, String>) getFromCache(APPLICATION_PROPERTIES);
         if (applicationProperties == null) {
-            applicationProperties = StudioPsiUtils.getApplicationPropertiesMapFromVirtualDisk(projectKey);
+            applicationProperties = StudioPsiUtils.getApplicationPropertiesMapFromVirtualDisk(project);
             if (applicationProperties != null) {
-                setApplicationProperties(projectKey, applicationProperties);
+                setApplicationProperties(applicationProperties);
             }
         }
         return applicationProperties;
     }
 
-    public static void setApplicationProperties(String projectKey, Map<String, String> applicationProperties) {
-        putProjectCache(projectKey, APPLICATION_PROPERTIES, applicationProperties);
+    public void setApplicationProperties(Map<String, String> applicationProperties) {
+        putInCache(APPLICATION_PROPERTIES, applicationProperties);
     }
 
-
-    public static void setViewHandlerFactory(String projectKey, ViewHandlerCache viewHandlerFactory) {
-        putProjectCache(projectKey, VIEW_HANDLER_FACTORY, viewHandlerFactory);
+    public void setDesignerCanvas(DesignerCanvas designerCanvas) {
+        putInCache(CANVAS_PANEL, designerCanvas);
     }
 
-    public static void setDesignerCanvas(String projectKey, DesignerCanvas designerCanvas) {
-        putProjectCache(projectKey, CANVAS_PANEL, designerCanvas);
-    }
-
-    public static DesignerCanvas getDesignerCanvas(String projectKey) {
-        return (DesignerCanvas) getProjectCache(projectKey, CANVAS_PANEL);
+    public DesignerCanvas getDesignerCanvas() {
+        return (DesignerCanvas) getFromCache(CANVAS_PANEL);
     }
 
     /**
      * Set the selected tab
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
      * @param tabIndex one of the defined constants PROPERTIES_TAB_INDEX, PALETTE_TAB_INDEX
      */
-    public static void setRightTabbedPaneFocus(String projectKey, int tabIndex) {
-        JTabbedPane rightTabbedPane = getRightTabbedPane(projectKey);
+    public void setRightTabbedPaneFocus(int tabIndex) {
+        JTabbedPane rightTabbedPane = getRightTabbedPane();
         if (rightTabbedPane != null) {
             rightTabbedPane.setSelectedIndex(tabIndex);
         }
     }
-    public static void setRightTabbedPane(String projectKey, JTabbedPane rightTabbedPane) {
-        putProjectCache(projectKey, RIGHT_TABBED_PANE, rightTabbedPane);
-    }
-    public static JTabbedPane getRightTabbedPane(String projectKey) {
-        return (JTabbedPane) getProjectCache(projectKey, RIGHT_TABBED_PANE);
+
+    public void setRightTabbedPane(JTabbedPane rightTabbedPane) {
+        putInCache(RIGHT_TABBED_PANE, rightTabbedPane);
     }
 
-    public static void setDesignerUI(String projectKey, DesignerUI designerUI) {
-        putProjectCache(projectKey, DESIGNER_UI, designerUI);
-    }
-    public static DesignerUI getDesignerUI(String projectKey) {
-        return (DesignerUI) getProjectCache(projectKey, DESIGNER_UI);
+    public JTabbedPane getRightTabbedPane() {
+        return (JTabbedPane) getFromCache(RIGHT_TABBED_PANE);
     }
 
-    public static void setPropertiesPanel(String projectKey, ComponentPropertiesPanel componentPropertiesPanel) {
-        putProjectCache(projectKey, PROPERTIES_PANEL, componentPropertiesPanel);
-    }
-    public static ComponentPropertiesPanel getPropertiesPanel(String projectKey) {
-        return (ComponentPropertiesPanel) getProjectCache(projectKey, PROPERTIES_PANEL);
-    }
-    public static void setPropertiesTabPanel(String projectKey, ComponentPropertiesTabPanel componentPropertiesPanel) {
-        putProjectCache(projectKey, PROPERTIES_TAB_PANEL, componentPropertiesPanel);
-    }
-    public static ComponentPropertiesTabPanel getPropertiesTabPanel(String projectKey) {
-        return (ComponentPropertiesTabPanel) getProjectCache(projectKey, PROPERTIES_TAB_PANEL);
-    }
-    public static void setPalettePanel(String projectKey, PaletteTabPanel paletteTabPanel) {
-        putProjectCache(projectKey, PALETTE_PANEL, paletteTabPanel);
-    }
-    public static PaletteTabPanel getPalettePanel(String projectKey) {
-        return (PaletteTabPanel) getProjectCache(projectKey, PALETTE_PANEL);
+    public void setDesignerUI(DesignerUI designerUI) {
+        putInCache(DESIGNER_UI, designerUI);
     }
 
-    public static void setCanvasTextArea(String projectKey, JTextArea canvasTextArea) {
-        putProjectCache(projectKey, CANVAS_TEXT_AREA, canvasTextArea);
-    }
-    public static JTextArea getCanvasTextArea(String projectKey) {
-        return (JTextArea) getProjectCache(projectKey, CANVAS_TEXT_AREA);
+    public DesignerUI getDesignerUI() {
+        return (DesignerUI) getFromCache(DESIGNER_UI);
     }
 
-    public static void setIkasanModule(String projectKey, Module ikasanModule) {
-        putProjectCache(projectKey, IKASAN_MODULE, ikasanModule);
+    public void setPropertiesPanel(ComponentPropertiesPanel componentPropertiesPanel) {
+        putInCache(PROPERTIES_PANEL, componentPropertiesPanel);
     }
-    public static Module getIkasanModule(String projectKey) {
-        return (Module) getProjectCache(projectKey, IKASAN_MODULE);
+
+    public ComponentPropertiesPanel getPropertiesPanel() {
+        return (ComponentPropertiesPanel) getFromCache(PROPERTIES_PANEL);
     }
-    public static void setAppserverProcessHandle(String projectKey, ProcessHandler processHandler) {
-        putProjectCache(projectKey, APPSERVER_PROCESS_HANDLE, processHandler);
+
+    public void setPropertiesTabPanel(ComponentPropertiesTabPanel componentPropertiesPanel) {
+        putInCache(PROPERTIES_TAB_PANEL, componentPropertiesPanel);
     }
-    public static ProcessHandler getAppserverProcessHandle(String projectKey) {
-        return (ProcessHandler) getProjectCache(projectKey, APPSERVER_PROCESS_HANDLE);
+
+    public ComponentPropertiesTabPanel getPropertiesTabPanel() {
+        return (ComponentPropertiesTabPanel) getFromCache(PROPERTIES_TAB_PANEL);
     }
-    public static void setPipsiIkasanModel(String projectKey, PIPSIIkasanModel ikasanModule) {
-        putProjectCache(projectKey, PIPSI_IKASAN_MODEL, ikasanModule);
+
+    public void setPalettePanel(PaletteTabPanel paletteTabPanel) {
+        putInCache(PALETTE_PANEL, paletteTabPanel);
     }
-    public static PIPSIIkasanModel getPipsiIkasanModel(String projectKey) {
-        return (PIPSIIkasanModel) getProjectCache(projectKey, PIPSI_IKASAN_MODEL);
+
+    public PaletteTabPanel getPalettePanel() {
+        return (PaletteTabPanel) getFromCache(PALETTE_PANEL);
+    }
+
+    public void setCanvasTextArea(JTextArea canvasTextArea) {
+        putInCache(CANVAS_TEXT_AREA, canvasTextArea);
+    }
+
+    public JTextArea getCanvasTextArea() {
+        return (JTextArea) getFromCache(CANVAS_TEXT_AREA);
+    }
+
+    public void setIkasanModule(Module ikasanModule) {
+        putInCache(IKASAN_MODULE, ikasanModule);
+    }
+
+    public Module getIkasanModule() {
+        return (Module) getFromCache(IKASAN_MODULE);
+    }
+
+    public void setAppserverProcessHandle(ProcessHandler processHandler) {
+        putInCache(APPSERVER_PROCESS_HANDLE, processHandler);
+    }
+
+    public ProcessHandler getAppserverProcessHandle() {
+        return (ProcessHandler) getFromCache(APPSERVER_PROCESS_HANDLE);
+    }
+
+    public void setPipsiIkasanModel(PIPSIIkasanModel ikasanModule) {
+        putInCache(PIPSI_IKASAN_MODEL, ikasanModule);
+    }
+
+    public PIPSIIkasanModel getPipsiIkasanModel() {
+        return (PIPSIIkasanModel) getFromCache(PIPSI_IKASAN_MODEL);
     }
 }

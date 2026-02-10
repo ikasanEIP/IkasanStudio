@@ -1,9 +1,9 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.SystemInfoRt;
-import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,12 +24,15 @@ public class PropertiesPopupDialogue extends DialogWrapper {
      *
      * @todo maybe use this in non modal form for the in-canvas properties editing.
      *
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param parentComponent of this popup
      * @param propertiesPanel to display and have entries taken on.
      */
-    public PropertiesPopupDialogue(String projectKey, Component parentComponent, PropertiesPanel propertiesPanel) {
-        super(UiContext.getProject(projectKey), parentComponent, true, IdeModalityType.PROJECT); // use current window as parent
+    public PropertiesPopupDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
+        // Modern approach: DialogWrapper with project scoping
+        // The boolean parameter indicates if this dialog can be a parent (true = can be parent)
+        // This replaces the deprecated IdeModalityType.PROJECT
+        super(project, true);
         propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
         init();  // from DialogWrapper which calls createCenterPanel() below so make sure any state is initialised first.

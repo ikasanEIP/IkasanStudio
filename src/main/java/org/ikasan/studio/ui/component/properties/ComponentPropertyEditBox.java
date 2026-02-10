@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
@@ -39,28 +40,28 @@ public class ComponentPropertyEditBox {
     private boolean isList = false;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
-    private final String projectKey;
+    private final Project project;
 
     /**
      * Constructor
-     * @param projectKey identity of the users current Java project
+     * @param project identity of the users current Java project
      * @param componentProperty to be exposed for edit
      * @param componentInitialisation only default the value if this is true
      */
-    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation) {
-        this(projectKey, componentProperty, componentInitialisation, null, null);
+    public ComponentPropertyEditBox(Project project, ComponentProperty componentProperty, boolean componentInitialisation) {
+        this(project, componentProperty, componentInitialisation, null, null);
     }
 
     /**
      * Constructor
-     * @param projectKey identity of the users current Java project
+     * @param project identity of the users current Java project
      * @param componentProperty to be exposed for edit
      * @param componentInitialisation only default the value if this is true
      * @param listenerFoAnyEditChanges used by the parent to detect changes to the values being edited. If this is not required, use the other constructor.
      * @param componentPropertyEditBoxMap a growing list of propertyName -> ComponentPropertyEditBox, this instance will be added to it in the constructor. This is needed if fields could default off each other. If this is not required, use the other constructor.
      */
-    public ComponentPropertyEditBox(String projectKey, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap) {
-        this.projectKey = projectKey;
+    public ComponentPropertyEditBox(Project project, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap) {
+        this.project = project;
         this.componentProperty = componentProperty;
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
@@ -196,44 +197,36 @@ public class ComponentPropertyEditBox {
     }
 
     /**
-     * Register an action listener (press enter) for the input field, currently this would only make sense for the propertyValueField
+     * Register an action actionListener (press enter) for the input field, currently this would only make sense for the propertyValueField
      * Its typical use might be to default another field to the value entered in this field.
-     * @param listener
+     * @param actionListener to be registered
      */
-    public void registerActionListener(ActionListener listener) {
+    public void registerActionListener(ActionListener actionListener) {
         if (propertyValueField != null) {
-            propertyValueField.addActionListener(listener);
+            propertyValueField.addActionListener(actionListener);
         }
     }
     /**
-     * Register a focus listener (tab off) for the input field, currently this would only make sense for the propertyValueField
+     * Register a focus focusListener (tab off) for the input field, currently this would only make sense for the propertyValueField
      * Its typical use might be to default another field to the value entered in this field.
-     * @param listener
+     * @param focusListener to be registered
      */
-    public void registerFocusListener(FocusListener listener) {
+    public void registerFocusListener(FocusListener focusListener) {
         if (propertyValueField != null) {
-            propertyValueField.addFocusListener(listener);
+            propertyValueField.addFocusListener(focusListener);
         }
     }
 
     private void doDataValidationHelperPopup() {
-        CronPanel cronPanel = new CronPanel(projectKey, (String)getValue());
+        CronPanel cronPanel = new CronPanel(project, (String)getValue());
             CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(
-                    projectKey,
-                    UiContext.getDesignerCanvas(projectKey),
+                    project,
+                    project.getService(UiContext.class).getDesignerCanvas(),
                     cronPanel);
             if (cronPopupDialogue.showAndGet()) {
                 componentProperty.setValue(cronPanel.getValue());
                 resetDataEntryComponentsWithNewValues();
             }
-    }
-
-    private String getListAsText(List<String> stringList) {
-        String returnValue = "";
-        if (stringList != null) {
-            returnValue = getListAsText(stringList.toString());
-        }
-        return returnValue;
     }
 
     private String getListAsText(String bracketedCommList) {
@@ -413,7 +406,7 @@ public class ComponentPropertyEditBox {
             List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
             Set<String> deduplicate = new HashSet<>(rawList);
             if (rawList.size() > deduplicate.size()) {
-                StudioUIUtils.displayIdeaWarnMessage(projectKey, "Duplicates in the list will be removed");
+                StudioUIUtils.displayIdeaWarnMessage(project, "Duplicates in the list will be removed");
                 returnValue = new ArrayList<>(deduplicate);
             } else {
                 returnValue = rawList;
@@ -535,7 +528,7 @@ public class ComponentPropertyEditBox {
                 (currentValue != null && !currentValue.equals(enteredValue)));
     }
 
-
+    public Project getProject() { return project; }
     public JLabel getPropertyTitleField() {
         return propertyTitleField;
     }

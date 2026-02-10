@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -26,11 +27,11 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
      *
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolverPanel(String projectKey, boolean componentInitialisation) {
-        super(projectKey, componentInitialisation);
+    public ExceptionResolverPanel(Project project, boolean componentInitialisation) {
+        super(project, componentInitialisation);
     }
 
     /**
@@ -39,12 +40,13 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
-            StudioPsiUtils.refreshCodeFromModel(projectKey);
-            UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-            UiContext.getDesignerCanvas(projectKey).repaint();
+            UiContext uiContext = project.getService(UiContext.class);
+            StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
+            StudioPsiUtils.refreshCodeFromModel(project);
+            uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
+            uiContext.getDesignerCanvas().repaint();
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Data hos not changed in exception resolver, code will not be updated.");
+            StudioUIUtils.displayIdeaWarnMessage(project, "Data hos not changed in exception resolver, code will not be updated.");
         }
     }
 
@@ -86,7 +88,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
 
             // Only initialise on the first pass.
             if (exceptionResolverEditBox == null) {
-                exceptionResolverEditBox = new ExceptionResolverEditBox(this, projectKey, getSelectedComponent(), componentInitialisation);
+                exceptionResolverEditBox = new ExceptionResolverEditBox(this, project, getSelectedComponent(), componentInitialisation);
             }
 
             JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());

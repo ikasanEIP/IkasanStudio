@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
@@ -8,7 +9,6 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
 import javax.swing.*;
@@ -21,7 +21,7 @@ public abstract class PropertiesPanel extends JPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String UPDATE_CODE_BUTTON_TEXT = "Update Code";
     protected transient IkasanObject selectedComponent;
-    protected final String projectKey;
+    protected final Project project;
     protected final boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
     private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
     private transient PropertiesPopupDialogue propertiesPopupDialogue;
@@ -32,9 +32,9 @@ public abstract class PropertiesPanel extends JPanel {
     protected JButton updateCodeButton;
     private boolean dataValid = true;
 
-    protected PropertiesPanel(String projectKey, boolean componentInitialisation) {
+    protected PropertiesPanel(Project project, boolean componentInitialisation) {
         super();
-        this.projectKey = projectKey ;
+        this.project = project;
         this.componentInitialisation = componentInitialisation;
         this.setBorder(null);
         propertiesEditorPanel.setBorder(null);
@@ -86,7 +86,7 @@ public abstract class PropertiesPanel extends JPanel {
         List<ValidationInfo> infoList = doValidateAll();
         if (!infoList.isEmpty()) {
             dataValid = false;
-            ValidationInfo firstInfo = infoList.get(0);
+            ValidationInfo firstInfo = infoList.getFirst();
             if (firstInfo.component != null && firstInfo.component.isVisible()) {
                 IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
             }
@@ -167,8 +167,7 @@ public abstract class PropertiesPanel extends JPanel {
     public void setFocusOnFirstComponent() {
         JComponent firstComponent = getFirstFocusField();
         if (firstComponent != null) {
-            UiContext.getProject(projectKey);
-            IdeFocusManager.getInstance(UiContext.getProject(projectKey)).requestFocus(firstComponent, true);
+            IdeFocusManager.getInstance(project).requestFocus(firstComponent, true);
         }
     }
 
@@ -192,9 +191,5 @@ public abstract class PropertiesPanel extends JPanel {
 
     public void setPropertiesDialogue(PropertiesPopupDialogue propertiesPopupDialogue) {
         this.propertiesPopupDialogue = propertiesPopupDialogue;
-    }
-
-    public String getProjectKey() {
-        return projectKey;
     }
 }

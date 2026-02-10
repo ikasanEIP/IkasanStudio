@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
@@ -178,22 +179,22 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param ikasanBasicElement to be examined
      * @return the view handler for this element.
      */
-    public AbstractViewHandlerIntellij getOrCreateAbstractViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(projectKey, ikasanBasicElement);
+    public AbstractViewHandlerIntellij getOrCreateAbstractViewHandler(Project project, BasicElement ikasanBasicElement) {
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement);
         return verifyHandler(viewHandler);
     }
 
-    public IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        IkasanFlowComponentViewHandler viewHandler = ViewHandlerCache.getFlowComponentViewHandler(projectKey, ikasanBasicElement);
+    public IkasanFlowComponentViewHandler getOrCreateFlowComponentViewHandler(Project project, BasicElement ikasanBasicElement) {
+        IkasanFlowComponentViewHandler viewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, ikasanBasicElement);
         return (IkasanFlowComponentViewHandler)verifyHandler(viewHandler);
     }
 
-    public IkasanFlowViewHandler getOrCreateFlowViewViewHandler(String projectKey, Flow flow) {
-        IkasanFlowViewHandler viewHandler = ViewHandlerCache.getFlowViewHandler(projectKey, flow);
+    public IkasanFlowViewHandler getOrCreateFlowViewViewHandler(Project project, Flow flow) {
+        IkasanFlowViewHandler viewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
         return (IkasanFlowViewHandler)verifyHandler(viewHandler);
     }
 

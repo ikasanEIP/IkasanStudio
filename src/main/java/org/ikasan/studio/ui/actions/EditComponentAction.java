@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.UiContext;
@@ -9,11 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class EditComponentAction implements ActionListener {
-   private final String projectKey;
+   private final Project project;
    private final BasicElement ikasanBasicElement;
 
-   public EditComponentAction(String projectKey, BasicElement ikasanBasicElement) {
-      this.projectKey = projectKey;
+   public EditComponentAction(Project project, BasicElement ikasanBasicElement) {
+      this.project = project;
       this.ikasanBasicElement = ikasanBasicElement;
    }
 
@@ -24,7 +25,8 @@ public class EditComponentAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       if (ikasanBasicElement instanceof FlowElement) {
-         DesignerCanvas canvasPanel = UiContext.getDesignerCanvas(projectKey);
+         UiContext uiContext = project.getService(UiContext.class);
+         DesignerCanvas canvasPanel = uiContext.getDesignerCanvas();
          canvasPanel.editComponent(ikasanBasicElement);
       }
    }

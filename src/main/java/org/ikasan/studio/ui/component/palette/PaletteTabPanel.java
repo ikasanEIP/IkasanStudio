@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import org.ikasan.studio.core.StudioBuildException;
@@ -30,7 +31,7 @@ import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VE
 public class PaletteTabPanel extends JPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Set to push description off the screen
-    private final String projectKey;
+    private final Project project;
     JScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
     JBList<PaletteItem> paletteList;
@@ -39,12 +40,12 @@ public class PaletteTabPanel extends JPanel {
     HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
 
 
-    public PaletteTabPanel(String projectKey) {
+    public PaletteTabPanel(Project project) {
         super();
-        this.projectKey = projectKey;
+        this.project = project;
         this.setLayout(new BorderLayout());
         htmlScrollingDisplayPanel.setBorder(null);
-        paletteExportTransferHandler = new PaletteExportTransferHandler(projectKey);
+        paletteExportTransferHandler = new PaletteExportTransferHandler(project);
 
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         paletteSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -78,7 +79,7 @@ public class PaletteTabPanel extends JPanel {
     }
 
     public void setPaletteList() {
-        paletteList = new JBList(buildPaletteItems(projectKey).toArray());
+        paletteList = new JBList(buildPaletteItems(project).toArray());
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
@@ -109,7 +110,8 @@ public class PaletteTabPanel extends JPanel {
 
     public void resetPallette() {
         setPaletteList();
-        UiContext.setRightTabbedPaneFocus(projectKey, UiContext.PALETTE_TAB_INDEX);
+        UiContext uiContext = project.getService(UiContext.class);
+        uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
     }
 
 
@@ -117,19 +119,20 @@ public class PaletteTabPanel extends JPanel {
      * Create a list of all known ikasan components
      * @return a list of all known ikasan components
      */
-    private java.util.List<PaletteItem> buildPaletteItems(String projectKey) {
+    private java.util.List<PaletteItem> buildPaletteItems(Project project) {
         java.util.List<PaletteItem> paletteItems = new ArrayList<>();
         // New project created, no module yet
-        Module module = UiContext.getIkasanModule(projectKey);
+        UiContext uiContext = project.getService(UiContext.class);
+        Module module = uiContext.getIkasanModule();
         if (module == null || module.getMetaVersion() == null) {
             LOG.info("STUDIO: New project, no model version available yet");
         } else {
             Collection<ComponentMeta> componentMetaList = null;
-            if (!DUMB_MODULE_VERSION.equals(UiContext.getIkasanModule(projectKey).getMetaVersion())) {
+            if (!DUMB_MODULE_VERSION.equals(uiContext.getIkasanModule().getMetaVersion())) {
                 try {
-                    componentMetaList = IkasanComponentLibrary.getPaletteComponentList(UiContext.getIkasanModule(projectKey).getMetaVersion());
+                    componentMetaList = IkasanComponentLibrary.getPaletteComponentList(uiContext.getIkasanModule().getMetaVersion());
                 } catch (StudioBuildException e) {
-                    StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                    StudioUIUtils.displayIdeaWarnMessage(project, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
                 }
                 if (componentMetaList != null) {
                     List<ComponentMeta> componentMetaInDisplayOrder = componentMetaList

@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.ikasan.studio.StudioException;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -11,26 +12,27 @@ import java.util.Arrays;
 
 public class ViewHandlerCache implements ViewHandlerFactory {
     private static final Logger LOG = Logger.getInstance("#ViewHandlerCache");
-    private final String projectKey;
+    private final Project project;
 
-    public ViewHandlerCache(String projectKey) {
-        this.projectKey = projectKey;
+    public ViewHandlerCache(Project project) {
+        this.project = project;
     }
 
     public AbstractViewHandler getInstance(Object component) {
         AbstractViewHandlerIntellij returnAbstractViewHandlerIntellij = null ;
         if (component != null) {
-            if (component instanceof PaletteItem) {
-                // PaletteItems get a view handler when instantiated.
-                returnAbstractViewHandlerIntellij =  ((PaletteItem) component).getIkasanPaletteElementViewHandler();
-            } else if (component instanceof Module) {
-                returnAbstractViewHandlerIntellij =  new IkasanModuleViewHandler(projectKey, (Module) component);
-            } else if (component instanceof Flow) {
-                returnAbstractViewHandlerIntellij =  new IkasanFlowViewHandler(projectKey, (Flow) component);
-            } else if (component instanceof ExceptionResolver) {
-                returnAbstractViewHandlerIntellij =  new IkasanFlowExceptionResolverViewHandler((ExceptionResolver) component);
-            } else if (component instanceof FlowElement) {
-                returnAbstractViewHandlerIntellij =  new IkasanFlowComponentViewHandler((FlowElement) component);
+            switch (component) {
+                case PaletteItem paletteItem ->
+                    // PaletteItems get a view handler when instantiated.
+                        returnAbstractViewHandlerIntellij = paletteItem.getIkasanPaletteElementViewHandler();
+                case Module module -> returnAbstractViewHandlerIntellij = new IkasanModuleViewHandler(project, module);
+                case Flow flow -> returnAbstractViewHandlerIntellij = new IkasanFlowViewHandler(project, flow);
+                case ExceptionResolver exceptionResolver ->
+                        returnAbstractViewHandlerIntellij = new IkasanFlowExceptionResolverViewHandler(exceptionResolver);
+                case FlowElement flowElement ->
+                        returnAbstractViewHandlerIntellij = new IkasanFlowComponentViewHandler(flowElement);
+                default -> {
+                }
             }
         }
         if (returnAbstractViewHandlerIntellij == null) {
@@ -39,8 +41,8 @@ public class ViewHandlerCache implements ViewHandlerFactory {
         return returnAbstractViewHandlerIntellij;
     }
 
-    public static IkasanFlowViewHandler getFlowViewHandler(String projectKey, Flow flow) {
-        ViewHandlerCache viewHandlerCache = UiContext.getViewHandlerFactory(projectKey);
+    public static IkasanFlowViewHandler getFlowViewHandler(Project project, Flow flow) {
+        ViewHandlerCache viewHandlerCache = project.getService(UiContext.class).getViewHandlerFactory();
         IkasanFlowViewHandler viewHandler = null;
         try {
             viewHandler = ((IkasanFlowViewHandler)flow.getOrCreateViewHandler(viewHandlerCache));
@@ -50,8 +52,8 @@ public class ViewHandlerCache implements ViewHandlerFactory {
         return viewHandler;
     }
 
-    public static IkasanFlowComponentViewHandler getFlowComponentViewHandler(String projectKey, IkasanComponent ikasanComponent) {
-        ViewHandlerCache viewHandlerCache = UiContext.getViewHandlerFactory(projectKey);
+    public static IkasanFlowComponentViewHandler getFlowComponentViewHandler(Project project, IkasanComponent ikasanComponent) {
+        ViewHandlerCache viewHandlerCache = project.getService(UiContext.class).getViewHandlerFactory();
         IkasanFlowComponentViewHandler viewHandler = null;
         BasicElement ikasanBasicElement = (BasicElement)ikasanComponent;
         try {
@@ -62,8 +64,8 @@ public class ViewHandlerCache implements ViewHandlerFactory {
         return viewHandler;
     }
 
-    public static AbstractViewHandlerIntellij getAbstractViewHandler(String projectKey, BasicElement ikasanBasicElement) {
-        ViewHandlerCache viewHandlerCache = UiContext.getViewHandlerFactory(projectKey);
+    public static AbstractViewHandlerIntellij getAbstractViewHandler(Project project, BasicElement ikasanBasicElement) {
+        ViewHandlerCache viewHandlerCache = project.getService(UiContext.class).getViewHandlerFactory();
         AbstractViewHandlerIntellij viewHandler = null;
         try {
             viewHandler = ((AbstractViewHandlerIntellij)ikasanBasicElement.getOrCreateViewHandler(viewHandlerCache));

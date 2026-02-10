@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -23,7 +24,7 @@ import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.ge
  */
 @Getter
 public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
-    private final String projectKey;
+    private final Project project;
 //    public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
@@ -37,17 +38,17 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     /**
      * This view handler deals with a flowRoute or a child route (i.e. one of the branches off a multi-recipient router)
      *
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param flow       that contains this flow route
      * @param flowRoute  which could be the default route or a sub-route (one of the branches off a multi-recipient router)
      */
-    public IkasanFlowRouteViewHandler(String projectKey, Flow flow, FlowRoute flowRoute) {
-        this.projectKey = projectKey;
+    public IkasanFlowRouteViewHandler(Project project, Flow flow, FlowRoute flowRoute) {
+        this.project = project;
         this.flow = flow;
         this.flowRoute = flowRoute;
         if (flowRoute.getChildRoutes() != null && !flowRoute.getChildRoutes().isEmpty()) {
             for (FlowRoute childRoute : flowRoute.getChildRoutes()) {
-                childFlowRouteViewHandlers.add(new IkasanFlowRouteViewHandler(projectKey, flow, childRoute));
+                childFlowRouteViewHandlers.add(new IkasanFlowRouteViewHandler(project, flow, childRoute));
             }
         }
     }
@@ -93,7 +94,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         for (int index = 0; index < flowSize; index++) {
             // Draw Element
             FlowElement flowElement = flowAndConsumerElementList.get(index);
-            IkasanFlowComponentViewHandler flowComponentViewHandler = getOrCreateFlowComponentViewHandler(projectKey, flowElement);
+            IkasanFlowComponentViewHandler flowComponentViewHandler = getOrCreateFlowComponentViewHandler(project, flowElement);
             if (flowComponentViewHandler != null) {
                 flowComponentViewHandler.paintComponent(canvas, g, -1, -1);
                 if (flowElement.getComponentMeta().isConsumer() || flowElement.getComponentMeta().isProducer()) {
@@ -105,13 +106,13 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     List<FlowElement> previousRouteFlowElements = parent.getFlowElements();
                     if (previousRouteFlowElements != null && ! previousRouteFlowElements.isEmpty()) {
                         FlowElement lastElementPreviousRoute = previousRouteFlowElements.get(previousRouteFlowElements.size()-1);
-                        IkasanFlowComponentViewHandler lastElementPreviousRouteViewHandler = getOrCreateFlowComponentViewHandler(projectKey, lastElementPreviousRoute);
+                        IkasanFlowComponentViewHandler lastElementPreviousRouteViewHandler = getOrCreateFlowComponentViewHandler(project, lastElementPreviousRoute);
                         drawConnector(g, lastElementPreviousRouteViewHandler, flowComponentViewHandler);
                     }
                 }
                 // Draw Connector to previous flow element
                 if (index < flowSize - 1) {
-                    IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getOrCreateFlowComponentViewHandler(projectKey, flowAndConsumerElementList.get(index + 1));
+                    IkasanFlowComponentViewHandler nextFlowComponentViewHandler = getOrCreateFlowComponentViewHandler(project, flowAndConsumerElementList.get(index + 1));
                     if (nextFlowComponentViewHandler != null) {
                         if (index < flowSize - 1) {
                             drawConnector(g, flowComponentViewHandler, nextFlowComponentViewHandler);
@@ -138,11 +139,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @param targetFlowElement that may have an endpoint
      */
     private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
-        FlowElement endpointFlowElement = getEndpointForGivenComponent(UiContext.getIkasanModule(projectKey).getMetaVersion(), targetFlowElement);
+        FlowElement endpointFlowElement = getEndpointForGivenComponent(project.getService(UiContext.class).getIkasanModule().getMetaVersion(), targetFlowElement);
         if (endpointFlowElement != null ) {
             // Position and draw the endpoint
-            IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(projectKey, targetFlowElement);
-            IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(projectKey, endpointFlowElement);
+            IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
+            IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(project, endpointFlowElement);
             if (targetFlowElementViewHandler != null && endpointViewHandler != null) {
 
                 endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
@@ -157,12 +158,12 @@ LOG.error("STUDIO: 1 Left X being set to a -ve of " + (targetFlowElementViewHand
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                 } else {
-//                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
+//                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
 //XXXX
-if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing() < -10) {
-    LOG.error("STUDIO: 2 Left X being set to a -ve of " + (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing()));
+if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing() < -10) {
+    LOG.error("STUDIO: 2 Left X being set to a -ve of " + (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing()));
 }
-                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
+                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
                 }
@@ -197,7 +198,7 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
         java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
-                AbstractViewHandlerIntellij flowComponentViewHandler = getOrCreateAbstractViewHandler(projectKey, ikasanFlowComponent);
+                AbstractViewHandlerIntellij flowComponentViewHandler = getOrCreateAbstractViewHandler(project, ikasanFlowComponent);
                 if (flowComponentViewHandler != null) {
                     flowComponentViewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
 //                    currentX += flowComponentViewHandler.getWidth() + FLOW_X_SPACING;
@@ -252,7 +253,7 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(projectKey, flowElementList.get(0));
+            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(0));
             return firstElementViewHandler.getLeftX() - firstElementViewHandler.getLeadingGap();
         }
     }
@@ -269,7 +270,7 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            return getOrCreateAbstractViewHandler(projectKey, flowElementList.get(0)).getTopY();
+            return getOrCreateAbstractViewHandler(project, flowElementList.get(0)).getTopY();
         }
     }
 
@@ -287,7 +288,7 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(projectKey, flowElementList.get(flowElementList.size()-1));
+            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(flowElementList.size()-1));
             return lastFlowElementViewHandler.getRightX() + lastFlowElementViewHandler.getTrailingGap();
         }
     }
@@ -303,7 +304,7 @@ if (ViewHandlerCache.getFlowViewHandler(projectKey, flow).getRightX() + FLOW_CON
             return 0;
         } else {
             for (FlowElement flowElement : flowElementList) {
-                int flowY = getOrCreateAbstractViewHandler(projectKey, flowElement).getBottomYPlusText(g);
+                int flowY = getOrCreateAbstractViewHandler(project, flowElement).getBottomYPlusText(g);
                 bottomY = Math.max(flowY, bottomY);
             }
         }

@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import com.intellij.openapi.project.Project;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
@@ -11,28 +12,29 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 
 public class CanvasPanel extends JPanel {
-    public CanvasPanel(String projectKey) {
+    public CanvasPanel(Project project) {
         super();
-        DesignerCanvas designerCanvas = new DesignerCanvas(projectKey);
-        UiContext.setDesignerCanvas(projectKey, designerCanvas);
+        DesignerCanvas designerCanvas = new DesignerCanvas(project);
+        UiContext uiContext = project.getService(UiContext.class);
+        uiContext.setDesignerCanvas(designerCanvas);
 
         JPanel canvasHeaderButtonPanel = new JPanel();
         canvasHeaderButtonPanel.setBorder(null);
         JButton h2Button = new JButton("H2 start");
         JButton applicationButton = new JButton("Module start");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(projectKey), "Start the blue console in a browser (user/pass - admin/admin)");
-        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(projectKey, h2Button), "Start the H2 console in a browser");
-        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(projectKey, applicationButton), "Start the Module");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Load"), new ModelLoadAction(projectKey), "Load the in module from disk");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(projectKey), "Regenerate the code from the in-memory module definition");
-//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(projectKey), "Save the module drawing as an image file");
-//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(projectKey), "Dump information to log files");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(project), "Start the blue console in a browser (user/pass - admin/admin)");
+        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), "Start the H2 console in a browser");
+        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project, applicationButton), "Start the Module");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Load"), new ModelLoadAction(project), "Load the in module from disk");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(project), "Regenerate the code from the in-memory module definition");
+//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
+//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
 
         JCheckBox gridCheckBox = new JCheckBox("Show Grid");
         gridCheckBox.setSelected(false);
         gridCheckBox.addItemListener(e -> {
             // Function, so don't use instance above
-            DesignerCanvas designerCanvasRef = UiContext.getDesignerCanvas(projectKey);
+            DesignerCanvas designerCanvasRef = uiContext.getDesignerCanvas();
             designerCanvasRef.setDrawGrid(e.getStateChange() == ItemEvent.SELECTED);
             designerCanvasRef.repaint();
         });
@@ -43,7 +45,7 @@ public class CanvasPanel extends JPanel {
 
         // This may be redundant now we have Intellij Messaging
         JTextArea canvasTextArea = new JTextArea();
-        UiContext.setCanvasTextArea(projectKey, canvasTextArea);
+        uiContext.setCanvasTextArea(canvasTextArea);
         canvasTextArea.setLineWrap(true);
         canvasTextArea.setWrapStyleWord(true);
         add(canvasTextArea, BorderLayout.SOUTH);

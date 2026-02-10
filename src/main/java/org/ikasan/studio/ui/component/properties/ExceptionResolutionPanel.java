@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -33,11 +34,11 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * Create the ExceptionResolutionPanel
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
-     * @param projectKey essentially project.getIName(), we NEVER pass project because the IDE can refresh at any time.
+     * @param project is the Intellij project instance
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList, String projectKey, boolean componentInitialisation) {
-        super(projectKey, componentInitialisation);
+    public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList, Project project, boolean componentInitialisation) {
+        super(project, componentInitialisation);
         this.exceptionResolutionList = exceptionResolutionList;
     }
 
@@ -47,13 +48,12 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChanged()) {
-            StudioUIUtils.displayIdeaInfoMessage(projectKey, "Code generation in progress, please wait.");
+            StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
             updateComponentsWithNewValues();
-            StudioPsiUtils.refreshCodeFromModel(projectKey);
-            UiContext.getDesignerCanvas(projectKey).setInitialiseAllDimensions(true);
-            UiContext.getDesignerCanvas(projectKey).repaint();
+            StudioPsiUtils.refreshCodeFromModel(project);
+            StudioPsiUtils.causeRedraw(project);
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "Data has not changed in Exception Resolution, code will not be updated.");
+            StudioUIUtils.displayIdeaWarnMessage(project, "Data has not changed in Exception Resolution, code will not be updated.");
         }
     }
 
@@ -111,14 +111,15 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     private void updateExceptionAndAction() {
         exceptionActionEditorPanel.removeAll();
         ExceptionResolverMeta exceptionResolverMeta = null;
+        UiContext uiContext = project.getService(UiContext.class);
         try {
-            exceptionResolverMeta = IkasanComponentLibrary.getExceptionResolverMetaMandatory(UiContext.getIkasanModule(projectKey).getMetaVersion());
+            exceptionResolverMeta = IkasanComponentLibrary.getExceptionResolverMetaMandatory(uiContext.getIkasanModule().getMetaVersion());
         } catch (StudioBuildException se) {
-            StudioUIUtils.displayIdeaWarnMessage(projectKey, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
+            StudioUIUtils.displayIdeaWarnMessage(project, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
         }
 
         if (exceptionResolverMeta != null) {
-            exceptionResolutionEditBox = new ExceptionResolutionEditBox(projectKey, exceptionResolverMeta, this, getSelectedComponent(), componentInitialisation);
+            exceptionResolutionEditBox = new ExceptionResolutionEditBox(project, exceptionResolverMeta, this, getSelectedComponent(), componentInitialisation);
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
             gc.insets = JBUI.insets(3, 4);
