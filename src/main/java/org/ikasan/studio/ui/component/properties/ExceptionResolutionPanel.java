@@ -47,7 +47,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      */
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
-        if (dataHasChanged()) {
+        if (dataHasChangedAndOKToProcess()) {
             StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
             updateComponentsWithNewValues();
             StudioPsiUtils.refreshCodeFromModel(project);
@@ -63,7 +63,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
     @Override
-    public boolean dataHasChanged() {
+    public boolean dataHasChangedAndOKToProcess() {
         return exceptionResolutionEditBox != null && exceptionResolutionEditBox.propertyValueHasChanged();
     }
 
@@ -73,7 +73,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      */
     @Override
     public void updateComponentsWithNewValues() {
-        if (dataHasChanged()) {
+        if (dataHasChangedAndOKToProcess()) {
                 exceptionResolutionEditBox.updateValueObjectWithEnteredValues();
         }
     }

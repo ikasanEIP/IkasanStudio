@@ -183,7 +183,7 @@ public abstract class PropertiesPanel extends JPanel {
 
     protected abstract List<ValidationInfo> doValidateAll();
     public abstract void updateComponentsWithNewValues();
-    public abstract boolean dataHasChanged();
+    public abstract boolean dataHasChangedAndOKToProcess();
 
     public PropertiesPopupDialogue getPropertiesDialogue() {
         return propertiesPopupDialogue;

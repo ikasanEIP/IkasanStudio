@@ -39,7 +39,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      */
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
-        if (dataHasChanged()) {
+        if (dataHasChangedAndOKToProcess()) {
             UiContext uiContext = project.getService(UiContext.class);
             StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
             StudioPsiUtils.refreshCodeFromModel(project);
@@ -56,7 +56,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
     }
 
     @Override
-    public boolean dataHasChanged() {
+    public boolean dataHasChangedAndOKToProcess() {
         return exceptionResolverEditBox != null && exceptionResolverEditBox.propertyValueHasChanged();
     }
 
@@ -65,7 +65,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      */
     public void updateComponentsWithNewValues() {
-        if (dataHasChanged()) {
+        if (dataHasChangedAndOKToProcess()) {
             exceptionResolverEditBox.updateValueObjectWithEnteredValues();
         }
     }
@@ -77,7 +77,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      */
     protected void populatePropertiesEditorPanel() {
         if (updateCodeButton != null) {
-            updateCodeButton.setEnabled(dataHasChanged());
+            updateCodeButton.setEnabled(dataHasChangedAndOKToProcess());
         }
 
         if (getSelectedComponent() != null) {

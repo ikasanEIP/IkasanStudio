@@ -41,10 +41,11 @@ public class ComponentPropertyEditBox {
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
     private final Project project;
+    private final Object initialValue;
 
     /**
      * Constructor
-     * @param project identity of the users current Java project
+     * @param project the users' current Java project
      * @param componentProperty to be exposed for edit
      * @param componentInitialisation only default the value if this is true
      */
@@ -54,24 +55,29 @@ public class ComponentPropertyEditBox {
 
     /**
      * Constructor
-     * @param project identity of the users current Java project
+     * @param project the users' current Java project
      * @param componentProperty to be exposed for edit
      * @param componentInitialisation only default the value if this is true
      * @param listenerFoAnyEditChanges used by the parent to detect changes to the values being edited. If this is not required, use the other constructor.
-     * @param componentPropertyEditBoxMap a growing list of propertyName -> ComponentPropertyEditBox, this instance will be added to it in the constructor. This is needed if fields could default off each other. If this is not required, use the other constructor.
+     * @param componentPropertyEditBoxMap a growing list of propertyName -> ComponentPropertyEditBox, this instance will be added to it in the constructor.
+     *                                    This is needed if fields could default off each other. If this is not required, use the other constructor.
      */
     public ComponentPropertyEditBox(Project project, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap) {
         this.project = project;
         this.componentProperty = componentProperty;
+        if (componentProperty != null) {
+            initialValue = componentProperty.getValue();
+        } else {
+            initialValue = null;
+        }
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
         if (componentPropertyEditBoxMap != null) {
             componentPropertyEditBoxMap.put(getPropertyKey(), this);
         }
 
-        Object value = componentProperty.getValue();
         if (    componentInitialisation &&
-                value == null &&
+                componentProperty.getValue() == null &&
                 !meta.isOptional() &&
                 meta.getDefaultValue() != null &&
                 !ComponentPropertyMeta.isSubstitutionValue(meta.getDefaultValue())) {
@@ -522,10 +528,20 @@ public class ComponentPropertyEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-        Object currentValue = componentProperty.getValue();
+//        Object currentValue = componentProperty.getValue();
         Object enteredValue = getValue();
-        return ((currentValue == null && editBoxHasValue()) ||
-                (currentValue != null && !currentValue.equals(enteredValue)));
+
+        LOG.info("STUDIO: XXXXXX attribute " +
+                ((initialValue == null && editBoxHasValue()) ||
+                        (initialValue != null && !initialValue.equals(enteredValue)) ? " " : "NOT ") +
+                componentProperty.getMeta().getPropertyName() +
+                "   the value has " +
+
+                "changed from " +
+                initialValue + " to " + enteredValue);
+
+        return ((initialValue == null && editBoxHasValue()) ||
+                (initialValue != null && !initialValue.equals(enteredValue)));
     }
 
     public Project getProject() { return project; }
