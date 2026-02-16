@@ -123,9 +123,8 @@ public class DesignerCanvas extends JPanel {
                         module.setVersion(metapackVersion);
                     }
                     if (module.getIdentity() == null) {
-                        if (project != null) {
-                            module.setName(project.getName());
-                        }
+                        module.setName(project.getName());
+                        module.setApplicationPackageName(uiContext.getOptions().getPackageName());
                     }
                     // Intellij startup is multi-threaded so caution is required.
                     if (uiContext.getPalettePanel() != null) {

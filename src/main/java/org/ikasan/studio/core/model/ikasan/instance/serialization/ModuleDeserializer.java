@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
 import static org.ikasan.studio.core.generator.Generator.FLOWS_TAG;
 import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
 import static org.ikasan.studio.core.model.ikasan.instance.serialization.SerializerUtils.getTypedValue;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROUTE_NAMES;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.DEFAULT_IKASAN_PACK;
 
 public class ModuleDeserializer extends StdDeserializer<Module> {
@@ -44,23 +43,14 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     @Override
     public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, StudioBuildRuntimeException {
         JsonNode jsonNode = jp.getCodec().readTree(jp);
-        String metapackVersion = null;
-        JsonNode versionNode = jsonNode.get(VERSION);
-
-        // @TODO
-        // Not sure if we want to assume meta-pack version, maybe if only 1 is installed we can ?
-        if (versionNode != null &&  versionNode.asText() != null && !"null".equals(versionNode.asText())) {
-            metapackVersion = versionNode.asText();
-        }
-
-        Module module ;
+        String metapackVersion = getStringFromNode(jsonNode.get(VERSION));
+        Module module = null;
         if (metapackVersion == null || metapackVersion.isBlank()) {
             // If the version is not set, we assume the default metapack
+            // dumb version currently has no meta so DON'T set any values on it.
             module = Module.getDumbModuleVersion();
             LOG.warn("STUDIO: WARN The metapackVersion of the module was not stated, assuming propject startup");
         } else {
-
-
             try {
                 module = new Module(metapackVersion);
                 module.setName("Initialising module"); // A temp name to aid any issue resolution.
@@ -750,5 +740,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     .build();
         }
         return decorator;
+    }
+
+    private String getStringFromNode(JsonNode node) {
+        if (node != null &&  node.asText() != null && !"null".equals(node.asText())) {
+            return node.asText();
+        } else {
+            return null;
+        }
     }
 }

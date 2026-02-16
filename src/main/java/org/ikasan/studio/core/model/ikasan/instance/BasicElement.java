@@ -99,7 +99,7 @@ public  class BasicElement extends IkasanObject {
         if (this instanceof Flow || this instanceof Module) {
             return ComponentPropertyMeta.NAME;
         } else {
-            // to compily wil JSON, all flow elements use component name not name
+            // to comply with JSON representation, all flow elements use component name not name
             return ComponentPropertyMeta.COMPONENT_NAME;
         }
     }
@@ -188,18 +188,18 @@ public  class BasicElement extends IkasanObject {
         ComponentProperty componentProperty = componentProperties.get(key);
         if (componentProperty != null) {
             componentProperty.setValue(value);
-        } else { // Attempt to add the meta for this property
-            ComponentPropertyMeta properyMeta = getComponentMeta().getMetadata(key);
-            if (properyMeta == null) {
+        } else { // Attempt to add the meta for this property, the framework will swallow and hide any NPE, hence the checks.
+            ComponentMeta componentMeta1 = getComponentMeta();
+            if (componentMeta1 == null || componentMeta1.getMetadata(key) == null) {
                 Thread thread = Thread.currentThread();
                 LOG.error("STUDIO: SERIOUS ERROR - There is no meta data for property [" + key + "] on Element [" + this.getIdentity() +
                         "], class [" + this.getClass() +
-                        "], implemnting class [" + getComponentMeta().getImplementingClass() +
-                        "], additional key [" + getComponentMeta().getAdditionalKey() +
-                        "] with value [" + value + "], the known properties are [" + getComponentMeta().getPropertyKeys() +
+                        "], implemnting class [" + (componentMeta1==null ? "no-meta" : componentMeta1.getImplementingClass()) +
+                        "], additional key [" + (componentMeta1==null ? "no-meta" : componentMeta1.getAdditionalKey()) +
+                        "] with value [" + value + "], the known properties are [" + (componentMeta1==null ? "no-meta" : componentMeta1.getPropertyKeys()) +
                         "] this property will be ignored." + Arrays.toString(thread.getStackTrace()));
             } else {
-                componentProperties.put(key, new ComponentProperty(getComponentMeta().getMetadata(key), value));
+                componentProperties.put(key, new ComponentProperty(componentMeta1.getMetadata(key), value));
             }
         }
     }

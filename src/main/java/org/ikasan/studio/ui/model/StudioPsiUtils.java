@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.impl.ConsoleViewImpl;
@@ -63,6 +65,7 @@ import java.util.regex.Pattern;
 
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_SOURCE;
 import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_TARGET;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.APPLICATION_PACKAGE_NAME;
 import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
 
@@ -177,6 +180,12 @@ public class StudioPsiUtils {
             if (newModule == null) {
                 Thread thread = Thread.currentThread();
                 LOG.warn("STUDIO: SERIOUS: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
+            }
+
+            // When the project is initialised, capture the package option and set in cache for later use in module initilisation.
+            String applicationPackageName = StudioPsiUtils.getJsonAttribute(json, APPLICATION_PACKAGE_NAME);
+            if (applicationPackageName != null) {
+                uiContext.getOptions().setPackageName(applicationPackageName);
             }
             uiContext.setIkasanModule(newModule);
         } else {
@@ -1196,5 +1205,49 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         if (processHandler != null && !processHandler.isProcessTerminated()) {
             processHandler.destroyProcess(); // Stops the process
         }
+    }
+
+    /**
+     * Extract an attribute value from a JSON string.
+     *
+     * This utility method safely extracts a value from a JSON document by attribute name.
+     * It handles null and empty strings gracefully, returning null if the JSON is invalid
+     * or the attribute is not found.
+     *
+     * @param jsonString the JSON string to parse (e.g., "{\"name\":\"test\",\"applicationPackageName\":\"org.example\"}")
+     * @param attributeName the name of the attribute to extract (e.g., "applicationPackageName")
+     * @return the string value of the attribute, or null if jsonString is null/empty, JSON is invalid, or attribute not found
+     *
+     * Example usage:
+     *   String json = "{\"name\":\"untitled54\",\"applicationPackageName\":\"org.example\"}";
+     *   String appPackageName = getJsonAttribute(json, "applicationPackageName");
+     *   // Result: "org.example"
+     */
+    public static String getJsonAttribute(String jsonString, String attributeName) {
+        // Handle null or empty input
+        if (jsonString == null || jsonString.trim().isEmpty() || attributeName == null || attributeName.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(jsonString);
+
+            // Check if node exists and get the attribute
+            if (node != null && node.has(attributeName)) {
+                JsonNode attributeNode = node.get(attributeName);
+
+                // Handle null or missing node
+                if (attributeNode != null && !attributeNode.isNull()) {
+                    return attributeNode.asText();
+                }
+            }
+        } catch (Exception e) {
+            // Log the exception for debugging but return null gracefully
+            LOG.warn("STUDIO: WARN: Failed to parse JSON or extract attribute [" + attributeName + "]. " +
+                    "JSON: [" + jsonString + "]. Error: " + e.getMessage());
+        }
+
+        return null;
     }
 }
