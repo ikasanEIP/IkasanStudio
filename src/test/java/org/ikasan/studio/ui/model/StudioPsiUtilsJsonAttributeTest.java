@@ -6,7 +6,6 @@ import static org.junit.Assert.*;
 
 /**
  * Unit tests for StudioPsiUtils.getJsonAttribute() method.
- *
  * Tests cover:
  * - Valid JSON with existing attributes
  * - Valid JSON with missing attributes

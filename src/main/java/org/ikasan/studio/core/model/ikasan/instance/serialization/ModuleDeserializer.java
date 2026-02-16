@@ -59,13 +59,14 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 LOG.error(message);
                 throw new IOException(message, se);
             }
-            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> field = fields.next();
-                String fieldName = field.getKey();
+            Iterator<String> fieldNames = jsonNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String key = fieldNames.next();
+                JsonNode fieldValue = jsonNode.get(key);
+                String fieldName = key;
                 if (FLOWS_TAG.equals(fieldName)) {
                     try {
-                        module.setFlows(getFlows(field.getValue(), metapackVersion));
+                        module.setFlows(getFlows(fieldValue, metapackVersion));
                     } catch (StudioBuildException se) {
                         String message = "STUDIO: A StudioBuildException was raised that will compromise functionality, please investigate " + se.getMessage() + Arrays.asList(se.getStackTrace());
                         LOG.error(message);
@@ -76,7 +77,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     if (fieldName != null && fieldName.equals(VERSION)) {
                         module.setPropertyValue(fieldName, metapackVersion);
                     } else {
-                        Object value = getTypedValue(field);
+                        Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, fieldValue));
                         module.setPropertyValue(fieldName, value);
                     }
                 }
@@ -123,27 +124,30 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         Flow flow = null;
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             flow = new Flow(metapackVersion);
-            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+            Iterator<String> fieldNames = jsonNode.fieldNames();
             Map<String, FlowElement> flowElementsMap = new TreeMap<>();
 
             // At this point in time, we don't know what routers we might have so just gather the FlowElements in a collection
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> field = fields.next();
-                String   fieldName  = field.getKey();
-                if (Flow.CONSUMER_JSON_TAG.equals(fieldName)) {
-                    FlowElement newFlowElement = getInitialFlowElement(field.getValue(), flow, metapackVersion);
-                    if (newFlowElement != null) {
-                        flow.setConsumer(newFlowElement);
+            while (fieldNames.hasNext()) {
+                String key = fieldNames.next();
+                JsonNode field = jsonNode.get(key);
+                String   fieldName  = key;
+                switch (fieldName) {
+                    case Flow.CONSUMER_JSON_TAG -> {
+                        FlowElement newFlowElement = getInitialFlowElement(field, flow, metapackVersion);
+                        if (newFlowElement != null) {
+                            flow.setConsumer(newFlowElement);
+                        }
                     }
-                } else if (Flow.TRANSITIONS_JSON_TAG.equals(fieldName)) {
-                    transitions = getTransitions(field.getValue());
-                } else if (Flow.FLOW_ELEMENTS_JSON_TAG.equals(fieldName)) {
-                    flowElementsMap = getInitialFlowElements(flowElementsMap, field.getValue(), flow, metapackVersion);
-                } else if (Flow.EXCEPTION_RESOLVER_JSON_TAG.equals(fieldName)) {
-                    flow.setExceptionResolver(getExceptionResolver(flow, field.getValue(), metapackVersion));
-                } else {
-                    Object value = getTypedValue(field);
-                    flow.setPropertyValue(fieldName, value);
+                    case Flow.TRANSITIONS_JSON_TAG -> transitions = getTransitions(field);
+                    case Flow.FLOW_ELEMENTS_JSON_TAG ->
+                            flowElementsMap = getInitialFlowElements(flowElementsMap, field, flow, metapackVersion);
+                    case Flow.EXCEPTION_RESOLVER_JSON_TAG ->
+                            flow.setExceptionResolver(getExceptionResolver(flow, field, metapackVersion));
+                    case null, default -> {
+                        Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, field));
+                        flow.setPropertyValue(fieldName, value);
+                    }
                 }
             }
             if (flow.getConsumer() != null) {
@@ -518,11 +522,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         Map<String, ExceptionResolution> ikasanExceptionResolutionMap = new HashMap<>();
 
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
-            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> field = fields.next();
-                String fieldName = field.getKey();
-                ikasanExceptionResolutionMap.put(fieldName, getExceptionResolution(field.getValue(), metapackVersion));
+            Iterator<String> fieldNames = jsonNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                ikasanExceptionResolutionMap.put(fieldName, getExceptionResolution(jsonNode.get(fieldName), metapackVersion));
             }
         }
         if (!ikasanExceptionResolutionMap.isEmpty()) {
@@ -572,11 +575,10 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                         exceptionResolutionBuilder.componentProperties((new TreeMap<>()));
                         exceptionResolution = exceptionResolutionBuilder.build();
 
-                        Iterator<Map.Entry<String, JsonNode>> fields = actionProperties.fields();
-                        while (fields.hasNext()) {
-                            Map.Entry<String, JsonNode> field = fields.next();
-                            String fieldName = field.getKey();
-                            Object value = getTypedValue(field);
+                        Iterator<String> fieldNames = actionProperties.fieldNames();
+                        while (fieldNames.hasNext()) {
+                            String fieldName = fieldNames.next();
+                            Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, actionProperties.get(fieldName)));
 
                             ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                             if (componentPropertyMeta == null) {
@@ -598,16 +600,15 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         Transition transition = null;
         if (!jsonNode.isEmpty()) {
             transition = new Transition();
-            Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> field = fields.next();
-                String fieldName = field.getKey();
+            Iterator<String> fieldNames = jsonNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
                 if (ComponentPropertyMeta.FROM.equals(fieldName)) {
-                    transition.setFrom((String) getTypedValue(field));
+                    transition.setFrom((String) getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, jsonNode.get(fieldName))));
                 } else if (ComponentPropertyMeta.TO.equals(fieldName)) {
-                    transition.setTo((String) getTypedValue(field));
+                    transition.setTo((String) getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, jsonNode.get(fieldName))));
                 } else if (ComponentPropertyMeta.NAME.equals(fieldName)) {
-                    transition.setName((String) getTypedValue(field));
+                    transition.setName((String) getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, jsonNode.get(fieldName))));
                 }
             }
         }
@@ -674,11 +675,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     flowElement.setPropertyValue("userImplementedClassName", IkasanComponentLibrary.getClassFromSpringString(implementingClass));
                 }
 
-                Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-
-                while (fields.hasNext()) {
-                    Map.Entry<String, JsonNode> field = fields.next();
-                    String fieldName = field.getKey();
+                Iterator<String> fieldNames = jsonNode.fieldNames();
+                while (fieldNames.hasNext()) {
+                    String fieldName = fieldNames.next();
                     if (ComponentMeta.IMPLEMENTING_CLASS_KEY.equals(fieldName) ||
                             ComponentMeta.COMPONENT_TYPE_KEY.equals(fieldName) ||
                             ComponentMeta.ADDITIONAL_KEY.equals(fieldName)) {
@@ -687,11 +686,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     }
                     // Decorators don't get set via the properties panels so are treated differently.
                     if (ComponentMeta.DECORATORS_KEY.equals(fieldName)) {
-                        flowElement.setDecorators(getDecorators(field.getValue()));
+                        flowElement.setDecorators(getDecorators(jsonNode.get(fieldName)));
                         continue;
                     }
 
-                    Object value = getTypedValue(field);
+                    Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, jsonNode.get(fieldName)));
                     // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
                     if (value != null && ! "null".equals(value.toString())) {
                         if (flowElement.getComponentMeta().isRouter() && (ROUTE_NAMES.equals(fieldName))) {

@@ -315,9 +315,8 @@ public  class BasicElement extends IkasanObject {
             ComponentPropertyMeta allowableComponentPropertyMeta = newTarget.getComponentMeta().getAllowableProperties().get(sourceKey);
             if (allowableComponentPropertyMeta == null) {
                 LOG.warn("Trying to set old propery of name [" + sourceKey + "] but this is not supported in version [" + newTarget.getVersion() + "] of component [" + newTarget.getComponentName() + "]");
-                continue; // skip this property
             } else {
-            // 2 - Old peroperty is alowed in new components, set the property in the new component
+            // 2 - Old property is allowed in new components, set the property in the new component
                 newTarget.setPropertyValue(sourceKey, sourceValue);
             }
         }

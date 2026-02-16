@@ -1209,7 +1209,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
 
     /**
      * Extract an attribute value from a JSON string.
-     *
      * This utility method safely extracts a value from a JSON document by attribute name.
      * It handles null and empty strings gracefully, returning null if the JSON is invalid
      * or the attribute is not found.
@@ -1217,7 +1216,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
      * @param jsonString the JSON string to parse (e.g., "{\"name\":\"test\",\"applicationPackageName\":\"org.example\"}")
      * @param attributeName the name of the attribute to extract (e.g., "applicationPackageName")
      * @return the string value of the attribute, or null if jsonString is null/empty, JSON is invalid, or attribute not found
-     *
      * Example usage:
      *   String json = "{\"name\":\"untitled54\",\"applicationPackageName\":\"org.example\"}";
      *   String appPackageName = getJsonAttribute(json, "applicationPackageName");
