@@ -63,8 +63,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fieldNames.hasNext()) {
                 String key = fieldNames.next();
                 JsonNode fieldValue = jsonNode.get(key);
-                String fieldName = key;
-                if (FLOWS_TAG.equals(fieldName)) {
+                if (FLOWS_TAG.equals(key)) {
                     try {
                         module.setFlows(getFlows(fieldValue, metapackVersion));
                     } catch (StudioBuildException se) {
@@ -74,11 +73,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     }
                 } else {
                     // These tags are for the top level flow properties
-                    if (fieldName != null && fieldName.equals(VERSION)) {
-                        module.setPropertyValue(fieldName, metapackVersion);
+                    if (key != null && key.equals(VERSION)) {
+                        module.setPropertyValue(key, metapackVersion);
                     } else {
-                        Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, fieldValue));
-                        module.setPropertyValue(fieldName, value);
+                        Object value = getTypedValue(new AbstractMap.SimpleEntry<>(key, fieldValue));
+                        module.setPropertyValue(key, value);
                     }
                 }
             }
@@ -131,8 +130,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fieldNames.hasNext()) {
                 String key = fieldNames.next();
                 JsonNode field = jsonNode.get(key);
-                String   fieldName  = key;
-                switch (fieldName) {
+                switch (key) {
                     case Flow.CONSUMER_JSON_TAG -> {
                         FlowElement newFlowElement = getInitialFlowElement(field, flow, metapackVersion);
                         if (newFlowElement != null) {
@@ -145,8 +143,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     case Flow.EXCEPTION_RESOLVER_JSON_TAG ->
                             flow.setExceptionResolver(getExceptionResolver(flow, field, metapackVersion));
                     case null, default -> {
-                        Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, field));
-                        flow.setPropertyValue(fieldName, value);
+                        Object value = getTypedValue(new AbstractMap.SimpleEntry<>(key, field));
+                        flow.setPropertyValue(key, value);
                     }
                 }
             }
@@ -187,19 +185,19 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 // route, which is not really valid. In that scenario, we need to create a new transition
                 // From - Blank - ready for the consumer when its added
                 // To - The MRR with default path
-                String firstElementKey = firstTransition.get(0).getFrom();
+                String firstElementKey = firstTransition.getFirst().getFrom();
                 FlowElement firstElement = flowElementsMap.get(firstElementKey);
                 // If the flowElement was excluded (can't create components) we must skip
                 if (firstElement != null && firstElement.getComponentMeta().isRouter()) {
                     Transition artificalFirstTransition = Transition.builder().from("").to(firstElementKey).name(DEFAULT_TRANSITION_NAME).build();
-                    transitions.add(0, artificalFirstTransition);
+                    transitions.addFirst(artificalFirstTransition);
                     firstTransition = Arrays.asList(artificalFirstTransition);
                     transitionsMap.put(artificalFirstTransition.getFrom(), firstTransition);
                 }
 
-                validateDependencies(transitionsMap, firstTransition.get(0));
+                validateDependencies(transitionsMap, firstTransition.getFirst());
                 // The root of the tree, buildRouteTree is recursive
-                buildRouteTree(metapackVersion, flow, returnFlowRoute, transitionsMap, flowElementsMap, firstTransition.get(0));
+                buildRouteTree(metapackVersion, flow, returnFlowRoute, transitionsMap, flowElementsMap, firstTransition.getFirst());
             }
         } // Edge case, one element, no transitions.
         else if (flowElementsMap != null && !flowElementsMap.isEmpty()) {
@@ -378,7 +376,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     }
                 } else {
                     // Just another element
-                    buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, nextTransitionList.get(0));
+                    buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, nextTransitionList.getFirst());
                 }
             }
         }
