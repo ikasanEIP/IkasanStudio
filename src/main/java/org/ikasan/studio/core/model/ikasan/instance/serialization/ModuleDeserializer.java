@@ -44,7 +44,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
     public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, StudioBuildRuntimeException {
         JsonNode jsonNode = jp.getCodec().readTree(jp);
         String metapackVersion = getStringFromNode(jsonNode.get(VERSION));
-        Module module = null;
+        Module module;
         if (metapackVersion == null || metapackVersion.isBlank()) {
             // If the version is not set, we assume the default metapack
             // dumb version currently has no meta so DON'T set any values on it.
@@ -191,7 +191,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 if (firstElement != null && firstElement.getComponentMeta().isRouter()) {
                     Transition artificalFirstTransition = Transition.builder().from("").to(firstElementKey).name(DEFAULT_TRANSITION_NAME).build();
                     transitions.addFirst(artificalFirstTransition);
-                    firstTransition = Arrays.asList(artificalFirstTransition);
+                    firstTransition = new ArrayList<>();
+                    firstTransition.add(artificalFirstTransition);
                     transitionsMap.put(artificalFirstTransition.getFrom(), firstTransition);
                 }
 
