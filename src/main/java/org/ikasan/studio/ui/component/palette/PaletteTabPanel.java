@@ -2,7 +2,6 @@ package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -12,6 +11,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
 import org.ikasan.studio.ui.model.PaletteItem;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,6 +39,14 @@ public class PaletteTabPanel extends JPanel {
     JPanel paletteBodyPanel;
     HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
 
+
+    /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareBackgroundColor() {
+        return ThemeAwareColors.getBackgroundColor();
+    }
 
     public PaletteTabPanel(Project project) {
         super();
@@ -70,7 +78,7 @@ public class PaletteTabPanel extends JPanel {
         paletteBodyPanel = new JPanel(new BorderLayout());
         paletteBodyPanel.setBorder(null);
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
-        paletteBodyPanel.setBackground(JBColor.WHITE);
+        paletteBodyPanel.setBackground(getThemeAwareBackgroundColor());
 
         JPanel linePanel = new JPanel();
         linePanel.setBorder(new MatteBorder(1,0,0,0, StudioUIUtils.getLineColor()));

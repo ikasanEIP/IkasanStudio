@@ -2,13 +2,12 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -21,6 +20,22 @@ import java.util.List;
  */
 public class ExceptionResolverPanel extends PropertiesPanel {
     private transient ExceptionResolverEditBox exceptionResolverEditBox;
+
+    /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareBackgroundColor() {
+        return ThemeAwareColors.getBackgroundColor();
+    }
+
+    /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareHeaderColor() {
+        return ThemeAwareColors.getHeaderColor();
+    }
 
     /**
      * Create the ExceptionResolutionPanel
@@ -83,7 +98,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         if (getSelectedComponent() != null) {
             propertiesEditorPanel = new JPanel(new GridBagLayout());
             propertiesEditorPanel.setBorder(null);
-            propertiesEditorPanel.setBackground(JBColor.WHITE);
+            propertiesEditorPanel.setBackground(getThemeAwareBackgroundColor());
             propertiesEditorScrollingContainer.removeAll();
 
             // Only initialise on the first pass.
@@ -106,7 +121,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                 for (ExceptionResolution exceptionResolution : exceptionResolverEditBox.getExceptionResolutionList()) {
                     JPanel paramsSubPanel = new JPanel(new GridBagLayout());
                     paramsSubPanel.setBorder(null);
-                    paramsSubPanel.setBackground(JBColor.WHITE);
+                    paramsSubPanel.setBackground(getThemeAwareBackgroundColor());
                     int subPanelY = 0;
 
                     for (ComponentPropertyEditBox componentPropertyEditBox : exceptionResolution.getActionParamsEditBoxList()) {
@@ -154,11 +169,13 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * @param gc1 is used to dictate layout and relay layout to the next subsection.
      */
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
-        subPanel.setBackground(JBColor.WHITE);
-        subPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(borderColor), title,
-                TitledBorder.LEFT,
-                TitledBorder.TOP));
+        subPanel.setBackground(getThemeAwareBackgroundColor());
+        if (!title.isEmpty()) {
+            subPanel.setBorder(BorderFactory.createTitledBorder(
+                    BorderFactory.createLineBorder(borderColor), title,
+                    TitledBorder.LEFT,
+                    TitledBorder.TOP));
+        }
         allPropertiesEditorPanel.add(subPanel, gc1);
         gc1.gridy += 1;
     }
@@ -171,10 +188,10 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         gc.gridx = 0;
         gc.gridy = tabley;
         gc.weighty = 1;
-        Color backGroundColor = JBColor.WHITE;
+        Color backGroundColor = getThemeAwareBackgroundColor();
 
         if (isHeader) {
-            backGroundColor = Gray._242;
+            backGroundColor = getThemeAwareHeaderColor();
         }
         actionButton.setBorder(BorderFactory.createLineBorder(StudioUIUtils.getLineColor(),1));
         jPanel.add(formatCell(actionButton, backGroundColor, false), gc);
@@ -214,7 +231,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                 jPanel.add(componentInput.getFirstFocusComponent(), gc);
             } else {
                 JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                booleanPanel.setBackground(JBColor.WHITE);
+                booleanPanel.setBackground(getThemeAwareBackgroundColor());
                 booleanPanel.add(new JLabel("true"));
                 booleanPanel.add(componentInput.getTrueBox());
                 booleanPanel.add(new JLabel("false"));

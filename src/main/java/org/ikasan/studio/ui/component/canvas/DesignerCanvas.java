@@ -2,7 +2,6 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ImageUtil;
 import org.ikasan.studio.Pair;
 import org.ikasan.studio.core.StudioBuildException;
@@ -18,6 +17,7 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
@@ -49,9 +49,17 @@ public class DesignerCanvas extends JPanel {
     private final JButton startButton = new JButton("Choose metapack then click here");
     private final JComboBox<Object> metaDataVersionJComboBox;
 
+    /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareBackgroundColor() {
+        return ThemeAwareColors.getBackgroundColor();
+    }
+
     public DesignerCanvas(Project project) {
         this.project = project;
-        setBackground(JBColor.WHITE);
+        setBackground(getThemeAwareBackgroundColor());
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -822,7 +830,7 @@ public class DesignerCanvas extends JPanel {
         BufferedImage bufferedImage = ImageUtil.createImage(getWidth(), getHeight(), imageType);
         Graphics graphics = bufferedImage.getGraphics();
         if (!transparentBackground) {
-            graphics.setColor(JBColor.WHITE);
+            graphics.setColor(getThemeAwareBackgroundColor());
             graphics.fillRect(0, 0, getWidth(), getHeight());
         }
         paint(graphics);

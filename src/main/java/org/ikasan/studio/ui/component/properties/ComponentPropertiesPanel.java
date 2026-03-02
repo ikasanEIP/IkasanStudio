@@ -3,7 +3,6 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
@@ -15,6 +14,7 @@ import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -43,6 +43,22 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton setDefaultsButton;
     private final SimpleChangeListener listenerFoAnyEditChanges;
     private final Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap = new HashMap<>();
+
+    /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareBackgroundColor() {
+        return ThemeAwareColors.getBackgroundColor();
+    }
+
+    /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareBorderColor() {
+        return ThemeAwareColors.getBorderColor();
+    }
     /**
      * Create the ComponentPropertiesPanel
      * Note that this panel could be reused for different ComponentPropertiesPanel, it is the super.updateTargetComponent
@@ -134,7 +150,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             propertiesEditorScrollingContainer.removeAll();
 
             propertiesEditorPanel = new JPanel(new GridBagLayout());
-            propertiesEditorPanel.setBackground(JBColor.WHITE);
+            propertiesEditorPanel.setBackground(getThemeAwareBackgroundColor());
 
             JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
             mandatoryPropertiesEditorPanel.setBorder(null);
@@ -206,11 +222,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             if (mandatoryTabley > 0) {
-                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", JBColor.RED, gc1);
+                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", ThemeAwareColors.getImportantBorderColor(), gc1);
             }
 
             if (regenerateTabley > 0) {
-                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "User Code Regenerating Properties", JBColor.ORANGE, gc1);
+                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "User Code Regenerating Properties", getThemeAwareBorderColor(), gc1);
             }
 
             if (optionalTabley > 0) {
@@ -218,7 +234,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 setToggleOptionalPropertiesButton(false);
                 optionalPropertiesEditorPanel.setVisible(false);
                 setSubPanel(propertiesEditorPanel, optionalPropertiesExpandPanel, null, null, gc1);
-                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", StudioUIUtils.getLineColor(), gc1);
+                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", getThemeAwareBorderColor(), gc1);
             } else if (optionalPropertiesExpandPanel != null) {
                 optionalPropertiesExpandPanel.setVisible(false);
             }
@@ -304,7 +320,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param gc1 is used to dictate layout and relay layout to the next subsection.
      */
     private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
-        subPanel.setBackground(JBColor.WHITE);
+        subPanel.setBackground(getThemeAwareBackgroundColor());
         if (title != null) {
         subPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(borderColor),
@@ -329,7 +345,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         userImplementedComponentOverwriteCheckBox = new JCheckBox();
         userImplementedComponentOverwriteCheckBox.addItemListener(
             ie -> controlFieldsThatAffectUserImplementedClass(ie.getStateChange() == ItemEvent.SELECTED));
-        userImplementedComponentOverwriteCheckBox.setBackground(JBColor.WHITE);
+        userImplementedComponentOverwriteCheckBox.setBackground(getThemeAwareBackgroundColor());
         addLabelAndSimpleInput(propertiesEditorPanel, gc, tabley, overrideLabel, userImplementedComponentOverwriteCheckBox);
     }
 
@@ -372,7 +388,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
             JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            booleanPanel.setBackground(JBColor.WHITE);
+            booleanPanel.setBackground(getThemeAwareBackgroundColor());
             booleanPanel.add(new JLabel("true"));
             booleanPanel.add(componentInput.getTrueBox());
             booleanPanel.add(new JLabel("false"));
