@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component;
 
+import com.intellij.ui.components.JBPanel;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -15,7 +17,8 @@ import java.awt.*;
  * </p>
  * JScrollPane scroll = new JScrollPane(new ScrollableGridbagPanel(gridBagJPanel));
  */
-public class ScrollableGridbagPanel extends JPanel implements Scrollable {
+@SuppressWarnings("rawtypes")
+public class ScrollableGridbagPanel extends JBPanel implements Scrollable {
 
     public ScrollableGridbagPanel(JPanel panelContainingGridbag) {
         super(new BorderLayout());

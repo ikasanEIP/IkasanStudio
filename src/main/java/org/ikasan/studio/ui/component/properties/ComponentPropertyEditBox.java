@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -12,7 +13,6 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.event.ActionListener;
@@ -189,7 +189,7 @@ public class ComponentPropertyEditBox {
         if (componentProperty.getMeta().getDataValidationType() != null) {
             dataValidationHelper = new JButton();
             dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon("Help with cron configuration"));
-            dataValidationHelper.setBorder(new EmptyBorder(5, 15, 5, 15));
+            dataValidationHelper.setBorder(JBUI.Borders.empty(5, 15));
             dataValidationHelper.addActionListener(e -> doDataValidationHelperPopup());
         } else {
             dataValidationHelper = null;

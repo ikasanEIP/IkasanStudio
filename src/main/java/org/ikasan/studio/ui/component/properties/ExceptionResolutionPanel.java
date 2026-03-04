@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
@@ -21,13 +22,17 @@ import java.util.List;
  * Encapsulate the properties entry from a UI and validity perspective.
  * This panel contains the data entry for the exception and action
  */
+@SuppressWarnings("rawtypes")
 public class ExceptionResolutionPanel extends PropertiesPanel {
     private static final String OK_BUTTON_TEST = "Add";
     private final transient List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
-    private final JPanel exceptionActionEditorPanel = new JPanel(new GridBagLayout());      // contains the Exception and action
-    private final JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());  // contains the Mandatory properties for the action
-    private final JPanel optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());   // contains the Optional properties for the action
+    @SuppressWarnings("rawtypes")
+    private final JBPanel exceptionActionEditorPanel = new JBPanel(new GridBagLayout());      // contains the Exception and action
+    @SuppressWarnings("rawtypes")
+    private final JBPanel mandatoryPropertiesEditorPanel = new JBPanel(new GridBagLayout());  // contains the Mandatory properties for the action
+    @SuppressWarnings("rawtypes")
+    private final JBPanel optionalPropertiesEditorPanel = new JBPanel(new GridBagLayout());   // contains the Optional properties for the action
     private boolean updateActionPropertiesOnly = false;
 
     /**
@@ -93,7 +98,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             // For this properties panel, the reset will only be for the action.
             if (! updateActionPropertiesOnly) {
                 propertiesEditorScrollingContainer.removeAll();
-                propertiesEditorPanel = new JPanel(new GridBagLayout());
+                propertiesEditorPanel = new JBPanel(new GridBagLayout());
                 propertiesEditorPanel.setBorder(null);
                 propertiesEditorPanel.setBackground(JBColor.WHITE);
                 propertiesEditorScrollingContainer.add(propertiesEditorPanel);
@@ -182,7 +187,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * @param borderColor of the subsection
      * @param rowNumber for this label/inpur pair
      */
-    private void addToScrollPanelContent(JPanel subPanel, String title, Color borderColor, int rowNumber) {
+    private void addToScrollPanelContent(@SuppressWarnings("rawtypes") JBPanel subPanel, String title, Color borderColor, int rowNumber) {
         GridBagConstraints subPanelgc = new GridBagConstraints();
         subPanelgc.fill = GridBagConstraints.HORIZONTAL;
         subPanelgc.insets = JBUI.insets(3, 4);
@@ -198,7 +203,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
 
-    private void addLabelAndSimpleInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
+    private void addLabelAndSimpleInput(@SuppressWarnings("rawtypes") JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -208,7 +213,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndParamInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
+    private void addLabelAndParamInput(@SuppressWarnings("rawtypes") JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -218,7 +223,8 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             gc.weightx = 1.0;
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
-            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            @SuppressWarnings("rawtypes")
+            JBPanel booleanPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             booleanPanel.setBackground(JBColor.WHITE);
             booleanPanel.add(new JLabel("true"));
             booleanPanel.add(componentInput.getTrueBox());

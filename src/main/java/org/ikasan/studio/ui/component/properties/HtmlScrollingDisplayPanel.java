@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.Styling;
 
 import javax.swing.*;
@@ -8,7 +11,8 @@ import java.awt.*;
 /**
  * Used to display html context e.g. the description for a component
  */
-public class HtmlScrollingDisplayPanel extends JPanel {
+@SuppressWarnings("rawtypes")
+public class HtmlScrollingDisplayPanel extends JBPanel {
     private final JTextPane paletteHelpTextArea;
 
     /**
@@ -20,7 +24,7 @@ public class HtmlScrollingDisplayPanel extends JPanel {
     public HtmlScrollingDisplayPanel(String title, Dimension dimension) {
         super();
         setLayout(new BorderLayout());
-        JPanel helpDescriptionHeaderPanel = new JPanel();
+        JBPanel helpDescriptionHeaderPanel = new JBPanel();
         helpDescriptionHeaderPanel.setBorder(null);
         if (title != null) {
             JLabel descriptionLabel = new JLabel(title);
@@ -34,10 +38,10 @@ public class HtmlScrollingDisplayPanel extends JPanel {
         paletteHelpTextArea.setContentType("text/html");
 
         if (dimension != null) {
-            paletteHelpTextArea.setPreferredSize(dimension);
+            paletteHelpTextArea.setPreferredSize(JBUI.size(dimension.width, dimension.height));
         }
-        JScrollPane helpTextScrollPane = new JScrollPane(paletteHelpTextArea);
-        helpTextScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        JBScrollPane helpTextScrollPane = new JBScrollPane(paletteHelpTextArea);
+        helpTextScrollPane.setBorder(JBUI.Borders.empty(5));
         add(helpTextScrollPane, BorderLayout.CENTER);
     }
 

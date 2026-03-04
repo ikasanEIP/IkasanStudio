@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -17,7 +19,8 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class PropertiesPanel extends JPanel {
+@SuppressWarnings("rawtypes")
+public abstract class PropertiesPanel extends JBPanel {
     private static final String PROPERTIES_TAG = "Properties";
     private static final String UPDATE_CODE_BUTTON_TEXT = "Update Code";
     protected transient IkasanObject selectedComponent;
@@ -27,7 +30,7 @@ public abstract class PropertiesPanel extends JPanel {
     private transient PropertiesPopupDialogue propertiesPopupDialogue;
 
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
-    protected JPanel propertiesEditorPanel = new JPanel();
+    protected JBPanel propertiesEditorPanel = new JBPanel();
 
     protected JButton updateCodeButton;
     private boolean dataValid = true;
@@ -42,14 +45,14 @@ public abstract class PropertiesPanel extends JPanel {
         setBackground(JBColor.WHITE);
 
         if (! componentInitialisation) {
-            JPanel propertiesHeaderPanel = new JPanel();
+            JBPanel propertiesHeaderPanel = new JBPanel();
             propertiesHeaderPanel.setBorder(null);
             propertiesHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
             propertiesHeaderPanel.add(propertiesHeaderLabel);
             add(propertiesHeaderPanel, BorderLayout.NORTH);
         }
 
-        JPanel propertiesBodyPanel = new JPanel(new BorderLayout());
+        JBPanel propertiesBodyPanel = new JBPanel(new BorderLayout());
         propertiesBodyPanel.setBorder(null);
         propertiesBodyPanel.setBackground(JBColor.WHITE);
 
@@ -63,7 +66,7 @@ public abstract class PropertiesPanel extends JPanel {
                     }
                }
             );
-            JPanel footerPanel = new JPanel();
+            JBPanel footerPanel = new JBPanel();
             footerPanel.setBorder(null);
             footerPanel.add(updateCodeButton);
             add(footerPanel, BorderLayout.SOUTH);
@@ -72,7 +75,7 @@ public abstract class PropertiesPanel extends JPanel {
         populatePropertiesEditorPanel();
         propertiesEditorScrollingContainer = new ScrollableGridbagPanel(propertiesEditorPanel);
         propertiesEditorScrollingContainer.setBorder(null);
-        JScrollPane scrollPane = new JScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JBScrollPane scrollPane = new JBScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         scrollPane.setBorder(null);
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);

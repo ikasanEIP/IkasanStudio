@@ -6,6 +6,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
@@ -16,19 +18,19 @@ import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
-import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
 /**
  * Create all onscreen components and register inter-thread communication components with uiContext
  */
+@SuppressWarnings("rawtypes")
 public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final Project project;
+    @SuppressWarnings("rawtypes")
     private final JBPanel mainJPanel = new JBPanel();
-    JTabbedPane paletteAndProperties = new JTabbedPane();
+    JBTabbedPane paletteAndProperties = new JBTabbedPane();
 
     /**
      * Create the main Designer window
@@ -38,26 +40,10 @@ public class DesignerUI {
     public DesignerUI(ToolWindow toolWindow, Project project) {
         this.project = project; // assign correctly
         project.getService(UiContext.class).setViewHandlerFactory(new ViewHandlerCache(this.project));
-        paletteAndProperties.setBorder(new EmptyBorder(0,0,0,0));
-        paletteAndProperties.setUI(new BasicTabbedPaneUI() {
-            @Override
-            protected void installDefaults() {
-                super.installDefaults();
-                tabAreaInsets = new Insets(0, 0, 0, 0); // Adjust padding around tabs if necessary
-            }
+        paletteAndProperties.setBorder(JBUI.Borders.empty());
+        // Use JBTabbedPane which respects IDE theme by default; avoid forcing a custom UI delegate.
 
-            @Override
-            protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
-                // Do nothing or draw a flat border if needed
-            }
-
-            @Override
-            protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-                // Optionally, remove or customize the content border
-            }
-        });
-
-        paletteAndProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
+        paletteAndProperties.setBorder(JBUI.Borders.empty());
         UiContext uiContext = project.getService(UiContext.class);
         uiContext.setRightTabbedPane(paletteAndProperties);
         if (uiContext.getPipsiIkasanModel() == null) {
@@ -70,15 +56,15 @@ public class DesignerUI {
         uiContext.setPropertiesTabPanel(componentPropertiesTabPanel);
 
         paletteAndProperties.addTab(null, componentPropertiesTabPanel);
-        paletteAndProperties.setTabComponentAt(0, createSpacedLabel(uiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
-        paletteAndProperties.setBorder(new EmptyBorder(0, 0, 0, 0));
+        paletteAndProperties.setTabComponentAt(0, createSpacedLabel(UiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
+        paletteAndProperties.setBorder(JBUI.Borders.empty());
         JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 new CanvasPanel(this.project),
                 paletteAndProperties
         );
 
-        propertiesAndCanvasSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+        propertiesAndCanvasSplitPane.setBorder(JBUI.Borders.empty());
         propertiesAndCanvasSplitPane.setDividerSize(2);
         propertiesAndCanvasSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
@@ -100,7 +86,7 @@ public class DesignerUI {
 
     protected JLabel createSpacedLabel(String title, int top, int left, int bottom, int right) {
         JLabel label = new JLabel(title);
-        label.setBorder(BorderFactory.createEmptyBorder(top, left, bottom, right)); // top, left, bottom, right
+        label.setBorder(JBUI.Borders.empty(top, left, bottom, right)); // top, left, bottom, right
         return label;
     }
 

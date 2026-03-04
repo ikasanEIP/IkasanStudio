@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Pair;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -670,12 +671,11 @@ public class DesignerCanvas extends JPanel {
         // Now this is a serious components, ensure any property with tag placeholder are updated to real values
         if (newComponent instanceof FlowElement newFlowComponent) {
             StudioBuildUtils.substituteAllPlaceholderInPascalCase(uiContext.getIkasanModule(), newFlowComponent.getContainingFlow(), newFlowComponent);
+            if (newComponent.getComponentMeta().isDebug()) {
+                newFlowComponent.defaultUnsetMandatoryProperties();
+            }
         }
 
-        if (newComponent.getComponentMeta().isDebug()) {
-            FlowElement newFlowComponent = (FlowElement)newComponent;
-            newFlowComponent.defaultUnsetMandatoryProperties();
-        }
 
         if (newComponent.hasUnsetMandatoryProperties()) {
             // Add new component
@@ -806,7 +806,7 @@ public class DesignerCanvas extends JPanel {
                 }
                 int newWidth = moduleViewHandler.getWidth();
                 int newHeight = moduleViewHandler.getHeight();
-                this.setPreferredSize(new Dimension(newWidth, newHeight));
+                this.setPreferredSize(JBUI.size(newWidth, newHeight));
                 revalidate();
                 super.paintComponent(g);
                 moduleViewHandler.paintComponent(this, g, -1, -1);

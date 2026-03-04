@@ -3,6 +3,9 @@ package org.ikasan.studio.ui.component.palette;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
@@ -14,8 +17,6 @@ import org.ikasan.studio.ui.model.PaletteItem;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
@@ -28,15 +29,17 @@ import java.util.List;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
 
-public class PaletteTabPanel extends JPanel {
+@SuppressWarnings("rawtypes")
+public class PaletteTabPanel extends JBPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
     private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Set to push description off the screen
     private final Project project;
-    JScrollPane paletteScrollPane;
+    JBScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
     JBList<PaletteItem> paletteList;
     final JSplitPane paletteSplitPane;
-    JPanel paletteBodyPanel;
+    @SuppressWarnings("rawtypes")
+    JBPanel paletteBodyPanel;
     HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
 
 
@@ -56,7 +59,7 @@ public class PaletteTabPanel extends JPanel {
         paletteExportTransferHandler = new PaletteExportTransferHandler(project);
 
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        paletteSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+        paletteSplitPane.setBorder(JBUI.Borders.empty());
         paletteSplitPane.setDividerSize(2);
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
@@ -75,25 +78,26 @@ public class PaletteTabPanel extends JPanel {
         setPaletteList();
 
         paletteSplitPane.setRightComponent(htmlScrollingDisplayPanel);
-        paletteBodyPanel = new JPanel(new BorderLayout());
+        paletteBodyPanel = new JBPanel();
         paletteBodyPanel.setBorder(null);
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(getThemeAwareBackgroundColor());
 
-        JPanel linePanel = new JPanel();
-        linePanel.setBorder(new MatteBorder(1,0,0,0, StudioUIUtils.getLineColor()));
+        @SuppressWarnings("rawtypes")
+        JBPanel linePanel = new JBPanel();
+        linePanel.setBorder(BorderFactory.createMatteBorder(JBUI.scale(1),0,0,0, StudioUIUtils.getLineColor()));
         add(linePanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
     }
 
     public void setPaletteList() {
-        paletteList = new JBList(buildPaletteItems(project).toArray());
+        paletteList = new JBList<>(buildPaletteItems(project));
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);
 
-        paletteScrollPane = new JScrollPane();
-        paletteScrollPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        paletteScrollPane = new JBScrollPane();
+        paletteScrollPane.setBorder(JBUI.Borders.empty(5));
         paletteScrollPane.getViewport().add(paletteList);
 
         paletteList.addListSelectionListener(listSelectionEvent -> {

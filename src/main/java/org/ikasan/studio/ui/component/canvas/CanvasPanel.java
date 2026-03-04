@@ -1,24 +1,28 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 
-public class CanvasPanel extends JPanel {
+@SuppressWarnings("rawtypes")
+public class CanvasPanel extends JBPanel {
     public CanvasPanel(Project project) {
         super();
         DesignerCanvas designerCanvas = new DesignerCanvas(project);
         UiContext uiContext = project.getService(UiContext.class);
         uiContext.setDesignerCanvas(designerCanvas);
 
-        JPanel canvasHeaderButtonPanel = new JPanel();
+        @SuppressWarnings("rawtypes")
+        JBPanel canvasHeaderButtonPanel = new JBPanel();
         canvasHeaderButtonPanel.setBorder(null);
         JButton h2Button = new JButton("H2 start");
         JButton applicationButton = new JButton("Module start");
@@ -39,8 +43,9 @@ public class CanvasPanel extends JPanel {
             designerCanvasRef.repaint();
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
-        JPanel canvasHeaderPanel = new JPanel();
-        canvasHeaderPanel.setBorder(new MatteBorder(0,0,1,0, StudioUIUtils.getLineColor()));
+        @SuppressWarnings("rawtypes")
+        JBPanel canvasHeaderPanel = new JBPanel();
+        canvasHeaderPanel.setBorder(BorderFactory.createMatteBorder(0,0,JBUI.scale(1),0, StudioUIUtils.getLineColor()));
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
 
         // This may be redundant now we have Intellij Messaging
@@ -53,15 +58,16 @@ public class CanvasPanel extends JPanel {
         setLayout(new BorderLayout());
         add(canvasHeaderPanel, BorderLayout.NORTH);
 
-        JScrollPane canvasScrollPane = new JScrollPane();
-        canvasScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        JBScrollPane canvasScrollPane = new JBScrollPane();
+        canvasScrollPane.setBorder(JBUI.Borders.empty());
         canvasScrollPane.getViewport().add(designerCanvas);
         canvasScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         add(canvasScrollPane, BorderLayout.CENTER);
     }
 
-    private void addButtonsToPanel(JPanel canvasHeaderButtonPanel, JButton newButton, ActionListener al, String tooltip) {
+    @SuppressWarnings("rawtypes")
+    private void addButtonsToPanel(JBPanel canvasHeaderButtonPanel, JButton newButton, ActionListener al, String tooltip) {
         newButton.addActionListener(al);
         newButton.setToolTipText(tooltip);
         canvasHeaderButtonPanel.add(newButton);

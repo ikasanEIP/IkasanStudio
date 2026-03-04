@@ -26,7 +26,7 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             if (paletteItem.isCategory()) {
                 // Separator
                 if (index > 0) {
-                    setBorder(BorderFactory.createEmptyBorder(5, 3, 4, 3));
+                    setBorder(JBUI.Borders.empty(5, 3, 4, 3));
                 }
 
                 setText(paletteItem.getIkasanPaletteElementViewHandler().getComponentMeta().getName());

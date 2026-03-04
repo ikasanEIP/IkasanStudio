@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -18,6 +19,7 @@ import java.util.List;
  * Encapsulate the properties entry from a UI and validity perspective.
  * This panel contains the data entry for the exception and action
  */
+@SuppressWarnings("rawtypes")
 public class ExceptionResolverPanel extends PropertiesPanel {
     private transient ExceptionResolverEditBox exceptionResolverEditBox;
 
@@ -96,7 +98,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         }
 
         if (getSelectedComponent() != null) {
-            propertiesEditorPanel = new JPanel(new GridBagLayout());
+            propertiesEditorPanel = new JBPanel(new GridBagLayout());
             propertiesEditorPanel.setBorder(null);
             propertiesEditorPanel.setBackground(getThemeAwareBackgroundColor());
             propertiesEditorScrollingContainer.removeAll();
@@ -106,7 +108,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                 exceptionResolverEditBox = new ExceptionResolverEditBox(this, project, getSelectedComponent(), componentInitialisation);
             }
 
-            JPanel exceptionResolutionTablePanel = new JPanel(new GridBagLayout());
+            JBPanel exceptionResolutionTablePanel = new JBPanel(new GridBagLayout());
             exceptionResolutionTablePanel.setBorder(null);
             int exceptionResolutionTabley = 0;
             addDisplayDataToTable(true, exceptionResolutionTablePanel, exceptionResolutionTabley++,
@@ -119,7 +121,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             if (exceptionResolverEditBox.getExceptionResolutionList() != null &&
                     !exceptionResolverEditBox.getExceptionResolutionList().isEmpty()) {
                 for (ExceptionResolution exceptionResolution : exceptionResolverEditBox.getExceptionResolutionList()) {
-                    JPanel paramsSubPanel = new JPanel(new GridBagLayout());
+                    JBPanel paramsSubPanel = new JBPanel(new GridBagLayout());
                     paramsSubPanel.setBorder(null);
                     paramsSubPanel.setBackground(getThemeAwareBackgroundColor());
                     int subPanelY = 0;
@@ -208,16 +210,16 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         if (isButton) {
             theComponent.setOpaque(true);
             theComponent.setBackground(backgroundColor);
-            theComponent.setBorder(BorderFactory.createEmptyBorder(0,5,0,5));
+            theComponent.setBorder(JBUI.Borders.empty(0, 5));
         }
-        JPanel tableCell = new JPanel();
+        JBPanel tableCell = new JBPanel();
         tableCell.setBackground(backgroundColor);
-        tableCell.setBorder(BorderFactory.createLineBorder(StudioUIUtils.getLineColor(),1));
+        tableCell.setBorder(BorderFactory.createLineBorder(StudioUIUtils.getLineColor(), JBUI.scale(1)));
         tableCell.add(theComponent);
         return tableCell;
     }
 
-    private void addParamsToTable(JPanel jPanel, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
+    private void addParamsToTable(@SuppressWarnings("rawtypes") JBPanel jPanel, int tabley, JLabel propertyLabel, ComponentInput componentInput) {
         if (componentInput != null) {
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.BOTH;

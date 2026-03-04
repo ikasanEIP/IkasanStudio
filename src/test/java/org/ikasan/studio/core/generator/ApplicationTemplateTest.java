@@ -17,6 +17,10 @@ public class ApplicationTemplateTest {
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/Application.java
      * @throws IOException if the template cant be generated
+     * Note: This test may trigger ThreadLeakTracker warnings due to Freemarker template processing
+     * and Java2D/AWT background threads. This is a known limitation of the test framework and not
+     * an application-level issue. The leaked threads are system-level (EPoll, Java2D, Coroutines)
+     * and do not indicate a problem with the application code.
      */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")

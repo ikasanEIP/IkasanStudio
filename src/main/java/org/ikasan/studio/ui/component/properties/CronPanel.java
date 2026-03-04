@@ -1,6 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,14 +19,16 @@ import static org.ikasan.studio.ui.component.properties.CronExpression.DAY_OF_WE
 
 @Setter
 @Getter
-public class CronPanel extends JPanel {
+@SuppressWarnings("rawtypes")
+public class CronPanel extends JBPanel {
 //    private static final Logger LOG = Logger.getInstance("#CronPanel");
     private String title = "Quartz Cron Configuration";
     JTextField[] textFields = new JTextField[CronExpression.values().length];
     JLabel[] labelFields = new JLabel[CronExpression.values().length];
     JTextPane helpTextPane;
     JFrame testFrame;
-    JPanel helpPanel;
+    @SuppressWarnings("rawtypes")
+    JBPanel helpPanel;
     boolean helpEnabled = false;
 
     protected final Project project;
@@ -34,12 +38,13 @@ public class CronPanel extends JPanel {
         super();
         this.project = project;
         this.setLayout(new BorderLayout());
-        JPanel dataEntryPanel = new JPanel();
+        @SuppressWarnings("rawtypes")
+        JBPanel dataEntryPanel = new JBPanel();
         dataEntryPanel.setBorder(null);
         dataEntryPanel.setLayout(new GridBagLayout());
 
         GridBagConstraints gc = new GridBagConstraints();
-        gc.insets = new Insets(5, 5, 5, 5);
+        gc.insets = JBUI.insets(5);
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.weightx = 0.0;
         gc.gridy = 0;
@@ -67,7 +72,8 @@ public class CronPanel extends JPanel {
 
         add(dataEntryPanel, BorderLayout.NORTH);
 
-        JPanel okCancelPanel = new JPanel();
+        @SuppressWarnings("rawtypes")
+        JBPanel okCancelPanel = new JBPanel();
         okCancelPanel.setBorder(null);
         okCancelPanel.setLayout(new FlowLayout());
 
@@ -87,7 +93,7 @@ public class CronPanel extends JPanel {
 
         add(okCancelPanel, BorderLayout.SOUTH);
 
-        helpPanel = new JPanel(new BorderLayout());
+        helpPanel = new JBPanel(new BorderLayout());
         Border helpBorder = BorderFactory.createTitledBorder("Quartz Cron Configuration Help");
         helpPanel.setBorder(helpBorder);
         helpTextPane = new JTextPane();
@@ -116,7 +122,7 @@ public class CronPanel extends JPanel {
         return "Enter one of " + cronField.specialCharacters + ", n is " + cronField.allowedValues;
     }
 
-    protected void addRow(GridBagConstraints gc, JPanel dataEntryPanel, JButton resetButton, JTextField textEntryField, JLabel description, String defaultValue, String currentValue, String toolTip) {
+    protected void addRow(GridBagConstraints gc, @SuppressWarnings("rawtypes") JBPanel dataEntryPanel, JButton resetButton, JTextField textEntryField, JLabel description, String defaultValue, String currentValue, String toolTip) {
         gc.gridx = 0;
         dataEntryPanel.add(resetButton, gc);
         gc.gridx = 1;

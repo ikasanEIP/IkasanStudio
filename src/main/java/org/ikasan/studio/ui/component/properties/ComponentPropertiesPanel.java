@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
@@ -31,14 +32,17 @@ import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
  */
+@SuppressWarnings("rawtypes")
 public class ComponentPropertiesPanel extends PropertiesPanel {
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
     private JCheckBox userImplementedComponentOverwriteCheckBox;
     private HtmlScrollingDisplayPanel htmlScrollingDisplayPanel;
     private boolean isExpanded;
-    private JPanel optionalPropertiesEditorPanel;
-    private JPanel optionalPropertiesExpandPanel;
+    @SuppressWarnings("rawtypes")
+    private JBPanel optionalPropertiesEditorPanel;
+    @SuppressWarnings("rawtypes")
+    private JBPanel optionalPropertiesExpandPanel;
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
     private final SimpleChangeListener listenerFoAnyEditChanges;
@@ -149,17 +153,18 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (getSelectedComponent() != null) {
             propertiesEditorScrollingContainer.removeAll();
 
-            propertiesEditorPanel = new JPanel(new GridBagLayout());
+            propertiesEditorPanel = new JBPanel(new GridBagLayout());
             propertiesEditorPanel.setBackground(getThemeAwareBackgroundColor());
 
-            JPanel mandatoryPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            JBPanel mandatoryPropertiesEditorPanel = new JBPanel(new GridBagLayout());
             mandatoryPropertiesEditorPanel.setBorder(null);
-            optionalPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            optionalPropertiesEditorPanel = new JBPanel(new GridBagLayout());
             optionalPropertiesEditorPanel.setBorder(null);
             if (optionalPropertiesExpandPanel == null) {
                 optionalPropertiesExpandPanel = getOptionalPropertiesExpandPanel();
             }
-            JPanel regeneratingPropertiesEditorPanel = new JPanel(new GridBagLayout());
+            @SuppressWarnings("rawtypes")
+            JBPanel regeneratingPropertiesEditorPanel = new JBPanel(new GridBagLayout());
             regeneratingPropertiesEditorPanel.setBorder(null);
             componentPropertyEditBoxList = new ArrayList<>();
 
@@ -273,8 +278,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         toggleOptionalPropertiesButton.setText(enable ? "Ignore" : "Expand");
     }
 
-    protected JPanel getOptionalPropertiesExpandPanel() {
-        JPanel optionalPropertiesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    @SuppressWarnings("rawtypes")
+    protected JBPanel getOptionalPropertiesExpandPanel() {
+        @SuppressWarnings("rawtypes")
+        JBPanel optionalPropertiesPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
         optionalPropertiesPanel.setBorder(null);
         JLabel optionalPropertiesLabel = new JLabel("Optional Properties");
         // Create the buttons
@@ -319,7 +326,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param borderColor of the subsection
      * @param gc1 is used to dictate layout and relay layout to the next subsection.
      */
-    private void setSubPanel(JPanel allPropertiesEditorPanel, JPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
+    private void setSubPanel(JBPanel allPropertiesEditorPanel, JBPanel subPanel, String title, Color borderColor, GridBagConstraints gc1) {
         subPanel.setBackground(getThemeAwareBackgroundColor());
         if (title != null) {
         subPanel.setBorder(BorderFactory.createTitledBorder(
@@ -338,7 +345,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param gc is used to dictate layout and relay layout to the next subsection.
      * @param tabley is used to convey the row number
      */
-    private void addOverrideCheckBoxToPropertiesEditPanel(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley) {
+    private void addOverrideCheckBoxToPropertiesEditPanel(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley) {
         JLabel overrideLabel = new JLabel("Allow Update");
         overrideLabel.setFont(new Font(overrideLabel.getFont().getName(), Font.BOLD, overrideLabel.getFont().getSize()));
         overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this user implemented class");
@@ -357,13 +364,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param tabley is used to convey the row number
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
-    private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
+    private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(project, componentProperty, componentInitialisation, listenerFoAnyEditChanges, componentPropertyEditBoxMap);
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }
 
-    private void addLabelAndSimpleInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
+    private void addLabelAndSimpleInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -373,7 +380,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndParamInput(JPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, ComponentInput componentInput) {
+    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, ComponentInput componentInput) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -387,7 +394,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc.weightx = 1.0;
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
-            JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JBPanel booleanPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             booleanPanel.setBackground(getThemeAwareBackgroundColor());
             booleanPanel.add(new JLabel("true"));
             booleanPanel.add(componentInput.getTrueBox());

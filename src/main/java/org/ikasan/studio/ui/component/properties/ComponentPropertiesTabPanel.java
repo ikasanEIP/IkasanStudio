@@ -1,16 +1,17 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 
-public class ComponentPropertiesTabPanel extends JPanel {
+@SuppressWarnings("rawtypes")
+public class ComponentPropertiesTabPanel extends JBPanel {
 //    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     final JSplitPane paletteSplitPane;
 
@@ -21,10 +22,10 @@ public class ComponentPropertiesTabPanel extends JPanel {
         this.componentPropertiesPanel = componentPropertiesPanel;
         componentPropertiesPanel.setComponentDescription(htmlScrollingDisplayPanel);
         this.setLayout(new BorderLayout());
-        this.setBorder(new EmptyBorder(0, 0, 0, 0));
+        this.setBorder(JBUI.Borders.empty());
 
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, componentPropertiesPanel, htmlScrollingDisplayPanel);
-        paletteSplitPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+        paletteSplitPane.setBorder(JBUI.Borders.empty());
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {
@@ -41,8 +42,9 @@ public class ComponentPropertiesTabPanel extends JPanel {
         paletteSplitPane.setDividerSize(2);
         paletteSplitPane.setDividerLocation(0.8);
 
-        JPanel linePanel = new JPanel();
-        linePanel.setBorder(new MatteBorder(1,0,0,0, StudioUIUtils.getLineColor()));
+        @SuppressWarnings("rawtypes")
+        JBPanel linePanel = new JBPanel();
+        linePanel.setBorder(BorderFactory.createMatteBorder(JBUI.scale(1),0,0,0, StudioUIUtils.getLineColor()));
         add(linePanel, BorderLayout.NORTH);
         add(paletteSplitPane, BorderLayout.CENTER);
     }
@@ -59,4 +61,3 @@ public class ComponentPropertiesTabPanel extends JPanel {
     }
 
 }
-
