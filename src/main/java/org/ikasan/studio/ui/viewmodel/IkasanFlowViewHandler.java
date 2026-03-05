@@ -8,6 +8,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.Styling;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,6 +36,14 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     private final Flow flow;
 
     /**
+     * Convenience wrapper for cleaner code in this class.
+     * Delegates to centralized ThemeAwareColors utility.
+     */
+    private static Color getThemeAwareBackgroundColor() {
+        return ThemeAwareColors.getBackgroundColor();
+    }
+
+    /**
      * The model can be null e.g. for a palette item, once dragged onto a canvas, the model would be populated.
      * @param flow for view handler
      */
@@ -52,7 +61,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     private void paintFlowRectangle(Graphics g, int x, int y, int width, int height) {
         Color oldColor = g.getColor();
         // Central rectangle
-        g.setColor(Styling.IKASAN_GREY);
+        g.setColor(getThemeAwareBackgroundColor());
         g.fillRoundRect(x, y, width, height, CONTAINER_CORNER_ARC, CONTAINER_CORNER_ARC);
         g.setColor(oldColor);
     }
