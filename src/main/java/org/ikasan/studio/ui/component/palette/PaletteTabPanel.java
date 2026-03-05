@@ -80,6 +80,7 @@ public class PaletteTabPanel extends JBPanel {
         paletteSplitPane.setRightComponent(htmlScrollingDisplayPanel);
         paletteBodyPanel = new JBPanel();
         paletteBodyPanel.setBorder(null);
+        paletteBodyPanel.setLayout(new BorderLayout());
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(getThemeAwareBackgroundColor());
 
