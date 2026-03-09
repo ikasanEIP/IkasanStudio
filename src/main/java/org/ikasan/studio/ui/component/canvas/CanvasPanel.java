@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -9,12 +10,14 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 
 @SuppressWarnings("rawtypes")
-public class CanvasPanel extends JBPanel {
+public class CanvasPanel extends JBPanel implements Disposable {
+    JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
         DesignerCanvas designerCanvas = new DesignerCanvas(project);
@@ -49,7 +52,7 @@ public class CanvasPanel extends JBPanel {
         canvasHeaderPanel.add(canvasHeaderButtonPanel);
 
         // This may be redundant now we have Intellij Messaging
-        JTextArea canvasTextArea = new JTextArea();
+        canvasTextArea = new JTextArea();
         uiContext.setCanvasTextArea(canvasTextArea);
         canvasTextArea.setLineWrap(true);
         canvasTextArea.setWrapStyleWord(true);
@@ -71,5 +74,12 @@ public class CanvasPanel extends JBPanel {
         newButton.addActionListener(al);
         newButton.setToolTipText(tooltip);
         canvasHeaderButtonPanel.add(newButton);
+    }
+
+    @Override
+    public void dispose() {
+        if (canvasTextArea.getCaret() instanceof DefaultCaret caret) {
+            caret.setBlinkRate(0);
+        }
     }
 }
