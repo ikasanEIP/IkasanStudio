@@ -116,7 +116,7 @@ public abstract class PropertiesPanel extends JBPanel {
             propertyType = "Module " + PROPERTIES_TAG;
         } else if (selectedComponent instanceof Flow) {
             propertyType = "Flow " + PROPERTIES_TAG;
-        } else if (selectedComponent instanceof FlowElement) {
+        } else {
             propertyType = selectedComponent.getComponentMeta().getName() + " " + PROPERTIES_TAG;
         }
         return propertyType;
@@ -127,15 +127,6 @@ public abstract class PropertiesPanel extends JBPanel {
      * @param selectedComponent that now needs to be updated.
      */
     public void updateTargetComponent(IkasanObject selectedComponent) {
-        this.selectedComponent = selectedComponent;
-        if (! componentInitialisation) {
-            propertiesHeaderLabel.setText(getPropertiesPanelTitle());
-        }
-        populatePropertiesEditorPanel();
-        redrawPanel();
-    }
-
-    public void setTargetComponent(IkasanObject selectedComponent) {
         this.selectedComponent = selectedComponent;
         if (! componentInitialisation) {
             propertiesHeaderLabel.setText(getPropertiesPanelTitle());
