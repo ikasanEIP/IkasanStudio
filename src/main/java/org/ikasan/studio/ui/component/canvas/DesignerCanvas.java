@@ -64,21 +64,21 @@ public class DesignerCanvas extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                LOG.trace("STUDIO: Mouse press TestV1 "+ e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: Mouse press x "+ e.getX() + " y " + e.getY());
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                LOG.trace("STUDIO: Mouse release click TestV1 "+ e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: Mouse release click x "+ e.getX() + " y " + e.getY());
                 mouseReleaseAction();
             }
         });
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                LOG.trace("STUDIO: DesignerCanvas listening to mouse drag TestV1 " + e.getX() + " y " + e.getY());
+                LOG.trace("STUDIO: DesignerCanvas listening to mouse drag x " + e.getX() + " y " + e.getY());
                 mouseDragAction(e.getX(),e.getY());
             }
         });
@@ -88,7 +88,7 @@ public class DesignerCanvas extends JPanel {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    LOG.trace("STUDIO: DesignerCanvas listening to mouse move TestV1 " + e.getX() + " y " + e.getY());
+                    LOG.trace("STUDIO: DesignerCanvas listening to mouse move x " + e.getX() + " y " + e.getY());
                 mouseMoveAction(e.getX(),e.getY());
                 }
             });
@@ -185,7 +185,7 @@ public class DesignerCanvas extends JPanel {
         if (!(selectedComponent instanceof BasicElement ikasanBasicElement)) {
             return;
         }
-        // Right click - popup menus
+        // Right-click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
             Decorator decorator = null;
             if (ikasanBasicElement instanceof FlowElement flowElement) {
@@ -197,7 +197,7 @@ public class DesignerCanvas extends JPanel {
 //            } else {
 //                DesignCanvasContextMenu.showPopupMenu(project,this, me);
 //            }
-        } // Double click -> go to source
+        } // Double-click -> go to source
         else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
 //            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement);
@@ -210,7 +210,7 @@ public class DesignerCanvas extends JPanel {
 //                    }
 //                }
 //            }
-        } // Single click -> update properties
+        } // Single Left-click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
                  (  ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement) != null &&
                     ! ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement).isAlreadySelected()
@@ -278,14 +278,14 @@ public class DesignerCanvas extends JPanel {
      */
     private void mouseDragAction(int mouseX, int mouseY) {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
-        LOG.trace("STUDIO: Mouse Motion listening TestV1 " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
+        LOG.trace("STUDIO: Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
 
         if (mouseSelectedComponent instanceof FlowElement flowElement) {
             screenChanged = true;
             AbstractViewHandlerIntellij vh = ViewHandlerCache.getAbstractViewHandler(project, flowElement);
             if (vh != null) {
-                LOG.trace("STUDIO: Mouse drag start TestV1[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  TestV1 [" + mouseX + "] y [" + mouseY +
-                        "] Generator selected [" + flowElement.getComponentName() + "] TestV1 [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
+                LOG.trace("STUDIO: Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
+                        "] Generator selected [" + flowElement.getComponentName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
 
                 final int componentX = vh.getLeftX();
                 final int componentY = vh.getTopY();
@@ -350,7 +350,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the TestV1 and y coords, return the ikasan elements that resides at that TestV1,y.
+     * Given the x and y coords, return the ikasan elements that reside at that x,y.
      * This will either be an ikasan flows component, an ikasan flow or the whole module.
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -383,7 +383,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the TestV1 and y coords, return the ikasan flow exception resolver that resides at that TestV1,y.
+     * Given the x and y coords, return the ikasan flow exception resolver that resides at that x,y.
      * or null if no resoler resides at that XY
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -393,7 +393,6 @@ public class DesignerCanvas extends JPanel {
         Module ikasanModule = getIkasanModule();
         BasicElement ikasanComponent = null;
         if (ikasanModule != null) {
-
             ikasanComponent = ikasanModule.getFlows()
                     .stream()
                     .filter(Flow::hasExceptionResolver)
@@ -413,7 +412,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the TestV1 and y coords, return the ikasan flow that resides at that TestV1,y.
+     * Given the x and y coords, return the ikasan flow that resides at that x,y.
      *
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -434,7 +433,8 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * Given the TestV1 and y coords, return the ikasan flow route that resides at that TestV1,y.
+     * Given the x and y coords, return the ikasan flow route that resides at that x,y.
+     * This is essentially the space between the components in a flow
      *
      * @param xpos of the mouse click
      * @param ypos of the mouse click
@@ -443,18 +443,16 @@ public class DesignerCanvas extends JPanel {
     public IkasanComponent getFlowRouteAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
         IkasanComponent ikasanComponent = null;
-        if (ikasanModule != null) {
-            IkasanFlowRouteViewHandler ikasanFlowRouteViewHandler = ikasanModule.getFlows()
-                    .stream()
-                    .map(x -> ViewHandlerCache.getAbstractViewHandler(project, x))
-                    .map(x -> ((IkasanFlowViewHandler)x))
-                    .flatMap(x -> x.getFlowRouteViewHandler().getAllFlowRouteViewHandlers(new ArrayList<>(), x.getFlowRouteViewHandler()).stream())
-                    .filter(x -> x.getLeftX() <= xpos && x.getRightX() >= xpos && x.getTopY() <= ypos && x.getBottomY() >= ypos)
-                    .findFirst()
-                    .orElse(null);
-            if (ikasanFlowRouteViewHandler != null) {
-                ikasanComponent = ikasanFlowRouteViewHandler.getFlowRoute();
-            }
+        IkasanFlowRouteViewHandler ikasanFlowRouteViewHandler = ikasanModule.getFlows()
+                .stream()
+                .map(x -> ViewHandlerCache.getAbstractViewHandler(project, x))
+                .map(x -> ((IkasanFlowViewHandler) x))
+                .flatMap(x -> x.getFlowRouteViewHandler().getAllFlowRouteViewHandlers(new ArrayList<>(), x.getFlowRouteViewHandler()).stream())
+                .filter(x -> x.getLeftX() <= xpos && x.getRightX() >= xpos && x.getTopY() <= ypos && x.getBottomY() >= ypos)
+                .findFirst()
+                .orElse(null);
+        if (ikasanFlowRouteViewHandler != null) {
+            ikasanComponent = ikasanFlowRouteViewHandler.getFlowRoute();
         }
         return ikasanComponent;
     }
