@@ -53,7 +53,7 @@ public class ExceptionResolution extends BasicElement {
     }
 
     /**
-     * For ExceptionResolution, the meta belongs to the ExceptionResolver but the values belong to the resolution
+     * For ExceptionResolution, the meta belongs to the ExceptionResolver, but the values belong to the resolution
      * In this case alone, set the properties directly
      * @param key of the property
      * @param value of the property

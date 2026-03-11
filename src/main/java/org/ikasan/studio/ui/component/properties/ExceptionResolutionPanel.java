@@ -25,7 +25,7 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 public class ExceptionResolutionPanel extends PropertiesPanel {
     private static final String OK_BUTTON_TEST = "Add";
-    private final transient List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList;
+    private final transient List<ExceptionResolutionRowDisplay> exceptionResolutionRowDisplayList;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     @SuppressWarnings("rawtypes")
     private final JBPanel exceptionActionEditorPanel = new JBPanel(new GridBagLayout());      // contains the Exception and action
@@ -42,9 +42,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * @param project is the Intellij project instance
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList, Project project, boolean componentInitialisation) {
+    public ExceptionResolutionPanel(List<ExceptionResolutionRowDisplay> exceptionResolutionRowDisplayList, Project project, boolean componentInitialisation) {
         super(project, componentInitialisation);
-        this.exceptionResolutionList = exceptionResolutionList;
+        this.exceptionResolutionRowDisplayList = exceptionResolutionRowDisplayList;
     }
 
     /**
@@ -246,6 +246,6 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
     public boolean hasExceptionResolution(String exception) {
-        return exceptionResolutionList.stream().anyMatch(res -> res.getIkasanExceptionResolution().getExceptionsCaught().equals(exception));
+        return exceptionResolutionRowDisplayList.stream().anyMatch(res -> res.getIkasanExceptionResolution().getExceptionsCaught().equals(exception));
     }
 }

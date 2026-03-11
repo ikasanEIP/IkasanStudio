@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.properties;
 
 import lombok.Data;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -13,14 +14,14 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 @Data
-public class ExceptionResolution {
+public class ExceptionResolutionRowDisplay {
     private final JLabel actionField = new JLabel();
     private List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
-    private final org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution exceptionResolution;
+    private final ExceptionResolution exceptionResolution;
     private final JButton deleteButton = new JButton("DEL");
     JLabel exceptionField = new JLabel();
 
-    public ExceptionResolution(ExceptionResolverEditBox parent, org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution exceptionResolution, boolean componentInitialisation) {
+    public ExceptionResolutionRowDisplay(ExceptionResolutionTableDisplay parent, ExceptionResolution exceptionResolution, boolean componentInitialisation) {
         this.exceptionResolution = exceptionResolution;
 
         String theException = exceptionResolution.getExceptionsCaught();
@@ -50,7 +51,7 @@ public class ExceptionResolution {
         return componentPropertyEditBoxList;
     }
 
-    public org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution getIkasanExceptionResolution() {
+    public ExceptionResolution getIkasanExceptionResolution() {
         return exceptionResolution;
     }
 }

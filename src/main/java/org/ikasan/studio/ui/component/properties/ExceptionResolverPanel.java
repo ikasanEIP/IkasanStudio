@@ -21,7 +21,7 @@ import java.util.List;
  */
 @SuppressWarnings("rawtypes")
 public class ExceptionResolverPanel extends PropertiesPanel {
-    private transient ExceptionResolverEditBox exceptionResolverEditBox;
+    private transient ExceptionResolutionTableDisplay exceptionResolutionTableDisplay;
 
     /**
      * Convenience wrapper for cleaner code in this class.
@@ -74,7 +74,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
 
     @Override
     public boolean dataHasChangedAndOKToProcess() {
-        return exceptionResolverEditBox != null && exceptionResolverEditBox.propertyValueHasChanged();
+        return exceptionResolutionTableDisplay != null && exceptionResolutionTableDisplay.propertyValueHasChanged();
     }
 
     /**
@@ -83,7 +83,7 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      */
     public void updateComponentsWithNewValues() {
         if (dataHasChangedAndOKToProcess()) {
-            exceptionResolverEditBox.updateValueObjectWithEnteredValues();
+            exceptionResolutionTableDisplay.updateValueObjectWithEnteredValues();
         }
     }
 
@@ -104,35 +104,35 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             propertiesEditorScrollingContainer.removeAll();
 
             // Only initialise on the first pass.
-            if (exceptionResolverEditBox == null) {
-                exceptionResolverEditBox = new ExceptionResolverEditBox(this, project, getSelectedComponent(), componentInitialisation);
+            if (exceptionResolutionTableDisplay == null) {
+                exceptionResolutionTableDisplay = new ExceptionResolutionTableDisplay(this, project, getSelectedComponent(), componentInitialisation);
             }
 
             JBPanel exceptionResolutionTablePanel = new JBPanel(new GridBagLayout());
             exceptionResolutionTablePanel.setBorder(null);
             int exceptionResolutionTabley = 0;
             addDisplayDataToTable(true, exceptionResolutionTablePanel, exceptionResolutionTabley++,
-                exceptionResolverEditBox.getAddButton(),
-                exceptionResolverEditBox.getExceptionTitleField(),
-                exceptionResolverEditBox.getActionTitleField(),
-                exceptionResolverEditBox.getParamsTitleField());
+                exceptionResolutionTableDisplay.getAddButton(),
+                exceptionResolutionTableDisplay.getExceptionTitleField(),
+                exceptionResolutionTableDisplay.getActionTitleField(),
+                exceptionResolutionTableDisplay.getParamsTitleField());
 
             // Populate the list of params to be displayed and add to respective panels
-            if (exceptionResolverEditBox.getExceptionResolutionList() != null &&
-                    !exceptionResolverEditBox.getExceptionResolutionList().isEmpty()) {
-                for (ExceptionResolution exceptionResolution : exceptionResolverEditBox.getExceptionResolutionList()) {
+            if (exceptionResolutionTableDisplay.getExceptionResolutionRowDisplayList() != null &&
+                    !exceptionResolutionTableDisplay.getExceptionResolutionRowDisplayList().isEmpty()) {
+                for (ExceptionResolutionRowDisplay exceptionResolutionRowDisplay : exceptionResolutionTableDisplay.getExceptionResolutionRowDisplayList()) {
                     JBPanel paramsSubPanel = new JBPanel(new GridBagLayout());
                     paramsSubPanel.setBorder(null);
                     paramsSubPanel.setBackground(getThemeAwareBackgroundColor());
                     int subPanelY = 0;
 
-                    for (ComponentPropertyEditBox componentPropertyEditBox : exceptionResolution.getActionParamsEditBoxList()) {
+                    for (ComponentPropertyEditBox componentPropertyEditBox : exceptionResolutionRowDisplay.getActionParamsEditBoxList()) {
                         addParamsToTable(paramsSubPanel, subPanelY++, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
                     }
                     addDisplayDataToTable(false, exceptionResolutionTablePanel, exceptionResolutionTabley++,
-                        exceptionResolution.getDeleteButton(),
-                        exceptionResolution.getExceptionField(),
-                        exceptionResolution.getActionField(),
+                        exceptionResolutionRowDisplay.getDeleteButton(),
+                        exceptionResolutionRowDisplay.getExceptionField(),
+                        exceptionResolutionRowDisplay.getActionField(),
                         paramsSubPanel);
                 }
             }
@@ -156,8 +156,8 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      */
     public JComponent getFirstFocusField() {
         JComponent firstField = null;
-        if (exceptionResolverEditBox != null) {
-            firstField = exceptionResolverEditBox.getAddButton();
+        if (exceptionResolutionTableDisplay != null) {
+            firstField = exceptionResolutionTableDisplay.getAddButton();
         }
         return firstField;
     }
@@ -250,6 +250,6 @@ public class ExceptionResolverPanel extends PropertiesPanel {
      * @return a list of ValidationInfo that will only be populated if there are validation errors on the form.
      */
     protected List<ValidationInfo> doValidateAll() {
-        return exceptionResolverEditBox.doValidateAll();
+        return exceptionResolutionTableDisplay.doValidateAll();
     }
 }

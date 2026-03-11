@@ -17,19 +17,19 @@ import java.util.List;
  * including validation and subsequent value access.
  */
 @Data
-public class ExceptionResolverEditBox {
+public class ExceptionResolutionTableDisplay {
     private final ExceptionResolverPanel resolverPanel;
     private final Project project;
     private final JLabel exceptionTitleField;
     private final JLabel actionTitleField;
     private final JLabel paramsTitleField;
     private final JButton addButton;
-    private final List<org.ikasan.studio.ui.component.properties.ExceptionResolution> exceptionResolutionList = new ArrayList<>();
+    private final List<ExceptionResolutionRowDisplay> exceptionResolutionRowDisplayList = new ArrayList<>();
     private final boolean componentInitialisation;
     private final ExceptionResolver exceptionResolver;
     private boolean hasChanged = false;
 
-    public ExceptionResolverEditBox(ExceptionResolverPanel resolverPanel, Project project, ExceptionResolver exceptionResolver, boolean componentInitialisation) {
+    public ExceptionResolutionTableDisplay(ExceptionResolverPanel resolverPanel, Project project, ExceptionResolver exceptionResolver, boolean componentInitialisation) {
         this.resolverPanel = resolverPanel;
         this.project = project;
         this.exceptionResolver = exceptionResolver;
@@ -41,7 +41,7 @@ public class ExceptionResolverEditBox {
 
         if (exceptionResolver.getIkasanExceptionResolutionMap() != null) {
             for (ExceptionResolution exceptionResolution : exceptionResolver.getIkasanExceptionResolutionMap().values()) {
-                exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, exceptionResolution, componentInitialisation));
+                exceptionResolutionRowDisplayList.add(new ExceptionResolutionRowDisplay(this, exceptionResolution, componentInitialisation));
             }
         }
         addButton = new JButton("ADD");
@@ -51,7 +51,7 @@ public class ExceptionResolverEditBox {
     }
 
     public void doDelete(ExceptionResolution exceptionResolution) {
-        if (exceptionResolutionList.removeIf(item -> exceptionResolution.equals(item.getIkasanExceptionResolution()))) {
+        if (exceptionResolutionRowDisplayList.removeIf(item -> exceptionResolution.equals(item.getIkasanExceptionResolution()))) {
             hasChanged = true;
             resolverPanel.populatePropertiesEditorPanel();
             resolverPanel.redrawPanel();
@@ -59,7 +59,7 @@ public class ExceptionResolverEditBox {
     }
 
     private void doAdd() {
-        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionList, project, true);
+        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionRowDisplayList, project, true);
         ExceptionResolution newResolution = null;
         UiContext uiContext = project.getService(UiContext.class);
         try {
@@ -75,7 +75,7 @@ public class ExceptionResolverEditBox {
                     exceptionResolutionPanel);
             if (propertiesPopupDialogue.showAndGet()) {
                 StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
-                exceptionResolutionList.add(new org.ikasan.studio.ui.component.properties.ExceptionResolution(this, newResolution, componentInitialisation));
+                exceptionResolutionRowDisplayList.add(new ExceptionResolutionRowDisplay(this, newResolution, componentInitialisation));
                 hasChanged = true;
                 resolverPanel.populatePropertiesEditorPanel();
                 resolverPanel.redrawPanel();
@@ -88,8 +88,8 @@ public class ExceptionResolverEditBox {
      */
     public void  updateValueObjectWithEnteredValues() {
         exceptionResolver.resetIkasanExceptionResolutionList();
-        for (org.ikasan.studio.ui.component.properties.ExceptionResolution exceptionResolution : exceptionResolutionList) {
-            exceptionResolver.addExceptionResolution(exceptionResolution.getIkasanExceptionResolution());
+        for (ExceptionResolutionRowDisplay exceptionResolutionRowDisplay : exceptionResolutionRowDisplayList) {
+            exceptionResolver.addExceptionResolution(exceptionResolutionRowDisplay.getIkasanExceptionResolution());
         }
     }
 
@@ -108,7 +108,7 @@ public class ExceptionResolverEditBox {
      */
     protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
-        if (exceptionResolutionList.isEmpty()) {
+        if (exceptionResolutionRowDisplayList.isEmpty()) {
             result.add(new ValidationInfo("At least one exception should be added. If the resolver is no longer required, delete it from the flow."));
         } else if (!hasChanged) {
             result.add(new ValidationInfo("No change has been made yet, change the configuration or cancel the action"));
