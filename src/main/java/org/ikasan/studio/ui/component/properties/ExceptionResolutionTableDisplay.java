@@ -35,7 +35,7 @@ public class ExceptionResolutionTableDisplay {
         this.exceptionResolver = exceptionResolver;
         this.componentInitialisation = componentInitialisation;
 
-        this.exceptionTitleField = new JLabel("Exception");
+        this.exceptionTitleField = new JLabel("Exception to be caught");
         this.actionTitleField = new JLabel("Action");
         this.paramsTitleField = new JLabel("Params");
 
@@ -59,7 +59,13 @@ public class ExceptionResolutionTableDisplay {
     }
 
     private void doAdd() {
-        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutionRowDisplayList, project, true);
+        List<String> listOfExceptionsAlreadyCaught;
+        if (exceptionResolutionRowDisplayList != null) {
+            listOfExceptionsAlreadyCaught = exceptionResolutionRowDisplayList.stream().map(x->x.getExceptionResolution().getExceptionsCaught()).toList();
+        } else {
+            listOfExceptionsAlreadyCaught = new ArrayList<>();
+        }
+        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(listOfExceptionsAlreadyCaught, project, true);
         ExceptionResolution newResolution = null;
         UiContext uiContext = project.getService(UiContext.class);
         try {

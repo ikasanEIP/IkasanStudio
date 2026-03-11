@@ -205,7 +205,7 @@ public class ExceptionResolutionEditBox {
         List<ValidationInfo> result = new ArrayList<>();
         if (exceptionJComboBox.getSelectedItem() == null) {
             result.add(new ValidationInfo("A valid exception must be set"));
-        } else if (resolutionPanel.hasExceptionResolution((String)exceptionJComboBox.getSelectedItem())) {
+        } else if (resolutionPanel.hasExceptionAlreadyBeenConfigured((String)exceptionJComboBox.getSelectedItem())) {
             result.add(new ValidationInfo("The exception " + exceptionJComboBox.getSelectedItem() + " already has an assigned action, change the exception or cancel"));
         } else if (actionJComboBox.getSelectedItem() == null) {
             result.add(new ValidationInfo("An action must be chosen"));

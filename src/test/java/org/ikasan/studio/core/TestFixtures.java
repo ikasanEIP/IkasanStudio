@@ -23,14 +23,15 @@ public class TestFixtures {
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
     public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_3;
+    public static Stream<String> metaPacksToTest() {
+        return Stream.of(BASE_META_PACK, META_IKASAN_PACK_3_3_8);
+    }
 
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
     public static final String TEST_CRON_EXPRESSION = "0 0/1 * * * ?";
 
-    public static Stream<String> metaPacksToTest() {
-        return Stream.of(META_IKASAN_PACK_3_3_3, META_IKASAN_PACK_3_3_8);
-    }
+
 
     public static Module getMyFirstModuleIkasanModule(String metaPackVersion, List<Flow> flows) throws StudioBuildException {
         Module newModule = Module.moduleBuilder()
@@ -436,27 +437,39 @@ public class TestFixtures {
 
 
     // ------------------------- ExceptionResolver -------------------------
+    public static ExceptionResolution getTestJMSExceptionResolution(String metaPackVersion) throws StudioBuildException {
+        return ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(metaPackVersion)
+                .exceptionsCaught("javax.jms.JMSException.class")
+                .theAction("retry")
+                .componentProperties(getRetryProperties(metaPackVersion))
+                .build();
+    }
 
-    public static ExceptionResolver getExceptionResolver(String metaPackVersion) throws StudioBuildException {
-        ExceptionResolution jmsExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
-            .metapackVersion(metaPackVersion)
-            .exceptionsCaught("javax.jms.JMSException.class")
-            .theAction("retry")
-            .componentProperties(getRetryProperties(metaPackVersion))
-            .build();
-        ExceptionResolution resourceExceptionResolution = ExceptionResolution.exceptionResolutionBuilder()
-            .metapackVersion(metaPackVersion)
-            .exceptionsCaught("javax.resource.ResourceException.class")
-            .theAction("ignore")
-            .build();
+    public static ExceptionResolution getTestResourceExceptionResolution(String metaPackVersion) throws StudioBuildException {
+        return ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(metaPackVersion)
+                .exceptionsCaught("javax.resource.ResourceException.class")
+                .theAction("ignore")
+                .build();
+    }
+
+
+    public static Map<String, ExceptionResolution> getExceptionResolutionMap(String metaPackVersion) throws StudioBuildException {
+        ExceptionResolution jmsExceptionResolution = getTestJMSExceptionResolution(metaPackVersion);
+        ExceptionResolution resourceExceptionResolution = getTestResourceExceptionResolution(metaPackVersion);
 
         Map<String, ExceptionResolution> exceptionResolutionMap = new HashMap<>();
         exceptionResolutionMap.put(jmsExceptionResolution.getExceptionsCaught(), jmsExceptionResolution);
         exceptionResolutionMap.put(resourceExceptionResolution.getExceptionsCaught(), resourceExceptionResolution);
 
+        return exceptionResolutionMap;
+    }
+
+    public static ExceptionResolver getExceptionResolver(String metaPackVersion) throws StudioBuildException {
         return ExceptionResolver.exceptionResolverBuilder()
             .metapackVersion(metaPackVersion)
-            .ikasanExceptionResolutionMap(exceptionResolutionMap)
+            .ikasanExceptionResolutionMap(getExceptionResolutionMap(metaPackVersion))
             .build();
     }
 

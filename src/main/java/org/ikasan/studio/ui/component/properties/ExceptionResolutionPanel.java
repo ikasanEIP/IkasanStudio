@@ -19,16 +19,20 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * Encapsulate the properties entry from a UI and validity perspective.
- * This panel contains the data entry for the exception and action
+ * Exception Resolver Properties Panel - Add new Exception to Action mapping
+ * Components:
+ * - Exception (to be resolved), the possible values come from the metadata of an exception resolver component
+ * - Action (to be taken when the above exception occurs), the possible values come from the metadata of an exception resolver component
+ * - Mandatory Properties (relating to the action i.e. some actions have mandatory properties e.g. retry action has 'number of retries')
+ * - Option Properties (relating to the action)
  */
 @SuppressWarnings("rawtypes")
 public class ExceptionResolutionPanel extends PropertiesPanel {
-    private static final String OK_BUTTON_TEST = "Add";
-    private final transient List<ExceptionResolutionRowDisplay> exceptionResolutionRowDisplayList;
+    private static final String OK_BUTTON_TEXT = "Add";
+    private final transient List<String> listOfExceptionsAlreadyConfigured;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     @SuppressWarnings("rawtypes")
-    private final JBPanel exceptionActionEditorPanel = new JBPanel(new GridBagLayout());      // contains the Exception and action
+    private final JBPanel exceptionAndActionEditorPanel = new JBPanel(new GridBagLayout());   // contains the Exception and action
     @SuppressWarnings("rawtypes")
     private final JBPanel mandatoryPropertiesEditorPanel = new JBPanel(new GridBagLayout());  // contains the Mandatory properties for the action
     @SuppressWarnings("rawtypes")
@@ -39,12 +43,13 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
      * Create the ExceptionResolutionPanel
      * Note that this panel could be reused for different ExceptionResolutionProperties, it is the super.updateTargetComponent
      * that will set the property to be exposed / edited.
+     * @param listOfExceptionsAlreadyConfigured list of exception that already have mappings.
      * @param project is the Intellij project instance
      * @param componentInitialisation true if this is for the popup version, false if this is for the canvas sidebar.
      */
-    public ExceptionResolutionPanel(List<ExceptionResolutionRowDisplay> exceptionResolutionRowDisplayList, Project project, boolean componentInitialisation) {
+    public ExceptionResolutionPanel(List<String> listOfExceptionsAlreadyConfigured, Project project, boolean componentInitialisation) {
         super(project, componentInitialisation);
-        this.exceptionResolutionRowDisplayList = exceptionResolutionRowDisplayList;
+        this.listOfExceptionsAlreadyConfigured = listOfExceptionsAlreadyConfigured;
     }
 
     /**
@@ -113,8 +118,13 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         }
     }
 
+    /**
+     * Update the upper portion of the popu i.e.
+     * Exception
+     * Action
+     */
     private void updateExceptionAndAction() {
-        exceptionActionEditorPanel.removeAll();
+        exceptionAndActionEditorPanel.removeAll();
         ExceptionResolverMeta exceptionResolverMeta = null;
         UiContext uiContext = project.getService(UiContext.class);
         try {
@@ -129,13 +139,18 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             gc.fill = GridBagConstraints.HORIZONTAL;
             gc.insets = JBUI.insets(3, 4);
 
-            addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
-            addLabelAndSimpleInput(exceptionActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
-            addToScrollPanelContent(exceptionActionEditorPanel, "", StudioUIUtils.getLineColor(), 0);
+            addLabelAndSimpleInput(exceptionAndActionEditorPanel, gc, 0, exceptionResolutionEditBox.getExceptionTitleField(), exceptionResolutionEditBox.getExceptionJComboBox());
+            addLabelAndSimpleInput(exceptionAndActionEditorPanel, gc, 1, exceptionResolutionEditBox.getActionTitleField(), exceptionResolutionEditBox.getActionJComboBox());
+            addToScrollPanelContent(exceptionAndActionEditorPanel, "", StudioUIUtils.getLineColor(), 0);
         }
     }
 
-    public void updatePropertiesForAction() {
+    /**
+     * Update the lower part of the popup i.e.
+     * Mandatory Properties
+     * OptionParpertied`
+     */
+    private void updatePropertiesForAction() {
         mandatoryPropertiesEditorPanel.removeAll();
         optionalPropertiesEditorPanel.removeAll();
 
@@ -165,7 +180,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
     @Override
     protected String getOKButtonText() {
-        return OK_BUTTON_TEST;
+        return OK_BUTTON_TEXT;
     }
 
     /**
@@ -245,7 +260,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         return exceptionResolutionEditBox.doValidateAll();
     }
 
-    public boolean hasExceptionResolution(String exception) {
-        return exceptionResolutionRowDisplayList.stream().anyMatch(res -> res.getIkasanExceptionResolution().getExceptionsCaught().equals(exception));
+    public boolean hasExceptionAlreadyBeenConfigured(String exception) {
+        return listOfExceptionsAlreadyConfigured.stream().anyMatch(res -> res.equals(exception));
     }
 }
