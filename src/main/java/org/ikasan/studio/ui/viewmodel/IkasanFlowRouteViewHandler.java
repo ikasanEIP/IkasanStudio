@@ -188,13 +188,15 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
     }
 
     /**
-     * Initilise the demonsions of the components
+     * Initilise the dimensions of the components
      * @param graphics handle
      * @param currentX for the start of the flow route
      * @param topYForElements top y for flow elements
      * @return the new top Y for flow elements
      */
     protected int initialiseDimensions(Graphics graphics, int currentX, int topYForElements) {
+        this.setTopY( topYForElements);
+        this.setLeftX(currentX);
         java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
