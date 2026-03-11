@@ -16,7 +16,6 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 15;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 42;
     private final int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
-    private final int flowchartSymbolWidth = FLOWCHART_SYMBOL_DEFAULT_WIDTH;
 
     FlowElement flowElement;
 
