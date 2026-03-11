@@ -25,10 +25,7 @@ import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.ge
 @Getter
 public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final Project project;
-//    public static final int FLOW_X_SPACING = 30;
-    public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
-    public static final int CONTAINER_CORNER_ARC = 30;
 
     private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
     private final Flow flow;
@@ -105,7 +102,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 if (index == 0 && parent != null) {
                     List<FlowElement> previousRouteFlowElements = parent.getFlowElements();
                     if (previousRouteFlowElements != null && ! previousRouteFlowElements.isEmpty()) {
-                        FlowElement lastElementPreviousRoute = previousRouteFlowElements.get(previousRouteFlowElements.size()-1);
+                        FlowElement lastElementPreviousRoute = previousRouteFlowElements.getLast();
                         IkasanFlowComponentViewHandler lastElementPreviousRouteViewHandler = getOrCreateFlowComponentViewHandler(project, lastElementPreviousRoute);
                         drawConnector(g, lastElementPreviousRouteViewHandler, flowComponentViewHandler);
                     }
@@ -255,7 +252,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(0));
+            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.getFirst());
             return firstElementViewHandler.getLeftX() - firstElementViewHandler.getLeadingGap();
         }
     }
@@ -272,7 +269,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            return getOrCreateAbstractViewHandler(project, flowElementList.get(0)).getTopY();
+            return getOrCreateAbstractViewHandler(project, flowElementList.getFirst()).getTopY();
         }
     }
 
@@ -290,7 +287,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(flowElementList.size()-1));
+            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.getLast());
             return lastFlowElementViewHandler.getRightX() + lastFlowElementViewHandler.getTrailingGap();
         }
     }
