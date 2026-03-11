@@ -1,0 +1,104 @@
+package org.ikasan.studio.ui.harness;
+
+import com.intellij.ui.components.JBPanel;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
+import org.ikasan.studio.ui.component.canvas.CanvasPanel;
+import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ExceptionResolutionPanel;
+import org.ikasan.studio.ui.component.properties.ExceptionResolutionRowDisplay;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PanelHarness extends ComponentTestHarness {
+
+    /**
+     * This is a test method, not a standard application entry point.
+     * To run this harness, right-click this method in your IDE and select "Run 'displayPaletteTabPanel()'".
+     * This executes the test within the IntelliJ Platform environment, which is required for UI components.
+     */
+    @Test
+    void displayPaletteTabPanel() {
+        // It's important to create and manipulate UI components on the EDT.
+        // BasePlatformTestCase and our showInFrame method handle this for you.
+        PaletteTabPanel paletteTabPanel = new PaletteTabPanel(getProject());
+        showInFrame(paletteTabPanel, "PaletteTabPanel Harness");
+    }
+    /**
+     * This is a test method, not a standard application entry point.
+     * To run this harness, right-click this method in your IDE and select "Run 'displayComponentPropertiesPanel()'".
+     * This executes the test within the IntelliJ Platform environment, which is required for UI components.
+     */
+    @Test
+    void displayComponentPropertiesPanel() {
+        // It's important to create and manipulate UI components on the EDT.
+        // BasePlatformTestCase and our showInFrame method handle this for you.
+        ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(getProject(), false);
+        showInFrame(componentPropertiesPanel, "displayComponentPropertiesPanel Harness");
+    }
+    /**
+     * This is a test method, not a standard application entry point.
+     * To run this harness, right-click this method in your IDE and select "Run 'displayCanvasPanel()'".
+     * This executes the test within the IntelliJ Platform environment, which is required for UI components.
+     */
+    @Test
+    void displayCanvasPanel() {
+        // It's important to create and manipulate UI components on the EDT.
+        // BasePlatformTestCase and our showInFrame method handle this for you.
+        CanvasPanel canvasPanel = new CanvasPanel(getProject());
+        showInFrame(canvasPanel, "CanvasPanel Harness");
+    }
+//    /**
+//     * This is a test method, not a standard application entry point.
+//     * To run this harness, right-click this method in your IDE and select "Run 'displayExceptionResolutionPanel()'".
+//     * This executes the test within the IntelliJ Platform environment, which is required for UI components.
+//     */
+//    @ParameterizedTest
+//    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+////    @Test
+//    void displayExceptionResolutionPanel(String metaPackVersion) throws StudioBuildException {
+//        List<ExceptionResolution> exceptionResolutions = new ArrayList<>();
+//        exceptionResolutions.addAll(TestFixtures.getExceptionResolutionMap(metaPackVersion).values());
+//        ExceptionResolutionRowDisplay exceptionResolutionRowDisplay =
+//        // It's important to create and manipulate UI components on the EDT.
+//        // BasePlatformTestCase and our showInFrame method handle this for you.
+//        //     public ExceptionResolutionPanel(List<org.ikasan.studio.ui.component.properties.ExceptionResolutionRowDisplay> exceptionResolutionList, Project project, boolean componentInitialisation) {
+//        ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(exceptionResolutions, getProject(), true);
+//        showInFrame(exceptionResolutionPanel, "ExceptionResolutionPanel Harness");
+//    }
+    /**
+     * This is a test method, not a standard application entry point.
+     * To run this harness, right-click this method in your IDE and select "Run 'displayScrollableGridbagPanel()'".
+     * This executes the test within the IntelliJ Platform environment, which is required for UI components.
+     */
+    @Test
+    void displayScrollableGridbagPanel() {
+        // It's important to create and manipulate UI components on the EDT.
+        // BasePlatformTestCase and our showInFrame method handle this for you.
+        ScrollableGridbagPanel scrollableGridbagPanel = new ScrollableGridbagPanel(new JBPanel());
+        showInFrame(scrollableGridbagPanel, "ScrollableGridbagPanel Harness");
+    }
+
+    /**
+     * This main method is for informational purposes only.
+     * You cannot run Swing UI tests that depend on the IntelliJ Platform
+     * via a standard main() method. Please run the @Test method above.
+     */
+    public static void main(String[] args) {
+        System.out.println("-----------------------------------------------------------------");
+        System.out.println("ERROR: You cannot run this harness using a standard main() method.");
+        System.out.println("This is because it needs the IntelliJ Platform to be initialized.");
+        System.out.println("\nTo run this harness:");
+        System.out.println("1. Open this file in your IntelliJ IDE.");
+        System.out.println("2. Right-click on the 'displayPaletteTabPanel' method.");
+        System.out.println("3. Select \"Run 'displayPaletteTabPanel()'\" from the context menu.");
+        System.out.println("-----------------------------------------------------------------");
+    }
+}

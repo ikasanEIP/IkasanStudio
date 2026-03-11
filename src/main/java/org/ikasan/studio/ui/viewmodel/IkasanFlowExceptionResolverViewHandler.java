@@ -76,6 +76,7 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
         setLeftX(x);
         setTopY(y);
         setWidth(getCanvasIcon().getIconWidth());
+        setHeight(getCanvasIcon().getIconHeight());
     }
 
     public ImageIcon getCanvasIcon() {
