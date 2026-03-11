@@ -8,7 +8,6 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
@@ -111,7 +110,7 @@ public abstract class PropertiesPanel extends JBPanel {
      * @return A String containing the panel title.
      */
     public String getPropertiesPanelTitle() {
-        String propertyType = "";
+        String propertyType;
         if (selectedComponent instanceof Module) {
             propertyType = "Module " + PROPERTIES_TAG;
         } else if (selectedComponent instanceof Flow) {
