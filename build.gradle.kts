@@ -77,14 +77,6 @@ sourceSets {
     }
 }
 
-// Tell IntelliJ IDEA that src/testHarness/java is a test source root so it shows
-// the green test-class gutter icons and allows right-click → Run on individual methods.
-idea {
-    module {
-        testSources.from(sourceSets["testHarness"].java.srcDirs)
-    }
-}
-
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {

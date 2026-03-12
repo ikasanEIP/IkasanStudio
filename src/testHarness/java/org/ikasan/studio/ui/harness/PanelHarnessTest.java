@@ -11,17 +11,19 @@ import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolutionPanel;
-import org.ikasan.studio.ui.component.properties.ExceptionResolutionRowDisplay;
-import org.ikasan.studio.ui.component.properties.ExceptionResolutionTableDisplay;
+import junit.framework.TestSuite;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class PanelHarness extends ComponentTestHarness {
-
+/**
+ * This class is used to display individual custom panels so that can be inspected and tested manually.
+ * It will NOT be executed as part of the general JUnit test run.
+ *
+ * The suite() method returns an empty TestSuite to prevent JUnit 3/Vintage (triggered by BasePlatformTestCase
+ * extending TestCase) from raising "No tests found". Individual methods can still be run via right-click in the IDE.
+ */
+public class PanelHarnessTest extends ComponentTestHarness {
     /**
      * This is a test method, not a standard application entry point.
      * To run this harness, right-click this method in your IDE and select "Run 'displayPaletteTabPanel()'".
