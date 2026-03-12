@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
@@ -21,10 +22,10 @@ public class ExceptionResolutionEditBox {
     ExceptionResolverMeta exceptionResolverMeta;
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
-    private final JComboBox exceptionJComboBox;
+    private final ComboBox exceptionJComboBox;
     private final JLabel actionTitleField;
     private String currentAction = null;
-    private final JComboBox actionJComboBox;
+    private final ComboBox actionJComboBox;
     private final JLabel paramsTitleField;
     private List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
     private final boolean componentInitialisation;
@@ -46,8 +47,8 @@ public class ExceptionResolutionEditBox {
                 .map(ExceptionActionMeta::getActionName)
                 .toArray();
 
-        this.actionJComboBox = new JComboBox(actions);
-        this.exceptionJComboBox = new JComboBox(exceptions);
+        this.actionJComboBox = new ComboBox(actions);
+        this.exceptionJComboBox = new ComboBox(exceptions);
 
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel("Exception");

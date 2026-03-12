@@ -3,6 +3,7 @@ package org.ikasan.studio.core.generator;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -14,13 +15,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ApplicationTemplateTest {
 
+    @BeforeAll
+    static void warmUpTemplateEngine() throws StudioBuildException, StudioGeneratorException {
+        // Process a template here, before ThreadLeakTrackerExtension.beforeEach() captures the
+        // per-test thread baseline. Classloader I/O during template loading lazily starts system
+        // daemon threads (NIO EPoll, Java2D Disposer). Running a generation here ensures those
+        // threads are already alive when beforeEach snapshots, so afterEach won't flag them.
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, new ArrayList<>());
+        ApplicationTemplate.create(module);
+    }
+
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/Application.java
      * @throws IOException if the template cant be generated
-     * Note: This test may trigger ThreadLeakTracker warnings due to Freemarker template processing
-     * and Java2D/AWT background threads. This is a known limitation of the test framework and not
-     * an application-level issue. The leaked threads are system-level (EPoll, Java2D, Coroutines)
-     * and do not indicate a problem with the application code.
      */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")

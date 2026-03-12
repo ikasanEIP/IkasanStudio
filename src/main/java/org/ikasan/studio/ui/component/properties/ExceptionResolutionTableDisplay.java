@@ -60,11 +60,7 @@ public class ExceptionResolutionTableDisplay {
 
     private void doAdd() {
         List<String> listOfExceptionsAlreadyCaught;
-        if (exceptionResolutionRowDisplayList != null) {
-            listOfExceptionsAlreadyCaught = exceptionResolutionRowDisplayList.stream().map(x->x.getExceptionResolution().getExceptionsCaught()).toList();
-        } else {
-            listOfExceptionsAlreadyCaught = new ArrayList<>();
-        }
+        listOfExceptionsAlreadyCaught = exceptionResolutionRowDisplayList.stream().map(x -> x.getExceptionResolution().getExceptionsCaught()).toList();
         ExceptionResolutionPanel exceptionResolutionPanel = new ExceptionResolutionPanel(listOfExceptionsAlreadyCaught, project, true);
         ExceptionResolution newResolution = null;
         UiContext uiContext = project.getService(UiContext.class);

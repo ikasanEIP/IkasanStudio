@@ -4,12 +4,24 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.BeforeAll;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public abstract class AbstractGeneratorTestFixtures {
+
+    @BeforeAll
+    static void warmUpTemplateEngine() throws StudioBuildException, StudioGeneratorException {
+        // Process a template here, before ThreadLeakTrackerExtension.beforeEach() captures the
+        // per-test thread baseline. Classloader I/O during template loading lazily starts system
+        // daemon threads (NIO EPoll, Java2D Disposer). Running a generation here ensures those
+        // threads are already alive when beforeEach snapshots, so afterEach won't flag them.
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, new ArrayList<>());
+        ApplicationTemplate.create(module);
+    }
 
     public String generatePropertiesTemplateString(String metaPackVersion, Module module, FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
         Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)

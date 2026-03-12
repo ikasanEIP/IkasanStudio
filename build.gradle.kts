@@ -1,6 +1,5 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 
@@ -9,6 +8,7 @@ plugins {
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
+    id("idea")
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -59,6 +59,29 @@ dependencies {
         pluginVerifier()
         zipSigner()
         testFramework(TestFrameworkType.Platform)
+    }
+}
+
+// Source set for UI visual test harnesses that require human inspection.
+// Lives in src/testHarness/java so it is never on the :test task's classpath.
+// IntelliJ IDEA associates right-click → Run with :runHarness because that task
+// declares testClassesDirs pointing at this source set's output directories.
+sourceSets {
+    create("testHarness") {
+        java.srcDir("src/testHarness/java")
+        // Needs main output (production UI/core classes), test output (TestFixtures, etc.),
+        // and the full test compile/runtime dependency graph (IntelliJ Platform, JUnit, etc.)
+        compileClasspath += sourceSets["main"].output + sourceSets["test"].output +
+                configurations["testCompileClasspath"]
+        runtimeClasspath += output + configurations["testRuntimeClasspath"]
+    }
+}
+
+// Tell IntelliJ IDEA that src/testHarness/java is a test source root so it shows
+// the green test-class gutter icons and allows right-click → Run on individual methods.
+idea {
+    module {
+        testSources.from(sourceSets["testHarness"].java.srcDirs)
     }
 }
 
@@ -141,10 +164,58 @@ tasks {
         dependsOn(patchChangelog)
     }
 
+    // Standard test task — only scans src/test/java output. PanelHarnessTest is in
+    // src/testHarness/java so it is never on this task's classpath and never runs here.
     test {
         useJUnitPlatform()
     }
+
+    // Task to run the UI visual harnesses. testClassesDirs is set to the testHarness
+    // source set output so IntelliJ IDEA knows to delegate right-click → Run on harness
+    // classes to this task rather than :test.
+    register<Test>("runHarness") {
+        group = "verification"
+        description = "Runs the UI component test harnesses."
+        testClassesDirs = sourceSets["testHarness"].output.classesDirs
+        // The IntelliJ Platform Gradle Plugin only fully configures the standard :test task
+        // (classpath, JVM args, sandbox). Custom Test tasks get none of that automatically.
+        // We depend on prepareTest so the sandbox is created, then copy everything from :test
+        // at execution time and append the compiled testHarness classes.
+        dependsOn("prepareTest")
+        useJUnitPlatform()
+        // ConfigurableFileCollection is configuration-cache serializable; SourceSetOutput is not.
+        val testHarnessOutput: ConfigurableFileCollection = objects.fileCollection()
+            .from(sourceSets["testHarness"].output)
+        // This task reads :test's classpath/JVM args at execution time, which is inherently
+        // incompatible with configuration caching. This only affects ./gradlew runHarness;
+        // ./gradlew test continues to benefit from the configuration cache normally.
+        notCompatibleWithConfigurationCache("runHarness inherits :test classpath and JVM args at execution time")
+        doFirst {
+            // Inside doFirst the implicit receiver is Task, not Test — cast explicitly.
+            val runHarness = this as Test
+            val testTask = project.tasks.named("test", Test::class.java).get()
+            runHarness.classpath = testTask.classpath + testHarnessOutput
+            // jvmArgs only captures eagerly-set args. The IntelliJ Platform Gradle Plugin
+            // adds --add-opens and other module flags via jvmArgumentProviders (lazy providers).
+            // Resolve both sources so the forked test JVM has the full set of flags.
+            val allJvmArgs = (testTask.jvmArgs ?: emptyList()) +
+                testTask.jvmArgumentProviders.flatMap { it.asArguments() }
+            runHarness.setJvmArgs(allJvmArgs)
+            runHarness.systemProperties.putAll(testTask.systemProperties)
+            runHarness.environment.putAll(testTask.environment)
+        }
+    }
+
+    // Task to run ALL tests including UI tests
+    register<Test>("allTests") {
+        description = "Runs all tests including UI visual tests"
+        group = "verification"
+
+        useJUnitPlatform()
+        ignoreFailures = true  // Accept ThreadLeakTracker failures from UI tests
+    }
 }
+
 
 intellijPlatformTesting {
     runIde {
