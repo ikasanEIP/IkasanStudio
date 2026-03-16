@@ -60,7 +60,7 @@ public class PaletteTabPanel extends JBPanel {
 
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         paletteSplitPane.setBorder(JBUI.Borders.empty());
-        paletteSplitPane.setDividerSize(2);
+        paletteSplitPane.setDividerSize(3);
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {
@@ -83,11 +83,6 @@ public class PaletteTabPanel extends JBPanel {
         paletteBodyPanel.setLayout(new BorderLayout());
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(getThemeAwareBackgroundColor());
-
-        @SuppressWarnings("rawtypes")
-        JBPanel linePanel = new JBPanel();
-        linePanel.setBorder(BorderFactory.createMatteBorder(JBUI.scale(1),0,0,0, StudioUIUtils.getLineColor()));
-        add(linePanel, BorderLayout.NORTH);
         add(paletteBodyPanel, BorderLayout.CENTER);
     }
 

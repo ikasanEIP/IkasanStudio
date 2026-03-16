@@ -5,7 +5,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
@@ -46,11 +45,6 @@ public class CanvasPanel extends JBPanel implements Disposable {
             designerCanvasRef.repaint();
         });
         canvasHeaderButtonPanel.add(gridCheckBox);
-        @SuppressWarnings("rawtypes")
-        JBPanel canvasHeaderPanel = new JBPanel();
-        canvasHeaderPanel.setBorder(BorderFactory.createMatteBorder(0,0,JBUI.scale(1),0, StudioUIUtils.getLineColor()));
-        canvasHeaderPanel.add(canvasHeaderButtonPanel);
-
         // This may be redundant now we have Intellij Messaging
         canvasTextArea = new JTextArea();
         uiContext.setCanvasTextArea(canvasTextArea);
@@ -59,7 +53,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
         add(canvasTextArea, BorderLayout.SOUTH);
 
         setLayout(new BorderLayout());
-        add(canvasHeaderPanel, BorderLayout.NORTH);
+        add(canvasHeaderButtonPanel, BorderLayout.NORTH);
 
         JBScrollPane canvasScrollPane = new JBScrollPane();
         canvasScrollPane.setBorder(JBUI.Borders.empty());
