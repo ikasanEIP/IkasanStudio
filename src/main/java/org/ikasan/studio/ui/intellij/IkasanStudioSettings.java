@@ -5,6 +5,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.wm.ToolWindowType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Application-level persistent settings for Ikasan Studio.
@@ -37,15 +38,22 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     }
 
     @Override
-    public void loadState(State state) {
+    public void loadState(@NotNull State state) {
         this.state = state;
     }
 
-    public ToolWindowType getToolWindowType() {
-        return state.dockedMode ? ToolWindowType.DOCKED : ToolWindowType.SLIDING;
+    /**
+     * Null-safe read of the docked-mode preference. Returns true (DOCKED) as the safe default
+     * if the application service or its state has not yet been initialised.
+     */
+    public static boolean isDockedModeEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return true;
+        State s = instance.getState();
+        return s == null || s.dockedMode;
     }
 
-    public boolean isDockedMode() {
-        return state.dockedMode;
+    public ToolWindowType getToolWindowType() {
+        return isDockedModeEnabled() ? ToolWindowType.DOCKED : ToolWindowType.SLIDING;
     }
 }

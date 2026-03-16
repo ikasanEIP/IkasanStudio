@@ -54,18 +54,21 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        IkasanStudioSettings settings = IkasanStudioSettings.getInstance();
-        return dockedButton.isSelected() != settings.getState().dockedMode;
+        return dockedButton.isSelected() != IkasanStudioSettings.isDockedModeEnabled();
     }
 
     @Override
     public void apply() {
-        IkasanStudioSettings.getInstance().getState().dockedMode = dockedButton.isSelected();
+        IkasanStudioSettings instance = IkasanStudioSettings.getInstance();
+        IkasanStudioSettings.State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.dockedMode = dockedButton.isSelected();
+        }
     }
 
     @Override
     public void reset() {
-        boolean docked = IkasanStudioSettings.getInstance().getState().dockedMode;
+        boolean docked = IkasanStudioSettings.isDockedModeEnabled();
         dockedButton.setSelected(docked);
         slidingButton.setSelected(!docked);
     }

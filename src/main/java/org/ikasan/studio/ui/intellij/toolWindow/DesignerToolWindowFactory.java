@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -27,7 +28,9 @@ public class DesignerToolWindowFactory implements ToolWindowFactory {
         // SLIDING mode overlays the editor but IntelliJ's global mouse tracking collapses the
         // panel mid-drag (an IntelliJ Platform limitation with no supported workaround).
         // In either mode we maximise on open so the canvas has maximum available width.
-        toolWindow.setType(IkasanStudioSettings.getInstance().getToolWindowType(), null);
+        toolWindow.setType(
+                IkasanStudioSettings.isDockedModeEnabled() ? ToolWindowType.DOCKED : ToolWindowType.SLIDING,
+                null);
 
         DesignerUI designerUI = new DesignerUI(toolWindow, project);
 
