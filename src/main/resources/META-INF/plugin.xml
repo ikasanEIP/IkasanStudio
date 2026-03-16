@@ -20,9 +20,16 @@
                     anchor="right"
 		    icon="/studio/icons/squid13x13.png"
         />
-    </extensions>
 
-    <extensions defaultExtensionNs="com.intellij">
+        <applicationService
+            serviceImplementation="org.ikasan.studio.ui.intellij.IkasanStudioSettings"/>
+
+        <applicationConfigurable
+            parentId="tools"
+            instance="org.ikasan.studio.ui.intellij.IkasanStudioSettingsConfigurable"
+            id="ikasan.studio.settings"
+            displayName="Ikasan Studio"/>
+
         <notificationGroup id="Ikasan Studio" displayType="BALLOON"/>
     </extensions>
 
