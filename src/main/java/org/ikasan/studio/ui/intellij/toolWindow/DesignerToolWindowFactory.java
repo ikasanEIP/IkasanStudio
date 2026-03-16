@@ -32,7 +32,7 @@ public class DesignerToolWindowFactory implements ToolWindowFactory {
                 IkasanStudioSettings.isDockedModeEnabled() ? ToolWindowType.DOCKED : ToolWindowType.SLIDING,
                 null);
 
-        DesignerUI designerUI = new DesignerUI(toolWindow, project);
+        DesignerUI designerUI = new DesignerUI(project);
 
         ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(designerUI.getContent(), "", false);

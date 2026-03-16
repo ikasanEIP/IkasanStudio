@@ -4,8 +4,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
@@ -24,20 +22,17 @@ import java.awt.*;
 /**
  * Create all onscreen components and register inter-thread communication components with uiContext
  */
-@SuppressWarnings("rawtypes")
 public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final Project project;
-    @SuppressWarnings("rawtypes")
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JSplitPane propertiesAndCanvasSplitPane;
 
     /**
      * Create the main Designer window, this contains ALL the Ikasan Studio elements except source code.
-     * @param toolWindow is the Intellij frame in which this resides
      * @param project is the current Intellij project
      */
-    public DesignerUI(ToolWindow toolWindow, Project project) {
+    public DesignerUI(Project project) {
         this.project = project;
         project.getService(UiContext.class).setViewHandlerFactory(new ViewHandlerCache(this.project));
         paletteAndProperties.setBorder(JBUI.Borders.empty());
