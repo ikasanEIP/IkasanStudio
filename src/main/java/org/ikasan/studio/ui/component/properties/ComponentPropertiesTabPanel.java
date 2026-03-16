@@ -10,9 +10,18 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 
+/**
+ * This Panel resides in the left Nav. It consists of a SplitPane
+ * -----------------------------
+ * | The propertied CRUD Panel
+ * -------------------------------
+ * | A Description panel at the bottom, containing text to describe the currently edit component.
+ * -----------------------------
+ * The Panel is reusable in line with Intellij guidelines, updateTargetComponent will update the panel so it can be used to
+ * maintain the component currently selected in the canvas.
+ */
 @SuppressWarnings("rawtypes")
 public class ComponentPropertiesTabPanel extends JBPanel {
-//    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Workaround for nested component heights not being known at time of creation.
     final JSplitPane paletteSplitPane;
 
     ComponentPropertiesPanel componentPropertiesPanel;
@@ -53,11 +62,8 @@ public class ComponentPropertiesTabPanel extends JBPanel {
      * @param selectedComponent that now needs to be updated.
      */
     public void updateTargetComponent(IkasanObject selectedComponent) {
-//        if (paletteSplitPane.getDividerLocation() > (getHeight() - 10)) {
-            paletteSplitPane.setDividerLocation(0.8);
-//        }
+        paletteSplitPane.setDividerLocation(0.8);
         componentPropertiesPanel.updateTargetComponent(selectedComponent);
         this.repaint();
     }
-
 }

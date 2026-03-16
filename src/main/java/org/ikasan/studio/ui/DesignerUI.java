@@ -29,19 +29,18 @@ public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final Project project;
     @SuppressWarnings("rawtypes")
-    private final JBPanel mainJPanel = new JBPanel();
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
+    JSplitPane propertiesAndCanvasSplitPane;
 
     /**
-     * Create the main Designer window
+     * Create the main Designer window, this contains ALL the Ikasan Studio elements except source code.
      * @param toolWindow is the Intellij frame in which this resides
      * @param project is the current Intellij project
      */
     public DesignerUI(ToolWindow toolWindow, Project project) {
-        this.project = project; // assign correctly
+        this.project = project;
         project.getService(UiContext.class).setViewHandlerFactory(new ViewHandlerCache(this.project));
         paletteAndProperties.setBorder(JBUI.Borders.empty());
-        // Use JBTabbedPane which respects IDE theme by default; avoid forcing a custom UI delegate.
 
         paletteAndProperties.setBorder(JBUI.Borders.empty());
         UiContext uiContext = project.getService(UiContext.class);
@@ -55,10 +54,10 @@ public class DesignerUI {
         ComponentPropertiesTabPanel componentPropertiesTabPanel = new ComponentPropertiesTabPanel(componentPropertiesPanel);
         uiContext.setPropertiesTabPanel(componentPropertiesTabPanel);
 
-        paletteAndProperties.addTab(null, componentPropertiesTabPanel);
+        paletteAndProperties.add(componentPropertiesTabPanel);
         paletteAndProperties.setTabComponentAt(0, createSpacedLabel(UiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
         paletteAndProperties.setBorder(JBUI.Borders.empty());
-        JSplitPane propertiesAndCanvasSplitPane = new JSplitPane(
+        propertiesAndCanvasSplitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 new CanvasPanel(this.project),
                 paletteAndProperties
@@ -66,6 +65,9 @@ public class DesignerUI {
 
         propertiesAndCanvasSplitPane.setBorder(JBUI.Borders.empty());
         propertiesAndCanvasSplitPane.setDividerSize(2);
+        // Canvas (left) absorbs all extra space when the IDE window is resized;
+        // the palette/properties panel (right) stays at its preferred width.
+        propertiesAndCanvasSplitPane.setResizeWeight(1.0);
         propertiesAndCanvasSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {
@@ -79,8 +81,6 @@ public class DesignerUI {
                 };
             }
         });
-        mainJPanel.setLayout(new BorderLayout());
-        mainJPanel.add(propertiesAndCanvasSplitPane, BorderLayout.CENTER);
         uiContext.setDesignerUI(this);
     }
 
@@ -90,8 +90,8 @@ public class DesignerUI {
         return label;
     }
 
-    public JPanel getContent() {
-        return mainJPanel;
+    public JComponent getContent() {
+        return propertiesAndCanvasSplitPane;
     }
 
     /**
@@ -112,6 +112,21 @@ public class DesignerUI {
                         uiContext.setPalettePanel(paletteTabPanel);
                         paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
                         uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
+                        // Defer divider positioning to the next EDT cycle so that Swing has
+                        // completed the layout pass for the new tab. At that point BasicListUI
+                        // has iterated all cells and font metrics are fully initialised, giving
+                        // an accurate preferred width for the palette content.
+                        // setDividerLocation() is used instead of resetToPreferredSizes() so the
+                        // position is derived from the split pane's actual realised width rather
+                        // than preferred-size bookkeeping.
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            int paletteWidth = paletteTabPanel.getPaletteScrollPanePreferredWidth();
+                            int splitWidth = propertiesAndCanvasSplitPane.getWidth();
+                            if (paletteWidth > 0 && splitWidth > paletteWidth) {
+                                propertiesAndCanvasSplitPane.setDividerLocation(
+                                        splitWidth - paletteWidth - propertiesAndCanvasSplitPane.getDividerSize());
+                            }
+                        });
                     });
                 });
             }

@@ -29,6 +29,16 @@ import java.util.List;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
 
+/**
+ * The Palette Tab Panel contains a SplitPane of :
+ * ------------------------
+ * | icon    component x
+ * | icon    component y
+ * ------------------------
+ * |        Description
+ * | description of currently selected component
+ * ------------------------
+ */
 @SuppressWarnings("rawtypes")
 public class PaletteTabPanel extends JBPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
@@ -64,14 +74,14 @@ public class PaletteTabPanel extends JBPanel {
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {
-                return new BasicSplitPaneDivider(this) {
-                    @Override
-                    public void paint(Graphics g) {
-                        g.setColor(StudioUIUtils.getLineColor());
-                        g.fillRect(0, 0, getSize().width, getSize().height);
-                        // don't call super.paint() which would put in the bevel.
-                    }
-                };
+            return new BasicSplitPaneDivider(this) {
+                @Override
+                public void paint(Graphics g) {
+                    g.setColor(StudioUIUtils.getLineColor());
+                    g.fillRect(0, 0, getSize().width, getSize().height);
+                    // don't call super.paint() which would put in the bevel.
+                }
+            };
             }
         });
 
@@ -114,6 +124,17 @@ public class PaletteTabPanel extends JBPanel {
         });
         paletteSplitPane.setLeftComponent(paletteScrollPane);
         paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
+    }
+
+    public int getPaletteScrollPanePreferredWidth() {
+        if (paletteList == null || paletteScrollPane == null) return 0;
+        // JScrollPane.getPreferredSize() uses JList.getPreferredScrollableViewportSize(),
+        // which returns a fixed 256px width regardless of cell content.
+        // paletteList.getPreferredSize() uses BasicListUI which iterates every cell via
+        // the cell renderer and returns the actual max content width.
+        Insets insets = paletteScrollPane.getInsets();
+        int scrollBarWidth = paletteScrollPane.getVerticalScrollBar().getPreferredSize().width;
+        return paletteList.getPreferredSize().width + insets.left + insets.right + scrollBarWidth;
     }
 
     public void resetPallette() {
