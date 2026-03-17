@@ -141,7 +141,7 @@ public class Module extends BasicElement {
     }
     @JsonIgnore
     public boolean getUseEmbeddedH2() {
-        return getPropertyValue(ComponentPropertyMeta.USE_EMBEDDED_H2) != null && (Boolean)getPropertyValue(ComponentPropertyMeta.USE_EMBEDDED_H2) ? true : false;
+        return getPropertyValue(ComponentPropertyMeta.USE_EMBEDDED_H2) != null && (Boolean) getPropertyValue(ComponentPropertyMeta.USE_EMBEDDED_H2);
     }
 
 

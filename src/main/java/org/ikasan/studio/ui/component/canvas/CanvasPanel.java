@@ -1,7 +1,6 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -14,7 +13,6 @@ import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {

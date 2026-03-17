@@ -22,7 +22,9 @@ import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JButton;
+import com.intellij.openapi.ui.ComboBox;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -48,7 +50,7 @@ public class DesignerCanvas extends JPanel {
     private boolean screenChanged = false;
     private final Project project;
     private final JButton startButton = new JButton("Choose metapack then click here");
-    private final JComboBox<Object> metaDataVersionJComboBox;
+    private final ComboBox<Object> metaDataVersionComboBox;
 
     /**
      * Convenience wrapper for cleaner code in this class.
@@ -96,12 +98,12 @@ public class DesignerCanvas extends JPanel {
         setTransferHandler(new CanvasImportTransferHandler( this));
 
         List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
-        metaDataVersionJComboBox = new JComboBox<>(installedMetapacks.toArray());
+        metaDataVersionComboBox = new ComboBox<>(installedMetapacks.toArray());
         // Create the properties popup panel for a new Module
         startButton.addActionListener(e ->
             {
                 UiContext uiContext = project.getService(UiContext.class);
-                String metapackVersion = (String) metaDataVersionJComboBox.getSelectedItem();
+                String metapackVersion = (String) metaDataVersionComboBox.getSelectedItem();
                 if (metapackVersion == null) {
                     StudioUIUtils.displayIdeaInfoMessage(this.project, "A module can't be created until at least one meta-pack is loaded.");
                 } else {
@@ -157,7 +159,7 @@ public class DesignerCanvas extends JPanel {
 
     public void enableModuleInitialiseProcess() {
         if (startButton.getParent() != this) {
-            this.add(metaDataVersionJComboBox);
+            this.add(metaDataVersionComboBox);
             this.add(startButton);
         }
     }
@@ -166,8 +168,8 @@ public class DesignerCanvas extends JPanel {
         if (startButton != null) {
             this.remove(startButton);
         }
-        if (metaDataVersionJComboBox != null) {
-            this.remove(metaDataVersionJComboBox);
+        if (metaDataVersionComboBox != null) {
+            this.remove(metaDataVersionComboBox);
         }
     }
 
@@ -580,12 +582,17 @@ public class DesignerCanvas extends JPanel {
                     containingFlowRoute = ((FlowElement)targetElement).getContainingFlowRoute();
                 }
 
-                //  If the add is not allowed, return false.
-                if (containingFlowRoute != null && ! containingFlowRoute.isValidToAdd(ikasanComponentType)) {
+                // Defensive
+                if (containingFlow == null || containingFlowRoute == null || containingFlow.getFlowRoute() == null) {
+                    LOG.warn("STUDIO: WARNING: despite thinking we are over a flow, it appears either of the following were null which is not expected " +
+                            "containingFlow " + containingFlow + " containingFlowRoute " + containingFlowRoute + " containingFlow.getFlowRoute() null " +
+                        " x " + x + " y " + y);
                     resetContextSensitiveHighlighting();
                     return false;
                 }
-                if (containingFlow != null && !containingFlow.getFlowRoute().isValidToAdd(ikasanComponentType)) {
+
+                //  If the add is not allowed, return false.
+                if (! containingFlowRoute.isValidToAdd(ikasanComponentType) || !containingFlow.getFlowRoute().isValidToAdd(ikasanComponentType)) {
                     resetContextSensitiveHighlighting();
                     return false;
                 }

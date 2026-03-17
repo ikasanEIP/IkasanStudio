@@ -50,7 +50,7 @@ public class DesignerUI {
         uiContext.setPropertiesTabPanel(componentPropertiesTabPanel);
 
         paletteAndProperties.add(componentPropertiesTabPanel);
-        paletteAndProperties.setTabComponentAt(0, createSpacedLabel(UiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
+        paletteAndProperties.setTabComponentAt(0, createPropertiesLabel());
         paletteAndProperties.setBorder(JBUI.Borders.empty());
 
         CanvasPanel canvasPanel = new CanvasPanel(this.project);
@@ -82,9 +82,9 @@ public class DesignerUI {
         uiContext.setDesignerUI(this);
     }
 
-    protected JLabel createSpacedLabel(String title, int top, int left, int bottom, int right) {
-        JLabel label = new JLabel(title);
-        label.setBorder(JBUI.Borders.empty(top, left, bottom, right)); // top, left, bottom, right
+    protected JLabel createPropertiesLabel() {
+        JLabel label = new JLabel(UiContext.PROPERTIES_TAB_TITLE);
+        label.setBorder(JBUI.Borders.empty(13, 0)); // top, left, bottom, right
         return label;
     }
 

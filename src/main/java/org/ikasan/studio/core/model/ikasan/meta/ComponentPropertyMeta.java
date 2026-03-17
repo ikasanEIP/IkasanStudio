@@ -93,6 +93,7 @@ public class ComponentPropertyMeta {
     private String propertyConfigFileLabel; // Identifies the spring injected property name
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
+    @SuppressWarnings("rawtypes")
     private Class propertyDataType = java.lang.String.class;    // Of the property
     private boolean readOnlyProperty;       // The property can be viewed but not changed
     @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.

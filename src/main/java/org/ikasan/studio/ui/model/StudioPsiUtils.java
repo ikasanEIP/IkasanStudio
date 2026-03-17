@@ -22,6 +22,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
@@ -256,7 +257,7 @@ public class StudioPsiUtils {
                 return returnFile;
             }
         }
-        LOG.warn("STUDIO: WARNING: Could not find any " + POM_XML + " " + project.getName() + " project root " + virtualProjectRoot.getPath());
+        LOG.warn("STUDIO: WARNING: Could not find any " + POM_XML + " " + project.getName() + " project root " + (virtualProjectRoot == null ? "null" : virtualProjectRoot.getPath()));
         return null;
     }
 
@@ -395,7 +396,7 @@ public class StudioPsiUtils {
         WriteCommandAction.runWriteCommandAction(project, () -> {
             try {
                 // Get the base directory of the project
-                VirtualFile baseDir = project.getBaseDir();
+                VirtualFile baseDir = ProjectUtil.guessProjectDir(project);
                 if (baseDir == null) {
                     throw new IllegalStateException("Project base directory is null");
                 }

@@ -21,24 +21,18 @@ import java.util.TreeMap;
 
 /**
  * Project-level service that manages UI context and state for a given project.
- *
  * This service replaces the previous singleton pattern with IntelliJ's ProjectService framework,
  * providing:
- * - Better lifecycle management (automatically disposed when project closes)
+ * - Better lifecycle management (automatically disposed when the project closes)
  * - Thread-safe initialization and access via the service locator
  * - Separation of concerns per project
  * - Simplified testing and dependency injection
- *
  * Usage: {@code UiContext service = project.getService(UiContext.class);}
  *
  * @see com.intellij.openapi.components.Service
  */
 @Service(Service.Level.PROJECT)
 public final class UiContext {
-
-    public static final String JAVA_FILE_EXTENSION = "java";
-    public static final String XML_FILE_EXTENSION = "xml";
-
     private static final String CANVAS_PANEL = "canvasPanel";
     private static final String DESIGNER_CANVAS = "DesignerCanvas";
     private static final String PROJECT_REFRESH_TIMESTAMP = "projectRefreshTimeStamp";
@@ -179,10 +173,6 @@ public final class UiContext {
 
     public void setDesignerUI(DesignerUI designerUI) {
         putInCache(DESIGNER_UI, designerUI);
-    }
-
-    public DesignerUI getDesignerUI() {
-        return (DesignerUI) getFromCache(DESIGNER_UI);
     }
 
     public void setPropertiesPanel(ComponentPropertiesPanel componentPropertiesPanel) {
