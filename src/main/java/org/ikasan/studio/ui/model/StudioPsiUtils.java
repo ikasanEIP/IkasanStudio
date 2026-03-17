@@ -22,7 +22,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
@@ -396,7 +395,7 @@ public class StudioPsiUtils {
         WriteCommandAction.runWriteCommandAction(project, () -> {
             try {
                 // Get the base directory of the project
-                VirtualFile baseDir = ProjectUtil.guessProjectDir(project);
+                VirtualFile baseDir = getProjectBaseDir(project);
                 if (baseDir == null) {
                     throw new IllegalStateException("Project base directory is null");
                 }

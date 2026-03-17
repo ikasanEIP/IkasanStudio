@@ -57,7 +57,6 @@ public class StudioPsiStudioBuildUtilsHeavyTests  extends HeavyPlatformTestCase
         String testFile = "src/test/resources/org/ikasan/studio/pom.xml";
         String content = Files.readString(Paths.get(testFile));
         StudioPsiUtils.createPomFile(myProject, GENERATED_CONTENT_ROOT, "", content);
-        StudioPsiUtils.createPomFile(myProject, GENERATED_CONTENT_ROOT, "", content);
         String actualFile = StudioPsiUtils.readFileAsString(myProject, "generated/pom.xml");
         assertThat(actualFile, is(content));
     }
