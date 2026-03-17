@@ -113,7 +113,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             if (metaPackChanged && uiContext.getPalettePanel() != null) {
                 uiContext.getPalettePanel().resetPallette();
             }
-
+            uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
             uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
             uiContext.getDesignerCanvas().repaint();
             uiContext.getPalettePanel().repaint();

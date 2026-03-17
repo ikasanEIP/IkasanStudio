@@ -235,8 +235,8 @@ public class DesignerCanvas extends JPanel {
                     uiContext.getDesignerCanvas(),
                     exceptionResolverPanel);
             if (propertiesPopupDialogue.showAndGet()) {
-                //@TODO MODEL
                 StudioPsiUtils.refreshCodeFromModel(project);
+                uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
             }
         } else {
             uiContext.getPropertiesTabPanel().updateTargetComponent(basicElement);
@@ -627,6 +627,7 @@ public class DesignerCanvas extends JPanel {
                 }
             }
             StudioPsiUtils.refreshCodeFromModel(project);
+            uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
 
             initialiseAllDimensions = true;
             this.repaint();

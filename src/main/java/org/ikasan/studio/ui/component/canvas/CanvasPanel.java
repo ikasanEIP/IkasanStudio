@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -13,9 +14,11 @@ import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.util.Arrays;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
+    JButton h2Button = new JButton("H2 start");
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -26,11 +29,11 @@ public class CanvasPanel extends JBPanel implements Disposable {
         @SuppressWarnings("rawtypes")
         JBPanel canvasHeaderButtonPanel = new JBPanel();
         canvasHeaderButtonPanel.setBorder(null);
-        JButton h2Button = new JButton("H2 start");
+
         JButton applicationButton = new JButton("Module start");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(project), "Start the blue console in a browser (user/pass - admin/admin)");
-        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), "Start the H2 console in a browser");
+        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), "Start the H2 console in a browser, NOT needed if useEmbeddedH2 is set on the module config");
         addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project, applicationButton), "Start the Module");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(project), "Start the blue console in a browser (user/pass - admin/admin)");
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Load"), new ModelLoadAction(project), "Load the in module from disk");
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(project), "Regenerate the code from the in-memory module definition");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
@@ -75,5 +78,13 @@ public class CanvasPanel extends JBPanel implements Disposable {
         if (canvasTextArea.getCaret() instanceof DefaultCaret caret) {
             caret.setBlinkRate(0);
         }
+    }
+
+    /**
+     * There are conditions where starting H2 is not appropriate
+     * @param flag, if true will enable the button, otherwise disable it.
+     */
+    public void disableH2Button(boolean flag) {
+        h2Button.setEnabled(!flag);
     }
 }

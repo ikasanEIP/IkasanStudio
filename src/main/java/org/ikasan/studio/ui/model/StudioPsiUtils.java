@@ -340,52 +340,6 @@ public class StudioPsiUtils {
                 content, null);
     }
 
-
-//    /**
-//     * Fail fast string comparison ignoring white space
-//     * {@code @TODO} maybe allow white space between quotes
-//     * @param oldString to be compared
-//     * @param newString to be compared
-//     * @return true if both string are equal, ignoring any whitespace
-//     */
-//    public static boolean areEqualIgnoringWhitespace(String oldString, String newString) {
-//        if (oldString == null || newString == null) {
-//            return false; // Handle null values if needed
-//        }
-//        int ii = 0, jj = 0;
-//        int len1 = oldString.length(), len2 = newString.length();
-//        while (ii < len1 && jj < len2) {
-//            // Skip whitespace in str1
-//            while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
-//                ii++;
-//            }
-//            // Skip whitespace in str2
-//            while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
-//                jj++;
-//            }
-//            // If one string has reached its end but the other has not
-//            if (ii >= len1 || jj >= len2) {
-//                break;
-//            }
-//            // Compare characters
-//            if (oldString.charAt(ii) != newString.charAt(jj)) {
-//                return false; // Found a mismatch
-//            }
-//            ii++;
-//            jj++;
-//        }
-//        // Skip remaining whitespace in both strings
-//        while (ii < len1 && Character.isWhitespace(oldString.charAt(ii))) {
-//            ii++;
-//        }
-//        while (jj < len2 && Character.isWhitespace(newString.charAt(jj))) {
-//            jj++;
-//        }
-//        // If both indices have reached the end, strings are equal
-//        return ii == len1 && jj == len2;
-//    }
-
-
     public static void refreshCodeFromModelAndCauseRedraw(Project project) {
         // @TODO MODEL
         refreshCodeFromModel(project);
@@ -436,7 +390,6 @@ public class StudioPsiUtils {
                 "relativePath [" + relativePath + "]" +
                 "] directoryPath [" + directoryPath + "]" +
                 "] fileName [" + fileName + "]"
-//                "] fileContent [" + fileContent + "]"
         );
 
         WriteCommandAction.runWriteCommandAction(project, () -> {

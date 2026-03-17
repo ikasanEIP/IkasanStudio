@@ -24,6 +24,7 @@ public class ModelLoadAction implements ActionListener {
             // All UI operations must run on EDT
             ApplicationManager.getApplication().invokeLater(() -> {
                 UiContext uiContext = project.getService(UiContext.class);
+                uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
                 if (uiContext.getPalettePanel() != null) {
                     uiContext.getPalettePanel().resetPallette();
                 }

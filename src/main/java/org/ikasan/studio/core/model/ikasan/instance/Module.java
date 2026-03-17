@@ -139,6 +139,12 @@ public class Module extends BasicElement {
     public void setH2WebPortNumber(String portNumber) {
         this.setPropertyValue(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME, portNumber);
     }
+    @JsonIgnore
+    public boolean getUseEmbeddedH2() {
+        return getPropertyValue(ComponentPropertyMeta.USE_EMBEDDED_H2) != null && (Boolean)getPropertyValue(ComponentPropertyMeta.USE_EMBEDDED_H2) ? true : false;
+    }
+
+
 
     @JsonIgnore
     public String getMetaVersion() {

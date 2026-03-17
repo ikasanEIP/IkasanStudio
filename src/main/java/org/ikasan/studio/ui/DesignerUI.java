@@ -52,9 +52,12 @@ public class DesignerUI {
         paletteAndProperties.add(componentPropertiesTabPanel);
         paletteAndProperties.setTabComponentAt(0, createSpacedLabel(UiContext.PROPERTIES_TAB_TITLE, 13, 0, 13, 0));
         paletteAndProperties.setBorder(JBUI.Borders.empty());
+
+        CanvasPanel canvasPanel = new CanvasPanel(this.project);
+        uiContext.setCanvasPanel(canvasPanel);
         propertiesAndCanvasSplitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
-                new CanvasPanel(this.project),
+                canvasPanel,
                 paletteAndProperties
         );
 
@@ -107,6 +110,7 @@ public class DesignerUI {
                         uiContext.setPalettePanel(paletteTabPanel);
                         paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
                         uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
+                        uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
                         // Defer divider positioning to the next EDT cycle so that Swing has
                         // completed the layout pass for the new tab. At that point BasicListUI
                         // has iterated all cells and font metrics are fully initialised, giving

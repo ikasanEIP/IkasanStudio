@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
@@ -39,6 +40,7 @@ public final class UiContext {
     public static final String XML_FILE_EXTENSION = "xml";
 
     private static final String CANVAS_PANEL = "canvasPanel";
+    private static final String DESIGNER_CANVAS = "DesignerCanvas";
     private static final String PROJECT_REFRESH_TIMESTAMP = "projectRefreshTimeStamp";
     private static final String VIEW_HANDLER_FACTORY = "viewHandlerFactory";
     private static final String OPTIONS = "options";
@@ -141,11 +143,19 @@ public final class UiContext {
     }
 
     public void setDesignerCanvas(DesignerCanvas designerCanvas) {
-        putInCache(CANVAS_PANEL, designerCanvas);
+        putInCache(DESIGNER_CANVAS, designerCanvas);
     }
 
     public DesignerCanvas getDesignerCanvas() {
-        return (DesignerCanvas) getFromCache(CANVAS_PANEL);
+        return (DesignerCanvas) getFromCache(DESIGNER_CANVAS);
+    }
+
+    public void setCanvasPanel(CanvasPanel canvasPanel) {
+        putInCache(CANVAS_PANEL, canvasPanel);
+    }
+
+    public CanvasPanel getCanvasPanel() {
+        return (CanvasPanel) getFromCache(CANVAS_PANEL);
     }
 
     /**
