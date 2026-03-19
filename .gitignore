@@ -61,6 +61,9 @@ hs_err_pid*
 *.crt
 *.jks
 
+# Gradle build configuration with corporate proxy/network settings (ignore local overrides)
+settings.gradle.kts
+
 # Debug files
 *.stackdump
 *.pid

@@ -14,6 +14,13 @@ plugins {
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
+// Enforce Java 17 for all Java compilation tasks, independent of IDE or PATH JVM.
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 // Configure project's dependencies
 repositories {
     mavenLocal() // This tells Gradle to use the local Maven repository (~/.m2/repository)
@@ -34,17 +41,17 @@ dependencies {
     implementation("org.freemarker:freemarker:2.3.34")
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.34")
-    testImplementation("org.mockito:mockito-core:5.22.0")
+    testImplementation("org.mockito:mockito-core:5.21.0")
     implementation("org.mockito:mockito-inline:5.2.0")
     implementation("net.sourceforge.fmpp:fmpp:0.9.16")
 
     testImplementation("ch.qos.logback:logback-classic:1.5.32")
 
-    testImplementation("org.ikasan:ikasan-test:4.1.5")
-    compileOnly ("org.projectlombok:lombok:1.18.44")
-    annotationProcessor("org.projectlombok:lombok:1.18.44")
-    testCompileOnly("org.projectlombok:lombok:1.18.44")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
+    testImplementation("org.ikasan:ikasan-test:4.1.4")
+    compileOnly ("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    testCompileOnly("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
@@ -162,6 +169,14 @@ tasks {
         useJUnitPlatform()
     }
 
+    compileJava {
+        options.encoding = "UTF-8"
+    }
+
+    compileTestJava {
+        options.encoding = "UTF-8"
+    }
+
     // Task to run the UI visual harnesses. testClassesDirs is set to the testHarness
     // source set output so IntelliJ IDEA knows to delegate right-click → Run on harness
     // classes to this task rather than :test.
@@ -190,7 +205,7 @@ tasks {
             // jvmArgs only captures eagerly-set args. The IntelliJ Platform Gradle Plugin
             // adds --add-opens and other module flags via jvmArgumentProviders (lazy providers).
             // Resolve both sources so the forked test JVM has the full set of flags.
-            val allJvmArgs = (testTask.jvmArgs ?: emptyList()) +
+            val allJvmArgs = testTask.jvmArgs +
                 testTask.jvmArgumentProviders.flatMap { it.asArguments() }
             runHarness.setJvmArgs(allJvmArgs)
             runHarness.systemProperties.putAll(testTask.systemProperties)
