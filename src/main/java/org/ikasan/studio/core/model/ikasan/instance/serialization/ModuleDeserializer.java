@@ -130,6 +130,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fieldNames.hasNext()) {
                 String key = fieldNames.next();
                 JsonNode field = jsonNode.get(key);
+                if (key == null) {
+                    Object value = getTypedValue(new AbstractMap.SimpleEntry<>(null, field));
+                    flow.setPropertyValue(null, value);
+                    continue;
+                }
                 switch (key) {
                     case Flow.CONSUMER_JSON_TAG -> {
                         FlowElement newFlowElement = getInitialFlowElement(field, flow, metapackVersion);
@@ -142,7 +147,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                             flowElementsMap = getInitialFlowElements(flowElementsMap, field, flow, metapackVersion);
                     case Flow.EXCEPTION_RESOLVER_JSON_TAG ->
                             flow.setExceptionResolver(getExceptionResolver(flow, field, metapackVersion));
-                    case null, default -> {
+                    default -> {
                         Object value = getTypedValue(new AbstractMap.SimpleEntry<>(key, field));
                         flow.setPropertyValue(key, value);
                     }
@@ -413,11 +418,17 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             if (typeSafeAttempt==null) {
                 LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames was null");
             }
-            else if (! (typeSafeAttempt instanceof List)) {
+            else if (!(typeSafeAttempt instanceof List<?> rawRouteNames)) {
                 LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames does not contain a list, routeNames was [" + typeSafeAttempt + "]");
             }
             else {
-                routeNames = (List<String>) typeSafeAttempt;
+                routeNames = rawRouteNames.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .collect(Collectors.toList());
+                if (routeNames.size() != rawRouteNames.size()) {
+                    LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames list contains non-string values, routeNames was [" + typeSafeAttempt + "]");
+                }
             }
             if (routeNames == null) {
                 routeNames = guessRouteNames(router, transitionsMap);

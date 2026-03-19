@@ -102,7 +102,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 if (index == 0 && parent != null) {
                     List<FlowElement> previousRouteFlowElements = parent.getFlowElements();
                     if (previousRouteFlowElements != null && ! previousRouteFlowElements.isEmpty()) {
-                        FlowElement lastElementPreviousRoute = previousRouteFlowElements.getLast();
+                        FlowElement lastElementPreviousRoute = previousRouteFlowElements.get(previousRouteFlowElements.size() - 1);
                         IkasanFlowComponentViewHandler lastElementPreviousRouteViewHandler = getOrCreateFlowComponentViewHandler(project, lastElementPreviousRoute);
                         drawConnector(g, lastElementPreviousRouteViewHandler, flowComponentViewHandler);
                     }
@@ -252,7 +252,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.getFirst());
+            AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(0));
             return firstElementViewHandler.getLeftX() - firstElementViewHandler.getLeadingGap();
         }
     }
@@ -269,7 +269,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            return getOrCreateAbstractViewHandler(project, flowElementList.getFirst()).getTopY();
+            return getOrCreateAbstractViewHandler(project, flowElementList.get(0)).getTopY();
         }
     }
 
@@ -287,7 +287,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
-            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.getLast());
+            AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(flowElementList.size() - 1));
             return lastFlowElementViewHandler.getRightX() + lastFlowElementViewHandler.getTrailingGap();
         }
     }
