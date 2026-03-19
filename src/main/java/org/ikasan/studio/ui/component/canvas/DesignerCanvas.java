@@ -762,7 +762,7 @@ public class DesignerCanvas extends JPanel {
                     int numberOfComponents = components.size();
 
                     if (numberOfComponents == 0) {
-                        components.addFirst(ikasanFlowComponent);
+                        components.add(0, ikasanFlowComponent);
                     } else {
                         for (int ii = 0; ii < numberOfComponents; ii++) {
                             if (components.get(ii).equals(surroundingComponents.getRight()) ||

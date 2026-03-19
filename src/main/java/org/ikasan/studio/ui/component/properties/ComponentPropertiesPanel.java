@@ -313,7 +313,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     public JComponent getFirstFocusField() {
         JComponent firstComponent = null;
         if (componentPropertyEditBoxList != null && !componentPropertyEditBoxList.isEmpty()) {
-            firstComponent = componentPropertyEditBoxList.getFirst().getInputField().getFirstFocusComponent();
+            firstComponent = componentPropertyEditBoxList.get(0).getInputField().getFirstFocusComponent();
         }
         return firstComponent;
     }

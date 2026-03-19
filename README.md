@@ -7,6 +7,7 @@ When combined as a plugin to Intellij, it provides a fully functiona, standalone
 Ikasan Studio is coming towards the end of its Beta testing phase and a formal first release is expected soon.
 The formal will be available from the Intellij plugin marketplace. 
 In the meantime, the plugin can be installed manually into Intellij using the instructions below.
+The Plugin was developed using JDK17 to support the most common versions of intellij i.e. 2022.1 and above.
 If you encounter any issues, please raise them on the IkasanStudio github project or email me directly at david@davihilton.net
 ### Download the zip & jar
 A prebuilt version of the plugin is available from https://github.com/ikasanEIP/IkasanStudio/blob/main/downloads/ikasanstudio-1.0.0.zip

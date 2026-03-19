@@ -185,20 +185,20 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 // route, which is not really valid. In that scenario, we need to create a new transition
                 // From - Blank - ready for the consumer when its added
                 // To - The MRR with default path
-                String firstElementKey = firstTransition.getFirst().getFrom();
+                String firstElementKey = firstTransition.get(0).getFrom();
                 FlowElement firstElement = flowElementsMap.get(firstElementKey);
                 // If the flowElement was excluded (can't create components) we must skip
                 if (firstElement != null && firstElement.getComponentMeta().isRouter()) {
                     Transition artificalFirstTransition = Transition.builder().from("").to(firstElementKey).name(DEFAULT_TRANSITION_NAME).build();
-                    transitions.addFirst(artificalFirstTransition);
+                    transitions.add(0, artificalFirstTransition);
                     firstTransition = new ArrayList<>();
                     firstTransition.add(artificalFirstTransition);
                     transitionsMap.put(artificalFirstTransition.getFrom(), firstTransition);
                 }
 
-                validateDependencies(transitionsMap, firstTransition.getFirst());
+                validateDependencies(transitionsMap, firstTransition.get(0));
                 // The root of the tree, buildRouteTree is recursive
-                buildRouteTree(metapackVersion, flow, returnFlowRoute, transitionsMap, flowElementsMap, firstTransition.getFirst());
+                buildRouteTree(metapackVersion, flow, returnFlowRoute, transitionsMap, flowElementsMap, firstTransition.get(0));
             }
         } // Edge case, one element, no transitions.
         else if (flowElementsMap != null && !flowElementsMap.isEmpty()) {
@@ -377,7 +377,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     }
                 } else {
                     // Just another element
-                    buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, nextTransitionList.getFirst());
+                    buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, nextTransitionList.get(0));
                 }
             }
         }

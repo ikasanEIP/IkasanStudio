@@ -295,7 +295,7 @@ class FlowRouteTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(broker, result.getFirst());
+        assertEquals(broker, result.get(0));
     }
 
     @Test
@@ -416,7 +416,7 @@ class FlowRouteTest {
         assertNotNull(clonedFlowRoute);
         // ignore anything thats mocked.
 
-        FlowElement clonedXProducerComponent = clonedFlowRoute.getFlowElements().getFirst();
+        FlowElement clonedXProducerComponent = clonedFlowRoute.getFlowElements().get(0);
         // *** COMPONENT META ***
         // Should be same except for jar dependencies
         assertEquals("3.1.0", ((Dependency) xProducerComponent.getComponentMeta().getJarDependencies().toArray()[0]).getVersion());

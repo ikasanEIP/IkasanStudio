@@ -88,7 +88,7 @@ public abstract class PropertiesPanel extends JBPanel {
         List<ValidationInfo> infoList = doValidateAll();
         if (!infoList.isEmpty()) {
             dataValid = false;
-            ValidationInfo firstInfo = infoList.getFirst();
+            ValidationInfo firstInfo = infoList.get(0);
             if (firstInfo.component != null && firstInfo.component.isVisible()) {
                 IdeFocusManager.getInstance(null).requestFocus(firstInfo.component, true);
             }
