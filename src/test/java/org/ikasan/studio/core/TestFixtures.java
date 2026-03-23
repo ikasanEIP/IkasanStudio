@@ -53,6 +53,20 @@ public class TestFixtures {
             .name(TEST_FLOW_NAME);
     }
 
+    // -------------------------- Bob -------------------------
+    public static FlowElement getGenericComponent() throws StudioBuildException {
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+            .componentMeta(TestFixtures.getXProducerComponentMeta("TestV1"))
+            .componentName("Generic Element")
+            .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myBroker");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+
+    }
+
     // -------------------------- Broker -------------------------
     public static FlowElement getBroker(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Broker");
@@ -1009,8 +1023,6 @@ public class TestFixtures {
                 .userImplementClassFtlTemplate("v1".equals(metaPackVersion) ? "org/ikasan/spec/component/endpoint/Producer.ftl" : "org/ikasan/spec/component/endpoint/ProducerV2.ftl")
                 .affectsUserImplementedClass(false)
                 .choices(Arrays.asList("choice1", "choice2", "choice3"))
-                .componentType("org.ikasan.spec.component.endpoint.Producer")
-                .dataValidationType("Used For Testing Only")
                 .defaultValue("defaultValue")
                 .helpText("My ComponentPropertyMeta helpText")
                 .hiddenProperty(false)
@@ -1028,7 +1040,7 @@ public class TestFixtures {
                 .usageDataType("java.lang.String")
                 .userDefineResource(false)
                 .userSuppliedClass(false)
-                .validationMessage("String Producer value validation message")
+                .validationMessage("String value validation message")
                 .build();
     }
 
@@ -1037,11 +1049,9 @@ public class TestFixtures {
                 .propertyName("simpleIntegerProperty")
                 .userImplementClassFtlTemplate("org/ikasan/spec/component/endpoint/Producer.ftl")
                 .affectsUserImplementedClass(false)
-                .choices(Arrays.asList("choice4", "choice5", "choice6"))
-                .componentType("org.ikasan.spec.component.endpoint.Producer")
-                .dataValidationType("Used For Testing Only")
+                .choices(Arrays.asList("1", "2", "3"))
                 .defaultValue("defaultValue")
-                .helpText("My Producer ComponentPropertyMeta helpText")
+                .helpText("Helptext for an integer property")
                 .hiddenProperty(false)
                 .readOnlyProperty(false)
                 .ignoreProperty(false)
@@ -1054,7 +1064,37 @@ public class TestFixtures {
                 .userDefineResource(false)
                 .userSuppliedClass(false)
                 .validation("^[0-9]+$")
-                .validationMessage("Integer Producer value validation message")
+                .validationMessage("Integer value validation message")
+                .build();
+    }
+
+    public static ComponentPropertyMeta getBooleanComponentPropertyMeta() {
+        return ComponentPropertyMeta.builder()
+                .propertyName("simpleBooleanProperty")
+                .affectsUserImplementedClass(false)
+                .defaultValue(true)
+                .helpText("Helptext for a boolean property")
+                .hiddenProperty(false)
+                .readOnlyProperty(false)
+                .ignoreProperty(false)
+                .mandatory(true)
+                .propertyDataType(Boolean.class)
+                .setterProperty(true)
+                .setterMethod("setTrueOrFlase")
+                .userDefineResource(false)
+                .userSuppliedClass(false)
+                .validationMessage("Boolean value validation message")
+                .build();
+    }
+
+    public static ComponentPropertyMeta getCronComponentPropertyMeta() {
+        return ComponentPropertyMeta.builder()
+                .propertyName("cronExpression")
+                .dataValidationType("cronExpression")
+                .defaultValue("* * * * * ? *")
+                .helpText("In Inspection mode, popup won'f work so don't worry. Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.")
+                .mandatory(true)
+                .setterProperty(true)
                 .build();
     }
 
@@ -1103,7 +1143,9 @@ public class TestFixtures {
                     "componentName", getComponentNameComponentPropertyMeta(),
                     "description", getDescriptionComponentPropertyMeta(),
                     "simpleStringProperty", getStringXProducerComponentPropertyMeta(metaPackVersion),
-                    "simpleIntegerProperty", getIntegerComponentPropertyMeta()
+                    "simpleIntegerProperty", getIntegerComponentPropertyMeta(),
+                    "simpleBooleanProperty", getBooleanComponentPropertyMeta(),
+                    "simpleCronProperty", getCronComponentPropertyMeta()
             ))
             .componentType("Producer")
 

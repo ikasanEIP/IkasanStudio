@@ -478,7 +478,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     if (getSelectedComponent() instanceof FlowUserImplementedElement) {
                         ((FlowUserImplementedElement)getSelectedComponent()).setOverwriteEnabled(true);
                     }
-                    // Property has been unset e.g. a boolean
+                    // Property has been unset e.g. a boolean, validation would ensure mandatory must be set.
                     if (!componentPropertyEditBox.editBoxHasValue()) {
                         getSelectedComponent().removeProperty(componentPropertyEditBox.getPropertyKey());
                     } else { // update existing

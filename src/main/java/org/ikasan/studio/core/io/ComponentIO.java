@@ -30,7 +30,7 @@ public class ComponentIO {
      * Deserialize the ComponentTypeMeta at the given path.
      * @param path to the file containing the JSON to deserializes
      * @return an ComponentTypeMeta object representing the deserialized class
-     * @throws StudioBuildException  to wrap JsonProcessingException
+     * @throws StudioBuildException to wrap JsonProcessingException
      */
     public static ComponentTypeMeta deserializeComponentTypeMeta(final String path) throws StudioBuildException {
         final String jsonString = getJsonFromFile(path);

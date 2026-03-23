@@ -20,7 +20,7 @@ import java.util.ArrayList;
 /**
  * This class is used to display individual custom panels so that can be inspected and tested manually.
  * It will NOT be executed as part of the general JUnit test run.
- *
+ * -
  * The suite() method returns an empty TestSuite to prevent JUnit 3/Vintage (triggered by BasePlatformTestCase
  * extending TestCase) from raising "No tests found". Individual methods can still be run via right-click in the IDE.
  */
@@ -45,10 +45,11 @@ public class PanelHarnessTest extends ComponentTestHarness {
      * This executes the test within the IntelliJ Platform environment, which is required for UI components.
      */
     @Test
-    void displayComponentPropertiesPanel() {
+    void displayComponentPropertiesPanel() throws StudioBuildException {
         // It's important to create and manipulate UI components on the EDT.
         // BasePlatformTestCase and our showInFrame method handle this for you.
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(getProject(), false);
+        componentPropertiesPanel.updateTargetComponent(TestFixtures.getGenericComponent());
         showInFrame(componentPropertiesPanel, "displayComponentPropertiesPanel Harness");
     }
 

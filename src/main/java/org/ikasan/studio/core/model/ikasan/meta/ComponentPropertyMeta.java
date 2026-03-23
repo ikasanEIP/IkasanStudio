@@ -75,7 +75,6 @@ public class ComponentPropertyMeta {
     private boolean affectsUserImplementedClass = false;  // A change to this property should result in an update to the user implemnted class
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private List<String> choices;           // The value can be only one of the items in this list
-    private String componentType;           // Features in the serialised model.json, the interface or short form type for the property
     private String dataValidationType;      // Support for popup data entry helpers / data types
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -184,7 +183,6 @@ public class ComponentPropertyMeta {
                 userSuppliedClass == that.userSuppliedClass &&
                 Objects.equals(propertyName, that.propertyName) &&
                 Objects.equals(choices, that.choices) &&
-                Objects.equals(componentType, that.componentType) &&
                 Objects.equals(dataValidationType, that.dataValidationType) &&
                 Objects.equals(defaultValue, that.defaultValue) &&
                 Objects.equals(helpText, that.helpText) &&
@@ -202,7 +200,8 @@ public class ComponentPropertyMeta {
     @Override
     public int hashCode() {
 
-        return Objects.hash(propertyName, affectsUserImplementedClass, choices, componentType, dataValidationType, defaultValue, helpText,
+        return Objects.hash(propertyName, affectsUserImplementedClass, choices,
+                dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
                 validation, validationMessage,

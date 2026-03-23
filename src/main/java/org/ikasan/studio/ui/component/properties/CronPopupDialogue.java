@@ -28,6 +28,11 @@ public class CronPopupDialogue extends DialogWrapper {
     }
 
     @Override
+    public boolean isModal() {
+        return true;
+    }
+
+    @Override
     protected @Nullable JComponent createCenterPanel() {
         return cronPanel;
     }

@@ -476,7 +476,7 @@ public class ComponentPropertyEditBox {
         List<ValidationInfo> result = new ArrayList<>();
         // 1. force population of mandatory properties
         if (meta.isMandatory() &&
-                !isBooleanProperty() &&
+//                !isBooleanProperty() &&
                 inputfieldIsUnset()) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
         }
