@@ -96,6 +96,9 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         if (updateCodeButton != null) {
             updateCodeButton.setEnabled(dataHasChangedAndOKToProcess());
         }
+        if (getPropertiesDialogue() != null) {
+            getPropertiesDialogue().setOKActionEnabled(true);
+        }
 
         if (getSelectedComponent() != null) {
             propertiesEditorPanel = new JBPanel(new GridBagLayout());

@@ -25,10 +25,10 @@ public class PropertiesPopupDialogue extends DialogWrapper {
      * @todo maybe use this in non modal form for the in-canvas properties editing.
      *
      * @param project is the Intellij project instance
-     * @param parentComponent of this popup
      * @param propertiesPanel to display and have entries taken on.
+     * @param actionButtonDefault indicates if the OK button should be enabled by default.
      */
-    public PropertiesPopupDialogue(Project project, Component parentComponent, PropertiesPanel propertiesPanel) {
+    public PropertiesPopupDialogue(Project project, PropertiesPanel propertiesPanel, boolean actionButtonDefault) {
         // Modern approach: DialogWrapper with project scoping
         // The boolean parameter indicates if this dialog can be a parent (true = can be parent)
         // This replaces the deprecated IdeModalityType.PROJECT
@@ -38,6 +38,7 @@ public class PropertiesPopupDialogue extends DialogWrapper {
         init();  // from DialogWrapper which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText(propertiesPanel.getOKButtonText());
+        setOKActionEnabled(actionButtonDefault);
     }
 
     /**

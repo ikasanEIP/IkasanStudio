@@ -73,8 +73,8 @@ public class ExceptionResolutionTableDisplay {
             exceptionResolutionPanel.updateTargetComponent(newResolution);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     project,
-                    uiContext.getDesignerCanvas(),
-                    exceptionResolutionPanel);
+                    exceptionResolutionPanel,
+                    true);
             if (propertiesPopupDialogue.showAndGet()) {
                 StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
                 exceptionResolutionRowDisplayList.add(new ExceptionResolutionRowDisplay(this, newResolution, componentInitialisation));

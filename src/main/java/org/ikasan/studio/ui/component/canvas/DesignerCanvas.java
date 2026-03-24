@@ -145,8 +145,8 @@ public class DesignerCanvas extends JPanel {
                     componentPropertiesPanel.updateTargetComponent(getIkasanModule());
                     PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                             this.project,
-                            uiContext.getDesignerCanvas(),
-                            componentPropertiesPanel);
+                            componentPropertiesPanel,
+                            false);
                     if (propertiesPopupDialogue.showAndGet()) {
                         StudioUIUtils.displayIdeaInfoMessage(this.project, "Please wait for Intellij to initialise, any code errors will be resolved.");
                         StudioPsiUtils.refreshCodeFromModel(this.project);
@@ -234,8 +234,8 @@ public class DesignerCanvas extends JPanel {
             exceptionResolverPanel.updateTargetComponent(basicElement);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     project,
-                    uiContext.getDesignerCanvas(),
-                    exceptionResolverPanel);
+                    exceptionResolverPanel,
+                    false);
             if (propertiesPopupDialogue.showAndGet()) {
                 StudioPsiUtils.refreshCodeFromModel(project);
                 uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
@@ -689,8 +689,8 @@ public class DesignerCanvas extends JPanel {
             componentPropertiesPanel.updateTargetComponent(newComponent);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     project,
-                    uiContext.getDesignerCanvas(),
-                    componentPropertiesPanel);
+                    componentPropertiesPanel,
+                    false);
             if (! propertiesPopupDialogue.showAndGet()) {
                 // i.e. cancel.
                 newComponent = null;
@@ -705,7 +705,6 @@ public class DesignerCanvas extends JPanel {
      * @return the populated component or null if the action was cancelled.
      */
     private BasicElement createExceptionResolver(ExceptionResolver newExceptionResolver) {
-        UiContext uiContext = project.getService(UiContext.class);
         if (    newExceptionResolver.hasUnsetMandatoryProperties() ||
                 newExceptionResolver.getIkasanExceptionResolutionMap() == null ||
                 newExceptionResolver.getIkasanExceptionResolutionMap().isEmpty() ) {
@@ -714,8 +713,8 @@ public class DesignerCanvas extends JPanel {
             exceptionResolverPanel.updateTargetComponent(newExceptionResolver);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                     project,
-                    uiContext.getDesignerCanvas(),
-                    exceptionResolverPanel);
+                    exceptionResolverPanel,
+                    false);
             if (! propertiesPopupDialogue.showAndGet()) {
                 // i.e. cancel.
                 newExceptionResolver = null;

@@ -84,6 +84,7 @@ public abstract class PropertiesPanel extends JBPanel {
         setFocusOnFirstComponent();
     }
 
+
     protected void okActionListener(ActionEvent ae) {
         List<ValidationInfo> infoList = doValidateAll();
         if (!infoList.isEmpty()) {

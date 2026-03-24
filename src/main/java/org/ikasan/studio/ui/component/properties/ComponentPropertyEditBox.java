@@ -92,7 +92,7 @@ public class ComponentPropertyEditBox {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             this.propertyValueField = new JFormattedTextField(amountFormat);
-            if (!componentInitialisation && listenerFoAnyEditChanges != null) {
+            if (listenerFoAnyEditChanges != null) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
@@ -145,7 +145,7 @@ public class ComponentPropertyEditBox {
                 isList = true;
             }
 
-            if (!componentInitialisation && listenerFoAnyEditChanges != null) {
+            if (listenerFoAnyEditChanges != null) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override

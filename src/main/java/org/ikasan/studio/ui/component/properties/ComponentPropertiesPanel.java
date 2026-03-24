@@ -46,7 +46,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JBPanel optionalPropertiesExpandPanel;
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
-    private final SimpleChangeListener listenerFoAnyEditChanges;
+    private final SimpleChangeListener listenerForAnyEditChanges;
     private final Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap = new HashMap<>();
 
     /**
@@ -75,9 +75,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     public ComponentPropertiesPanel(Project project, boolean componentInitialisation) {
         super(project, componentInitialisation);
         this.setBorder(null);
-        listenerFoAnyEditChanges = () -> {
+        listenerForAnyEditChanges = () -> {
             if (updateCodeButton != null) {
                 updateCodeButton.setEnabled(dataHasChangedAndOKToProcess());
+            }
+            if (getPropertiesDialogue() != null) {
+                getPropertiesDialogue().setOKActionEnabled(dataHasChangedAndOKToProcess());
             }
         };
     }
@@ -245,10 +248,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 optionalPropertiesExpandPanel.setVisible(false);
             }
             propertiesEditorScrollingContainer.add(propertiesEditorPanel);
-
-            if (!componentInitialisation && !getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass() && ! getComponentPropertyEditBoxList().isEmpty()) {
-                updateCodeButton.setEnabled(true);
-            }
             UiContext uiContext = project.getService(UiContext.class);
             uiContext.setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
 
@@ -372,7 +371,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
     private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(project, componentProperty, componentInitialisation, listenerFoAnyEditChanges, componentPropertyEditBoxMap);
+        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
         return componentPropertyEditBox;
     }
