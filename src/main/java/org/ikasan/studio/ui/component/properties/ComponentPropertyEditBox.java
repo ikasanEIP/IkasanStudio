@@ -65,11 +65,7 @@ public class ComponentPropertyEditBox {
     public ComponentPropertyEditBox(Project project, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap) {
         this.project = project;
         this.componentProperty = componentProperty;
-        if (componentProperty != null) {
-            initialValue = componentProperty.getValue();
-        } else {
-            initialValue = null;
-        }
+        this.initialValue = componentProperty.getValue();
         this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
         this.meta = componentProperty.getMeta();
         if (componentPropertyEditBoxMap != null) {
