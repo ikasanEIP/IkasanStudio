@@ -114,6 +114,7 @@ public class ComponentPropertyEditBox {
                 });
             }
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+            boolean isMandatory = componentProperty.getMeta().isMandatory();
             // BOOLEAN INPUT
             propertyBooleanFieldTrue = new JCheckBox();
             propertyBooleanFieldFalse = new JCheckBox();
@@ -122,6 +123,8 @@ public class ComponentPropertyEditBox {
             propertyBooleanFieldTrue.addActionListener(e -> {
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
+                } else if (isMandatory && !propertyBooleanFieldTrue.isSelected()) {
+                    propertyBooleanFieldFalse.setSelected(true);
                 }
                 if (listenerFoAnyEditChanges != null) {
                     listenerFoAnyEditChanges.actionEvent();
@@ -130,6 +133,8 @@ public class ComponentPropertyEditBox {
             propertyBooleanFieldFalse.addActionListener(e -> {
                 if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
                     propertyBooleanFieldTrue.setSelected(false);
+                } else if (isMandatory && !propertyBooleanFieldFalse.isSelected()) {
+                    propertyBooleanFieldTrue.setSelected(true);
                 }
                 if (listenerFoAnyEditChanges != null) {
                     listenerFoAnyEditChanges.actionEvent();
@@ -365,8 +370,10 @@ public class ComponentPropertyEditBox {
                 if (value instanceof Boolean) {
                     if ((Boolean)value) {
                         propertyBooleanFieldTrue.setSelected(true);
+                        propertyBooleanFieldFalse.setSelected(false);
                     } else {
                         propertyBooleanFieldFalse.setSelected(true);
+                        propertyBooleanFieldTrue.setSelected(false);
                     }
                 }
             }
@@ -375,7 +382,7 @@ public class ComponentPropertyEditBox {
                 if (isList) {
                     String strValue;
                     if (value instanceof List<?>) {
-                        strValue = getListAsText((String) ((List)value).stream().map(Object::toString).collect(Collectors.joining(",")));
+                        strValue = getListAsText(((List<?>)value).stream().<String>map(Object::toString).collect(Collectors.joining(",")));
                     } else {
                         strValue = getListAsText((String)value);
                     }
@@ -396,7 +403,7 @@ public class ComponentPropertyEditBox {
         if (isChoiceProperty()) {
             returnValue = propertyChoiceValueField.getSelectedItem();
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
-            // It is possible neither are current selected i.e. the property is unset
+            // It is possible that neither are currently selected i.e. the property is unset
             if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {
                 returnValue = true;
             } else if (propertyBooleanFieldFalse != null && propertyBooleanFieldFalse.isSelected()) {

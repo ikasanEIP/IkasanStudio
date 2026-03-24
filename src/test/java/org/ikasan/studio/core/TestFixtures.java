@@ -31,8 +31,6 @@ public class TestFixtures {
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
     public static final String TEST_CRON_EXPRESSION = "0 0/1 * * * ?";
 
-
-
     public static Module getMyFirstModuleIkasanModule(String metaPackVersion, List<Flow> flows) throws StudioBuildException {
         return Module.moduleBuilder()
             .version(metaPackVersion)
@@ -53,15 +51,12 @@ public class TestFixtures {
             .name(TEST_FLOW_NAME);
     }
 
-    // -------------------------- Bob -------------------------
-    public static FlowElement getGenericComponent() throws StudioBuildException {
+    // -------------------------- Generic Test component -------------------------
+    public static FlowElement getGenericComponent() {
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(TestFixtures.getXProducerComponentMeta("TestV1"))
             .componentName("Generic Element")
             .build();
-        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
-        flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
-        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myBroker");
         flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
 
@@ -1136,16 +1131,22 @@ public class TestFixtures {
         else
             dependency.setVersion("3.2.0");
 
+        ComponentPropertyMeta nonMandatoryBooleanProperty = getBooleanComponentPropertyMeta();
+        nonMandatoryBooleanProperty.setMandatory(false);
+        nonMandatoryBooleanProperty.setPropertyName("simpleNonBooleanProperty");
         return ComponentMeta.builder()
             .name("Test X Producer")
             .additionalKey("Additonal Test Key")
             .allowableProperties(Map.of(
                     "componentName", getComponentNameComponentPropertyMeta(),
-                    "description", getDescriptionComponentPropertyMeta(),
                     "simpleStringProperty", getStringXProducerComponentPropertyMeta(metaPackVersion),
                     "simpleIntegerProperty", getIntegerComponentPropertyMeta(),
                     "simpleBooleanProperty", getBooleanComponentPropertyMeta(),
-                    "simpleCronProperty", getCronComponentPropertyMeta()
+                    "simpleMandatoryCronProperty", getCronComponentPropertyMeta(),
+                    // These will appear in the non-mandatory section and will require the Expand button to be clicked.
+                    "description", getDescriptionComponentPropertyMeta(),
+                    nonMandatoryBooleanProperty.getPropertyName(), nonMandatoryBooleanProperty
+
             ))
             .componentType("Producer")
 

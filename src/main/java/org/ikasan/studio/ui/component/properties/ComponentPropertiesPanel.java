@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -269,6 +270,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         if (getPropertiesDialogue() != null) {
             getPropertiesDialogue().pack();
+        } else {
+            Window window = SwingUtilities.getWindowAncestor(this);
+            Window ideWindow = WindowManager.getInstance().getFrame(project);
+            if (window != null && window != ideWindow) {
+                window.pack();
+            }
         }
     }
 
