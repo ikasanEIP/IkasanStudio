@@ -50,7 +50,7 @@
   "properties": {
     "version": {
       "propertyName": "version",
-      "helpText": "The ikasan version used to build this module."
+      "helpText": "The ikasan version of the meta-pack used to build this module."
     },
     "name": {
       "propertyName": "name",

@@ -32,7 +32,7 @@
     "name": {
       "propertyName": "name",
       "affectsUserImplementedClass": true,
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "helpText": "The name of the component as displayed on diagrams, spaces are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
     "applicationPackageName": {
@@ -40,17 +40,6 @@
       "affectsUserImplementedClass": true,
       "helpText": "The java package name for the new module.",
       "mandatory": true
-    },
-    "configuredResourceId": {
-      "propertyName": "configuredResourceId",
-      "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "setterProperty": true,
-      "usageDataType":"java.lang.String"
-    },
-    "context": {
-      "propertyName": "context",
-      "helpText": "The name of module prepended by slash."
     },
     "h2DbPortNumber": {
       "propertyName": "h2DbPortNumber",
@@ -66,31 +55,27 @@
     },
     "host": {
       "propertyName": "host",
-      "helpText": "Hostname for the current environment."
+      "helpText": "<p>The host attribute is the hostname or IP address the module advertises to the Dashboard. Defaults to localhost if left unset:</p><ol type=\"1\"><li>public.service.address — externally advertised hostname (e.g. behind a proxy)</li><li>server.address — Spring Boot’s bind address</li><li>Defaults to “localhost” if neither is set</li></ol><p>So for a deployed module reachable at a real hostname:</p><p>public.service.address=my-module.example.com</p>"
     },
     "port": {
       "propertyName": "port",
-      "helpText": "The http port to be used by the blue console for this module.",
+      "helpText": "<p>The port attribute is the HTTP port number the module is listening on — used by the Dashboard to construct the module’s REST URL.</p><p>It is resolved in this order:</p><ol type=\"1\"><li>public.service.port — the externally advertised port (useful behind a reverse proxy/load balancer)</li><li>server.port — Spring Boot’s own port</li><li>Defaults to 8080 if neither is set</li></ol><p>So if your module runs internally on port 8443 but is exposed publicly on port 443 via a proxy, you’d set:</p><p>public.service.port=443</p><p>and the module will advertise port 443 to the Dashboard.</p>",
       "defaultValue": "12450",
       "mandatory": true
     },
     "protocol": {
       "propertyName": "protocol",
-      "helpText": "The http protocol required to access the blue console.",
+      "helpText": "<p>This is typically left as default / unset.</p><p>The protocol attribute on a Module is the HTTP scheme used to reach the module’s REST endpoint — i.e., “http” or “https”.</p><p>Together with host, port, and context, it forms the full base URL of the module so that the Ikasan Dashboard and other services know how to communicate with it.</p><p>How it gets set (in ModuleBuilder):</p><ol type=\"1\"><li>First checks the Spring property public.service.protocol (useful when behind a reverse proxy/load balancer that terminates TLS).</li><li>Falls back to server.protocol (Spring Boot’s own SSL setting).</li><li>Defaults to “http” if neither is set.</li></ol><p>So in practice, if your module is deployed behind HTTPS you’d set:</p><p>public.service.protocol=https</p><p>and the module will advertise itself as HTTPS to the Dashboard, even if the internal Spring Boot server is still plain HTTP.</p>",
       "defaultValue": "https"
     },
     "type": {
       "propertyName": "type",
-      "helpText": "The type of module to be created.",
+      "helpText": "<p>The <strong>type</strong> attribute on an Ikasan Module is of type ModuleType — an enum defined in ikasaneip/spec/module/src/main/java/org/ikasan/spec/module/ModuleType.java with two possible values:</p><ul><li>INTEGRATION_MODULE — a standard Ikasan integration module (this is the default and will cover almost all use cases)</li><li>SCHEDULER_AGENT — a module that acts as a scheduler agent (used by the OOTB scheduler agent module)</li></ul>",
       "defaultValue": "INTEGRATION_MODULE"
-    },
-    "url": {
-      "propertyName": "url",
-      "helpText": "The full URl of the applicationw when invoked in this specific environment."
     },
     "useEmbeddedH2": {
       "propertyName": "useEmbeddedH2",
-      "helpText": "If set to true, use an 'in memory' control database.",
+      "helpText": "If set to true, use an 'in memory' H2 database (used to store local property overrides, wiretaps, replay messages etc.). This will make development in the IDE easier but should not be used for production.",
       "setterProperty": false,
       "propertyDataType": "java.lang.Boolean",
       "defaultValue": true,
@@ -98,7 +83,7 @@
     },
     "flowAutoStartup": {
       "propertyName": "flowAutoStartup",
-      "helpText": "If set to true, the flows will be started automatically when the module starts, otherwise they must be started from the console.",
+      "helpText": "If set to true, the flows will be started automatically when the module starts, otherwise they must be started from either the 'blue' console, or from the dashboard.",
       "setterProperty": false,
       "propertyDataType": "java.lang.Boolean",
       "defaultValue": true,
@@ -108,7 +93,7 @@
       "propertyName": "version",
       "choices": [ "V1.3.x" ],
       "affectsUserImplementedClass": true,
-      "helpText": "The ikasan version used to build this module.",
+      "helpText": "The ikasan version of the meta-pack used to build this module.",
       "mandatory": true
     }
   }
