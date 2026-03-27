@@ -17,7 +17,6 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String META_IKASAN_PACK_3_3_3 = "V3.3.3";
     public static final String META_IKASAN_PACK_3_3_8 = "V3.3.8";
 
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality

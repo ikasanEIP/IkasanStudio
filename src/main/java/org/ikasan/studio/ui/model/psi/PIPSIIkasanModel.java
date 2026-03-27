@@ -219,7 +219,6 @@ public class PIPSIIkasanModel {
                         displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                     }
                     if (templateString != null) {
-                        ((FlowUserImplementedElement)component).isOverwriteEnabled();
                         StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                                 newPackageName, newClassName, templateString, componentViewHandler);
                         ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
