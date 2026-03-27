@@ -68,11 +68,6 @@
       "helpText": "<p>This is typically left as default / unset.</p><p>The protocol attribute on a Module is the HTTP scheme used to reach the module’s REST endpoint — i.e., “http” or “https”.</p><p>Together with host, port, and context, it forms the full base URL of the module so that the Ikasan Dashboard and other services know how to communicate with it.</p><p>How it gets set (in ModuleBuilder):</p><ol type=\"1\"><li>First checks the Spring property public.service.protocol (useful when behind a reverse proxy/load balancer that terminates TLS).</li><li>Falls back to server.protocol (Spring Boot’s own SSL setting).</li><li>Defaults to “http” if neither is set.</li></ol><p>So in practice, if your module is deployed behind HTTPS you’d set:</p><p>public.service.protocol=https</p><p>and the module will advertise itself as HTTPS to the Dashboard, even if the internal Spring Boot server is still plain HTTP.</p>",
       "defaultValue": "https"
     },
-    "type": {
-      "propertyName": "type",
-      "helpText": "<p>The <strong>type</strong> attribute on an Ikasan Module is of type ModuleType — an enum defined in ikasaneip/spec/module/src/main/java/org/ikasan/spec/module/ModuleType.java with two possible values:</p><ul><li>INTEGRATION_MODULE — a standard Ikasan integration module (this is the default and will cover almost all use cases)</li><li>SCHEDULER_AGENT — a module that acts as a scheduler agent (used by the OOTB scheduler agent module)</li></ul>",
-      "defaultValue": "INTEGRATION_MODULE"
-    },
     "useEmbeddedH2": {
       "propertyName": "useEmbeddedH2",
       "helpText": "If set to true, use an 'in memory' H2 database (used to store local property overrides, wiretaps, replay messages etc.). This will make development in the IDE easier but should not be used for production.",

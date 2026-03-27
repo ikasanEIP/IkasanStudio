@@ -146,7 +146,7 @@ public class DesignerCanvas extends JPanel {
                     PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                             this.project,
                             componentPropertiesPanel,
-                            false);
+                            true);
                     if (propertiesPopupDialogue.showAndGet()) {
                         StudioUIUtils.displayIdeaInfoMessage(this.project, "Please wait for Intellij to initialise, any code errors will be resolved.");
                         StudioPsiUtils.refreshCodeFromModel(this.project);

@@ -141,7 +141,7 @@ public class PIPSIIkasanModel {
         // @TODO this only needs to be done once.
         String h2StartStopPomString  = null;
         try {
-            h2StartStopPomString = H2StartStopTemplate.create();
+            h2StartStopPomString = H2StartStopTemplate.create(module.getMetaVersion());
         } catch (StudioGeneratorException e) {
             displayIdeaWarnMessage(project, "An error has occurred generating the h2StartStopPomString, attempting to continue. Error was " + e.getMessage());
         }
@@ -197,7 +197,7 @@ public class PIPSIIkasanModel {
                         String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
                         String templateString = null;
                         try {
-                            templateString = FlowsUserImplementedClassPropertyTemplate.create(property, newPackageName,clazzName, prefix);
+                            templateString = FlowsUserImplementedClassPropertyTemplate.create(module.getMetaVersion(), property, newPackageName, clazzName, prefix);
                         } catch (StudioGeneratorException e) {
                             displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
                         }

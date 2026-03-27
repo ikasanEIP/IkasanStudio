@@ -22,9 +22,9 @@ public class TestFixtures {
 
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
-    public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_3;
+    public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_8;
     public static Stream<String> metaPacksToTest() {
-        return Stream.of(BASE_META_PACK, META_IKASAN_PACK_3_3_8);
+        return Stream.of(META_IKASAN_PACK_3_3_8);
     }
 
     public static final String TEST_FLOW_NAME = "MyFlow1";

@@ -25,6 +25,6 @@ public class FlowsUserImplementedComponentTemplate extends Generator {
         configs.put(FLOW_ELEMENT_TAG, flowElement);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFow);
-        return FreemarkerUtils.generateFromTemplate(templateName, configs);
+        return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), templateName, configs);
     }
 }

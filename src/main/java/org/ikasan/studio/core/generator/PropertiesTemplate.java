@@ -7,7 +7,7 @@ import java.util.Map;
 public class PropertiesTemplate extends Generator {
     public static final String MODULE_PROPERTIES_FILENAME = "application";
 
-    private static final String MODULE_PROPERTIES_FTL = "propertiesTemplate.ftl";
+    private static final String MODULE_PROPERTIES_FTL = "propertiesTemplate_en.ftl";
 
     public static String create(Module ikasanModule) throws StudioGeneratorException {
         return generateContents(ikasanModule);
@@ -17,6 +17,6 @@ public class PropertiesTemplate extends Generator {
     protected static String generateContents(Module ikasanModule) throws StudioGeneratorException {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
-        return FreemarkerUtils.generateFromTemplate(MODULE_PROPERTIES_FTL, configs);
+        return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), MODULE_PROPERTIES_FTL, configs);
     }
 }

@@ -63,7 +63,7 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
             () -> assertEquals("Small Module icon", module.getSmallIcon().getDescription()),
             () -> assertEquals("Medium Module icon", module.getCanvasIcon().getDescription()),
-            () -> assertEquals(15, module.getAllowableProperties().size())
+            () -> assertEquals(11, module.getAllowableProperties().size())
         );
     }
 

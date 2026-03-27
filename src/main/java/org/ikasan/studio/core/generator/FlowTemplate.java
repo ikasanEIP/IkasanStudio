@@ -6,7 +6,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.util.Map;
 
 public class FlowTemplate extends Generator {
-    private static final String FLOW_FTL = "flowTemplate.ftl";
+    private static final String FLOW_FTL = "flowTemplate_en.ftl";
 
     public static String create(String packageName, Module ikasanModule, Flow ikasanFlow) throws StudioGeneratorException {
         return  generateContents(packageName, ikasanModule, ikasanFlow);
@@ -17,6 +17,6 @@ public class FlowTemplate extends Generator {
         configs.put(STUDIO_PACKAGE_TAG, packageName);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFow);
-        return  FreemarkerUtils.generateFromTemplate(FLOW_FTL, configs);
+        return  FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), FLOW_FTL, configs);
     }
 }

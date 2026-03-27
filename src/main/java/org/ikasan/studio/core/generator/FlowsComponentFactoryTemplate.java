@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class FlowsComponentFactoryTemplate extends Generator {
     public static final String COMPONENT_FACTORY_CLASS_NAME = "ComponentFactory";
-    private static final String COMPONENT_FACTORY_FTL = "componentFactory.ftl";
+    private static final String COMPONENT_FACTORY_FTL = "componentFactory_en.ftl";
 
     public static String create(final String packageName, final Module ikasanModule, final Flow ikasanFlow) throws StudioGeneratorException {
         return generateContents(packageName, ikasanModule, ikasanFlow);
@@ -19,6 +19,6 @@ public class FlowsComponentFactoryTemplate extends Generator {
         configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFlow);
-        return FreemarkerUtils.generateFromTemplate(COMPONENT_FACTORY_FTL, configs);
+        return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), COMPONENT_FACTORY_FTL, configs);
     }
 }

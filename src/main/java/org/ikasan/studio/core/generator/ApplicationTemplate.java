@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class ApplicationTemplate extends Generator {
     public static final String APPLICATION_CLASS_NAME = "Application";
-    private static final String APPLICATION_FTL = "applicationTemplate.ftl";
+    private static final String APPLICATION_FTL = "applicationTemplate_en.ftl";
 
     public static String create(Module ikasanModule) throws StudioGeneratorException {
         return generateContents(ikasanModule);
@@ -20,7 +20,7 @@ public class ApplicationTemplate extends Generator {
         configs.put(STUDIO_PACKAGE_TAG, STUDIO_BOOT_PACKAGE);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(CLASS_NAME_TAG, APPLICATION_CLASS_NAME);
-        return FreemarkerUtils.generateFromTemplate(APPLICATION_FTL, configs);
+        return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), APPLICATION_FTL, configs);
     }
 }
 
