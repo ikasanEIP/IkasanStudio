@@ -51,7 +51,7 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
             () -> assertEquals("Small Flow icon", flow.getSmallIcon().getDescription()),
             () -> assertEquals("Medium Flow icon", flow.getCanvasIcon().getDescription()),
-            () -> assertEquals(5, flow.getAllowableProperties().size())
+            () -> assertEquals(4, flow.getAllowableProperties().size())
         );
     }
     protected void verifyDefaultModuleMeta(ComponentMeta module) {

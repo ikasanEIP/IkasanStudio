@@ -976,7 +976,7 @@ public class TestFixtures {
     public static ComponentPropertyMeta getNameComponentPropertyMeta() {
         return ComponentPropertyMeta.builder()
                 .propertyName("name")
-                .helpText("The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
+                .helpText("The name of the component as displayed on diagrams, spaces are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
                 .build();
     }
 
@@ -987,7 +987,7 @@ public class TestFixtures {
     public static ComponentPropertyMeta getComponentNameComponentPropertyMeta() {
         return ComponentPropertyMeta.builder()
                 .propertyName("componentName")
-                .helpText("The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
+                .helpText("The name of the component as displayed on diagrams, spaces are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
                 .build();
     }
 

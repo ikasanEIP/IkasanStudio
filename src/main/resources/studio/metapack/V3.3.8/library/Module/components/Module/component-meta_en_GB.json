@@ -76,13 +76,10 @@
       "defaultValue": true,
       "mandatory": true
     },
-    "flowAutoStartup": {
-      "propertyName": "flowAutoStartup",
+    "flowStartupType": {
+      "propertyName": "flowStartupType",
       "helpText": "If set to true, the flows will be started automatically when the module starts, otherwise they must be started from either the 'blue' console, or from the dashboard.",
-      "setterProperty": false,
-      "propertyDataType": "java.lang.Boolean",
-      "defaultValue": true,
-      "mandatory": true
+      "choices": [ "AUTOMATIC", "MANUAL", "DISABLED" ]
     },
     "version": {
       "propertyName": "version",

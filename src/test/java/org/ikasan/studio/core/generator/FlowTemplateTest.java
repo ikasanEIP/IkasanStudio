@@ -274,7 +274,7 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
         List<FlowElement> flowElements = module.getFlows().get(0).getFlowRoute().getFlowElements();
         BasicElement router = flowElements.get(flowElements.size() - 1);
 
-        String templateString = generateFlowTemlateStringForModule(module);
+        String templateString = generateFlowTemplateStringForModule(module);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, router, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
     }
 

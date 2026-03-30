@@ -90,7 +90,7 @@ public  class BasicElement extends IkasanObject {
 
     /**
      * Convenience method to access the standard property for the component identity. Since this is in properties, set JsonIgnore
-     * Note that the Ikasan Standard topology (https://github.com/ikasanEIP/ikasan/blob/4.0.x/ikasaneip/topology/README.md) dictates that
+     * Note that the (<a href="https://github.com/ikasanEIP/ikasan/blob/4.0.x/ikasaneip/topology/README.md">Ikasan Standard topology</a>) dictates that
      * Flows and Modules use the property 'name' to identify them, whereas all other components use 'componentName'.
      * @return the component description
      */
@@ -190,7 +190,7 @@ public  class BasicElement extends IkasanObject {
             componentProperty.setValue(value);
         } else { // Attempt to add the meta for this property, the framework will swallow and hide any NPE, hence the checks.
             ComponentMeta componentMeta1 = getComponentMeta();
-            if (componentMeta1 == null || componentMeta1.getMetadata(key) == null) {
+            if (componentMeta1 == null || componentMeta1.getMetadata(key) == null || componentMeta1.getMetadata(key) == null) {
                 Thread thread = Thread.currentThread();
                 LOG.error("STUDIO: SERIOUS ERROR - There is no meta data for property [" + key + "] on Element [" + this.getIdentity() +
                         "], class [" + this.getClass() +

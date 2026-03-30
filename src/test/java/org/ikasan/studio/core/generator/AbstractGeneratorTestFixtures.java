@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -35,6 +36,15 @@ public abstract class AbstractGeneratorTestFixtures {
         return templateString;
     }
 
+    public String generatePropertiesTemplateString(String metaPackVersion, Module module, List<Flow> flows) throws StudioGeneratorException {
+        for(Flow flow : flows) {
+            module.addFlow(flow);
+        }
+        String templateString = PropertiesTemplate.create(module);
+        assertNotNull(templateString);
+        return templateString;
+    }
+
 
     public String generateFlowTemplateString(String metaPackVersion, Module module, FlowElement flowElement) throws StudioBuildException, StudioGeneratorException {
         Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion)
@@ -43,10 +53,10 @@ public abstract class AbstractGeneratorTestFixtures {
         module.addFlow(flow);
         flowElement.setContainingFlowRoute(flow.getFlowRoute());
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flowElements(Collections.singletonList(flowElement)).flow(flow).build());
-        return generateFlowTemlateStringForModule(module);
+        return generateFlowTemplateStringForModule(module);
     }
 
-    public String generateFlowTemlateStringForModule(Module module) throws StudioGeneratorException {
+    public String generateFlowTemplateStringForModule(Module module) throws StudioGeneratorException {
         String templateString = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, module.getFlows().get(0));
         assertNotNull(templateString);
         return templateString;

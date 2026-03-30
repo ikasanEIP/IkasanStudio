@@ -61,16 +61,21 @@ ikasan.dashboard.extract.username=
 ikasan.dashboard.extract.password=
 
 # Flow Startup Control
-<#if module.getPropertyValue('flowAutoStartup')?? && module.getPropertyValue('flowAutoStartup')!false==true>
-ikasan.module.activator.startup.type.defaultStartupType=AUTOMATIC
-<#else>
-ikasan.module.activator.startup.type.defaultStartupType=MANUAL
+<#if module.getPropertyValue('flowStartupType')??>
+ikasan.module.activator.startup.type.defaultStartupType=${module.getPropertyValue('flowStartupType')}
 </#if>
-
 <#list properties![] as property>
     ${property.getName()}=${property.getValue()}
 </#list>
 <#--properties for all components-->
+<#assign flowStartupTypeIndex = 0>
+<#list module.getFlows()![] as flow>
+    <#if flow.getPropertyValue('flowStartupType')??>
+ikasan.module.activator.startup.type.flowStartupTypes[${flowStartupTypeIndex}]=${flow.getIdentity()},${flow.getPropertyValue('flowStartupType')}
+        <#assign flowStartupTypeIndex = flowStartupTypeIndex + 1>
+    </#if>
+</#list>
+
 <#compress>
 <#list module.getFlows()![] as flow>
     <#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as basicElement>

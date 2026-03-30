@@ -2,6 +2,7 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,6 +10,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -62,12 +64,42 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
      */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void testCreateProperties_emptyFlow_with_use_flowAutoStartup(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+    public void testCreateProperties_emptyFlow_with_use_AllflowStartupType(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        module.setPropertyValue("flowAutoStartup", true);
+        module.setPropertyValue("flowStartupType", "AUTOMATIC");
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_flowAutoStartup.properties"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_flowStartupType.properties"), templateString);
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateProperties_flowsAutoStartup_for_scpecific_flows(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+
+        Flow flow1 = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
+                .build();
+        flow1.setName("flow1");
+        flow1.setPropertyValue("flowStartupType", "AUTOMATIC");
+        Flow flow2 = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
+                .build();
+        flow2.setName("flow2");
+        Flow flow3 = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
+                .build();
+        flow3.setName("flow3");
+        flow3.setPropertyValue("flowStartupType", "MANUAL");
+
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, Arrays.asList(flow1, flow2, flow3));
+
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_multipleFlows_flowStartupType.properties"), templateString);
     }
 
 
@@ -77,9 +109,8 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
      */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void testCreateProperties_emptyFlow_with_use_flowAutoStartup_null(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+    public void testCreateProperties_emptyFlow_with_use_flowStartupType_null(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        module.setPropertyValue("flowAutoStartup", null);
         String templateString = PropertiesTemplate.generateContents(module);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);

@@ -30,7 +30,7 @@ class ModuleTest {
         final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
         final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
 
-        checkUnchangedProperties(oldModule, newModule, Arrays.asList("applicationPackageName", "description", "version", "flowAutoStartup", "h2DbPortNumber", "h2WebPortNumber", "port", "useEmbeddedH2"));
+        checkUnchangedProperties(oldModule, newModule, Arrays.asList("applicationPackageName", "description", "version", "flowStartupType", "h2DbPortNumber", "h2WebPortNumber", "port", "useEmbeddedH2"));
         assertAll(
                 "Check the module contains the expected values",
                 () -> assertEquals(newModule.getFlows().size(), oldModule.getFlows().size()),
@@ -57,7 +57,9 @@ class ModuleTest {
      */
     private void checkUnchangedProperties(Module oldModule, Module newModule, List<String> properties) {
         for (String property : properties) {
-            assertEquals(oldModule.getProperty(property).getMeta(), newModule.getProperty(property).getMeta(), "Property '" + property + "' should not have changed");
+            Object oldMeta = (oldModule.getProperty(property) != null) ? oldModule.getProperty(property).getMeta() : null;
+            Object newMeta = (newModule.getProperty(property) != null) ? newModule.getProperty(property).getMeta() : null;
+            assertEquals(oldMeta, newMeta, "Meta for property '" + property + "' should not have changed, old property = " + oldMeta + " new property = " + newMeta);
         }
     }
 }

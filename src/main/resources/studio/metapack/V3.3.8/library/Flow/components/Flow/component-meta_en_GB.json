@@ -9,7 +9,7 @@
   "allowableProperties": {
     "name": {
       "propertyName": "name",
-      "helpText": "The name of the component as displayed on diagrams, space are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "helpText": "The name of the component as displayed on diagrams, spaces are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
     "configurationId": {
@@ -23,11 +23,8 @@
     },
     "flowStartupType": {
       "propertyName": "flowStartupType",
-      "helpText": "Relates to the startup on the blue console."
-    },
-    "flowStartupComment": {
-      "propertyName": "flowStartupComment",
-      "helpText": "Relates to the startup on the blue console."
+      "choices": [ "AUTOMATIC", "MANUAL", "DISABLED" ],
+      "helpText": "<p>flowStartupType controls how a flow behaves when the module starts up.</p><ul><li>AUTOMATIC — the flow starts automatically when the module activates</li><li>MANUAL — the flow is not started automatically; it must be started by an operator via the dashboard/REST API</li><li>DISABLED — the flow cannot be started at all</li></ul><p>During module activation, each flow’s StartupControl is checked: if it’s AUTOMATIC (and the flow wasn’t previously stopped), flow.start() is called. Otherwise it logs that the flow won’t be auto-started.</p><p>This configuration will set ikasan.module.activator.startup.type.defaultStartupType in application.properties. Additional manual properties include</p><h1 id=\"set-a-specific-flow-format-flownamestartuptypeoptionalcomment\">Set a specific flow (format: flowName,StartupType,optionalComment)</h1><p>ikasan.module.activator.startup.type.flowStartupTypes[0]=My Flow,MANUAL,Requires manual start</p><h1 id=\"prevent-overwriting-what-an-operator-has-set-in-the-db\">Prevent overwriting what an operator has set in the DB</h1><p>ikasan.module.activator.startup.type.allowDbOverwrite=false</p><p>The key design intent is:</p><ol type=\"1\"><li>DB is the source of truth at runtime — operators can change a flow’s startup type via the dashboard/REST API and that is persisted to the database. allowDbOverwrite=false (the default) ensures code/config cannot silently override an operator’s decision.</li><li>Properties provide initial defaults — the properties are only applied when no DB value exists yet (first deployment) or if allowDbOverwrite=true is explicitly set.</li><li>Setting it in code would bypass the persistence layer — if you hardcoded a StartupType in Java, you’d fight against the DB-driven state that the runtime and dashboard manage, making operator control unreliable.</li></ol><h1 id=\"set-a-default-for-all-flows\">Set a default for all flows</h1><p>ikasan.module.activator.startup.type.defaultStartupType=AUTOMATIC</p><h1 id=\"set-a-specific-flow-format-flownamestartuptypeoptionalcomment-1\">Set a specific flow (format: flowName,StartupType,optionalComment)</h1><p>ikasan.module.activator.startup.type.flowStartupTypes[0]=My Flow,MANUAL,Requires manual start</p><h1 id=\"prevent-overwriting-what-an-operator-has-set-in-the-db-1\">Prevent overwriting what an operator has set in the DB</h1><p>ikasan.module.activator.startup.type.allowDbOverwrite=false</p><p>The key design intent (from the BulkStartupTypeSetupServiceConfiguration javadoc) is:</p><ol type=\"1\"><li>DB is the source of truth at runtime — operators can change a flow’s startup type via the dashboard/REST API and that is persisted to the database. allowDbOverwrite=false (the default) ensures code/config cannot silently override an operator’s decision.</li><li>Properties provide initial defaults — the properties are only applied when no DB value exists yet (first deployment) or if allowDbOverwrite=true is explicitly set.</li><li>Setting it in code would bypass the persistence layer — if you hardcoded a StartupType in Java, you’d fight against the DB-driven state that the runtime and dashboard manage, making operator control unreliable.</li></ol>"
     }
   }
 }
