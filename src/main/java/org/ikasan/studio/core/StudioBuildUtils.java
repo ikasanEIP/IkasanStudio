@@ -192,7 +192,7 @@ public class StudioBuildUtils {
             Path myPath;
             directoriesNames = new String[0];
             if (uri.getScheme().equals("jar")) {
-                // The fileSystem must remain open for Intellij, i.e. we can't close() it.
+
                 FileSystem fileSystem = null;
                 try {
                     fileSystem = FileSystems.getFileSystem(uri);
@@ -200,6 +200,7 @@ public class StudioBuildUtils {
                     LOG.info("STUDIO: " + dir + " is not currently open, attempting to create newFileSystem for it");
                 }
                 if (fileSystem == null) {
+                    // The fileSystem must remain open for Intellij, i.e. we can't close() it.
                     fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
                 }
                 myPath = fileSystem.getPath(dir);

@@ -531,18 +531,7 @@ public class ComponentPropertyEditBox {
      * @return true if the property has been altered
      */
     public boolean propertyValueHasChanged() {
-//        Object currentValue = componentProperty.getValue();
         Object enteredValue = getValue();
-
-        LOG.info("STUDIO: XXXXXX attribute " +
-                ((initialValue == null && editBoxHasValue()) ||
-                        (initialValue != null && !initialValue.equals(enteredValue)) ? " " : "NOT ") +
-                componentProperty.getMeta().getPropertyName() +
-                "   the value has " +
-
-                "changed from " +
-                initialValue + " to " + enteredValue);
-
         return ((initialValue == null && editBoxHasValue()) ||
                 (initialValue != null && !initialValue.equals(enteredValue)));
     }

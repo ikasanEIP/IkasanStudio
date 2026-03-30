@@ -99,64 +99,67 @@ public class IkasanComponentLibrary {
             // e.g. Consumer/component-type-meta_en_GB.json, Consumer/EventGeneratingConsumer, Consumer/FtpConsumer ...
 
             String[] componentTypeDirectories = getSubdirectories(baseDirectory);
-            assert componentTypeDirectories != null;
-            for (String componentTypeDirectory : componentTypeDirectories) {
-                // Each component type e.g. Consumer, Producer, etc. get the top level type meta
-                ComponentTypeMeta componentTypeMeta;
-                try {
-                    componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/component-type-meta_en_GB.json");
-                } catch (StudioBuildException e) {
-                    LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
-                            " there was an error generating the details for component " + componentTypeDirectory +
-                            " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
-                    continue;
-                }
-
-                String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
-
-                // For each component .e.g. BasicJamConsumer, FtpConsumer, etc.
-                for (String componentDirectory : componentDirectories) {
-                    IkasanMeta ikasanMeta;
+            if (componentTypeDirectories == null || componentTypeDirectories.length == 0) {
+                LOG.info("STUDIO: SERIOUS ERROR attempt was made to load meta-pack " + ikasanMetaDataPackVersion + " but that directory was empty in the library, please ensure metapack is available and try again");
+            } else {
+                for (String componentTypeDirectory : componentTypeDirectories) {
+                    // Each component type e.g. Consumer, Producer, etc. get the top level type meta
+                    ComponentTypeMeta componentTypeMeta;
                     try {
-                        ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/component-meta_en_GB.json");
+                        componentTypeMeta = ComponentIO.deserializeComponentTypeMeta(componentTypeDirectory + "/component-type-meta_en_GB.json");
                     } catch (StudioBuildException e) {
                         LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
-                                " there was an error generating the details for component " + componentDirectory +
+                                " there was an error generating the details for component " + componentTypeDirectory +
                                 " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
                         continue;
                     }
-                    ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
-                    componentMeta.setComponentTypeMeta(componentTypeMeta);
 
-                    // Merge the jar depencies once only at load time rather than every time we need them
-                    if (componentTypeMeta.getJarDependencies() != null) {
-                        if (componentMeta.getJarDependencies() == null) {
-                            componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
-                        } else {
-                            componentMeta.getJarDependencies().addAll(componentTypeMeta.getJarDependencies());
+                    String[] componentDirectories = getSubdirectories(componentTypeDirectory + "/components");
+
+                    // For each component .e.g. BasicJamConsumer, FtpConsumer, etc.
+                    for (String componentDirectory : componentDirectories) {
+                        IkasanMeta ikasanMeta;
+                        try {
+                            ikasanMeta = ComponentIO.deserializeMetaComponent(componentDirectory + "/component-meta_en_GB.json");
+                        } catch (StudioBuildException e) {
+                            LOG.warn("STUDIO: While trying to populate the component library from base directory " + baseDirectory +
+                                    " there was an error generating the details for component " + componentDirectory +
+                                    " review the Ikasan version pack, perhaps reinstall or use an alternate version", e);
+                            continue;
                         }
-                    }
-                    // Merge the properties once only at load time rather than every time we need them
-                    if (componentTypeMeta.getAllowableProperties() != null) {
-                        for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getAllowableProperties().entrySet()) {
-                            if (componentMeta.getAllowableProperties().containsKey(propertiesFromType.getKey())) {
-                                LOG.warn("STUDIO: Warning: the property with path " + componentDirectory + " and key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
+                        ComponentMeta componentMeta = (ComponentMeta) ikasanMeta;
+                        componentMeta.setComponentTypeMeta(componentTypeMeta);
+
+                        // Merge the jar depencies once only at load time rather than every time we need them
+                        if (componentTypeMeta.getJarDependencies() != null) {
+                            if (componentMeta.getJarDependencies() == null) {
+                                componentMeta.setJarDependencies(componentTypeMeta.getJarDependencies());
+                            } else {
+                                componentMeta.getJarDependencies().addAll(componentTypeMeta.getJarDependencies());
                             }
-                            componentMeta.getAllowableProperties().put(propertiesFromType.getKey(), propertiesFromType.getValue());
                         }
-                    }
+                        // Merge the properties once only at load time rather than every time we need them
+                        if (componentTypeMeta.getAllowableProperties() != null) {
+                            for (Map.Entry<String, ComponentPropertyMeta> propertiesFromType : componentTypeMeta.getAllowableProperties().entrySet()) {
+                                if (componentMeta.getAllowableProperties().containsKey(propertiesFromType.getKey())) {
+                                    LOG.warn("STUDIO: Warning: the property with path " + componentDirectory + " and key " + propertiesFromType.getKey() + " has been defined at the type level and will override the version at component level, contact meta pack support");
+                                }
+                                componentMeta.getAllowableProperties().put(propertiesFromType.getKey(), propertiesFromType.getValue());
+                            }
+                        }
 
-                    final String componentName = componentMeta.getName();
-                    componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-                    componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+                        final String componentName = componentMeta.getName();
+                        componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                        componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
 
-                    if (componentMeta.getSmallIcon().getIconWidth() == -1) {
-                        LOG.warn("STUDIO: The small icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
+                        if (componentMeta.getSmallIcon().getIconWidth() == -1) {
+                            LOG.warn("STUDIO: The small icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
+                        }
+                        if (componentMeta.getCanvasIcon().getIconWidth() == -1) {
+                            LOG.warn("STUDIO: The canvas icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
+                        }
+                        returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
                     }
-                    if (componentMeta.getCanvasIcon().getIconWidth() == -1) {
-                        LOG.warn("STUDIO: The canvas icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
-                    }
-                    returnedIkasanComponentMetaMapByKey.put(componentName, componentMeta);
                 }
             }
             if (!returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {

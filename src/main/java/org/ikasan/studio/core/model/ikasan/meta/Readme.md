@@ -43,7 +43,7 @@ or even their own custom version and custom components and custom free-marker te
 
 The installed metapacks can be found in resources/studio/metapack/*
 
-Within that folder are the roots of each metapack version e.g. V3.3.3 is the metapack for Ikasan version 3.3.3, V4.0.x is the metapack for Ikasan version 4.0.x, etc.
+Within that folder are the roots of each metapack version e.g. V3.3.8 is the metapack for Ikasan version 3.3.8, V4.0.x is the metapack for Ikasan version 4.0.x, etc.
 
 Within each metapack version is a 
 * template folder containing the free-marker templates for the code generation for that metapack.

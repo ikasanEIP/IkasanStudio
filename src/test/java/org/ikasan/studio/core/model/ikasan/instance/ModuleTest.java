@@ -14,8 +14,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
-import static org.ikasan.studio.core.TestFixtures.META_IKASAN_PACK_3_3_8;
+import static org.ikasan.studio.core.TestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ModuleTest {
@@ -24,19 +23,19 @@ class ModuleTest {
      * This test can be expanded to guarentee and even document what changes between one version and the next.
      */
     @Test
-    void cloneVersion3_3_3_to_3_3_8() throws StudioBuildException {
+    void cloneVersionOlderToNewer() throws StudioBuildException {
         Module oldModule = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
         assertNotNull(oldModule);
-        Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_3_3_8);
-        final String jarDependencies333 = "[Dependency {groupId=com.fasterxml.jackson.core, artifactId=jackson-annotations, version=2.12.3, type=jar}, Dependency {groupId=com.fasterxml.jackson.core, artifactId=jackson-core, version=2.12.3, type=jar}, Dependency {groupId=com.fasterxml.jackson.core, artifactId=jackson-databind, version=2.12.3, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-connector-base, version=3.1.0, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.1.0, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-ftp-endpoint, version=3.1.0, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.1.0, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.1.0, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
-        final String jarDependencies338 = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
+        Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_4_0_0);
+        final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
+        final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
 
         checkUnchangedProperties(oldModule, newModule, Arrays.asList("applicationPackageName", "description", "version", "flowAutoStartup", "h2DbPortNumber", "h2WebPortNumber", "port", "useEmbeddedH2"));
         assertAll(
                 "Check the module contains the expected values",
                 () -> assertEquals(newModule.getFlows().size(), oldModule.getFlows().size()),
                 () -> assertEquals(BASE_META_PACK, oldModule.getVersion()),
-                () -> assertEquals(META_IKASAN_PACK_3_3_8, newModule.getVersion()),
+                () -> assertEquals(META_IKASAN_PACK_4_0_0, newModule.getVersion()),
 
                 // componentMeta
                 () -> assertThat(newModule.getComponentMeta())
@@ -44,8 +43,8 @@ class ModuleTest {
                         .ignoringFields("jarDependencies")
                         .withEqualsForType(StudioComparitors::imageIconsEqual, ImageIcon.class)
                         .isEqualTo(oldModule.getComponentMeta()),
-                () -> assertEquals(jarDependencies333, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
-                () -> assertEquals(jarDependencies338, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())
+                () -> assertEquals(jarDependenciesOld, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
+                () -> assertEquals(jarDependenciesNew, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())
         );
     }
 
