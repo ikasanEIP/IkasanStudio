@@ -28,8 +28,8 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.STR
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
  * including validation and subsequent value access.
  */
-public class ComponentPropertyEditBox {
-    private static final Logger LOG = Logger.getInstance("#ComponentPropertyEditBox");
+public class ComponentPropertyEditRow {
+    private static final Logger LOG = Logger.getInstance("#ComponentPropertyEditRow");
     private final JLabel propertyTitleField;
     private final JButton dataValidationHelper;
     private ComboBox<Object> propertyChoiceValueField;
@@ -49,7 +49,7 @@ public class ComponentPropertyEditBox {
      * @param componentProperty to be exposed for edit
      * @param componentInitialisation only default the value if this is true
      */
-    public ComponentPropertyEditBox(Project project, ComponentProperty componentProperty, boolean componentInitialisation) {
+    public ComponentPropertyEditRow(Project project, ComponentProperty componentProperty, boolean componentInitialisation) {
         this(project, componentProperty, componentInitialisation, null, null);
     }
 
@@ -59,10 +59,10 @@ public class ComponentPropertyEditBox {
      * @param componentProperty to be exposed for edit
      * @param componentInitialisation only default the value if this is true
      * @param listenerFoAnyEditChanges used by the parent to detect changes to the values being edited. If this is not required, use the other constructor.
-     * @param componentPropertyEditBoxMap a growing list of propertyName -> ComponentPropertyEditBox, this instance will be added to it in the constructor.
+     * @param componentPropertyEditBoxMap a growing list of propertyName -> ComponentPropertyEditRow, this instance will be added to it in the constructor.
      *                                    This is needed if fields could default off each other. If this is not required, use the other constructor.
      */
-    public ComponentPropertyEditBox(Project project, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap) {
+    public ComponentPropertyEditRow(Project project, ComponentProperty componentProperty, boolean componentInitialisation, SimpleChangeListener listenerFoAnyEditChanges, Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap) {
         this.project = project;
         this.componentProperty = componentProperty;
         this.initialValue = componentProperty.getValue();
@@ -83,6 +83,9 @@ public class ComponentPropertyEditBox {
         // @todo we can have all types of components with rich pattern matching validation
         if (meta.getChoices() != null) {
             propertyChoiceValueField = new ComboBox<>();
+            if (meta.isOptional()) {
+                propertyChoiceValueField.addItem("");
+            }
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
             if (listenerFoAnyEditChanges != null) {
@@ -163,21 +166,21 @@ public class ComponentPropertyEditBox {
                 String[] components = componentProperty.getDefaultValue().toString().split(":");
                 if (components.length > 1) {
                     String targetComponentName = components[1];
-                    ComponentPropertyEditBox targetComponentPropertyEditBox = componentPropertyEditBoxMap.get(targetComponentName);
-                    if (targetComponentPropertyEditBox != null) {
-                        targetComponentPropertyEditBox.registerActionListener(event -> {
+                    ComponentPropertyEditRow targetComponentPropertyEditRow = componentPropertyEditBoxMap.get(targetComponentName);
+                    if (targetComponentPropertyEditRow != null) {
+                        targetComponentPropertyEditRow.registerActionListener(event -> {
                             if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
-                                propertyValueField.setValue(targetComponentPropertyEditBox.getValue());
+                                propertyValueField.setValue(targetComponentPropertyEditRow.getValue());
                             }
                         });
-                        targetComponentPropertyEditBox.registerFocusListener(new FocusListener() {
+                        targetComponentPropertyEditRow.registerFocusListener(new FocusListener() {
                             @Override
                             public void focusGained(FocusEvent e) { }
 
                             @Override
                             public void focusLost(FocusEvent e) {
                                 if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
-                                    propertyValueField.setValue(targetComponentPropertyEditBox.getValue());
+                                    propertyValueField.setValue(targetComponentPropertyEditRow.getValue());
                                 }
                             }
                         });
@@ -338,6 +341,8 @@ public class ComponentPropertyEditBox {
         if (meta.getChoices() != null) {
             if (componentProperty.getValue() != null) {
                 propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
+            } else {
+                propertyChoiceValueField.setSelectedItem(meta.isOptional() ? "" : null);
             }
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
@@ -397,7 +402,8 @@ public class ComponentPropertyEditBox {
     public Object getValue() {
         Object returnValue = null;
         if (isChoiceProperty()) {
-            returnValue = propertyChoiceValueField.getSelectedItem();
+            Object selected = propertyChoiceValueField.getSelectedItem();
+            returnValue = (selected == null || "".equals(selected)) ? null : selected;
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // It is possible that neither are currently selected i.e. the property is unset
             if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {
@@ -479,7 +485,6 @@ public class ComponentPropertyEditBox {
         List<ValidationInfo> result = new ArrayList<>();
         // 1. force population of mandatory properties
         if (meta.isMandatory() &&
-//                !isBooleanProperty() &&
                 inputfieldIsUnset()) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
         }

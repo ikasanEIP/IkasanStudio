@@ -129,8 +129,8 @@ public class ExceptionResolverPanel extends PropertiesPanel {
                     paramsSubPanel.setBackground(getThemeAwareBackgroundColor());
                     int subPanelY = 0;
 
-                    for (ComponentPropertyEditBox componentPropertyEditBox : exceptionResolutionRowDisplay.getActionParamsEditBoxList()) {
-                        addParamsToTable(paramsSubPanel, subPanelY++, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getInputField());
+                    for (ComponentPropertyEditRow componentPropertyEditRow : exceptionResolutionRowDisplay.getActionParamsEditBoxList()) {
+                        addParamsToTable(paramsSubPanel, subPanelY++, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getInputField());
                     }
                     addDisplayDataToTable(false, exceptionResolutionTablePanel, exceptionResolutionTabley++,
                         exceptionResolutionRowDisplay.getDeleteButton(),

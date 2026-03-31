@@ -161,9 +161,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         // Populate the list of params to be displayed and add to respective panels
         int mandatoryParamsTabley = 0;
         int optionalParamsTabley = 0;
-        List<ComponentPropertyEditBox> actionParams = exceptionResolutionEditBox.getActionParamsEditBoxList();
+        List<ComponentPropertyEditRow> actionParams = exceptionResolutionEditBox.getActionParamsEditBoxList();
         if (actionParams != null && !actionParams.isEmpty()) {
-            for (ComponentPropertyEditBox actionParamEditBox : actionParams) {
+            for (ComponentPropertyEditRow actionParamEditBox : actionParams) {
                 if (actionParamEditBox.isMandatory()) {
                     addLabelAndParamInput(mandatoryPropertiesEditorPanel, gc, mandatoryParamsTabley++, actionParamEditBox.getPropertyTitleField(), actionParamEditBox.getInputField());
                 } else {

@@ -101,7 +101,8 @@ public class StudioPsiUtils {
         UiContext uiContext = project.getService(UiContext.class);
         PsiFile pomPsiFile = pomGetTopLevel(project, project.getName());
         if (pomPsiFile != null) {
-            try (Reader reader = new StringReader(pomPsiFile.getText())) {
+            String pomText = ReadAction.compute(() -> pomPsiFile.getText());
+            try (Reader reader = new StringReader(pomText)) {
                 MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
                 model = xpp3Reader.read(reader);
                 ikasanPomModel = new IkasanPomModel(model);

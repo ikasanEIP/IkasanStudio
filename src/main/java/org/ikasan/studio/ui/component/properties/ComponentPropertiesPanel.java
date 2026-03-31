@@ -36,7 +36,7 @@ import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
 @SuppressWarnings("rawtypes")
 public class ComponentPropertiesPanel extends PropertiesPanel {
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
-    private transient List<ComponentPropertyEditBox> componentPropertyEditBoxList;
+    private transient List<ComponentPropertyEditRow> componentPropertyEditRowList;
     private JCheckBox userImplementedComponentOverwriteCheckBox;
     private HtmlScrollingDisplayPanel htmlScrollingDisplayPanel;
     private boolean isExpanded;
@@ -47,7 +47,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
     private final SimpleChangeListener listenerForAnyEditChanges;
-    private final Map<String, ComponentPropertyEditBox> componentPropertyEditBoxMap = new HashMap<>();
+    private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
 
     /**
      * Convenience wrapper for cleaner code in this class.
@@ -129,9 +129,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     private void controlFieldsThatAffectUserImplementedClass(boolean enable) {
-        for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-            if (!componentPropertyEditBox.getMeta().isReadOnlyProperty()) {
-                componentPropertyEditBox.controlFieldsAffectingUserImplementedClass(enable);
+        for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+            if (!componentPropertyEditRow.getMeta().isReadOnlyProperty()) {
+                componentPropertyEditRow.controlFieldsAffectingUserImplementedClass(enable);
             }
         }
     }
@@ -170,7 +170,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             @SuppressWarnings("rawtypes")
             JBPanel regeneratingPropertiesEditorPanel = new JBPanel(new GridBagLayout());
             regeneratingPropertiesEditorPanel.setBorder(null);
-            componentPropertyEditBoxList = new ArrayList<>();
+            componentPropertyEditRowList = new ArrayList<>();
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
@@ -189,7 +189,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
             // Component identity should be the first property if it exists
             if (getSelectedComponent().getIdentityPropertyMetaKey() != null) {
-                componentPropertyEditBoxList.add(
+                componentPropertyEditRowList.add(
                     addNameValueToPropertiesEditPanel(
                         mandatoryPropertiesEditorPanel, getSelectedComponent().getProperty(getSelectedComponent().getIdentityPropertyMetaKey()), gc, mandatoryTabley++));
             }
@@ -207,15 +207,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             property = new ComponentProperty((getSelectedComponent()).getComponentMeta().getMetadata(key));
                         }
                         if (property.getMeta().isUserSuppliedClass() || property.getMeta().isAffectsUserImplementedClass()) {
-                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
                                     regeneratingPropertiesEditorPanel,
                                     property, gc, regenerateTabley++));
                         } else if (property.getMeta().isMandatory()) {
-                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
                                     mandatoryPropertiesEditorPanel,
                                     property, gc, mandatoryTabley++));
                         } else {
-                            componentPropertyEditBoxList.add(addNameValueToPropertiesEditPanel(
+                            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
                                     optionalPropertiesEditorPanel,
                                     property, gc, optionalTabley++));
                         }
@@ -260,11 +260,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private void toggleOptionalSection() {
         isExpanded = !isExpanded;
         setToggleOptionalPropertiesButton(isExpanded);
-        if (!isExpanded) {
-            for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-                if (componentPropertyEditBox.getMeta().isOptional()) {
-                    componentPropertyEditBox.resetDataEntryComponentsWithNoValue();
-                }
+        for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+            if (componentPropertyEditRow.getMeta().isOptional()) {
+                componentPropertyEditRow.resetDataEntryComponentsWithNewValues();
             }
         }
         if (getPropertiesDialogue() != null) {
@@ -304,9 +302,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     protected void setOptionalPropertiesToDefaultVales() {
-        for (ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-            if (componentPropertyEditBox.getMeta().isOptional()) {
-                componentPropertyEditBox.setDefaultValue();
+        for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+            if (componentPropertyEditRow.getMeta().isOptional()) {
+                componentPropertyEditRow.setDefaultValue();
             }
         }
         redrawPanel();
@@ -318,8 +316,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     public JComponent getFirstFocusField() {
         JComponent firstComponent = null;
-        if (componentPropertyEditBoxList != null && !componentPropertyEditBoxList.isEmpty()) {
-            firstComponent = componentPropertyEditBoxList.get(0).getInputField().getFirstFocusComponent();
+        if (componentPropertyEditRowList != null && !componentPropertyEditRowList.isEmpty()) {
+            firstComponent = componentPropertyEditRowList.get(0).getInputField().getFirstFocusComponent();
         }
         return firstComponent;
     }
@@ -370,10 +368,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param tabley is used to convey the row number
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
-    private ComponentPropertyEditBox addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
-        ComponentPropertyEditBox componentPropertyEditBox = new ComponentPropertyEditBox(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditBox.getPropertyTitleField(), componentPropertyEditBox.getDataValidationHelper(),  componentPropertyEditBox.getInputField());
-        return componentPropertyEditBox;
+    private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
+        ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(),  componentPropertyEditRow.getInputField());
+        return componentPropertyEditRow;
     }
 
     private void addLabelAndSimpleInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JComponent propertyInputField) {
@@ -423,11 +421,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     @Override
     public boolean dataHasChangedAndOKToProcess() {
         boolean modelUpdated = false;
-        if (componentPropertyEditBoxList != null) {
-            for (final ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-                if (componentPropertyEditBox.propertyValueHasChanged()) {
-                    if (!componentPropertyEditBox.isAffectsUserImplementedClass() || userImplementedComponentOverwriteCheckBox.isSelected()) {
-                        LOG.info("STUDIO: Component " + componentPropertyEditBox.getComponentProperty().getMeta().getPropertyName() + " new value is " + componentPropertyEditBox.getValue());
+        if (componentPropertyEditRowList != null) {
+            for (final ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+                if (componentPropertyEditRow.propertyValueHasChanged()) {
+                    if (!componentPropertyEditRow.isAffectsUserImplementedClass() || userImplementedComponentOverwriteCheckBox.isSelected()) {
+                        LOG.info("STUDIO: Component " + componentPropertyEditRow.getComponentProperty().getMeta().getPropertyName() + " new value is " + componentPropertyEditRow.getValue());
                         modelUpdated = true;
                         break;
                     }
@@ -443,9 +441,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     public boolean isOverrideCheckboxRequired() {
         boolean overrideCheckboxRequired = false;
-        if (componentPropertyEditBoxList != null) {
-            for (final ComponentPropertyEditBox componentPropertyEditBox : componentPropertyEditBoxList) {
-                if (componentPropertyEditBox.propertyValueHasChanged() && componentPropertyEditBox.isAffectsUserImplementedClass()) {
+        if (componentPropertyEditRowList != null) {
+            for (final ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+                if (componentPropertyEditRow.propertyValueHasChanged() && componentPropertyEditRow.isAffectsUserImplementedClass()) {
                     overrideCheckboxRequired = true;
                     break;
                 }
@@ -460,10 +458,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     public boolean propertyHasChanged(String propertyNameToSearchFor) {
         boolean propertyHasChanged = false;
-        if (componentPropertyEditBoxList != null) {
-            for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
-                if (componentPropertyEditBox.getMeta().getPropertyName().equals(propertyNameToSearchFor)) {
-                    if (componentPropertyEditBox.propertyValueHasChanged()) {
+        if (componentPropertyEditRowList != null) {
+            for (final ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+                if (componentPropertyEditRow.getMeta().getPropertyName().equals(propertyNameToSearchFor)) {
+                    if (componentPropertyEditRow.propertyValueHasChanged()) {
                         propertyHasChanged = true;
                         break;
                     }
@@ -478,19 +476,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * Check to see if any new values have been entered, update the model and return true if that is the case.
      */
     public void updateComponentsWithNewValues() {
-        if (componentPropertyEditBoxList != null) {
-            for (final ComponentPropertyEditBox componentPropertyEditBox: componentPropertyEditBoxList) {
-                if (componentPropertyEditBox.propertyValueHasChanged()) {
+        if (componentPropertyEditRowList != null) {
+            for (final ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+                if (componentPropertyEditRow.propertyValueHasChanged()) {
                     if (getSelectedComponent() instanceof FlowUserImplementedElement) {
                         ((FlowUserImplementedElement)getSelectedComponent()).setOverwriteEnabled(true);
                     }
                     // Property has been unset e.g. a boolean, validation would ensure mandatory must be set.
-                    if (!componentPropertyEditBox.editBoxHasValue()) {
-                        getSelectedComponent().removeProperty(componentPropertyEditBox.getPropertyKey());
+                    if (!componentPropertyEditRow.editBoxHasValue()) {
+                        getSelectedComponent().removeProperty(componentPropertyEditRow.getPropertyKey());
                     } else { // update existing
-                        ComponentProperty componentProperty = componentPropertyEditBox.updateValueObjectWithEnteredValues();
+                        ComponentProperty componentProperty = componentPropertyEditRow.updateValueObjectWithEnteredValues();
                         // If its new this will insert, existing will just overwrite.
-                        getSelectedComponent().addComponentProperty(componentPropertyEditBox.getPropertyKey(), componentProperty);
+                        getSelectedComponent().addComponentProperty(componentPropertyEditRow.getPropertyKey(), componentProperty);
                     }
                     UiContext uiContext = project.getService(UiContext.class);
                     uiContext.setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
@@ -499,8 +497,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
     }
 
-    public List<ComponentPropertyEditBox> getComponentPropertyEditBoxList() {
-        return componentPropertyEditBoxList;
+    public List<ComponentPropertyEditRow> getComponentPropertyEditBoxList() {
+        return componentPropertyEditRowList;
     }
 
     /**
@@ -509,7 +507,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     protected java.util.List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
-        for (final ComponentPropertyEditBox editPair: getComponentPropertyEditBoxList()) {
+        for (final ComponentPropertyEditRow editPair: getComponentPropertyEditBoxList()) {
             result.addAll(editPair.doValidateAll());
         }
         return result;

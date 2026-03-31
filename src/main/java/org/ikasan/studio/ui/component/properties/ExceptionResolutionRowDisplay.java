@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 public class ExceptionResolutionRowDisplay {
     private final JLabel actionField = new JLabel();
-    private List<ComponentPropertyEditBox> componentPropertyEditBoxList = new ArrayList<>();
+    private List<ComponentPropertyEditRow> componentPropertyEditRowList = new ArrayList<>();
     private final ExceptionResolution exceptionResolution;
     private final JButton deleteButton = new JButton("DEL");
     JLabel exceptionField = new JLabel();
@@ -39,16 +39,16 @@ public class ExceptionResolutionRowDisplay {
         if (exceptionResolution.getTheAction() != null &&
                 exceptionResolution.getComponentProperties() != null &&
                 !exceptionResolution.getComponentProperties().isEmpty()) {
-            componentPropertyEditBoxList = new ArrayList<>();
+            componentPropertyEditRowList = new ArrayList<>();
             for (ComponentProperty property : exceptionResolution.getComponentProperties().values()) {
-                ComponentPropertyEditBox actionParam = new ComponentPropertyEditBox(parent.getProject(), property, componentInitialisation);
-                componentPropertyEditBoxList.add(actionParam);
+                ComponentPropertyEditRow actionParam = new ComponentPropertyEditRow(parent.getProject(), property, componentInitialisation);
+                componentPropertyEditRowList.add(actionParam);
             }
         }
     }
 
-    public List<ComponentPropertyEditBox> getActionParamsEditBoxList() {
-        return componentPropertyEditBoxList;
+    public List<ComponentPropertyEditRow> getActionParamsEditBoxList() {
+        return componentPropertyEditRowList;
     }
 
     public ExceptionResolution getIkasanExceptionResolution() {
