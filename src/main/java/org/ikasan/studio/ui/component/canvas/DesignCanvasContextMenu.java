@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
@@ -23,7 +24,16 @@ public class DesignCanvasContextMenu {
 
     public static void showPopupAndNavigateMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement, Decorator decorator) {
         JPopupMenu menu = new JPopupMenu();
-        if (ikasanBasicElement instanceof FlowElement) {
+
+        if (ikasanBasicElement instanceof Flow) {
+            menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
+            menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
+            menu.addSeparator();
+            menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
+            menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
+            menu.add(createNavigateToCode(project, ikasanBasicElement, false));
+            menu.addSeparator();
+        } else if (ikasanBasicElement instanceof FlowElement) {
 
             JMenu moduleNavigation = new JMenu("Module Navigation");
             UiContext uiContext = project.getService(UiContext.class);

@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
@@ -24,7 +25,7 @@ public class EditComponentAction implements ActionListener {
     */
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
-      if (ikasanBasicElement instanceof FlowElement) {
+      if (ikasanBasicElement instanceof FlowElement || ikasanBasicElement instanceof Flow ) {
          UiContext uiContext = project.getService(UiContext.class);
          DesignerCanvas canvasPanel = uiContext.getDesignerCanvas();
          canvasPanel.editComponent(ikasanBasicElement);
