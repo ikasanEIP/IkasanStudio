@@ -323,19 +323,6 @@ public class ComponentPropertyEditRow {
         }
     }
 
-    public void resetDataEntryComponentsWithNoValue() {
-        if (meta.getChoices() != null) {
-            propertyChoiceValueField.setSelectedItem(null);
-        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
-            this.propertyValueField.setValue(null);
-        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
-            propertyBooleanFieldTrue.setSelected(false);
-            propertyBooleanFieldFalse.setSelected(false);
-        } else {
-            this.propertyValueField.setText(null);
-        }
-    }
-
     public void resetDataEntryComponentsWithNewValues() {
         Object value = componentProperty.getValue();
         if (meta.getChoices() != null) {
@@ -433,24 +420,6 @@ public class ComponentPropertyEditRow {
             returnValue = propertyValueField.getValue();
         }
         return returnValue;
-    }
-
-    /**
-     * Get the value of the propertyInputField
-     * @return the value of the property updated by the user.
-     */
-    public Object getRawEntered() {
-        if (meta.getUsageDataType().equals(STRING_LIST)) {
-            String commmaList = propertyValueField.getText();
-            if (commmaList != null) {
-                commmaList = commmaList.replace("[", "").replace("]", "");
-                return commmaList;
-            } else {
-                return null;
-            }
-        } else {
-            return getValue();
-        }
     }
 
     /**
