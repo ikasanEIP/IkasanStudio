@@ -179,9 +179,9 @@ public class PIPSIIkasanModel {
         }
         // we have the flowPackageNames that ARE valid
         LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
-//        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-//            StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
-//        });
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
+        });
 
     }
 

@@ -724,7 +724,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                         final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
                         final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
                         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
-                        System.out.println("XXXXXXXX leafPackageDirectory.getSubdirectories() = " + Arrays.toString(leafPackageDirectory.getSubdirectories()));
                         return leafPackageDirectory.getSubdirectories(); // ✅ this is now returned
                     });
                 } catch (Exception ee) {
@@ -741,12 +740,18 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                                 " project [" + project + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +
                                 " trace [" + Arrays.asList(Thread.currentThread().getStackTrace()));
                     } else {
-                        for (PsiDirectory directory : resultsObject) {
-                            if (!subPackagesToKeep.contains(directory.getName())) {
-                                LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
-                                directory.delete();
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            for (PsiDirectory directory : resultsObject) {
+                                if (!subPackagesToKeep.contains(directory.getName())) {
+                                    LOG.info("STUDIO: Deleting directory " + directory.getName() + " the basePackage " + basePackage + " should only have these directories " + subPackagesToKeep);
+                                    try {
+                                        directory.delete();
+                                    } catch (Exception e) {
+                                        LOG.warn("STUDIO: Unable to delete directory " + directory.getName(), e);
+                                    }
+                                }
                             }
-                        }
+                        });
                     }
 
                 })
