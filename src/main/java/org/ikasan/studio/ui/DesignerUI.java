@@ -104,6 +104,7 @@ public class DesignerUI {
             if (canvasPanel != null) {
                 ApplicationManager.getApplication().executeOnPooledThread(() -> {
                     StudioPsiUtils.synchGenerateModelInstanceFromJSON(project);
+                    uiContext.getPipsiIkasanModel().initialisePsiFileHandles();
                     // PaletteTabPanel construction and UI changes must run on the EDT. Move to invokeLater.
                     ApplicationManager.getApplication().invokeLater(() -> {
                         PaletteTabPanel paletteTabPanel = new PaletteTabPanel(project);

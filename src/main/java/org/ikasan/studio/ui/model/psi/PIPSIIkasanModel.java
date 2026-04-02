@@ -1,9 +1,13 @@
 package org.ikasan.studio.ui.model.psi;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.*;
@@ -258,6 +262,62 @@ public class PIPSIIkasanModel {
                     ikasanFlow.getJavaClassName(),
                     flowTemplateString,
                     flowViewHandler);
+        }
+        // When creating the flow, for most components, jump to code could jump to the flow since that's where the components are referenced
+        for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
+            IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
+            if (flowComponentViewHandler != null) {
+                flowComponentViewHandler.setPsiFile(flowViewHandler.getPsiFile());
+            }
+        }
+    }
+
+    /**
+     * On project load there is no need to regenerate all source code, but the PSI file handles that enable
+     * "jump to code" navigation must still be resolved. This method looks up the already-generated flow
+     * Java files on disk and sets them on every flow and flow-component view handler, replicating what
+     * {@link #generateAndSaveJavaCodeIkasanFlow} does as a side-effect of code generation.
+     *
+     * Must be called from a background thread after the model has been loaded from model.json.
+     */
+    public void initialisePsiFileHandles() {
+        Module module = project.getService(UiContext.class).getIkasanModule();
+        if (module == null || module.getFlows() == null || module.getFlows().isEmpty()) {
+            return;
+        }
+        VirtualFile projectBaseDir = StudioPsiUtils.getProjectBaseDir(project);
+        if (projectBaseDir == null) {
+            LOG.warn("STUDIO: initialisePsiFileHandles could not determine project base directory");
+            return;
+        }
+        for (Flow ikasanFlow : module.getFlows()) {
+            String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
+            // GENERATED_CONTENT_ROOT is "/generated" — strip the leading slash for findFileByRelativePath
+            String relPath = StudioPsiUtils.GENERATED_CONTENT_ROOT.substring(1) + "/" +
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE + "/" +
+                    flowPackageName.replace(".", "/") + "/" +
+                    ikasanFlow.getJavaClassName() + ".java";
+            VirtualFile vFile = projectBaseDir.findFileByRelativePath(relPath);
+            if (vFile == null || !vFile.isValid()) {
+                LOG.info("STUDIO: initialisePsiFileHandles: no generated file found at " + relPath + ", skipping flow " + ikasanFlow.getComponentName());
+                continue;
+            }
+            ReadAction.run(() -> {
+                PsiFile flowPsiFile = PsiManager.getInstance(project).findFile(vFile);
+                if (flowPsiFile == null) {
+                    return;
+                }
+                IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, ikasanFlow);
+                if (flowViewHandler != null) {
+                    flowViewHandler.setPsiFile(flowPsiFile);
+                }
+                for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
+                    IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
+                    if (componentViewHandler != null) {
+                        componentViewHandler.setPsiFile(flowPsiFile);
+                    }
+                }
+            });
         }
     }
 
