@@ -13,7 +13,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
 
@@ -31,6 +33,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final Flow flow;
     private final FlowRoute flowRoute;
     private final List<IkasanFlowRouteViewHandler> childFlowRouteViewHandlers = new ArrayList<>();
+    // Populated during each paint pass so that click detection can resolve an endpoint click back to its owner.
+    private final Map<FlowElement, FlowElement> cachedEndpointToOwner = new HashMap<>();
 
     /**
      * This view handler deals with a flowRoute or a child route (i.e. one of the branches off a multi-recipient router)
@@ -137,7 +141,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      */
     private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
         FlowElement endpointFlowElement = getEndpointForGivenComponent(project.getService(UiContext.class).getIkasanModule().getMetaVersion(), targetFlowElement);
-        if (endpointFlowElement != null ) {
+        if (endpointFlowElement != null) {
+            cachedEndpointToOwner.put(endpointFlowElement, targetFlowElement);
             // Position and draw the endpoint
             IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
             IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(project, endpointFlowElement);
@@ -168,6 +173,27 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         }
     }
 
+
+    /**
+     * If the click coordinates fall within any cached external endpoint icon, return the owning
+     * consumer or producer FlowElement. Returns null if the click does not hit any endpoint.
+     * The cache is populated (and refreshed) during each paint pass by displayExternalEndpointIfExists.
+     */
+    public FlowElement getOwnerForEndpointAtXY(int x, int y) {
+        for (Map.Entry<FlowElement, FlowElement> entry : cachedEndpointToOwner.entrySet()) {
+            IkasanFlowComponentViewHandler endpointVH = ViewHandlerCache.getFlowComponentViewHandler(project, entry.getKey());
+            if (endpointVH != null && endpointVH.isComponentAtXY(x, y)) {
+                return entry.getValue();
+            }
+        }
+        for (IkasanFlowRouteViewHandler child : childFlowRouteViewHandlers) {
+            FlowElement owner = child.getOwnerForEndpointAtXY(x, y);
+            if (owner != null) {
+                return owner;
+            }
+        }
+        return null;
+    }
 
     private void drawConnector(Graphics g, AbstractViewHandlerIntellij start, AbstractViewHandlerIntellij end) {
         g.drawLine(

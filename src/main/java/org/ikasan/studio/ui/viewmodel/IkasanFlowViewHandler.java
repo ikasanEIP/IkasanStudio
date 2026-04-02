@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.Styling;
@@ -56,6 +57,15 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     @Override
     public String getText() {
         return flow.getIdentity() != null ? flow.getIdentity() : flow.getDescription();
+    }
+
+    /**
+     * If the click coordinates fall within a rendered external endpoint icon for this flow, return the
+     * owning consumer or producer FlowElement so the properties panel can display it. Returns null if
+     * the click does not hit any endpoint.
+     */
+    public FlowElement getOwnerForEndpointAtXY(int x, int y) {
+        return flowRouteViewHandler.getOwnerForEndpointAtXY(x, y);
     }
 
     private void paintFlowRectangle(Graphics g, int x, int y, int width, int height) {

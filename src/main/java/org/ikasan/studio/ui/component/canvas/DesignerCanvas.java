@@ -370,6 +370,9 @@ public class DesignerCanvas extends JPanel {
                     .orElse(null);
         }
         if (ikasanComponent == null) {
+            ikasanComponent = getOwnerForEndpointAtXY(xpos, ypos);
+        }
+        if (ikasanComponent == null) {
             ikasanComponent =  getFlowExceptionResolverAtXY(xpos, ypos);
         }
         if (ikasanComponent == null) {
@@ -411,6 +414,28 @@ public class DesignerCanvas extends JPanel {
         }
 
         return ikasanComponent;
+    }
+
+    /**
+     * Given x,y coords, check whether the click landed on an external endpoint icon.
+     * If so, return the owning consumer or producer FlowElement so its properties are shown.
+     * Returns null if no endpoint was hit.
+     */
+    private FlowElement getOwnerForEndpointAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
+        if (ikasanModule == null) {
+            return null;
+        }
+        for (Flow flow : ikasanModule.getFlows()) {
+            IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+            if (flowViewHandler != null) {
+                FlowElement owner = flowViewHandler.getOwnerForEndpointAtXY(xpos, ypos);
+                if (owner != null) {
+                    return owner;
+                }
+            }
+        }
+        return null;
     }
 
     /**
