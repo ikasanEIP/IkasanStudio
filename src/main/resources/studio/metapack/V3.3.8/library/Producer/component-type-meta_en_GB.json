@@ -1,6 +1,6 @@
 {
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
-  "displayOrder": 11,
+  "paletteDisplayOrder": 11,
   "componentShortType": "Producer",
   "helpText": "<strong>Producer</strong><p>Producers are always at the enf of flows, they send the payload onto its final destination.</p>",
   "allowableProperties": {

@@ -26,7 +26,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class ComponentTypeMeta {
     @lombok.NonNull
-    Integer displayOrder;                       // In the Palette, the order in which the components are displayed.
+    Integer paletteDisplayOrder;                // In the Palette, the order in which the components are displayed.
     String componentType;                       // e.g. org.ikasan.spec.component.endpoint.Producer
     @lombok.NonNull
     String componentShortType;                  // e.g. Producer

@@ -1103,7 +1103,7 @@ public class TestFixtures {
         dependency.setArtifactId("ikasan-component-producer");
         dependency.setVersion("3.1.0");
         return ComponentTypeMeta.builder()
-                .displayOrder(1)
+                .paletteDisplayOrder(1)
                 .componentType("org.ikasan.spec.component.endpoint.Producer")
                 .componentShortType("Producer")
                 .jarDependencies(Set.of(dependency))

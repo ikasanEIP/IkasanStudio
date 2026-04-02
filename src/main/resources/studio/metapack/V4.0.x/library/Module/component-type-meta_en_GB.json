@@ -1,6 +1,6 @@
 {
   "componentType": "org.ikasan.spec.module.Module",
-  "displayOrder": -1,
+  "paletteDisplayOrder": -1,
   "componentShortType": "Module",
   "allowableProperties": {
     "description": {

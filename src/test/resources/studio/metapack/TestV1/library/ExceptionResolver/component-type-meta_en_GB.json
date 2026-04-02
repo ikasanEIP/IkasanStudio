@@ -1,5 +1,5 @@
 {
   "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
-  "displayOrder": 10,
+  "paletteDisplayOrder": 10,
   "componentShortType": "Exception Resolver"
 }

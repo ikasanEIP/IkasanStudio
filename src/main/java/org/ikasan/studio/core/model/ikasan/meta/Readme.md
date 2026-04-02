@@ -7,7 +7,7 @@ Taking the example of a JMS Consumer.
 Reflects the state of a generic component type, in this case a '**Consumer**'. This typically includes
 
 * "componentType": e.g. "org.ikasan.spec.component.endpoint.Consumer",
-* "displayOrder": in the palette
+* "paletteDisplayOrder": in the palette
 * "componentShortType": "Consumer",
 * "helpText": 
 * "allowableProperties": a list of the properties this component type can have e.g. description.

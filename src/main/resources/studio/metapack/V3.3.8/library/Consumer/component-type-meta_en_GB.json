@@ -1,6 +1,6 @@
 {
   "componentType": "org.ikasan.spec.component.endpoint.Consumer",
-  "displayOrder": 3,
+  "paletteDisplayOrder": 3,
   "componentShortType": "Consumer",
   "supportsGenericImplementation": true,
   "helpText": "<strong>Consumer</strong><p>Consumers are always at the start of a flow. They are the entry point for the payload into the floe.</p>",

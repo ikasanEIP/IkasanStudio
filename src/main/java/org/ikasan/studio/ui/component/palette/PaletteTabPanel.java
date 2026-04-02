@@ -168,7 +168,7 @@ public class PaletteTabPanel extends JBPanel {
                             .stream()
                             .filter(meta -> !meta.isModule())
                             .sorted(Comparator
-                                    .comparing(ComponentMeta::getDisplayOrder)
+                                    .comparing(ComponentMeta::getPaletteDisplayOrder)
                                     .thenComparing(ComponentMeta::getName))
                             .toList();
 

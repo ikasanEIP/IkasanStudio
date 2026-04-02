@@ -170,8 +170,8 @@ public class ComponentMeta implements IkasanMeta {
         }
     }
 
-    public int getDisplayOrder() {
-        return componentTypeMeta.getDisplayOrder();
+    public int getPaletteDisplayOrder() {
+        return componentTypeMeta.getPaletteDisplayOrder();
     }
 
     public String getHelpText() {
