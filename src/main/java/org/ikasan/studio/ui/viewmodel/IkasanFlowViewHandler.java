@@ -8,7 +8,6 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
@@ -23,7 +22,6 @@ import static org.ikasan.studio.ui.StudioUIUtils.getBoldFont;
 public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     IkasanFlowRouteViewHandler flowRouteViewHandler;
     private final Project project;
-    public static final int FLOW_X_SPACING = 30;
     public static final int FLOW_Y_TITLE_SPACING = 15;
     public static final int FLOW_CONTAINER_BORDER = 10;
     public static final int CONTAINER_CORNER_ARC = 30;
@@ -155,7 +153,8 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         int currentX = newLeftx + FLOW_CONTAINER_BORDER;
         int topYForElements = getYAfterPaintingFlowTitle(graphics);
 
-        topYForElements = flowRouteViewHandler.initialiseDimensions(graphics, currentX, topYForElements);
+        // returns topYForElements
+        flowRouteViewHandler.initialiseDimensions(graphics, currentX, topYForElements);
 
         setWidthAndHeights(graphics);
 
@@ -173,8 +172,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     private void setWidthAndHeights(Graphics graphics)  {
-        if ((flowRouteViewHandler != null && !flowRouteViewHandler.getFlowRoute().isEmpty()) ||
-             flow.getConsumer() != null) {
+        if (flowRouteViewHandler != null) {
             setWidth(flowRouteViewHandler.getAllRouteMaxX(0) - flowRouteViewHandler.getFlowElementsMinX() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(flowRouteViewHandler.getAllRouteMaxY(graphics, 0) - flowRouteViewHandler.getFlowElementsMinY() + (2 * FLOW_CONTAINER_BORDER) + getTextHeight(graphics));
         } else {
