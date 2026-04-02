@@ -5,11 +5,9 @@ import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
@@ -34,18 +32,8 @@ public class DesignCanvasContextMenu {
             menu.add(createNavigateToCode(project, ikasanBasicElement, false));
             menu.addSeparator();
         } else if (ikasanBasicElement instanceof FlowElement) {
-
-            JMenu moduleNavigation = new JMenu("Module Navigation");
-            UiContext uiContext = project.getService(UiContext.class);
-            Module module = uiContext.getIkasanModule();
-//            menusForModuleNavigation(module, moduleNavigation);
-            menu.add(moduleNavigation);
-
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
-            // @TODO look to optimise this and store in context rather than create each time.
-            // @TODO add debug is broken, it needs to perform similar action to dragging a debug component from palette
-//            menu.add(createDebugComponentMenuItem(project, ikasanBasicElement));
             menu.addSeparator();
             if (decorator != null && decorator.isBefore() && decorator.isWiretap()) {
                 menu.add(removeDecoratorItem(project, "Delete Wiretap Before", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
@@ -82,21 +70,13 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
-
-
-    private static void menusForModuleNavigation(Module module, JMenu parent) {
-//        if (module != null && module.)
-//        JMenuItem item = new JMenuItem("Save Image");
-//        item.addActionListener(new SaveAction(project));
-//        return null;
-    }
-
     private static JMenuItem createDeleteComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem("Delete Component");
         item.addActionListener(new DeleteComponentAction(project, ikasanBasicElement));
         return item;
     }
 
+    // We may need to enable this at short notice.
     private static JMenuItem createDebugComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem("Add Debug to Component");
         item.addActionListener(new DebugComponentAction(project, ikasanBasicElement));
