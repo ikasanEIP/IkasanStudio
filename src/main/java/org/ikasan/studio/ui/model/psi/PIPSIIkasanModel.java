@@ -183,9 +183,8 @@ public class PIPSIIkasanModel {
         }
         // we have the flowPackageNames that ARE valid
         LOG.warn("STUDIO: WARNING: this feature was disabled temporarily to support a tight deadline for demo");
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames);
-        });
+        ApplicationManager.getApplication().executeOnPooledThread(() ->
+                StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames));
 
     }
 
@@ -277,7 +276,7 @@ public class PIPSIIkasanModel {
      * "jump to code" navigation must still be resolved. This method looks up the already-generated flow
      * Java files on disk and sets them on every flow and flow-component view handler, replicating what
      * {@link #generateAndSaveJavaCodeIkasanFlow} does as a side-effect of code generation.
-     *
+     * -
      * Must be called from a background thread after the model has been loaded from model.json.
      */
     public void initialisePsiFileHandles() {
