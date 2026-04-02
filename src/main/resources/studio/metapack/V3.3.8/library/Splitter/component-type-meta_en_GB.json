@@ -3,6 +3,7 @@
   "paletteDisplayOrder": 9,
   "componentShortType": "Splitter",
   "helpText": "<strong>Splitter</strong><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {
       "propertyName": "description",

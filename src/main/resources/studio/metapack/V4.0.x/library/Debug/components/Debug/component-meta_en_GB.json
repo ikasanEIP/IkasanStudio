@@ -5,6 +5,7 @@
   "helpText": "<strong>Debug Transition</strong><p>This component allows you to set a debug breakpoint on the data as it moves from one component to the next.</p><p>NOTE: debug elements are not saved when the project is closed.</p>",
   "implementingClass": "org.ikasan.studio.ui.component.debug.DebugComponent",
   "flowBuilderMethod": "filter",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",

@@ -2,6 +2,7 @@
   "componentType": "org.ikasan.spec.module.Module",
   "paletteDisplayOrder": -1,
   "componentShortType": "Module",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {
       "propertyName": "description",

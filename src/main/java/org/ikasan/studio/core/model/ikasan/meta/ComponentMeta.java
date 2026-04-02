@@ -10,7 +10,7 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 import javax.swing.*;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -74,7 +74,7 @@ public class ComponentMeta implements IkasanMeta {
     private String name;                            // Name of the component e.g. Email Producer, FTP Consumer
     private String additionalKey;                   // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
     @Builder.Default                                // The list of properties that this component is allowed to have e.g. 'name', 'port', 'url', these will be added to ComponentTypeMeta allowableProperties
-    private Map<String, ComponentPropertyMeta> allowableProperties = new HashMap<>();
+    private Map<String, ComponentPropertyMeta> allowableProperties = new LinkedHashMap<>();
     private String componentType;                   // The type can be that of the group type (see componentTypeMeta) or a type specific to this component.
     @JsonIgnore
     private ComponentTypeMeta componentTypeMeta;    // The meta associated with the component type from the metapack, e.g. broker, producer, consumer, router, etc.

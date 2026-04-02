@@ -2,6 +2,7 @@
   "paletteDisplayOrder": 8,
   "componentShortType": "Router",
   "helpText": "<strong>Router</strong><p>The router will allow the payload to be sent conditionally to zero, one or more routes.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {
       "propertyName": "description",

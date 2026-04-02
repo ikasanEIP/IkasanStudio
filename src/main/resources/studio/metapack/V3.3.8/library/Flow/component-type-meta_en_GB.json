@@ -3,6 +3,7 @@
   "paletteDisplayOrder": 2,
   "componentShortType": "Flow",
   "helpText": "<strong>Flow</strong><p>The flow is the container for components and generally represents an atomic action.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {
       "propertyName": "description",

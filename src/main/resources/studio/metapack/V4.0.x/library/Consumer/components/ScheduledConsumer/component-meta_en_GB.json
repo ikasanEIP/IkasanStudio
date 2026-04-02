@@ -6,6 +6,7 @@
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "usesBuilderInFactory" : true,
   "flowBuilderMethod": "consumer",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",

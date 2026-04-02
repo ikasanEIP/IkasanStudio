@@ -25,11 +25,20 @@
   ],
   "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/jms-spring-arjuna/consumer.md",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams, spaces are encouraged, succinct is best. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
+    },
+    "destinationJndiName": {
+      "propertyName": "destinationJndiName",
+      "helpText": "<p>Typically for Ikasan modules, the queue/topic e.g. dynamicQueues/myQName or dynamicTopics/myTopicName</p><p><strong>However</strong>, if destinationJndiProperty* properties are set — it is used as a JNDI lookup name to resolve the Destination from the JNDI context (JndiUtils.getDestination(…)), same pattern as the connection factory lookup.</p>",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination",
+      "usageDataType":"java.lang.String"
     },
     "configurable": {
       "propertyName": "configurable",
@@ -48,7 +57,7 @@
     "connectionFactoryJndiPropertyFactoryInitial": {
     "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
     "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
-    "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
+    "helpText": "<p>Sets the java.naming.factory.initial JNDI property in the application.properties file i.e. it tells the JNDI InitialContext which context factory class to use to look up the JMS ConnectionFactory.</p><p>For ActiveMQ you should <b>always set it to org.apache.activemq.jndi.ActiveMQInitialContextFactory</b></p><p>Without FactoryInitial set, the JVM has no way to resolve the JNDI context and the connection factory lookup will fail at startup.</p>",
     "mandatory": true,
     "setterProperty": true,
     "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial",
@@ -57,7 +66,7 @@
   "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
-      "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
+      "helpText": "<p>Sets the java.naming.provider.url JNDI property (Context.PROVIDER_URL). It tells the JNDI context where to find the AMQ broker so it can look up the ConnectionFactory. Typical values for ActiveMQ:</p><ul><li>TCP (standard) - tcp://localhost:61616</li><li>Failover (HA) - failover:(tcp://broker1:61616,tcp://broker2:61616)</li><li>SSL - ssl://localhost:61617</li><li>Testing - vm://embedded-broker?create=true&amp;broker.persistent=false&amp;broker.useJmx=false</li></ul><p>Important distinction: there are two separate sets of JNDI properties on the consumer:</p><ul><li>connectionFactoryJndiProperty — used to look up the ConnectionFactory</li><li>destinationJndiProperty — used to look up the queue/topic destination</li></ul><p>For AMQ both typically point to the same broker URL, so you set ProviderUrl on both:</p><ul><li>setConnectionFactoryJndiPropertyFactoryInitial(jmsNamingFactoryInitial)</li><li>setConnectionFactoryJndiPropertyProviderUrl(brokerUrl)</li><li>setDestinationJndiPropertyFactoryInitial(jmsNamingFactoryInitial)</li><li>setDestinationJndiPropertyProviderUrl(brokerUrl)</li></ul>",
       "mandatory": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url",
       "setterProperty": true,
@@ -66,7 +75,7 @@
     "connectionFactoryName": {
       "propertyName": "connectionFactoryName",
       "defaultValue": "ConnectionFactory",
-      "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
+      "helpText": "<p>For ActiveMQ the standard value is: <strong>ConnectionFactory</strong></p><p>connectionFactoryName is the JNDI name used to look up the ConnectionFactory from the JNDI context that was set up via connectionFactoryJndiProperty*. It is passed directly to JndiUtils.getConnectionFactory(jndiProperties, connectionFactoryName) (IkasanMessageListenerContainer.java:118).</p><p>In plain terms: once the JNDI context knows where the broker is (via ProviderUrl) and how to talk to it (via FactoryInitial), connectionFactoryName is the name registered in that JNDI context under which the ConnectionFactory object can be retrieved.</p><p>If you change to a different broker or JNDI provider (e.g. a remote JNDI server), this name would need to match whatever that server registers the factory under.</p>",
       "mandatory": true,
       "setterProperty": true,
       "___propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
@@ -96,14 +105,6 @@
       "mandatory": false,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
-      "usageDataType":"java.lang.String"
-    },
-    "destinationJndiName": {
-      "propertyName": "destinationJndiName",
-      "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination",
       "usageDataType":"java.lang.String"
     },
     "destinationJndiPropertyFactoryInitial": {

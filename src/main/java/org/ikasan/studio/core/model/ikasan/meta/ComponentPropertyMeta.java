@@ -89,6 +89,9 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean mandatory = false;        // The value must be supplied for the component to be valid
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private int propertyDisplayOrder = 0;   // Optional explicit display order in the properties panel; 0 (default) preserves JSON insertion order
     private String propertyConfigFileLabel; // Identifies the spring injected property name
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default

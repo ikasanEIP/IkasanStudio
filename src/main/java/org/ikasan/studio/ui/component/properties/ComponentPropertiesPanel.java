@@ -23,6 +23,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,7 +200,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 if (!componentInitialisation && getSelectedComponent().getComponentMeta().isGeneratesUserImplementedClass()) {
                     addOverrideCheckBoxToPropertiesEditPanel(regeneratingPropertiesEditorPanel, gc, regenerateTabley++);
                 }
-                for (Map.Entry<String, ComponentPropertyMeta> entry : getSelectedComponent().getComponentMeta().getAllowableProperties().entrySet()) {
+                List<Map.Entry<String, ComponentPropertyMeta>> sortedProperties = getSelectedComponent().getComponentMeta().getAllowableProperties().entrySet()
+                        .stream()
+                        .sorted(Comparator.comparingInt((Map.Entry<String, ComponentPropertyMeta> e) -> e.getValue().getPropertyDisplayOrder()))
+                        .toList();
+                for (Map.Entry<String, ComponentPropertyMeta> entry : sortedProperties) {
                     String key = entry.getKey();
                     if (!ComponentPropertyMeta.isIdentityKey(key) && !entry.getValue().isHiddenProperty() && !entry.getValue().isIgnoreProperty()) {
                         ComponentProperty property = getSelectedComponent().getProperty(key);

@@ -3,6 +3,7 @@
   "paletteDisplayOrder": 11,
   "componentShortType": "Producer",
   "helpText": "<strong>Producer</strong><p>Producers are always at the enf of flows, they send the payload onto its final destination.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "configurationId": {
       "propertyName": "configurationId",

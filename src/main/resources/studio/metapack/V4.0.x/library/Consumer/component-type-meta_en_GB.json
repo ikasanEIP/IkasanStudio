@@ -4,6 +4,7 @@
   "componentShortType": "Consumer",
   "supportsGenericImplementation": true,
   "helpText": "<strong>Consumer</strong><p>Consumers are always at the start of a flow. They are the entry point for the payload into the floe.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {
       "propertyName": "description",
