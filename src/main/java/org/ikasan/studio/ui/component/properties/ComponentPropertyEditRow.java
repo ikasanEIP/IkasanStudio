@@ -323,6 +323,20 @@ public class ComponentPropertyEditRow {
         }
     }
 
+    public void clearValue() {
+        if (componentProperty != null) {
+            componentProperty.setValue(null);
+            if (meta.getChoices() != null) {
+                propertyChoiceValueField.setSelectedItem("");
+            } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+                if (propertyBooleanFieldTrue != null) propertyBooleanFieldTrue.setSelected(false);
+                if (propertyBooleanFieldFalse != null) propertyBooleanFieldFalse.setSelected(false);
+            } else {
+                propertyValueField.setText("");
+            }
+        }
+    }
+
     public void resetDataEntryComponentsWithNewValues() {
         Object value = componentProperty.getValue();
         if (meta.getChoices() != null) {

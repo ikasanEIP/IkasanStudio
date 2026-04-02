@@ -46,6 +46,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JBPanel optionalPropertiesExpandPanel;
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
+    private JButton clearDefaultsButton;
     private final SimpleChangeListener listenerForAnyEditChanges;
     private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
 
@@ -279,6 +280,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private void setToggleOptionalPropertiesButton(boolean enable) {
         optionalPropertiesEditorPanel.setVisible(enable);
         setDefaultsButton.setEnabled(enable);
+        clearDefaultsButton.setEnabled(enable);
         toggleOptionalPropertiesButton.setText(enable ? "Ignore" : "Expand");
     }
 
@@ -293,12 +295,25 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         toggleOptionalPropertiesButton.addActionListener(e -> toggleOptionalSection());
         setDefaultsButton = new JButton("Set Defaults");
         setDefaultsButton.addActionListener(e -> setOptionalPropertiesToDefaultVales());
+        clearDefaultsButton = new JButton("Clear Defaults");
+        clearDefaultsButton.addActionListener(e -> clearOptionalProperties());
+        clearDefaultsButton.setEnabled(false);
         // Add buttons to the panel
         optionalPropertiesPanel.add(optionalPropertiesLabel);
         optionalPropertiesPanel.add(toggleOptionalPropertiesButton);
         optionalPropertiesPanel.add(setDefaultsButton);
+        optionalPropertiesPanel.add(clearDefaultsButton);
 
         return optionalPropertiesPanel;
+    }
+
+    protected void clearOptionalProperties() {
+        for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+            if (componentPropertyEditRow.getMeta().isOptional()) {
+                componentPropertyEditRow.clearValue();
+            }
+        }
+        redrawPanel();
     }
 
     protected void setOptionalPropertiesToDefaultVales() {
