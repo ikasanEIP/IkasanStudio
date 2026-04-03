@@ -40,29 +40,24 @@
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination",
       "usageDataType":"java.lang.String"
     },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
-    },
-    "configuredResourceId": {
-      "propertyName": "configuredResourceId",
-      "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don'twant to update properties that may have already been stored in the override properties database.",
-      "mandatory": false,
+    "autoContentConversion": {
+      "comments" : "This is not mandatory but should always be considered when creating this component",
+      "propertyName": "autoContentConversion",
+      "defaultValue": "true",
+      "helpText": "<p>Though the default for this configuration is false, it is more likely that this should be <strong>set to true</strong>.</p><p>autoContentConversion controls whether the consumer unwraps the JMS message envelope and passes just the payload content to the flow, or passes the raw javax.jms.Message object as-is.</p><p>Default: false — the raw JMS Message object flows through.</p><p>When true, these conversions are applied :</p><table><thead><tr class=\"header\"><th>JMS Message Type</th><th>Payload delivered to flow</th></tr></thead><tbody><tr class=\"odd\"><td>TextMessage</td><td>String</td></tr><tr class=\"even\"><td>MapMessage</td><td>Map&lt;String, Object&gt;</td></tr><tr class=\"odd\"><td>ObjectMessage</td><td>The unwrapped Object</td></tr><tr class=\"even\"><td>BytesMessage</td><td>byte[]</td></tr><tr class=\"odd\"><td>StreamMessage</td><td>Raw Message (passed through unchanged)</td></tr><tr class=\"even\"><td>Anything else</td><td>Raw Message (passed through unchanged)</td></tr></tbody></table><p>When to leave it false (the default):</p><p>Leave it false when you need access to JMS message headers or properties (e.g. message.getJMSCorrelationID(), message.getStringProperty(“someHeader”)) in your downstream components, since those are only available on the Message object itself. You would then use a JMS-aware converter (e.g. MapMessageToPayloadConverter) to extract what you need explicitly.</p>",
+      "mandatory": true,
       "setterProperty": true,
-      "usageDataType":"java.lang.String"
+      "usageDataType":"java.lang.Boolean"
     },
-
     "connectionFactoryJndiPropertyFactoryInitial": {
-    "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
-    "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
-    "helpText": "<p>Sets the java.naming.factory.initial JNDI property in the application.properties file i.e. it tells the JNDI InitialContext which context factory class to use to look up the JMS ConnectionFactory.</p><p>For ActiveMQ you should <b>always set it to org.apache.activemq.jndi.ActiveMQInitialContextFactory</b></p><p>Without FactoryInitial set, the JVM has no way to resolve the JNDI context and the connection factory lookup will fail at startup.</p>",
-    "mandatory": true,
-    "setterProperty": true,
-    "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial","usageDataType":"java.lang.String"
-  },
-  "connectionFactoryJndiPropertyProviderUrl": {
+      "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
+      "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+      "helpText": "<p>Sets the java.naming.factory.initial JNDI property in the application.properties file i.e. it tells the JNDI InitialContext which context factory class to use to look up the JMS ConnectionFactory.</p><p>For ActiveMQ you should <b>always set it to org.apache.activemq.jndi.ActiveMQInitialContextFactory</b></p><p>Without FactoryInitial set, the JVM has no way to resolve the JNDI context and the connection factory lookup will fail at startup.</p>",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial","usageDataType":"java.lang.String"
+    },
+    "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "<p>Sets the java.naming.provider.url JNDI property (Context.PROVIDER_URL). It tells the JNDI context where to find the AMQ broker so it can look up the ConnectionFactory. Typical values for ActiveMQ:</p><ul><li>TCP (standard) - tcp://localhost:61616</li><li>Failover (HA) - failover:(tcp://broker1:61616,tcp://broker2:61616)</li><li>SSL - ssl://localhost:61617</li><li>Testing - vm://embedded-broker?create=true&amp;broker.persistent=false&amp;broker.useJmx=false</li></ul><p>Important distinction: there are two separate sets of JNDI properties on the consumer:</p><ul><li>connectionFactoryJndiProperty — used to look up the ConnectionFactory</li><li>destinationJndiProperty — used to look up the queue/topic destination</li></ul><p>For AMQ both typically point to the same broker URL, so you set ProviderUrl on both:</p><ul><li>setConnectionFactoryJndiPropertyFactoryInitial(jmsNamingFactoryInitial)</li><li>setConnectionFactoryJndiPropertyProviderUrl(brokerUrl)</li><li>setDestinationJndiPropertyFactoryInitial(jmsNamingFactoryInitial)</li><li>setDestinationJndiPropertyProviderUrl(brokerUrl)</li></ul>",
@@ -80,19 +75,38 @@
       "___propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
       "usageDataType":"java.lang.String"
     },
-    "autoContentConversion": {
-      "propertyName": "autoContentConversion",
-      "defaultValue": "true",
-      "helpText": "",
-      "mandatory": false,
+    "pubSubDomain": {
+      "comments" : "This is not mandatory but should always be considered when creating this component",
+      "propertyName": "pubSubDomain",
+      "helpText": "pubSubDomain\n\nThis is a boolean flag that controls whether the destination is a topic (true) or a queue (false). It defaults to false (queue).\n\nWhat it does\n\nThe flag is used in two ways at consumer start-up (see IkasanMessageListenerContainer:153,190):\n\nDestination creation — when resolving the destination directly from the broker session (no JNDI), it determines whether to call session.createTopic(name) or session.createQueue(name).\nSpring container — it is passed to the underlying DefaultMessageListenerContainer.setPubSubDomain(), which tells Spring's JMS infrastructure how to treat the destination for all subsequent operations (acknowledgement, transactions, etc.).\nGetting this wrong means your consumer will look for the wrong destination type and fail to connect, or silently consume from the wrong place.\n\nTypical usage\n\n// Consuming from a queue (default — can be omitted) .setPubSubDomain(false)\n\n// Consuming from a topic .setPubSubDomain(true)\n\nInteraction with durable subscriptions\n\nWhen pubSubDomain is true (topic), you will typically also set:\n\n.setPubSubDomain(true)\n.setDurable(true) // survive flow restarts\n.setDurableSubscriptionName(\"mySubName\") // unique name for the durable subscription\nDurable subscriptions only apply to topics — they have no meaning for queues.\n\nSummary\n\nValue\tDestination type\tUse when\nfalse (default)\tQueue\tPoint-to-point — one consumer receives each message\ntrue\tTopic\tPublish-subscribe — all subscribers receive each message",
       "setterProperty": true,
-      "usageDataType":"java.lang.Boolean"
+      "mandatory": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "sessionTransacted": {
+      "comments" : "This is not mandatory but should always be considered when creating this component",
+      "propertyName": "sessionTransacted",
+      "helpText": "sessionTransacted\n\nA boolean that controls whether the JMS session operates within a local transaction. It defaults to false.\n\nWhat it does\n\nIt is passed directly to connection.createSession(sessionTransacted, acknowledgeMode) at consumer start-up.\n\nWhen true — the broker holds the message until the session explicitly commits or rolls back. The message is only removed from the queue/topic on a successful commit.\nWhen false — acknowledgement is controlled by sessionAcknowledgeMode instead (default AUTO_ACKNOWLEDGE), meaning the broker removes the message as soon as it is delivered.\nLocal transaction vs. XA/distributed transaction\n\nThis is a local JMS-only transaction — it only covers the JMS session itself. It is not the same as a distributed (XA) transaction coordinated by Arjuna/JTA, which spans both the JMS session and a database in a single atomic unit.\n\nSetting\tTransaction scope\tCoordinator\nsessionTransacted=true\tJMS session only\tAMQ broker\nXA via JmsXA connection factory\tJMS + DB (distributed)\tArjuna/JTA\nNote: The arjuna consumer docs show sessionTransacted=true used alongside connectionFactoryName=\"java:/JmsXA\" and an Arjuna transaction manager. In that setup the local session transaction is subordinate to the XA transaction.\n\nTypical usage\n\nStandard flow with redelivery on failure (most common):\n\n.setSessionTransacted(true)\n\nIf the flow throws an exception the JMS session rolls back and the broker redelivers the message, preventing message loss.\n\nFire-and-forget / best-effort (lower overhead, acceptable message loss):\n\n.setSessionTransacted(false) // default — can be omitted\n\nThe message is acknowledged immediately on delivery regardless of whether processing succeeds.\n\nRelationship to sessionAcknowledgeMode\n\n▎ When sessionTransacted is true, the sessionAcknowledgeMode value is effectively ignored by the JMS spec — acknowledgement is driven by commit/rollback, not the acknowledge mode. Only set sessionAcknowledgeMode when sessionTransacted is false.",
+      "setterProperty": true,
+      "mandatory": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "configurable": {
+      "propertyName": "configurable",
+      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
+      "ignoreProperty": true
+    },
+    "configuredResourceId": {
+      "propertyName": "configuredResourceId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "<p>configuredResourceId is the unique key used to store and retrieve a component’s configuration from the Ikasan configuration database. It is the identity of the configuration — if two components share the same ID, they share the same persisted configuration.</p><p>This is defined by the ConfiguredResource interface (ConfiguredResource.java:55) and used by the framework at flow startup to load configuration from the DB (VisitingInvokerFlow.java):</p><p>If it is not set, the framework auto-generates one:</p><ul><li>flowElement.getFlowComponent().setConfiguredResourceId(moduleName + flowName + componentName);</li></ul><p>Why you should always set it explicitly:</p><ul><li>If you want multiple components to all share the same configuration, use a meaningful shared key.</li><li>If you want to use a non-default naming convention, e.g. the flow name has changed, but you wish to keep any settings already configured in your production DB.</li></ul>",
+      "setterProperty": true,
+      "usageDataType":"java.lang.String"
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
       "defaultValue": "admin",
-      "helpText": "Id set on the JMS connection for durable subscribers.",
-      "mandatory": false,
+      "helpText": "<p>connectionFactoryUsername and connectionFactoryPassword</p><p>JMS broker authentication credentials, used when the consumer needs to authenticate with the AMQ broker to obtain a connection.</p><p>When the consumer starts, it must look up the ConnectionFactory from JNDI and establish a connection to the broker.</p><ul><li>When connectionFactoryUsername is <strong>not set</strong> → looks up the connection factory via plain JNDI, no broker-level auth.</li><li>Otherwise → looks up an AuthenticatedConnectionFactory that calls connectionFactory.createConnection(username, password), authenticating the connection at the JMS level.</li></ul><p>The connectionFactoryPassword field is annotated <span class=\"citation\" data-cites=\"Masked\">@Masked</span>, so it is redacted in logs and the Ikasan dashboard UI.</p><p>Typical usage</p><p>Local/embedded ActiveMQ (dev) — usually omit both; the broker accepts unauthenticated connections by default.</p><p>Remote/secured ActiveMQ broker — set both to the credentials the broker requires:</p><p>Important distinction</p><p>These are broker-level connection credentials, not JNDI directory credentials. If you also need to authenticate with the JNDI directory to look up the connection factory, those credentials go into connectionFactoryJNDIProperties using the keys java.naming.security.principal and java.naming.security.credentials (see destinationJndiPropertySecurityPrincipal) — a separate concern.</p><table><colgroup><col style=\"width: 51%\" /><col style=\"width: 48%\" /></colgroup><thead><tr class=\"header\"><th>Property</th><th>Purpose</th></tr></thead><tbody><tr class=\"odd\"><td><code>connectionFactoryUsername</code></td><td>Username to authenticate the JMS connection with the broker</td></tr><tr class=\"even\"><td><code>connectionFactoryPassword</code></td><td>Password for that authentication (masked in UI/logs)</td></tr><tr class=\"odd\"><td><code>connectionFactoryJNDIProperties[\"java.naming.security.principal\"]</code></td><td>Username to authenticate with the JNDI directory</td></tr></tbody></table>",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
       "usageDataType":"java.lang.String"
@@ -100,8 +114,7 @@
     "connectionFactoryUsername": {
       "propertyName": "connectionFactoryUsername",
       "defaultValue": "admin",
-      "helpText": "Authentication principal.",
-      "mandatory": false,
+      "helpText": "<p>connectionFactoryUsername and connectionFactoryPassword</p><p>JMS broker authentication credentials, used when the consumer needs to authenticate with the AMQ broker to obtain a connection.</p><p>When the consumer starts, it must look up the ConnectionFactory from JNDI and establish a connection to the broker.</p><ul><li>When connectionFactoryUsername is <strong>not set</strong> → looks up the connection factory via plain JNDI, no broker-level auth.</li><li>Otherwise → looks up an AuthenticatedConnectionFactory that calls connectionFactory.createConnection(username, password), authenticating the connection at the JMS level.</li></ul><p>The connectionFactoryPassword field is annotated <span class=\"citation\" data-cites=\"Masked\">@Masked</span>, so it is redacted in logs and the Ikasan dashboard UI.</p><p>Typical usage</p><p>Local/embedded ActiveMQ (dev) — usually omit both; the broker accepts unauthenticated connections by default.</p><p>Remote/secured ActiveMQ broker — set both to the credentials the broker requires:</p><p>Important distinction</p><p>These are broker-level connection credentials, not JNDI directory credentials. If you also need to authenticate with the JNDI directory to look up the connection factory, those credentials go into connectionFactoryJNDIProperties using the keys java.naming.security.principal and java.naming.security.credentials (see destinationJndiPropertySecurityPrincipal) — a separate concern.</p><table><colgroup><col style=\"width: 51%\" /><col style=\"width: 48%\" /></colgroup><thead><tr class=\"header\"><th>Property</th><th>Purpose</th></tr></thead><tbody><tr class=\"odd\"><td><code>connectionFactoryUsername</code></td><td>Username to authenticate the JMS connection with the broker</td></tr><tr class=\"even\"><td><code>connectionFactoryPassword</code></td><td>Password for that authentication (masked in UI/logs)</td></tr><tr class=\"odd\"><td><code>connectionFactoryJNDIProperties[\"java.naming.security.principal\"]</code></td><td>Username to authenticate with the JNDI directory</td></tr></tbody></table>",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
       "usageDataType":"java.lang.String"
@@ -109,7 +122,7 @@
     "destinationJndiPropertyFactoryInitial": {
       "propertyName": "destinationJndiPropertyFactoryInitial",
       "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
-      "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
+      "helpText": "<p>You only need destinationJndiPropertyFactoryInitial when destinationJndiProperties is populated</p><p>This is a convenience setter that puts the standard JNDI property java.naming.factory.initial (i.e., Context.INITIAL_CONTEXT_FACTORY) into the destinationJndiProperties map.</p><p><strong>What it does</strong></p><p>When the consumer needs to look up the destination (queue/topic) via JNDI — as opposed to creating it directly from a session — it must bootstrap a javax.naming.InitialContext. The factory.initial property tells Java which InitialContextFactory class to instantiate to connect to that naming service. Without it, the JVM falls back to the default context (usually only works if you’re running inside an app server).</p><p>Note: there are two parallel sets of JNDI properties:</p><table><colgroup><col style=\"width: 50%\" /><col style=\"width: 50%\" /></colgroup><thead><tr class=\"header\"><th>Property set</th><th>Used for</th></tr></thead><tbody><tr class=\"odd\"><td><code>destinationJndiProperties</code> (<code>destinationJndiPropertyFactoryInitial</code>)</td><td>Looking up the queue/topic name</td></tr><tr class=\"even\"><td><code>connectionFactoryJndiProperties</code> (<code>connectionFactoryJndiPropertyFactoryInitial</code>)</td><td>Looking up the <code>ConnectionFactory</code></td></tr></tbody></table><p><strong>When you need it</strong></p><p>You only need this when destinationJndiProperties is populated (i.e., the destination is resolved via remote JNDI lookup). If the destination name is resolved directly from the broker connection (the more common case with embedded or local ActiveMQ), the destinationJndiProperties map is empty and this property is ignored — the consumer creates the queue/topic via session.createQueue(name) instead.</p><p>Typical value for ActiveMQ</p><p>.setDestinationJndiPropertyFactoryInitial(“org.apache.activemq.jndi.ActiveMQInitialContextFactory”) .setDestinationJndiPropertyProviderUrl(“tcp://mybroker:61616”) // Optionally if the factory itself also needs JNDI lookup: .setConnectionFactoryJndiPropertyFactoryInitial(“org.apache.activemq.jndi.ActiveMQInitialContextFactory”) .setConnectionFactoryJndiPropertyProviderUrl(“tcp://mybroker:61616”)</p><p>For a WebLogic or other J2EE app server context it would be something like weblogic.jndi.WLInitialContextFactory.</p><p>Common pattern (from the codebase docs)</p><p>componentBuilder.jmsConsumer() .setDestinationJndiName(“jms/MyQueue”) .setConnectionFactoryName(“jms/ConnectionFactory”) .setConnectionFactoryJndiPropertyFactoryInitial(jmsNamingFactoryInitial) .setConnectionFactoryJndiPropertyProviderUrl(brokerUrl) .setDestinationJndiPropertyFactoryInitial(jmsNamingFactoryInitial) .setDestinationJndiPropertyProviderUrl(brokerUrl)</p><p>In short: it tells the JVM which JNDI provider class to use when resolving the destination name — only needed for remote/JNDI-based destination resolution.</p>",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.initial",
       "usageDataType":"java.lang.String"
@@ -117,7 +130,7 @@
     "destinationJndiPropertyProviderUrl": {
       "propertyName": "destinationJndiPropertyProviderUrl",
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
-      "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
+      "helpText": "destinationJndiPropertyProviderUrl is only required if destinationJndiProperties is set\n\nThis sets the standard JNDI property java.naming.provider.url (Context.PROVIDER_URL) in the destinationJndiProperties map. It is the network address of the naming/directory service used to look up the destination (queue/topic).\n\nWhat it does\n\nWhen the consumer resolves the destination via JNDI, this URL tells the InitialContext where to connect — i.e., the address of the broker (or JNDI server) that holds the destination binding. For ActiveMQ this is the broker's transport URL.\n\nRelationship to destinationJndiPropertyFactoryInitial\n\nThese two always go together — factoryInitial says which class handles the lookup, providerUrl says where to connect:\n\nProperty\tRole\ndestinationJndiPropertyFactoryInitial\tThe InitialContextFactory class to use\ndestinationJndiPropertyProviderUrl\tThe URL of the naming service to connect to\nTypical usage\n\ndestinationJndiPropertyFactoryInitial \"org.apache.activemq.jndi.ActiveMQInitialContextFactory\"\ndestinationJndiPropertyProviderUrl \"tcp://mybroker:61616\"\nIn practice, both destinationJndiProperties and connectionFactoryJndiProperties usually point at the same broker URL, as seen in the sample module (ModuleConfig.java:77-80):\n\nWhen you can omit it\n\nIf destinationJndiProperties is empty/null, the consumer skips the JNDI destination lookup entirely and resolves the queue/topic directly from the broker connection via session.createQueue(name). This is the simpler and more common approach with local or embedded ActiveMQ — in that case you don't need any of the destinationJndiProperty* settings.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.provider.url",
       "usageDataType":"java.lang.String"
@@ -125,7 +138,7 @@
     "destinationJndiPropertySecurityCredentials": {
       "propertyName": "destinationJndiPropertySecurityCredentials",
       "defaultValue": "admin",
-      "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
+      "helpText": "<p>destinationJndiPropertySecurityCredentials is only required if destinationJndiProperties is populated.</p><p>This sets the standard JNDI property java.naming.security.credentials (Context.SECURITY_CREDENTIALS) in the destinationJndiProperties map. It is the password used to authenticate with the JNDI naming service when looking up the destination (queue/topic).</p><p><strong>What it does</strong></p><p>When the consumer performs a JNDI lookup to resolve the destination, the naming service may require authentication. This property provides the credential (password) for that authentication. It always pairs with destinationJndiPropertySecurityPrincipal, which provides the username.</p><p>Important distinction from connectionFactoryPassword</p><table><colgroup><col style=\"width: 34%\" /><col style=\"width: 20%\" /><col style=\"width: 44%\" /></colgroup><thead><tr class=\"header\"><th>Property</th><th>Authenticates with</th><th>Purpose</th></tr></thead><tbody><tr class=\"odd\"><td>destinationJndiPropertySecurityCredentials</td><td>The JNDI naming service</td><td>Password to look up the destination name in the directory</td></tr><tr class=\"even\"><td>connectionFactoryJndiPropertySecurityCredentials</td><td>The JNDI naming service</td><td>Password to look up the ConnectionFactory in the directory</td></tr><tr class=\"odd\"><td>connectionFactoryPassword</td><td>The AMQ broker</td><td>Password to open the JMS connection to the broker itself</td></tr></tbody></table><p><strong>Typical usage</strong></p><p>In most ActiveMQ deployments the JNDI provider is the broker itself and does not require separate JNDI authentication — you can omit this property. It is primarily needed when connecting to a secured enterprise JNDI directory (e.g. WebLogic, LDAP-backed JNDI) that requires a login before it will serve lookups.</p><p>If you were to use this in Java code, it would typically look like</p><p>componentBuilder.jmsConsumer() .setDestinationJndiPropertyFactoryInitial(“org.apache.activemq.jndi.ActiveMQInitialContextFactory”) .setDestinationJndiPropertyProviderUrl(“tcp://mybroker:61616”) .setDestinationJndiPropertySecurityPrincipal(“jndiUser”) .setDestinationJndiPropertySecurityCredentials(“jndiPassword”) // Broker-level authentication — a separate concern .setConnectionFactoryUsername(“brokerUser”) .setConnectionFactoryPassword(“brokerPassword”)</p><p><strong>When you can omit it</strong></p><p>If destinationJndiProperties is empty/null, the consumer skips JNDI destination resolution and creates the queue/topic directly via session.createQueue(name). In that case none of the destinationJndiProperty* settings are needed, including this one.</p>",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password",
       "usageDataType":"java.lang.String"
@@ -133,22 +146,10 @@
     "destinationJndiPropertySecurityPrincipal": {
       "propertyName": "destinationJndiPropertySecurityPrincipal",
       "defaultValue": "admin",
-      "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
+      "helpText": "destinationJndiPropertySecurityPrincipal is only required if destinationJndiProperties is populated.\n\nSets the standard JNDI property java.naming.security.principal (Context.SECURITY_PRINCIPAL) in the destinationJndiProperties map. It is the username used to authenticate with the JNDI naming service when looking up the destination (queue/topic).\n\nWhat it does\n\nIt pairs with destinationJndiPropertySecurityCredentials to form the username/password pair for JNDI directory authentication. Neither is useful without the other.\n\nThe full JNDI property set in context\n\nThe four destinationJndiProperty* setters each populate one entry in the destinationJndiProperties map:\n\nSetter\tJNDI key\tRole\ndestinationJndiPropertyFactoryInitial\tjava.naming.factory.initial\tWhich InitialContextFactory class to use\ndestinationJndiPropertyProviderUrl\tjava.naming.provider.url\tWhere the naming service is\ndestinationJndiPropertySecurityPrincipal\tjava.naming.security.principal\tUsername for the naming service\ndestinationJndiPropertySecurityCredentials\tjava.naming.security.credentials\tPassword for the naming service\nTypical usage\n\nIf you were to code this in Java, it would typically look like\n\ncomponentBuilder.jmsConsumer() .setDestinationJndiName(\"jms/MyQueue\") .setDestinationJndiPropertyFactoryInitial(\"org.apache.activemq.jndi.ActiveMQInitialContextFactory\") .setDestinationJndiPropertyProviderUrl(\"tcp://mybroker:61616\") .setDestinationJndiPropertySecurityPrincipal(\"jndiUser\") // username .setDestinationJndiPropertySecurityCredentials(\"jndiPassword\") // password\n\nWhen you can omit it\n\nSame as securityCredentials — if destinationJndiProperties is empty/null, the consumer resolves the destination directly via session.createQueue(name) and none of these JNDI properties apply. For most local or embedded ActiveMQ setups, the JNDI directory doesn't require authentication and both securityPrincipal and securityCredentials can be left unset.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.user",
       "usageDataType":"java.lang.String"
-    },
-    "pubSubDomain": {
-      "propertyName": "pubSubDomain",
-      "helpText": "Set to true to indicate that destination is a topic, otherwise destination is a queue.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "sessionTransacted": {
-      "propertyName": "sessionTransacted",
-      "helpText": "Sets whether the session should be part of a transaction.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
     }
   }
 }
