@@ -172,7 +172,8 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     private void setWidthAndHeights(Graphics graphics)  {
-        if (flowRouteViewHandler != null) {
+        if ((flowRouteViewHandler != null && !flowRouteViewHandler.getFlowRoute().isEmpty()) ||
+             flow.getConsumer() != null) {
             setWidth(flowRouteViewHandler.getAllRouteMaxX(0) - flowRouteViewHandler.getFlowElementsMinX() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(flowRouteViewHandler.getAllRouteMaxY(graphics, 0) - flowRouteViewHandler.getFlowElementsMinY() + (2 * FLOW_CONTAINER_BORDER) + getTextHeight(graphics));
         } else {
