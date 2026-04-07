@@ -15,14 +15,11 @@ import org.ikasan.studio.ui.UiContext;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.STRING_LIST;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
 
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,
@@ -38,6 +35,7 @@ public class ComponentPropertyEditRow {
     private JCheckBox propertyBooleanFieldFalse;
     private boolean affectsUserImplementedClass = false;
     private boolean isList = false;
+    private JButton defaultValueButton;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
     private final Project project;
@@ -66,7 +64,8 @@ public class ComponentPropertyEditRow {
         this.project = project;
         this.componentProperty = componentProperty;
         this.initialValue = componentProperty.getValue();
-        this.propertyTitleField = new JLabel(componentProperty.getMeta().getPropertyName());
+        String labelText = componentProperty.getMeta().getDisplayLabel() != null ? componentProperty.getMeta().getDisplayLabel() : componentProperty.getMeta().getPropertyName();
+        this.propertyTitleField = new JLabel(labelText);
         this.meta = componentProperty.getMeta();
         if (componentPropertyEditBoxMap != null) {
             componentPropertyEditBoxMap.put(getPropertyKey(), this);
@@ -160,28 +159,28 @@ public class ComponentPropertyEditRow {
                 });
             }
 
-            // These fields attempt to take their default value from another e.g. a bespoke method named after the propertyName
-            if (componentPropertyEditBoxMap!= null && meta.getDefaultValue() != null && meta.getDefaultValue().toString().startsWith("__fieldName:")) {
-
-                String[] components = componentProperty.getDefaultValue().toString().split(":");
-                if (components.length > 1) {
-                    String targetComponentName = components[1];
+            // For fields that derive their default value from another field, provide a "D" button to apply the default on demand.
+            if (componentPropertyEditBoxMap != null && meta.getDefaultValue() != null && meta.getDefaultValue().toString().startsWith(SUBSTITUTION_FIELD_NAME)) {
+                String[] parts = componentProperty.getDefaultValue().toString().split(SUBSTITUTION_NAME_VALUE_DELIM);
+                String literal = parts.length > 2 ? parts[2] : "";
+                if (parts.length > 1) {
+                    String targetComponentName = parts[1];
                     ComponentPropertyEditRow targetComponentPropertyEditRow = componentPropertyEditBoxMap.get(targetComponentName);
                     if (targetComponentPropertyEditRow != null) {
-                        targetComponentPropertyEditRow.registerActionListener(event -> {
-                            if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
-                                propertyValueField.setValue(targetComponentPropertyEditRow.getValue());
-                            }
-                        });
-                        targetComponentPropertyEditRow.registerFocusListener(new FocusListener() {
-                            @Override
-                            public void focusGained(FocusEvent e) { }
-
-                            @Override
-                            public void focusLost(FocusEvent e) {
+                        defaultValueButton = new JButton("Default");
+                        defaultValueButton.setToolTipText("Set default value derived from " + targetComponentName);
+                        defaultValueButton.addActionListener(e -> {
+                            if ("Default".equals(defaultValueButton.getText())) {
                                 if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
-                                    propertyValueField.setValue(targetComponentPropertyEditRow.getValue());
+                                    propertyValueField.setValue(targetComponentPropertyEditRow.getValue() + literal);
                                 }
+                                defaultValueButton.setText("Clear");
+                                defaultValueButton.setToolTipText("Clear the default value");
+                            } else {
+                                propertyValueField.setValue(null);
+                                propertyValueField.setText("");
+                                defaultValueButton.setText("Default");
+                                defaultValueButton.setToolTipText("Set default value derived from " + targetComponentName);
                             }
                         });
                     }
@@ -203,27 +202,6 @@ public class ComponentPropertyEditRow {
             affectsUserImplementedClass = true;
             // Cant edit unless the regenerateSource is selected
             controlFieldsAffectingUserImplementedClass(false);
-        }
-    }
-
-    /**
-     * Register an action actionListener (press enter) for the input field, currently this would only make sense for the propertyValueField
-     * Its typical use might be to default another field to the value entered in this field.
-     * @param actionListener to be registered
-     */
-    public void registerActionListener(ActionListener actionListener) {
-        if (propertyValueField != null) {
-            propertyValueField.addActionListener(actionListener);
-        }
-    }
-    /**
-     * Register a focus focusListener (tab off) for the input field, currently this would only make sense for the propertyValueField
-     * Its typical use might be to default another field to the value entered in this field.
-     * @param focusListener to be registered
-     */
-    public void registerFocusListener(FocusListener focusListener) {
-        if (propertyValueField != null) {
-            propertyValueField.addFocusListener(focusListener);
         }
     }
 
@@ -530,6 +508,9 @@ public class ComponentPropertyEditRow {
     }
     public JButton getDataValidationHelper() {
         return dataValidationHelper;
+    }
+    public JButton getDefaultValueButton() {
+        return defaultValueButton;
     }
     public JFormattedTextField getOverridingInputField() {
         return propertyValueField;

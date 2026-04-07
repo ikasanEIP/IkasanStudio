@@ -59,7 +59,9 @@ public class ComponentPropertyMeta {
     public static final String SUBSTITUTION_PREFIX_FLOW = "__flow";
     public static final String SUBSTITUTION_PREFIX_COMPONENT = "__component";
     public static final String SUBSTITUTION_PREFIX_MODULE = "__module";
-    public static final String SUBSTITUTION_FIELD_NAME = "__fieldName:";
+    public static final String SUBSTITUTION_NAME_VALUE_DELIM = ":";
+    public static final String SUBSTITUTION_PAIR_DELIM = ",";
+    public static final String SUBSTITUTION_FIELD_NAME = "__fieldName" + SUBSTITUTION_NAME_VALUE_DELIM;
 
     public static final String STRING_LIST = "java.util.List<String>";
 
@@ -70,6 +72,7 @@ public class ComponentPropertyMeta {
 
     @JsonKey
     private String propertyName;            // The name / identity of the property, e.g. 'name' (used only for flows and modules), 'componentName', 'description', 'configuredResourceId', 'port'
+    private String displayLabel;            // Optional display label override; if set, shown in the UI instead of propertyName
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean affectsUserImplementedClass = false;  // A change to this property should result in an update to the user implemnted class

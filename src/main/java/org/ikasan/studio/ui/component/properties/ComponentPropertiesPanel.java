@@ -390,7 +390,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(),  componentPropertyEditRow.getInputField());
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getInputField());
         return componentPropertyEditRow;
     }
 
@@ -404,14 +404,22 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, ComponentInput componentInput) {
+    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, ComponentInput componentInput) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
         propertiesEditorPanel.add(propertyLabel, gc);
         ++gc.gridx;
-        if (helpButton != null) {
+        if (helpButton != null && defaultValueButton != null) {
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            buttonPanel.setBackground(getThemeAwareBackgroundColor());
+            buttonPanel.add(helpButton);
+            buttonPanel.add(defaultValueButton);
+            propertiesEditorPanel.add(buttonPanel, gc);
+        } else if (helpButton != null) {
             propertiesEditorPanel.add(helpButton, gc);
+        } else if (defaultValueButton != null) {
+            propertiesEditorPanel.add(defaultValueButton, gc);
         }
         ++gc.gridx;
         if (!componentInput.isBooleanInput()) {
