@@ -36,6 +36,7 @@ java.lang.String jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerDestinationJnd
 
 public org.ikasan.spec.component.endpoint.Consumer getMyBasicAMQJSpringJMSConsumer() {
 return builderFactory.getComponentBuilder().jmsConsumer()
+.setAutoContentConversion(true)
 .setConfiguredResourceId("aToBConvertmyFlow1myBasicAMQJSpringJMSConsumer")
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyBasicAMQJSpringJMSConsumerConnectionFactoryJndiProviderUrl)

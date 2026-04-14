@@ -259,8 +259,11 @@ public class StudioBuildUtils {
      * @return A string representing a property
      */
     public static String substitutePlaceholderInPascalCase(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
+        if (template == null) {
+            return "";
+        }
         String propertyLabel = template;
-        if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
+        if (template.contains(SUBSTITUTION_PREFIX)) {
             if (module != null) {
                 propertyLabel = propertyLabel.replace(SUBSTITUTION_PREFIX_MODULE, toPascalCase(module.getIdentity()));
             }
