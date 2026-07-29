@@ -1,7 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 
 plugins {
     id("java") // Java support
@@ -138,12 +137,11 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            select {
-//                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
-                channels = listOf(ProductRelease.Channel.RELEASE)
-                sinceBuild = "2025.3"
-                untilBuild = "2025.3"
-            }
+            // Verify against the same IntelliJ Platform version already resolved for
+            // compilation (platformType/platformVersion in gradle.properties), rather than
+            // querying JetBrains' release-channel list — that query silently returns zero
+            // matches in CI (e.g. Travis) and fails the build with "No IDE versions configured".
+            current()
         }
     }
 }
