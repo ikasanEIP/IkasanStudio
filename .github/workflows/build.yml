@@ -214,8 +214,16 @@ jobs:
           key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
+      # Retried because the underlying JetBrains plugin-verifier library has a known
+      # ClosedFileSystemException race when reading IDE plugin jars (two parts of the
+      # same Gradle daemon process concurrently open/close a cached ZipFileSystem for
+      # the same jar) - not something fixable from this repo's config.
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          command: ./gradlew verifyPlugin -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
