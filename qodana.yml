@@ -4,6 +4,12 @@
 version: "1.0"
 linter: jetbrains/qodana-jvm-community:2026.2
 projectJDK: "21"
+properties:
+  # This is a Gradle project (root build.gradle.kts/settings.gradle.kts), but scattered
+  # pom.xml fixtures (test resources, the project archetype template) make IntelliJ's
+  # headless project-type detection ambiguous, causing MissingEnvironmentKeyException:
+  # Missing value for the environment key 'project.open.type'. Force it explicitly.
+  project.open.type: Gradle
 profile:
   name: qodana.recommended
 exclude:
