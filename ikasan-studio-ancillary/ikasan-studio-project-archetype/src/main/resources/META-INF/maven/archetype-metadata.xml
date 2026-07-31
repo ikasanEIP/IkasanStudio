@@ -26,6 +26,12 @@ under the License.
   <name>Ikasan Studio project archetype</name>
   <description>Archetype to create new Ikasan Studio project</description>
   <fileSets>
+    <fileSet encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>.ikasan-studio-project</include>
+      </includes>
+    </fileSet>
     <fileSet filtered="true" encoding="UTF-8">
       <directory></directory>
       <includes>

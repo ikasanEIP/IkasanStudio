@@ -4,10 +4,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.component.StudioInitialisationPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
@@ -19,12 +21,19 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Create all onscreen components and register inter-thread communication components with uiContext
  */
 public class DesignerUI {
     public static final Logger LOG = Logger.getInstance("DesignerUI");
     private final Project project;
+    private static final String INITIALISING_CARD = "initialising";
+    private static final String DESIGNER_CARD = "designer";
+    private final CardLayout contentLayout = new CardLayout();
+    private final JPanel contentPanel = new JPanel(contentLayout);
+    private final StudioInitialisationPanel initialisationPanel;
+    private final AtomicBoolean initialisationInProgress = new AtomicBoolean();
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JSplitPane propertiesAndCanvasSplitPane;
 
@@ -34,6 +43,7 @@ public class DesignerUI {
      */
     public DesignerUI(Project project) {
         this.project = project;
+        this.initialisationPanel = new StudioInitialisationPanel(this::initialiseIkasanModel);
         project.getService(UiContext.class).setViewHandlerFactory(new ViewHandlerCache(this.project));
         paletteAndProperties.setBorder(JBUI.Borders.empty());
 
@@ -79,6 +89,9 @@ public class DesignerUI {
                 };
             }
         });
+        contentPanel.add(initialisationPanel, INITIALISING_CARD);
+        contentPanel.add(propertiesAndCanvasSplitPane, DESIGNER_CARD);
+        contentLayout.show(contentPanel, INITIALISING_CARD);
         uiContext.setDesignerUI(this);
     }
 
@@ -89,7 +102,7 @@ public class DesignerUI {
     }
 
     public JComponent getContent() {
-        return propertiesAndCanvasSplitPane;
+        return contentPanel;
     }
 
     /**
@@ -97,38 +110,90 @@ public class DesignerUI {
      * Note, it may result in an IndexNotReadyException but seems to retry successfully.
      */
     public void initialiseIkasanModel() {
+        if (!initialisationInProgress.compareAndSet(false, true)) {
+            return;
+        }
+        showInitialisationState(initialisationPanel::showWaitingForIndexes);
         DumbService dumbService = DumbService.getInstance(project);
         dumbService.runWhenSmart(() -> {
+            if (project.isDisposed()) {
+                initialisationInProgress.set(false);
+                return;
+            }
             UiContext uiContext = project.getService(UiContext.class);
             DesignerCanvas canvasPanel = uiContext.getDesignerCanvas();
             if (canvasPanel != null) {
+                showInitialisationState(initialisationPanel::showReadingProject);
                 ApplicationManager.getApplication().executeOnPooledThread(() -> {
-                    StudioPsiUtils.synchGenerateModelInstanceFromJSON(project);
-                    uiContext.getPipsiIkasanModel().initialisePsiFileHandles();
-                    // PaletteTabPanel construction and UI changes must run on the EDT. Move to invokeLater.
-                    ApplicationManager.getApplication().invokeLater(() -> {
-                        PaletteTabPanel paletteTabPanel = new PaletteTabPanel(project);
-                        uiContext.setPalettePanel(paletteTabPanel);
-                        paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
-                        uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
-                        uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
-                        // Defer divider positioning to the next EDT cycle so that Swing has
-                        // completed the layout pass for the new tab. At that point BasicListUI
-                        // has iterated all cells and font metrics are fully initialised, giving
-                        // an accurate preferred width for the palette content.
-                        // setDividerLocation() is used instead of resetToPreferredSizes() so the
-                        // position is derived from the split pane's actual realised width rather
-                        // than preferred-size bookkeeping.
-                        ApplicationManager.getApplication().invokeLater(() -> {
-                            int paletteWidth = paletteTabPanel.getPaletteScrollPanePreferredWidth();
-                            int splitWidth = propertiesAndCanvasSplitPane.getWidth();
-                            if (paletteWidth > 0 && splitWidth > paletteWidth) {
-                                propertiesAndCanvasSplitPane.setDividerLocation(
-                                        splitWidth - paletteWidth - propertiesAndCanvasSplitPane.getDividerSize());
-                            }
-                        });
-                    });
+                    try {
+                        StudioPsiUtils.synchGenerateModelInstanceFromJSON(project);
+                        uiContext.getPipsiIkasanModel().initialisePsiFileHandles();
+                        showInitialisationState(initialisationPanel::showLoadingComponents);
+                        // PaletteTabPanel construction and UI changes must run on the EDT.
+                        ApplicationManager.getApplication().invokeLater(() -> completeInitialisation(uiContext));
+                    } catch (ProcessCanceledException e) {
+                        initialisationInProgress.set(false);
+                        throw e;
+                    } catch (Exception e) {
+                        LOG.warn("STUDIO: Could not initialise Ikasan Studio", e);
+                        showInitialisationFailure("Check that the Maven project has imported successfully, then try again.");
+                    }
                 });
+            } else {
+                showInitialisationFailure("The Ikasan designer could not be created. Try reopening the tool window.");
+            }
+        });
+    }
+
+    private void completeInitialisation(UiContext uiContext) {
+        if (project.isDisposed()) {
+            initialisationInProgress.set(false);
+            return;
+        }
+        try {
+            PaletteTabPanel paletteTabPanel = uiContext.getPalettePanel();
+            if (paletteTabPanel == null) {
+                paletteTabPanel = new PaletteTabPanel(project);
+                uiContext.setPalettePanel(paletteTabPanel);
+                paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
+            }
+            uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
+            if (uiContext.getIkasanModule() == null) {
+                throw new IllegalStateException("No Ikasan module model was created");
+            }
+            uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
+            contentLayout.show(contentPanel, DESIGNER_CARD);
+            initialisationInProgress.set(false);
+
+            PaletteTabPanel finalPaletteTabPanel = paletteTabPanel;
+            // Defer divider positioning until Swing has completed the new tab's layout pass.
+            ApplicationManager.getApplication().invokeLater(() -> {
+                int paletteWidth = finalPaletteTabPanel.getPaletteScrollPanePreferredWidth();
+                int splitWidth = propertiesAndCanvasSplitPane.getWidth();
+                if (paletteWidth > 0 && splitWidth > paletteWidth) {
+                    propertiesAndCanvasSplitPane.setDividerLocation(
+                            splitWidth - paletteWidth - propertiesAndCanvasSplitPane.getDividerSize());
+                }
+            });
+        } catch (ProcessCanceledException e) {
+            initialisationInProgress.set(false);
+            throw e;
+        } catch (Exception e) {
+            LOG.warn("STUDIO: Could not complete Ikasan Studio initialisation", e);
+            showInitialisationFailure("The project model or component library could not be loaded. Review the IDE log for details, then try again.");
+        }
+    }
+
+    private void showInitialisationFailure(String detail) {
+        initialisationInProgress.set(false);
+        showInitialisationState(() -> initialisationPanel.showFailure(detail));
+    }
+
+    private void showInitialisationState(Runnable update) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (!project.isDisposed()) {
+                contentLayout.show(contentPanel, INITIALISING_CARD);
+                update.run();
             }
         });
     }
