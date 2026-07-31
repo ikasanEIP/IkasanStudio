@@ -81,6 +81,11 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
                 "You can continue working while IntelliJ prepares the project.");
     }
 
+    public void showWaitingForProjectImport() {
+        showProgress("Importing the Maven project…",
+                "Ikasan Studio will continue automatically when IntelliJ has imported the generated and user modules.");
+    }
+
     public void showReadingProject() {
         showProgress("Reading the Ikasan project…",
                 "Loading the Maven configuration and Ikasan module model.");

@@ -654,16 +654,20 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         VirtualFile targetContentRoot = null;
         VirtualFile[] contentRootVFiles = ProjectRootManager.getInstance(project).getContentRoots();
 
-        if (contentRootVFiles.length != 1) {
-            for (VirtualFile vFile : contentRootVFiles) {
-                if (vFile.toString().endsWith(StudioPsiUtils.GENERATED_CONTENT_ROOT)) {
-                    targetContentRoot = vFile;
-                }
+        for (VirtualFile vFile : contentRootVFiles) {
+            if (vFile.toString().endsWith(StudioPsiUtils.GENERATED_CONTENT_ROOT)) {
+                targetContentRoot = vFile;
+                break;
             }
-        } else {
-            LOG.warn("STUDIO: Could not find the content root for directory [" + StudioPsiUtils.GENERATED_CONTENT_ROOT + "] from content roots [" + Arrays.toString(contentRootVFiles) + "]");
         }
         return targetContentRoot;
+    }
+
+    /**
+     * Indicates that IntelliJ has imported the generated Maven module into the project model.
+     */
+    public static boolean hasGeneratedContentRoot(Project project) {
+        return getSpecificContentRootFromCache(project) != null;
     }
 
 //    /**

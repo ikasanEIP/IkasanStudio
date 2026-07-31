@@ -21,6 +21,9 @@
 		    icon="/studio/icons/squid13x13.png"
         />
 
+        <backgroundPostStartupActivity
+            implementation="org.ikasan.studio.ui.intellij.onboarding.IkasanStudioOnboardingActivity"/>
+
         <applicationService
             serviceImplementation="org.ikasan.studio.ui.intellij.IkasanStudioSettings"/>
 

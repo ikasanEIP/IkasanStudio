@@ -15,6 +15,7 @@ import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.jetbrains.annotations.NotNull;
 
 public class DesignerToolWindowFactory implements ToolWindowFactory {
+    public static final String TOOL_WINDOW_ID = "Ikasan Studio";
     private static final Logger LOG = Logger.getInstance("#DesignerToolWindowFactory");
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {

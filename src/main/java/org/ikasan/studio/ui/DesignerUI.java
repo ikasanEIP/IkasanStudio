@@ -5,6 +5,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
@@ -34,6 +36,7 @@ public class DesignerUI {
     private final JPanel contentPanel = new JPanel(contentLayout);
     private final StudioInitialisationPanel initialisationPanel;
     private final AtomicBoolean initialisationInProgress = new AtomicBoolean();
+    private final AtomicBoolean initialisationComplete = new AtomicBoolean();
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JSplitPane propertiesAndCanvasSplitPane;
 
@@ -92,6 +95,14 @@ public class DesignerUI {
         contentPanel.add(initialisationPanel, INITIALISING_CARD);
         contentPanel.add(propertiesAndCanvasSplitPane, DESIGNER_CARD);
         contentLayout.show(contentPanel, INITIALISING_CARD);
+        project.getMessageBus().connect(project).subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
+            @Override
+            public void rootsChanged(ModuleRootEvent event) {
+                if (!initialisationComplete.get() && !initialisationInProgress.get()) {
+                    initialiseIkasanModel();
+                }
+            }
+        });
         uiContext.setDesignerUI(this);
     }
 
@@ -110,7 +121,15 @@ public class DesignerUI {
      * Note, it may result in an IndexNotReadyException but seems to retry successfully.
      */
     public void initialiseIkasanModel() {
+        if (initialisationComplete.get()) {
+            return;
+        }
         if (!initialisationInProgress.compareAndSet(false, true)) {
+            return;
+        }
+        if (!StudioPsiUtils.hasGeneratedContentRoot(project)) {
+            initialisationInProgress.set(false);
+            showInitialisationState(initialisationPanel::showWaitingForProjectImport);
             return;
         }
         showInitialisationState(initialisationPanel::showWaitingForIndexes);
@@ -118,6 +137,11 @@ public class DesignerUI {
         dumbService.runWhenSmart(() -> {
             if (project.isDisposed()) {
                 initialisationInProgress.set(false);
+                return;
+            }
+            if (!StudioPsiUtils.hasGeneratedContentRoot(project)) {
+                initialisationInProgress.set(false);
+                showInitialisationState(initialisationPanel::showWaitingForProjectImport);
                 return;
             }
             UiContext uiContext = project.getService(UiContext.class);
@@ -163,6 +187,7 @@ public class DesignerUI {
             }
             uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
             contentLayout.show(contentPanel, DESIGNER_CARD);
+            initialisationComplete.set(true);
             initialisationInProgress.set(false);
 
             PaletteTabPanel finalPaletteTabPanel = paletteTabPanel;
