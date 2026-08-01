@@ -1,18 +1,25 @@
 ![IKASAN](docs/images/Ikasan-title-transparent.png)
+
 # Ikasan Studio
-Ikasan Studio is a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform (EIP). 
+
+Ikasan Studio is a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform (EIP).
 
 When combined as a plugin to Intellij, it provides a fully functiona, standalone IDE for designing and maintaining Ikasan modules.
+
 ## Developer Quickstart
+
 Ikasan Studio is coming towards the end of its Beta testing phase and a formal first release is expected soon.
-The formal will be available from the Intellij plugin marketplace. 
+The formal will be available from the Intellij plugin marketplace.
 In the meantime, the plugin can be installed manually into Intellij using the instructions below.
 The Plugin was developed using JDK17 to support the most common versions of intellij i.e. 2022.1 and above.
 If you encounter any issues, please raise them on the IkasanStudio github project or email me directly at david@davihilton.net
+
 ### Download the zip & jar
+
 A prebuilt version of the plugin is available from https://github.com/ikasanEIP/IkasanStudio/blob/main/downloads/ikasanstudio-1.0.0.zip
 
 ### Install the plugin
+
 In Intellij, locate File/Settings, on the popup window local Plugins on the left nav to display the screen below, click the Cog Wheel to the right of 'Installed', on the popup menu, choose 'Install plugin from Disk'.
 
 <img src="docs/images/20240415-Intellij-AddPlugin.png" alt="Install Plugin from Disk" width="600">
@@ -26,6 +33,7 @@ Restart Intellij
 ### Create a new project
 
 #### Using Intellij
+
 The recommended way to create new projects is via Intellij
 
 From the main menu, choose 'File'/'New'/'Project'
@@ -36,14 +44,13 @@ On the **main body** of the form, set the _Catalog_ field to **Maven Central**, 
 
 <img src="docs/images/IntellijNewProjectWizard.png" alt="Create new project wizard" width="600">
 
-Once the project has been created, the standard base directories, pom.xml build files and visual palette should be generated.
-
 In most cases, the ikasan-studio archetype will be available without any special setup, if it is not appearing in the _Archetype_ field, you may be subject to a company or local Maven refresh policy, to force a refresh of the archetypes cache, you may use the following maven command from within any Maven project (any directory that contains a pom.xml):
 
 `mvn archetype:update-local-catalog`
 
 Note: If you are experiancing issues creating a new project from Intellij, it is possible to create a new project manually, see Appendix A
 
+Once the project has been created, the editor will default to open you pom.xml file. Click on the Ikasan logo on the far right of the IDE to start the next stage.
 
 ### Creating a new Ikasan module
 
@@ -60,7 +67,7 @@ The Palette contains new components for you to use by dragging them onto the cen
 
 From the drop-down in the Canvas, choose meta-pack V3.3.x (**not VHS3.3.x**), then click the button to the **right** of the chooser
 
-You should see the **Module Properties** popup below, pre-populate with the project name and version you have chosen, 
+You should see the **Module Properties** popup below, pre-populate with the project name and version you have chosen,
 feel free to update the properties as you wish (you may want to click 'true' for the field **useEmbeddedH2** to make your startups easier, or set **flowStartupType** to true so that the flows start up when the module starts up). Finish by clicking the **Update Code** button.
 
 <img src="docs/images/20241416-ModuleForm.png" alt="Install Plugin from Disk" width="300">
@@ -68,6 +75,7 @@ feel free to update the properties as you wish (you may want to click 'true' for
 You can now start to drag flows onto the canvas, and components onto the flows, the simplest flow involves an 'Event Generating Consumer' and a 'Logging Producer'
 
 #### Creating a Simple Flow
+
 First we need to add the flow, choose the flow element from the right palette and drag it onto the canvas, filling in the properties.
 
 <img src="docs/images/20250110-NewFlowOnCanvas.png" alt="Install Plugin from Disk" width="800">
@@ -83,7 +91,8 @@ Finally, we can drag on the 'Logging Consumer'
 This flow is complete. You can start up the Application.java from within the IDE
 
 #### More advanced flows
-There are many components in the standard palette, you are encouraged to experiment and try out different properties and components. 
+
+There are many components in the standard palette, you are encouraged to experiment and try out different properties and components.
 Please see the YouTube library for further documentation and help.
 
 * https://github.com/ikasanEIP
@@ -95,12 +104,13 @@ Please see the YouTube library for further documentation and help.
 * At the moment, the effort is being put into the backend and 'engine' so the look and feel is clunky, that will be addressed soon.
 
 ## High level design / motivations
+
 * Scaling
   * Reduced learning time for new resources.
   * Reduced complexity for new resources.
   * Reduced time to production since most of the code is already written.
   * Simple modules can be generated directly by the business owner.
-* Quality - 
+* Quality -
   * The majority of module is code via configuration, with the underlying code / generated based on best practice implementations from the Ikasan core team.
   * The graphical representation of the module quickly exposes flaws in the business process path.
   * Opportunities for localised developer testing and debugging.
@@ -122,14 +132,14 @@ Please see the YouTube library for further documentation and help.
   * Upgrades between versions of Ikasan greatly simplified via json (not Java) as the source code model, reducing legacy friction and therefore legacy support costs.
   * Improvements and bug fixes to core Ikasan features can be applied with reduced / no alteration to the module configuration / bespoke code.
   * Localised developer testing and debugging reduces the reliance on expensive centralised server resource
-* Flexibility 
+* Flexibility
   * Custom components or implementations can be generated by development teams, with either minor extensions or complete bespoke library of components.
   * Custom components have a lifecycle route back to the core libraries
 
 ## Version Neutral Data Model
+
 The Module, Flows and Components are persisted using the Ikasan JSON data model, which is version neutral. This allows the Studio to be used with multiple versions of Ikasan, and for the model to be migrated between versions of Ikasan.
 see https://github.com/ikasanEIP/ikasan/blob/4.0.x/ikasaneip/topology/README.md for further details.
-
 
 ## Application Split
 
@@ -138,19 +148,22 @@ Offering is split into 3 artefacts with independent lifecycles
 <img src="docs/images/20240511-CodeSplit.png" alt="Install Plugin from Disk" width="800">
 
 ### Core (org.ikasan.studio.core)
+
 * Contains the model.json (de)serialisation
-* Framework for code generation (ftl supplied by meta pack), 
+* Framework for code generation (ftl supplied by meta pack),
 * Framework for unit test support for meta pack, abstract support for meta pack
 
 ### Metapack (resources/studio/metapack) - depends on Core
+
 * One per supported Ikasan version
 * Reduces the number of updates to the core (UI) plugin, the metapack can be added to (almost) any version of the plugin
 * Distribution / exposed via web / repo / something
-* Component Library - Encapsulates the Components properties, meta-information, helptext, icons and ftl for a version of Ikasan, or an 'approach to auto-generation implementation', or user created components / code practice. 
+* Component Library - Encapsulates the Components properties, meta-information, helptext, icons and ftl for a version of Ikasan, or an 'approach to auto-generation implementation', or user created components / code practice.
 * Provides extensive unit testing to self certify
 * End user encouraged to create their own, only official metapacks are 'supported'
 
 ### UI (org.ikasan.studio.ui) - Depends on Core and Metapacks
+
 * Business driver is cost saving resulting from standard coding of components, reduced build times, reduced migration between versions of Ikasan, reduced complexity in legacy code base
 * The UI should be easy to use, intuitive, dumb down usage for junior / mid-tier devs
 * Abstracted to be driven from the content of a meta pack
@@ -160,6 +173,7 @@ Offering is split into 3 artefacts with independent lifecycles
 ## Epics / major stories
 
 Core
+
 * Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github).
 * Create builder / Maven integration for non-UI code regeneration, integrate into maven.
 * Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI).
@@ -168,6 +182,7 @@ Core
 * Explore how to integrate with environment configurations solutions.
 
 Meta pack(s)
+
 * Ikasan SME to identify the set of core Ikasan components to be supported in MVP1.
 * Ikasan SME to identify review and correct all auto generated classes code properties files (ftl templates).
 * Ikasan SME to identify review and correct all properties for completed components, identify as standard / advanced.
@@ -180,6 +195,7 @@ Meta pack(s)
 * Support generic bespoke classes e.g. brokers, consumer, splitters etc
 
 UI
+
 * Split component configuration into standard with drop down advance tab.
 * Rework the way mandatory components are highlighted to remove issue with 'user code regeneration' affecting components.
 * Support generic bespoke classes e.g. brokers, consumer, splitters, etc.
@@ -200,25 +216,26 @@ UI
 * Eclipse, Vaaden, Javascript based IDE.
 
 CI
+
 * Determine how / what output from the build process are integrated into standard M processing.
-* Integration with marketplace and Maven central / licence. 
+* Integration with marketplace and Maven central / licence.
 
 Other
+
 * Videos
 * Help wiki
 * Demos
 * Jira ?
 * Public Forum for self-help (stack overflow sub-site)
 
-
-## Starting a new project ##
+## Starting a new project
 
 ### Using the maven archetype from Intellij
-
 
 If this does not rectify the issue, you can manually install the archetype locally using the following procedures:
 
 ### Installing the maven archetype
+
 The archetype zip can be generated by opening a window in IkasaStudio/ikasan-studio-archetype and issuing the maven command
 
 `mvn clean package`
@@ -281,75 +298,92 @@ It is not recommended to use the manual method. If you are having problems with 
 (remember so swap org.me.test and my-module for the package and module name for **your project**)
 
 ## Appendix B - Known issues
+
 ### Does not build
+
 To get  project to build, the flows must be valid i.e. they must have at least a consumer and a producer.
+
 ### Dependencies not satisfied
+
 When you first create a project, you may find red highlights and basic Spring dependencies are not satisfied. Use the (standard) Maven update for the project, it will re-pull the dependencies (the root casue is a threading issue inside Intellij, this will be fixed eventually)
+
 ### Deleted components are not always removed
+
 Please work around this for now, it will be fixed shortly.
 
 ## Plugin Development Guidelines
+
 These guidelines are for developers working on the plugin itself.
+
 ### Do not let any exceptions bubble up to Intellij
+
 These get reported directly to the user with the recommendation to disable the plugin and report it to Idea.
 Where possible, log it with a stack trace and try to recover or abort that particular operation.
+
 ### Do not use @NotNull
+
 These bubble up to the IDE with the recommendation to disable the plugin and report it to Idea.
+
 ### Do not use anything greater than warn when using Intellij's logger
+
 Anything greater than warn results in a stack trace reported directly to the user with the recommendation to disable the plugin and report it to Idea.
+
 ### Defensive coding is essential
+
 You don't have to make many mistakes to get blacklisted.
+
 ### Current Branching Strategy
+
 * **main** is used for the current development stream and producing SNAPSHOT builds.
 * **1_0_x** is used for formal builds / deployment to Maven Central.
-
 
 ![Build](https://github.com/davidhilton68/ikasanstudio/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 
 ## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Get familiar with the [template documentation][template].
-- [ ] Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/java).
-- [ ] Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
+
+- [X]  Create a new [IntelliJ Platform Plugin Template][template] project.
+- [ ]  Get familiar with the [template documentation][template].
+- [ ]  Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/java).
+- [ ]  Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
+- [ ]  Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
+- [ ]  [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
+- [ ]  Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
+- [ ]  Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
+- [ ]  Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
+- [ ]  Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
+
 This plugin provides a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform
 
 * https://github.com/ikasanEIP
 * https://www.youtube.com/@Ikasan-nq3js
 
 <!-- Plugin description end -->
+
 Ikasan EIP is a mature and well maintained integration platform based on industrial patterns (https://www.enterpriseintegrationpatterns.com/) to satisfy complex, disparate and demanding integration requirements of the finance sector.
 
 ## Installation
 
 - Using the IDE built-in plugin system:
-  
+
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "ikasanstudio"</kbd> >
   <kbd>Install</kbd>
-  
 - Using JetBrains Marketplace:
 
   Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
 
   You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
 - Manually:
 
   Download the [latest release](https://github.com/ikasanEIP/IkasanStudio/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
-
 ---
+
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template

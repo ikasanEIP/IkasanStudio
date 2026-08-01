@@ -1,42 +1,36 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
-import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.StudioInitialisationPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.intellij.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Create all onscreen components and register inter-thread communication components with uiContext
  */
-public class DesignerUI {
-    public static final Logger LOG = Logger.getInstance("DesignerUI");
+public class DesignerUI implements Disposable {
     private final Project project;
     private static final String INITIALISING_CARD = "initialising";
     private static final String DESIGNER_CARD = "designer";
     private final CardLayout contentLayout = new CardLayout();
     private final JPanel contentPanel = new JPanel(contentLayout);
     private final StudioInitialisationPanel initialisationPanel;
-    private final AtomicBoolean initialisationInProgress = new AtomicBoolean();
-    private final AtomicBoolean initialisationComplete = new AtomicBoolean();
+    private final StudioProjectInitialisationService initialisationService;
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JSplitPane propertiesAndCanvasSplitPane;
 
@@ -46,7 +40,11 @@ public class DesignerUI {
      */
     public DesignerUI(Project project) {
         this.project = project;
-        this.initialisationPanel = new StudioInitialisationPanel(this::initialiseIkasanModel);
+        this.initialisationService = project.getService(StudioProjectInitialisationService.class);
+        this.initialisationPanel = new StudioInitialisationPanel(initialisationService::retry);
+        project.getMessageBus().connect(this).<StudioProjectInitialisationService.Listener>subscribe(
+                StudioProjectInitialisationService.Listener.TOPIC,
+                this::initialisationStateChanged);
         project.getService(UiContext.class).setViewHandlerFactory(new ViewHandlerCache(this.project));
         paletteAndProperties.setBorder(JBUI.Borders.empty());
 
@@ -67,6 +65,7 @@ public class DesignerUI {
         paletteAndProperties.setBorder(JBUI.Borders.empty());
 
         CanvasPanel canvasPanel = new CanvasPanel(this.project);
+        Disposer.register(this, canvasPanel);
         uiContext.setCanvasPanel(canvasPanel);
         propertiesAndCanvasSplitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
@@ -95,15 +94,13 @@ public class DesignerUI {
         contentPanel.add(initialisationPanel, INITIALISING_CARD);
         contentPanel.add(propertiesAndCanvasSplitPane, DESIGNER_CARD);
         contentLayout.show(contentPanel, INITIALISING_CARD);
-        project.getMessageBus().connect(project).subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
-            @Override
-            public void rootsChanged(ModuleRootEvent event) {
-                if (!initialisationComplete.get() && !initialisationInProgress.get()) {
-                    initialiseIkasanModel();
-                }
-            }
-        });
         uiContext.setDesignerUI(this);
+        if (initialisationService.getState() == StudioProjectInitialisationService.State.READY) {
+            completeInitialisation(uiContext);
+        } else {
+            initialisationStateChanged(initialisationService.getState(), initialisationService.getDetail());
+            initialisationService.start();
+        }
     }
 
     protected JLabel createPropertiesLabel() {
@@ -116,62 +113,8 @@ public class DesignerUI {
         return contentPanel;
     }
 
-    /**
-     * This will populate the canvas as soon as the indexing service has completed
-     * Note, it may result in an IndexNotReadyException but seems to retry successfully.
-     */
-    public void initialiseIkasanModel() {
-        if (initialisationComplete.get()) {
-            return;
-        }
-        if (!initialisationInProgress.compareAndSet(false, true)) {
-            return;
-        }
-        if (!StudioPsiUtils.hasGeneratedContentRoot(project)) {
-            initialisationInProgress.set(false);
-            showInitialisationState(initialisationPanel::showWaitingForProjectImport);
-            return;
-        }
-        showInitialisationState(initialisationPanel::showWaitingForIndexes);
-        DumbService dumbService = DumbService.getInstance(project);
-        dumbService.runWhenSmart(() -> {
-            if (project.isDisposed()) {
-                initialisationInProgress.set(false);
-                return;
-            }
-            if (!StudioPsiUtils.hasGeneratedContentRoot(project)) {
-                initialisationInProgress.set(false);
-                showInitialisationState(initialisationPanel::showWaitingForProjectImport);
-                return;
-            }
-            UiContext uiContext = project.getService(UiContext.class);
-            DesignerCanvas canvasPanel = uiContext.getDesignerCanvas();
-            if (canvasPanel != null) {
-                showInitialisationState(initialisationPanel::showReadingProject);
-                ApplicationManager.getApplication().executeOnPooledThread(() -> {
-                    try {
-                        StudioPsiUtils.synchGenerateModelInstanceFromJSON(project);
-                        uiContext.getPipsiIkasanModel().initialisePsiFileHandles();
-                        showInitialisationState(initialisationPanel::showLoadingComponents);
-                        // PaletteTabPanel construction and UI changes must run on the EDT.
-                        ApplicationManager.getApplication().invokeLater(() -> completeInitialisation(uiContext));
-                    } catch (ProcessCanceledException e) {
-                        initialisationInProgress.set(false);
-                        throw e;
-                    } catch (Exception e) {
-                        LOG.warn("STUDIO: Could not initialise Ikasan Studio", e);
-                        showInitialisationFailure("Check that the Maven project has imported successfully, then try again.");
-                    }
-                });
-            } else {
-                showInitialisationFailure("The Ikasan designer could not be created. Try reopening the tool window.");
-            }
-        });
-    }
-
     private void completeInitialisation(UiContext uiContext) {
         if (project.isDisposed()) {
-            initialisationInProgress.set(false);
             return;
         }
         try {
@@ -179,6 +122,8 @@ public class DesignerUI {
             if (paletteTabPanel == null) {
                 paletteTabPanel = new PaletteTabPanel(project);
                 uiContext.setPalettePanel(paletteTabPanel);
+            }
+            if (paletteAndProperties.indexOfComponent(paletteTabPanel) < 0) {
                 paletteAndProperties.addTab(UiContext.PALETTE_TAB_TITLE, paletteTabPanel);
             }
             uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
@@ -186,9 +131,7 @@ public class DesignerUI {
                 throw new IllegalStateException("No Ikasan module model was created");
             }
             uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
-            contentLayout.show(contentPanel, DESIGNER_CARD);
-            initialisationComplete.set(true);
-            initialisationInProgress.set(false);
+            initialisationService.markReady();
 
             PaletteTabPanel finalPaletteTabPanel = paletteTabPanel;
             // Defer divider positioning until Swing has completed the new tab's layout pass.
@@ -201,25 +144,36 @@ public class DesignerUI {
                 }
             });
         } catch (ProcessCanceledException e) {
-            initialisationInProgress.set(false);
             throw e;
         } catch (Exception e) {
-            LOG.warn("STUDIO: Could not complete Ikasan Studio initialisation", e);
-            showInitialisationFailure("The project model or component library could not be loaded. Review the IDE log for details, then try again.");
+            initialisationService.fail(
+                    "The Ikasan component library could not be loaded. Review the IDE log for details, then try again.", e);
         }
     }
 
-    private void showInitialisationFailure(String detail) {
-        initialisationInProgress.set(false);
-        showInitialisationState(() -> initialisationPanel.showFailure(detail));
-    }
-
-    private void showInitialisationState(Runnable update) {
+    private void initialisationStateChanged(StudioProjectInitialisationService.State state, String detail) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            if (!project.isDisposed()) {
-                contentLayout.show(contentPanel, INITIALISING_CARD);
-                update.run();
+            if (project.isDisposed()) {
+                return;
+            }
+            contentLayout.show(contentPanel, state == StudioProjectInitialisationService.State.READY
+                    ? DESIGNER_CARD : INITIALISING_CARD);
+            switch (state) {
+                case WAITING_FOR_PROJECT_IMPORT -> initialisationPanel.showWaitingForProjectImport();
+                case WAITING_FOR_INDEXES -> initialisationPanel.showWaitingForIndexes();
+                case READING_PROJECT -> initialisationPanel.showReadingProject();
+                case LOADING_COMPONENTS -> {
+                    initialisationPanel.showLoadingComponents();
+                    completeInitialisation(project.getService(UiContext.class));
+                }
+                case FAILED -> initialisationPanel.showFailure(detail);
+                default -> { }
             }
         });
+    }
+
+    @Override
+    public void dispose() {
+        // The message-bus connection is disposed with this UI instance.
     }
 }

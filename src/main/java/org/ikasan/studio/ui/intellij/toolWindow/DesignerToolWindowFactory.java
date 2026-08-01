@@ -37,9 +37,8 @@ public class DesignerToolWindowFactory implements ToolWindowFactory {
 
         ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(designerUI.getContent(), "", false);
-        // Get the Module metadata established before anything else.
+        content.setDisposer(designerUI);
         toolWindow.getContentManager().addContent(content);
-        designerUI.initialiseIkasanModel();
 
         maximiseOnFirstShow(project, toolWindow);
     }

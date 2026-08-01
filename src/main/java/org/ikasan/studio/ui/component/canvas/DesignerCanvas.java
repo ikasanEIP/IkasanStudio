@@ -2,6 +2,9 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Pair;
@@ -22,6 +25,8 @@ import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import com.intellij.openapi.ui.ComboBox;
@@ -49,8 +54,9 @@ public class DesignerCanvas extends JPanel {
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
     private final Project project;
-    private final JButton startButton = new JButton("Choose metapack then click here");
-    private final ComboBox<Object> metaDataVersionComboBox;
+    private final JButton startButton = new JButton("Configure module");
+    private final ComboBox<String> metaDataVersionComboBox;
+    private final JPanel newModulePanel;
 
     /**
      * Convenience wrapper for cleaner code in this class.
@@ -98,56 +104,54 @@ public class DesignerCanvas extends JPanel {
         setTransferHandler(new CanvasImportTransferHandler( this));
 
         List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
-        metaDataVersionComboBox = new ComboBox<>(installedMetapacks.toArray());
+        installedMetapacks.sort(String::compareToIgnoreCase);
+        metaDataVersionComboBox = new ComboBox<>(installedMetapacks.toArray(String[]::new));
+        metaDataVersionComboBox.getAccessibleContext().setAccessibleName("Ikasan version");
+        startButton.setToolTipText("Configure this module using the selected Ikasan version");
+        newModulePanel = createNewModulePanel();
         // Create the properties popup panel for a new Module
         startButton.addActionListener(e ->
             {
                 UiContext uiContext = project.getService(UiContext.class);
                 String metapackVersion = (String) metaDataVersionComboBox.getSelectedItem();
                 if (metapackVersion == null) {
-                    StudioUIUtils.displayIdeaInfoMessage(this.project, "A module can't be created until at least one meta-pack is loaded.");
+                    StudioUIUtils.displayIdeaInfoMessage(this.project,
+                            "Choose an Ikasan version before configuring the module.");
                 } else {
-                    Module module = uiContext.getIkasanModule();
                     if (!IkasanComponentLibrary.containVersion(metapackVersion)) {
                         try {
                             IkasanComponentLibrary.refreshComponentLibrary(metapackVersion);
                         } catch (StudioBuildException ex) {
-                            throw new RuntimeException(ex);
+                            LOG.warn("STUDIO: Could not load component library " + metapackVersion, ex);
+                            StudioUIUtils.displayIdeaInfoMessage(this.project,
+                                    "The component library for " + metapackVersion + " could not be loaded. Try another version or review the IDE log.");
+                            return;
                         }
                     }
-                    if (module == null) {
-                        try {
-                            module = Module.moduleBuilder().version(metapackVersion).build();
-                            uiContext.setIkasanModule(module);
-                        } catch (StudioBuildException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    } else if (module.getComponentMeta() == null) {
-                        try {
-                            module.setComponentMeta(IkasanComponentLibrary.getModuleComponentMetaMandatory(metapackVersion));
-                            module.setVersion(metapackVersion);
-                        } catch (StudioBuildException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    else {
-                        module.setVersion(metapackVersion);
-                    }
-                    if (module.getIdentity() == null) {
-                        module.setName(project.getName());
-                        module.setApplicationPackageName(uiContext.getOptions().getPackageName());
-                    }
-                    // Intellij startup is multi-threaded so caution is required.
-                    if (uiContext.getPalettePanel() != null) {
-                        uiContext.getPalettePanel().resetPallette();
+                    Module moduleDraft;
+                    try {
+                        moduleDraft = createModuleDraft(
+                                uiContext.getIkasanModule(),
+                                metapackVersion,
+                                project.getName(),
+                                uiContext.getOptions().getPackageName());
+                    } catch (StudioBuildException ex) {
+                        LOG.warn("STUDIO: Could not create module for " + metapackVersion, ex);
+                        StudioUIUtils.displayIdeaInfoMessage(this.project,
+                                "The module could not be created for " + metapackVersion + ". Review the IDE log and try again.");
+                        return;
                     }
                     ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(this.project, true);
-                    componentPropertiesPanel.updateTargetComponent(getIkasanModule());
+                    componentPropertiesPanel.updateTargetComponent(moduleDraft);
                     PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
                             this.project,
                             componentPropertiesPanel,
                             true);
                     if (propertiesPopupDialogue.showAndGet()) {
+                        uiContext.setIkasanModule(moduleDraft);
+                        if (uiContext.getPalettePanel() != null) {
+                            uiContext.getPalettePanel().resetPallette();
+                        }
                         StudioUIUtils.displayIdeaInfoMessage(this.project, "Please wait for Intellij to initialise, any code errors will be resolved.");
                         StudioPsiUtils.refreshCodeFromModel(this.project);
                         disableModuleInitialiseProcess();
@@ -157,19 +161,69 @@ public class DesignerCanvas extends JPanel {
         );
     }
 
+    /**
+     * Creates an isolated configuration draft so cancelling the properties dialog cannot mutate the live canvas model.
+     */
+    static Module createModuleDraft(Module sourceModule, String metapackVersion, String defaultName,
+                                    String defaultPackageName) throws StudioBuildException {
+        Module draft = sourceModule == null
+                ? Module.moduleBuilder().version(metapackVersion).build()
+                : sourceModule.cloneToVersion(metapackVersion);
+        if (draft == null) {
+            throw new StudioBuildException("Could not create a module draft for " + metapackVersion);
+        }
+        if (draft.getIdentity() == null) {
+            draft.setName(defaultName);
+            draft.setApplicationPackageName(defaultPackageName);
+        }
+        return draft;
+    }
+
+    private JPanel createNewModulePanel() {
+        JBPanel<?> panel = new JBPanel<>();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(JBUI.Borders.empty(20));
+
+        JBLabel heading = new JBLabel("Create your Ikasan module");
+        heading.setFont(heading.getFont().deriveFont(Font.BOLD, heading.getFont().getSize2D() + 2));
+        heading.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(heading);
+        panel.add(Box.createVerticalStrut(JBUI.scale(8)));
+
+        JBTextArea explanation = new JBTextArea(
+                "Choose the Ikasan version this module will run on. Ikasan Studio uses a meta-pack for each version: " +
+                "a catalogue of available components together with their configuration, validation, and code-generation templates. " +
+                "This keeps the designer and generated code aligned with your Ikasan runtime.");
+        explanation.setEditable(false);
+        explanation.setFocusable(false);
+        explanation.setLineWrap(true);
+        explanation.setWrapStyleWord(true);
+        explanation.setOpaque(false);
+        explanation.setColumns(58);
+        explanation.setBorder(JBUI.Borders.empty());
+        explanation.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(explanation);
+        panel.add(Box.createVerticalStrut(JBUI.scale(12)));
+
+        JBPanel<?> chooserRow = new JBPanel<>(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        chooserRow.add(new JBLabel("Ikasan version: "));
+        chooserRow.add(metaDataVersionComboBox);
+        chooserRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
+        chooserRow.add(startButton);
+        chooserRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(chooserRow);
+        return panel;
+    }
+
     public void enableModuleInitialiseProcess() {
-        if (startButton.getParent() != this) {
-            this.add(metaDataVersionComboBox);
-            this.add(startButton);
+        if (newModulePanel.getParent() != this) {
+            this.add(newModulePanel);
         }
     }
 
     public void disableModuleInitialiseProcess() {
-        if (startButton != null) {
-            this.remove(startButton);
-        }
-        if (metaDataVersionComboBox != null) {
-            this.remove(metaDataVersionComboBox);
+        if (newModulePanel.getParent() == this) {
+            this.remove(newModulePanel);
         }
     }
 
