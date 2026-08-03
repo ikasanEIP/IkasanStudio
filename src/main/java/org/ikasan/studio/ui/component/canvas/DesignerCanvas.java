@@ -172,6 +172,9 @@ public class DesignerCanvas extends JPanel {
      */
     static Module createModuleDraft(Module sourceModule, String metapackVersion, String defaultName,
                                     String defaultPackageName) throws StudioBuildException {
+        // The initial canvas uses a non-null "dumb" module as a placeholder, so a missing
+        // identity is the reliable signal that this is the first module configuration.
+        boolean creatingNewModule = sourceModule == null || sourceModule.getIdentity() == null;
         Module draft = sourceModule == null
                 ? Module.moduleBuilder().version(metapackVersion).build()
                 : sourceModule.cloneToVersion(metapackVersion);
@@ -181,6 +184,12 @@ public class DesignerCanvas extends JPanel {
         if (draft.getIdentity() == null) {
             draft.setName(defaultName);
             draft.setApplicationPackageName(defaultPackageName);
+        }
+        if (creatingNewModule) {
+            var flowStartupTypeMeta = draft.getComponentMeta().getMetadata("flowStartupType");
+            if (flowStartupTypeMeta != null && flowStartupTypeMeta.getDefaultValue() != null) {
+                draft.setPropertyValue("flowStartupType", flowStartupTypeMeta.getDefaultValue());
+            }
         }
         return draft;
     }
