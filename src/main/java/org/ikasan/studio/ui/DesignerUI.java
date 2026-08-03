@@ -41,7 +41,7 @@ public class DesignerUI implements Disposable {
     public DesignerUI(Project project) {
         this.project = project;
         this.initialisationService = project.getService(StudioProjectInitialisationService.class);
-        this.initialisationPanel = new StudioInitialisationPanel(initialisationService::retry);
+        this.initialisationPanel = new StudioInitialisationPanel(initialisationService::start);
         project.getMessageBus().connect(this).<StudioProjectInitialisationService.Listener>subscribe(
                 StudioProjectInitialisationService.Listener.TOPIC,
                 this::initialisationStateChanged);
