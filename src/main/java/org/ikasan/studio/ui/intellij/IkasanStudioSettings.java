@@ -24,6 +24,9 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          *  When false it opens in SLIDING mode (overlays the editor, but drag-and-drop
          *  may cause the panel to collapse mid-drag on some platforms). */
         public boolean dockedMode = true;
+
+        /** Show contextual instructions while a module or flow is empty. */
+        public boolean gettingStartedHintsEnabled = true;
     }
 
     private State state = new State();
@@ -51,6 +54,13 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         if (instance == null) return true;
         State s = instance.getState();
         return s == null || s.dockedMode;
+    }
+
+    public static boolean areGettingStartedHintsEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return true;
+        State s = instance.getState();
+        return s == null || s.gettingStartedHintsEnabled;
     }
 
     public ToolWindowType getToolWindowType() {

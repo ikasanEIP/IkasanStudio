@@ -21,6 +21,7 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
@@ -29,6 +30,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.UIManager;
 import com.intellij.openapi.ui.ComboBox;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -896,9 +898,95 @@ public class DesignerCanvas extends JPanel {
                 moduleViewHandler.paintComponent(this, g, -1, -1);
             }
         }
+        paintGettingStartedHint(g, ikasanModule);
         if (drawGrid) {
             StudioUIUtils.paintGrid(g, getWidth(), getHeight());
         }
+    }
+
+    enum GettingStartedHint {
+        NONE,
+        NO_FLOWS,
+        EMPTY_FLOW,
+        ADD_COMPONENTS
+    }
+
+    static GettingStartedHint getGettingStartedHint(Module module) {
+        if (module == null || !module.isInitialised()) {
+            return GettingStartedHint.NONE;
+        }
+        if (module.getFlows() == null || module.getFlows().isEmpty()) {
+            return GettingStartedHint.NO_FLOWS;
+        }
+        boolean flowNeedsConsumer = module.getFlows().stream()
+                .anyMatch(flow -> flow != null && !flow.hasConsumer());
+        if (flowNeedsConsumer) {
+            return GettingStartedHint.EMPTY_FLOW;
+        }
+        boolean flowNeedsComponent = module.getFlows().stream()
+                .anyMatch(flow -> flow != null
+                        && !flow.anyFlowRouteHasComponents(flow.getFlowRoute()));
+        return flowNeedsComponent ? GettingStartedHint.ADD_COMPONENTS : GettingStartedHint.NONE;
+    }
+
+    private void paintGettingStartedHint(Graphics graphics, Module module) {
+        GettingStartedHint hint = getGettingStartedHint(module);
+        if (hint == GettingStartedHint.NONE) {
+            return;
+        }
+
+        boolean detailed = IkasanStudioSettings.areGettingStartedHintsEnabled();
+        if (hint != GettingStartedHint.NO_FLOWS && !detailed) {
+            return;
+        }
+
+        String heading = hint == GettingStartedHint.NO_FLOWS
+                ? "No flows added"
+                : hint == GettingStartedHint.EMPTY_FLOW ? "Add a Consumer" : "Add flow components";
+        String instruction = hint == GettingStartedHint.NO_FLOWS
+                ? "Drag a Flow from the Palette onto the canvas to begin."
+                : hint == GettingStartedHint.EMPTY_FLOW
+                    ? "Drag a Consumer from the Palette onto this flow."
+                    : "Drag brokers, translators, or producers from the Palette onto this flow.";
+
+        int centreX = getWidth() / 2;
+        int centreY = getHeight() / 2;
+        if (hint == GettingStartedHint.EMPTY_FLOW || hint == GettingStartedHint.ADD_COMPONENTS) {
+            Flow emptyFlow = module.getFlows().stream()
+                    .filter(flow -> flow != null && (hint == GettingStartedHint.EMPTY_FLOW
+                            ? !flow.hasConsumer()
+                            : !flow.anyFlowRouteHasComponents(flow.getFlowRoute())))
+                    .findFirst().orElse(null);
+            IkasanFlowViewHandler handler = emptyFlow == null ? null
+                    : ViewHandlerCache.getFlowViewHandler(project, emptyFlow);
+            if (handler != null) {
+                centreX = (handler.getLeftX() + handler.getRightX()) / 2;
+                centreY = handler.getBottomY() + JBUI.scale(28);
+            }
+        }
+
+        Graphics2D g = (Graphics2D) graphics.create();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            Color foreground = UIManager.getColor("Label.foreground");
+            Color secondary = UIManager.getColor("Label.disabledForeground");
+            g.setColor(foreground != null ? foreground : Color.GRAY);
+            Font headingFont = getFont().deriveFont(Font.BOLD, getFont().getSize2D() + 2f);
+            drawCentredString(g, heading, headingFont, centreX, centreY - JBUI.scale(5));
+            if (detailed) {
+                g.setColor(secondary != null ? secondary : g.getColor());
+                drawCentredString(g, instruction, getFont(), centreX, centreY + JBUI.scale(17));
+            }
+        } finally {
+            g.dispose();
+        }
+    }
+
+    private static void drawCentredString(Graphics2D g, String text, Font font, int centreX, int baseline) {
+        g.setFont(font);
+        FontMetrics metrics = g.getFontMetrics(font);
+        g.drawString(text, centreX - metrics.stringWidth(text) / 2, baseline);
     }
 
     public void setInitialiseAllDimensions(boolean initialiseAllDimensions) {
