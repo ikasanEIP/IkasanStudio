@@ -175,5 +175,8 @@ public class DesignerUI implements Disposable {
     @Override
     public void dispose() {
         // The message-bus connection is disposed with this UI instance.
+        if (!project.isDisposed()) {
+            project.getService(UiContext.class).clearDesignerUI(this);
+        }
     }
 }

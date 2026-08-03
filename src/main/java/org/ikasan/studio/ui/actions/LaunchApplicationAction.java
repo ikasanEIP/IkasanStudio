@@ -3,9 +3,9 @@ package org.ikasan.studio.ui.actions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.intellij.IkasanRunConfigurationService;
+import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +31,13 @@ public class LaunchApplicationAction implements ActionListener {
          return;
       }
 
-      IkasanRunConfigurationService service = project.getService(IkasanRunConfigurationService.class);
-      if (service.selectAndRun(applicationFile)) {
-         DesignerCanvas.markModuleLaunched(project);
-      } else {
-         StudioUIUtils.displayIdeaWarnMessage(project,
-                 "The Ikasan run configuration could not be created. Review the IDE log and try again.");
-      }
+      project.getService(IkasanRunConfigurationService.class).selectAndRun(applicationFile, launched -> {
+         if (launched) {
+            DesignerCanvas.markModuleLaunched(project);
+         } else {
+            StudioUIUtils.displayIdeaWarnMessage(project,
+                    "The Ikasan run configuration could not be created. Review the IDE log and try again.");
+         }
+      });
    }
 }

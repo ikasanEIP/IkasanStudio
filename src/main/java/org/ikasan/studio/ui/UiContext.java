@@ -119,6 +119,7 @@ public final class UiContext {
         putInCache(VIEW_HANDLER_FACTORY, viewHandlerFactory);
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, String> getApplicationProperties() {
         Map<String, String> applicationProperties = (Map<String, String>) getFromCache(APPLICATION_PROPERTIES);
         if (applicationProperties == null) {
@@ -171,6 +172,25 @@ public final class UiContext {
 
     public void setDesignerUI(DesignerUI designerUI) {
         putInCache(DESIGNER_UI, designerUI);
+    }
+
+    /**
+     * Clears only UI objects owned by the supplied designer. Model and project state remain cached
+     * so closing and reopening the editor does not discard the current module.
+     */
+    public synchronized void clearDesignerUI(DesignerUI designerUI) {
+        if (cache.get(DESIGNER_UI) != designerUI) {
+            return;
+        }
+        cache.remove(DESIGNER_UI);
+        cache.remove(DESIGNER_CANVAS);
+        cache.remove(CANVAS_PANEL);
+        cache.remove(PROPERTIES_PANEL);
+        cache.remove(PROPERTIES_TAB_PANEL);
+        cache.remove(PALETTE_PANEL);
+        cache.remove(RIGHT_TABBED_PANE);
+        cache.remove(CANVAS_TEXT_AREA);
+        cache.remove(VIEW_HANDLER_FACTORY);
     }
 
     public void setPropertiesPanel(ComponentPropertiesPanel componentPropertiesPanel) {

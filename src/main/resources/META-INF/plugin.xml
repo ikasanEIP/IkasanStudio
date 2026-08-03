@@ -27,8 +27,8 @@
         <applicationService
             serviceImplementation="org.ikasan.studio.ui.intellij.IkasanStudioSettings"/>
 
-        <projectService
-            serviceImplementation="org.ikasan.studio.ui.intellij.IkasanRunConfigurationService"/>
+        <fileEditorProvider
+            implementation="org.ikasan.studio.ui.intellij.editor.IkasanStudioFileEditorProvider"/>
 
         <applicationConfigurable
             parentId="tools"
@@ -41,4 +41,13 @@
                            key="ikasan.studio.notification.group"
                            bundle="messages.studioBundle"/>
     </extensions>
+    <actions>
+        <action id="IkasanStudio.OpenEditor"
+                class="org.ikasan.studio.ui.intellij.editor.OpenIkasanStudioEditorAction"
+                text="Open Ikasan Studio"
+                description="Open Ikasan Studio in the main editor area"
+                icon="/studio/icons/squid13x13.png">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>

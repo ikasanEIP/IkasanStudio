@@ -45,25 +45,21 @@ The principal new-user journey is:
 
 The generated project separates Studio-owned output in `generated/` from developer-owned implementation in `user/`.
 
-### Known onboarding problem
+### Editor-based onboarding
 
-After archetype creation, IntelliJ opens `pom.xml`. The user currently has to notice and select the Ikasan Studio icon on the far-right tool-window stripe. This is not sufficiently discoverable or welcoming.
+Ikasan Studio is hosted in IntelliJ's main editor area, alongside Java and configuration files. A newly generated Ikasan project opens the Studio editor automatically on first use. On later project launches, the editor is restored only when the developer left it open; deliberately closing the tab is respected.
 
-The current code also has no clear initialization presentation:
+The Ikasan squid icon remains on the far-right tool-window stripe as a discoverable one-click launcher. It opens or focuses the single project-scoped Studio editor and immediately hides the empty launcher tool window. **Tools → Open Ikasan Studio** and IntelliJ Find Action provide fallback access.
 
-- `DesignerToolWindowFactory` creates the UI and only then starts model initialization.
-- `DesignerUI.initialiseIkasanModel()` waits for IntelliJ smart mode, reads/synchronises the JSON model and PSI state on a pooled thread, and later constructs the palette on the EDT.
-- Until this completes, there is no explicit progress, explanation, readiness state, or failure/retry experience.
-- Because tool-window content is lazily created, initialization does not start until the user discovers/opens Ikasan Studio.
-
-A preferred future experience is IntelliJ-native progressive onboarding: detect an Ikasan Studio project, start or schedule project-context initialization at the correct lifecycle point, expose honest progress such as Maven import/indexing/model/meta-pack stages, and make the next action obvious. Opening or focusing the Studio automatically may be appropriate for a newly generated Ikasan project, but should be scoped to first use and respect user intent on subsequent opens. Use standard IntelliJ APIs for progress, tool windows, notifications, dumb/smart mode, and persisted project state.
+`IkasanStudioFileEditor` is the exclusive owner of `DesignerUI`. Closing the tab disposes editor-owned canvas, palette, properties, and view-handler references while preserving the project model for a clean reopen. Project initialization starts through `StudioProjectInitialisationService` and presents Maven import, indexing, model, meta-pack, and recoverable failure states inside the editor.
 
 ## Architecture
 
 ### IntelliJ integration and UI
 
-- `src/main/resources/META-INF/plugin.xml` registers the plugin, dependencies, right-anchored `Ikasan Studio` tool window, application settings, and notification group.
-- `ui.intellij.toolWindow.DesignerToolWindowFactory` creates tool-window content and applies its docked/sliding setting.
+- `src/main/resources/META-INF/plugin.xml` registers the plugin, dependencies, editor provider, right-stripe launcher, application settings, actions, and notification group.
+- `ui.intellij.editor` owns the project-scoped virtual file, main-editor integration, restoration state, and the single `DesignerUI` instance.
+- `ui.intellij.toolWindow.DesignerToolWindowFactory` retains the familiar right-stripe icon as a one-click launcher for the editor tab; it must never construct a second designer.
 - `ui.DesignerUI` assembles the canvas, palette, and properties UI and coordinates initialization after indexing.
 - `ui.UiContext` is a project-level IntelliJ service holding each project's UI and model context.
 - `ui.component.canvas`, `ui.component.palette`, and `ui.component.properties` implement the primary designer interaction.
