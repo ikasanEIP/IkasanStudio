@@ -27,6 +27,9 @@
         <applicationService
             serviceImplementation="org.ikasan.studio.ui.intellij.IkasanStudioSettings"/>
 
+        <projectService
+            serviceImplementation="org.ikasan.studio.ui.intellij.IkasanRunConfigurationService"/>
+
         <applicationConfigurable
             parentId="tools"
             instance="org.ikasan.studio.ui.intellij.IkasanStudioSettingsConfigurable"

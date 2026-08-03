@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui;
 
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
@@ -51,7 +50,6 @@ public final class UiContext {
     private static final String DESIGNER_UI = "designerUI";
     private static final String CANVAS_TEXT_AREA = "canvasTextArea";
     private static final String IKASAN_MODULE = "ikasanModule";
-    private static final String APPSERVER_PROCESS_HANDLE = "appserverProcessHandle";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
 
@@ -215,13 +213,6 @@ public final class UiContext {
         return (Module) getFromCache(IKASAN_MODULE);
     }
 
-    public void setAppserverProcessHandle(ProcessHandler processHandler) {
-        putInCache(APPSERVER_PROCESS_HANDLE, processHandler);
-    }
-
-    public ProcessHandler getAppserverProcessHandle() {
-        return (ProcessHandler) getFromCache(APPSERVER_PROCESS_HANDLE);
-    }
 
     public void setPipsiIkasanModel(PIPSIIkasanModel ikasanModule) {
         putInCache(PIPSI_IKASAN_MODEL, ikasanModule);

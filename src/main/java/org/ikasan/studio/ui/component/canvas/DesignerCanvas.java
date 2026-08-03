@@ -965,7 +965,7 @@ public class DesignerCanvas extends JPanel {
             case NO_FLOWS -> "Drag a Flow from the Palette onto the canvas to begin.";
             case EMPTY_FLOW -> "Drag a Consumer from the Palette onto this flow.";
             case ADD_COMPONENTS -> "Add components until the flow has a Producer and is valid.";
-            case READY_TO_RUN -> "Select Run module. When startup completes, select Console.";
+            case READY_TO_RUN -> "Select Run module, or use IntelliJ Run or Debug. Open Console after startup.";
             case OPEN_CONSOLE -> "Wait for module startup to complete, then select Console.";
             default -> "";
         };
