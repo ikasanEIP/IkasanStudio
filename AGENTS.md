@@ -22,6 +22,15 @@ Ikasan Studio is an IntelliJ IDEA plugin for visually creating and maintaining m
 
 The intended value is to reduce Ikasan learning time and repetitive implementation effort, enforce good implementation patterns, make integration behaviour visible, and simplify migration between supported Ikasan versions.
 
+### Blue Console and Dashboard
+
+The Ikasan Blue Console and the Ikasan Dashboard are distinct products and must not be described or labelled as interchangeable:
+
+- The **Blue Console** is shipped with every Ikasan module and operates independently of the Dashboard. It is a developer-facing, module-local console used to start and stop flows, identify flows in stopped or error states, examine the module REST API, and perform administrative tasks.
+- The **Ikasan Dashboard** is a central control point for multiple modules. It provides an aggregate view of running modules and their error states, supports replaying rejected messages, and lets operators interact with remote modules through their REST interfaces.
+
+In Studio UI and onboarding, retain the name **Blue Console**. If extra clarity is needed for new users, use a descriptive label such as **Open Blue Console** and explain its module-local purpose; never rename it to **Ikasan Dashboard**.
+
 ## User Journey
 
 The principal new-user journey is:

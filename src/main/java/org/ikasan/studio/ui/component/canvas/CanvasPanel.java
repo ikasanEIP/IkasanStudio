@@ -28,10 +28,10 @@ public class CanvasPanel extends JBPanel implements Disposable {
         JBPanel canvasHeaderButtonPanel = new JBPanel();
         canvasHeaderButtonPanel.setBorder(null);
 
-        JButton applicationButton = new JButton("Module start");
+        JButton applicationButton = new JButton("Run module");
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), "Start the H2 console in a browser, NOT needed if useEmbeddedH2 is set on the module config");
-        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project, applicationButton), "Start the Module");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Blue"), new LaunchBlueAction(project), "Start the blue console in a browser (user/pass - admin/admin)");
+        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project, applicationButton), "Run this module");
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Console"), new LaunchBlueAction(project), "After module startup completes, open this module's Blue Console to control flows, inspect errors, examine its REST API, and perform administrative tasks. Local development default login: admin / admin");
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Load"), new ModelLoadAction(project), "Load the in module from disk");
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(project), "Regenerate the code from the in-memory module definition");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");

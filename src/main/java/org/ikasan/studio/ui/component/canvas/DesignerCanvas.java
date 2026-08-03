@@ -1,7 +1,9 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextArea;
@@ -50,6 +52,8 @@ import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.USE
  */
 public class DesignerCanvas extends JPanel {
     private static final Logger LOG = Logger.getInstance("#DesignerCanvas");
+    private static final String MODULE_LAUNCHED_PROPERTY = "ikasan.studio.onboarding.moduleLaunched";
+    private static final String CONSOLE_OPENED_PROPERTY = "ikasan.studio.onboarding.consoleOpened";
     private boolean initialiseAllDimensions = true;
     private boolean drawGrid = false;
     private int clickStartMouseX = 0 ;
@@ -908,7 +912,9 @@ public class DesignerCanvas extends JPanel {
         NONE,
         NO_FLOWS,
         EMPTY_FLOW,
-        ADD_COMPONENTS
+        ADD_COMPONENTS,
+        READY_TO_RUN,
+        OPEN_CONSOLE
     }
 
     static GettingStartedHint getGettingStartedHint(Module module) {
@@ -923,14 +929,21 @@ public class DesignerCanvas extends JPanel {
         if (flowNeedsConsumer) {
             return GettingStartedHint.EMPTY_FLOW;
         }
-        boolean flowNeedsComponent = module.getFlows().stream()
-                .anyMatch(flow -> flow != null
-                        && !flow.anyFlowRouteHasComponents(flow.getFlowRoute()));
-        return flowNeedsComponent ? GettingStartedHint.ADD_COMPONENTS : GettingStartedHint.NONE;
+        boolean flowIsIncomplete = module.getFlows().stream()
+                .anyMatch(flow -> flow != null && !flow.getFlowIntegrityStatus().isBlank());
+        return flowIsIncomplete ? GettingStartedHint.ADD_COMPONENTS : GettingStartedHint.READY_TO_RUN;
     }
 
     private void paintGettingStartedHint(Graphics graphics, Module module) {
         GettingStartedHint hint = getGettingStartedHint(module);
+        if (hint == GettingStartedHint.READY_TO_RUN) {
+            PropertiesComponent properties = PropertiesComponent.getInstance(project);
+            if (properties.getBoolean(CONSOLE_OPENED_PROPERTY, false)) {
+                hint = GettingStartedHint.NONE;
+            } else if (properties.getBoolean(MODULE_LAUNCHED_PROPERTY, false)) {
+                hint = GettingStartedHint.OPEN_CONSOLE;
+            }
+        }
         if (hint == GettingStartedHint.NONE) {
             return;
         }
@@ -940,22 +953,31 @@ public class DesignerCanvas extends JPanel {
             return;
         }
 
-        String heading = hint == GettingStartedHint.NO_FLOWS
-                ? "No flows added"
-                : hint == GettingStartedHint.EMPTY_FLOW ? "Add a Consumer" : "Add flow components";
-        String instruction = hint == GettingStartedHint.NO_FLOWS
-                ? "Drag a Flow from the Palette onto the canvas to begin."
-                : hint == GettingStartedHint.EMPTY_FLOW
-                    ? "Drag a Consumer from the Palette onto this flow."
-                    : "Drag brokers, translators, or producers from the Palette onto this flow.";
+        String heading = switch (hint) {
+            case NO_FLOWS -> "No flows added";
+            case EMPTY_FLOW -> "Add a Consumer";
+            case ADD_COMPONENTS -> "Add flow components";
+            case READY_TO_RUN -> "Ready to run";
+            case OPEN_CONSOLE -> "Module starting";
+            default -> "";
+        };
+        String instruction = switch (hint) {
+            case NO_FLOWS -> "Drag a Flow from the Palette onto the canvas to begin.";
+            case EMPTY_FLOW -> "Drag a Consumer from the Palette onto this flow.";
+            case ADD_COMPONENTS -> "Add components until the flow has a Producer and is valid.";
+            case READY_TO_RUN -> "Select Run module. When startup completes, select Console.";
+            case OPEN_CONSOLE -> "Wait for module startup to complete, then select Console.";
+            default -> "";
+        };
 
         int centreX = getWidth() / 2;
         int centreY = getHeight() / 2;
-        if (hint == GettingStartedHint.EMPTY_FLOW || hint == GettingStartedHint.ADD_COMPONENTS) {
+        GettingStartedHint positionedHint = hint;
+        if (hint != GettingStartedHint.NO_FLOWS) {
             Flow emptyFlow = module.getFlows().stream()
-                    .filter(flow -> flow != null && (hint == GettingStartedHint.EMPTY_FLOW
+                    .filter(flow -> flow != null && (positionedHint == GettingStartedHint.EMPTY_FLOW
                             ? !flow.hasConsumer()
-                            : !flow.anyFlowRouteHasComponents(flow.getFlowRoute())))
+                            : positionedHint != GettingStartedHint.ADD_COMPONENTS || !flow.getFlowIntegrityStatus().isBlank()))
                     .findFirst().orElse(null);
             IkasanFlowViewHandler handler = emptyFlow == null ? null
                     : ViewHandlerCache.getFlowViewHandler(project, emptyFlow);
@@ -971,7 +993,7 @@ public class DesignerCanvas extends JPanel {
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             Color foreground = UIManager.getColor("Label.foreground");
             Color secondary = UIManager.getColor("Label.disabledForeground");
-            g.setColor(foreground != null ? foreground : Color.GRAY);
+            g.setColor(foreground != null ? foreground : JBColor.GRAY);
             Font headingFont = getFont().deriveFont(Font.BOLD, getFont().getSize2D() + 2f);
             drawCentredString(g, heading, headingFont, centreX, centreY - JBUI.scale(5));
             if (detailed) {
@@ -980,6 +1002,23 @@ public class DesignerCanvas extends JPanel {
             }
         } finally {
             g.dispose();
+        }
+    }
+
+    public static void markModuleLaunched(Project project) {
+        PropertiesComponent.getInstance(project).setValue(MODULE_LAUNCHED_PROPERTY, true);
+        repaintCanvas(project);
+    }
+
+    public static void markConsoleOpened(Project project) {
+        PropertiesComponent.getInstance(project).setValue(CONSOLE_OPENED_PROPERTY, true);
+        repaintCanvas(project);
+    }
+
+    private static void repaintCanvas(Project project) {
+        DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
+        if (canvas != null) {
+            canvas.repaint();
         }
     }
 

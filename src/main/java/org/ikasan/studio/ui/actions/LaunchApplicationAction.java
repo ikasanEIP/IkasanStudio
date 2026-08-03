@@ -2,10 +2,12 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ public class LaunchApplicationAction implements ActionListener {
          VirtualFile applicationVF = StudioPsiUtils.getVirtualFile(project, applicationRelativePath);
          if (applicationVF != null) {
             StudioPsiUtils.runClassFromEditor(project, applicationVF, "org.ikasan.studio.boot.Application");
+            DesignerCanvas.markModuleLaunched(project);
          } else {
             StudioUIUtils.displayIdeaWarnMessage(project, "Problems were experienced getting the virtual application, launch is unavailable at this time.");
             LOG.warn("STUDIO: SERIOUS: LaunchApplicationAction could not find virtual file for application for project [" + project +
@@ -49,8 +52,8 @@ public class LaunchApplicationAction implements ActionListener {
    }
 
    private void toggleButtonText() {
-      String action = start ? "Module start" : "Module stop";
-      Color backgroundColor = start ? UIManager.getColor("Panel.background") : Color.GREEN ;
+      String action = start ? "Run module" : "Stop module";
+      Color backgroundColor = start ? UIManager.getColor("Panel.background") : JBColor.GREEN;
       if (jComponent instanceof JButton) {
          ((JButton) jComponent).setText(action);
          jComponent.setBackground(backgroundColor);

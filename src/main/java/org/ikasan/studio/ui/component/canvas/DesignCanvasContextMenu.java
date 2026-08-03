@@ -124,7 +124,7 @@ public class DesignCanvasContextMenu {
     }
 
     private static JMenuItem createLaunchDashboardMenuItem(Project project) {
-        JMenuItem item = new JMenuItem("Launch Browser");
+        JMenuItem item = new JMenuItem("Console");
         item.addActionListener(new LaunchBlueAction(project));
         return item;
     }
