@@ -6,6 +6,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -172,7 +173,13 @@ public class ComponentPropertyEditRow {
                         defaultValueButton.addActionListener(e -> {
                             if ("Default".equals(defaultValueButton.getText())) {
                                 if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
-                                    propertyValueField.setValue(targetComponentPropertyEditRow.getValue() + literal);
+                                    String derivedValue = targetComponentPropertyEditRow.getValue() + literal;
+                                    // This field drives a generated Java class (e.g. userImplementedClassName), so the
+                                    // derived value must itself be a legal Java class name, not a verbatim copy.
+                                    if (affectsUserImplementedClass) {
+                                        derivedValue = StudioBuildUtils.toJavaClassName(derivedValue);
+                                    }
+                                    propertyValueField.setValue(derivedValue);
                                 }
                                 defaultValueButton.setText("Clear");
                                 defaultValueButton.setToolTipText("Clear the default value");
