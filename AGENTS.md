@@ -29,7 +29,7 @@ The Ikasan Blue Console and the Ikasan Dashboard are distinct products and must 
 - The **Blue Console** is shipped with every Ikasan module and operates independently of the Dashboard. It is a developer-facing, module-local console used to start and stop flows, identify flows in stopped or error states, examine the module REST API, and perform administrative tasks.
 - The **Ikasan Dashboard** is a central control point for multiple modules. It provides an aggregate view of running modules and their error states, supports replaying rejected messages, and lets operators interact with remote modules through their REST interfaces.
 
-In Studio UI and onboarding, retain the name **Blue Console**. If extra clarity is needed for new users, use a descriptive label such as **Open Blue Console** and explain its module-local purpose; never rename it to **Ikasan Dashboard**.
+In space-constrained Studio navigation, the agreed button label is **Console**. Its tooltip and guidance must identify it as the module-local **Blue Console** and must never describe it as the **Ikasan Dashboard**.
 
 ## User Journey
 
@@ -52,6 +52,19 @@ Ikasan Studio is hosted in IntelliJ's main editor area, alongside Java and confi
 The Ikasan squid icon remains on the far-right tool-window stripe as a discoverable one-click launcher. It opens or focuses the single project-scoped Studio editor and immediately hides the empty launcher tool window. **Tools → Open Ikasan Studio** and IntelliJ Find Action provide fallback access.
 
 `IkasanStudioFileEditor` is the exclusive owner of `DesignerUI`. Closing the tab disposes editor-owned canvas, palette, properties, and view-handler references while preserving the project model for a clean reopen. Project initialization starts through `StudioProjectInitialisationService` and presents Maven import, indexing, model, meta-pack, and recoverable failure states inside the editor.
+
+## Implemented UX Baseline (August 2026)
+
+The following behaviour is implemented and verified; preserve it unless a later product decision explicitly replaces it:
+
+- The empty-canvas onboarding progresses through adding a flow, adding a consumer and other components, running a valid module, waiting for startup, and opening Console. Detailed hints can be disabled in **Settings → Tools → Ikasan Studio**. Flow-level hints are positioned below the empty-flow artwork so they do not overlap it.
+- The top controls use **Run module** and **Console**. Console guidance tells developers to wait until module startup completes, explains its Blue Console purpose, and notes the local `admin` / `admin` login.
+- **Run module** creates or reuses a standard IntelliJ Java Application run configuration for `generated/src/main/java/org/ikasan/studio/boot/Application.java`, selects it in IntelliJ, and launches it through the normal execution APIs. Developers can subsequently use IntelliJ Run or Debug controls. Workspace module discovery uses a non-blocking read action and never performs slow file-index work on the EDT.
+- Newly configured modules materialise `flowStartupType=AUTOMATIC`. The V3.3.8 and V4.0.x property templates generate `ikasan.module.activator.startup.type.defaultStartupType=AUTOMATIC` in `application.properties`. Existing configured modules retain their chosen value.
+- `IkasanStudioFileEditorProvider` hosts the designer in the main editor region. The right-stripe squid icon is a direct one-click launcher, Tools and Find Action remain fallbacks, open-state restoration respects deliberate tab closure, and the editor tab uses the same squid icon as the stripe launcher.
+- `DesignerUI` has a single owner per project. Closing the editor clears UI-only `UiContext` references while retaining the module and project model for a clean reopen.
+- CodeQL Java/Kotlin analysis uses manual Gradle compilation under JDK 17 so Lombok-generated code is traced. GitHub workflows use current Node 24-compatible major action versions.
+- Focused tests cover hint progression, module defaulting, run-configuration matching, editor state/icon behaviour, and UI-context disposal. The full Gradle test suite passes. IntelliJ Plugin Verifier reports compatibility with IDEA 2024.3.7; the remaining reported scheduled-removal usage is the pre-existing `TerminalView` reference in `LaunchH2Action`.
 
 ## Architecture
 

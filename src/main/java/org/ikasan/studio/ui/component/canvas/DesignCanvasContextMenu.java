@@ -59,7 +59,7 @@ public class DesignCanvasContextMenu {
             menu.addSeparator();
             menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
-            menu.add(createNavigateToCode(project, ikasanBasicElement, false));
+            menu.add(createNavigateToCode(project, ikasanBasicElement, true));
             menu.addSeparator();
         }
         menu.add(createSaveAsMenuItem(project));

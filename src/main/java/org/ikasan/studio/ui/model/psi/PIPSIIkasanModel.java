@@ -261,11 +261,74 @@ public class PIPSIIkasanModel {
                     flowTemplateString,
                     flowViewHandler);
         }
-        // When creating the flow, for most components, jump to code could jump to the flow since that's where the components are referenced
+        setFlowComponentNavigationTargets(ikasanFlow, flowViewHandler.getPsiFile());
+    }
+
+    /**
+     * Default "jump to code" target for a flow component: the component's reference within the containing flow's
+     * generated Java file (e.g. the {@code "My Consumer"} literal in {@code .consumer("My Consumer", ...)}), located
+     * by text offset so navigation lands on the component's own line rather than just the top of the flow class.
+     * Components that generate their own user-editable class (see {@link #setUserImplementedClassNavigationTargets})
+     * have this superseded by a more specific target.
+     */
+    private void setFlowComponentNavigationTargets(Flow ikasanFlow, PsiFile flowPsiFile) {
+        if (flowPsiFile == null) {
+            return;
+        }
+        String flowFileText = flowPsiFile.getText();
+        int searchFromOffset = 0;
         for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
             IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
             if (flowComponentViewHandler != null) {
-                flowComponentViewHandler.setPsiFile(flowViewHandler.getPsiFile());
+                flowComponentViewHandler.setPsiFile(flowPsiFile);
+                String componentName = flowElement.getComponentName();
+                if (componentName != null) {
+                    int offset = flowFileText.indexOf("\"" + componentName + "\"", searchFromOffset);
+                    if (offset >= 0) {
+                        flowComponentViewHandler.setOffsetInclassToNavigateTo(offset);
+                        searchFromOffset = offset + componentName.length();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Components such as Debug or CustomConverter generate their own user-editable class under the project's
+     * {@code user/src/main/java} tree (see {@link #generateAndSaveUserImplementClassStubsForFlow}). "Jump to code"
+     * for these should navigate to that class rather than to the flow file. The class name is a persisted property
+     * ({@link ComponentPropertyMeta#USER_IMPLEMENTED_CLASS_NAME}) so, unlike the flow-file offset above, this target
+     * can be reconstructed on project reload without needing to regenerate anything or store extra state.
+     */
+    private void setUserImplementedClassNavigationTargets(Module module, Flow ikasanFlow, VirtualFile projectBaseDir) {
+        if (ikasanFlow.getFlowRoute() == null) {
+            return;
+        }
+        for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+            if (!(component instanceof FlowUserImplementedElement)) {
+                continue;
+            }
+            IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, component);
+            if (componentViewHandler == null) {
+                continue;
+            }
+            ComponentProperty classNameProperty = component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
+            String className = classNameProperty != null ? (String) classNameProperty.getValue() : null;
+            if (className == null) {
+                continue;
+            }
+            String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
+            String relPath = StudioPsiUtils.USER_CONTENT_ROOT.substring(1) + "/" +
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE + "/" +
+                    packageName.replace(".", "/") + "/" +
+                    className + ".java";
+            VirtualFile vFile = projectBaseDir.findFileByRelativePath(relPath);
+            if (vFile == null || !vFile.isValid()) {
+                continue;
+            }
+            PsiFile userClassPsiFile = PsiManager.getInstance(project).findFile(vFile);
+            if (userClassPsiFile != null) {
+                componentViewHandler.setPsiFile(userClassPsiFile);
             }
         }
     }
@@ -309,12 +372,8 @@ public class PIPSIIkasanModel {
                 if (flowViewHandler != null) {
                     flowViewHandler.setPsiFile(flowPsiFile);
                 }
-                for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
-                    IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
-                    if (componentViewHandler != null) {
-                        componentViewHandler.setPsiFile(flowPsiFile);
-                    }
-                }
+                setFlowComponentNavigationTargets(ikasanFlow, flowPsiFile);
+                setUserImplementedClassNavigationTargets(module, ikasanFlow, projectBaseDir);
             });
         }
     }

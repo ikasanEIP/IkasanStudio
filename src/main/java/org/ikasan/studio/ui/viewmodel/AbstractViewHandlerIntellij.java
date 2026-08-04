@@ -160,6 +160,8 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     public void setPsiFile(PsiFile psiFile) {
         this.psiFile = psiFile;
+        // Any previously computed offset was relative to the old file's text, and is meaningless against this one.
+        this.offsetInclassToNavigateTo = 0;
         if (psiFile instanceof PsiJavaFile) {
             PsiClass[] allClasses = ((PsiJavaFile)psiFile).getClasses();
             if (allClasses.length > 0) {
