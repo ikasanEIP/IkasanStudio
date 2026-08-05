@@ -17,6 +17,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
@@ -60,7 +61,7 @@ public class DesignerCanvas extends JPanel {
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
     private final Project project;
-    private final JButton startButton = new JButton("Configure module");
+    private final JButton startButton = new JButton(StudioBundle.message("button.ConfigureModule"));
     private final ComboBox<String> metaDataVersionComboBox;
     private final JPanel newModulePanel;
 
@@ -112,8 +113,8 @@ public class DesignerCanvas extends JPanel {
         List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
         installedMetapacks.sort(String::compareToIgnoreCase);
         metaDataVersionComboBox = new ComboBox<>(installedMetapacks.toArray(String[]::new));
-        metaDataVersionComboBox.getAccessibleContext().setAccessibleName("Ikasan version");
-        startButton.setToolTipText("Configure this module using the selected Ikasan version");
+        metaDataVersionComboBox.getAccessibleContext().setAccessibleName(StudioBundle.message("label.IkasanVersion"));
+        startButton.setToolTipText(StudioBundle.message("tooltip.ConfigureThisModuleUsingTheSelectedIkasanVersion"));
         newModulePanel = createNewModulePanel();
         // Create the properties popup panel for a new Module
         startButton.addActionListener(e ->
@@ -122,7 +123,7 @@ public class DesignerCanvas extends JPanel {
                 String metapackVersion = (String) metaDataVersionComboBox.getSelectedItem();
                 if (metapackVersion == null) {
                     StudioUIUtils.displayIdeaInfoMessage(this.project,
-                            "Choose an Ikasan version before configuring the module.");
+                            StudioBundle.message("message.ChooseAnIkasanVersionBeforeConfiguringTheModule"));
                 } else {
                     if (!IkasanComponentLibrary.containVersion(metapackVersion)) {
                         try {
@@ -130,7 +131,7 @@ public class DesignerCanvas extends JPanel {
                         } catch (StudioBuildException ex) {
                             LOG.warn("STUDIO: Could not load component library " + metapackVersion, ex);
                             StudioUIUtils.displayIdeaInfoMessage(this.project,
-                                    "The component library for " + metapackVersion + " could not be loaded. Try another version or review the IDE log.");
+                                    StudioBundle.message("message.TheComponentLibraryCouldNotBeLoaded", metapackVersion));
                             return;
                         }
                     }
@@ -144,7 +145,7 @@ public class DesignerCanvas extends JPanel {
                     } catch (StudioBuildException ex) {
                         LOG.warn("STUDIO: Could not create module for " + metapackVersion, ex);
                         StudioUIUtils.displayIdeaInfoMessage(this.project,
-                                "The module could not be created for " + metapackVersion + ". Review the IDE log and try again.");
+                                StudioBundle.message("message.TheModuleCouldNotBeCreated", metapackVersion));
                         return;
                     }
                     ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(this.project, true);
@@ -158,7 +159,7 @@ public class DesignerCanvas extends JPanel {
                         if (uiContext.getPalettePanel() != null) {
                             uiContext.getPalettePanel().resetPallette();
                         }
-                        StudioUIUtils.displayIdeaInfoMessage(this.project, "Please wait for Intellij to initialise, any code errors will be resolved.");
+                        StudioUIUtils.displayIdeaInfoMessage(this.project, StudioBundle.message("message.PleaseWaitForIntellijToInitialise"));
                         StudioPsiUtils.refreshCodeFromModel(this.project);
                         disableModuleInitialiseProcess();
                     }
@@ -199,16 +200,13 @@ public class DesignerCanvas extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(JBUI.Borders.empty(20));
 
-        JBLabel heading = new JBLabel("Create your Ikasan module");
+        JBLabel heading = new JBLabel(StudioBundle.message("label.CreateYourIkasanModule"));
         heading.setFont(heading.getFont().deriveFont(Font.BOLD, heading.getFont().getSize2D() + 2));
         heading.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(heading);
         panel.add(Box.createVerticalStrut(JBUI.scale(8)));
 
-        JBTextArea explanation = new JBTextArea(
-                "Choose the Ikasan version this module will run on. Ikasan Studio uses a meta-pack for each version: " +
-                "a catalogue of available components together with their configuration, validation, and code-generation templates. " +
-                "This keeps the designer and generated code aligned with your Ikasan runtime.");
+        JBTextArea explanation = new JBTextArea(StudioBundle.message("label.ChooseIkasanVersionExplanation"));
         explanation.setEditable(false);
         explanation.setFocusable(false);
         explanation.setLineWrap(true);
@@ -718,7 +716,7 @@ public class DesignerCanvas extends JPanel {
                             .metapackVersion(uiContext.getIkasanModule().getMetaVersion())
                             .build());
                 } catch (StudioBuildException e) {
-                    StudioUIUtils.displayIdeaWarnMessage(project, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
+                    StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ThereWasAProblemTryingToGetMetaPackInfo", e.getMessage()));
                     return false;
                 }
                 if (newComponent != null) {
@@ -750,7 +748,7 @@ public class DesignerCanvas extends JPanel {
         try {
             newComponent = FlowElementFactory.createFlowElement(uiContext.getIkasanModule().getMetaVersion(), ikasanComponentType, containingFlow, containingFlowFoute, null);
         } catch (StudioBuildException e) {
-            StudioUIUtils.displayIdeaWarnMessage(project, "There was a problem trying to get meta pack info, please review logs (" + e.getMessage() + ")");
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ThereWasAProblemTryingToGetMetaPackInfo", e.getMessage()));
             return newComponent;
         }
         if (ikasanComponentType.isExceptionResolver()) {
@@ -963,19 +961,19 @@ public class DesignerCanvas extends JPanel {
         }
 
         String heading = switch (hint) {
-            case NO_FLOWS -> "No flows added";
-            case EMPTY_FLOW -> "Add a Consumer";
-            case ADD_COMPONENTS -> "Add flow components";
-            case READY_TO_RUN -> "Ready to run";
-            case OPEN_CONSOLE -> "Module starting";
+            case NO_FLOWS -> StudioBundle.message("label.NoFlowsAdded");
+            case EMPTY_FLOW -> StudioBundle.message("label.AddAConsumer");
+            case ADD_COMPONENTS -> StudioBundle.message("label.AddFlowComponents");
+            case READY_TO_RUN -> StudioBundle.message("label.ReadyToRun");
+            case OPEN_CONSOLE -> StudioBundle.message("label.ModuleStarting");
             default -> "";
         };
         String instruction = switch (hint) {
-            case NO_FLOWS -> "Drag a Flow from the Palette onto the canvas to begin.";
-            case EMPTY_FLOW -> "Drag a Consumer from the Palette onto this flow.";
-            case ADD_COMPONENTS -> "Add components until the flow has a Producer and is valid.";
-            case READY_TO_RUN -> "Select Run module, or use IntelliJ Run or Debug. Open Console after startup.";
-            case OPEN_CONSOLE -> "Wait for module startup to complete, then select Console.";
+            case NO_FLOWS -> StudioBundle.message("message.DragAFlowFromThePaletteOntoTheCanvas");
+            case EMPTY_FLOW -> StudioBundle.message("message.DragAConsumerFromThePaletteOntoThisFlow");
+            case ADD_COMPONENTS -> StudioBundle.message("message.AddComponentsUntilTheFlowHasAProducer");
+            case READY_TO_RUN -> StudioBundle.message("message.SelectRunModuleOrUseIntellijRunOrDebug");
+            case OPEN_CONSOLE -> StudioBundle.message("message.WaitForModuleStartupToComplete");
             default -> "";
         };
 
@@ -1057,12 +1055,12 @@ public class DesignerCanvas extends JPanel {
         try {
             boolean saved = ImageIO.write(bufferedImage, imageFormat, file);
             if (!saved) {
-                StudioUIUtils.displayErrorMessage(project, "Could not save file " + file.getAbsolutePath());
+                StudioUIUtils.displayErrorMessage(project, StudioBundle.message("message.CouldNotSaveFile", file.getAbsolutePath()));
             } else {
-                StudioUIUtils.displayMessage(project, "Saved file to " + file.getAbsolutePath());
+                StudioUIUtils.displayMessage(project, StudioBundle.message("message.SavedFileTo", file.getAbsolutePath()));
             }
         } catch (IOException ioe) {
-            StudioUIUtils.displayErrorMessage(project, "Could not save image to file " + file.getAbsolutePath());
+            StudioUIUtils.displayErrorMessage(project, StudioBundle.message("message.CouldNotSaveImageToFile", file.getAbsolutePath()));
             LOG.warn("STUDIO: Error saving image to file " + file.getAbsolutePath(), ioe);
         }
     }

@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.intellij.IkasanRunConfigurationService;
@@ -26,7 +27,7 @@ public class LaunchApplicationAction implements ActionListener {
       VirtualFile applicationFile = StudioPsiUtils.getVirtualFile(project, applicationRelativePath);
       if (applicationFile == null) {
          StudioUIUtils.displayIdeaWarnMessage(project,
-                 "Application.java is not available yet. Regenerate the module and try again.");
+                 StudioBundle.message("message.ApplicationJavaIsNotAvailableYetRegenerateTheModule"));
          LOG.warn("STUDIO: Could not find " + applicationRelativePath + " in " + project);
          return;
       }
@@ -36,7 +37,7 @@ public class LaunchApplicationAction implements ActionListener {
             DesignerCanvas.markModuleLaunched(project);
          } else {
             StudioUIUtils.displayIdeaWarnMessage(project,
-                    "The Ikasan run configuration could not be created. Review the IDE log and try again.");
+                    StudioBundle.message("message.TheIkasanRunConfigurationCouldNotBeCreated"));
          }
       });
    }

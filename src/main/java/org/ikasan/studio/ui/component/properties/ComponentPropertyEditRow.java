@@ -10,6 +10,7 @@ import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -168,10 +169,13 @@ public class ComponentPropertyEditRow {
                     String targetComponentName = parts[1];
                     ComponentPropertyEditRow targetComponentPropertyEditRow = componentPropertyEditBoxMap.get(targetComponentName);
                     if (targetComponentPropertyEditRow != null) {
-                        defaultValueButton = new JButton("Default");
-                        defaultValueButton.setToolTipText("Set default value derived from " + targetComponentName);
+                        String defaultButtonLabel = StudioBundle.message("button.Default");
+                        String clearButtonLabel = StudioBundle.message("button.Clear");
+                        String setDefaultTooltip = StudioBundle.message("message.SetDefaultValueDerivedFrom", targetComponentName);
+                        defaultValueButton = new JButton(defaultButtonLabel);
+                        defaultValueButton.setToolTipText(setDefaultTooltip);
                         defaultValueButton.addActionListener(e -> {
-                            if ("Default".equals(defaultValueButton.getText())) {
+                            if (defaultButtonLabel.equals(defaultValueButton.getText())) {
                                 if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
                                     String derivedValue = targetComponentPropertyEditRow.getValue() + literal;
                                     // This field drives a generated Java class (e.g. userImplementedClassName), so the
@@ -181,13 +185,13 @@ public class ComponentPropertyEditRow {
                                     }
                                     propertyValueField.setValue(derivedValue);
                                 }
-                                defaultValueButton.setText("Clear");
-                                defaultValueButton.setToolTipText("Clear the default value");
+                                defaultValueButton.setText(clearButtonLabel);
+                                defaultValueButton.setToolTipText(StudioBundle.message("message.ClearTheDefaultValue"));
                             } else {
                                 propertyValueField.setValue(null);
                                 propertyValueField.setText("");
-                                defaultValueButton.setText("Default");
-                                defaultValueButton.setToolTipText("Set default value derived from " + targetComponentName);
+                                defaultValueButton.setText(defaultButtonLabel);
+                                defaultValueButton.setToolTipText(setDefaultTooltip);
                             }
                         });
                     }
@@ -198,7 +202,7 @@ public class ComponentPropertyEditRow {
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
         if (componentProperty.getMeta().getDataValidationType() != null) {
             dataValidationHelper = new JButton();
-            dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon("Help with cron configuration"));
+            dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon(StudioBundle.message("tooltip.HelpWithCronConfiguration")));
             dataValidationHelper.setBorder(JBUI.Borders.empty(5, 15));
             dataValidationHelper.addActionListener(e -> doDataValidationHelperPopup());
         } else {
@@ -407,7 +411,7 @@ public class ComponentPropertyEditRow {
             List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
             Set<String> deduplicate = new HashSet<>(rawList);
             if (rawList.size() > deduplicate.size()) {
-                StudioUIUtils.displayIdeaWarnMessage(project, "Duplicates in the list will be removed");
+                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DuplicatesInTheListWillBeRemoved"));
                 returnValue = new ArrayList<>(deduplicate);
             } else {
                 returnValue = rawList;

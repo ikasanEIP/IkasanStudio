@@ -5,6 +5,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import lombok.Data;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -35,16 +36,16 @@ public class ExceptionResolutionTableDisplay {
         this.exceptionResolver = exceptionResolver;
         this.componentInitialisation = componentInitialisation;
 
-        this.exceptionTitleField = new JLabel("Exception to be caught");
-        this.actionTitleField = new JLabel("Action");
-        this.paramsTitleField = new JLabel("Params");
+        this.exceptionTitleField = new JLabel(StudioBundle.message("label.ExceptionToBeCaught"));
+        this.actionTitleField = new JLabel(StudioBundle.message("label.Action"));
+        this.paramsTitleField = new JLabel(StudioBundle.message("label.Params"));
 
         if (exceptionResolver.getIkasanExceptionResolutionMap() != null) {
             for (ExceptionResolution exceptionResolution : exceptionResolver.getIkasanExceptionResolutionMap().values()) {
                 exceptionResolutionRowDisplayList.add(new ExceptionResolutionRowDisplay(this, exceptionResolution, componentInitialisation));
             }
         }
-        addButton = new JButton("ADD");
+        addButton = new JButton(StudioBundle.message("button.ADD"));
         addButton.addActionListener(e ->
             doAdd()
         );
@@ -76,7 +77,7 @@ public class ExceptionResolutionTableDisplay {
                     exceptionResolutionPanel,
                     true);
             if (propertiesPopupDialogue.showAndGet()) {
-                StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
+                StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
                 exceptionResolutionRowDisplayList.add(new ExceptionResolutionRowDisplay(this, newResolution, componentInitialisation));
                 hasChanged = true;
                 resolverPanel.populatePropertiesEditorPanel();
@@ -111,9 +112,9 @@ public class ExceptionResolutionTableDisplay {
     protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
         if (exceptionResolutionRowDisplayList.isEmpty()) {
-            result.add(new ValidationInfo("At least one exception should be added. If the resolver is no longer required, delete it from the flow."));
+            result.add(new ValidationInfo(StudioBundle.message("message.AtLeastOneExceptionShouldBeAdded")));
         } else if (!hasChanged) {
-            result.add(new ValidationInfo("No change has been made yet, change the configuration or cancel the action"));
+            result.add(new ValidationInfo(StudioBundle.message("message.NoChangeHasBeenMadeYet")));
         }
         return result;
     }

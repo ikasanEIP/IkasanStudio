@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.actions;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
@@ -22,11 +23,11 @@ public class LaunchBlueAction implements ActionListener {
       UiContext uiContext = project.getService(UiContext.class);
       Module module = uiContext.getIkasanModule();
       if (module != null) {
-         StudioUIUtils.displayIdeaInfoMessage(project, "Sent request to your browser to open the Blue Console.");
+         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.SentRequestToYourBrowserToOpenTheBlueConsole"));
          BrowserUtil.browse("http://localhost:" + (module.getPort() != null ? module.getPort() : "8080") + "/" + module.getIdentity().toLowerCase());
          DesignerCanvas.markConsoleOpened(project);
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(project, "Blue Console cannot be opened unless a module is defined.");
+         StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.BlueConsoleCannotBeOpenedUnlessAModuleIsDefined"));
       }
    }
 }

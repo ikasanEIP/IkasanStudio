@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -26,14 +27,16 @@ public class SaveAction implements ActionListener {
       Module module = uiContext.getIkasanModule();
 
       if (module != null) {
-         StudioUIUtils.displayIdeaInfoMessage(project, "Saving image.");
+         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.SavingImage"));
          boolean transparentBackground = false ; // cant get this to work for now.
 //      String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
          String[] extensions = transparentBackground ? new String[]{"png"} : new String[]{"png", "jpg",};
          // Modern approach: FileChooserFactory automatically uses native dialogs on Mac
          // No need to check for deprecated registry key ide.mac.native.save.dialog
          // The platform automatically uses native file choosers when available
-         FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Save as Image", "Choose the destination to save the image", extensions);
+         FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor(
+                 StudioBundle.message("dialog.SaveAsImage"),
+                 StudioBundle.message("message.ChooseTheDestinationToSaveTheImage"), extensions);
          FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
 
          String moduleName = uiContext.getIkasanModule().getComponentName();
@@ -57,7 +60,7 @@ public class SaveAction implements ActionListener {
          uiContext.getDesignerCanvas().saveAsImage(file, imageFormat, transparentBackground);
 //      }
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(project, "Save of image can't be launched unless a module is defined.");
+         StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.SaveOfImageCantBeLaunchedUnlessAModuleIsDefined"));
       }
    }
 }

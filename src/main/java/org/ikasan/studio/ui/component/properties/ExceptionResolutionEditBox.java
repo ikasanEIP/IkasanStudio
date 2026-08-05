@@ -8,6 +8,7 @@ import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionActionMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
+import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -38,8 +39,8 @@ public class ExceptionResolutionEditBox {
         this.exceptionResolution = exceptionResolution;
         this.componentInitialisation = componentInitialisation;
 
-        this.actionTitleField = new JLabel("Action");
-        this.paramsTitleField = new JLabel("Params");
+        this.actionTitleField = new JLabel(StudioBundle.message("label.Action"));
+        this.paramsTitleField = new JLabel(StudioBundle.message("label.Params"));
 
         List<String> currentExceptions = exceptionResolverMeta.getExceptionsCaught();
         Object[] exceptions = currentExceptions.toArray();
@@ -51,7 +52,7 @@ public class ExceptionResolutionEditBox {
         this.exceptionJComboBox = new ComboBox(exceptions);
 
         this.exceptionJComboBox.setEditable(true);
-        this.exceptionTitleField = new JLabel("Exception");
+        this.exceptionTitleField = new JLabel(StudioBundle.message("label.Exception"));
         if (exceptionResolution.getExceptionsCaught() != null) {
             // There might be a bespoke exception already set
             if (!currentExceptions.contains(exceptionResolution.getExceptionsCaught())) {
@@ -175,7 +176,7 @@ public class ExceptionResolutionEditBox {
             if (!selectedException.equals(exceptionResolution.getExceptionsCaught()) ||
                     !selectedAction.equals(exceptionResolution.getTheAction())) {
                 hasChanged = true;
-            } else if (selectedAction.equals(exceptionResolution.getTheAction())) {
+            } else {
                 // Check to see if the values of any action params has changed
                 for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
                     if (componentPropertyEditRow.propertyValueHasChanged()) {
@@ -205,13 +206,13 @@ public class ExceptionResolutionEditBox {
     protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
         if (exceptionJComboBox.getSelectedItem() == null) {
-            result.add(new ValidationInfo("A valid exception must be set"));
+            result.add(new ValidationInfo(StudioBundle.message("message.AValidExceptionMustBeSet")));
         } else if (resolutionPanel.hasExceptionAlreadyBeenConfigured((String)exceptionJComboBox.getSelectedItem())) {
-            result.add(new ValidationInfo("The exception " + exceptionJComboBox.getSelectedItem() + " already has an assigned action, change the exception or cancel"));
+            result.add(new ValidationInfo(StudioBundle.message("message.TheExceptionAlreadyHasAnAssignedAction", exceptionJComboBox.getSelectedItem())));
         } else if (actionJComboBox.getSelectedItem() == null) {
-            result.add(new ValidationInfo("An action must be chosen"));
+            result.add(new ValidationInfo(StudioBundle.message("message.AnActionMustBeChosen")));
         } else if (!ExceptionResolverMeta.isValidAction((String) actionJComboBox.getSelectedItem())) {
-            result.add(new ValidationInfo("The action " + actionJComboBox.getSelectedItem() + " is not recognised"));
+            result.add(new ValidationInfo(StudioBundle.message("message.TheActionIsNotRecognised", actionJComboBox.getSelectedItem())));
         } else {
             // By now the action params should have been set (if there are any)
             if (!componentPropertyEditRowList.isEmpty()) {

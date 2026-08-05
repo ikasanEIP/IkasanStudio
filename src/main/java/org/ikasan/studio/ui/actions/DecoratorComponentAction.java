@@ -6,6 +6,7 @@ import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 
@@ -49,7 +50,7 @@ public class DecoratorComponentAction implements ActionListener {
          }
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(project, "Wiretap can only be added to a non-debug flow elements");
+         StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.WiretapCanOnlyBeAddedToANonDebugFlowElements"));
       }
    }
 }

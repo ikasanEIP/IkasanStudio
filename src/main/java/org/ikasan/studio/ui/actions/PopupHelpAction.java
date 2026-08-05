@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.awt.RelativePoint;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
@@ -33,7 +34,7 @@ public class PopupHelpAction implements ActionListener {
         if (webHelp) {
             String webURL = ikasanBasicElement.getComponentMeta().getWebHelpURL();
             if (!webURL.isEmpty()) {
-                StudioUIUtils.displayIdeaInfoMessage(project, "Check your default browser, the help information should be automatically populated.");
+                StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CheckYourDefaultBrowserTheHelpInformation"));
                 BrowserUtil.browse(webURL);
             }
         } else {
@@ -47,7 +48,7 @@ public class PopupHelpAction implements ActionListener {
                 HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel(null, new Dimension(minWidth, minHeight));
                 htmlScrollingDisplayPanel.setText(helpText);
                 JBPopupFactory.getInstance().createComponentPopupBuilder(htmlScrollingDisplayPanel, htmlScrollingDisplayPanel)
-                        .setTitle("Description")
+                        .setTitle(StudioBundle.message("dialog.Description"))
                         .setResizable(true)
                         .setMovable(true)
                         .createPopup()

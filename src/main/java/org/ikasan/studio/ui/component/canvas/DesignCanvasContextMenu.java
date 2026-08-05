@@ -8,6 +8,7 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.actions.*;
 
 import javax.swing.*;
@@ -36,24 +37,24 @@ public class DesignCanvasContextMenu {
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
             menu.addSeparator();
             if (decorator != null && decorator.isBefore() && decorator.isWiretap()) {
-                menu.add(removeDecoratorItem(project, "Delete Wiretap Before", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
+                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteWiretapBefore"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
             } else {
-                menu.add(createDecoratorItem(project, "Add Wiretap Before", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
+                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddWiretapBefore"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
             }
             if (decorator != null && decorator.isAfter() && decorator.isWiretap()) {
-                menu.add(removeDecoratorItem(project, "Delete Wiretap After", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
+                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteWiretapAfter"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
             } else {
-                menu.add(createDecoratorItem(project, "Add Wiretap After", ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
+                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddWiretapAfter"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
             }
             if (decorator != null && decorator.isBefore() && decorator.isLogWiretap()) {
-                menu.add(removeDecoratorItem(project, "Delete Logging Before", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
+                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteLoggingBefore"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
             } else {
-                menu.add(createDecoratorItem(project, "Add Logging Before", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
+                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddLoggingBefore"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
             }
             if (decorator != null && decorator.isAfter() && decorator.isLogWiretap()) {
-                menu.add(removeDecoratorItem(project, "Delete Logging After", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
+                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteLoggingAfter"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
             } else {
-                menu.add(createDecoratorItem(project, "Add Logging After", ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
+                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddLoggingAfter"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
             }
 
             menu.addSeparator();
@@ -71,20 +72,20 @@ public class DesignCanvasContextMenu {
     }
 
     private static JMenuItem createDeleteComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
-        JMenuItem item = new JMenuItem("Delete Component");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.DeleteComponent"));
         item.addActionListener(new DeleteComponentAction(project, ikasanBasicElement));
         return item;
     }
 
     // We may need to enable this at short notice.
     private static JMenuItem createDebugComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
-        JMenuItem item = new JMenuItem("Add Debug to Component");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.AddDebugToComponent"));
         item.addActionListener(new DebugComponentAction(project, ikasanBasicElement));
         return item;
     }
 
     private static JMenuItem createEditComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
-        JMenuItem item = new JMenuItem("Edit Component");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.EditComponent"));
         item.addActionListener(new EditComponentAction(project, ikasanBasicElement));
         return item;
     }
@@ -100,49 +101,49 @@ public class DesignCanvasContextMenu {
         return item;
     }
     private static JMenuItem createHelpTextItem(Project project, BasicElement ikasanBasicElement, MouseEvent mouseEvent) {
-        JMenuItem item = new JMenuItem("Describe Component");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.DescribeComponent"));
         item.addActionListener(new PopupHelpAction(project, ikasanBasicElement, mouseEvent, false));
         return item;
     }
 
     private static JMenuItem createWebHelpTextItem(Project project, BasicElement ikasanBasicElement, MouseEvent mouseEvent) {
-        JMenuItem item = new JMenuItem("Component Web help");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ComponentWebHelp"));
         item.addActionListener(new PopupHelpAction(project, ikasanBasicElement, mouseEvent, true));
         return item;
     }
 
     private static JMenuItem createSaveAsMenuItem(Project project) {
-        JMenuItem item = new JMenuItem("Save Image");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.SaveImage"));
         item.addActionListener(new SaveAction(project));
         return item;
     }
 
     private static JMenuItem createLoadMenuItem(Project project) {
-        JMenuItem item = new JMenuItem("Load");
+        JMenuItem item = new JMenuItem(StudioBundle.message("label.Load"));
         item.addActionListener(new ModelLoadAction(project));
         return item;
     }
 
     private static JMenuItem createLaunchDashboardMenuItem(Project project) {
-        JMenuItem item = new JMenuItem("Console");
+        JMenuItem item = new JMenuItem(StudioBundle.message("label.Console"));
         item.addActionListener(new LaunchBlueAction(project));
         return item;
     }
 
     private static JMenuItem createLaunchH2MenuItem(Project project) {
-        JMenuItem item = new JMenuItem("Launch H2");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.LaunchH2"));
         item.addActionListener(new LaunchH2Action(project, item));
         return item;
     }
 
     private static JMenuItem createDebugMenuItem(Project project) {
-        JMenuItem item = new JMenuItem("Debug Module to logs");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.DebugModuleToLogs"));
         item.addActionListener(new DebugAction(project));
         return item;
     }
 
     private static JMenuItem createNavigateToCode(Project project, BasicElement ikasanBasicElement, boolean jumpToLine) {
-        JMenuItem item = new JMenuItem("Jump to code");
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.JumpToCode"));
         item.addActionListener(new NavigateToCodeAction(project, ikasanBasicElement, jumpToLine));
         return item;
     }

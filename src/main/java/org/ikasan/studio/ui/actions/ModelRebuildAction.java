@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.actions;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -23,10 +24,10 @@ public class ModelRebuildAction implements ActionListener {
       Module module = uiContext.getIkasanModule();
 
       if (module != null) {
-         StudioUIUtils.displayIdeaInfoMessage(project, "Rebuilding source code from memory model.");
+         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.RebuildingSourceCodeFromMemoryModel"));
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(project, "Rebuilding can't be launched unless a module is defined.");
+         StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.RebuildingCantBeLaunchedUnlessAModuleIsDefined"));
       }
    }
 }

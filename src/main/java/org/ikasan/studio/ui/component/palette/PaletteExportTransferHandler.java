@@ -7,6 +7,7 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.IkasanFlowUIComponentTransferable;
@@ -44,10 +45,9 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
 
     @Override
     public Transferable createTransferable(JComponent sourceComponent) {
-        if (sourceComponent instanceof JList paletteList &&
-                ((JList)sourceComponent).getSelectedValue() instanceof PaletteItem &&
-                ! ((PaletteItem)((JList<PaletteItem>)sourceComponent).getSelectedValue()).isCategory()) {
-            PaletteItem item = (PaletteItem)paletteList.getSelectedValue();
+        if (sourceComponent instanceof JList<?> paletteList &&
+                paletteList.getSelectedValue() instanceof PaletteItem item &&
+                !item.isCategory()) {
             UiContext uiContext = project.getService(UiContext.class);
             if (uiContext.getIkasanModule() == null) {
                 LOG.warn("STUDIO: Module should never be null");
@@ -62,7 +62,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
                     ikasanComponent = FlowElementFactory.createFlowElement(metapackVersion, item.getIkasanPaletteElementViewHandler().getComponentMeta(), null, null, null);
                 }
             } catch (StudioBuildException e) {
-                StudioUIUtils.displayIdeaWarnMessage(project, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.AProblemOccurredTryingToGetTheMetaPackInformation", e.getMessage()));
                 return null;
             }
 

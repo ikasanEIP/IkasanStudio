@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
@@ -25,7 +26,7 @@ public class ComponentPropertiesTabPanel extends JBPanel {
     final JSplitPane paletteSplitPane;
 
     ComponentPropertiesPanel componentPropertiesPanel;
-    HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
+    HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel(StudioBundle.message("dialog.Description"), null);
     public ComponentPropertiesTabPanel(ComponentPropertiesPanel componentPropertiesPanel) {
         super();
         this.componentPropertiesPanel = componentPropertiesPanel;

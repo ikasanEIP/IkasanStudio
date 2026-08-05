@@ -8,6 +8,7 @@ import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,13 +20,13 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     private final JBLabel statusIcon = new JBLabel(new AnimatedIcon.Default());
     private final JBLabel statusLabel = new JBLabel();
     private final JBTextArea detailText = new JBTextArea();
-    private final LinkLabel<Object> retryLink = new LinkLabel<>("Retry", null);
+    private final LinkLabel<Object> retryLink = new LinkLabel<>(StudioBundle.message("label.Retry"), null);
 
     public StudioInitialisationPanel(Runnable retryAction) {
         super(new GridBagLayout());
         setBorder(JBUI.Borders.empty(24));
 
-        JBLabel heading = new JBLabel("Ikasan Studio");
+        JBLabel heading = new JBLabel(StudioBundle.message("ikasan.studio.settings.displayName"));
         heading.setFont(JBFont.h2());
 
         detailText.setEditable(false);
@@ -77,28 +78,28 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     }
 
     public void showWaitingForIndexes() {
-        showProgress("Waiting for IntelliJ to finish indexing…",
-                "You can continue working while IntelliJ prepares the project.");
+        showProgress(StudioBundle.message("label.WaitingForIntellijToFinishIndexing"),
+                StudioBundle.message("message.YouCanContinueWorkingWhileIntellijPreparesTheProject"));
     }
 
     public void showWaitingForProjectImport() {
-        showProgress("Importing the Maven project…",
-                "Ikasan Studio will continue automatically when IntelliJ has imported the generated and user modules.");
+        showProgress(StudioBundle.message("label.ImportingTheMavenProject"),
+                StudioBundle.message("message.IkasanStudioWillContinueAutomaticallyWhenIntellijHasImported"));
     }
 
     public void showReadingProject() {
-        showProgress("Reading the Ikasan project…",
-                "Loading the Maven configuration and Ikasan module model.");
+        showProgress(StudioBundle.message("label.ReadingTheIkasanProject"),
+                StudioBundle.message("message.LoadingTheMavenConfigurationAndIkasanModuleModel"));
     }
 
     public void showLoadingComponents() {
-        showProgress("Loading Ikasan components…",
-                "Preparing the component library and designer palette.");
+        showProgress(StudioBundle.message("label.LoadingIkasanComponents"),
+                StudioBundle.message("message.PreparingTheComponentLibraryAndDesignerPalette"));
     }
 
     public void showFailure(String detail) {
         statusIcon.setIcon(AllIcons.General.Warning);
-        statusLabel.setText("Ikasan Studio could not prepare this project");
+        statusLabel.setText(StudioBundle.message("message.IkasanStudioCouldNotPrepareThisProject"));
         detailText.setText(detail);
         retryLink.setVisible(true);
         revalidate();

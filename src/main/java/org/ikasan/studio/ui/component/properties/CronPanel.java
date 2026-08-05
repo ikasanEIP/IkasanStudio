@@ -5,6 +5,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import lombok.Getter;
 import lombok.Setter;
+import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -22,7 +23,7 @@ import static org.ikasan.studio.ui.component.properties.CronExpression.DAY_OF_WE
 @SuppressWarnings("rawtypes")
 public class CronPanel extends JBPanel {
 //    private static final Logger LOG = Logger.getInstance("#CronPanel");
-    private String title = "Quartz Cron Configuration";
+    private String title = StudioBundle.message("dialog.QuartzCronConfiguration");
     JTextField[] textFields = new JTextField[CronExpression.values().length];
     JLabel[] labelFields = new JLabel[CronExpression.values().length];
     JTextPane helpTextPane;
@@ -59,7 +60,7 @@ public class CronPanel extends JBPanel {
                 textFields[index] = new JTextField(10);
                 labelFields[index] = new JLabel();
 
-                addRow(gc, dataEntryPanel, new JButton(cronField.fieldName), textFields[index], labelFields[index], cronField.defaultValue, parts[index], toolTip(cronField));
+                addRow(gc, dataEntryPanel, cronField, textFields[index], labelFields[index], cronField.defaultValue, parts[index], toolTip(cronField));
             }
         }
         // Fill in remaining values with defaults
@@ -67,7 +68,7 @@ public class CronPanel extends JBPanel {
             CronExpression cronField = CronExpression.values()[index];
             textFields[index] = new JTextField(10);
             labelFields[index] = new JLabel();
-            addRow(gc, dataEntryPanel, new JButton(cronField.fieldName), textFields[index], labelFields[index], cronField.defaultValue, cronField.defaultValue, toolTip(cronField));
+            addRow(gc, dataEntryPanel, cronField, textFields[index], labelFields[index], cronField.defaultValue, cronField.defaultValue, toolTip(cronField));
         }
 
         add(dataEntryPanel, BorderLayout.NORTH);
@@ -77,11 +78,11 @@ public class CronPanel extends JBPanel {
         okCancelPanel.setBorder(null);
         okCancelPanel.setLayout(new FlowLayout());
 
-        JButton helpButton = new JButton("Expand help");
+        JButton helpButton = new JButton(StudioBundle.message("button.ExpandHelp"));
         okCancelPanel.add(helpButton);
         helpButton.addActionListener( e -> {
             helpEnabled = !helpEnabled;
-            helpButton.setText(helpEnabled ? "Collapse Help" : "Expand help");
+            helpButton.setText(helpEnabled ? StudioBundle.message("button.CollapseHelp") : StudioBundle.message("button.ExpandHelp"));
             helpPanel.setVisible(helpEnabled);
             if (testFrame != null) {
                 testFrame.pack();
@@ -94,16 +95,11 @@ public class CronPanel extends JBPanel {
         add(okCancelPanel, BorderLayout.SOUTH);
 
         helpPanel = new JBPanel(new BorderLayout());
-        Border helpBorder = BorderFactory.createTitledBorder("Quartz Cron Configuration Help");
+        Border helpBorder = BorderFactory.createTitledBorder(StudioBundle.message("label.QuartzCronConfigurationHelp"));
         helpPanel.setBorder(helpBorder);
         helpTextPane = new JTextPane();
         helpTextPane.setContentType("text/html");
-        helpTextPane.setText(
-                "<p>Hover over each field to see what values are allowed per field." +
-                        "<p>Click the buttons to reset the field to its default value." +
-                        "<p>Further details can be found at " +
-                        "<ul><li>https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html"
-        );
+        helpTextPane.setText(StudioBundle.message("label.CronHelpText"));
         helpPanel.setBackground(IKASAN_GREY);
         helpPanel.add(helpTextPane, BorderLayout.CENTER);
         add(helpPanel, BorderLayout.CENTER);
@@ -119,10 +115,11 @@ public class CronPanel extends JBPanel {
     }
 
     protected static String toolTip(CronExpression cronField) {
-        return "Enter one of " + cronField.specialCharacters + ", n is " + cronField.allowedValues;
+        return StudioBundle.message("message.EnterOneOfNIs", cronField.specialCharacters, cronField.allowedValues);
     }
 
-    protected void addRow(GridBagConstraints gc, @SuppressWarnings("rawtypes") JBPanel dataEntryPanel, JButton resetButton, JTextField textEntryField, JLabel description, String defaultValue, String currentValue, String toolTip) {
+    protected void addRow(GridBagConstraints gc, @SuppressWarnings("rawtypes") JBPanel dataEntryPanel, CronExpression cronField, JTextField textEntryField, JLabel description, String defaultValue, String currentValue, String toolTip) {
+        JButton resetButton = new JButton(cronField.getFieldName());
         gc.gridx = 0;
         dataEntryPanel.add(resetButton, gc);
         gc.gridx = 1;
@@ -134,7 +131,7 @@ public class CronPanel extends JBPanel {
         gc.weightx = 0.0;
         resetButton.addActionListener(e->{
             textEntryField.setText(defaultValue);
-            setMessageField(defaultValue, resetButton.getText(), description);
+            setMessageField(defaultValue, cronField, description);
         });
 
         resetButton.setToolTipText(toolTip);
@@ -144,15 +141,15 @@ public class CronPanel extends JBPanel {
             // @See ComponentPropertiesPanel#editBoxChangeListener()
             @Override
             public void insertUpdate(DocumentEvent e) {
-                editBoxChangeListener(e, resetButton.getText(), description);
+                editBoxChangeListener(e, cronField, description);
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-                editBoxChangeListener(e, resetButton.getText(), description);
+                editBoxChangeListener(e, cronField, description);
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
-                editBoxChangeListener(e, resetButton.getText(), description);
+                editBoxChangeListener(e, cronField, description);
             }
         });
         textEntryField.setText(currentValue);
@@ -160,7 +157,7 @@ public class CronPanel extends JBPanel {
     }
 
 
-    public void editBoxChangeListener(DocumentEvent e, String fieldName, JLabel description) {
+    public void editBoxChangeListener(DocumentEvent e, CronExpression cronField, JLabel description) {
         javax.swing.text.Document doc = e.getDocument();
         // Get the current text from the document
         String currentText = null;
@@ -169,32 +166,31 @@ public class CronPanel extends JBPanel {
         } catch (BadLocationException ex) {
 //            LOG.warn("STUDIO: WARN, non-fatal unexpected BadLocationException " + ex.getMessage());
         }
-        setMessageField(currentText, fieldName, description);
+        setMessageField(currentText, cronField, description);
     }
-    public void setMessageField(String currentText, String fieldName, JLabel description) {
-        String validatonMessage = validateFields(fieldName);
+    public void setMessageField(String currentText, CronExpression cronField, JLabel description) {
+        String validatonMessage = validateFields(cronField);
         if (!validatonMessage.isBlank()) {
             description.setText(validatonMessage);
             description.setForeground(IKASAN_RED);
         } else {
-            String cronDescription = CronExpression.describeField(currentText, fieldName);
+            String cronDescription = CronExpression.describeField(currentText, cronField);
             description.setText(cronDescription);
             description.setForeground(IKASAN_BLACK);
         }
     }
 
-    protected String validateFields(String fieldName) {
+    protected String validateFields(CronExpression cronField) {
         String validationMessage = "";
-        CronExpression cronField = CronExpression.getFromName(fieldName);
         if ((DAY_OF_WEEK.equals(cronField) || DAY_OF_MONTH.equals(cronField)) &&
                 textFields[DAY_OF_MONTH.index] != null &&
                 textFields[DAY_OF_WEEK.index] != null) {
             if (!textFields[DAY_OF_MONTH.index].getText().equals("?") &&
                 !textFields[DAY_OF_WEEK.index].getText().equals("?")) {
-                validationMessage = "Day of week and day of month cant both be set";
+                validationMessage = StudioBundle.message("message.DayOfWeekAndDayOfMonthCantBothBeSet");
             } else if ( textFields[DAY_OF_MONTH.index].getText().equals("?") &&
                         textFields[DAY_OF_WEEK.index].getText().equals("?")) {
-                validationMessage = "Day of week and day of month cant both be ?";
+                validationMessage = StudioBundle.message("message.DayOfWeekAndDayOfMonthCantBothBeQuestionMark");
             }
         }
 

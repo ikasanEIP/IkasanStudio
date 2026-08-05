@@ -7,6 +7,7 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -34,9 +35,10 @@ public class DeleteComponentAction implements ActionListener {
          Flow parentFlow = ikasanFlowComponentToRemove.getContainingFlow();
 
          if (parentFlow != null) {
-            if (((FlowElement)ikasanBasicElement).getComponentMeta().isRouter()) {
+            if (ikasanBasicElement.getComponentMeta().isRouter()) {
                final int answer = Messages.showYesNoDialog(project,
-                       "Deleting a route will also delete all downstream elements, do you wish to proceed", "Warning", null);
+                       StudioBundle.message("message.DeletingARouteWillAlsoDeleteAllDownstreamElements"),
+                       StudioBundle.message("dialog.Warning"), null);
                if (answer != Messages.YES) {
                   return;
                }
@@ -47,9 +49,10 @@ public class DeleteComponentAction implements ActionListener {
          }
          StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
       } else if (ikasanBasicElement instanceof Flow ikasanFlowToRemove) {
-         if (((Flow)ikasanBasicElement).hasAnyComponents()) {
+         if (ikasanFlowToRemove.hasAnyComponents()) {
             final int answer = Messages.showYesNoDialog(project,
-                    "Deleteing a flow will delete all the elements, do you wish to proceed", "Warning", null);
+                    StudioBundle.message("message.DeletingAFlowWillDeleteAllTheElements"),
+                    StudioBundle.message("dialog.Warning"), null);
             if (answer == Messages.YES) {
                UiContext uiContext = project.getService(UiContext.class);
                Module ikasanModule = uiContext.getIkasanModule();
@@ -58,7 +61,7 @@ public class DeleteComponentAction implements ActionListener {
             }
          }
       } else {
-         StudioUIUtils.displayIdeaWarnMessage(project, "Action ignored, you can only delete flow elements or flows");
+         StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ActionIgnoredYouCanOnlyDeleteFlowElementsOrFlows"));
       }
    }
 }

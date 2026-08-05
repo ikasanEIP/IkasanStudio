@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.intellij;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
@@ -22,19 +23,18 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return "Ikasan Studio";
+        return StudioBundle.message("ikasan.studio.settings.displayName");
     }
 
     @Override
     public JComponent createComponent() {
-        gettingStartedHintsCheckBox = new JCheckBox("Show getting started hints");
+        gettingStartedHintsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowGettingStartedHints"));
 
         JPanel hintsPanel = new JPanel(new BorderLayout(0, 4));
-        hintsPanel.setBorder(BorderFactory.createTitledBorder("Onboarding"));
+        hintsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.Onboarding")));
         hintsPanel.add(gettingStartedHintsCheckBox, BorderLayout.NORTH);
 
-        JLabel hintsNote = new JLabel(
-                "<html>Shows the next step on an empty canvas or flow. Existing designs are not obscured.</html>");
+        JLabel hintsNote = new JLabel(StudioBundle.message("label.HintsNote"));
         hintsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
         hintsPanel.add(hintsNote, BorderLayout.CENTER);
 

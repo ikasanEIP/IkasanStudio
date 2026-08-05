@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import lombok.Data;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class ExceptionResolutionRowDisplay {
     private final JLabel actionField = new JLabel();
     private List<ComponentPropertyEditRow> componentPropertyEditRowList = new ArrayList<>();
     private final ExceptionResolution exceptionResolution;
-    private final JButton deleteButton = new JButton("DEL");
+    private final JButton deleteButton = new JButton(StudioBundle.message("button.Del"));
     JLabel exceptionField = new JLabel();
 
     public ExceptionResolutionRowDisplay(ExceptionResolutionTableDisplay parent, ExceptionResolution exceptionResolution, boolean componentInitialisation) {

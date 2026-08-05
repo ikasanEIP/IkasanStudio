@@ -9,6 +9,7 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -28,7 +29,7 @@ import java.util.List;
  */
 @SuppressWarnings("rawtypes")
 public class ExceptionResolutionPanel extends PropertiesPanel {
-    private static final String OK_BUTTON_TEXT = "Add";
+    private static final String OK_BUTTON_TEXT = StudioBundle.message("button.Add");
     private final transient List<String> listOfExceptionsAlreadyConfigured;
     private transient ExceptionResolutionEditBox exceptionResolutionEditBox;
     @SuppressWarnings("rawtypes")
@@ -58,12 +59,12 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     protected void doOKAction() {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChangedAndOKToProcess()) {
-            StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
+            StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
             updateComponentsWithNewValues();
             StudioPsiUtils.refreshCodeFromModel(project);
             StudioPsiUtils.causeRedraw(project);
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(project, "Data has not changed in Exception Resolution, code will not be updated.");
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasNotChangedInExceptionResolution"));
         }
     }
 
@@ -174,8 +175,8 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
 
         // Add the params to the display panels.
         // The panels even if empty, so we can update subsequently.
-        addToScrollPanelContent(mandatoryPropertiesEditorPanel, "Mandatory Properties", JBColor.RED, 1);
-        addToScrollPanelContent(optionalPropertiesEditorPanel, "Optional Properties", JBColor.LIGHT_GRAY, 2);
+        addToScrollPanelContent(mandatoryPropertiesEditorPanel, StudioBundle.message("label.MandatoryProperties"), JBColor.RED, 1);
+        addToScrollPanelContent(optionalPropertiesEditorPanel, StudioBundle.message("label.OptionalProperties"), JBColor.LIGHT_GRAY, 2);
     }
 
     @Override
@@ -241,9 +242,9 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
             @SuppressWarnings("rawtypes")
             JBPanel booleanPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             booleanPanel.setBackground(JBColor.WHITE);
-            booleanPanel.add(new JLabel("true"));
+            booleanPanel.add(new JLabel(StudioBundle.message("label.True")));
             booleanPanel.add(componentInput.getTrueBox());
-            booleanPanel.add(new JLabel("false"));
+            booleanPanel.add(new JLabel(StudioBundle.message("label.False")));
             booleanPanel.add(componentInput.getFalseBox());
             propertiesEditorPanel.add(booleanPanel, gc);
         }

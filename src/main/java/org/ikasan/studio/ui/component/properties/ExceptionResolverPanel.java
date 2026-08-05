@@ -5,6 +5,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -58,12 +59,12 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         // maybe validate and either force to correct or add the data back to the model
         if (dataHasChangedAndOKToProcess()) {
             UiContext uiContext = project.getService(UiContext.class);
-            StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
+            StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
             StudioPsiUtils.refreshCodeFromModel(project);
             uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
             uiContext.getDesignerCanvas().repaint();
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(project, "Data hos not changed in exception resolver, code will not be updated.");
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasNotChangedInExceptionResolver"));
         }
     }
 
@@ -237,9 +238,9 @@ public class ExceptionResolverPanel extends PropertiesPanel {
             } else {
                 JPanel booleanPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
                 booleanPanel.setBackground(getThemeAwareBackgroundColor());
-                booleanPanel.add(new JLabel("true"));
+                booleanPanel.add(new JLabel(StudioBundle.message("label.True")));
                 booleanPanel.add(componentInput.getTrueBox());
-                booleanPanel.add(new JLabel("false"));
+                booleanPanel.add(new JLabel(StudioBundle.message("label.False")));
                 booleanPanel.add(componentInput.getFalseBox());
                 jPanel.add(booleanPanel, gc);
             }

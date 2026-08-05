@@ -13,6 +13,7 @@ import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
@@ -89,11 +90,11 @@ public class PIPSIIkasanModel {
                         generateAndSaveJavaCodeModuleConfig(project, module);
                         generateAndSavePropertiesConfig(project, module);
                         if (!transactionTimeStamp.equals(uiContext.getProjectRefreshTimestamp())) {
-                            displayIdeaWarnMessage(project, "Intellij has changed the project part way through the save, consider resaving");
+                            displayIdeaWarnMessage(project, StudioBundle.message("message.IntellijHasChangedTheProjectPartWayThroughTheSave"));
                         }
                         LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - source from model");
                     },
-                    "Generate Source from Flow Diagram",
+                    StudioBundle.message("action.GenerateSourceFromFlowDiagram"),
                     "Undo group ID");
             });
         });
@@ -117,7 +118,7 @@ public class PIPSIIkasanModel {
                         LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - json from model");
                         LOG.debug("STUDIO: model now" + uiContext.getIkasanModule());
                     }),
-            "Generate JSON from Flow Diagram",
+            StudioBundle.message("action.GenerateJSONFromFlowDiagram"),
             "Undo group ID");
     }
 
@@ -159,7 +160,7 @@ public class PIPSIIkasanModel {
         try {
             applicationTemplateString = ApplicationTemplate.create(module);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, "An error has occurred generating the applicationTemplate, attempting to continue. Error was " + e.getMessage());
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredGeneratingTheApplicationTemplate", e.getMessage()));
         }
         if (applicationTemplateString != null) {
             StudioPsiUtils.createJavaSourceFile(project,
@@ -201,7 +202,7 @@ public class PIPSIIkasanModel {
                         try {
                             templateString = FlowsUserImplementedClassPropertyTemplate.create(module.getMetaVersion(), property, newPackageName, clazzName, prefix);
                         } catch (StudioGeneratorException e) {
-                            displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+                            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
                         }
                         if (templateString != null) {
                             StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
@@ -218,7 +219,7 @@ public class PIPSIIkasanModel {
                     try {
                         templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, module, ikasanFlow, component);
                     } catch (StudioGeneratorException e) {
-                        displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+                        displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
                     }
                     if (templateString != null) {
                         StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.USER_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
@@ -235,7 +236,7 @@ public class PIPSIIkasanModel {
         try {
             componentFactoryTemplateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
         }
         if (componentFactoryTemplateString != null) {
             StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE, flowPackageName,
@@ -249,7 +250,7 @@ public class PIPSIIkasanModel {
         try {
             flowTemplateString = FlowTemplate.create(flowPackageName, module, ikasanFlow);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
         }
         if (flowTemplateString != null) {
             StudioPsiUtils.createJavaSourceFile(
@@ -383,7 +384,7 @@ public class PIPSIIkasanModel {
         try {
             templateString = ModuleConfigTemplate.create(module);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
         }
         if (templateString != null) {
             AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, module);
@@ -401,7 +402,7 @@ public class PIPSIIkasanModel {
             Map<String, String> applicationProperties = StudioBuildUtils.convertStringToMap(templateString);
             project.getService(UiContext.class).setApplicationProperties(applicationProperties);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, "An error has occurred, attempting to continue. Error was " + e.getMessage());
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
         }
         if (templateString != null) {
 //            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);

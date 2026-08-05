@@ -4,6 +4,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -23,12 +24,12 @@ public class DebugAction implements ActionListener {
         Module module = project.getService(UiContext.class).getIkasanModule();
 
         if (module != null) {
-            StudioUIUtils.displayIdeaInfoMessage(project, "Check idea logs for debug output.");
+            StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CheckIdeaLogsForDebugOutput"));
             LOG.info("STUDIO: ikasan module JSON " + ComponentIO.toJson(module));
             LOG.info("STUDIO: ikasan module simpleString " + module.toSimpleString());
             LOG.info("STUDIO: project " + project + " status " + project.isDisposed());
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(project, "Debug can't be launched unless a module is defined.");
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DebugCantBeLaunchedUnlessAModuleIsDefined"));
         }
     }
 }

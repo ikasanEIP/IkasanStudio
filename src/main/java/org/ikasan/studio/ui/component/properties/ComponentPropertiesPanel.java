@@ -13,6 +13,7 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
@@ -95,10 +96,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         // If the user has selected the checkbox, that indicates they wish to force a re-write
 
         if (isOverrideCheckboxRequired() && userImplementedComponentOverwriteCheckBox != null && !userImplementedComponentOverwriteCheckBox.isSelected() ) {
-            StudioUIUtils.displayIdeaWarnMessage(project, "Update is not allowed unless overwrite box is ticked.");
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.UpdateIsNotAllowedUnlessOverwriteBoxIsTicked"));
         } else if (dataHasChangedAndOKToProcess()) {
             UiContext uiContext = project.getService(UiContext.class);
-            StudioUIUtils.displayIdeaInfoMessage(project, "Code generation in progress, please wait.");
+            StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
@@ -126,7 +127,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             disablePermissionToOverwriteUserImplementedClass();
             uiContext.setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
         } else {
-            StudioUIUtils.displayIdeaWarnMessage(project, "Data hasn't changed, ignoring OK action.");
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasntChangedIgnoringOKAction"));
         }
     }
 
@@ -237,11 +238,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             if (mandatoryTabley > 0) {
-                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, "Mandatory Properties", ThemeAwareColors.getImportantBorderColor(), gc1);
+                setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, StudioBundle.message("label.MandatoryProperties"), ThemeAwareColors.getImportantBorderColor(), gc1);
             }
 
             if (regenerateTabley > 0) {
-                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, "User Code Regenerating Properties", getThemeAwareBorderColor(), gc1);
+                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, StudioBundle.message("label.UserCodeRegeneratingProperties"), getThemeAwareBorderColor(), gc1);
             }
 
             if (optionalTabley > 0) {
@@ -249,7 +250,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 setToggleOptionalPropertiesButton(false);
                 optionalPropertiesEditorPanel.setVisible(false);
                 setSubPanel(propertiesEditorPanel, optionalPropertiesExpandPanel, null, null, gc1);
-                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, "Optional Properties", getThemeAwareBorderColor(), gc1);
+                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, StudioBundle.message("label.OptionalProperties"), getThemeAwareBorderColor(), gc1);
             } else if (optionalPropertiesExpandPanel != null) {
                 optionalPropertiesExpandPanel.setVisible(false);
             }
@@ -286,7 +287,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         optionalPropertiesEditorPanel.setVisible(enable);
         setDefaultsButton.setEnabled(enable);
         clearDefaultsButton.setEnabled(enable);
-        toggleOptionalPropertiesButton.setText(enable ? "Ignore" : "Expand");
+        toggleOptionalPropertiesButton.setText(enable ? StudioBundle.message("button.Ignore") : StudioBundle.message("button.Expand"));
     }
 
     @SuppressWarnings("rawtypes")
@@ -294,13 +295,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         @SuppressWarnings("rawtypes")
         JBPanel optionalPropertiesPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
         optionalPropertiesPanel.setBorder(null);
-        JLabel optionalPropertiesLabel = new JLabel("Optional Properties");
+        JLabel optionalPropertiesLabel = new JLabel(StudioBundle.message("label.OptionalProperties"));
         // Create the buttons
-        toggleOptionalPropertiesButton = new JButton("Expand");
+        toggleOptionalPropertiesButton = new JButton(StudioBundle.message("button.Expand"));
         toggleOptionalPropertiesButton.addActionListener(e -> toggleOptionalSection());
-        setDefaultsButton = new JButton("Set Defaults");
+        setDefaultsButton = new JButton(StudioBundle.message("button.SetDefaults"));
         setDefaultsButton.addActionListener(e -> setOptionalPropertiesToDefaultVales());
-        clearDefaultsButton = new JButton("Clear Defaults");
+        clearDefaultsButton = new JButton(StudioBundle.message("button.ClearDefaults"));
         clearDefaultsButton.addActionListener(e -> clearOptionalProperties());
         clearDefaultsButton.setEnabled(false);
         // Add buttons to the panel
@@ -370,9 +371,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param tabley is used to convey the row number
      */
     private void addOverrideCheckBoxToPropertiesEditPanel(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley) {
-        JLabel overrideLabel = new JLabel("Allow Update");
+        JLabel overrideLabel = new JLabel(StudioBundle.message("label.AllowUpdate"));
         overrideLabel.setFont(new Font(overrideLabel.getFont().getName(), Font.BOLD, overrideLabel.getFont().getSize()));
-        overrideLabel.setToolTipText("Check the box if you wish to rewrite / overwrite the existing code for this user implemented class");
+        overrideLabel.setToolTipText(StudioBundle.message("tooltip.CheckTheBoxIfYouWishToRewriteOverwriteTheExistingCode"));
         userImplementedComponentOverwriteCheckBox = new JCheckBox();
         userImplementedComponentOverwriteCheckBox.addItemListener(
             ie -> controlFieldsThatAffectUserImplementedClass(ie.getStateChange() == ItemEvent.SELECTED));
@@ -428,9 +429,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         } else {
             JBPanel booleanPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             booleanPanel.setBackground(getThemeAwareBackgroundColor());
-            booleanPanel.add(new JLabel("true"));
+            booleanPanel.add(new JLabel(StudioBundle.message("label.True")));
             booleanPanel.add(componentInput.getTrueBox());
-            booleanPanel.add(new JLabel("false"));
+            booleanPanel.add(new JLabel(StudioBundle.message("label.False")));
             booleanPanel.add(componentInput.getFalseBox());
             propertiesEditorPanel.add(booleanPanel, gc);
         }

@@ -10,6 +10,7 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
@@ -50,7 +51,7 @@ public class PaletteTabPanel extends JBPanel {
     final JSplitPane paletteSplitPane;
     @SuppressWarnings("rawtypes")
     JBPanel paletteBodyPanel;
-    HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel("Description", null);
+    HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel(StudioBundle.message("dialog.Description"), null);
 
 
     /**
@@ -161,7 +162,7 @@ public class PaletteTabPanel extends JBPanel {
                 try {
                     componentMetaList = IkasanComponentLibrary.getPaletteComponentList(uiContext.getIkasanModule().getMetaVersion());
                 } catch (StudioBuildException e) {
-                    StudioUIUtils.displayIdeaWarnMessage(project, "A problem occurred trying to get the meta pack information (" + e.getMessage() + "), please review the logs.");
+                    StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.AProblemOccurredTryingToGetTheMetaPackInformation", e.getMessage()));
                 }
                 if (componentMetaList != null) {
                     List<ComponentMeta> componentMetaInDisplayOrder = componentMetaList

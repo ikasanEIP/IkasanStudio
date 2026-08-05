@@ -10,6 +10,7 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
 import javax.swing.*;
@@ -20,12 +21,11 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public abstract class PropertiesPanel extends JBPanel {
-    private static final String PROPERTIES_TAG = "Properties";
-    private static final String UPDATE_CODE_BUTTON_TEXT = "Update Code";
+    private static final String UPDATE_CODE_BUTTON_TEXT = StudioBundle.message("button.UpdateCode");
     protected transient IkasanObject selectedComponent;
     protected final Project project;
     protected final boolean componentInitialisation;    // Indicates the component is being first initialised, therefore dealt with via popup panel
-    private final JLabel propertiesHeaderLabel = new JLabel(PROPERTIES_TAG);
+    private final JLabel propertiesHeaderLabel = new JLabel(StudioBundle.message("label.Properties"));
     private transient PropertiesPopupDialogue propertiesPopupDialogue;
 
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
@@ -95,7 +95,7 @@ public abstract class PropertiesPanel extends JBPanel {
             }
             JOptionPane.showMessageDialog(((JButton)ae.getSource()).getParent().getParent(),
                     infoList.stream().map(x -> x.message).collect(Collectors.joining("\n")),
-                    "Validation Error",
+                    StudioBundle.message("dialog.ValidationError"),
                     JOptionPane.ERROR_MESSAGE);
         } else {
             dataValid = true;
@@ -113,11 +113,11 @@ public abstract class PropertiesPanel extends JBPanel {
     public String getPropertiesPanelTitle() {
         String propertyType;
         if (selectedComponent instanceof Module) {
-            propertyType = "Module " + PROPERTIES_TAG;
+            propertyType = StudioBundle.message("message.ComponentTypeProperties", StudioBundle.message("label.Module"));
         } else if (selectedComponent instanceof Flow) {
-            propertyType = "Flow " + PROPERTIES_TAG;
+            propertyType = StudioBundle.message("message.ComponentTypeProperties", StudioBundle.message("label.Flow"));
         } else {
-            propertyType = selectedComponent.getComponentMeta().getName() + " " + PROPERTIES_TAG;
+            propertyType = StudioBundle.message("message.ComponentTypeProperties", selectedComponent.getComponentMeta().getName());
         }
         return propertyType;
     }

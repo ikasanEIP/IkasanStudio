@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 
@@ -16,7 +17,7 @@ import java.awt.event.ItemEvent;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
-    JButton h2Button = new JButton("H2 start");
+    JButton h2Button = new JButton(StudioBundle.message("button.H2Start"));
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -28,16 +29,16 @@ public class CanvasPanel extends JBPanel implements Disposable {
         JBPanel canvasHeaderButtonPanel = new JBPanel();
         canvasHeaderButtonPanel.setBorder(null);
 
-        JButton applicationButton = new JButton("Run module");
-        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), "Start the H2 console in a browser, NOT needed if useEmbeddedH2 is set on the module config");
-        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project), "Run this module using the selected IntelliJ Run Configuration. Use the IDE toolbar to run or debug it again.");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Console"), new LaunchBlueAction(project), "After module startup completes, open this module's Blue Console to control flows, inspect errors, examine its REST API, and perform administrative tasks. Local development default login: admin / admin");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Load"), new ModelLoadAction(project), "Load the in module from disk");
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save"), new ModelRebuildAction(project), "Regenerate the code from the in-memory module definition");
+        JButton applicationButton = new JButton(StudioBundle.message("button.RunModule"));
+        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
+        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console")), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Load")), new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save")), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
 
-        JCheckBox gridCheckBox = new JCheckBox("Show Grid");
+        JCheckBox gridCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowGrid"));
         gridCheckBox.setSelected(false);
         gridCheckBox.addItemListener(e -> {
             // Function, so don't use instance above
