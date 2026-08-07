@@ -929,6 +929,20 @@ public class DesignerCanvas extends JPanel {
             }
         }
         paintGettingStartedHint(g, ikasanModule);
+        updateRunModuleButtonState(ikasanModule);
+    }
+
+    /**
+     * The Run module button should only be enabled once the canvas contains at least one complete,
+     * valid flow (i.e. we are past the point of hinting what needs adding to the design).
+     */
+    private void updateRunModuleButtonState(Module module) {
+        GettingStartedHint hint = getGettingStartedHint(module);
+        boolean runnable = hint == GettingStartedHint.READY_TO_RUN || hint == GettingStartedHint.OPEN_CONSOLE;
+        CanvasPanel canvasPanel = project.getService(UiContext.class).getCanvasPanel();
+        if (canvasPanel != null) {
+            canvasPanel.setRunModuleEnabled(runnable);
+        }
     }
 
     enum GettingStartedHint {

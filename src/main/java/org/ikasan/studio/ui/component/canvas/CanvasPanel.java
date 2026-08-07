@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
     JButton h2Button = new JButton(StudioBundle.message("button.H2Start"));
+    JButton runModuleButton = new JButton(StudioBundle.message("button.RunModule"));
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -28,9 +29,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
         JBPanel canvasHeaderButtonPanel = new JBPanel();
         canvasHeaderButtonPanel.setBorder(null);
 
-        JButton applicationButton = new JButton(StudioBundle.message("button.RunModule"));
+        runModuleButton.setEnabled(false);
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
-        addButtonsToPanel(canvasHeaderButtonPanel, applicationButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console")), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Load")), new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save")), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
@@ -75,5 +76,13 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     public void disableH2Button(boolean flag) {
         h2Button.setEnabled(!flag);
+    }
+
+    /**
+     * The module can only be run once the canvas contains at least one complete, valid flow.
+     * @param flag, if true will enable the Run module button, otherwise disable it.
+     */
+    public void setRunModuleEnabled(boolean flag) {
+        runModuleButton.setEnabled(flag);
     }
 }
