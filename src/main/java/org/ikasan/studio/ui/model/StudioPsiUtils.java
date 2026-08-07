@@ -693,40 +693,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         return getSpecificContentRootFromCache(project) != null;
     }
 
-//    /**
-//     * Ensures the directory exists at the specified level, creating it if necessary.
-//     *
-//     * @param project is the Intellij project instance
-//     * @param parentDir    The VirtualFile of the parent directory.
-//     * @param directoryName The name of the directory to ensure.
-//     * @return The PsiDirectory for the created or existing directory.
-//     */
-//    private static PsiDirectory ensureDirectoryExists(String project, VirtualFile parentDir, String directoryName) {
-//        final VirtualFile[] newDir = new VirtualFile[1]; // To hold the created directory
-//
-//        VirtualFile existingDir = parentDir.findChild(directoryName);
-//        WriteCommandAction.runWriteCommandAction(project, () -> {
-//
-//            if (existingDir == null) {
-//                // Directory doesn't exist, create it
-//                try {
-//                    newDir[0] = parentDir.createChildDirectory(null, directoryName);
-//                } catch (IOException e) {
-//                    String messages = "An error attempting tp create directory " + directoryName + " message was " + e.getMessage();
-//                    displayIdeaWarnMessage(project.getIdentity(), messages);
-//                    LOG.warn("STUDIO: SERIOUS: " + messages);
-//                }
-//            } else if (!existingDir.isDirectory()) {
-//                throw new IllegalStateException("A file with the name " + directoryName + " already exists but is not a directory.");
-//            } else {
-//                // Directory already exists
-//                newDir[0] = existingDir;
-//            }
-//        });
-//
-//        // Wrap the VirtualFile as a PsiDirectory
-//        return PsiManager.getInstance(project).findDirectory(newDir[0]);
-//    }
 
 
     /**

@@ -590,19 +590,21 @@ public class DesignerCanvas extends JPanel {
                     IkasanFlowViewHandler ikasanFlowViewHandler = ViewHandlerCache.getFlowViewHandler(project, targetFlow);
                     if (issue.isEmpty()) {
                         okToAdd = true;
-                        if (!ikasanFlowViewHandler.isFlowReceptiveMode()) {
-                            ikasanFlowViewHandler.setFlowReceptiveMode();
+                        if (ikasanFlowViewHandler.setFlowReceptiveMode()) {
                             this.repaint();
                         }
                     } else {
-                        if (!ikasanFlowViewHandler.isFlowWarningMode()) {
-                            ikasanFlowViewHandler.setFlowlWarningMode(mouseX, mouseY, issue);
+                        if (ikasanFlowViewHandler.setFlowlWarningMode(mouseX, mouseY, issue)) {
                             this.repaint();
                         }
                     }
                 }
-            } else {
+            } else if (okToAdd) {
+                // e.g. a new Flow being dragged onto empty canvas - a valid drop, nothing to warn about.
                 resetContextSensitiveHighlighting();
+            } else {
+                // A drag is in progress but the mouse isn't over anywhere it could be dropped right now.
+                setAllFlowsNotDropTargetMode();
             }
         }
         return okToAdd;
@@ -610,11 +612,29 @@ public class DesignerCanvas extends JPanel {
 
     public void resetContextSensitiveHighlighting() {
         Module ikasanModule = getIkasanModule();
-        boolean redrawNeeded = ikasanModule.getFlows()
-                .stream()
-                .anyMatch(x -> ! ((IkasanFlowViewHandler) ViewHandlerCache.getAbstractViewHandler(project, x)).isFlowNormalMode());
+        boolean redrawNeeded = false;
+        for (Flow flow : ikasanModule.getFlows()) {
+            if (((IkasanFlowViewHandler) ViewHandlerCache.getAbstractViewHandler(project, flow)).setFlowNormalMode()) {
+                redrawNeeded = true;
+            }
+        }
+        if (redrawNeeded) {
+            this.repaint();
+        }
+    }
 
-        ikasanModule.getFlows().forEach(x -> ((IkasanFlowViewHandler) ViewHandlerCache.getAbstractViewHandler(project, x)).setFlowNormalMode());
+    /**
+     * A drag is in progress but the mouse is not currently over a valid drop target, so every flow's border
+     * shows red until the user drags over a flow that can accept the component (or the drag ends).
+     */
+    private void setAllFlowsNotDropTargetMode() {
+        Module ikasanModule = getIkasanModule();
+        boolean redrawNeeded = false;
+        for (Flow flow : ikasanModule.getFlows()) {
+            if (((IkasanFlowViewHandler) ViewHandlerCache.getAbstractViewHandler(project, flow)).setFlowNotDropTargetMode()) {
+                redrawNeeded = true;
+            }
+        }
         if (redrawNeeded) {
             this.repaint();
         }
@@ -944,10 +964,11 @@ public class DesignerCanvas extends JPanel {
     private void paintGettingStartedHint(Graphics graphics, Module module) {
         GettingStartedHint hint = getGettingStartedHint(module);
         if (hint == GettingStartedHint.READY_TO_RUN) {
+            // Once the flow is valid there's always something to say - either "you can keep adding
+            // components" (READY_TO_RUN, despite the name) or, briefly after launch, "open the console".
+            // Unlike the other onboarding hints this one is never fully suppressed.
             PropertiesComponent properties = PropertiesComponent.getInstance(project);
-            if (properties.getBoolean(CONSOLE_OPENED_PROPERTY, false)) {
-                hint = GettingStartedHint.NONE;
-            } else if (properties.getBoolean(MODULE_LAUNCHED_PROPERTY, false)) {
+            if (properties.getBoolean(MODULE_LAUNCHED_PROPERTY, false) && !properties.getBoolean(CONSOLE_OPENED_PROPERTY, false)) {
                 hint = GettingStartedHint.OPEN_CONSOLE;
             }
         }
@@ -963,15 +984,15 @@ public class DesignerCanvas extends JPanel {
         String heading = switch (hint) {
             case NO_FLOWS -> StudioBundle.message("label.NoFlowsAdded");
             case EMPTY_FLOW -> StudioBundle.message("label.AddAConsumer");
-            case ADD_COMPONENTS -> StudioBundle.message("label.AddFlowComponents");
-            case READY_TO_RUN -> StudioBundle.message("label.ReadyToRun");
+            case ADD_COMPONENTS -> StudioBundle.message("label.AddAProducer");
+            case READY_TO_RUN -> StudioBundle.message("label.AddAComponent");
             case OPEN_CONSOLE -> StudioBundle.message("label.ModuleStarting");
             default -> "";
         };
         String instruction = switch (hint) {
             case NO_FLOWS -> StudioBundle.message("message.DragAFlowFromThePaletteOntoTheCanvas");
             case EMPTY_FLOW -> StudioBundle.message("message.DragAConsumerFromThePaletteOntoThisFlow");
-            case ADD_COMPONENTS -> StudioBundle.message("message.AddComponentsUntilTheFlowHasAProducer");
+            case ADD_COMPONENTS -> StudioBundle.message("message.DragAProducerFromThePaletteOntoThisFlow");
             case READY_TO_RUN -> StudioBundle.message("message.SelectRunModuleOrUseIntellijRunOrDebug");
             case OPEN_CONSOLE -> StudioBundle.message("message.WaitForModuleStartupToComplete");
             default -> "";
@@ -998,18 +1019,74 @@ public class DesignerCanvas extends JPanel {
         try {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            // A flow with a consumer but no producer will not run, so make this hint stand out rather than
+            // blending in with the other, purely informational, getting-started hints.
+            boolean needsProducer = hint == GettingStartedHint.ADD_COMPONENTS;
             Color foreground = UIManager.getColor("Label.foreground");
             Color secondary = UIManager.getColor("Label.disabledForeground");
-            g.setColor(foreground != null ? foreground : JBColor.GRAY);
+            Color headingColor = needsProducer ? ThemeAwareColors.getWarningColor() : (foreground != null ? foreground : JBColor.GRAY);
+            Color instructionColor = needsProducer ? ThemeAwareColors.getWarningColor() : (secondary != null ? secondary : (foreground != null ? foreground : JBColor.GRAY));
             Font headingFont = getFont().deriveFont(Font.BOLD, getFont().getSize2D() + 2f);
-            drawCentredString(g, heading, headingFont, centreX, centreY - JBUI.scale(5));
+            Font instructionFont = getFont();
+
+            // Text is centred on centreX, so a long single line can run off the left edge of whatever's
+            // currently scrolled into view. Wrap onto extra lines instead. Deriving this from the live viewport
+            // extent didn't pan out in practice, so a fixed width is used for now.
+            int maxTextWidth = JBUI.scale(420);
+
+            g.setColor(headingColor);
+            g.setFont(headingFont);
+            FontMetrics headingMetrics = g.getFontMetrics(headingFont);
+            List<String> headingLines = wrapText(heading, headingMetrics, maxTextWidth);
+            int headingLineHeight = headingMetrics.getHeight();
+            int headingBaseline = centreY - JBUI.scale(5);
+            for (String line : headingLines) {
+                g.drawString(line, centreX - headingMetrics.stringWidth(line) / 2, headingBaseline);
+                headingBaseline += headingLineHeight;
+            }
+
             if (detailed) {
-                g.setColor(secondary != null ? secondary : g.getColor());
-                drawCentredString(g, instruction, getFont(), centreX, centreY + JBUI.scale(17));
+                g.setColor(instructionColor);
+                g.setFont(instructionFont);
+                FontMetrics instructionMetrics = g.getFontMetrics(instructionFont);
+                List<String> instructionLines = wrapText(instruction, instructionMetrics, maxTextWidth);
+                int instructionLineHeight = instructionMetrics.getHeight();
+                // headingBaseline has already been advanced past the last heading line drawn above, so this
+                // preserves the original ~22px gap after the (possibly multi-line) heading block.
+                int instructionBaseline = headingBaseline - headingLineHeight + JBUI.scale(22);
+                for (String line : instructionLines) {
+                    g.drawString(line, centreX - instructionMetrics.stringWidth(line) / 2, instructionBaseline);
+                    instructionBaseline += instructionLineHeight;
+                }
             }
         } finally {
             g.dispose();
         }
+    }
+
+    /**
+     * Break text into lines, each no wider than maxWidth when rendered with the given metrics, breaking only at
+     * word boundaries. A single word wider than maxWidth is kept whole on its own line rather than split.
+     */
+    private static List<String> wrapText(String text, FontMetrics metrics, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return lines;
+        }
+        StringBuilder currentLine = new StringBuilder();
+        for (String word : text.split(" ")) {
+            String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
+            if (metrics.stringWidth(candidate) > maxWidth && !currentLine.isEmpty()) {
+                lines.add(currentLine.toString());
+                currentLine = new StringBuilder(word);
+            } else {
+                currentLine = new StringBuilder(candidate);
+            }
+        }
+        if (!currentLine.isEmpty()) {
+            lines.add(currentLine.toString());
+        }
+        return lines;
     }
 
     public static void markModuleLaunched(Project project) {
@@ -1027,12 +1104,6 @@ public class DesignerCanvas extends JPanel {
         if (canvas != null) {
             canvas.repaint();
         }
-    }
-
-    private static void drawCentredString(Graphics2D g, String text, Font font, int centreX, int baseline) {
-        g.setFont(font);
-        FontMetrics metrics = g.getFontMetrics(font);
-        g.drawString(text, centreX - metrics.stringWidth(text) / 2, baseline);
     }
 
     public void setInitialiseAllDimensions(boolean initialiseAllDimensions) {

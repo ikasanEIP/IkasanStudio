@@ -7,6 +7,7 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -98,6 +99,21 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
     public boolean importData(TransferHandler.TransferSupport support) {
         return super.importData(support);
 
+    }
+
+    /**
+     * Called once by Swing when the whole drag gesture concludes, however it ended: a successful drop, a drop
+     * rejected by the target, or the drag being cancelled (e.g. dropped outside the canvas, or Escape pressed).
+     * While dragging, {@code DesignerCanvas} colours flow borders to give drop-target feedback (green/red); this
+     * is the one reliable place to put that highlighting back to normal once the drag is over.
+     */
+    @Override
+    protected void exportDone(JComponent source, Transferable data, int action) {
+        super.exportDone(source, data, action);
+        DesignerCanvas designerCanvas = project.getService(UiContext.class).getDesignerCanvas();
+        if (designerCanvas != null) {
+            designerCanvas.resetContextSensitiveHighlighting();
+        }
     }
 
     /**

@@ -28,7 +28,13 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
 
     private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
 
-    private Color borderColor = JBColor.BLACK;
+    /**
+     * Transient drag-and-drop feedback, overlaid on top of the flow's validity colour while a component is
+     * being dragged over the canvas. NORMAL means "no drag feedback active" - the border colour then falls
+     * back to reflecting whether the flow is valid (has both a consumer and a producer).
+     */
+    private enum DragFeedbackMode { NORMAL, RECEPTIVE, WARNING }
+    private DragFeedbackMode dragFeedbackMode = DragFeedbackMode.NORMAL;
     private String warningText =  "";
     private int warningX = 0;
     private int warningY = 0;
@@ -74,12 +80,35 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         g.setColor(oldColor);
     }
 
+    /**
+     * While a component is being dragged over this flow, the border colour reflects whether dropping here is
+     * currently allowed (green) or not (red). Otherwise the border is the normal, neutral colour - colour is
+     * reserved exclusively for drag-and-drop drop-target feedback.
+     */
+    private Color getFlowBorderColor() {
+        return switch (dragFeedbackMode) {
+            case RECEPTIVE -> JBColor.GREEN;
+            case WARNING -> JBColor.RED;
+            case NORMAL -> JBColor.BLACK;
+        };
+    }
+
+    /**
+     * A runnable (valid) flow - one with both a consumer and a producer, see
+     * {@link Flow#getFlowIntegrityStatus()} - is drawn with a solid border; an incomplete flow keeps the dashed
+     * border to signal it is still a work in progress.
+     */
+    private Stroke getFlowBorderStroke() {
+        return flow.getFlowIntegrityStatus().isBlank()
+                ? new BasicStroke(3)
+                : new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+    }
+
     private void paintFlowBorder(Graphics g, int x, int y, int width, int height) {
         Color oldColor = g.getColor();
-        g.setColor(borderColor);
+        g.setColor(getFlowBorderColor());
         Graphics2D g2d = (Graphics2D) g.create();
-        Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
-        g2d.setStroke(dashed);
+        g2d.setStroke(getFlowBorderStroke());
         g2d.drawRoundRect(x, y, width, height, CONTAINER_CORNER_ARC, CONTAINER_CORNER_ARC);
         g.setColor(oldColor);
     }
@@ -172,8 +201,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     private void setWidthAndHeights(Graphics graphics)  {
-        if ((flowRouteViewHandler != null && !flowRouteViewHandler.getFlowRoute().isEmpty()) ||
-             flow.getConsumer() != null) {
+        if (flowRouteViewHandler != null && (!flowRouteViewHandler.getFlowRoute().isEmpty() || flow.getConsumer() != null)) {
             setWidth(flowRouteViewHandler.getAllRouteMaxX(0) - flowRouteViewHandler.getFlowElementsMinX() + (2 * FLOW_CONTAINER_BORDER));
             setHeight(flowRouteViewHandler.getAllRouteMaxY(graphics, 0) - flowRouteViewHandler.getFlowElementsMinY() + (2 * FLOW_CONTAINER_BORDER) + getTextHeight(graphics));
         } else {
@@ -189,15 +217,17 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     /**
-     * The flow is willing to accept a component that has been dragged to it
+     * The flow is willing to accept a component that has been dragged to it.
+     * @return true if this changed the flow's drag-feedback state (so a repaint is needed), false if it was
+     *         already in this mode
      */
-    public void setFlowReceptiveMode() {
+    public boolean setFlowReceptiveMode() {
+        if (dragFeedbackMode == DragFeedbackMode.RECEPTIVE) {
+            return false;
+        }
         this.warningText = "";
-        this.borderColor = JBColor.GREEN;
-    }
-
-    public boolean isFlowReceptiveMode() {
-        return Color.GREEN.equals(this.borderColor);
+        this.dragFeedbackMode = DragFeedbackMode.RECEPTIVE;
+        return true;
     }
 
     /***
@@ -205,24 +235,47 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
      * @param mouseX to display the warning
      * @param mouseY to display the warning
      * @param message to appear
+     * @return true if this changed the flow's drag-feedback state (so a repaint is needed), false if it was
+     *         already in this mode
      */
-    public void setFlowlWarningMode(int mouseX, int mouseY, String message) {
+    public boolean setFlowlWarningMode(int mouseX, int mouseY, String message) {
+        if (dragFeedbackMode == DragFeedbackMode.WARNING) {
+            return false;
+        }
         this.warningText = message;
         this.warningX = mouseX;
         this.warningY = mouseY;
-        this.borderColor = JBColor.RED;
+        this.dragFeedbackMode = DragFeedbackMode.WARNING;
+        return true;
     }
 
-    public boolean isFlowWarningMode() {
-        return Color.RED.equals(this.borderColor);
-    }
-    public void setFlowNormalMode() {
+    /**
+     * A drag is in progress, but the mouse is not currently positioned over this flow (or over any flow at all),
+     * so dropping right now would not target it. The border still needs to read as "not a valid drop location",
+     * but unlike {@link #setFlowlWarningMode}, there is no specific issue to report, so no message popup is shown.
+     * @return true if this changed the flow's drag-feedback state (so a repaint is needed), false if it was
+     *         already in this mode
+     */
+    public boolean setFlowNotDropTargetMode() {
+        if (dragFeedbackMode == DragFeedbackMode.WARNING) {
+            return false;
+        }
         this.warningText = "";
-        this.borderColor = JBColor.BLACK;
+        this.dragFeedbackMode = DragFeedbackMode.WARNING;
+        return true;
     }
 
-    public boolean isFlowNormalMode() {
-        return Color.BLACK.equals(this.borderColor);
+    /**
+     * @return true if this changed the flow's drag-feedback state (so a repaint is needed), false if it was
+     *         already in this mode
+     */
+    public boolean setFlowNormalMode() {
+        if (dragFeedbackMode == DragFeedbackMode.NORMAL) {
+            return false;
+        }
+        this.warningText = "";
+        this.dragFeedbackMode = DragFeedbackMode.NORMAL;
+        return true;
     }
 
     /**
