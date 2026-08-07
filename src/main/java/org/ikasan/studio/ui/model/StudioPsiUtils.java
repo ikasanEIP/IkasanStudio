@@ -564,6 +564,43 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     }
 
     /**
+     * Locate the on-disk java file for a user implemented class (e.g. a Debug or CustomConverter stub), if it
+     * has been generated. Mirrors the relative path construction used to write the file in
+     * {@code PIPSIIkasanModel.generateAndSaveUserImplementClassStubsForFlow}.
+     * @param project is the Intellij project instance
+     * @param packageName of the user implemented class, see {@code GeneratorUtils.getUserImplementedClassesPackageName}
+     * @param className of the user implemented class
+     * @return the VirtualFile if it exists on disk, otherwise null
+     */
+    public static VirtualFile getUserImplementedClassFile(Project project, String packageName, String className) {
+        if (project == null || isBlank(packageName) || isBlank(className)) {
+            return null;
+        }
+        String relativeFilePath = USER_CONTENT_ROOT.substring(1) + "/" + SRC_MAIN_JAVA_CODE + "/" +
+                packageName.replace(".", "/") + "/" + className + ".java";
+        VirtualFile virtualFile = getVirtualFile(project, relativeFilePath);
+        return (virtualFile != null && virtualFile.isValid()) ? virtualFile : null;
+    }
+
+    /**
+     * Delete a single file, e.g. a user implemented class that is no longer referenced by any component.
+     * @param project is the Intellij project instance
+     * @param fileToDelete the file to remove, ignored if null or already invalid
+     */
+    public static void deleteFile(Project project, VirtualFile fileToDelete) {
+        if (fileToDelete == null || !fileToDelete.isValid()) {
+            return;
+        }
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            try {
+                fileToDelete.delete(StudioPsiUtils.class);
+            } catch (IOException ee) {
+                LOG.warn("STUDIO: WARN: Unable to delete file " + fileToDelete.getPath() + " exception was " + ee.getMessage());
+            }
+        });
+    }
+
+    /**
      * Read the physical file from the file system represented by the supplied virtual file
      * @param absoluteFilePath of the file to be read
      * @return the String contents of the file, or null if it does not exist

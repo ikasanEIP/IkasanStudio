@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -19,6 +20,7 @@ import java.awt.BorderLayout;
 public class IkasanStudioSettingsConfigurable implements Configurable {
 
     private JCheckBox gettingStartedHintsCheckBox;
+    private JCheckBox promptBeforeDeletingUserCodeCheckBox;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -38,9 +40,24 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         hintsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
         hintsPanel.add(hintsNote, BorderLayout.CENTER);
 
+        promptBeforeDeletingUserCodeCheckBox = new JCheckBox(StudioBundle.message("checkbox.PromptBeforeDeletingUserCode"));
+
+        JPanel userCodePanel = new JPanel(new BorderLayout(0, 4));
+        userCodePanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.UserCodeDeletion")));
+        userCodePanel.add(promptBeforeDeletingUserCodeCheckBox, BorderLayout.NORTH);
+
+        JLabel userCodeNote = new JLabel(StudioBundle.message("label.UserCodeDeletionNote"));
+        userCodeNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        userCodePanel.add(userCodeNote, BorderLayout.CENTER);
+
+        JPanel northPanel = new JPanel();
+        northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
+        northPanel.add(hintsPanel);
+        northPanel.add(userCodePanel);
+
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panel.add(hintsPanel, BorderLayout.NORTH);
+        panel.add(northPanel, BorderLayout.NORTH);
 
         reset();
         return panel;
@@ -48,8 +65,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        return gettingStartedHintsCheckBox.isSelected()
-                != IkasanStudioSettings.areGettingStartedHintsEnabled();
+        return gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
+                || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode();
     }
 
     @Override
@@ -58,6 +75,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         IkasanStudioSettings.State state = instance != null ? instance.getState() : null;
         if (state != null) {
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
+            state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
         }
         repaintOpenCanvases();
     }
@@ -65,6 +83,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     @Override
     public void reset() {
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
+        promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
     }
 
     @Override

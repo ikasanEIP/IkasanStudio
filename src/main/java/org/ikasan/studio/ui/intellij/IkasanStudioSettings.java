@@ -19,6 +19,9 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     public static class State {
         /** Show contextual instructions while a module or flow is empty. */
         public boolean gettingStartedHintsEnabled = true;
+
+        /** Prompt for confirmation before deleting a component's generated class from the user source tree. */
+        public boolean promptBeforeDeletingUserCode = true;
     }
 
     private State state = new State();
@@ -42,5 +45,20 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         if (instance == null) return true;
         State s = instance.getState();
         return s == null || s.gettingStartedHintsEnabled;
+    }
+
+    public static boolean isPromptBeforeDeletingUserCode() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return true;
+        State s = instance.getState();
+        return s == null || s.promptBeforeDeletingUserCode;
+    }
+
+    public static void setPromptBeforeDeletingUserCode(boolean promptBeforeDeletingUserCode) {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.promptBeforeDeletingUserCode = promptBeforeDeletingUserCode;
+        }
     }
 }
