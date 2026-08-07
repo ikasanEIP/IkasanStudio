@@ -196,20 +196,6 @@ public class StudioUIUtils {
         return returnList;
     }
 
-    public static void paintGrid(Graphics g, int width, int height) {
-        Graphics2D g2d = (Graphics2D) g.create();
-        Stroke dashed = new BasicStroke(1);
-        g2d.setStroke(dashed);
-
-        for (int yy = 0 ; yy < height ; yy += 100) {
-            g2d.drawLine(0, yy, width, yy);
-        }
-
-        for (int xx = 0 ; xx < width ; xx += 100) {
-            g2d.drawLine(xx, 0, xx, height);
-        }
-    }
-
     public static void paintWarningPopup(Graphics g, int x, int y, int maxX,int maxY, String text) {
         if (!text.isEmpty()) {
             Font font = StudioUIUtils.getBoldFont(g) ;
@@ -259,32 +245,13 @@ public class StudioUIUtils {
     }
 
     public static Color getLineColor() {
-//        listColors();
         return UIManager.getColor("Separator.separatorColor");
     }
     public static Font getMainFont() {
-//        listColors();
         Font uiFont = UIManager.getFont("TextArea.font");
         if (uiFont == null) {
             uiFont = UIManager.getFont("EditorPane.font");
         }
         return uiFont;
     }
-
-
-    public static void listColors() {
-        Enumeration<Object> keys = UIManager.getDefaults().keys();
-
-        // Print all keys and their corresponding color values
-        while (keys.hasMoreElements()) {
-            Object key = keys.nextElement();
-            Object value = UIManager.get(key);
-
-            // Check if the value is a Color instance
-//            if (value instanceof Color) {
-                System.out.println(key + " = " + value);
-//            }
-        }
-    }
-
 }

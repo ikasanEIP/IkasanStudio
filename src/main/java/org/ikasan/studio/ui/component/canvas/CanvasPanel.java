@@ -13,7 +13,6 @@ import javax.swing.*;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
@@ -38,15 +37,6 @@ public class CanvasPanel extends JBPanel implements Disposable {
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
 
-        JCheckBox gridCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowGrid"));
-        gridCheckBox.setSelected(false);
-        gridCheckBox.addItemListener(e -> {
-            // Function, so don't use instance above
-            DesignerCanvas designerCanvasRef = uiContext.getDesignerCanvas();
-            designerCanvasRef.setDrawGrid(e.getStateChange() == ItemEvent.SELECTED);
-            designerCanvasRef.repaint();
-        });
-        canvasHeaderButtonPanel.add(gridCheckBox);
         // This may be redundant now we have Intellij Messaging
         canvasTextArea = new JTextArea();
         uiContext.setCanvasTextArea(canvasTextArea);

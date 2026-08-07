@@ -56,7 +56,6 @@ public class DesignerCanvas extends JPanel {
     private static final String MODULE_LAUNCHED_PROPERTY = "ikasan.studio.onboarding.moduleLaunched";
     private static final String CONSOLE_OPENED_PROPERTY = "ikasan.studio.onboarding.consoleOpened";
     private boolean initialiseAllDimensions = true;
-    private boolean drawGrid = false;
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
@@ -930,9 +929,6 @@ public class DesignerCanvas extends JPanel {
             }
         }
         paintGettingStartedHint(g, ikasanModule);
-        if (drawGrid) {
-            StudioUIUtils.paintGrid(g, getWidth(), getHeight());
-        }
     }
 
     enum GettingStartedHint {
@@ -1108,10 +1104,6 @@ public class DesignerCanvas extends JPanel {
 
     public void setInitialiseAllDimensions(boolean initialiseAllDimensions) {
         this.initialiseAllDimensions = initialiseAllDimensions;
-    }
-
-    public void setDrawGrid(boolean drawGrid) {
-        this.drawGrid = drawGrid;
     }
 
     public void saveAsImage(File file, String imageFormat, boolean transparentBackground) {
