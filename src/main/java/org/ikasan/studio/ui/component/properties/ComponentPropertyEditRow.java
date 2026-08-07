@@ -180,7 +180,11 @@ public class ComponentPropertyEditRow {
                                     String derivedValue = targetComponentPropertyEditRow.getValue() + literal;
                                     // This field drives a generated Java class (e.g. userImplementedClassName), so the
                                     // derived value must itself be a legal Java class name, not a verbatim copy.
-                                    if (affectsUserImplementedClass) {
+                                    // Note: use the meta-driven flag here, not the affectsUserImplementedClass instance
+                                    // field - that field is deliberately left false during componentInitialisation
+                                    // (first-time component creation popup), but class-name sanitisation must still
+                                    // apply then, since that's exactly when this Default button is most commonly used.
+                                    if (componentProperty.affectsUserImplementedClass()) {
                                         derivedValue = StudioBuildUtils.toJavaClassName(derivedValue);
                                     }
                                     propertyValueField.setValue(derivedValue);
