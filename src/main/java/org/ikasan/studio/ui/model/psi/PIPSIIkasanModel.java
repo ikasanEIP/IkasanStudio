@@ -195,6 +195,16 @@ public class PIPSIIkasanModel {
                 IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, component);
                 if (component.hasUserSuppliedClass()) {
                     for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
+                        if (property.getMeta().isNoStubRequired()) {
+                            // Always an externally-injected bean (e.g. a JTA transaction manager) - userSuppliedClass is
+                            // still needed for the @Resource bean-wiring in the generated factory, but no stub makes sense.
+                            continue;
+                        }
+                        boolean protectFromOverwrite = property.getMeta().isProtectFromOverwrite();
+                        if (protectFromOverwrite && !property.isOverwriteEnabled()) {
+                            // Bespoke, user-owned stub that has already been generated once - leave the user's code untouched.
+                            continue;
+                        }
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                         String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
                         String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
@@ -205,8 +215,12 @@ public class PIPSIIkasanModel {
                             displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
                         }
                         if (templateString != null) {
-                            StudioPsiUtils.createJavaSourceFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                            String contentRoot = protectFromOverwrite ? StudioPsiUtils.USER_CONTENT_ROOT : StudioPsiUtils.GENERATED_CONTENT_ROOT;
+                            StudioPsiUtils.createJavaSourceFile(project, contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                                     newPackageName, clazzName, templateString, componentViewHandler);
+                            if (protectFromOverwrite) {
+                                property.setOverwriteEnabled(false);
+                            }
                         }
                     }
                 }

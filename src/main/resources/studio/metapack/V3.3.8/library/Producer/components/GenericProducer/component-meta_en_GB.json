@@ -24,6 +24,7 @@
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "protectFromOverwrite": true,
       "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."

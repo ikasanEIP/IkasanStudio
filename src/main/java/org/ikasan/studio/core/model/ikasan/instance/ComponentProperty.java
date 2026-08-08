@@ -24,6 +24,11 @@ public class ComponentProperty {
     private Object value;
     @JsonIgnore
     private ComponentPropertyMeta meta;
+    // Transient, session-scoped only (never persisted to model.json), mirrors FlowUserImplementedElement.overwriteEnabled
+    // but at per-property granularity: gates whether a "protectFromOverwrite" userSuppliedClass stub is (re)generated.
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private boolean overwriteEnabled = false;
 
     public ComponentProperty(ComponentPropertyMeta meta, Object value) {
         this.meta = meta;
@@ -44,7 +49,7 @@ public class ComponentProperty {
         String returnValue = "null";
         if (value != null) {
             if (value instanceof List) {
-                returnValue = Arrays.toString(((List) value).toArray());
+                returnValue = Arrays.toString(((List<?>) value).toArray());
             } else
                 returnValue = value.toString();
         }

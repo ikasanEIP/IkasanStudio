@@ -121,6 +121,20 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean userSuppliedClass = false;     // The user will define their own class that implements the interface, we will generate the spring property but leave implementation to client code.
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean protectFromOverwrite = false;  // For userSuppliedClass properties that are genuinely bespoke (no pre-built implementation exists):
+                                                     // generate the stub into the user's protected source root and never silently overwrite it again.
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean advancedProperty = false;       // Rarely-needed property; render in the collapsible "Optional Properties" section
+                                                     // instead of the always-visible section, even if userSuppliedClass/affectsUserImplementedClass is also set.
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean noStubRequired = false;         // For userSuppliedClass properties that are always an externally-injected bean
+                                                     // (e.g. a JTA transaction manager, a JMS ConnectionFactory) - keep the @Resource
+                                                     // bean-wiring that userSuppliedClass drives in the generated factory, but never
+                                                     // generate a stub class for it (a stub is never correct/useful here).
 
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -187,6 +201,9 @@ public class ComponentPropertyMeta {
                 setterProperty == that.setterProperty &&
                 userDefineResource == that.userDefineResource &&
                 userSuppliedClass == that.userSuppliedClass &&
+                protectFromOverwrite == that.protectFromOverwrite &&
+                advancedProperty == that.advancedProperty &&
+                noStubRequired == that.noStubRequired &&
                 Objects.equals(propertyName, that.propertyName) &&
                 Objects.equals(choices, that.choices) &&
                 Objects.equals(dataValidationType, that.dataValidationType) &&
@@ -210,6 +227,7 @@ public class ComponentPropertyMeta {
                 dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
+                protectFromOverwrite, advancedProperty, noStubRequired,
                 validation, validationMessage,
                 validationPattern!= null ? validationPattern.pattern() : "");
     }

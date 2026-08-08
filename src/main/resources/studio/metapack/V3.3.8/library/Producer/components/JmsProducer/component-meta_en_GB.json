@@ -41,6 +41,7 @@
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "protectFromOverwrite": true,
       "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -58,7 +59,8 @@
       "helpText": "Provide the classname that overrides and implements the default ConnectionFactory interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "usageDataType":"javax.jms.ConnectionFactory",
-      "userSuppliedClass":true
+      "userSuppliedClass":true,
+      "noStubRequired": true
     },
     "connectionFactoryJNDIProperties": {
       "propertyName": "connectionFactoryJNDIProperties",
@@ -205,7 +207,7 @@
     },
     "messageConverter": {
       "propertyName": "messageConverter",
-      "helpText": "Default (false), set to true if the deliveryMode, priority or timeToLive qualities of service should be used when sending messages.",
+      "helpText": "Default (false), set to true if the deliveryMode, priority or timeToLive qualities of service should be used when sending messages. Pre-built implementations you can wire in instead of writing your own: org.springframework.jms.support.converter.SimpleMessageConverter (Spring's default), org.springframework.jms.support.converter.MappingJackson2MessageConverter.",
       "setterProperty": true,
       "usageDataType": "org.springframework.jms.support.converter.MessageConverter",
       "userSuppliedClass":true
@@ -224,7 +226,7 @@
     },
     "postProcessor": {
       "propertyName": "postProcessor",
-      "helpText": "Post processing operations on the JMS message before being sent over the wire.",
+      "helpText": "Post processing operations on the JMS message before being sent over the wire. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.jms.producer.JmsPostProcessor.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "usageDataType":"org.ikasan.component.endpoint.jms.producer.PostProcessor"
@@ -281,7 +283,8 @@
       "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
       "setterProperty": true,
       "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
-      "userSuppliedClass": true
+      "userSuppliedClass": true,
+      "noStubRequired": true
     }
   }
 }

@@ -31,6 +31,7 @@
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "protectFromOverwrite": true,
       "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -80,7 +81,7 @@
     },
     "eventFactory": {
       "propertyName": "eventFactory",
-      "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint.",
+      "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
       "usageDataType":"org.ikasan.spec.event.EventFactory",
@@ -128,7 +129,7 @@
     },
     "managedEventIdentifierService": {
       "propertyName": "managedEventIdentifierService",
-      "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer",
+      "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.HashedEventIdentifierServiceImpl, org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService, org.ikasan.component.endpoint.filesystem.messageprovider.FileLineEventIdentifierServiceImpl, org.ikasan.compatibility.component.endpoint.ManagedEventJmsIdentifierService.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "usageDataType":"org.ikasan.spec.event.ManagedEventIdentifierService",
@@ -143,7 +144,7 @@
     },
     "messageProvider": {
       "propertyName": "messageProvider",
-      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload.",
+      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "usageDataType":"org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
@@ -152,7 +153,7 @@
     },
     "messageProviderPostProcessor": {
       "propertyName": "messageProviderPostProcessor",
-      "helpText": "Provide the classname that overrides and implements the default MessageProviderPostProcessor interface. This class provide additional functionality to be applied to the payload as a post processor before returning for next component invocation.",
+      "helpText": "Provide the classname that overrides and implements the default MessageProviderPostProcessor interface. This class provide additional functionality to be applied to the payload as a post processor before returning for next component invocation. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProviderPostProcessorImpl.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor",

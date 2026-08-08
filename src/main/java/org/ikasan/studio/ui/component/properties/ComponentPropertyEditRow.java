@@ -38,6 +38,7 @@ public class ComponentPropertyEditRow {
     private boolean affectsUserImplementedClass = false;
     private boolean isList = false;
     private JButton defaultValueButton;
+    private JCheckBox rowOverwriteCheckBox;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
     private final Project project;
@@ -217,6 +218,14 @@ public class ComponentPropertyEditRow {
             affectsUserImplementedClass = true;
             // Cant edit unless the regenerateSource is selected
             controlFieldsAffectingUserImplementedClass(false);
+        }
+
+        // A bespoke, user-owned stub already exists for this property - offer a per-row checkbox to allow
+        // regeneration, mirroring the component-level "Allow Update" checkbox but scoped to just this property.
+        // Nothing to protect yet if the property has never been given a value.
+        if (meta.isProtectFromOverwrite() && !componentInitialisation && componentProperty.getValue() != null) {
+            rowOverwriteCheckBox = new JCheckBox();
+            rowOverwriteCheckBox.setToolTipText(StudioBundle.message("tooltip.CheckTheBoxIfYouWishToRewriteOverwriteTheExistingCode"));
         }
     }
 
@@ -543,5 +552,21 @@ public class ComponentPropertyEditRow {
 
     public boolean isAffectsUserImplementedClass() {
         return affectsUserImplementedClass;
+    }
+
+    public JCheckBox getRowOverwriteCheckBox() {
+        return rowOverwriteCheckBox;
+    }
+
+    public boolean isProtectedFromOverwrite() {
+        return meta.isProtectFromOverwrite();
+    }
+
+    /**
+     * @return true if this property's generated stub may be (re)written: either it never had a value before
+     * (first-time generation, nothing to protect), or the user has explicitly ticked this row's checkbox.
+     */
+    public boolean isRowOverwriteAllowed() {
+        return initialValue == null || (rowOverwriteCheckBox != null && rowOverwriteCheckBox.isSelected());
     }
 }

@@ -115,6 +115,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     ((FlowUserImplementedElement)getSelectedComponent()).setOverwriteEnabled(true);
                 }
             }
+            applyProtectFromOverwritePermissions();
             StudioPsiUtils.refreshCodeFromModel(project);
             // Intellij startup is multi-threaded so caution is required.
             if (metaPackChanged && uiContext.getPalettePanel() != null) {
@@ -128,6 +129,24 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             uiContext.setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
         } else {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasntChangedIgnoringOKAction"));
+        }
+    }
+
+    /**
+     * For each property row protected from overwrite (a bespoke, user-owned stub), record whether the user has
+     * given permission to regenerate it this round - either the row's "Allow Update" checkbox is ticked, or the
+     * property never had a value before (first-time generation, nothing to protect). Unlike the single
+     * component-level {@link FlowUserImplementedElement#isOverwriteEnabled()} checkbox above, this runs
+     * independently of whether the row's value text itself changed, since the user may tick the box purely to
+     * force a regenerate.
+     */
+    private void applyProtectFromOverwritePermissions() {
+        if (componentPropertyEditRowList != null) {
+            for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
+                if (componentPropertyEditRow.isProtectedFromOverwrite()) {
+                    componentPropertyEditRow.getComponentProperty().setOverwriteEnabled(componentPropertyEditRow.isRowOverwriteAllowed());
+                }
+            }
         }
     }
 
@@ -213,7 +232,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             // This property has not yet been set for the component
                             property = new ComponentProperty((getSelectedComponent()).getComponentMeta().getMetadata(key));
                         }
-                        if (property.getMeta().isUserSuppliedClass() || property.getMeta().isAffectsUserImplementedClass()) {
+                        if (property.getMeta().isAdvancedProperty()) {
+                            // Rarely-needed property - keep it out of the always-visible sections even though it
+                            // may also be userSuppliedClass/affectsUserImplementedClass; tucked into "Optional Properties".
+                            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
+                                    optionalPropertiesEditorPanel,
+                                    property, gc, optionalTabley++));
+                        } else if (property.getMeta().isUserSuppliedClass() || property.getMeta().isAffectsUserImplementedClass()) {
                             componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
                                     regeneratingPropertiesEditorPanel,
                                     property, gc, regenerateTabley++));
@@ -391,7 +416,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getInputField());
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getInputField());
         return componentPropertyEditRow;
     }
 
@@ -405,22 +430,23 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, ComponentInput componentInput) {
+    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JCheckBox overwriteCheckBox, ComponentInput componentInput) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
         propertiesEditorPanel.add(propertyLabel, gc);
         ++gc.gridx;
-        if (helpButton != null && defaultValueButton != null) {
+        List<JComponent> auxiliaryWidgets = new ArrayList<>();
+        if (helpButton != null) auxiliaryWidgets.add(helpButton);
+        if (defaultValueButton != null) auxiliaryWidgets.add(defaultValueButton);
+        if (overwriteCheckBox != null) auxiliaryWidgets.add(overwriteCheckBox);
+        if (auxiliaryWidgets.size() > 1) {
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
             buttonPanel.setBackground(getThemeAwareBackgroundColor());
-            buttonPanel.add(helpButton);
-            buttonPanel.add(defaultValueButton);
+            auxiliaryWidgets.forEach(buttonPanel::add);
             propertiesEditorPanel.add(buttonPanel, gc);
-        } else if (helpButton != null) {
-            propertiesEditorPanel.add(helpButton, gc);
-        } else if (defaultValueButton != null) {
-            propertiesEditorPanel.add(defaultValueButton, gc);
+        } else if (auxiliaryWidgets.size() == 1) {
+            propertiesEditorPanel.add(auxiliaryWidgets.get(0), gc);
         }
         ++gc.gridx;
         if (!componentInput.isBooleanInput()) {
