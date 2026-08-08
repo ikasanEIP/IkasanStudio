@@ -20,7 +20,7 @@
     },
     "endpointEventProvider": {
       "propertyName": "endpointEventProvider",
-      "helpText": "Set the endpoint event provider for this event consumer.",
+      "helpText": "Provide the class that supplies the events this consumer generates: implement getEvent() to return each event in turn and rollback() to handle retry of the current event. EventGeneratingConsumer is typically used to provision test or demonstration flows quickly, so this is usually a small bespoke class you write yourself - there is no meaningful pre-built implementation to reuse.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "advancedProperty": true,
