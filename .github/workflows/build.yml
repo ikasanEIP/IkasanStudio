@@ -219,7 +219,7 @@ jobs:
       # same Gradle daemon process concurrently open/close a cached ZipFileSystem for
       # the same jar) - not something fixable from this repo's config.
       - name: Run Plugin Verification tasks
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 15
           max_attempts: 3
