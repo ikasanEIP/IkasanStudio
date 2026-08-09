@@ -32,6 +32,7 @@
       "propertyName": "configuredResource",
       "affectsUserImplementedClass": "true",
       "helpText": "Allow the Configuration to be exposed in the Ikasan console.",
+      "propertyDataType": "java.lang.Boolean",
       "usageDataType":"java.lang.Boolean"
     },
     "configurationId": {

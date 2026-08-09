@@ -47,6 +47,7 @@
       "helpText": "<p>When true, extracts the message payload, otherwise the raw JMS message is transmitted.</p><p>When true, these conversions are applied :</p><table><thead><tr class=\"header\"><th>JMS Message Type</th><th>Payload delivered to flow</th></tr></thead><tbody><tr class=\"odd\"><td>TextMessage</td><td>String</td></tr><tr class=\"even\"><td>MapMessage</td><td>Map&lt;String, Object&gt;</td></tr><tr class=\"odd\"><td>ObjectMessage</td><td>The unwrapped Object</td></tr><tr class=\"even\"><td>BytesMessage</td><td>byte[]</td></tr><tr class=\"odd\"><td>StreamMessage</td><td>Raw Message (passed through unchanged)</td></tr><tr class=\"even\"><td>Anything else</td><td>Raw Message (passed through unchanged)</td></tr></tbody></table><p>When to leave it false:</p><p>Leave it false when you need access to JMS message headers or properties (e.g. message.getJMSCorrelationID(), message.getStringProperty(“someHeader”)) in your downstream components, since those are only available on the Message object itself. You would then use a JMS-aware converter (e.g. MapMessageToPayloadConverter) to extract what you need explicitly.</p>",
       "mandatory": true,
       "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean",
       "usageDataType":"java.lang.Boolean"
     },
     "connectionFactoryJndiPropertyFactoryInitial": {
