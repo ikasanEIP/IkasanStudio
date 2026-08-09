@@ -416,7 +416,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getInputField());
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
         return componentPropertyEditRow;
     }
 
@@ -430,7 +430,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         propertiesEditorPanel.add(propertyInputField, gc);
     }
 
-    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JCheckBox overwriteCheckBox, ComponentInput componentInput) {
+    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JCheckBox overwriteCheckBox, ComponentInput componentInput, ComponentPropertyMeta meta) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -455,9 +455,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         } else {
             JBPanel booleanPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             booleanPanel.setBackground(getThemeAwareBackgroundColor());
-            booleanPanel.add(new JLabel(StudioBundle.message("label.True")));
+            String trueLabel = (meta != null && meta.getTrueLabel() != null) ? meta.getTrueLabel() : StudioBundle.message("label.True");
+            String falseLabel = (meta != null && meta.getFalseLabel() != null) ? meta.getFalseLabel() : StudioBundle.message("label.False");
+            booleanPanel.add(new JLabel(trueLabel));
             booleanPanel.add(componentInput.getTrueBox());
-            booleanPanel.add(new JLabel(StudioBundle.message("label.False")));
+            booleanPanel.add(new JLabel(falseLabel));
             booleanPanel.add(componentInput.getFalseBox());
             propertiesEditorPanel.add(booleanPanel, gc);
         }

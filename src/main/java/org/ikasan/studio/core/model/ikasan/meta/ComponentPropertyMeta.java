@@ -73,6 +73,8 @@ public class ComponentPropertyMeta {
     @JsonKey
     private String propertyName;            // The name / identity of the property, e.g. 'name' (used only for flows and modules), 'componentName', 'description', 'configuredResourceId', 'port'
     private String displayLabel;            // Optional display label override; if set, shown in the UI instead of propertyName
+    private String trueLabel;               // For boolean properties: optional label shown next to the "true" checkbox instead of "True", e.g. "Topic"
+    private String falseLabel;              // For boolean properties: optional label shown next to the "false" checkbox instead of "False", e.g. "Queue"
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean affectsUserImplementedClass = false;  // A change to this property should result in an update to the user implemnted class
@@ -205,6 +207,8 @@ public class ComponentPropertyMeta {
                 advancedProperty == that.advancedProperty &&
                 noStubRequired == that.noStubRequired &&
                 Objects.equals(propertyName, that.propertyName) &&
+                Objects.equals(trueLabel, that.trueLabel) &&
+                Objects.equals(falseLabel, that.falseLabel) &&
                 Objects.equals(choices, that.choices) &&
                 Objects.equals(dataValidationType, that.dataValidationType) &&
                 Objects.equals(defaultValue, that.defaultValue) &&
@@ -223,7 +227,7 @@ public class ComponentPropertyMeta {
     @Override
     public int hashCode() {
 
-        return Objects.hash(propertyName, affectsUserImplementedClass, choices,
+        return Objects.hash(propertyName, trueLabel, falseLabel, affectsUserImplementedClass, choices,
                 dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,

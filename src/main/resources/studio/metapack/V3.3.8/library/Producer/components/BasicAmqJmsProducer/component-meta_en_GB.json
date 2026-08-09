@@ -126,6 +126,8 @@
       "propertyName": "pubSubDomain",
       "helpText": "Set to true to indicate that destination is a topic, otherwise destination is a queue.",
       "setterProperty": true,
+      "trueLabel": "Topic",
+      "falseLabel": "Queue",
       "propertyDataType": "java.lang.Boolean"
     },
     "sessionTransacted": {
