@@ -79,11 +79,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         super(project, componentInitialisation);
         this.setBorder(null);
         listenerForAnyEditChanges = () -> {
+            boolean okToProcess = dataHasChangedAndOKToProcess() && doValidateAll().isEmpty();
             if (updateCodeButton != null) {
-                updateCodeButton.setEnabled(dataHasChangedAndOKToProcess());
+                updateCodeButton.setEnabled(okToProcess);
             }
             if (getPropertiesDialogue() != null) {
-                getPropertiesDialogue().setOKActionEnabled(dataHasChangedAndOKToProcess());
+                getPropertiesDialogue().setOKActionEnabled(okToProcess);
             }
         };
     }
