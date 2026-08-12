@@ -110,7 +110,7 @@ public class DeleteComponentAction implements ActionListener {
          if (userClassFile == null) {
             continue;
          }
-         if (confirmUserCodeDeletion(userClassFile.getPath())) {
+         if (removedElement.getComponentMeta().isDebug() || confirmUserCodeDeletion(userClassFile.getPath())) {
             StudioPsiUtils.deleteFile(project, userClassFile);
          }
       }

@@ -575,7 +575,7 @@ public class DesignerCanvas extends JPanel {
                 }
             }
 
-            if ((ikasanBasicElement.getComponentMeta().isDebug() && targetElement instanceof FlowElement && !((FlowElement)targetElement).getComponentMeta().isConsumer()) ||
+            if ((ikasanBasicElement.getComponentMeta().isDebug() && targetElement instanceof FlowElement && !((FlowElement)targetElement).getComponentMeta().isProducer()) ||
                 (!ikasanBasicElement.getComponentMeta().isDebug() && (targetFlowRoute != null || targetFlow != null))) {
                 // Enabled when trcing UI drop issues
                 //LOG.info("Taget element was " + targetElement);
@@ -861,8 +861,10 @@ public class DesignerCanvas extends JPanel {
                     targetRoute = containingFlow.getFlowRouteContaining(containingFlow.getFlowRoute(), surroundingComponents.getLeft());
                 }
 
-                if (ikasanFlowComponent.getComponentMeta().isDebug() && surroundingComponents.getRight() != null) {
-                    ikasanFlowComponent.setIdentity(surroundingComponents.getRight().getIdentity()+"Debug");
+                FlowElement debugNamingAnchor = surroundingComponents.getRight() != null
+                        ? surroundingComponents.getRight() : surroundingComponents.getLeft();
+                if (ikasanFlowComponent.getComponentMeta().isDebug() && debugNamingAnchor != null) {
+                    ikasanFlowComponent.setIdentity(debugNamingAnchor.getIdentity()+"Debug");
                     String rawClassname = ikasanFlowComponent.getPropertyValueAsString(USER_IMPLEMENTED_CLASS_NAME);
                     String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, ikasanFlowComponent, rawClassname);
                     ikasanFlowComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);
@@ -871,23 +873,110 @@ public class DesignerCanvas extends JPanel {
                     List<FlowElement> components = targetRoute.getFlowElements();
                     int numberOfComponents = components.size();
 
-                    if (numberOfComponents == 0) {
+                    // The Consumer is never a member of components (it's held on the Flow, not the FlowRoute),
+                    // so it can never be matched by the loop below regardless of which side it resolved to -
+                    // insert at the front instead. Which side it resolves to depends on exactly where within
+                    // the Consumer's icon the drop landed, so both sides must be checked.
+                    boolean droppedAdjacentToConsumer =
+                            (surroundingComponents.getRight() != null && surroundingComponents.getRight().getComponentMeta().isConsumer()) ||
+                            (surroundingComponents.getLeft() != null && surroundingComponents.getLeft().getComponentMeta().isConsumer());
+
+                    if (numberOfComponents == 0 || droppedAdjacentToConsumer) {
                         components.add(0, ikasanFlowComponent);
                     } else {
+                        boolean inserted = false;
                         for (int ii = 0; ii < numberOfComponents; ii++) {
                             if (components.get(ii).equals(surroundingComponents.getRight()) ||
                                     ((components.get(ii).equals(surroundingComponents.getLeft())) && surroundingComponents.getLeft().getComponentMeta().isProducer())) {
                                 components.add(ii, ikasanFlowComponent);
+                                inserted = true;
                                 break;
                             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
                                 components.add(ii + 1, ikasanFlowComponent);
+                                inserted = true;
                                 break;
                             }
                         }
+                        if (!inserted) {
+                            LOG.warn("STUDIO: Dropped " + ikasanFlowComponent.getIdentity() + " at (" + x + "," + y +
+                                    ") but could not resolve an insertion point (left=" +
+                                    (surroundingComponents.getLeft() != null ? surroundingComponents.getLeft().getIdentity() : "null") + ", right=" +
+                                    (surroundingComponents.getRight() != null ? surroundingComponents.getRight().getIdentity() : "null") +
+                                    "); nothing was added to the flow.");
+                        }
                     }
+                } else {
+                    LOG.warn("STUDIO: Could not resolve a target FlowRoute to insert " + ikasanFlowComponent.getIdentity() + " into at (" + x + "," + y + "); nothing was added.");
                 }
             }
         }
+    }
+
+    /**
+     * Inserts a Debug component immediately after the given target, so its generated debug() method
+     * can be used as an IntelliJ breakpoint to inspect the payload the target just produced.
+     * Reuses the same component-creation machinery as drag-and-drop ({@link #createViableFlowComponent})
+     * rather than the x/y-proximity-based {@link #insertNewComponentBetweenSurroundingPair}, since there
+     * is no drag position to work from here.
+     * @param targetElement the component to add a Debug component after
+     * @return the inserted Debug FlowElement, or null if it could not be added (invalid target,
+     *         missing Debug component meta, or the user cancelled the properties popup)
+     */
+    public FlowElement insertDebugComponentAfter(FlowElement targetElement) {
+        if (targetElement.getComponentMeta().isProducer() || targetElement.getComponentMeta().isDebug()) {
+            LOG.warn("STUDIO: Debug cannot be added after a Producer (it is the last component in a flow) or another Debug component: " + targetElement.getIdentity());
+            return null;
+        }
+
+        Flow containingFlow = targetElement.getContainingFlow();
+        FlowRoute containingFlowRoute = targetElement.getContainingFlowRoute();
+        if (containingFlow == null || containingFlowRoute == null) {
+            return null;
+        }
+
+        ComponentMeta debugMeta;
+        try {
+            debugMeta = IkasanComponentLibrary.getIkasanComponents(getIkasanModule().getMetaVersion()).values().stream()
+                    .filter(ComponentMeta::isDebug)
+                    .findFirst()
+                    .orElse(null);
+        } catch (StudioBuildException e) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ThereWasAProblemTryingToGetMetaPackInfo", e.getMessage()));
+            return null;
+        }
+        if (debugMeta == null) {
+            LOG.warn("STUDIO: No Debug component meta found for this metapack version");
+            return null;
+        }
+
+        FlowElement debugComponent = createViableFlowComponent(debugMeta, containingFlow, containingFlowRoute);
+        if (debugComponent == null) {
+            // User cancelled the properties popup, or an error was already reported.
+            return null;
+        }
+
+        debugComponent.setIdentity(targetElement.getIdentity() + "Debug");
+        String rawClassname = debugComponent.getPropertyValueAsString(USER_IMPLEMENTED_CLASS_NAME);
+        String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, debugComponent, rawClassname);
+        debugComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);
+
+        List<FlowElement> components = containingFlowRoute.getFlowElements();
+        if (targetElement.getComponentMeta().isConsumer()) {
+            // The consumer is not itself a member of the route's element list (it's held on the Flow),
+            // so "after the consumer" is always index 0 of the route.
+            components.add(0, debugComponent);
+        } else {
+            int targetIndex = components.indexOf(targetElement);
+            if (targetIndex < 0) {
+                return null;
+            }
+            components.add(targetIndex + 1, debugComponent);
+        }
+
+        StudioPsiUtils.refreshCodeFromModel(project);
+        initialiseAllDimensions = true;
+        repaint();
+        return debugComponent;
     }
 
     /**
@@ -942,6 +1031,7 @@ public class DesignerCanvas extends JPanel {
         CanvasPanel canvasPanel = project.getService(UiContext.class).getCanvasPanel();
         if (canvasPanel != null) {
             canvasPanel.setRunModuleEnabled(runnable);
+            canvasPanel.setDebugModuleEnabled(runnable);
         }
     }
 

@@ -32,9 +32,12 @@ public class DesignCanvasContextMenu {
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, false));
             menu.addSeparator();
-        } else if (ikasanBasicElement instanceof FlowElement) {
+        } else if (ikasanBasicElement instanceof FlowElement flowElement) {
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
+            if (!flowElement.getComponentMeta().isProducer() && !flowElement.getComponentMeta().isDebug()) {
+                menu.add(createDebugComponentMenuItem(project, ikasanBasicElement));
+            }
             menu.addSeparator();
             if (decorator != null && decorator.isBefore() && decorator.isWiretap()) {
                 menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteWiretapBefore"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
@@ -77,7 +80,6 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    // We may need to enable this at short notice.
     private static JMenuItem createDebugComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.AddDebugToComponent"));
         item.addActionListener(new DebugComponentAction(project, ikasanBasicElement));

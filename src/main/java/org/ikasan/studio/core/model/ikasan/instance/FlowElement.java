@@ -89,10 +89,10 @@ public class FlowElement extends BasicElement {
     }
 
     public List<Decorator> getBeforeDecorators() {
-        return hasWiretap() ? decorators.stream().filter(Decorator::isBefore).toList() : new ArrayList<>();
+        return hasBeforeDecorators() ? decorators.stream().filter(Decorator::isBefore).toList() : new ArrayList<>();
     }
     public List<Decorator> getAfterDecorators() {
-        return hasLogWiretap() ? decorators.stream().filter(Decorator::isAfter).toList() : new ArrayList<>();
+        return hasAfterDecorators() ? decorators.stream().filter(Decorator::isAfter).toList() : new ArrayList<>();
     }
 
     /**

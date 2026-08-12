@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.execution.Executor;
+import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.ikasan.studio.ui.StudioBundle;
@@ -16,9 +19,15 @@ import java.awt.event.ActionListener;
 public class LaunchApplicationAction implements ActionListener {
    private static final Logger LOG = LoggerFactory.getLogger(LaunchApplicationAction.class);
    private final Project project;
+   private final boolean debug;
 
    public LaunchApplicationAction(Project project) {
+      this(project, false);
+   }
+
+   public LaunchApplicationAction(Project project, boolean debug) {
       this.project = project;
+      this.debug = debug;
    }
 
    @Override
@@ -32,7 +41,11 @@ public class LaunchApplicationAction implements ActionListener {
          return;
       }
 
-      project.getService(IkasanRunConfigurationService.class).selectAndRun(applicationFile, launched -> {
+      Executor executor = debug
+              ? DefaultDebugExecutor.getDebugExecutorInstance()
+              : DefaultRunExecutor.getRunExecutorInstance();
+
+      project.getService(IkasanRunConfigurationService.class).selectAndRun(applicationFile, executor, launched -> {
          if (launched) {
             DesignerCanvas.markModuleLaunched(project);
          } else {

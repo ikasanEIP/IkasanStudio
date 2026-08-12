@@ -6,7 +6,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
@@ -41,7 +41,7 @@ public final class IkasanRunConfigurationService implements Disposable {
      * Resolves the owning IntelliJ module away from the EDT, then creates and launches the
      * configuration on the EDT as required by the execution APIs.
      */
-    public void selectAndRun(VirtualFile applicationFile, Consumer<Boolean> completion) {
+    public void selectAndRun(VirtualFile applicationFile, Executor executor, Consumer<Boolean> completion) {
         ReadAction.nonBlocking(() -> ModuleUtilCore.findModuleForFile(applicationFile, project))
                 .expireWith(this)
                 .finishOnUiThread(ModalityState.defaultModalityState(), module -> {
@@ -50,17 +50,16 @@ public final class IkasanRunConfigurationService implements Disposable {
                         completion.accept(false);
                         return;
                     }
-                    completion.accept(selectAndRunOnEdt(module));
+                    completion.accept(selectAndRunOnEdt(module, executor));
                 })
                 .submit(AppExecutorUtil.getAppExecutorService());
     }
 
-    private boolean selectAndRunOnEdt(Module module) {
+    private boolean selectAndRunOnEdt(Module module, Executor executor) {
         RunnerAndConfigurationSettings settings = findOrCreateConfiguration(module);
         RunManager.getInstance(project).setSelectedConfiguration(settings);
         try {
-            ExecutionEnvironmentBuilder.create(
-                    DefaultRunExecutor.getRunExecutorInstance(), settings).buildAndExecute();
+            ExecutionEnvironmentBuilder.create(executor, settings).buildAndExecute();
             return true;
         } catch (ExecutionException e) {
             LOG.warn("STUDIO: Could not execute run configuration " + settings.getName(), e);

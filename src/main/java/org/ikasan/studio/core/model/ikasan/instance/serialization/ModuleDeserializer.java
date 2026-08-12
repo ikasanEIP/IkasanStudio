@@ -159,6 +159,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             }
             // Here we will structure the flow elements properly into routes
             flow.setFlowRoute(orderFlowElementsByTransitions(metapackVersion, transitions, flow, flowElementsMap));
+            // The consumer is never a member of the route's element list, but it still needs a containingFlowRoute
+            // reference (matching what fresh drag-and-drop creation sets via FlowElementFactory) so canvas
+            // drag-over/drop logic can resolve a target route when hovering over the consumer.
+            if (flow.getConsumer() != null) {
+                flow.getConsumer().setContainingFlowRoute(flow.getFlowRoute());
+            }
         }
         return flow;
     }
@@ -744,7 +750,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             decorator = Decorator.decoratorBuilder()
                     .type(type)
                     .name(name)
-                    .configurable(configurable!=null ? configurable:false)
+                    .configurable(configurable != null && configurable)
                     .configurationId(configurationId)
                     .build();
         }

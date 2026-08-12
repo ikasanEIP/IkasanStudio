@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 public class CanvasPanel extends JBPanel implements Disposable {
     JButton h2Button = new JButton(StudioBundle.message("button.H2Start"));
     JButton runModuleButton = new JButton(StudioBundle.message("button.RunModule"));
+    JButton debugModuleButton = new JButton(StudioBundle.message("button.DebugModule"));
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -30,8 +31,10 @@ public class CanvasPanel extends JBPanel implements Disposable {
         canvasHeaderButtonPanel.setBorder(null);
 
         runModuleButton.setEnabled(false);
+        debugModuleButton.setEnabled(false);
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
         addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console")), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Load")), new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save")), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
@@ -84,5 +87,13 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     public void setRunModuleEnabled(boolean flag) {
         runModuleButton.setEnabled(flag);
+    }
+
+    /**
+     * The module can only be debugged once the canvas contains at least one complete, valid flow.
+     * @param flag, if true will enable the Debug module button, otherwise disable it.
+     */
+    public void setDebugModuleEnabled(boolean flag) {
+        debugModuleButton.setEnabled(flag);
     }
 }
