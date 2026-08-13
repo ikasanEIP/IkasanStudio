@@ -184,8 +184,9 @@ public class StudioPsiUtils {
      * Add the new dependencies IF they are not already in the pom
      * @param project is the Intellij project instance
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
+     * @param metaVersion of the module (e.g. "V3.3.8", "V4.0.x"), used to pick the matching JDK level
      */
-    public static void checkForDependencyChangesAndSaveIfChanged(Project project, Set<Dependency> newDependencies) {
+    public static void checkForDependencyChangesAndSaveIfChanged(Project project, Set<Dependency> newDependencies, String metaVersion) {
         IkasanPomModel ikasanPomModel;
         if (newDependencies != null && !newDependencies.isEmpty()) {
             ikasanPomModel = pomLoadFromVirtualDisk(project); // Have to load each time because might have been independently updated.
@@ -194,7 +195,7 @@ public class StudioPsiUtils {
                 for (Dependency newDependency : newDependencies) {
                     ikasanPomModel.checkIfDependancyAlreadyExists(newDependency);
                 }
-                pomAddStandardProperties(ikasanPomModel);
+                pomAddStandardProperties(ikasanPomModel, metaVersion);
                 if (ikasanPomModel.isDirty()) {
                     createPomFile(project, "", "", ikasanPomModel.getModelAsString());
                     MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
@@ -212,10 +213,26 @@ public class StudioPsiUtils {
     /**
      * Add in the standard properties for the ikasanPomModel, based on project level config e.g. JDK
      * @param ikasanPomModel is the root level ikasanPomModel to be updated
+     * @param metaVersion of the module, used to pick the matching JDK level
      */
-    private static void pomAddStandardProperties(IkasanPomModel ikasanPomModel) {
-        ikasanPomModel.addProperty(MAVEN_COMPILER_TARGET, "1.8");
-        ikasanPomModel.addProperty(MAVEN_COMPILER_SOURCE, "1.8");
+    private static void pomAddStandardProperties(IkasanPomModel ikasanPomModel, String metaVersion) {
+        String javaCompilerLevel = resolveJavaCompilerLevel(metaVersion);
+        ikasanPomModel.addProperty(MAVEN_COMPILER_TARGET, javaCompilerLevel);
+        ikasanPomModel.addProperty(MAVEN_COMPILER_SOURCE, javaCompilerLevel);
+    }
+
+    /**
+     * Each Ikasan core major version has its own minimum/target JDK level (confirmed against the actual
+     * ikasaneip/pom.xml of each): V3.x core targets JDK 11, V4.x core targets JDK 17 (and already uses
+     * JDK 15+ text blocks internally). Default to 11 for anything else (e.g. VHS3.3.x, which is V3-based).
+     * @param metaVersion of the module (e.g. "V3.3.8", "V4.0.x")
+     * @return the maven.compiler.source/target value to use
+     */
+    private static String resolveJavaCompilerLevel(String metaVersion) {
+        if (metaVersion != null && metaVersion.startsWith("V4")) {
+            return "17";
+        }
+        return "11";
     }
 
     /**

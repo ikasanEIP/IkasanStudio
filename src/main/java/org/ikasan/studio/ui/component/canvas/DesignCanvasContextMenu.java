@@ -38,6 +38,9 @@ public class DesignCanvasContextMenu {
             if (!flowElement.getComponentMeta().isProducer() && !flowElement.getComponentMeta().isDebug()) {
                 menu.add(createDebugComponentMenuItem(project, ikasanBasicElement));
             }
+            if (flowElement.getComponentMeta().isConsumer()) {
+                menu.add(createSendTestMessageMenuItem(project, ikasanBasicElement));
+            }
             menu.addSeparator();
             if (decorator != null && decorator.isBefore() && decorator.isWiretap()) {
                 menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteWiretapBefore"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
@@ -77,6 +80,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createDeleteComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.DeleteComponent"));
         item.addActionListener(new DeleteComponentAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createSendTestMessageMenuItem(Project project, BasicElement ikasanBasicElement) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.SendTestMessage"));
+        item.addActionListener(new SendTestMessageAction(project, ikasanBasicElement));
         return item;
     }
 

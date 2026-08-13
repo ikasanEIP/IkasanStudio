@@ -7,6 +7,7 @@ import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.Executor;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
@@ -29,6 +30,7 @@ import java.util.function.Consumer;
 @Service(Service.Level.PROJECT)
 public final class IkasanRunConfigurationService implements Disposable {
     static final String MAIN_CLASS_NAME = "org.ikasan.studio.boot.Application";
+    static final String STUDIO_DEBUG_PROGRAM_PARAMETERS = "--spring.profiles.active=studio-debug";
     private static final Logger LOG = Logger.getInstance(IkasanRunConfigurationService.class);
 
     private final Project project;
@@ -56,7 +58,8 @@ public final class IkasanRunConfigurationService implements Disposable {
     }
 
     private boolean selectAndRunOnEdt(Module module, Executor executor) {
-        RunnerAndConfigurationSettings settings = findOrCreateConfiguration(module);
+        boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
+        RunnerAndConfigurationSettings settings = findOrCreateConfiguration(module, debug);
         RunManager.getInstance(project).setSelectedConfiguration(settings);
         try {
             ExecutionEnvironmentBuilder.create(executor, settings).buildAndExecute();
@@ -67,12 +70,18 @@ public final class IkasanRunConfigurationService implements Disposable {
         }
     }
 
-    RunnerAndConfigurationSettings findOrCreateConfiguration(Module module) {
+    /**
+     * Run and Debug are kept as separate, independently-cached configurations (rather than one shared
+     * configuration launched with different executors) because Debug needs the "studio-debug" Spring profile
+     * active - see {@link #STUDIO_DEBUG_PROGRAM_PARAMETERS} - so the generated app's /studio/inject endpoint
+     * is only reachable when launched via the Debug button, never via a plain Run or a real deployment.
+     */
+    RunnerAndConfigurationSettings findOrCreateConfiguration(Module module, boolean debug) {
         RunManager runManager = RunManager.getInstance(project);
         RunnerAndConfigurationSettings existing = runManager.getAllSettings().stream()
                 .filter(settings -> settings.getConfiguration() instanceof ApplicationConfiguration)
                 .filter(settings -> matches(
-                        (ApplicationConfiguration) settings.getConfiguration(), module))
+                        (ApplicationConfiguration) settings.getConfiguration(), module, debug))
                 .findFirst()
                 .orElse(null);
         if (existing != null) {
@@ -83,7 +92,7 @@ public final class IkasanRunConfigurationService implements Disposable {
         ApplicationConfigurationType type = ApplicationConfigurationType.getInstance();
         ConfigurationFactory factory = type.getConfigurationFactories()[0];
         String configurationName = runManager.suggestUniqueName(
-                "Ikasan: " + project.getName(), type);
+                "Ikasan: " + project.getName() + (debug ? " (Debug)" : ""), type);
         RunnerAndConfigurationSettings settings =
                 runManager.createConfiguration(configurationName, factory);
         ApplicationConfiguration configuration =
@@ -93,6 +102,9 @@ public final class IkasanRunConfigurationService implements Disposable {
         if (project.getBasePath() != null) {
             configuration.setWorkingDirectory(project.getBasePath());
         }
+        if (debug) {
+            configuration.setProgramParameters(STUDIO_DEBUG_PROGRAM_PARAMETERS);
+        }
 
         settings.storeInLocalWorkspace();
         runManager.addConfiguration(settings);
@@ -100,9 +112,11 @@ public final class IkasanRunConfigurationService implements Disposable {
         return settings;
     }
 
-    static boolean matches(ApplicationConfiguration configuration, Module module) {
+    static boolean matches(ApplicationConfiguration configuration, Module module, boolean debug) {
+        boolean hasDebugProfile = STUDIO_DEBUG_PROGRAM_PARAMETERS.equals(configuration.getProgramParameters());
         return MAIN_CLASS_NAME.equals(configuration.getMainClassName())
-                && Objects.equals(configuration.getConfigurationModule().getModule(), module);
+                && Objects.equals(configuration.getConfigurationModule().getModule(), module)
+                && hasDebugProfile == debug;
     }
 
     @Override

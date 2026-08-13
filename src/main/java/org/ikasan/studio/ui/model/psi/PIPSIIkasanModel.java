@@ -81,11 +81,12 @@ public class PIPSIIkasanModel {
                     () -> {
                         if (pomDependenciesHaveChanged.get()) {
                             // We have checked the in-memory model, below will also verify from the on-disk model.
-                            StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(project, module.getAllUniqueSortedJarDependencies());
+                            StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(project, module.getAllUniqueSortedJarDependencies(), module.getMetaVersion());
                         }
                         //@todo start making below conditional on state changed.
                         Long transactionTimeStamp = uiContext.getProjectRefreshTimestamp();
                         saveApplication(project, module);
+                        saveStudioInjectController(project, module);
                         saveFlow(project, module);
                         generateAndSaveJavaCodeModuleConfig(project, module);
                         generateAndSavePropertiesConfig(project, module);
@@ -168,6 +169,27 @@ public class PIPSIIkasanModel {
                     StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                     ApplicationTemplate.STUDIO_BOOT_PACKAGE,
                     ApplicationTemplate.APPLICATION_CLASS_NAME, applicationTemplateString, null);
+        }
+    }
+
+    /**
+     * Save the Debug-mode-only REST controller used to inject synthetic test events into a flow's Consumer.
+     * @param project is the Intellij project instance
+     * @param module for this code
+     */
+    private void saveStudioInjectController(Project project, Module module) {
+        String studioInjectControllerTemplateString = null;
+        try {
+            studioInjectControllerTemplateString = StudioInjectControllerTemplate.create(module);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+        }
+        if (studioInjectControllerTemplateString != null) {
+            StudioPsiUtils.createJavaSourceFile(project,
+                    StudioPsiUtils.GENERATED_CONTENT_ROOT,
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                    StudioInjectControllerTemplate.STUDIO_BOOT_PACKAGE,
+                    StudioInjectControllerTemplate.STUDIO_INJECT_CONTROLLER_CLASS_NAME, studioInjectControllerTemplateString, null);
         }
     }
 
