@@ -1,9 +1,55 @@
 # IntelliJ IDEA-specific files
-.idea/
-.intellijPlatform/
-.run/
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+# Only user-specific / generated / high-churn files are ignored below. Project-shared settings
+# (.idea/inspectionProfiles, .idea/codeStyles, .idea/runConfigurations, .idea/vcs.xml,
+# .idea/compiler.xml, .idea/misc.xml, .idea/jarRepositories.xml, .idea/.name, etc.) are
+# intentionally left trackable so the whole team shares them.
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# Generated files
+.idea/**/contentModel.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Gradle/Maven auto-import regenerates these on every sync, so tracking them just causes churn
+.idea/**/gradle.xml
+.idea/**/libraries
+.idea/modules.xml
+.idea/*.iml
+.idea/modules
 *.iml
 *.iws
+*.ipr
+
+# Editor-based HTTP Client requests
+.idea/httpRequests/
+
+# Cursive Clojure plugin
+.idea/replstate.xml
+
+# SonarLint plugin
+.idea/**/sonarlint/
+
+# Per-plugin local state, not classic JetBrains project config
+.idea/copilot.data.migration*.xml
+.idea/kotlinc.xml
+
+# IntelliJ Platform Gradle Plugin (this project builds an IntelliJ plugin)
+.intellijPlatform/
+.run/
 out/
 
 # Gradle files

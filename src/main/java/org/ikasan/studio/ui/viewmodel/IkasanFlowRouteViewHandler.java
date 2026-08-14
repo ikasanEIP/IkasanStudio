@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -28,6 +29,8 @@ import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.ge
 public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final Project project;
     public static final int FLOW_CONTAINER_BORDER = 10;
+    // Gap between the top of the Send Test Message badge and the top of the EndPoint icon it sits above.
+    private static final int SEND_TEST_MESSAGE_VERTICAL_GAP = 4;
 
     private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
     private final Flow flow;
@@ -35,6 +38,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final List<IkasanFlowRouteViewHandler> childFlowRouteViewHandlers = new ArrayList<>();
     // Populated during each paint pass so that click detection can resolve an endpoint click back to its owner.
     private final Map<FlowElement, FlowElement> cachedEndpointToOwner = new HashMap<>();
+    // Populated during each paint pass so that click detection can resolve a Send Test Message badge click back to its owner.
+    private final Map<FlowElement, Rectangle> cachedSendTestMessageBadge = new HashMap<>();
 
     /**
      * This view handler deals with a flowRoute or a child route (i.e. one of the branches off a multi-recipient router)
@@ -159,6 +164,7 @@ LOG.error("STUDIO: 1 Left X being set to a -ve of " + (targetFlowElementViewHand
                     endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
+                    paintSendTestMessageBadge(canvas, g, targetFlowElement, endpointViewHandler);
                 } else {
 //                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
 //XXXX
@@ -188,6 +194,44 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         }
         for (IkasanFlowRouteViewHandler child : childFlowRouteViewHandlers) {
             FlowElement owner = child.getOwnerForEndpointAtXY(x, y);
+            if (owner != null) {
+                return owner;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Paint the Send Test Message badge centred above the given (already positioned) EndPoint icon, and cache
+     * its bounds against the owning Consumer so clicks on it can be resolved back via
+     * {@link #getOwnerForSendTestMessageAtXY}.
+     * @param canvas to paint on
+     * @param g is the graphics callback
+     * @param owner the Consumer that the endpoint (and therefore the badge) belongs to
+     * @param endpointViewHandler the already-positioned view handler for the EndPoint icon
+     */
+    private void paintSendTestMessageBadge(JPanel canvas, Graphics g, FlowElement owner, IkasanFlowComponentViewHandler endpointViewHandler) {
+        Icon sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageIcon();
+        int endpointIconWidth = endpointViewHandler.getCanvasIcon().getIconWidth();
+        int badgeLeftX = endpointViewHandler.getLeftX() + ((endpointIconWidth - sendTestMessageIcon.getIconWidth()) / 2);
+        int badgeTopY = endpointViewHandler.getTopY() - sendTestMessageIcon.getIconHeight() - SEND_TEST_MESSAGE_VERTICAL_GAP;
+        sendTestMessageIcon.paintIcon(canvas, g, badgeLeftX, badgeTopY);
+        cachedSendTestMessageBadge.put(owner, new Rectangle(badgeLeftX, badgeTopY, sendTestMessageIcon.getIconWidth(), sendTestMessageIcon.getIconHeight()));
+    }
+
+    /**
+     * If the click coordinates fall within any cached Send Test Message badge, return the owning Consumer
+     * FlowElement. Returns null if the click does not hit any badge.
+     * The cache is populated (and refreshed) during each paint pass by paintSendTestMessageBadge.
+     */
+    public FlowElement getOwnerForSendTestMessageAtXY(int x, int y) {
+        for (Map.Entry<FlowElement, Rectangle> entry : cachedSendTestMessageBadge.entrySet()) {
+            if (entry.getValue().contains(x, y)) {
+                return entry.getKey();
+            }
+        }
+        for (IkasanFlowRouteViewHandler child : childFlowRouteViewHandlers) {
+            FlowElement owner = child.getOwnerForSendTestMessageAtXY(x, y);
             if (owner != null) {
                 return owner;
             }

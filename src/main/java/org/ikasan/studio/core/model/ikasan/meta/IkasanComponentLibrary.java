@@ -46,16 +46,13 @@ public class IkasanComponentLibrary {
      *
      * @param ikasanMetaDataPackVersion to search for components
      */
-    public static Map<String, ComponentMeta> refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+    public static void refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         if (ikasanMetaDataPackVersion == null) {
             LOG.error("STUDIO: ikasanMetaDataPackVersion was set to null which is not allowed");
         }
-        Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey;
 
-        if (containVersion(ikasanMetaDataPackVersion)) {
-            returnedIkasanComponentMetaMapByKey = geIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
-        } else {
-            returnedIkasanComponentMetaMapByKey = new HashMap<>();
+        if (versionNotContained(ikasanMetaDataPackVersion)) {
+            Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey = new HashMap<>();
             loadMetapack(ikasanMetaDataPackVersion, returnedIkasanComponentMetaMapByKey);
             Map<String, ComponentMeta> ikasanComponentMetaMapByClass = generateDeserialisationKeyedMeta(returnedIkasanComponentMetaMapByKey);
             if (ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
@@ -70,11 +67,10 @@ public class IkasanComponentLibrary {
                 libraryByVersionAndDeserialisationKey.put(ikasanMetaDataPackVersion, ikasanComponentMetaMapByClass);
             }
         }
-        return returnedIkasanComponentMetaMapByKey;
     }
 
-    public static boolean containVersion(String ikasanMetaDataPackVersion) {
-        return libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion);
+    public static boolean versionNotContained(String ikasanMetaDataPackVersion) {
+        return !libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion);
     }
 
     /**
@@ -201,6 +197,11 @@ public class IkasanComponentLibrary {
         return Math.max(getWiretapIcon().getIconWidth(), getLogWiretapIcon().getIconWidth());
     }
 
+    public static Icon SEND_TEST_MESSAGE_ICON = getGeneralIcon("send-test-message.png", "Send Test Message");
+    public static Icon getSendTestMessageIcon() {
+        return SEND_TEST_MESSAGE_ICON;
+    }
+
     public static Icon getGeneralIcon(String iconFilename, String description) {
 
         ImageIcon imageIcon;
@@ -224,7 +225,7 @@ public class IkasanComponentLibrary {
                     .map(FilenameUtils::getName)
                     .collect(Collectors.toList());
         } else {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 
@@ -324,7 +325,7 @@ public class IkasanComponentLibrary {
      * @return the reference to the current component library
      */
     protected synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        if (!metaMapHasBeenLoaded(ikasanMetaDataPackVersion)) {
+        if (metaMapNotLoaded(ikasanMetaDataPackVersion)) {
             refreshComponentLibrary(ikasanMetaDataPackVersion);
         }
         Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
@@ -343,7 +344,7 @@ public class IkasanComponentLibrary {
      * @return the reference to the current component library
      */
     protected synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByDeserialisationKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        if (!metaMapHasBeenLoaded(ikasanMetaDataPackVersion)) {
+        if (metaMapNotLoaded(ikasanMetaDataPackVersion)) {
             refreshComponentLibrary(ikasanMetaDataPackVersion);
         }
         Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndDeserialisationKey.get(ikasanMetaDataPackVersion);
@@ -355,8 +356,8 @@ public class IkasanComponentLibrary {
         return ikasanComponentMetaMap;
     }
 
-    protected static boolean metaMapHasBeenLoaded(String ikasanMetaDataPackVersion) {
-        return libraryByVersionAndDeserialisationKey.containsKey(ikasanMetaDataPackVersion);
+    protected static boolean metaMapNotLoaded(String ikasanMetaDataPackVersion) {
+        return !libraryByVersionAndDeserialisationKey.containsKey(ikasanMetaDataPackVersion);
     }
 
     public static ComponentMeta getIkasanComponentByKey(String ikasanMetaDataPackVersion, String key) throws StudioBuildException {

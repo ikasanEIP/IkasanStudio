@@ -72,6 +72,14 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         return flowRouteViewHandler.getOwnerForEndpointAtXY(x, y);
     }
 
+    /**
+     * If the click coordinates fall within a rendered Send Test Message badge for this flow, return the
+     * owning Consumer FlowElement. Returns null if the click does not hit any badge.
+     */
+    public FlowElement getOwnerForSendTestMessageAtXY(int x, int y) {
+        return flowRouteViewHandler.getOwnerForSendTestMessageAtXY(x, y);
+    }
+
     private void paintFlowRectangle(Graphics g, int x, int y, int width, int height) {
         Color oldColor = g.getColor();
         // Central rectangle

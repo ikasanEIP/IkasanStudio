@@ -20,6 +20,7 @@ import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.SendTestMessageAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
@@ -36,6 +37,7 @@ import javax.swing.JButton;
 import javax.swing.UIManager;
 import com.intellij.openapi.ui.ComboBox;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -124,7 +126,7 @@ public class DesignerCanvas extends JPanel {
                     StudioUIUtils.displayIdeaInfoMessage(this.project,
                             StudioBundle.message("message.ChooseAnIkasanVersionBeforeConfiguringTheModule"));
                 } else {
-                    if (!IkasanComponentLibrary.containVersion(metapackVersion)) {
+                    if (IkasanComponentLibrary.versionNotContained(metapackVersion)) {
                         try {
                             IkasanComponentLibrary.refreshComponentLibrary(metapackVersion);
                         } catch (StudioBuildException ex) {
@@ -248,6 +250,7 @@ public class DesignerCanvas extends JPanel {
     private void mouseClickAction(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
+        FlowElement sendTestMessageOwner = getOwnerForSendTestMessageAtXY(x, y);
         IkasanComponent selectedComponent = getComponentAtXY(x, y);
 
         if (!(selectedComponent instanceof BasicElement ikasanBasicElement)) {
@@ -265,6 +268,10 @@ public class DesignerCanvas extends JPanel {
 //            } else {
 //                DesignCanvasContextMenu.showPopupMenu(project,this, me);
 //            }
+        } // Left-click on the Send Test Message badge
+        else if (me.getButton() == MouseEvent.BUTTON1 && sendTestMessageOwner != null) {
+            new SendTestMessageAction(project, sendTestMessageOwner)
+                    .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "sendTestMessage"));
         } // Double-click -> go to source
         else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
@@ -496,6 +503,28 @@ public class DesignerCanvas extends JPanel {
             IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
             if (flowViewHandler != null) {
                 FlowElement owner = flowViewHandler.getOwnerForEndpointAtXY(xpos, ypos);
+                if (owner != null) {
+                    return owner;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Given x,y coords, check whether the click landed on a Send Test Message badge (rendered centred above
+     * an external endpoint icon). If so, return the owning Consumer FlowElement.
+     * Returns null if no badge was hit.
+     */
+    private FlowElement getOwnerForSendTestMessageAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
+        if (ikasanModule == null) {
+            return null;
+        }
+        for (Flow flow : ikasanModule.getFlows()) {
+            IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+            if (flowViewHandler != null) {
+                FlowElement owner = flowViewHandler.getOwnerForSendTestMessageAtXY(xpos, ypos);
                 if (owner != null) {
                     return owner;
                 }
