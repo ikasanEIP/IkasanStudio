@@ -7,7 +7,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -54,19 +53,21 @@ public class SendTestMessageAction implements ActionListener {
             return;
         }
 
-        String payload = Messages.showMultilineInputDialog(project,
-                StudioBundle.message("message.EnterTheTestMessagePayload"),
-                StudioBundle.message("dialog.SendTestMessage"),
-                "", null, null);
-        if (payload == null) {
+        SendTestMessagePayloadDialog payloadDialog = new SendTestMessagePayloadDialog(project);
+        if (!payloadDialog.showAndGet()) {
             return;
         }
+        String payload = payloadDialog.getPayload();
 
         Module module = project.getService(UiContext.class).getIkasanModule();
         String flowName = flowElement.getContainingFlow().getIdentity();
         String port = module.getPort() != null ? module.getPort() : "8080";
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.SendingTestMessage")) {
+            // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md) because
+            // the IntelliJ Gradle plugin instruments it with a runtime assertion that would surface as an
+            // uncaught plugin exception rather than failing gracefully.
+            @SuppressWarnings("NullableProblems")
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
