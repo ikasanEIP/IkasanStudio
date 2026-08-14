@@ -6,6 +6,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -423,7 +424,8 @@ public class StudioPsiUtils {
         });
     }
 
-    private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent, final AbstractViewHandlerIntellij componentViewHandler) {
+    private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent,
+                                              final AbstractViewHandlerIntellij componentViewHandler) {
         try {
             if (fileContent != null) {
                 FileDocumentManager documentManager = FileDocumentManager.getInstance();
@@ -431,7 +433,7 @@ public class StudioPsiUtils {
 
                 if (document != null) {
                     // File is open in the editor; update the document
-                    WriteCommandAction.runWriteCommandAction(project, () -> document.setText(fileContent));
+                    runGeneratedDocumentWriteCommand(project, document, () -> document.setText(fileContent));
 
                     // Commit the document to sync it with the PSI, otherwise format below will error
                     PsiDocumentManager.getInstance(project).commitDocument(document);
@@ -450,7 +452,8 @@ public class StudioPsiUtils {
 
                 DumbService.getInstance(project).runWhenSmart(() -> {
                     if (psiFile != null && psiFile.isWritable()) {
-                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                        Document psiDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+                        runGeneratedDocumentWriteCommand(project, psiDocument, () -> {
                             if (file.getName().endsWith(".java")) {
                                 JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
                             }
@@ -465,6 +468,24 @@ public class StudioPsiUtils {
         } catch (IOException e) {
             LOG.warn("STUDIO: ERROR: writeContentAndFormat " + file + " message [" + e.getMessage() + "] trace [" + Arrays.toString(e.getStackTrace())+ "]");
             throw new StudioRuntimeException("Failed to write or format the file", e);
+        }
+    }
+
+    /**
+     * Runs a document/PSI mutation as a normal IntelliJ write command, while keeping generator-initiated
+     * persistence out of the user's undo history. This is a transient scope, so subsequent manual edits to
+     * generated files or protected user stubs retain normal editor undo. The suppression must surround the
+     * mutation itself because IntelliJ observes document events regardless of the command's active-editor
+     * association.
+     */
+    private static void runGeneratedDocumentWriteCommand(Project project, Document document, Runnable mutation) {
+        Runnable command = () -> WriteCommandAction.writeCommandAction(project)
+                .shouldRecordActionForActiveDocument(false)
+                .run(mutation::run);
+        if (document != null) {
+            UndoUtil.disableUndoIn(document, command);
+        } else {
+            command.run();
         }
     }
 
@@ -706,6 +727,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Indicates that IntelliJ has imported the generated Maven module into the project model.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted") // kept positive/clear at its 2 call sites' "not ready yet" guard clauses
     public static boolean hasGeneratedContentRoot(Project project) {
         return getSpecificContentRootFromCache(project) != null;
     }
