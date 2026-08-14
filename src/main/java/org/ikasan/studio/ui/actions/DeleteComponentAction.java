@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DoNotAskOption;
@@ -11,6 +13,7 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementRemoval;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
@@ -54,16 +57,25 @@ public class DeleteComponentAction implements ActionListener {
                }
             }
             Module ikasanModule = project.getService(UiContext.class).getIkasanModule();
-            List<FlowElement> elementsBeforeRemoval = parentFlow.getFlowElementsNoExternalEndPoints();
-            parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
-            List<FlowElement> elementsAfterRemoval = parentFlow.getFlowElementsNoExternalEndPoints();
-            List<FlowElement> removedElements = new ArrayList<>(elementsBeforeRemoval);
-            removedElements.removeAll(elementsAfterRemoval);
-            deleteAssociatedUserCodeFiles(ikasanModule, parentFlow, removedElements);
+            CommandProcessor.getInstance().executeCommand(project, () -> {
+               List<FlowElement> elementsBeforeRemoval = parentFlow.getFlowElementsNoExternalEndPoints();
+               FlowElementRemoval removal = parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
+               List<FlowElement> elementsAfterRemoval = parentFlow.getFlowElementsNoExternalEndPoints();
+               List<FlowElement> removedElements = new ArrayList<>(elementsBeforeRemoval);
+               removedElements.removeAll(elementsAfterRemoval);
+               deleteAssociatedUserCodeFiles(ikasanModule, parentFlow, removedElements);
+               if (removal != null) {
+                  UndoManager.getInstance(project).undoableActionPerformed(
+                          new DeleteComponentUndoableAction(project, removal::undo, removal::redo));
+               }
+               // Kept inside this command so the JSON model save nests into (and is undone/redone as part
+               // of) the same undo step as the model mutation above, rather than becoming a separate,
+               // invisible-on-canvas undo entry (see DeleteComponentUndoableAction).
+               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+            }, StudioBundle.message("menu.DeleteComponent"), null);
          } else {
             LOG.warn("STUDIO: Attempt to remove flow element " + ikasanBasicElement + " failed because its containing flow could not be found.");
          }
-         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
       } else if (ikasanBasicElement instanceof Flow ikasanFlowToRemove) {
          if (ikasanFlowToRemove.hasAnyComponents()) {
             final int answer = Messages.showYesNoDialog(project,
@@ -72,10 +84,19 @@ public class DeleteComponentAction implements ActionListener {
             if (answer == Messages.YES) {
                UiContext uiContext = project.getService(UiContext.class);
                Module ikasanModule = uiContext.getIkasanModule();
-               List<FlowElement> removedElements = ikasanFlowToRemove.getFlowElementsNoExternalEndPoints();
-               ikasanModule.getFlows().remove(ikasanFlowToRemove);
-               deleteAssociatedUserCodeFiles(ikasanModule, ikasanFlowToRemove, removedElements);
-               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+               List<Flow> flows = ikasanModule.getFlows();
+               int flowIndex = flows.indexOf(ikasanFlowToRemove);
+               CommandProcessor.getInstance().executeCommand(project, () -> {
+                  List<FlowElement> removedElements = ikasanFlowToRemove.getFlowElementsNoExternalEndPoints();
+                  flows.remove(ikasanFlowToRemove);
+                  deleteAssociatedUserCodeFiles(ikasanModule, ikasanFlowToRemove, removedElements);
+                  UndoManager.getInstance(project).undoableActionPerformed(new DeleteComponentUndoableAction(project,
+                          () -> flows.add(Math.min(Math.max(flowIndex, 0), flows.size()), ikasanFlowToRemove),
+                          () -> flows.remove(ikasanFlowToRemove)));
+                  // Kept inside this command so the JSON model save nests into (and is undone/redone as
+                  // part of) the same undo step as the model mutation above.
+                  StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+               }, StudioBundle.message("menu.DeleteComponent"), null);
             }
          }
       } else {

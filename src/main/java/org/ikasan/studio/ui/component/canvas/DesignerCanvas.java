@@ -77,10 +77,16 @@ public class DesignerCanvas extends JPanel {
     public DesignerCanvas(Project project) {
         this.project = project;
         setBackground(getThemeAwareBackgroundColor());
+        // Plain JPanels aren't focusable by default, so this canvas never became the focus owner - which
+        // meant IntelliJ's Edit > Undo/Redo (resolved from the focused component's DataContext via
+        // PlatformCoreDataKeys.FILE_EDITOR) could never find this editor and stayed permanently disabled
+        // while working here, regardless of what was on the undo stack.
+        setFocusable(true);
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 LOG.trace("STUDIO: Mouse press x "+ e.getX() + " y " + e.getY());
+                requestFocusInWindow();
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });

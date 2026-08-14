@@ -96,21 +96,32 @@ public class FlowRoute  implements IkasanComponent {
      * Attempt to remove the element from the flow. Note that the UI threads can sometimes call this multiple times so
      * Extra checks are required.
      * @param ikasanFlowComponentToBeRemoved from this route
+     * @return a record of what was removed and from where, so the removal can be reversed (e.g. to support
+     * IDE Undo); null if there was nothing to remove.
      */
-    public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
+    @SuppressWarnings("unchecked")
+    public FlowElementRemoval removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
         if (ikasanFlowComponentToBeRemoved != null) {
+            List<FlowElementRemoval.ChildRouteRemoval> removedChildRoutes = new ArrayList<>();
             if (ikasanFlowComponentToBeRemoved.componentMeta.isRouter()) {
                 for (String routeName : (List<String>) ikasanFlowComponentToBeRemoved.getPropertyValue(ROUTE_NAMES)) {
                     FlowRoute deleteTarget = findRouteOfName(routeName);
                     if (deleteTarget != null && this != deleteTarget) {
-                        childRoutes.remove(deleteTarget);
+                        int childIndex = childRoutes.indexOf(deleteTarget);
+                        if (childRoutes.remove(deleteTarget)) {
+                            removedChildRoutes.add(new FlowElementRemoval.ChildRouteRemoval(this, deleteTarget, childIndex));
+                        }
                     }
                 }
             }
+            int elementIndex = -1;
             if (flowElements != null) {
+                elementIndex = flowElements.indexOf(ikasanFlowComponentToBeRemoved);
                 flowElements.remove(ikasanFlowComponentToBeRemoved);
             }
+            return new FlowElementRemoval(ikasanFlowComponentToBeRemoved, flow, this, elementIndex, false, false, removedChildRoutes);
         }
+        return null;
     }
 
 

@@ -72,18 +72,26 @@ public class Flow extends BasicElement {
         super.setDescription(description);
     }
 
-    public void removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
+    /**
+     * @param ikasanFlowComponentToBeRemoved from this flow
+     * @return a record of what was removed and from where, so the removal can be reversed (e.g. to support
+     * IDE Undo); null if there was nothing to remove.
+     */
+    public FlowElementRemoval removeFlowElement(FlowElement ikasanFlowComponentToBeRemoved) {
         if (ikasanFlowComponentToBeRemoved != null) {
             if (ikasanFlowComponentToBeRemoved.getComponentMeta().isConsumer()) {
                 setConsumer(null);
+                return new FlowElementRemoval(ikasanFlowComponentToBeRemoved, this, null, -1, true, false, List.of());
             } else if (ikasanFlowComponentToBeRemoved.getComponentMeta().isExceptionResolver()) {
                 setExceptionResolver(null);
+                return new FlowElementRemoval(ikasanFlowComponentToBeRemoved, this, null, -1, false, true, List.of());
             } else if (flowRoute != null) {
-                ikasanFlowComponentToBeRemoved.getContainingFlowRoute().removeFlowElement(ikasanFlowComponentToBeRemoved);
+                return ikasanFlowComponentToBeRemoved.getContainingFlowRoute().removeFlowElement(ikasanFlowComponentToBeRemoved);
             } else {
                 LOG.warn("STUDIO: Attempt to remove element " + ikasanFlowComponentToBeRemoved + " because it could not be found in the memory model");
             }
         }
+        return null;
     }
 
     public boolean hasConsumer() {
@@ -143,6 +151,7 @@ public class Flow extends BasicElement {
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer
      */
+    @SuppressWarnings("unused")
     public List<FlowElement> ftlGetConsumerAndFlowElements() {
 
         List<FlowElement> allElements = new ArrayList<>();
@@ -154,7 +163,7 @@ public class Flow extends BasicElement {
         return allElements;
     }
 
-    public List<FlowElement> getAllFlowElementsInAnyRoute(List<FlowElement> flowElementsList, FlowRoute flowRoute) {
+    private void getAllFlowElementsInAnyRoute(List<FlowElement> flowElementsList, FlowRoute flowRoute) {
         if (flowRoute != null) {
             List<FlowElement> thisRouteFlowElementList = flowRoute.getFlowElements();
             if (thisRouteFlowElementList != null && !thisRouteFlowElementList.isEmpty()) {
@@ -166,13 +175,13 @@ public class Flow extends BasicElement {
                 getAllFlowElementsInAnyRoute(flowElementsList, childRoute);
             }
         }
-        return flowElementsList;
     }
 
     /**
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer, excluding any endpoints
      */
+    @SuppressWarnings("unused")
     public List<FlowElement> ftlGetAllFlowElementsInAnyRouteNoEndpoints() {
 
         List<FlowElement> allElements = ftlGetConsumerAndFlowElements();
@@ -186,6 +195,7 @@ public class Flow extends BasicElement {
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer, excluding any endpoints
      */
+    @SuppressWarnings("unused")
     public List<FlowElement> getFlowElementsNoExternalEndPoints() {
 
         List<FlowElement> allElements = ftlGetConsumerAndFlowElements();
