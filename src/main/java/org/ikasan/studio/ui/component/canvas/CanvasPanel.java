@@ -1,7 +1,9 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -16,9 +18,15 @@ import java.awt.event.ActionListener;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
-    JButton h2Button = new JButton(StudioBundle.message("button.H2Start"));
-    JButton runModuleButton = new JButton(StudioBundle.message("button.RunModule"));
-    JButton debugModuleButton = new JButton(StudioBundle.message("button.DebugModule"));
+    private static final Icon H2_ICON = IconLoader.getIcon("/studio/icons/h2.svg", CanvasPanel.class);
+    private static final Icon CONSOLE_ICON = IconLoader.getIcon("/studio/icons/console.svg", CanvasPanel.class);
+    private static final Icon LOAD_ICON = IconLoader.getIcon("/studio/icons/load.svg", CanvasPanel.class);
+    private static final Icon SAVE_ICON = IconLoader.getIcon("/studio/icons/save.svg", CanvasPanel.class);
+
+    JButton h2Button = new JButton(StudioBundle.message("button.H2Start"), H2_ICON);
+    JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
+    JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
+    JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -32,12 +40,20 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
         runModuleButton.setEnabled(false);
         debugModuleButton.setEnabled(false);
+        stopModuleButton.setEnabled(false);
+        runModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(runModuleButton.getIcon()));
+        debugModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(debugModuleButton.getIcon()));
+        stopModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(stopModuleButton.getIcon()));
+        runModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.RunModule"));
+        debugModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.DebugModule"));
+        stopModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.StopModule"));
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
         addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console")), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Load")), new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save")), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
+        addButtonsToPanel(canvasHeaderButtonPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console"), CONSOLE_ICON), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Load"), LOAD_ICON), new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
 
@@ -95,5 +111,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     public void setDebugModuleEnabled(boolean flag) {
         debugModuleButton.setEnabled(flag);
+    }
+
+    public void setStopModuleEnabled(boolean flag) {
+        stopModuleButton.setEnabled(flag);
     }
 }

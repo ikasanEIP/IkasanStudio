@@ -21,10 +21,12 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
-/** Tracks live Studio debug launches for this project. */
+/** Tracks live Studio module launches for this project, including the debug subset. */
 @Service(Service.Level.PROJECT)
 public final class IkasanDebugSessionService implements Disposable {
     private final Project project;
+    private final Set<ProcessHandler> moduleProcesses =
+            Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<ProcessHandler> debugProcesses =
             Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -38,8 +40,8 @@ public final class IkasanDebugSessionService implements Disposable {
             @Override
             public void processStarted(String executorId, ExecutionEnvironment environment,
                                        ProcessHandler handler) {
-                if (isStudioDebugExecution(executorId, environment)) {
-                    updateProcess(handler, true);
+                if (isStudioModuleExecution(environment)) {
+                    updateProcess(handler, true, isStudioDebugExecution(executorId, environment));
                 }
             }
 
@@ -47,7 +49,7 @@ public final class IkasanDebugSessionService implements Disposable {
             @Override
             public void processTerminated(String executorId, ExecutionEnvironment environment,
                                           ProcessHandler handler, int exitCode) {
-                updateProcess(handler, false);
+                updateProcess(handler, false, false);
             }
         });
         registerAlreadyRunningDebugProcesses();
@@ -55,6 +57,38 @@ public final class IkasanDebugSessionService implements Disposable {
 
     public synchronized boolean isDebugModuleRunning() {
         return !debugProcesses.isEmpty();
+    }
+
+    public synchronized boolean isModuleRunning() {
+        return !moduleProcesses.isEmpty();
+    }
+
+    public synchronized boolean canStopModule() {
+        return moduleProcesses.stream()
+                .anyMatch(handler -> !handler.isProcessTerminated() && !handler.isProcessTerminating());
+    }
+
+    /** Requests termination of the Studio module processes owned by this project. */
+    public void stopModule() {
+        Set<ProcessHandler> processes;
+        synchronized (this) {
+            processes = Collections.newSetFromMap(new IdentityHashMap<>());
+            processes.addAll(moduleProcesses);
+        }
+        for (ProcessHandler handler : processes) {
+            if (!handler.isProcessTerminated() && !handler.isProcessTerminating()) {
+                handler.destroyProcess();
+            }
+        }
+        repaintCanvas();
+    }
+
+    static boolean isStudioModuleExecution(ExecutionEnvironment environment) {
+        if (environment == null) {
+            return false;
+        }
+        RunnerAndConfigurationSettings settings = environment.getRunnerAndConfigurationSettings();
+        return settings != null && isStudioModuleConfiguration(settings.getConfiguration());
     }
 
     static boolean isStudioDebugExecution(String executorId, ExecutionEnvironment environment) {
@@ -70,12 +104,20 @@ public final class IkasanDebugSessionService implements Disposable {
     }
 
     private static boolean isStudioDebugConfiguration(RunProfile runProfile) {
+        if (!isStudioModuleConfiguration(runProfile)) {
+            return false;
+        }
+        ApplicationConfiguration configuration = (ApplicationConfiguration) runProfile;
+        return IkasanRunConfigurationService.STUDIO_DEBUG_PROGRAM_PARAMETERS
+                .equals(configuration.getProgramParameters());
+    }
+
+    private static boolean isStudioModuleConfiguration(RunProfile runProfile) {
         if (!(runProfile instanceof ApplicationConfiguration configuration)) {
             return false;
         }
         return IkasanRunConfigurationService.MAIN_CLASS_NAME.equals(configuration.getMainClassName())
-                && IkasanRunConfigurationService.STUDIO_DEBUG_PROGRAM_PARAMETERS
-                .equals(configuration.getProgramParameters());
+                && configuration.getConfigurationModule().getModule() != null;
     }
 
     /**
@@ -89,23 +131,29 @@ public final class IkasanDebugSessionService implements Disposable {
             if (isStudioDebugConfiguration(session.getRunProfile())) {
                 ProcessHandler handler = session.getDebugProcess().getProcessHandler();
                 if (!handler.isProcessTerminated()) {
+                    moduleProcesses.add(handler);
                     debugProcesses.add(handler);
                 }
             }
         }
     }
 
-    private void updateProcess(ProcessHandler handler, boolean running) {
+    private void updateProcess(ProcessHandler handler, boolean running, boolean debug) {
         boolean visibilityChanged;
         synchronized (this) {
-            boolean wasRunning = !debugProcesses.isEmpty();
+            boolean wasModuleRunning = !moduleProcesses.isEmpty();
+            boolean wasDebugRunning = !debugProcesses.isEmpty();
             if (running) {
-                debugProcesses.add(handler);
+                moduleProcesses.add(handler);
+                if (debug) {
+                    debugProcesses.add(handler);
+                }
             } else {
+                moduleProcesses.remove(handler);
                 debugProcesses.remove(handler);
             }
-            boolean isRunningNow = !debugProcesses.isEmpty();
-            visibilityChanged = wasRunning != isRunningNow;
+            visibilityChanged = wasModuleRunning != !moduleProcesses.isEmpty()
+                    || wasDebugRunning != !debugProcesses.isEmpty();
         }
         if (visibilityChanged) {
             repaintCanvas();
@@ -130,6 +178,7 @@ public final class IkasanDebugSessionService implements Disposable {
 
     @Override
     public synchronized void dispose() {
+        moduleProcesses.clear();
         debugProcesses.clear();
     }
 }

@@ -26,6 +26,18 @@ class IkasanDebugSessionServiceTest {
     }
 
     @Test
+    void recognisesBothRunAndDebugConfigurationsAsStudioModuleExecutions() {
+        ExecutionEnvironment runEnvironment = environment(
+                IkasanRunConfigurationService.MAIN_CLASS_NAME, null);
+        ExecutionEnvironment debugEnvironment = environment(
+                IkasanRunConfigurationService.MAIN_CLASS_NAME,
+                IkasanRunConfigurationService.STUDIO_DEBUG_PROGRAM_PARAMETERS);
+
+        assertThat(IkasanDebugSessionService.isStudioModuleExecution(runEnvironment)).isTrue();
+        assertThat(IkasanDebugSessionService.isStudioModuleExecution(debugEnvironment)).isTrue();
+    }
+
+    @Test
     void rejectsDebugLaunchWithoutStudioDebugProfile() {
         ExecutionEnvironment environment = environment(
                 IkasanRunConfigurationService.MAIN_CLASS_NAME, null);
@@ -52,6 +64,10 @@ class IkasanDebugSessionServiceTest {
         when(settings.getConfiguration()).thenReturn(configuration);
         when(configuration.getMainClassName()).thenReturn(mainClass);
         when(configuration.getProgramParameters()).thenReturn(parameters);
+        when(configuration.getConfigurationModule()).thenReturn(mock(
+                com.intellij.execution.configurations.JavaRunConfigurationModule.class));
+        when(configuration.getConfigurationModule().getModule())
+                .thenReturn(mock(com.intellij.openapi.module.Module.class));
         return environment;
     }
 }

@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -26,6 +27,7 @@ import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
+import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
@@ -62,7 +64,9 @@ public class DesignerCanvas extends JPanel {
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
     private final Project project;
-    private final JButton startButton = new JButton(StudioBundle.message("button.ConfigureModule"));
+    private final JButton startButton = new JButton(
+        StudioBundle.message("button.ConfigureModule"),
+        IconLoader.getIcon("/studio/icons/configure-module.svg", DesignerCanvas.class));
     private final ComboBox<String> metaDataVersionComboBox;
     private final JPanel newModulePanel;
 
@@ -1062,11 +1066,15 @@ public class DesignerCanvas extends JPanel {
      */
     private void updateRunModuleButtonState(Module module) {
         GettingStartedHint hint = getGettingStartedHint(module);
-        boolean runnable = hint == GettingStartedHint.READY_TO_RUN || hint == GettingStartedHint.OPEN_CONSOLE;
+        boolean validModule = hint == GettingStartedHint.READY_TO_RUN || hint == GettingStartedHint.OPEN_CONSOLE;
+        boolean runnable = validModule
+                && !project.getService(IkasanDebugSessionService.class).isModuleRunning();
         CanvasPanel canvasPanel = project.getService(UiContext.class).getCanvasPanel();
         if (canvasPanel != null) {
             canvasPanel.setRunModuleEnabled(runnable);
             canvasPanel.setDebugModuleEnabled(runnable);
+            canvasPanel.setStopModuleEnabled(
+                    project.getService(IkasanDebugSessionService.class).canStopModule());
         }
     }
 
