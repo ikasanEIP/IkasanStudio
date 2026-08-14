@@ -10,6 +10,7 @@ import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.actions.*;
+import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
@@ -38,7 +39,8 @@ public class DesignCanvasContextMenu {
             if (!flowElement.getComponentMeta().isProducer() && !flowElement.getComponentMeta().isDebug()) {
                 menu.add(createDebugComponentMenuItem(project, ikasanBasicElement));
             }
-            if (flowElement.getComponentMeta().isConsumer()) {
+            if (flowElement.getComponentMeta().isConsumer()
+                    && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
                 menu.add(createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
             menu.addSeparator();
@@ -159,4 +161,3 @@ public class DesignCanvasContextMenu {
         return item;
     }
 }
-

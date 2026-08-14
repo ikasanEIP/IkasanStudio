@@ -9,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -92,6 +93,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     }
 
     protected void paintRoute(JPanel canvas, Graphics g, FlowRoute flowRoute, FlowRoute parent) {
+        cachedSendTestMessageBadge.clear();
         List<FlowElement> flowAndConsumerElementList = flowRoute.getConsumerAndFlowRouteElements();
         int flowSize = flowAndConsumerElementList.size();
         StudioUIUtils.setLine(g, 2f);
@@ -164,7 +166,9 @@ LOG.error("STUDIO: 1 Left X being set to a -ve of " + (targetFlowElementViewHand
                     endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
-                    paintSendTestMessageBadge(canvas, g, targetFlowElement, endpointViewHandler);
+                    if (project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
+                        paintSendTestMessageBadge(canvas, g, targetFlowElement, endpointViewHandler);
+                    }
                 } else {
 //                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
 //XXXX

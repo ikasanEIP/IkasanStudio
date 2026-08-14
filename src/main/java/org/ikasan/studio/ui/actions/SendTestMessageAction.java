@@ -14,6 +14,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,6 +51,11 @@ public class SendTestMessageAction implements ActionListener {
     public void actionPerformed(ActionEvent actionEvent) {
         if (!(ikasanBasicElement instanceof FlowElement flowElement) || !flowElement.getComponentMeta().isConsumer()) {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.SendTestMessageCanOnlyBeUsedOnConsumers"));
+            return;
+        }
+        if (!project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
+            StudioUIUtils.displayIdeaWarnMessage(project,
+                    StudioBundle.message("message.SendTestMessageRequiresRunningDebugModule"));
             return;
         }
 
