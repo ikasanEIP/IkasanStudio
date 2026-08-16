@@ -12,7 +12,7 @@ import javax.swing.Icon;
 final class IkasanStudioFileType implements FileType {
     static final IkasanStudioFileType INSTANCE = new IkasanStudioFileType();
     private static final Icon ICON = IconLoader.getIcon(
-            "/studio/icons/squid13x13.png", IkasanStudioFileType.class);
+            "/studio/icons/squid13x13.svg", IkasanStudioFileType.class);
 
     private IkasanStudioFileType() {
     }

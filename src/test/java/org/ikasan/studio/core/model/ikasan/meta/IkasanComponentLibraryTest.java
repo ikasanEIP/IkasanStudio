@@ -29,6 +29,40 @@ class IkasanComponentLibraryTest {
         Icon mappingIcon = IkasanComponentLibrary.getGeneralIcon("mapping-service.png", "Mapping");
         Icon wiretapServiceIcon = IkasanComponentLibrary.getGeneralIcon(
                 "wiretap-service.png", "Wiretap Service");
+        Icon configurationServiceIcon = IkasanComponentLibrary.getGeneralIcon(
+                "configuration-service.png", "Configuration Service");
+        Icon hospitalServiceIcon = IkasanComponentLibrary.getGeneralIcon(
+                "hospital-service.png", "Hospital Service");
+        Icon replayServiceIcon = IkasanComponentLibrary.getGeneralIcon(
+                "replay-service.png", "Replay Service");
+        Icon requestReplyIcon = IkasanComponentLibrary.getGeneralIcon(
+                "request-reply.png", "Request Reply");
+        Icon deadEndPointIcon = IkasanComponentLibrary.getGeneralIcon(
+                "dead-end-point.png", "Dead End Point");
+        Icon deadLetterChannelIcon = IkasanComponentLibrary.getGeneralIcon(
+                "dead-letter-channel.png", "Dead Letter Channel");
+        Icon fileLocationIcon = IkasanComponentLibrary.getGeneralIcon(
+                "file-location.png", "File Location");
+        Icon ftpLocationIcon = IkasanComponentLibrary.getGeneralIcon(
+                "ftp-location.png", "FTP Location");
+        Icon computerIcon = IkasanComponentLibrary.getGeneralIcon(
+                "computer.png", "Computer");
+        Icon emptyControlIcon = IkasanComponentLibrary.getGeneralIcon(
+                "empty-control-small.png", "Empty Control");
+        Icon largeWiretapIcon = IkasanComponentLibrary.getGeneralIcon(
+                "lrg-wiretap.png", "Large Wiretap");
+        Icon largeLogWiretapIcon = IkasanComponentLibrary.getGeneralIcon(
+                "lrg-log-wiretap.png", "Large Log Wiretap");
+        Icon help30Icon = IkasanComponentLibrary.getGeneralIcon(
+                "help-30-30.png", "Help 30");
+        Icon help40Icon = IkasanComponentLibrary.getGeneralIcon(
+                "help-40-40.png", "Help 40");
+        Icon studioIcon = IkasanComponentLibrary.getGeneralIcon(
+                "icon.png", "Studio Icon");
+        Icon squid13Icon = IkasanComponentLibrary.getGeneralIcon(
+                "squid13x13.png", "Squid 13");
+        Icon squidHeadIcon = IkasanComponentLibrary.getGeneralIcon(
+                "mr-squid-head.png", "Mr Squid Head");
 
         assertAll(
                 () -> assertEquals(24, helpIcon.getIconWidth()),
@@ -53,6 +87,40 @@ class IkasanComponentLibraryTest {
                 () -> assertEquals(22, mappingIcon.getIconHeight()),
                 () -> assertEquals(22, wiretapServiceIcon.getIconWidth()),
                 () -> assertEquals(22, wiretapServiceIcon.getIconHeight()),
+                () -> assertEquals(22, configurationServiceIcon.getIconWidth()),
+                () -> assertEquals(22, configurationServiceIcon.getIconHeight()),
+                () -> assertEquals(22, hospitalServiceIcon.getIconWidth()),
+                () -> assertEquals(22, hospitalServiceIcon.getIconHeight()),
+                () -> assertEquals(22, replayServiceIcon.getIconWidth()),
+                () -> assertEquals(22, replayServiceIcon.getIconHeight()),
+                () -> assertEquals(33, requestReplyIcon.getIconWidth()),
+                () -> assertEquals(22, requestReplyIcon.getIconHeight()),
+                () -> assertEquals(33, deadEndPointIcon.getIconWidth()),
+                () -> assertEquals(22, deadEndPointIcon.getIconHeight()),
+                () -> assertEquals(33, deadLetterChannelIcon.getIconWidth()),
+                () -> assertEquals(22, deadLetterChannelIcon.getIconHeight()),
+                () -> assertEquals(33, fileLocationIcon.getIconWidth()),
+                () -> assertEquals(22, fileLocationIcon.getIconHeight()),
+                () -> assertEquals(33, ftpLocationIcon.getIconWidth()),
+                () -> assertEquals(22, ftpLocationIcon.getIconHeight()),
+                () -> assertEquals(25, computerIcon.getIconWidth()),
+                () -> assertEquals(22, computerIcon.getIconHeight()),
+                () -> assertEquals(22, emptyControlIcon.getIconWidth()),
+                () -> assertEquals(22, emptyControlIcon.getIconHeight()),
+                () -> assertEquals(32, largeWiretapIcon.getIconWidth()),
+                () -> assertEquals(32, largeWiretapIcon.getIconHeight()),
+                () -> assertEquals(32, largeLogWiretapIcon.getIconWidth()),
+                () -> assertEquals(32, largeLogWiretapIcon.getIconHeight()),
+                () -> assertEquals(30, help30Icon.getIconWidth()),
+                () -> assertEquals(30, help30Icon.getIconHeight()),
+                () -> assertEquals(40, help40Icon.getIconWidth()),
+                () -> assertEquals(40, help40Icon.getIconHeight()),
+                () -> assertEquals(512, studioIcon.getIconWidth()),
+                () -> assertEquals(512, studioIcon.getIconHeight()),
+                () -> assertEquals(13, squid13Icon.getIconWidth()),
+                () -> assertEquals(13, squid13Icon.getIconHeight()),
+                () -> assertEquals(378, squidHeadIcon.getIconWidth()),
+                () -> assertEquals(496, squidHeadIcon.getIconHeight()),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(helpIcon instanceof ImageIcon),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(sendTestMessageIcon instanceof ImageIcon),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapIcon instanceof ImageIcon),
@@ -63,7 +131,24 @@ class IkasanComponentLibraryTest {
                 () -> org.junit.jupiter.api.Assertions.assertFalse(ignoreIcon instanceof ImageIcon),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(errorIcon instanceof ImageIcon),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(mappingIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapServiceIcon instanceof ImageIcon)
+                () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapServiceIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(configurationServiceIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(hospitalServiceIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(replayServiceIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(requestReplyIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(deadEndPointIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(deadLetterChannelIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(fileLocationIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(ftpLocationIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(computerIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(emptyControlIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(largeWiretapIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(largeLogWiretapIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(help30Icon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(help40Icon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(studioIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(squid13Icon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(squidHeadIcon instanceof ImageIcon)
         );
     }
 
