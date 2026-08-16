@@ -242,7 +242,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         return new Pair<>(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
     }
 
-    public ImageIcon getCanvasIcon() {
+    public Icon getCanvasIcon() {
         return flowElement.getComponentMeta().getCanvasIcon();
     }
 

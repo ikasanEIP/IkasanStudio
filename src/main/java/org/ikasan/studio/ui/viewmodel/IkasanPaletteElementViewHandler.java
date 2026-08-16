@@ -43,7 +43,7 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
         return componentMeta.getHelpText();
     }
 
-    public ImageIcon getDisplayIcon() {
+    public Icon getDisplayIcon() {
         return componentMeta.getSmallIcon();
     }
 

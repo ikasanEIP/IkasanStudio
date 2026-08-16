@@ -1,6 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.meta;
 
 import org.ikasan.studio.core.StudioBuildException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
@@ -12,8 +13,17 @@ import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.ge
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getIkasanComponentByKey;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class IkasanComponentLibraryTest {
+    @BeforeAll
+    static void warmUpComponentLibrary() throws StudioBuildException {
+        // Meta-pack classloader I/O lazily starts NIO/Java2D daemon threads. Start them before
+        // IntelliJ's per-test ThreadLeakTracker captures its baseline.
+        IkasanComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
+    }
+
     @Test
     void generalIconsPreferSvgWhenVectorAssetExists() {
         Icon helpIcon = IkasanComponentLibrary.getGeneralIcon("help.png", "Help");
@@ -179,6 +189,18 @@ class IkasanComponentLibraryTest {
         verifyDefaultModuleMeta(componentMetaList.get(ComponentMeta.MODULE_TYPE));
         verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_TYPE));
         verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_TYPE));
+        verifyCustomConverterUsesSvg(componentMetaList.get("Custom Converter"));
+    }
+
+    private void verifyCustomConverterUsesSvg(ComponentMeta customConverter) {
+        assertAll(
+                () -> assertEquals(40, customConverter.getSmallIcon().getIconWidth()),
+                () -> assertEquals(27, customConverter.getSmallIcon().getIconHeight()),
+                () -> assertEquals(90, customConverter.getCanvasIcon().getIconWidth()),
+                () -> assertEquals(60, customConverter.getCanvasIcon().getIconHeight()),
+                () -> assertFalse(customConverter.getSmallIcon() instanceof ImageIcon),
+                () -> assertFalse(customConverter.getCanvasIcon() instanceof ImageIcon)
+        );
     }
 
     protected void verifyDefaultFlowMeta(ComponentMeta flow) {
@@ -188,8 +210,8 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("<strong>Flow</strong><p>The flow is the container for components and generally represents an atomic action.</p>", flow.getHelpText()),
             () -> assertEquals("org.ikasan.spec.flow.Flow", flow.getComponentType()),
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
-            () -> assertEquals("Small Flow icon", flow.getSmallIcon().getDescription()),
-            () -> assertEquals("Medium Flow icon", flow.getCanvasIcon().getDescription()),
+            () -> assertEquals("Small Flow icon", assertInstanceOf(ImageIcon.class, flow.getSmallIcon()).getDescription()),
+            () -> assertEquals("Medium Flow icon", assertInstanceOf(ImageIcon.class, flow.getCanvasIcon()).getDescription()),
             () -> assertEquals(4, flow.getAllowableProperties().size())
         );
     }
@@ -200,8 +222,8 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("The module is the container for all flows", module.getHelpText()),
             () -> assertEquals("org.ikasan.spec.module.Module", module.getComponentType()),
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
-            () -> assertEquals("Small Module icon", module.getSmallIcon().getDescription()),
-            () -> assertEquals("Medium Module icon", module.getCanvasIcon().getDescription()),
+            () -> assertEquals("Small Module icon", assertInstanceOf(ImageIcon.class, module.getSmallIcon()).getDescription()),
+            () -> assertEquals("Medium Module icon", assertInstanceOf(ImageIcon.class, module.getCanvasIcon()).getDescription()),
             () -> assertEquals(11, module.getAllowableProperties().size())
         );
     }
@@ -212,8 +234,8 @@ class IkasanComponentLibraryTest {
                 () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_TYPE, exceptionResolver.getName()),
                 () -> assertEquals("org.ikasan.exceptionResolver.ExceptionResolver", exceptionResolver.getComponentType()),
                 () -> assertEquals("<strong>Exception Resolver</strong><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>", exceptionResolver.getHelpText()),
-                () -> assertEquals("Small Exception Resolver icon", exceptionResolver.getSmallIcon().getDescription()),
-                () -> assertEquals("Medium Exception Resolver icon", exceptionResolver.getCanvasIcon().getDescription()),
+                () -> assertEquals("Small Exception Resolver icon", assertInstanceOf(ImageIcon.class, exceptionResolver.getSmallIcon()).getDescription()),
+                () -> assertEquals("Medium Exception Resolver icon", assertInstanceOf(ImageIcon.class, exceptionResolver.getCanvasIcon()).getDescription()),
                 () -> assertEquals(0, exceptionResolver.getAllowableProperties().size()),
                 () -> assertEquals(5, exceptionResolver.getActionList().size())
         );

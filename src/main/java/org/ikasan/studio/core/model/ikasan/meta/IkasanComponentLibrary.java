@@ -146,8 +146,8 @@ public class IkasanComponentLibrary {
                         }
 
                         final String componentName = componentMeta.getName();
-                        componentMeta.setSmallIcon(getImageIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
-                        componentMeta.setCanvasIcon(getImageIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
+                        componentMeta.setSmallIcon(getComponentIcon(componentDirectory + "/" + SMALL_ICON_NAME, UNKNOWN_ICONS_DIR + SMALL_ICON_NAME, "Small " + componentName + " icon"));
+                        componentMeta.setCanvasIcon(getComponentIcon(componentDirectory + "/" + NORMAL_ICON_NAME, UNKNOWN_ICONS_DIR + NORMAL_ICON_NAME, "Medium " + componentName + " icon"));
 
                         if (componentMeta.getSmallIcon().getIconWidth() == -1) {
                             LOG.warn("STUDIO: The small icon for component " + componentName + " in directory " + componentDirectory + " could not be loaded");
@@ -440,6 +440,19 @@ public class IkasanComponentLibrary {
         }
         imageIcon = new ImageIcon(iconURL, description);
         return imageIcon;
+    }
+
+    private static Icon getComponentIcon(String pngLocation, String defaultPngLocation, String description) {
+        String svgLocation = FilenameUtils.removeExtension(pngLocation) + ".svg";
+        URL svgURL = IkasanComponentLibrary.class.getClassLoader().getResource(svgLocation);
+        if (svgURL != null) {
+            Icon svgIcon = IconLoader.findIcon(svgURL);
+            if (svgIcon != null) {
+                return svgIcon;
+            }
+            LOG.warn("STUDIO: Could not load SVG component icon " + svgLocation + ", using PNG fallback");
+        }
+        return getImageIcon(pngLocation, defaultPngLocation, description);
     }
 
     public static FlowElement getEndpointForGivenComponent(String ikasanMetaDataPackVersion, FlowElement targetFlowElement) {

@@ -17,19 +17,19 @@ import java.util.TreeMap;
 
 /**
  * See Readme.md for a description of the meta-pack and how it is used.
- *
+ * -
  * This class holds the metadata for an Ikasan component e.g. an email producer, ftp consumer.
- *
+ * -
  * The purpose of this metadata is to describe the component e.g.
  * * what does it do (help text),
  * * is it a component that is used at the start / end of a flow or within the body of the flow,
  * * what jars are required when this component is used,
  * * what properties does it have.
- *
+ * -
  * This metadata is populated from the meta-pack, so there will be an instance of this class
  * - for each component
  * -   for each version of Ikasan supported by the plugin.
- *
+ * -
  * These classes are used to generate the Java code, help the user fill in the correct details for each component, help the UI
  * to display the component and provide validation for the use of the component in a flow or on the visualiser.
  */
@@ -97,9 +97,9 @@ public class ComponentMeta implements IkasanMeta {
     private String webHelpURL = DEFAULT_README;
 
     @JsonIgnore
-    private ImageIcon smallIcon;
+    private Icon smallIcon;
     @JsonIgnore
-    private ImageIcon canvasIcon;
+    private Icon canvasIcon;
 
     public ComponentMeta() {}
 
@@ -154,13 +154,13 @@ public class ComponentMeta implements IkasanMeta {
         return EXCEPTION_RESOLVER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
 
-    public String getDisplayComponentType() {
-        if (componentType.contains(".")) {
-            return componentType.substring(componentType.lastIndexOf('.') + 1).trim();
-        } else {
-            return "";
-        }
-    }
+//    public String getDisplayComponentType() {
+//        if (componentType.contains(".")) {
+//            return componentType.substring(componentType.lastIndexOf('.') + 1).trim();
+//        } else {
+//            return "";
+//        }
+//    }
 
     public String getComponentType() {
         if (componentType == null || componentType.isEmpty()) {

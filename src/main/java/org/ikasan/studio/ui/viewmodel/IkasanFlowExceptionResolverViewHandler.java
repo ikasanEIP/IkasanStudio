@@ -15,7 +15,6 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
     public static final int HORIZONTAL_PAD = 5;
     public static final int FLOWCHART_SYMBOL_DEFAULT_HEIGHT = 15;
     public static final int FLOWCHART_SYMBOL_DEFAULT_WIDTH = 42;
-    private final int flowchartSymbolHeight = FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
 
     FlowElement flowElement;
 
@@ -55,7 +54,7 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
         LOG.debug("STUDIO: paintComponent invoked");
         // here we ket the components decide TestV1,y
         paintFlowchartSymbol(canvas, g);
-        return minimumTopY + flowchartSymbolHeight;
+        return minimumTopY + FLOWCHART_SYMBOL_DEFAULT_HEIGHT;
     }
 
     private void paintFlowchartSymbol(JPanel canvas, Graphics g) {
@@ -78,7 +77,7 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
         setHeight(getCanvasIcon().getIconHeight());
     }
 
-    public ImageIcon getCanvasIcon() {
+    public Icon getCanvasIcon() {
         return flowElement.getComponentMeta().getCanvasIcon();
     }
 
