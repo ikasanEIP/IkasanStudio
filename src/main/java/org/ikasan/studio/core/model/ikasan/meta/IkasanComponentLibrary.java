@@ -1,6 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.meta;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.IconLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
@@ -203,15 +204,23 @@ public class IkasanComponentLibrary {
     }
 
     public static Icon getGeneralIcon(String iconFilename, String description) {
+        String iconBaseName = FilenameUtils.removeExtension(iconFilename);
+        String svgLocation = GENERAL_ICONS_DIR + iconBaseName + ".svg";
+        URL svgURL = IkasanComponentLibrary.class.getClassLoader().getResource(svgLocation);
+        if (svgURL != null) {
+            Icon svgIcon = IconLoader.findIcon(svgURL);
+            if (svgIcon != null) {
+                return svgIcon;
+            }
+            LOG.warn("STUDIO: Could not load SVG icon " + svgLocation + ", using PNG fallback");
+        }
 
-        ImageIcon imageIcon;
-        String iconLocation = GENERAL_ICONS_DIR + "/" + iconFilename;
+        String iconLocation = GENERAL_ICONS_DIR + iconFilename;
         URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
         if (iconURL == null) {
-            LOG.warn("STUDIO: Could not create Icon for " + iconLocation + " using default");
+            LOG.warn("STUDIO: Could not create Icon for " + iconLocation);
         }
-        imageIcon = new ImageIcon(iconURL, description);
-        return imageIcon;
+        return new ImageIcon(iconURL, description);
     }
 
     /**

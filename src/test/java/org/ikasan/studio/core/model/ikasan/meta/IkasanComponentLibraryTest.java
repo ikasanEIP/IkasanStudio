@@ -3,6 +3,7 @@ package org.ikasan.studio.core.model.ikasan.meta;
 import org.ikasan.studio.core.StudioBuildException;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.*;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -13,6 +14,59 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IkasanComponentLibraryTest {
+    @Test
+    void generalIconsPreferSvgWhenVectorAssetExists() {
+        Icon helpIcon = IkasanComponentLibrary.getGeneralIcon("help.png", "Help");
+        Icon sendTestMessageIcon = IkasanComponentLibrary.getGeneralIcon(
+                "send-test-message.png", "Send Test Message");
+        Icon wiretapIcon = IkasanComponentLibrary.getGeneralIcon("wiretap.png", "Wiretap");
+        Icon logWiretapIcon = IkasanComponentLibrary.getGeneralIcon("log-wiretap.png", "Log Wiretap");
+        Icon searchIcon = IkasanComponentLibrary.getGeneralIcon("search-icon.png", "Search");
+        Icon replayIcon = IkasanComponentLibrary.getGeneralIcon("replay-small-icon.png", "Replay");
+        Icon resubmitIcon = IkasanComponentLibrary.getGeneralIcon("resubmit-icon.png", "Resubmit");
+        Icon ignoreIcon = IkasanComponentLibrary.getGeneralIcon("ignore-icon.png", "Ignore");
+        Icon errorIcon = IkasanComponentLibrary.getGeneralIcon("error-service.png", "Error");
+        Icon mappingIcon = IkasanComponentLibrary.getGeneralIcon("mapping-service.png", "Mapping");
+        Icon wiretapServiceIcon = IkasanComponentLibrary.getGeneralIcon(
+                "wiretap-service.png", "Wiretap Service");
+
+        assertAll(
+                () -> assertEquals(24, helpIcon.getIconWidth()),
+                () -> assertEquals(24, helpIcon.getIconHeight()),
+                () -> assertEquals(39, sendTestMessageIcon.getIconWidth()),
+                () -> assertEquals(22, sendTestMessageIcon.getIconHeight()),
+                () -> assertEquals(22, wiretapIcon.getIconWidth()),
+                () -> assertEquals(22, wiretapIcon.getIconHeight()),
+                () -> assertEquals(22, logWiretapIcon.getIconWidth()),
+                () -> assertEquals(22, logWiretapIcon.getIconHeight()),
+                () -> assertEquals(22, searchIcon.getIconWidth()),
+                () -> assertEquals(22, searchIcon.getIconHeight()),
+                () -> assertEquals(22, replayIcon.getIconWidth()),
+                () -> assertEquals(22, replayIcon.getIconHeight()),
+                () -> assertEquals(22, resubmitIcon.getIconWidth()),
+                () -> assertEquals(22, resubmitIcon.getIconHeight()),
+                () -> assertEquals(22, ignoreIcon.getIconWidth()),
+                () -> assertEquals(22, ignoreIcon.getIconHeight()),
+                () -> assertEquals(22, errorIcon.getIconWidth()),
+                () -> assertEquals(22, errorIcon.getIconHeight()),
+                () -> assertEquals(22, mappingIcon.getIconWidth()),
+                () -> assertEquals(22, mappingIcon.getIconHeight()),
+                () -> assertEquals(22, wiretapServiceIcon.getIconWidth()),
+                () -> assertEquals(22, wiretapServiceIcon.getIconHeight()),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(helpIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(sendTestMessageIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(logWiretapIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(searchIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(replayIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(resubmitIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(ignoreIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(errorIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(mappingIcon instanceof ImageIcon),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapServiceIcon instanceof ImageIcon)
+        );
+    }
+
     @Test
     void testDescerialisationKey() throws StudioBuildException {
         String key1 = getDeserialisationKey(getIkasanComponentByKey(BASE_META_PACK, "DB Endpoint"));

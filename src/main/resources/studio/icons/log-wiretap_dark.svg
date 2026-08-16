@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="22"
+   height="22"
+   viewBox="0 0 22 22"
+   version="1.1"
+   id="svg928"
+   xmlns="http://www.w3.org/2000/svg">
+  <rect
+     x="1"
+     y="1"
+     width="20"
+     height="20"
+     rx="2"
+     fill="none"
+     stroke="#F15A23"
+     stroke-width="2"
+     id="rect918" />
+  <path
+     d="M4 4.5h14M11 5v5"
+     fill="none"
+     stroke="#CED0D6"
+     stroke-width="1.7"
+     stroke-linecap="round"
+     id="path920" />
+  <path
+     d="M8.2 9.5h5.6L11 14Z"
+     fill="#CED0D6"
+     id="path922" />
+  <circle
+     cx="11"
+     cy="11.2"
+     r=".75"
+     fill="#F15A23"
+     id="circle924" />
+  <path
+     d="m 6.5238721,15.177204 v 3 h 2 m 1.4999999,0 v -3 h 2 v 3 z m 4,0 v -3 h 2.5 m -1,1.5 h 1.5 v 1.5 h -3"
+     fill="none"
+     stroke="#ced0d6"
+     stroke-width="1"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     id="path926" />
+</svg>
