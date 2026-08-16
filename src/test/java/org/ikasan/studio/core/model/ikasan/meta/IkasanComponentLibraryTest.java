@@ -189,17 +189,32 @@ class IkasanComponentLibraryTest {
         verifyDefaultModuleMeta(componentMetaList.get(ComponentMeta.MODULE_TYPE));
         verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_TYPE));
         verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_TYPE));
-        verifyCustomConverterUsesSvg(componentMetaList.get("Custom Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Custom Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Channel Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("JMS Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("Basic AMQ JMS Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("Object Message To Object Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Object Message To XML String Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Custom Translator"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Translator"));
+        verifyComponentUsesSvg(componentMetaList.get("Email Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("Dev Null Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("FTP Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("Logging Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("SFTP Producer"));
     }
 
-    private void verifyCustomConverterUsesSvg(ComponentMeta customConverter) {
+    private void verifyComponentUsesSvg(ComponentMeta component) {
         assertAll(
-                () -> assertEquals(40, customConverter.getSmallIcon().getIconWidth()),
-                () -> assertEquals(27, customConverter.getSmallIcon().getIconHeight()),
-                () -> assertEquals(90, customConverter.getCanvasIcon().getIconWidth()),
-                () -> assertEquals(60, customConverter.getCanvasIcon().getIconHeight()),
-                () -> assertFalse(customConverter.getSmallIcon() instanceof ImageIcon),
-                () -> assertFalse(customConverter.getCanvasIcon() instanceof ImageIcon)
+                component.getName() + " should use native SVG icons",
+                () -> assertEquals(40, component.getSmallIcon().getIconWidth()),
+                () -> assertEquals(27, component.getSmallIcon().getIconHeight()),
+                () -> assertEquals(90, component.getCanvasIcon().getIconWidth()),
+                () -> assertEquals(60, component.getCanvasIcon().getIconHeight()),
+                () -> assertFalse(component.getSmallIcon() instanceof ImageIcon),
+                () -> assertFalse(component.getCanvasIcon() instanceof ImageIcon)
         );
     }
 

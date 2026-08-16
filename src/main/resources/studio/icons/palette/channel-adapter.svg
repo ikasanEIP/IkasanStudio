@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="90"
+   height="60"
+   viewBox="0 0 90 60"
+   version="1.1"
+   id="svg168"
+   xmlns="http://www.w3.org/2000/svg">
+  <defs
+     id="defs172" />
+  <rect
+     x="2"
+     y="2"
+     width="86"
+     height="56"
+     rx="8"
+     fill="#FFFFFF"
+     stroke="#000000"
+     stroke-width="4"
+     id="rect144" />
+  <rect
+     x="16.09586"
+     y="20"
+     width="15.90414"
+     height="20"
+     rx="2.2720201"
+     fill="#2b2d30"
+     id="rect146"
+     style="stroke-width:1.06584" />
+  <path
+     d="m 16.2,10.2 q 1.8,-1.4 1.8,1.3 v 37.8 q 0,2.7 -1.8,0.5 l -6,-7.7 q -1.5,-1.3 -1.2,-3.3 V 22.4 q -0.3,-2 1.2,-3.5 z"
+     fill="#f15a23"
+     id="path148"
+     style="stroke-width:0.838927" />
+  <ellipse
+     cx="13.197368"
+     cy="29.952454"
+     fill="#000000"
+     id="circle150"
+     rx="1.8026319"
+     ry="1.9524527"
+     style="stroke-width:0.938024" />
+  <path
+     d="m 13.182658,31 v 3.568908"
+     stroke="#000000"
+     stroke-width="1.41687"
+     id="path152" />
+  <ellipse
+     cx="73.657043"
+     cy="29.993711"
+     fill="#2b2d30"
+     id="circle162-3"
+     style="fill:#f15a23;fill-opacity:1;stroke-width:0.998026"
+     rx="10"
+     ry="9.960638" />
+  <rect
+     x="2"
+     y="2"
+     width="86"
+     height="56"
+     rx="8"
+     fill="none"
+     stroke="#000000"
+     stroke-width="4"
+     id="rect166" />
+  <rect
+     style="fill:#f15a23;fill-opacity:1;stroke-width:1.05307"
+     id="rect386"
+     width="15.021278"
+     height="19.952564"
+     x="58.582726"
+     y="19.988382" />
+  <circle
+     cx="59"
+     cy="30"
+     r="10"
+     fill="#2b2d30"
+     id="circle162" />
+  <ellipse
+     cx="58.377892"
+     cy="29.769665"
+     fill="#f15a23"
+     id="circle164"
+     rx="2.5585678"
+     ry="2.660749"
+     style="stroke-width:0.869719" />
+  <ellipse
+     cx="67.321632"
+     cy="29.582745"
+     fill="#f15a23"
+     id="circle164-6"
+     rx="2.5585678"
+     ry="2.660749"
+     style="stroke-width:0.869719" />
+  <ellipse
+     cx="49.116299"
+     cy="29.867817"
+     fill="#f15a23"
+     id="circle164-7"
+     rx="2.5585678"
+     ry="2.660749"
+     style="stroke-width:0.869719" />
+  <ellipse
+     cx="41.221912"
+     cy="29.811125"
+     fill="#f15a23"
+     id="circle164-5"
+     rx="2.5585678"
+     ry="2.660749"
+     style="stroke-width:0.869719" />
+  <ellipse
+     cx="33.383778"
+     cy="29.813591"
+     fill="#f15a23"
+     id="circle164-3"
+     rx="2.5585678"
+     ry="2.660749"
+     style="stroke-width:0.869719" />
+</svg>
