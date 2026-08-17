@@ -361,18 +361,24 @@ public class ComponentPropertyEditRow {
                 this.propertyValueField.setValue(value);
             }
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
-            if (value != null) {
+            // Fall back to the meta-declared default purely for display - the property itself stays
+            // unset (componentProperty.getValue() still returns null) until the user actually interacts
+            // with it or clicks "Set Defaults". Without this, a never-set boolean (e.g. a brand new
+            // Flow's isRecording) left both checkboxes in their fresh, unchecked Swing-default state
+            // instead of showing the declared default (false) as selected.
+            Object displayValue = value != null ? value : componentProperty.getDefaultValue();
+            if (displayValue != null) {
                 // Defensive, just in case not set correctly
-                if (value instanceof String) {
-                    if (((String) value).isBlank()) {
-                        value = Boolean.FALSE;
+                if (displayValue instanceof String) {
+                    if (((String) displayValue).isBlank()) {
+                        displayValue = Boolean.FALSE;
                     } else {
-                        value = Boolean.valueOf((String) value);
+                        displayValue = Boolean.valueOf((String) displayValue);
                     }
                 }
-                // Now we can be sure valuue is Boolean
-                if (value instanceof Boolean) {
-                    if ((Boolean)value) {
+                // Now we can be sure displayValue is Boolean
+                if (displayValue instanceof Boolean) {
+                    if ((Boolean) displayValue) {
                         propertyBooleanFieldTrue.setSelected(true);
                         propertyBooleanFieldFalse.setSelected(false);
                     } else {
@@ -380,6 +386,9 @@ public class ComponentPropertyEditRow {
                         propertyBooleanFieldTrue.setSelected(false);
                     }
                 }
+            } else {
+                propertyBooleanFieldTrue.setSelected(false);
+                propertyBooleanFieldFalse.setSelected(false);
             }
         } else {
             if (value != null) {

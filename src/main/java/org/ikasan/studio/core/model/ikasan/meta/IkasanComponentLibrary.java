@@ -194,13 +194,14 @@ public class IkasanComponentLibrary {
         return Math.max(getWiretapIcon().getIconHeight(), getLogWiretapIcon().getIconHeight());
     }
 
-    public static int getDecoratorWidth() {
-        return Math.max(getWiretapIcon().getIconWidth(), getLogWiretapIcon().getIconWidth());
-    }
-
     public static Icon SEND_TEST_MESSAGE_ICON = getGeneralIcon("send-test-message.png", "Send Test Message");
     public static Icon getSendTestMessageIcon() {
         return SEND_TEST_MESSAGE_ICON;
+    }
+
+    public static final Icon REPLAY_SERVICE_ICON = getGeneralIcon("replay-service.png", "Flow recording enabled");
+    public static Icon getReplayServiceIcon() {
+        return REPLAY_SERVICE_ICON;
     }
 
     public static Icon getGeneralIcon(String iconFilename, String description) {

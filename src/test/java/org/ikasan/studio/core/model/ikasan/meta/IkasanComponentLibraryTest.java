@@ -263,7 +263,10 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
             () -> assertFalse(flow.getSmallIcon() instanceof ImageIcon),
             () -> assertFalse(flow.getCanvasIcon() instanceof ImageIcon),
-            () -> assertEquals(4, flow.getAllowableProperties().size())
+            () -> assertEquals(7, flow.getAllowableProperties().size()),
+            () -> assertTrue(flow.getAllowableProperties().containsKey("isRecording")),
+            () -> assertTrue(flow.getAllowableProperties().containsKey("recordedEventTimeToLive")),
+            () -> assertTrue(flow.getAllowableProperties().containsKey("invokeContextListeners"))
         );
     }
     protected void verifyDefaultModuleMeta(ComponentMeta module) {

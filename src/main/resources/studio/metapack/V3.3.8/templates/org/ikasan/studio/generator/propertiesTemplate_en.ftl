@@ -91,6 +91,16 @@ ikasan.module.activator.wiretap.triggers[${wiretapIndex}]=${flow.getIdentity()},
 ikasan.module.activator.startup.type.flowStartupTypes[${flowStartupTypeIndex}]=${flow.getIdentity()},${flow.getPropertyValue('flowStartupType')}
         <#assign flowStartupTypeIndex = flowStartupTypeIndex + 1>
     </#if>
+    <#assign escapedFlowName = StudioBuildUtils.escapeSpringPropertiesMapKey(flow.getIdentity())>
+    <#if flow.getPropertyValue('isRecording')??>
+ikasan.flow.configuration[${escapedFlowName}].isRecording=${flow.getPropertyValue('isRecording')?c}
+    </#if>
+    <#if flow.getPropertyValue('recordedEventTimeToLive')??>
+ikasan.flow.configuration[${escapedFlowName}].recordedEventTimeToLive=${flow.getPropertyValue('recordedEventTimeToLive')?c}
+    </#if>
+    <#if flow.getPropertyValue('invokeContextListeners')??>
+ikasan.flow.configuration[${escapedFlowName}].invokeContextListeners=${flow.getPropertyValue('invokeContextListeners')?c}
+    </#if>
 </#list>
 
 <#compress>

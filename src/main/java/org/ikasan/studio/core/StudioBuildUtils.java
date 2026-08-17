@@ -365,7 +365,7 @@ public class StudioBuildUtils {
                 if (firstEquals > 0 && !line.startsWith("#")) {
                     String name = line.substring(0, firstEquals);
                     String value = line.substring(firstEquals + 1);
-                    map.put(name.trim(), value != null ? value.trim() : value);
+                    map.put(name.trim(), value.trim());
                 }
             }
         }
@@ -384,6 +384,17 @@ public class StudioBuildUtils {
 
         System.out.println(map);
         return map;
+    }
+
+    /**
+     * Escape a flow name used inside Spring Boot's map-style application.properties key.
+     * Called only from propertiesTemplate_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding,
+     * which static-usage analysis can't see - despite the "unused" warning, this is load-bearing for any
+     * flow whose name contains a space.
+     */
+    @SuppressWarnings("unused")
+    public static String escapeSpringPropertiesMapKey(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace(" ", "\\ ");
     }
 
     /**

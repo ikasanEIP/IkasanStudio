@@ -14,8 +14,27 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
+
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void flowRecordingConfigurationUsesEscapedPerFlowProperties(String metaPackVersion)
+            throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).metapackVersion(metaPackVersion).build();
+        flow.setName("Recorded Orders Flow");
+        flow.setPropertyValue("isRecording", true);
+        flow.setPropertyValue("recordedEventTimeToLive", 45);
+        flow.setPropertyValue("invokeContextListeners", true);
+
+        String generated = generatePropertiesTemplateString(metaPackVersion, module, Arrays.asList(flow));
+
+        assertTrue(generated.contains("ikasan.flow.configuration[Recorded\\ Orders\\ Flow].isRecording=true"));
+        assertTrue(generated.contains("ikasan.flow.configuration[Recorded\\ Orders\\ Flow].recordedEventTimeToLive=45"));
+        assertTrue(generated.contains("ikasan.flow.configuration[Recorded\\ Orders\\ Flow].invokeContextListeners=true"));
+    }
 
     /**
      * See also application_emptyFlow.properties

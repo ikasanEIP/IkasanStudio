@@ -45,6 +45,24 @@ class ComponentIOSerializeTest {
     }
 
     @Test
+    public void flowRecordingConfigurationSurvivesModelJsonRoundTrip() throws StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).metapackVersion(BASE_META_PACK).build();
+        flow.setName("Recorded Orders Flow");
+        flow.setPropertyValue("isRecording", true);
+        flow.setPropertyValue("recordedEventTimeToLive", 45);
+        flow.setPropertyValue("invokeContextListeners", true);
+        module.addFlow(flow);
+
+        Module restored = ComponentIO.deserializeModuleInstanceString(ComponentIO.toJson(module), "round-trip test");
+        Flow restoredFlow = restored.getFlows().get(0);
+
+        assertEquals(true, restoredFlow.getPropertyValue("isRecording"));
+        assertEquals(45, ((Number) restoredFlow.getPropertyValue("recordedEventTimeToLive")).intValue());
+        assertEquals(true, restoredFlow.getPropertyValue("invokeContextListeners"));
+    }
+
+    @Test
     public void testBasicBooleanElementSerializeToJson() {
         String componentMetaKey = "booleanComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()

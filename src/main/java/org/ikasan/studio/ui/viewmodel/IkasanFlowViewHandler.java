@@ -6,6 +6,7 @@ import com.intellij.ui.JBColor;
 import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -128,11 +129,23 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
                 (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
     }
 
-    private void paintFlowBox(Graphics g) {
+    private void paintFlowBox(JPanel canvas, Graphics g) {
         paintFlowRectangle(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
+        if (isRecording(flow)) {
+            IkasanComponentLibrary.getReplayServiceIcon().paintIcon(canvas, g,
+                    getLeftX() + FLOW_CONTAINER_BORDER,
+                    getTopY() + FLOW_CONTAINER_BORDER);
+        }
 //        LOG.info("StudioXX: planted flow " + this.getFlow().getIdentity() + " flow box TestV1:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
+    }
+
+    static boolean isRecording(Flow flow) {
+        Object value = flow != null ? flow.getPropertyValue("isRecording") : null;
+        return value instanceof Boolean booleanValue
+                ? booleanValue
+                : value != null && Boolean.parseBoolean(value.toString());
     }
 
     /**
@@ -154,7 +167,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         initialiseDimensions(g, newLeftX, newTopY,-1, -1);
 
         // Draw flow rectangle
-        paintFlowBox(g);
+        paintFlowBox(canvas, g);
 
         if (flow.hasExceptionResolver()) {
             AbstractViewHandlerIntellij viewHandler = getOrCreateAbstractViewHandler(project, flow.getExceptionResolver());
