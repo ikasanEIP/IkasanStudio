@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -14,6 +15,13 @@ import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.ge
 import static org.junit.jupiter.api.Assertions.*;
 
 class IkasanComponentLibraryTest {
+    private static int expectedIconDimension(int normalDimension) {
+        // IntelliJ intentionally returns a 1x1 placeholder for SVG icons when no graphical
+        // environment is available (as on Travis). The non-ImageIcon assertions below still
+        // verify that SVG loading was selected; graphical runs additionally verify its size.
+        return GraphicsEnvironment.isHeadless() ? 1 : normalDimension;
+    }
+
     @BeforeAll
     static void warmUpComponentLibrary() throws StudioBuildException {
         // Meta-pack classloader I/O lazily starts NIO/Java2D daemon threads. Start them before
@@ -72,62 +80,62 @@ class IkasanComponentLibraryTest {
                 "mr-squid-head.png", "Mr Squid Head");
 
         assertAll(
-                () -> assertEquals(24, helpIcon.getIconWidth()),
-                () -> assertEquals(24, helpIcon.getIconHeight()),
-                () -> assertEquals(39, sendTestMessageIcon.getIconWidth()),
-                () -> assertEquals(22, sendTestMessageIcon.getIconHeight()),
-                () -> assertEquals(22, wiretapIcon.getIconWidth()),
-                () -> assertEquals(22, wiretapIcon.getIconHeight()),
-                () -> assertEquals(22, logWiretapIcon.getIconWidth()),
-                () -> assertEquals(22, logWiretapIcon.getIconHeight()),
-                () -> assertEquals(22, searchIcon.getIconWidth()),
-                () -> assertEquals(22, searchIcon.getIconHeight()),
-                () -> assertEquals(22, replayIcon.getIconWidth()),
-                () -> assertEquals(22, replayIcon.getIconHeight()),
-                () -> assertEquals(22, resubmitIcon.getIconWidth()),
-                () -> assertEquals(22, resubmitIcon.getIconHeight()),
-                () -> assertEquals(22, ignoreIcon.getIconWidth()),
-                () -> assertEquals(22, ignoreIcon.getIconHeight()),
-                () -> assertEquals(22, errorIcon.getIconWidth()),
-                () -> assertEquals(22, errorIcon.getIconHeight()),
-                () -> assertEquals(22, mappingIcon.getIconWidth()),
-                () -> assertEquals(22, mappingIcon.getIconHeight()),
-                () -> assertEquals(22, wiretapServiceIcon.getIconWidth()),
-                () -> assertEquals(22, wiretapServiceIcon.getIconHeight()),
-                () -> assertEquals(22, configurationServiceIcon.getIconWidth()),
-                () -> assertEquals(22, configurationServiceIcon.getIconHeight()),
-                () -> assertEquals(22, hospitalServiceIcon.getIconWidth()),
-                () -> assertEquals(22, hospitalServiceIcon.getIconHeight()),
-                () -> assertEquals(22, replayServiceIcon.getIconWidth()),
-                () -> assertEquals(22, replayServiceIcon.getIconHeight()),
-                () -> assertEquals(33, requestReplyIcon.getIconWidth()),
-                () -> assertEquals(22, requestReplyIcon.getIconHeight()),
-                () -> assertEquals(33, deadEndPointIcon.getIconWidth()),
-                () -> assertEquals(22, deadEndPointIcon.getIconHeight()),
-                () -> assertEquals(33, deadLetterChannelIcon.getIconWidth()),
-                () -> assertEquals(22, deadLetterChannelIcon.getIconHeight()),
-                () -> assertEquals(33, fileLocationIcon.getIconWidth()),
-                () -> assertEquals(22, fileLocationIcon.getIconHeight()),
-                () -> assertEquals(33, ftpLocationIcon.getIconWidth()),
-                () -> assertEquals(22, ftpLocationIcon.getIconHeight()),
-                () -> assertEquals(25, computerIcon.getIconWidth()),
-                () -> assertEquals(22, computerIcon.getIconHeight()),
-                () -> assertEquals(22, emptyControlIcon.getIconWidth()),
-                () -> assertEquals(22, emptyControlIcon.getIconHeight()),
-                () -> assertEquals(32, largeWiretapIcon.getIconWidth()),
-                () -> assertEquals(32, largeWiretapIcon.getIconHeight()),
-                () -> assertEquals(32, largeLogWiretapIcon.getIconWidth()),
-                () -> assertEquals(32, largeLogWiretapIcon.getIconHeight()),
-                () -> assertEquals(30, help30Icon.getIconWidth()),
-                () -> assertEquals(30, help30Icon.getIconHeight()),
-                () -> assertEquals(40, help40Icon.getIconWidth()),
-                () -> assertEquals(40, help40Icon.getIconHeight()),
-                () -> assertEquals(512, studioIcon.getIconWidth()),
-                () -> assertEquals(512, studioIcon.getIconHeight()),
-                () -> assertEquals(13, squid13Icon.getIconWidth()),
-                () -> assertEquals(13, squid13Icon.getIconHeight()),
-                () -> assertEquals(378, squidHeadIcon.getIconWidth()),
-                () -> assertEquals(496, squidHeadIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(24), helpIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(24), helpIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(39), sendTestMessageIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), sendTestMessageIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), wiretapIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), wiretapIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), logWiretapIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), logWiretapIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), searchIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), searchIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), replayIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), replayIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), resubmitIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), resubmitIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), ignoreIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), ignoreIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), errorIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), errorIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), mappingIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), mappingIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), wiretapServiceIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), wiretapServiceIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), configurationServiceIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), configurationServiceIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), hospitalServiceIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), hospitalServiceIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), replayServiceIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), replayServiceIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(33), requestReplyIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), requestReplyIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(33), deadEndPointIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), deadEndPointIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(33), deadLetterChannelIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), deadLetterChannelIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(33), fileLocationIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), fileLocationIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(33), ftpLocationIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), ftpLocationIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(25), computerIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), computerIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(22), emptyControlIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(22), emptyControlIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(32), largeWiretapIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(32), largeWiretapIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(32), largeLogWiretapIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(32), largeLogWiretapIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(30), help30Icon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(30), help30Icon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(40), help40Icon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(40), help40Icon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(512), studioIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(512), studioIcon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(13), squid13Icon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(13), squid13Icon.getIconHeight()),
+                () -> assertEquals(expectedIconDimension(378), squidHeadIcon.getIconWidth()),
+                () -> assertEquals(expectedIconDimension(496), squidHeadIcon.getIconHeight()),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(helpIcon instanceof ImageIcon),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(sendTestMessageIcon instanceof ImageIcon),
                 () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapIcon instanceof ImageIcon),
@@ -237,10 +245,10 @@ class IkasanComponentLibraryTest {
                                         int canvasWidth, int canvasHeight) {
         assertAll(
                 component.getName() + " should use native SVG icons",
-                () -> assertEquals(smallWidth, component.getSmallIcon().getIconWidth()),
-                () -> assertEquals(smallHeight, component.getSmallIcon().getIconHeight()),
-                () -> assertEquals(canvasWidth, component.getCanvasIcon().getIconWidth()),
-                () -> assertEquals(canvasHeight, component.getCanvasIcon().getIconHeight()),
+                () -> assertEquals(expectedIconDimension(smallWidth), component.getSmallIcon().getIconWidth()),
+                () -> assertEquals(expectedIconDimension(smallHeight), component.getSmallIcon().getIconHeight()),
+                () -> assertEquals(expectedIconDimension(canvasWidth), component.getCanvasIcon().getIconWidth()),
+                () -> assertEquals(expectedIconDimension(canvasHeight), component.getCanvasIcon().getIconHeight()),
                 () -> assertFalse(component.getSmallIcon() instanceof ImageIcon),
                 () -> assertFalse(component.getCanvasIcon() instanceof ImageIcon)
         );
