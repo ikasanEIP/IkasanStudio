@@ -7,6 +7,7 @@ import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.PaintMode;
+import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
@@ -90,14 +91,15 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
 
     /**
      * While a component is being dragged over this flow, the border colour reflects whether dropping here is
-     * currently allowed (green) or not (red). Otherwise the border is the normal, neutral colour - colour is
-     * reserved exclusively for drag-and-drop drop-target feedback.
+     * currently allowed (green) or not (red). Otherwise the border is the normal, neutral colour (black in light
+     * theme, the Ikasan orange in dark theme, matching the rest of the Ikasan component icons) - colour is
+     * otherwise reserved exclusively for drag-and-drop drop-target feedback.
      */
     private Color getFlowBorderColor() {
         return switch (dragFeedbackMode) {
             case RECEPTIVE -> JBColor.GREEN;
             case WARNING -> JBColor.RED;
-            case NORMAL -> JBColor.BLACK;
+            case NORMAL -> ThemeAwareColors.isDarkTheme() ? Styling.IKASAN_ORANGE : JBColor.BLACK;
         };
     }
 
