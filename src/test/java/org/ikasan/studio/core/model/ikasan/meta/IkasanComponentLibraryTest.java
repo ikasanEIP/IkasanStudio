@@ -11,10 +11,7 @@ import java.util.TreeSet;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getDeserialisationKey;
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getIkasanComponentByKey;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
 
 class IkasanComponentLibraryTest {
     @BeforeAll
@@ -204,15 +201,46 @@ class IkasanComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("Generic Producer"));
         verifyComponentUsesSvg(componentMetaList.get("Logging Producer"));
         verifyComponentUsesSvg(componentMetaList.get("SFTP Producer"));
+        verifyComponentUsesSvg(componentMetaList.get("Event Generating Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("Basic AMQ Spring JMS Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("Spring JMS Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("Local File Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("FTP Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("SFTP Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("Scheduled Consumer"));
+        verifyComponentUsesSvg(componentMetaList.get("Exception Resolver"), 40, 27, 22, 22);
+        verifyComponentUsesSvg(componentMetaList.get("DB Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("File Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("FTP Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("Router Endpoint"), 40, 27, 15, 60);
+        verifyComponentUsesSvg(componentMetaList.get("Broker"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Broker"));
+        verifyComponentUsesSvg(componentMetaList.get("Debug Transition"), 27, 27, 40, 60);
+        verifyComponentUsesSvg(componentMetaList.get("Custom Message Filter"));
+        verifyComponentUsesSvg(componentMetaList.get("Default Message Filter"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Filter"));
+        verifyComponentUsesSvg(componentMetaList.get("Flow"));
+        verifyComponentUsesSvg(componentMetaList.get("Module"), 378, 496, 378, 496);
+        verifyComponentUsesSvg(componentMetaList.get("Multi Recipient Router"));
+        verifyComponentUsesSvg(componentMetaList.get("Single Recipient Router"));
+        verifyComponentUsesSvg(componentMetaList.get("Custom Splitter"));
+        verifyComponentUsesSvg(componentMetaList.get("Default List Splitter"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Splitter"));
     }
 
     private void verifyComponentUsesSvg(ComponentMeta component) {
+        verifyComponentUsesSvg(component, 40, 27, 90, 60);
+    }
+
+    private void verifyComponentUsesSvg(ComponentMeta component, int smallWidth, int smallHeight,
+                                        int canvasWidth, int canvasHeight) {
         assertAll(
                 component.getName() + " should use native SVG icons",
-                () -> assertEquals(40, component.getSmallIcon().getIconWidth()),
-                () -> assertEquals(27, component.getSmallIcon().getIconHeight()),
-                () -> assertEquals(90, component.getCanvasIcon().getIconWidth()),
-                () -> assertEquals(60, component.getCanvasIcon().getIconHeight()),
+                () -> assertEquals(smallWidth, component.getSmallIcon().getIconWidth()),
+                () -> assertEquals(smallHeight, component.getSmallIcon().getIconHeight()),
+                () -> assertEquals(canvasWidth, component.getCanvasIcon().getIconWidth()),
+                () -> assertEquals(canvasHeight, component.getCanvasIcon().getIconHeight()),
                 () -> assertFalse(component.getSmallIcon() instanceof ImageIcon),
                 () -> assertFalse(component.getCanvasIcon() instanceof ImageIcon)
         );
@@ -225,8 +253,8 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("<strong>Flow</strong><p>The flow is the container for components and generally represents an atomic action.</p>", flow.getHelpText()),
             () -> assertEquals("org.ikasan.spec.flow.Flow", flow.getComponentType()),
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
-            () -> assertEquals("Small Flow icon", assertInstanceOf(ImageIcon.class, flow.getSmallIcon()).getDescription()),
-            () -> assertEquals("Medium Flow icon", assertInstanceOf(ImageIcon.class, flow.getCanvasIcon()).getDescription()),
+            () -> assertFalse(flow.getSmallIcon() instanceof ImageIcon),
+            () -> assertFalse(flow.getCanvasIcon() instanceof ImageIcon),
             () -> assertEquals(4, flow.getAllowableProperties().size())
         );
     }
@@ -237,8 +265,8 @@ class IkasanComponentLibraryTest {
             () -> assertEquals("The module is the container for all flows", module.getHelpText()),
             () -> assertEquals("org.ikasan.spec.module.Module", module.getComponentType()),
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
-            () -> assertEquals("Small Module icon", assertInstanceOf(ImageIcon.class, module.getSmallIcon()).getDescription()),
-            () -> assertEquals("Medium Module icon", assertInstanceOf(ImageIcon.class, module.getCanvasIcon()).getDescription()),
+            () -> assertFalse(module.getSmallIcon() instanceof ImageIcon),
+            () -> assertFalse(module.getCanvasIcon() instanceof ImageIcon),
             () -> assertEquals(11, module.getAllowableProperties().size())
         );
     }
@@ -249,8 +277,6 @@ class IkasanComponentLibraryTest {
                 () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_TYPE, exceptionResolver.getName()),
                 () -> assertEquals("org.ikasan.exceptionResolver.ExceptionResolver", exceptionResolver.getComponentType()),
                 () -> assertEquals("<strong>Exception Resolver</strong><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>", exceptionResolver.getHelpText()),
-                () -> assertEquals("Small Exception Resolver icon", assertInstanceOf(ImageIcon.class, exceptionResolver.getSmallIcon()).getDescription()),
-                () -> assertEquals("Medium Exception Resolver icon", assertInstanceOf(ImageIcon.class, exceptionResolver.getCanvasIcon()).getDescription()),
                 () -> assertEquals(0, exceptionResolver.getAllowableProperties().size()),
                 () -> assertEquals(5, exceptionResolver.getActionList().size())
         );
