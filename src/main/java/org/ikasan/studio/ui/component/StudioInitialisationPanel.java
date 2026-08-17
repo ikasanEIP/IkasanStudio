@@ -26,9 +26,12 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         super(new GridBagLayout());
         setBorder(JBUI.Borders.empty(24));
 
-        JBLabel heading = new JBLabel(StudioBundle.message("ikasan.studio.settings.displayName"));
+        JBLabel heading = new JBLabel(StudioBundle.message("label.LoadingIkasanStudio"));
         heading.setFont(JBFont.h2());
 
+        JBTextArea waitingText = new JBTextArea(
+                StudioBundle.message("message.PleaseWaitWhileIkasanStudioLoadsTheModule"));
+        configureDescription(waitingText);
         detailText.setEditable(false);
         detailText.setFocusable(false);
         detailText.setLineWrap(true);
@@ -49,7 +52,16 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         add(heading, constraints);
 
         constraints.gridy++;
+        constraints.gridwidth = 2;
+        constraints.weightx = 1;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.insets = JBUI.insetsBottom(16);
+        add(waitingText, constraints);
+
+        constraints.gridy++;
         constraints.gridwidth = 1;
+        constraints.weightx = 0;
+        constraints.fill = GridBagConstraints.NONE;
         constraints.insets = JBUI.insetsRight(8);
         add(statusIcon, constraints);
 
@@ -75,6 +87,16 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         add(Box.createVerticalGlue(), constraints);
 
         showWaitingForIndexes();
+    }
+
+    private static void configureDescription(JBTextArea textArea) {
+        textArea.setEditable(false);
+        textArea.setFocusable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setOpaque(false);
+        textArea.setBorder(JBUI.Borders.empty());
+        textArea.setColumns(48);
     }
 
     public void showWaitingForIndexes() {
