@@ -22,6 +22,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -66,12 +67,13 @@ public class DeleteComponentAction implements ActionListener {
                deleteAssociatedUserCodeFiles(ikasanModule, parentFlow, removedElements);
                if (removal != null) {
                   UndoManager.getInstance(project).undoableActionPerformed(
-                          new DeleteComponentUndoableAction(project, removal::undo, removal::redo));
+                          new DeleteComponentUndoableAction(project, removal::undo, removal::redo,
+                                  GenerationRequest.flow(parentFlow)));
                }
                // Kept inside this command so the JSON model save nests into (and is undone/redone as part
                // of) the same undo step as the model mutation above, rather than becoming a separate,
                // invisible-on-canvas undo entry (see DeleteComponentUndoableAction).
-               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.flow(parentFlow));
             }, StudioBundle.message("menu.DeleteComponent"), null);
          } else {
             LOG.warn("STUDIO: Attempt to remove flow element " + ikasanBasicElement + " failed because its containing flow could not be found.");
@@ -92,10 +94,12 @@ public class DeleteComponentAction implements ActionListener {
                   deleteAssociatedUserCodeFiles(ikasanModule, ikasanFlowToRemove, removedElements);
                   UndoManager.getInstance(project).undoableActionPerformed(new DeleteComponentUndoableAction(project,
                           () -> flows.add(Math.min(Math.max(flowIndex, 0), flows.size()), ikasanFlowToRemove),
-                          () -> flows.remove(ikasanFlowToRemove)));
+                          () -> flows.remove(ikasanFlowToRemove),
+                          GenerationRequest.moduleStructure(ikasanFlowToRemove)));
                   // Kept inside this command so the JSON model save nests into (and is undone/redone as
                   // part of) the same undo step as the model mutation above.
-                  StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+                  StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project,
+                          GenerationRequest.moduleStructure(null));
                }, StudioBundle.message("menu.DeleteComponent"), null);
             }
          }

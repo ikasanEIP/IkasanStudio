@@ -9,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,7 +49,9 @@ public class DecoratorComponentAction implements ActionListener {
          } else {
             ikasanFlowComponent.removeDecorator(decoratorType, beforeOrAfter);
          }
-         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+         // Decorators are persisted in model.json but are not consumed by the current Java,
+         // properties or POM templates, so no generated source needs to be revisited.
+         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.modelOnly());
       } else {
          StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.WiretapCanOnlyBeAddedToANonDebugFlowElements"));
       }

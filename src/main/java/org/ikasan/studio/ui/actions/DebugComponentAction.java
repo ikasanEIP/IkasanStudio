@@ -27,9 +27,22 @@ public class DebugComponentAction implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent actionEvent) {
       if (ikasanBasicElement instanceof FlowElement ikasanFlowComponent) {
+         // Mirrors insertDebugComponentAfter's own defensive check, but here we can tell the user why.
+         if (ikasanFlowComponent.getComponentMeta().isProducer() || ikasanFlowComponent.getComponentMeta().isDebug()) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DebugCannotBeAddedAfterAProducerOrDebugComponent"));
+            return;
+         }
          DesignerCanvas designerCanvas = project.getService(UiContext.class).getDesignerCanvas();
          if (designerCanvas != null) {
-            designerCanvas.insertDebugComponentAfter(ikasanFlowComponent);
+            // Debug components have their mandatory properties auto-defaulted before the properties
+            // popup would be shown (see DesignerCanvas.createViableComponent), so unlike a generic
+            // dragged-in component, a null result here isn't expected to be an ordinary user cancel -
+            // it means insertion genuinely failed (already logged inside insertDebugComponentAfter),
+            // so it's safe to tell the user rather than fail silently.
+            FlowElement debugComponent = designerCanvas.insertDebugComponentAfter(ikasanFlowComponent);
+            if (debugComponent == null) {
+               StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DebugComponentCouldNotBeAdded"));
+            }
          }
       } else {
          StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DebugCanOnlyBeAddedToFlowElements"));

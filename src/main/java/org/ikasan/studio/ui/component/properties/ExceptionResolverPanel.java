@@ -9,6 +9,7 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
@@ -60,7 +61,13 @@ public class ExceptionResolverPanel extends PropertiesPanel {
         if (dataHasChangedAndOKToProcess()) {
             UiContext uiContext = project.getService(UiContext.class);
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
-            StudioPsiUtils.refreshCodeFromModel(project);
+            ExceptionResolver resolver = getSelectedComponent();
+            if (resolver.getContainingFlow() != null) {
+                StudioPsiUtils.refreshCodeFromModel(project,
+                        GenerationRequest.flow(resolver.getContainingFlow()));
+            } else {
+                StudioPsiUtils.refreshCodeFromModel(project);
+            }
             uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
             uiContext.getDesignerCanvas().repaint();
         } else {

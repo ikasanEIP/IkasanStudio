@@ -9,6 +9,8 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
@@ -17,6 +19,7 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
@@ -117,7 +120,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 }
             }
             applyProtectFromOverwritePermissions();
-            StudioPsiUtils.refreshCodeFromModel(project);
+            GenerationRequest generationRequest;
+            if (getSelectedComponent() instanceof Module) {
+                // Module properties include package/meta-pack switches whose impact is intentionally broad.
+                generationRequest = GenerationRequest.full();
+            } else if (getSelectedComponent() instanceof Flow flow) {
+                generationRequest = GenerationRequest.moduleStructure(flow);
+            } else if (getSelectedComponent() instanceof FlowElement flowElement
+                    && flowElement.getContainingFlow() != null) {
+                generationRequest = GenerationRequest.flow(flowElement.getContainingFlow());
+            } else {
+                generationRequest = GenerationRequest.full();
+            }
+            StudioPsiUtils.refreshCodeFromModel(project, generationRequest);
             // Intellij startup is multi-threaded so caution is required.
             if (metaPackChanged && uiContext.getPalettePanel() != null) {
                 uiContext.getPalettePanel().resetPallette();

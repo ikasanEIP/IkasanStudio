@@ -26,6 +26,7 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
@@ -312,7 +313,7 @@ public class DesignerCanvas extends JPanel {
     public void editComponent(BasicElement basicElement) {
         UiContext uiContext = project.getService(UiContext.class);
         setSelectedComponent(basicElement);
-        if (basicElement instanceof ExceptionResolver) {
+        if (basicElement instanceof ExceptionResolver resolver) {
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(project, true);
             exceptionResolverPanel.updateTargetComponent(basicElement);
             PropertiesPopupDialogue propertiesPopupDialogue = new PropertiesPopupDialogue(
@@ -320,7 +321,10 @@ public class DesignerCanvas extends JPanel {
                     exceptionResolverPanel,
                     false);
             if (propertiesPopupDialogue.showAndGet()) {
-                StudioPsiUtils.refreshCodeFromModel(project);
+                StudioPsiUtils.refreshCodeFromModel(project,
+                        resolver.getContainingFlow() != null
+                                ? GenerationRequest.flow(resolver.getContainingFlow())
+                                : GenerationRequest.full());
                 uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
             }
         } else {
@@ -783,7 +787,10 @@ public class DesignerCanvas extends JPanel {
                     return false;
                 }
             }
-            StudioPsiUtils.refreshCodeFromModel(project);
+            GenerationRequest generationRequest = newComponent instanceof Flow addedFlow
+                    ? GenerationRequest.moduleStructure(addedFlow)
+                    : GenerationRequest.flow(((FlowElement) newComponent).getContainingFlow());
+            StudioPsiUtils.refreshCodeFromModel(project, generationRequest);
             uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
 
             initialiseAllDimensions = true;
@@ -1012,7 +1019,7 @@ public class DesignerCanvas extends JPanel {
             components.add(targetIndex + 1, debugComponent);
         }
 
-        StudioPsiUtils.refreshCodeFromModel(project);
+        StudioPsiUtils.refreshCodeFromModel(project, GenerationRequest.flow(containingFlow));
         initialiseAllDimensions = true;
         repaint();
         return debugComponent;

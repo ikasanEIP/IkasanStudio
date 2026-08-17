@@ -54,6 +54,13 @@ public class PIPSIIkasanModel {
      * An update has been made to the diagram, so we need to reflect this into the code.
      */
     public void asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk() {
+        asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest.full());
+    }
+
+    public void asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest request) {
+        if (request.scope() == GenerationRequest.Scope.MODEL_ONLY) {
+            return;
+        }
         AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
         Module module = uiContext.getIkasanModule();
@@ -72,7 +79,8 @@ public class PIPSIIkasanModel {
             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
             LOG.debug(uiContext.getIkasanModule().toString());
 
-            // 2. Re-generate and save all the source code. @TODO going forward we only want to regenerate if its changed.
+            // 2. Generate only the artifacts affected by this request. Individual writes also
+            // skip unchanged content before it enters PSI or code formatting.
             // Switch to UI thread for write action and undo block
             ApplicationManager.getApplication().invokeLater(() -> {
                 // Using the command  processor adds support for undo
@@ -83,13 +91,31 @@ public class PIPSIIkasanModel {
                             // We have checked the in-memory model, below will also verify from the on-disk model.
                             StudioPsiUtils.checkForDependencyChangesAndSaveIfChanged(project, module.getAllUniqueSortedJarDependencies(), module.getMetaVersion());
                         }
-                        //@todo start making below conditional on state changed.
                         Long transactionTimeStamp = uiContext.getProjectRefreshTimestamp();
-                        saveApplication(project, module);
-                        saveStudioInjectController(project, module);
-                        saveFlow(project, module);
-                        generateAndSaveJavaCodeModuleConfig(project, module);
-                        generateAndSavePropertiesConfig(project, module);
+                        switch (request.scope()) {
+                            case FLOW -> {
+                                saveFlow(project, module, request.affectedFlow());
+                                generateAndSavePropertiesConfig(project, module);
+                            }
+                            case MODULE_STRUCTURE -> {
+                                saveFlow(project, module, request.affectedFlow());
+                                generateAndSaveJavaCodeModuleConfig(project, module);
+                                generateAndSavePropertiesConfig(project, module);
+                                deleteStaleGeneratedFlowPackages(project, module);
+                            }
+                            case FULL -> {
+                                saveApplication(project, module);
+                                saveStudioInjectController(project, module);
+                                saveAllFlows(project, module);
+                                generateAndSaveJavaCodeModuleConfig(project, module);
+                                generateAndSavePropertiesConfig(project, module);
+                            }
+                            default -> {
+                                // MODEL_ONLY already returned above before this was scheduled; this branch
+                                // exists only so the switch stays exhaustive without naming a case that
+                                // static analysis can prove is unreachable here.
+                            }
+                        }
                         if (!transactionTimeStamp.equals(uiContext.getProjectRefreshTimestamp())) {
                             displayIdeaWarnMessage(project, StudioBundle.message("message.IntellijHasChangedTheProjectPartWayThroughTheSave"));
                         }
@@ -193,21 +219,30 @@ public class PIPSIIkasanModel {
         }
     }
 
-    private void saveFlow(Project project, Module module) {
+    private void saveAllFlows(Project project, Module module) {
+        for (Flow ikasanFlow : module.getFlows()) {
+            saveFlow(project, module, ikasanFlow);
+        }
+        deleteStaleGeneratedFlowPackages(project, module);
+    }
+
+    private void deleteStaleGeneratedFlowPackages(Project project, Module module) {
         Set<String> flowPackageNames = new HashSet<>();
         for (Flow ikasanFlow : module.getFlows()) {
-
-            String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             flowPackageNames.add(ikasanFlow.getJavaPackageName());
-            // Component Factory java file
-            generateAndSaveJavaCodeIkasanComponentFactory(project, module, flowPackageName, ikasanFlow);
-            generateAndSaveJavaCodeIkasanFlow(project, module, flowPackageName, ikasanFlow);
-            generateAndSaveUserImplementClassStubsForFlow(project, module, ikasanFlow);
         }
-        // we have the flowPackageNames that ARE valid
         ApplicationManager.getApplication().executeOnPooledThread(() ->
                 StudioPsiUtils.deleteSubPackagesNotIn(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, Generator.STUDIO_FLOW_PACKAGE, flowPackageNames));
+    }
 
+    private void saveFlow(Project project, Module module, Flow ikasanFlow) {
+        if (ikasanFlow == null || !module.getFlows().contains(ikasanFlow)) {
+            return;
+        }
+        String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
+        generateAndSaveJavaCodeIkasanComponentFactory(project, module, flowPackageName, ikasanFlow);
+        generateAndSaveJavaCodeIkasanFlow(project, module, flowPackageName, ikasanFlow);
+        generateAndSaveUserImplementClassStubsForFlow(project, module, ikasanFlow);
     }
 
     private void generateAndSaveUserImplementClassStubsForFlow(Project project, Module module, Flow ikasanFlow) {

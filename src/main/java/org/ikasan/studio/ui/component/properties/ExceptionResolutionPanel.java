@@ -7,12 +7,14 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -61,7 +63,17 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         if (dataHasChangedAndOKToProcess()) {
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
             updateComponentsWithNewValues();
-            StudioPsiUtils.refreshCodeFromModel(project);
+            ExceptionResolution selectedResolution = getSelectedComponent();
+            Flow affectedFlow = project.getService(UiContext.class).getIkasanModule().getFlows().stream()
+                    .filter(flow -> flow.getExceptionResolver() != null)
+                    .filter(flow -> flow.getExceptionResolver().getExceptionResolutionList()
+                            .contains(selectedResolution))
+                    .findFirst()
+                    .orElse(null);
+            StudioPsiUtils.refreshCodeFromModel(project,
+                    affectedFlow != null
+                            ? GenerationRequest.flow(affectedFlow)
+                            : GenerationRequest.full());
             StudioPsiUtils.causeRedraw(project);
         } else {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasNotChangedInExceptionResolution"));

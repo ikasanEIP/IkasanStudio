@@ -40,6 +40,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
@@ -352,9 +353,18 @@ public class StudioPsiUtils {
     }
 
     public static void refreshCodeFromModel(Project project) {
+        refreshCodeFromModel(project, GenerationRequest.full());
+    }
+
+    public static void refreshCodeFromModel(Project project, GenerationRequest generationRequest) {
         PIPSIIkasanModel pipsiIkasanModel = project.getService(UiContext.class).getPipsiIkasanModel();
         pipsiIkasanModel.saveModelJsonToDisk();
-        pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
+        pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(generationRequest);
+    }
+
+    public static void refreshCodeFromModelAndCauseRedraw(Project project, GenerationRequest generationRequest) {
+        refreshCodeFromModel(project, generationRequest);
+        causeRedraw(project);
     }
 
     public static void causeRedraw(Project project) {
@@ -430,6 +440,22 @@ public class StudioPsiUtils {
             if (fileContent != null) {
                 FileDocumentManager documentManager = FileDocumentManager.getInstance();
                 Document document = documentManager.getDocument(file);
+                String existingContent = document != null
+                        ? document.getText()
+                        : new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
+
+                if (fileContent.equals(existingContent)) {
+                    // Avoid manufacturing PSI/document changes for artifacts whose rendered output did
+                    // not change. Besides saving indexing and formatting work, this keeps generated-file
+                    // noise out of IntelliJ's undo infrastructure.
+                    if (componentViewHandler != null) {
+                        PsiFile existingPsiFile = PsiManager.getInstance(project).findFile(file);
+                        if (existingPsiFile != null) {
+                            componentViewHandler.setPsiFile(existingPsiFile);
+                        }
+                    }
+                    return;
+                }
 
                 if (document != null) {
                     // File is open in the editor; update the document
