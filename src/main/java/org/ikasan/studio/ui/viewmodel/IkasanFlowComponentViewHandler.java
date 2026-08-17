@@ -203,8 +203,11 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         int numberOfAfterDecorators = flowElement.getAfterDecorators().size();
 
         if (numberOfBeforeDecorators > 0) {
+            // The normal inter-component gap is already contributed by the neighbouring components' own
+            // getLeadingGap()/getTrailingGap() (floor-clamped to getMinimumGap()) in the layout accumulation -
+            // adding getMinimumGap() again here double-counted it, pushing the decorator an extra gap-width
+            // away from the preceding component instead of sitting at the normal spacing.
             int beforeWidth = numberOfBeforeDecorators * (IkasanComponentLibrary.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
-            beforeWidth += WIRETAP_HORIZONTAL_SPACE; // need 1 extra gap leading
             setLeadingGap(beforeWidth);
             setLeftX(getLeftX() + beforeWidth);
         } else {
@@ -212,7 +215,6 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         }
         if (numberOfAfterDecorators > 0) {
             int afterWidth = numberOfAfterDecorators * (IkasanComponentLibrary.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
-            afterWidth += WIRETAP_HORIZONTAL_SPACE; // need 1 extra gap leading
             setTrailingGap(afterWidth);
         } else {
             setTrailingGap(0);

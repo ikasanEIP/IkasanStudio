@@ -180,6 +180,23 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     }
 
     /**
+     * Unlike {@link #getLeadingGap()}, does not float up to the minimum gap when there is no leading decorator -
+     * for callers that need the real leading decorator footprint (0 if none), e.g. computing a flow's true
+     * bounding box, where the minimum-gap floor (intended for inter-component spacing) would otherwise inflate
+     * the box asymmetrically.
+     */
+    public int getRawLeadingGap() {
+        return leadingGap;
+    }
+
+    /**
+     * See {@link #getRawLeadingGap()} - the trailing-side equivalent.
+     */
+    public int getRawTrailingGap() {
+        return trailingGap;
+    }
+
+    /**
      * If the view handler exists for the BasicElement, return it, otherwise get a new one and set it on the BasicElement
      * @param project is the Intellij project instance
      * @param ikasanBasicElement to be examined

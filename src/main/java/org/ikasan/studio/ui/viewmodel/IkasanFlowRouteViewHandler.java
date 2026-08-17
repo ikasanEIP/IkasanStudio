@@ -158,12 +158,14 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
                 endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
                 if (targetFlowElement.getComponentMeta().isConsumer()) {
-//                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - FLOW_X_SPACING - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
-//XXXX
-if (targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth() < -10) {
-LOG.error("STUDIO: 1 Left X being set to a -ve of " + (targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth()));
-}
-                    endpointViewHandler.setLeftX(targetFlowElementViewHandler.getLeftX() - targetFlowElementViewHandler.getLeadingGap() - FLOW_CONTAINER_BORDER - endpointViewHandler.getWidth());
+                    // Anchor to the flow's own border (like the producer branch below) rather than to
+                    // targetFlowElementViewHandler's leftX, which shifts when a leading decorator (e.g. Wiretap)
+                    // is added - anchoring to the target element made the gap collapse once a decorator was present.
+                    int endpointLeftX = ViewHandlerCache.getFlowViewHandler(project, flow).getLeftX() - FLOW_CONTAINER_BORDER - UiContext.getMinimumComponentXSpacing() - endpointViewHandler.getWidth();
+                    if (endpointLeftX < -10) {
+                        LOG.error("STUDIO: 1 Left X being set to a -ve of " + endpointLeftX);
+                    }
+                    endpointViewHandler.setLeftX(endpointLeftX);
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
                     if (project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
@@ -274,8 +276,11 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
                 AbstractViewHandlerIntellij flowComponentViewHandler = getOrCreateAbstractViewHandler(project, ikasanFlowComponent);
                 if (flowComponentViewHandler != null) {
                     flowComponentViewHandler.initialiseDimensions(graphics, currentX, topYForElements, -1, -1);
-//                    currentX += flowComponentViewHandler.getWidth() + FLOW_X_SPACING;
-                    currentX += flowComponentViewHandler.getWidth() + flowComponentViewHandler.getLeadingGap() + flowComponentViewHandler.getTrailingGap();
+                    // Anchor on the component's actual (post-shift) right edge rather than currentX + width.
+                    // A leading decorator (e.g. Wiretap) already shifted the component's real leftX rightward
+                    // inside initialiseDimensions above; re-adding getLeadingGap() here (the same shift) on
+                    // top of that double-counted it, shrinking the gap to the *next* component.
+                    currentX = flowComponentViewHandler.getRightX() + flowComponentViewHandler.getTrailingGap() + UiContext.getMinimumComponentXSpacing();
                 }
             }
         }
@@ -327,7 +332,10 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
             return 0;
         } else {
             AbstractViewHandlerIntellij firstElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(0));
-            return firstElementViewHandler.getLeftX() - firstElementViewHandler.getLeadingGap();
+            // Use the real (unclamped) leading gap here, not getLeadingGap() - this feeds the flow's bounding
+            // box width, and the minimum-gap floor (meant for inter-component spacing) would otherwise inflate
+            // it asymmetrically versus the fixed FLOW_CONTAINER_BORDER margin used on this same left edge.
+            return firstElementViewHandler.getLeftX() - firstElementViewHandler.getRawLeadingGap();
         }
     }
 
@@ -362,7 +370,8 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
             return 0;
         } else {
             AbstractViewHandlerIntellij lastFlowElementViewHandler = getOrCreateAbstractViewHandler(project, flowElementList.get(flowElementList.size() - 1));
-            return lastFlowElementViewHandler.getRightX() + lastFlowElementViewHandler.getTrailingGap();
+            // See the comment in getFlowElementsMinX() - same reasoning, trailing side.
+            return lastFlowElementViewHandler.getRightX() + lastFlowElementViewHandler.getRawTrailingGap();
         }
     }
 
