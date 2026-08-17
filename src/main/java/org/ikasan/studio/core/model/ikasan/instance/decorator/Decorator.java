@@ -1,6 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance.decorator;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,12 +13,15 @@ import java.util.Objects;
 @Setter
 @ToString
 public class Decorator {
+    public static final String DEFAULT_WIRETAP_TIME_TO_LIVE = "300";
     private DECORATOR_TYPE type;
     @JsonIgnore
     private DECORATOR_POSITION position;
     private String name;
     private String configurationId;
     private boolean configurable;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String timeToLive;
 
     /**
      * Create a new decorator i.e. A wiretap, log wiretap designated as before the current compponent (e.g. broker) or after it.
@@ -30,13 +34,16 @@ public class Decorator {
      * @param configurable true if this is exposed via blue console.
      */
     @Builder(builderMethodName = "decoratorBuilder")
-    protected Decorator(String type, String name, String configurationId, boolean configurable) {
+    protected Decorator(String type, String name, String configurationId, boolean configurable, String timeToLive) {
         this.type = DECORATOR_TYPE.safeValueOf(type);
         String prefix = name != null && !name.isBlank() ? name.split(" ")[0] : "BEFORE";
         this.position = DECORATOR_POSITION.safeValueOf(prefix);
         this.name = name;
         this.configurationId = configurationId;
         this.configurable = configurable;
+        this.timeToLive = isWiretap() && (timeToLive == null || timeToLive.isBlank())
+                ? DEFAULT_WIRETAP_TIME_TO_LIVE
+                : timeToLive;
     }
 
     @JsonIgnore

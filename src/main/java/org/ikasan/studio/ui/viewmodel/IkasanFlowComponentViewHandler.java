@@ -2,8 +2,6 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.Pair;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
@@ -94,47 +92,6 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
                     getTopY() <= y && y <= getTopY() + IkasanComponentLibrary.getDecoratorHeight();
             if (result) {
             LOG.info("Decorator found for " + flowElement.getIdentity());
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Decorators are always painted in a specific order.
-     * @param x of mouse
-     * @param y of mouse
-     * @return the decorator ar this location.
-     */
-    public Decorator getDecoratorAtXY(int x, int y) {
-        Decorator result = null;
-        if (isDecoratorAtXY(x, y)) {
-            DECORATOR_POSITION position;
-            DECORATOR_TYPE type;
-            if (x > getRightX()) {
-                position = DECORATOR_POSITION.AFTER;
-                List<Decorator> afterDecorators = flowElement.getAfterDecorators();
-                if (afterDecorators != null && afterDecorators.size() == 1) {
-                    result = afterDecorators.get(0);
-                }
-            } else {
-                position = DECORATOR_POSITION.BEFORE;
-                List<Decorator> beforeDecorators = flowElement.getBeforeDecorators();
-                if (beforeDecorators != null && beforeDecorators.size() == 1) {
-                    result = beforeDecorators.get(0);
-                }
-            }
-            if (result == null) {
-                if (x > getRightX() + IkasanComponentLibrary.getDecoratorWidth() + WIRETAP_HORIZONTAL_SPACE ||
-                        x < getLeftX() - IkasanComponentLibrary.getDecoratorWidth() - WIRETAP_HORIZONTAL_SPACE) {
-                    type = DECORATOR_TYPE.LogWiretap;
-                } else {
-                    type = DECORATOR_TYPE.Wiretap;
-                }
-            result = flowElement.getDecorators().stream()
-                    .filter(t -> type.equals(t.getType()))
-                    .filter(p -> position.equals(p.getPosition()))
-                    .findFirst()
-                    .orElse(null);
             }
         }
         return result;

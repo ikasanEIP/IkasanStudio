@@ -1,7 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance.serialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -13,22 +12,6 @@ public class ModuleSerializer extends StdSerializer<Module> {
 
     public ModuleSerializer() {
         super(Module.class);
-    }
-
-    protected ModuleSerializer(Class<Module> t) {
-        super(t);
-    }
-
-    protected ModuleSerializer(JavaType type) {
-        super(type);
-    }
-
-    protected ModuleSerializer(Class<?> t, boolean dummy) {
-        super(t, dummy);
-    }
-
-    protected ModuleSerializer(StdSerializer<?> src) {
-        super(src);
     }
 
     /**
@@ -46,6 +29,9 @@ public class ModuleSerializer extends StdSerializer<Module> {
         jsonGenerator.writeStartObject();
         // First, the module fields
         basicElementSerializer.serializePayload(module, jsonGenerator);
+        if (module.isWiretapManagementEnabled()) {
+            jsonGenerator.writeBooleanField(Module.WIRETAP_MANAGEMENT_ENABLED_JSON_TAG, true);
+        }
 
         // Now Flows
         if (module.getFlows() != null && !module.getFlows().isEmpty()) {

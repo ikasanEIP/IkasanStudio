@@ -37,6 +37,11 @@ public class DecoratorComponentAction implements ActionListener {
       if (ikasanBasicElement instanceof FlowElement ikasanFlowComponent &&
          !(ikasanBasicElement.getComponentMeta().isDebug())) {
 
+         if (decoratorType == DECORATOR_TYPE.Wiretap) {
+            project.getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule()
+                    .setWiretapManagementEnabled(true);
+         }
+
          if (isAdd) {
             ikasanFlowComponent.addDecorator(
                     Decorator.decoratorBuilder()
@@ -44,14 +49,17 @@ public class DecoratorComponentAction implements ActionListener {
                             .name(beforeOrAfter.toString() + " " + ikasanFlowComponent.getIdentity())
                             .configurationId("0")
                             .configurable(false)
+                            .timeToLive(decoratorType == DECORATOR_TYPE.Wiretap
+                                    ? Decorator.DEFAULT_WIRETAP_TIME_TO_LIVE : null)
                             .build()
             );
          } else {
             ikasanFlowComponent.removeDecorator(decoratorType, beforeOrAfter);
          }
-         // Decorators are persisted in model.json but are not consumed by the current Java,
-         // properties or POM templates, so no generated source needs to be revisited.
-         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.modelOnly());
+         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project,
+                 decoratorType == DECORATOR_TYPE.Wiretap
+                         ? GenerationRequest.properties()
+                         : GenerationRequest.moduleStructure(ikasanFlowComponent.getContainingFlow()));
       } else {
          StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.WiretapCanOnlyBeAddedToANonDebugFlowElements"));
       }

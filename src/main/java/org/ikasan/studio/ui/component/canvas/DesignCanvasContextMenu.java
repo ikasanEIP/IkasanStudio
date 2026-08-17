@@ -7,7 +7,6 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
@@ -22,7 +21,7 @@ public class DesignCanvasContextMenu {
     private DesignCanvasContextMenu () {
     }
 
-    public static void showPopupAndNavigateMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement, Decorator decorator) {
+    public static void showPopupAndNavigateMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
 
         if (ikasanBasicElement instanceof Flow) {
@@ -44,26 +43,14 @@ public class DesignCanvasContextMenu {
                 menu.add(createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
             menu.addSeparator();
-            if (decorator != null && decorator.isBefore() && decorator.isWiretap()) {
-                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteWiretapBefore"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
-            } else {
-                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddWiretapBefore"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.BEFORE));
-            }
-            if (decorator != null && decorator.isAfter() && decorator.isWiretap()) {
-                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteWiretapAfter"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
-            } else {
-                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddWiretapAfter"), ikasanBasicElement, DECORATOR_TYPE.Wiretap, DECORATOR_POSITION.AFTER));
-            }
-            if (decorator != null && decorator.isBefore() && decorator.isLogWiretap()) {
-                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteLoggingBefore"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
-            } else {
-                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddLoggingBefore"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.BEFORE));
-            }
-            if (decorator != null && decorator.isAfter() && decorator.isLogWiretap()) {
-                menu.add(removeDecoratorItem(project, StudioBundle.message("menu.DeleteLoggingAfter"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
-            } else {
-                menu.add(createDecoratorItem(project, StudioBundle.message("menu.AddLoggingAfter"), ikasanBasicElement, DECORATOR_TYPE.LogWiretap, DECORATOR_POSITION.AFTER));
-            }
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
+                    DECORATOR_POSITION.BEFORE, "menu.AddWiretapBefore", "menu.DeleteWiretapBefore");
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
+                    DECORATOR_POSITION.AFTER, "menu.AddWiretapAfter", "menu.DeleteWiretapAfter");
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.LogWiretap,
+                    DECORATOR_POSITION.BEFORE, "menu.AddLoggingBefore", "menu.DeleteLoggingBefore");
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.LogWiretap,
+                    DECORATOR_POSITION.AFTER, "menu.AddLoggingAfter", "menu.DeleteLoggingAfter");
 
             menu.addSeparator();
             menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
@@ -101,6 +88,16 @@ public class DesignCanvasContextMenu {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.EditComponent"));
         item.addActionListener(new EditComponentAction(project, ikasanBasicElement));
         return item;
+    }
+
+    private static void addDecoratorMenuItem(JPopupMenu menu, Project project, FlowElement flowElement,
+                                             DECORATOR_TYPE type, DECORATOR_POSITION position,
+                                             String addLabelKey, String deleteLabelKey) {
+        boolean present = flowElement.getDecorators() != null && flowElement.getDecorators().stream()
+                .anyMatch(existing -> type.equals(existing.getType()) && position.equals(existing.getPosition()));
+        menu.add(present
+                ? removeDecoratorItem(project, StudioBundle.message(deleteLabelKey), flowElement, type, position)
+                : createDecoratorItem(project, StudioBundle.message(addLabelKey), flowElement, type, position));
     }
 
     private static JMenuItem removeDecoratorItem(Project project, String label, BasicElement ikasanBasicElement, DECORATOR_TYPE decoratorType, DECORATOR_POSITION decoratorPosition) {

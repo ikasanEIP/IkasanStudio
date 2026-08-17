@@ -93,6 +93,7 @@ public class PIPSIIkasanModel {
                         }
                         Long transactionTimeStamp = uiContext.getProjectRefreshTimestamp();
                         switch (request.scope()) {
+                            case PROPERTIES -> generateAndSavePropertiesConfig(project, module);
                             case FLOW -> {
                                 saveFlow(project, module, request.affectedFlow());
                                 generateAndSavePropertiesConfig(project, module);

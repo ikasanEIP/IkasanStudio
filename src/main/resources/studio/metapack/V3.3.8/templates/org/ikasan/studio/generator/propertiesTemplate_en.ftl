@@ -68,7 +68,24 @@ ikasan.module.activator.startup.type.defaultStartupType=${module.getPropertyValu
     ${property.getName()}=${property.getValue()}
 </#list>
 <#--properties for all components-->
-<#assign flowStartupTypeIndex = 0>
+<#assign hasStudioWiretaps = false>
+<#list module.getFlows()![] as flow>
+    <#list flow.ftlGetConsumerAndFlowElements()![] as element>
+        <#if element.hasWiretap()><#assign hasStudioWiretaps = true></#if>
+    </#list>
+</#list>
+<#if hasStudioWiretaps || module.isWiretapManagementEnabled()>
+<#assign wiretapIndex = 0>
+ikasan.module.activator.wiretap.deleteAllTriggers=true
+<#list module.getFlows()![] as flow>
+    <#list flow.ftlGetConsumerAndFlowElements()![] as element>
+        <#list element.getWiretaps()![] as wiretap>
+ikasan.module.activator.wiretap.triggers[${wiretapIndex}]=${flow.getIdentity()},${wiretap.getPosition()?lower_case},${element.getComponentName()},${wiretap.getTimeToLive()}
+            <#assign wiretapIndex = wiretapIndex + 1>
+        </#list>
+    </#list>
+</#list>
+</#if><#assign flowStartupTypeIndex = 0>
 <#list module.getFlows()![] as flow>
     <#if flow.getPropertyValue('flowStartupType')??>
 ikasan.module.activator.startup.type.flowStartupTypes[${flowStartupTypeIndex}]=${flow.getIdentity()},${flow.getPropertyValue('flowStartupType')}

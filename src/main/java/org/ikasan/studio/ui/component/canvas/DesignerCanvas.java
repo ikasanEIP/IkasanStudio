@@ -15,7 +15,6 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
@@ -269,12 +268,7 @@ public class DesignerCanvas extends JPanel {
         }
         // Right-click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
-            Decorator decorator = null;
-            if (ikasanBasicElement instanceof FlowElement flowElement) {
-                IkasanFlowComponentViewHandler viewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
-                decorator = viewHandler.getDecoratorAtXY(x, y);
-            }
-            DesignCanvasContextMenu.showPopupAndNavigateMenu(project, this, me, ikasanBasicElement, decorator);
+            DesignCanvasContextMenu.showPopupAndNavigateMenu(project, this, me, ikasanBasicElement);
 //            if (selectedComponent != null) {
 //            } else {
 //                DesignCanvasContextMenu.showPopupMenu(project,this, me);

@@ -12,6 +12,8 @@ public record GenerationRequest(Scope scope, Flow affectedFlow) {
     public enum Scope {
         /** Persist the model only; no code template consumes the changed data. */
         MODEL_ONLY,
+        /** Regenerate application.properties only. */
+        PROPERTIES,
         /** Regenerate one flow, its factory/stubs, configuration properties and dependencies. */
         FLOW,
         /** Regenerate module flow registration and optionally one newly added/renamed flow. */
@@ -33,6 +35,10 @@ public record GenerationRequest(Scope scope, Flow affectedFlow) {
 
     public static GenerationRequest flow(Flow flow) {
         return new GenerationRequest(Scope.FLOW, Objects.requireNonNull(flow, "flow"));
+    }
+
+    public static GenerationRequest properties() {
+        return new GenerationRequest(Scope.PROPERTIES, null);
     }
 
     public static GenerationRequest moduleStructure(Flow affectedFlow) {

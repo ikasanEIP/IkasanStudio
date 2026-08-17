@@ -42,4 +42,27 @@ org.ikasan.spec.module.Module module = moduleBuilder
 return module;
 }
 
+@org.springframework.context.annotation.Bean
+@org.springframework.context.annotation.Profile("debug")
+public org.springframework.boot.ApplicationRunner studioLoggingWiretapTriggers(
+        org.ikasan.wiretap.listener.JobAwareFlowEventListener listener)
+{
+return args -> {
+new java.util.ArrayList<>(listener.getTriggers()).stream()
+.filter(trigger -> moduleName.equals(trigger.getModuleName()))
+.filter(trigger -> "loggingJob".equals(trigger.getJobName()))
+.filter(trigger -> trigger.getId() != null)
+.forEach(trigger -> listener.deleteDynamicTrigger(trigger.getId()));
+<#list module.getFlows()![] as flow>
+    <#list flow.ftlGetConsumerAndFlowElements()![] as element>
+        <#list element.getLogWiretaps()![] as logWiretap>
+listener.addDynamicTrigger(new org.ikasan.trigger.model.TriggerImpl(
+moduleName, "${flow.getIdentity()}", "${logWiretap.getPosition()}",
+"loggingJob", "${element.getComponentName()}", new java.util.HashMap<>()));
+        </#list>
+    </#list>
+</#list>
+};
+}
+
 }

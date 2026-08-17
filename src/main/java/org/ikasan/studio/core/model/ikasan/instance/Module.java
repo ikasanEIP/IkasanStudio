@@ -36,10 +36,12 @@ import java.util.*;
 public class Module extends BasicElement {
     public static final Logger LOG = Logger.getInstance("Module");
     public static final String DUMB_MODULE_VERSION = "DUMB_MODULE";     // Allows creation of emergency model to cope with crash scenarios
+    public static final String WIRETAP_MANAGEMENT_ENABLED_JSON_TAG = "wiretapManagementEnabled";
 
     @JsonPropertyOrder(alphabetic = true)
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     private List<Flow> flows;
+    private boolean wiretapManagementEnabled;
 
     /**
      * Create a new basic module with a specific meta-pack version.

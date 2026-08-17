@@ -63,7 +63,9 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             while (fieldNames.hasNext()) {
                 String key = fieldNames.next();
                 JsonNode fieldValue = jsonNode.get(key);
-                if (FLOWS_TAG.equals(key)) {
+                if (Module.WIRETAP_MANAGEMENT_ENABLED_JSON_TAG.equals(key)) {
+                    module.setWiretapManagementEnabled(fieldValue.asBoolean(false));
+                } else if (FLOWS_TAG.equals(key)) {
                     try {
                         module.setFlows(getFlows(fieldValue, metapackVersion));
                     } catch (StudioBuildException se) {
@@ -747,11 +749,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             String name = jsonNode.get(ComponentMeta.NAME_KEY) != null ? jsonNode.get(ComponentMeta.NAME_KEY).asText() : null;
             String configurationId = jsonNode.get(ComponentMeta.CONFIGURATION_ID_KEY) != null ? jsonNode.get(ComponentMeta.CONFIGURATION_ID_KEY).asText() : null;
             Boolean configurable = jsonNode.get(ComponentMeta.CONFIGURABLE_KEY) != null ? jsonNode.get(ComponentMeta.CONFIGURABLE_KEY).asBoolean() : null;
+            String timeToLive = jsonNode.get("timeToLive") != null ? jsonNode.get("timeToLive").asText() : null;
             decorator = Decorator.decoratorBuilder()
                     .type(type)
                     .name(name)
                     .configurable(configurable != null && configurable)
                     .configurationId(configurationId)
+                    .timeToLive(timeToLive)
                     .build();
         }
         return decorator;

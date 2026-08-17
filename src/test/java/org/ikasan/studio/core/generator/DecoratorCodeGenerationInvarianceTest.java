@@ -11,6 +11,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Wiretap/LogWiretap decorators are persisted in model.json but, as of writing, are not read by
@@ -85,7 +88,7 @@ public class DecoratorCodeGenerationInvarianceTest extends AbstractGeneratorTest
 
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void decoratorsDoNotChangePropertiesTemplateOutput(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
+    public void wiretapsAreGeneratedAsIndexedStartupProperties(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
         Module undecoratedModule = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement undecorated = TestFixtures.getBroker(metaPackVersion);
         String withoutDecorators = generatePropertiesTemplateString(metaPackVersion, undecoratedModule, undecorated);
@@ -98,9 +101,19 @@ public class DecoratorCodeGenerationInvarianceTest extends AbstractGeneratorTest
         decorated.addDecorator(logWiretap("AFTER", decorated.getComponentName()));
         String withDecorators = generatePropertiesTemplateString(metaPackVersion, decoratedModule, decorated);
 
-        assertEquals(withoutDecorators, withDecorators,
-                "PropertiesTemplate output changed when decorators were added - DecoratorComponentAction's " +
-                        "GenerationRequest.modelOnly() optimisation is no longer safe, it must trigger a " +
-                        "properties regeneration instead.");
+        assertNotEquals(withoutDecorators, withDecorators);
+        assertTrue(withDecorators.contains("ikasan.module.activator.wiretap.deleteAllTriggers=true"));
+        assertTrue(withDecorators.contains("ikasan.module.activator.wiretap.triggers[0]="));
+        assertTrue(withDecorators.contains(",before," + decorated.getComponentName() + ",300"));
+        assertTrue(withDecorators.contains("ikasan.module.activator.wiretap.triggers[1]="));
+        assertTrue(withDecorators.contains(",after," + decorated.getComponentName() + ",300"));
+        assertFalse(withDecorators.contains("LogWiretap"));
+
+        String moduleConfig = ModuleConfigTemplate.create(decoratedModule);
+        assertTrue(moduleConfig.contains("@org.springframework.context.annotation.Profile(\"debug\")"));
+        assertTrue(moduleConfig.contains("\"loggingJob\""));
+        assertTrue(moduleConfig.contains("\"BEFORE\""));
+        assertTrue(moduleConfig.contains("\"AFTER\""));
+        assertTrue(moduleConfig.contains("\"" + decorated.getComponentName() + "\""));
     }
 }
