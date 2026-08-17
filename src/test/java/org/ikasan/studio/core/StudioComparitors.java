@@ -3,7 +3,7 @@ package org.ikasan.studio.core;
 import javax.swing.*;
 
 public class StudioComparitors {
-    public static boolean imageIconsEqual(ImageIcon i1, ImageIcon i2) {
+    public static boolean imageIconsEqual(Icon i1, Icon i2) {
         System.out.println("Comparing icons: " + i1 + " vs " + i2);
         if (i1 == i2) return true;
         if (i1 == null || i2 == null) return false;

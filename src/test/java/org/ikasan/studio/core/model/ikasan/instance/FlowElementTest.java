@@ -60,7 +60,7 @@ class FlowElementTest {
         assertThat(clonedXProducerComponent.getComponentMeta())
                 .usingRecursiveComparison()
                 .ignoringFields("jarDependencies", "allowableProperties")
-                .withEqualsForType(StudioComparitors::imageIconsEqual, ImageIcon.class)
+                .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                 .isEqualTo(xProducerComponent.getComponentMeta());
 
         ComponentProperty originalSimpleStringProperty = xProducerComponent.getProperty(TestFixtures.SIMPLE_STRING_PROPERTY);
@@ -163,7 +163,7 @@ class FlowElementTest {
                 .ignoringFields(
                         "jarDependencies",              // These are set in test fixture as different
                         "allowableProperties")          // These are different, the differences being tested in Component Properties below, all allowables are used for componentProperties.
-                .withEqualsForType(StudioComparitors::imageIconsEqual, ImageIcon.class)
+                .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                 .isEqualTo(xProducerComponent.getComponentMeta());
 
         ComponentProperty originalSimpleStringProperty = xProducerComponent.getProperty(TestFixtures.SIMPLE_STRING_PROPERTY);

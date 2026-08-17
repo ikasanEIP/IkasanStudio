@@ -425,7 +425,7 @@ class FlowRouteTest {
 
         assertThat(clonedXProducerComponent.getComponentMeta())
                 .usingRecursiveComparison()
-                .withEqualsForType(StudioComparitors::imageIconsEqual, ImageIcon.class)
+                .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                 .ignoringFields(
                         "jarDependencies",              // These are set in test fixture as different
                         "allowableProperties")          // These are different, the differences being tested in Component Properties below, all allowables are used for componentProperties.
