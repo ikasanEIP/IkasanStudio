@@ -30,6 +30,7 @@ public abstract class PropertiesPanel extends JBPanel {
 
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JBPanel propertiesEditorPanel = new JBPanel();
+    private final JBScrollPane scrollPane;
 
     protected JButton updateCodeButton;
     private boolean dataValid = true;
@@ -74,7 +75,7 @@ public abstract class PropertiesPanel extends JBPanel {
         populatePropertiesEditorPanel();
         propertiesEditorScrollingContainer = new ScrollableGridbagPanel(propertiesEditorPanel);
         propertiesEditorScrollingContainer.setBorder(null);
-        JBScrollPane scrollPane = new JBScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane = new JBScrollPane(propertiesEditorScrollingContainer, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         scrollPane.setBorder(null);
         propertiesBodyPanel.add(scrollPane, BorderLayout.CENTER);
@@ -133,6 +134,17 @@ public abstract class PropertiesPanel extends JBPanel {
         }
         populatePropertiesEditorPanel();
         redrawPanel();
+    }
+
+    /**
+     * The natural width needed to show this panel's property rows without horizontal scrolling/clipping,
+     * mirroring {@code PaletteTabPanel#getPaletteScrollPanePreferredWidth()} - used to size the containing
+     * split pane so the Properties tab isn't cramped when it's first shown.
+     */
+    public int getPreferredWidth() {
+        Insets insets = scrollPane.getInsets();
+        int scrollBarWidth = scrollPane.getVerticalScrollBar().getPreferredSize().width;
+        return propertiesEditorPanel.getPreferredSize().width + insets.left + insets.right + scrollBarWidth;
     }
 
     protected void redrawPanel() {

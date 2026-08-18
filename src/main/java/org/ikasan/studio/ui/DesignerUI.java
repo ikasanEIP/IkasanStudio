@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -27,12 +28,22 @@ public class DesignerUI implements Disposable {
     private final Project project;
     private static final String INITIALISING_CARD = "initialising";
     private static final String DESIGNER_CARD = "designer";
+    // Persists the palette/properties panel's width (not the raw divider location, which is meaningless
+    // across sessions/window sizes on its own) so the user only ever needs to drag it once.
+    private static final String RIGHT_PANEL_WIDTH_PROPERTY = "ikasan.studio.designer.rightPanelWidth";
+    private static final int NO_PERSISTED_WIDTH = -1;
     private final CardLayout contentLayout = new CardLayout();
     private final JPanel contentPanel = new JPanel(contentLayout);
     private final StudioInitialisationPanel initialisationPanel;
     private final StudioProjectInitialisationService initialisationService;
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JSplitPane propertiesAndCanvasSplitPane;
+    // Guards the persistence listener below against our own programmatic setDividerLocation() calls -
+    // without this, restoring a persisted width while the split pane hasn't yet been laid out to its
+    // real size (getWidth() still small/stale during early startup) computes a wrong divider location,
+    // which the listener would then immediately re-persist, silently corrupting the user's saved width
+    // on every single restart.
+    private boolean restoringDividerLocation = false;
 
     /**
      * Create the main Designer window, this contains ALL the Ikasan Studio elements except source code.
@@ -91,6 +102,18 @@ public class DesignerUI implements Disposable {
                 };
             }
         });
+        // Remember whatever width the user leaves the panel at (whether from a manual drag or from the
+        // programmatic sizing below), so it doesn't need re-dragging on every project open.
+        propertiesAndCanvasSplitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, evt -> {
+            if (restoringDividerLocation) {
+                return;
+            }
+            int rightPanelWidth = getRightPanelWidth();
+            if (rightPanelWidth > 0) {
+                PropertiesComponent.getInstance(project).setValue(
+                        RIGHT_PANEL_WIDTH_PROPERTY, rightPanelWidth, NO_PERSISTED_WIDTH);
+            }
+        });
         contentPanel.add(initialisationPanel, INITIALISING_CARD);
         contentPanel.add(propertiesAndCanvasSplitPane, DESIGNER_CARD);
         contentLayout.show(contentPanel, INITIALISING_CARD);
@@ -111,6 +134,61 @@ public class DesignerUI implements Disposable {
 
     public JComponent getContent() {
         return contentPanel;
+    }
+
+    /**
+     * The palette/properties panel's current on-screen width, derived from the split pane's own state
+     * (divider location is only meaningful relative to the split's total width, which varies with the
+     * window/tool-window size, so the width - not the raw location - is what's persisted and restored).
+     */
+    private int getRightPanelWidth() {
+        return propertiesAndCanvasSplitPane.getWidth()
+                - propertiesAndCanvasSplitPane.getDividerLocation()
+                - propertiesAndCanvasSplitPane.getDividerSize();
+    }
+
+    private static final int MAX_APPLY_WIDTH_RETRIES = 10;
+
+    /**
+     * Sizes the palette/properties panel to its persisted width (or, on a project's first ever launch, the
+     * larger of the Palette/Properties tabs' natural content widths). Retries itself a bounded number of
+     * times if the split pane hasn't been laid out to a real size yet - early in startup getWidth() can
+     * still be reporting a small/stale value, and computing/applying a divider location against that would
+     * either be rejected (Swing clamps an out-of-range location) or, worse, get immediately re-persisted by
+     * the divider-location listener, corrupting the user's saved width. Only ever runs on the EDT.
+     */
+    private void applyRightPanelWidth(UiContext uiContext, PaletteTabPanel finalPaletteTabPanel, int attempt) {
+        int persistedWidth = PropertiesComponent.getInstance(project)
+                .getInt(RIGHT_PANEL_WIDTH_PROPERTY, NO_PERSISTED_WIDTH);
+        // Only the Palette tab is actually visible right now (it's the one just force-selected in
+        // completeInitialisation), but Properties' own preferred width is consulted too - otherwise a
+        // project's very first launch sizes the panel for the narrower Palette, and switching to Properties
+        // immediately feels cramped.
+        int rightPanelWidth = persistedWidth > 0
+                ? persistedWidth
+                : Math.max(
+                        finalPaletteTabPanel.getPaletteScrollPanePreferredWidth(),
+                        uiContext.getPropertiesTabPanel().getPropertiesPreferredWidth());
+        int splitWidth = propertiesAndCanvasSplitPane.getWidth();
+        if (rightPanelWidth <= 0) {
+            return;
+        }
+        if (splitWidth <= rightPanelWidth) {
+            // Not laid out to a usable size yet - give Swing another turn of the event loop rather than
+            // applying (and potentially persisting) a divider location computed from this unreliable width.
+            if (attempt < MAX_APPLY_WIDTH_RETRIES) {
+                ApplicationManager.getApplication().invokeLater(
+                        () -> applyRightPanelWidth(uiContext, finalPaletteTabPanel, attempt + 1));
+            }
+            return;
+        }
+        restoringDividerLocation = true;
+        try {
+            propertiesAndCanvasSplitPane.setDividerLocation(
+                    splitWidth - rightPanelWidth - propertiesAndCanvasSplitPane.getDividerSize());
+        } finally {
+            restoringDividerLocation = false;
+        }
     }
 
     private void completeInitialisation(UiContext uiContext) {
@@ -134,15 +212,14 @@ public class DesignerUI implements Disposable {
             initialisationService.markReady();
 
             PaletteTabPanel finalPaletteTabPanel = paletteTabPanel;
+            // Nothing has been selected on the canvas yet, so Properties is otherwise still empty at this
+            // point - populate it with the Module unconditionally (not just when a preferred-width
+            // measurement is needed below) so it has useful default content instead of sitting blank until
+            // the user first clicks something, on every launch, not only the first ever one.
+            uiContext.getPropertiesTabPanel().updateTargetComponent(uiContext.getIkasanModule());
             // Defer divider positioning until Swing has completed the new tab's layout pass.
-            ApplicationManager.getApplication().invokeLater(() -> {
-                int paletteWidth = finalPaletteTabPanel.getPaletteScrollPanePreferredWidth();
-                int splitWidth = propertiesAndCanvasSplitPane.getWidth();
-                if (paletteWidth > 0 && splitWidth > paletteWidth) {
-                    propertiesAndCanvasSplitPane.setDividerLocation(
-                            splitWidth - paletteWidth - propertiesAndCanvasSplitPane.getDividerSize());
-                }
-            });
+            ApplicationManager.getApplication().invokeLater(
+                    () -> applyRightPanelWidth(uiContext, finalPaletteTabPanel, 0));
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (Exception e) {

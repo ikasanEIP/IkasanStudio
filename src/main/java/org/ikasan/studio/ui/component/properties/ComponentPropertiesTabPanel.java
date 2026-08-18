@@ -59,6 +59,14 @@ public class ComponentPropertiesTabPanel extends JBPanel {
         add(paletteSplitPane, BorderLayout.CENTER);
     }
     /**
+     * The natural width needed to show the current component's properties without horizontal
+     * scrolling/clipping - see {@link ComponentPropertiesPanel#getPreferredWidth()}.
+     */
+    public int getPropertiesPreferredWidth() {
+        return componentPropertiesPanel.getPreferredWidth();
+    }
+
+    /**
      * External actors will update the component to be exposed / displayed.
      * @param selectedComponent that now needs to be updated.
      */
