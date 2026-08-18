@@ -63,6 +63,14 @@ public class DesignerCanvas extends JPanel {
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
+    // The OS-level click that brings the whole IDE window back into focus (e.g. after switching to
+    // another desktop app) is also delivered to whichever component is underneath it as a genuine
+    // MOUSE_PRESSED event. If that happens to land on empty canvas, it would otherwise be treated as a
+    // deliberate click to select the Module, silently discarding whatever was selected in Properties.
+    // A short suppression window after the application regains OS focus treats that first click as
+    // "bring to front" only, not a selection click.
+    private static final long SUPPRESS_CLICK_AFTER_APP_REACTIVATION_MS = 500;
+    private volatile long applicationReactivatedAtMillis = 0;
     private final Project project;
     private final JButton startButton = new JButton(
         StudioBundle.message("button.ConfigureModule"),
@@ -91,6 +99,10 @@ public class DesignerCanvas extends JPanel {
             public void mousePressed(MouseEvent e) {
                 LOG.trace("STUDIO: Mouse press x "+ e.getX() + " y " + e.getY());
                 requestFocusInWindow();
+                if (System.currentTimeMillis() - applicationReactivatedAtMillis < SUPPRESS_CLICK_AFTER_APP_REACTIVATION_MS) {
+                    applicationReactivatedAtMillis = 0;
+                    return;
+                }
                 mouseClickAction(e, e.getX(),e.getY());
             }
         });
@@ -301,12 +313,21 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
+     * Records that the whole IDE application just regained OS-level focus, so the next canvas click
+     * (which may just be the click that brought the window forward) is not treated as a selection click.
+     */
+    public void notifyApplicationReactivated() {
+        applicationReactivatedAtMillis = System.currentTimeMillis();
+    }
+
+    /**
      * Place the provided Ikasan Basic Element into the properties panel in edit mode
      * @param basicElement to be edited.
      */
     public void editComponent(BasicElement basicElement) {
         UiContext uiContext = project.getService(UiContext.class);
         setSelectedComponent(basicElement);
+        uiContext.setSelectedComponent(basicElement);
         if (basicElement instanceof ExceptionResolver resolver) {
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(project, true);
             exceptionResolverPanel.updateTargetComponent(basicElement);

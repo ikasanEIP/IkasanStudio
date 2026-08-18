@@ -2,8 +2,11 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationActivationListener;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -73,6 +76,19 @@ public class CanvasPanel extends JBPanel implements Disposable {
         canvasScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         add(canvasScrollPane, BorderLayout.CENTER);
+
+        ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(
+                ApplicationActivationListener.TOPIC,
+                new ApplicationActivationListener() {
+                    // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md)
+                    // because the IntelliJ Gradle plugin instruments it with a runtime assertion that
+                    // would surface as an uncaught plugin exception rather than failing gracefully.
+                    @SuppressWarnings("NullableProblems")
+                    @Override
+                    public void applicationActivated(IdeFrame ideFrame) {
+                        designerCanvas.notifyApplicationReactivated();
+                    }
+                });
     }
 
     @SuppressWarnings("rawtypes")

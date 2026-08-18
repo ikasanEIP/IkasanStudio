@@ -3,6 +3,7 @@ package org.ikasan.studio.ui;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.Options;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
@@ -52,6 +53,7 @@ public final class UiContext {
     private static final String IKASAN_MODULE = "ikasanModule";
     private static final String PIPSI_IKASAN_MODEL = "pipsiIkasanModel";
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
+    private static final String SELECTED_COMPONENT = "selectedComponent";
 
     private final Project project;
     private final Map<String, Object> cache = new TreeMap<>();
@@ -240,5 +242,19 @@ public final class UiContext {
 
     public PIPSIIkasanModel getPipsiIkasanModel() {
         return (PIPSIIkasanModel) getFromCache(PIPSI_IKASAN_MODEL);
+    }
+
+    /**
+     * The component currently shown in the Properties panel (Module, Flow, FlowElement etc).
+     * Deliberately not cleared by {@link #clearDesignerUI(DesignerUI)} - the editor can be closed and
+     * recreated (e.g. by the platform on tab/focus churn) without losing the user's current selection,
+     * mirroring how the module model itself survives editor recreation.
+     */
+    public void setSelectedComponent(IkasanObject selectedComponent) {
+        putInCache(SELECTED_COMPONENT, selectedComponent);
+    }
+
+    public IkasanObject getSelectedComponent() {
+        return (IkasanObject) getFromCache(SELECTED_COMPONENT);
     }
 }

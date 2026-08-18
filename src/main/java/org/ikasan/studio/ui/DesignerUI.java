@@ -8,6 +8,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.StudioInitialisationPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
@@ -212,11 +213,14 @@ public class DesignerUI implements Disposable {
             initialisationService.markReady();
 
             PaletteTabPanel finalPaletteTabPanel = paletteTabPanel;
-            // Nothing has been selected on the canvas yet, so Properties is otherwise still empty at this
-            // point - populate it with the Module unconditionally (not just when a preferred-width
-            // measurement is needed below) so it has useful default content instead of sitting blank until
-            // the user first clicks something, on every launch, not only the first ever one.
-            uiContext.getPropertiesTabPanel().updateTargetComponent(uiContext.getIkasanModule());
+            // Restore whatever was selected before this DesignerUI was (re)created - the editor can be
+            // closed and recreated (e.g. by the platform on tab/focus churn) without the user having
+            // explicitly changed their selection, and that shouldn't bounce Properties back to the Module.
+            // Only default to the Module when nothing has ever been selected (fresh launch), so Properties
+            // has useful default content instead of sitting blank until the user first clicks something.
+            IkasanObject previouslySelected = uiContext.getSelectedComponent();
+            IkasanObject componentToShow = previouslySelected != null ? previouslySelected : uiContext.getIkasanModule();
+            uiContext.getPropertiesTabPanel().updateTargetComponent(componentToShow);
             // Defer divider positioning until Swing has completed the new tab's layout pass.
             ApplicationManager.getApplication().invokeLater(
                     () -> applyRightPanelWidth(uiContext, finalPaletteTabPanel, 0));
