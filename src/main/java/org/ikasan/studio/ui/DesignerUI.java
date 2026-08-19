@@ -149,6 +149,25 @@ public class DesignerUI implements Disposable {
                 - propertiesAndCanvasSplitPane.getDividerSize();
     }
 
+    /**
+     * Re-sizes the palette/properties panel to fit newly-available content. The first sizing pass (in
+     * completeInitialisation) runs before a fresh project's module is configured, when the Palette is
+     * still empty and there's nothing meaningful to size against - so once the Palette is repopulated
+     * with its real component list (see PaletteTabPanel#resetPallette), it asks for this re-sizing so
+     * the panel grows to fit that content instead of staying at its empty-state width.
+     */
+    public void resizeRightPanelToContent() {
+        if (project.isDisposed()) {
+            return;
+        }
+        UiContext uiContext = project.getService(UiContext.class);
+        PaletteTabPanel paletteTabPanel = uiContext.getPalettePanel();
+        if (paletteTabPanel != null) {
+            ApplicationManager.getApplication().invokeLater(
+                    () -> applyRightPanelWidth(uiContext, paletteTabPanel, 0));
+        }
+    }
+
     private static final int MAX_APPLY_WIDTH_RETRIES = 10;
 
     /**

@@ -142,6 +142,11 @@ public class PaletteTabPanel extends JBPanel {
         setPaletteList();
         UiContext uiContext = project.getService(UiContext.class);
         uiContext.setRightTabbedPaneFocus(UiContext.PALETTE_TAB_INDEX);
+        // The panel was originally sized against an empty Palette (no module configured yet), so
+        // now that the Palette has real content, re-size the panel to fit it.
+        if (uiContext.getDesignerUI() != null) {
+            uiContext.getDesignerUI().resizeRightPanelToContent();
+        }
     }
 
 

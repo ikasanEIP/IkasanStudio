@@ -176,6 +176,10 @@ public final class UiContext {
         putInCache(DESIGNER_UI, designerUI);
     }
 
+    public DesignerUI getDesignerUI() {
+        return (DesignerUI) getFromCache(DESIGNER_UI);
+    }
+
     /**
      * Clears only UI objects owned by the supplied designer. Model and project state remain cached
      * so closing and reopening the editor does not discard the current module.

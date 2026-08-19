@@ -96,6 +96,8 @@ public class ComponentPropertyEditRow {
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
+            // Grouping is on by default, which renders values like a port or timeout as "2,121" - not wanted for any property here.
+            amountFormat.setGroupingUsed(false);
             this.propertyValueField = new JFormattedTextField(amountFormat);
             if (listenerFoAnyEditChanges != null) {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
