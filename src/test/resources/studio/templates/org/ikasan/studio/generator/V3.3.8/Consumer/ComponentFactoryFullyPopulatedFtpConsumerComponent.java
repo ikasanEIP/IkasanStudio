@@ -54,7 +54,7 @@ org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyFTPConsumer() {
-return builderFactory.getComponentBuilder().fTPConsumer()
+return builderFactory.getComponentBuilder().ftpConsumer()
 .setActive(true)
 .setAgeOfFiles(10)
 .setChecksum(true)

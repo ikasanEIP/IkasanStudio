@@ -40,7 +40,7 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMySFTPProducer() {
-return builderFactory.getComponentBuilder().sFTPProducer()
+return builderFactory.getComponentBuilder().sftpProducer()
 .setChecksumDelivered(true)
 .setCleanupChunks(true)
 .setCleanupJournalOnComplete(true)

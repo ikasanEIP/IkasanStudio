@@ -42,7 +42,7 @@ org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecov
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyFTPProducer() {
-return builderFactory.getComponentBuilder().fTPProducer()
+return builderFactory.getComponentBuilder().ftpProducer()
 .setActive(true)
 .setChecksumDelivered(true)
 .setCleanupJournalOnComplete(true)

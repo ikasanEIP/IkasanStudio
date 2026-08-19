@@ -56,7 +56,7 @@ org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMySFTPConsumer() {
-return builderFactory.getComponentBuilder().sFTPConsumer()
+return builderFactory.getComponentBuilder().sftpConsumer()
 .setAgeOfFiles(10)
 .setChecksum(true)
 .setChronological(true)
