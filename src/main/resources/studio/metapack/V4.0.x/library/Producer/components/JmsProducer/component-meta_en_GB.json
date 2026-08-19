@@ -11,7 +11,7 @@
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-jms-spring-arjuna",
-      "version": "4.1.1"
+      "version": "4.1.6"
     },{
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-client",

@@ -8,7 +8,7 @@
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-ftp-endpoint",
-      "version": "3.3.8"
+      "version": "3.3.9"
     }
   ],
   "importResources": ["classpath:filetransfer-service-conf.xml"],

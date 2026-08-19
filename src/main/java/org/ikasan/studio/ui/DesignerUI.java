@@ -9,6 +9,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.StudioInitialisationPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
@@ -220,7 +221,15 @@ public class DesignerUI implements Disposable {
             // has useful default content instead of sitting blank until the user first clicks something.
             IkasanObject previouslySelected = uiContext.getSelectedComponent();
             IkasanObject componentToShow = previouslySelected != null ? previouslySelected : uiContext.getIkasanModule();
-            uiContext.getPropertiesTabPanel().updateTargetComponent(componentToShow);
+            // A brand-new project's module has no version chosen yet (the placeholder "dumb" module has
+            // no component metadata) - setup for that case is driven by the canvas's own start button/version
+            // picker, so there is nothing valid to show in Properties until the module is actually initialised.
+            if (componentToShow instanceof Module module && !module.isInitialised()) {
+                componentToShow = null;
+            }
+            if (componentToShow != null) {
+                uiContext.getPropertiesTabPanel().updateTargetComponent(componentToShow);
+            }
             // Defer divider positioning until Swing has completed the new tab's layout pass.
             ApplicationManager.getApplication().invokeLater(
                     () -> applyRightPanelWidth(uiContext, finalPaletteTabPanel, 0));

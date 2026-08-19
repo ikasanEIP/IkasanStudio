@@ -10,22 +10,22 @@
     {
       "groupId": "org.ikasan.studio",
       "artifactId": "ikasan-studio-ide-mediator",
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-eip-standalone",
-      "version": "3.3.8"
+      "version": "3.3.9"
     },
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-h2-standalone-persistence",
-      "version": "3.3.8"
+      "version": "3.3.9"
     },
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-test-endpoint",
-      "version": "3.3.8"
+      "version": "3.3.9"
     }
   ],
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

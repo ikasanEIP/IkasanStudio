@@ -192,7 +192,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             updateCodeButton.setEnabled(false);
         }
 
-        if (getSelectedComponent() != null) {
+        if (getSelectedComponent() != null && getSelectedComponent().getComponentMeta() != null) {
             propertiesEditorScrollingContainer.removeAll();
 
             propertiesEditorPanel = new JBPanel(new GridBagLayout());

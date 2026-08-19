@@ -8,7 +8,7 @@
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-ftp-endpoint",
-      "version": "4.1.1"
+      "version": "4.1.6"
     }
   ],
   "importConfigurationClasses": ["org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"],
