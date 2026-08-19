@@ -6,6 +6,7 @@ import com.intellij.util.ui.JBUI;
 import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -176,7 +177,7 @@ public class CronPanel extends JBPanel {
         } else {
             String cronDescription = CronExpression.describeField(currentText, cronField);
             description.setText(cronDescription);
-            description.setForeground(IKASAN_BLACK);
+            description.setForeground(ThemeAwareColors.getTextColor());
         }
     }
 
