@@ -36,8 +36,8 @@ class ModuleTest {
         Module oldModule = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
         assertNotNull(oldModule);
         Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_4_0_0);
-        final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.3.8, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
-        final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=4.1.1, type=jar}, Dependency {groupId=org.ikasan.studio, artifactId=ikasan-studio-ide-mediator, version=1.0.2, type=jar}]";
+        final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.3.9, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.3.9, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.3.9, type=jar}]";
+        final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=4.1.6, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=4.1.6, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=4.1.6, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=4.1.6, type=jar}]";
 
         checkUnchangedProperties(oldModule, newModule, Arrays.asList("applicationPackageName", "description", "version", "flowStartupType", "h2DbPortNumber", "h2WebPortNumber", "port", "useEmbeddedH2"));
         assertAll(

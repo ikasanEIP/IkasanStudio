@@ -145,7 +145,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.junit>4.13.1</version.junit>
-        <version.ikasan-eip-standalone>3.3.9</version.ikasan-eip-standalone>
     </properties>
 
     <!-- Distribution for releases -->
@@ -496,7 +495,6 @@
             </activation>
             <modules>
                 <module>ikasan-studio-project-archetype</module>
-                <module>ikasan-studio-ide-mediator</module>
             </modules>
         </profile>
         <profile>

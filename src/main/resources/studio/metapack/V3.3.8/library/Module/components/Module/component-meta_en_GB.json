@@ -8,11 +8,6 @@
   "usesBuilderInFactory" : true,
   "jarDependencies": [
     {
-      "groupId": "org.ikasan.studio",
-      "artifactId": "ikasan-studio-ide-mediator",
-      "version": "1.0.3"
-    },
-    {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-eip-standalone",
       "version": "3.3.9"

@@ -95,10 +95,12 @@ public class PIPSIIkasanModel {
                         switch (request.scope()) {
                             case PROPERTIES -> generateAndSavePropertiesConfig(project, module);
                             case FLOW -> {
+                                saveDebugSupportClasses(project, module);
                                 saveFlow(project, module, request.affectedFlow());
                                 generateAndSavePropertiesConfig(project, module);
                             }
                             case MODULE_STRUCTURE -> {
+                                saveDebugSupportClasses(project, module);
                                 saveFlow(project, module, request.affectedFlow());
                                 generateAndSaveJavaCodeModuleConfig(project, module);
                                 generateAndSavePropertiesConfig(project, module);
@@ -107,6 +109,7 @@ public class PIPSIIkasanModel {
                             case FULL -> {
                                 saveApplication(project, module);
                                 saveStudioInjectController(project, module);
+                                saveDebugSupportClasses(project, module);
                                 saveAllFlows(project, module);
                                 generateAndSaveJavaCodeModuleConfig(project, module);
                                 generateAndSavePropertiesConfig(project, module);
@@ -217,6 +220,36 @@ public class PIPSIIkasanModel {
                     StudioPsiUtils.SRC_MAIN_JAVA_CODE,
                     StudioInjectControllerTemplate.STUDIO_BOOT_PACKAGE,
                     StudioInjectControllerTemplate.STUDIO_INJECT_CONTROLLER_CLASS_NAME, studioInjectControllerTemplateString, null);
+        }
+    }
+
+    /**
+     * Save the DebugTransitionComponent base class and its DeepCopyUtil helper - generated directly into
+     * the project (rather than pulled in as a jar dependency) so they always compile against whichever
+     * Ikasan Filter API the module's own metapack version resolves. Written into the "user" module, not
+     * "generated" - the concrete per-flow Debug subclass is generated into "user" (see the isDebug()
+     * branch below), and "generated" depends on "user", not the other way around, so a base class placed
+     * in "generated" would be invisible to its own subclass.
+     * @param project is the Intellij project instance
+     * @param module for this code
+     */
+    private void saveDebugSupportClasses(Project project, Module module) {
+        try {
+            String debugTransitionComponentTemplateString = DebugTransitionComponentTemplate.create(module);
+            StudioPsiUtils.createJavaSourceFile(project,
+                    StudioPsiUtils.USER_CONTENT_ROOT,
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
+                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME, debugTransitionComponentTemplateString, null);
+
+            String deepCopyUtilTemplateString = DeepCopyUtilTemplate.create(module);
+            StudioPsiUtils.createJavaSourceFile(project,
+                    StudioPsiUtils.USER_CONTENT_ROOT,
+                    StudioPsiUtils.SRC_MAIN_JAVA_CODE,
+                    DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
+                    DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME, deepCopyUtilTemplateString, null);
+        } catch (StudioGeneratorException e) {
+            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
         }
     }
 
