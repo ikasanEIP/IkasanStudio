@@ -177,6 +177,54 @@ public class Module extends BasicElement {
     }
 
     /**
+     * Used by Freemarker, ignore any IntelliJ warnings about unused methods - they are used in the Freemarker templates.
+     * Get the sorted, de-duplicated set of Spring classpath XML resources (e.g. "classpath:filetransfer-service-conf.xml")
+     * required by the module and all its components, for import into the generated ModuleConfig's @ImportResource -
+     * some component builder methods need beans that are only defined via Spring XML, not discoverable via
+     * component-scan or Java @Configuration.
+     * @return a sorted set of classpath resource strings for the module
+     */
+    public Set<String> getAllUniqueSortedImportResources() {
+        Set<String> allImportResources = new TreeSet<>();
+        if (this.getComponentMeta().getImportResources() != null) {
+            allImportResources.addAll(this.getComponentMeta().getImportResources());
+        }
+
+        for (Flow flow : this.getFlows()) {
+            for (FlowElement flowElement : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+                if (flowElement.getComponentMeta().getImportResources() != null) {
+                    allImportResources.addAll(flowElement.getComponentMeta().getImportResources());
+                }
+            }
+        }
+        return allImportResources;
+    }
+
+    /**
+     * Used by Freemarker, ignore any IntelliJ warnings about unused methods - they are used in the Freemarker templates.
+     * Get the sorted, de-duplicated set of fully-qualified @Configuration class names (e.g.
+     * "org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration") required by the module and all
+     * its components, for import into the generated ModuleConfig's @Import - the Java auto-configuration
+     * equivalent of {@link #getAllUniqueSortedImportResources()}, used by newer Ikasan versions.
+     * @return a sorted set of fully-qualified configuration class names for the module
+     */
+    public Set<String> getAllUniqueSortedImportConfigurationClasses() {
+        Set<String> allImportConfigurationClasses = new TreeSet<>();
+        if (this.getComponentMeta().getImportConfigurationClasses() != null) {
+            allImportConfigurationClasses.addAll(this.getComponentMeta().getImportConfigurationClasses());
+        }
+
+        for (Flow flow : this.getFlows()) {
+            for (FlowElement flowElement : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+                if (flowElement.getComponentMeta().getImportConfigurationClasses() != null) {
+                    allImportConfigurationClasses.addAll(flowElement.getComponentMeta().getImportConfigurationClasses());
+                }
+            }
+        }
+        return allImportConfigurationClasses;
+    }
+
+    /**
      * The intent is to clone the existing module but to a different meta-pack metapackVersion.
      * @param metapackVersion for cloned module
      * @return the cloned module with the new meta pack version

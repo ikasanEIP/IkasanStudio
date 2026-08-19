@@ -90,6 +90,16 @@ public class ComponentMeta implements IkasanMeta {
     private boolean isInternalEndpoint;             // This endpoint is internal to the flow
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     private Set<Dependency> jarDependencies;        // for this component, these will be added to the pom if this compponent is dragged into the flow
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    private Set<String> importResources;            // classpath Spring XML resources (e.g. "classpath:filetransfer-service-conf.xml") this component's
+                                                      // builder method needs on the Spring context (beans not discoverable via component-scan), added to
+                                                      // the generated ModuleConfig's @ImportResource if this component is dragged into the flow
+    @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
+    private Set<String> importConfigurationClasses; // fully-qualified @Configuration classes (e.g.
+                                                      // "org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration") this component's
+                                                      // builder method needs on the Spring context, added to the generated ModuleConfig's @Import if
+                                                      // this component is dragged into the flow. Newer Ikasan versions favour these Java auto-configuration
+                                                      // classes over the older Spring XML resources (see importResources above).
     private boolean usesBuilderInFactory;           // used by ftl to generate the correct builder code
     private boolean useImplementingClassInFactory;  // When true, 'implementingClass' is used in the factory method to create a new instance of the component.
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.

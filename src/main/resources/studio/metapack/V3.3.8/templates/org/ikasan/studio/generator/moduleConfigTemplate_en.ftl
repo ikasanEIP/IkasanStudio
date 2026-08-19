@@ -9,7 +9,8 @@ package ${studioPackageTag};
 @org.springframework.context.annotation.Configuration("ModuleFactory")
 @org.springframework.context.annotation.ImportResource({
 "classpath:h2-datasource-conf.xml",
-"classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml"
+"classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml"<#list module.getAllUniqueSortedImportResources() as importResource>,
+"${importResource}"</#list>
 })
 public class ${className} {
 @org.springframework.beans.factory.annotation.Value("${r"${module.name}"}")

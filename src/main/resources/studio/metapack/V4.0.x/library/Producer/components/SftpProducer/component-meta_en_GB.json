@@ -4,6 +4,14 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-sftp-endpoint",
+      "version": "4.1.1"
+    }
+  ],
+  "importConfigurationClasses": ["org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"],
   "additionalKey": "SFTP Producer",
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "producer",

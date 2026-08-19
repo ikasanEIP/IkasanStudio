@@ -4,6 +4,14 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-ftp-endpoint",
+      "version": "3.3.8"
+    }
+  ],
+  "importResources": ["classpath:filetransfer-service-conf.xml"],
   "additionalKey": "FTP Consumer",
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "consumer",
@@ -101,6 +109,7 @@
     },
     "cronExpression": {
       "propertyName": "cronExpression",
+      "propertyDisplayOrder": -70,
       "dataValidationType" : "cronExpression",
       "defaultValue": "* * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
@@ -122,6 +131,7 @@
     },
     "filenamePattern": {
       "propertyName": "filenamePattern",
+      "propertyDisplayOrder": -10,
       "helpText": "Regular expression for matching file names to be transported.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.filename-pattern",
@@ -264,6 +274,7 @@
     },
     "password": {
       "propertyName": "password",
+      "propertyDisplayOrder": -30,
       "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.password",
@@ -278,6 +289,7 @@
     },
     "remoteHost": {
       "propertyName": "remoteHost",
+      "propertyDisplayOrder": -60,
       "helpText": "Default('localhost') host name of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-host",
@@ -286,6 +298,7 @@
     },
     "remotePort": {
       "propertyName": "remotePort",
+      "propertyDisplayOrder": -50,
       "helpText": "Default(22) port of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-port",
@@ -323,6 +336,7 @@
     },
     "sourceDirectory": {
       "propertyName": "sourceDirectory",
+      "propertyDisplayOrder": -20,
       "helpText": "Remote directory from which to discover files.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.source-directory",
@@ -360,6 +374,7 @@
     },
     "username": {
       "propertyName": "username",
+      "propertyDisplayOrder": -40,
       "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.username",
