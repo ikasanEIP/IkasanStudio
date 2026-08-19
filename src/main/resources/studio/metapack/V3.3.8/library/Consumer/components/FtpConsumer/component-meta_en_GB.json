@@ -290,6 +290,7 @@
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-port",
       "setterProperty": true,
+      "propertyDataType": "java.lang.Integer",
       "usageDataType": "java.lang.Integer"
     },
     "renameOnSuccess": {

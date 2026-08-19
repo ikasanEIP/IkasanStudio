@@ -29,7 +29,7 @@ java.lang.String myFlow1FtpConsumerPassword;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
 java.lang.String myFlow1FtpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
-java.lang.String myFlow1FtpConsumerRemotePort;
+java.lang.Integer myFlow1FtpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
 java.lang.String myFlow1FtpConsumerSystemKey;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")

@@ -31,7 +31,7 @@ java.lang.String myFlow1SftpConsumerPrivateKeyFilename;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.remote-host}")
 java.lang.String myFlow1SftpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.remote-port}")
-java.lang.String myFlow1SftpConsumerRemotePort;
+java.lang.Integer myFlow1SftpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
 java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource

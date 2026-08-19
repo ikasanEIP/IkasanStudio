@@ -33,7 +33,7 @@ java.lang.String myFlow1FtpConsumerPasswordFilepath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
 java.lang.String myFlow1FtpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
-java.lang.String myFlow1FtpConsumerRemotePort;
+java.lang.Integer myFlow1FtpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.source-directory}")
 java.lang.String myFlow1FtpConsumerSourceDirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")

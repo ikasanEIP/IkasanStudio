@@ -144,6 +144,7 @@
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.remote-port",
       "setterProperty": true,
+      "propertyDataType": "java.lang.Integer",
       "usageDataType": "java.lang.Integer"
     },
     "renameExtension": {
