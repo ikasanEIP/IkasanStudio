@@ -20,6 +20,7 @@ import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.NavigateToCodeAction;
 import org.ikasan.studio.ui.actions.SendTestMessageAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
@@ -292,16 +293,8 @@ public class DesignerCanvas extends JPanel {
         } // Double-click -> go to source
         else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();
-//            AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement);
-//            if (viewHandler != null) {
-//                if (viewHandler.getOffsetInclassToNavigateTo() != 0) {
-//                    Navigator.navigateToSource(project, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
-//                } else {
-//                    if (viewHandler.getClassToNavigateTo() != null) {
-//                        Navigator.navigateToSource(project, viewHandler.getClassToNavigateTo());
-//                    }
-//                }
-//            }
+            new NavigateToCodeAction(project, ikasanBasicElement, true)
+                    .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "navigateToCode"));
         } // Single Left-click -> update properties
         else if ((me.getButton() == MouseEvent.BUTTON1) &&
                  (  ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement) != null &&
