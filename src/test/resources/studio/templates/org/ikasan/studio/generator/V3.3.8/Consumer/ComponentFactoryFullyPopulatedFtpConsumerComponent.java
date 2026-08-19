@@ -14,6 +14,8 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.clientID}")
+java.lang.String myFlow1FtpConsumerClientID;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.cron-expression}")
 java.lang.String myFlow1FtpConsumerCronExpression;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.filename-pattern}")
@@ -62,7 +64,7 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setChunkSize(1048577)
 .setChunking(true)
 .setCleanupJournalOnComplete(true)
-.setClientID(myClientId)
+.setClientID(myFlow1FtpConsumerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setConnectionTimeout(600001)

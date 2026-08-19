@@ -97,6 +97,12 @@ public class PIPSIIkasanModel {
                             case FLOW -> {
                                 saveDebugSupportClasses(project, module);
                                 saveFlow(project, module, request.affectedFlow());
+                                // A component added to the flow (e.g. an Ftp Consumer) can require its own
+                                // @ImportResource/@Import on ModuleConfig (see ComponentMeta#importResources /
+                                // #importConfigurationClasses) - without this, adding such a component to an
+                                // *existing* flow would leave ModuleConfig stale until some other change
+                                // happened to trigger a MODULE_STRUCTURE/FULL regeneration.
+                                generateAndSaveJavaCodeModuleConfig(project, module);
                                 generateAndSavePropertiesConfig(project, module);
                             }
                             case MODULE_STRUCTURE -> {

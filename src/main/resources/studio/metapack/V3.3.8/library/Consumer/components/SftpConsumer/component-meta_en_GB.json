@@ -68,7 +68,10 @@
     },
     "clientID": {
       "propertyName": "clientID",
-      "helpText": "File filter related option identifying consumer. clientId is stored as part of the meta information persisted about the processed file.",
+      "defaultValue": "__flow",
+      "helpText": "ClientID needs to be unique per module. Its typically used to identify this component uniquely. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.clientID",
       "setterProperty": true
     },
     "configuration": {

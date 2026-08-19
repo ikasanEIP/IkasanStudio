@@ -14,6 +14,8 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.clientID}")
+java.lang.String myFlow1SftpConsumerClientID;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.cron-expression}")
 java.lang.String myFlow1SftpConsumerCronExpression;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.filename-pattern}")
@@ -63,7 +65,7 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setChunkSize(1048577)
 .setChunking(true)
 .setCleanupJournalOnComplete(true)
-.setClientID(myClientId)
+.setClientID(myFlow1SftpConsumerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setConnectionTimeout(600001)
