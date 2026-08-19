@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
 
@@ -32,6 +33,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     public static final int FLOW_CONTAINER_BORDER = 10;
     // Gap between the top of the Send Test Message badge and the top of the EndPoint icon it sits above.
     private static final int SEND_TEST_MESSAGE_VERTICAL_GAP = 4;
+    // Consumer component names (see Consumer/components/*/component-meta_en_GB.json "name") that deal in
+    // files rather than messages - these get the file-flavoured Send Test Message badge instead of the
+    // envelope one.
+    private static final Set<String> FILE_BASED_CONSUMER_NAMES = Set.of(
+            "FTP Consumer", "SFTP Consumer", "Local File Consumer", "Generic Consumer");
 
     private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
     private final Flow flow;
@@ -148,7 +154,18 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      */
     private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
         FlowElement endpointFlowElement = getEndpointForGivenComponent(project.getService(UiContext.class).getIkasanModule().getMetaVersion(), targetFlowElement);
-        if (endpointFlowElement != null) {
+        if (endpointFlowElement == null) {
+            // No external endpoint (e.g. Generic Consumer, Event Generating Consumer) - Send Test Message is
+            // still available for any Consumer (see DesignCanvasContextMenu), so the badge belongs directly
+            // above the consumer's own icon instead of an endpoint that doesn't exist.
+            if (targetFlowElement.getComponentMeta().isConsumer()
+                    && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
+                IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
+                if (targetFlowElementViewHandler != null) {
+                    paintSendTestMessageBadge(canvas, g, targetFlowElement, targetFlowElementViewHandler);
+                }
+            }
+        } else {
             cachedEndpointToOwner.put(endpointFlowElement, targetFlowElement);
             // Position and draw the endpoint
             IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
@@ -213,14 +230,17 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
      * {@link #getOwnerForSendTestMessageAtXY}.
      * @param canvas to paint on
      * @param g is the graphics callback
-     * @param owner the Consumer that the endpoint (and therefore the badge) belongs to
-     * @param endpointViewHandler the already-positioned view handler for the EndPoint icon
+     * @param owner the Consumer that the badge belongs to, also used to pick the file vs envelope badge icon
+     * @param anchorViewHandler the already-positioned view handler the badge is centred above - the EndPoint
+     *                          icon if the consumer has one, otherwise the consumer's own icon
      */
-    private void paintSendTestMessageBadge(JPanel canvas, Graphics g, FlowElement owner, IkasanFlowComponentViewHandler endpointViewHandler) {
-        Icon sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageIcon();
-        int endpointIconWidth = endpointViewHandler.getCanvasIcon().getIconWidth();
-        int badgeLeftX = endpointViewHandler.getLeftX() + ((endpointIconWidth - sendTestMessageIcon.getIconWidth()) / 2);
-        int badgeTopY = endpointViewHandler.getTopY() - sendTestMessageIcon.getIconHeight() - SEND_TEST_MESSAGE_VERTICAL_GAP;
+    private void paintSendTestMessageBadge(JPanel canvas, Graphics g, FlowElement owner, IkasanFlowComponentViewHandler anchorViewHandler) {
+        Icon sendTestMessageIcon = FILE_BASED_CONSUMER_NAMES.contains(owner.getComponentMeta().getName())
+                ? IkasanComponentLibrary.getSendTestMessageFileIcon()
+                : IkasanComponentLibrary.getSendTestMessageIcon();
+        int anchorIconWidth = anchorViewHandler.getCanvasIcon().getIconWidth();
+        int badgeLeftX = anchorViewHandler.getLeftX() + ((anchorIconWidth - sendTestMessageIcon.getIconWidth()) / 2);
+        int badgeTopY = anchorViewHandler.getTopY() - sendTestMessageIcon.getIconHeight() - SEND_TEST_MESSAGE_VERTICAL_GAP;
         sendTestMessageIcon.paintIcon(canvas, g, badgeLeftX, badgeTopY);
         cachedSendTestMessageBadge.put(owner, new Rectangle(badgeLeftX, badgeTopY, sendTestMessageIcon.getIconWidth(), sendTestMessageIcon.getIconHeight()));
     }

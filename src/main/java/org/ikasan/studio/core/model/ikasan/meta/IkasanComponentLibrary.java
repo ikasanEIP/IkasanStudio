@@ -199,6 +199,13 @@ public class IkasanComponentLibrary {
         return SEND_TEST_MESSAGE_ICON;
     }
 
+    // File-flavoured variant of the badge above, used for file-based endpoints (e.g. FTP/SFTP/Local File)
+    // so the badge reflects a file rather than a message being sent, see getSendTestMessageIcon().
+    public static Icon SEND_TEST_MESSAGE_FILE_ICON = getGeneralIcon("send-test-message-file.png", "Send Test Message (File)");
+    public static Icon getSendTestMessageFileIcon() {
+        return SEND_TEST_MESSAGE_FILE_ICON;
+    }
+
     public static final Icon REPLAY_SERVICE_ICON = getGeneralIcon("replay-service.png", "Flow recording enabled");
     public static Icon getReplayServiceIcon() {
         return REPLAY_SERVICE_ICON;
