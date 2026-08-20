@@ -14,11 +14,6 @@
       "mandatory": true,
       "helpText": "For a debug element, this will be the name of the component into which the debug flows."
     },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
-    },
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
       "affectsUserImplementedClass": "true",

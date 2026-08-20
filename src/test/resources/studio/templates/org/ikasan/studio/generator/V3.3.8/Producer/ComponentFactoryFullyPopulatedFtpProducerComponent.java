@@ -19,7 +19,7 @@ java.lang.String myFlow1FtpProducerClientID;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
 java.lang.Integer myFlow1FtpConsumerFtpsPort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
-java.lang.Integer myFlow1FtpConsumerFtpsProtocol;
+java.lang.String myFlow1FtpConsumerFtpsProtocol;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
 java.lang.Integer myFlow1FtpConsumerMaxRetryAttempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.outputDirectory}")
@@ -36,8 +36,6 @@ java.lang.String myFlow1FtpConsumerSystemKey;
 java.lang.String myFlow1FtpConsumerUsername;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
-@javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
@@ -58,7 +56,6 @@ return builderFactory.getComponentBuilder().ftpProducer()
 .setFtpsKeyStoreFilePath("/test/ftps/keystore")
 .setFtpsPort(myFlow1FtpConsumerFtpsPort)
 .setFtpsProtocol(myFlow1FtpConsumerFtpsProtocol)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMaxRetryAttempts(myFlow1FtpConsumerMaxRetryAttempts)
 .setOutputDirectory(myFlow1FtpProducerOutputDirectory)
 .setOverwrite(true)

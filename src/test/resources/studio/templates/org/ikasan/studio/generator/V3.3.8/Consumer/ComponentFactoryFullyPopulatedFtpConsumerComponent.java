@@ -23,7 +23,7 @@ java.lang.String myFlow1FtpConsumerFilenamePattern;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
 java.lang.Integer myFlow1FtpConsumerFtpsPort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
-java.lang.Integer myFlow1FtpConsumerFtpsProtocol;
+java.lang.String myFlow1FtpConsumerFtpsProtocol;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.max-retry-attempts}")
 java.lang.Integer myFlow1FtpConsumerMaxRetryAttempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.move-on-success-new-path}")
@@ -43,11 +43,9 @@ java.lang.String myFlow1FtpConsumerSystemKey;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")
 java.lang.String myFlow1FtpConsumerUsername;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
-@javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
@@ -84,12 +82,11 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setIgnoreMisfire(true)
 .setIsRecursive(true)
 .setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMaxEagerCallbacks(1)
 .setMaxRetryAttempts(myFlow1FtpConsumerMaxRetryAttempts)
 .setMaxRows(11)
 .setMessageProvider(myMessageProviderClass)
-.setMaxRows(12)
+.setMinAge(12)
 .setMoveOnSuccess(true)
 .setMoveOnSuccessNewPath(myFlow1FtpConsumerMoveOnSuccessNewPath)
 .setPassword(myFlow1FtpConsumerPassword)
@@ -98,8 +95,6 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setRemotePort(myFlow1FtpConsumerRemotePort)
 .setRenameOnSuccess(true)
 .setRenameOnSuccessExtension(newExtension)
-.setScheduledJobGroupName(myScheduledJobGroupName)
-.setScheduledJobName(myScheduledJobName)
 .setSocketTimeout(22)
 .setSourceDirectory(myFlow1FtpConsumerSourceDirectory)
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)

@@ -36,8 +36,6 @@ java.lang.Integer myFlow1SftpConsumerRemotePort;
 java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
-@javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMySFTPProducer() {
 return builderFactory.getComponentBuilder().sftpProducer()
@@ -50,7 +48,6 @@ return builderFactory.getComponentBuilder().sftpProducer()
 .setCreateParentDirectory(true)
 .setCriticalOnStartup(true)
 .setKnownHostFilename(myFlow1SftpConsumerKnownHostsFilename)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMaxRetryAttempts(myFlow1SftpConsumerMaxRetryAttempts)
 .setOutputDirectory(myFlow1SftpProducerOutputDirectory)
 .setPassword(myFlow1SftpConsumerPassword)

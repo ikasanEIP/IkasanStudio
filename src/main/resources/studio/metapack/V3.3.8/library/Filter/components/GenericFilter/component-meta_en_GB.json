@@ -7,17 +7,12 @@
   "implementingClass": "",
   "flowBuilderMethod": "filter",
   "generatesUserImplementedClass": "true",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
@@ -27,14 +22,14 @@
       "protectFromOverwrite": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean.",
-      "usageDataType":"configurationDefined"
+      "usageDataType": "configurationDefined"
     },
     "configuredResource": {
       "propertyName": "configuredResource",
       "affectsUserImplementedClass": "true",
       "helpText": "Allow the Configuration to be exposed in the Ikasan console.",
       "propertyDataType": "java.lang.Boolean",
-      "usageDataType":"java.lang.Boolean"
+      "usageDataType": "java.lang.Boolean"
     },
     "configurationId": {
       "propertyName": "configurationId",
@@ -44,19 +39,14 @@
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"
     },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType": "java.lang.String"
-    },
     "fromType": {
       "propertyName": "fromType",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to come into the filter. This can be any Java class.",
       "mandatory": true,
-      "usageDataType":"java.lang.String",
-      "_usageDataType":"java.util.List<String>",
+      "usageDataType": "java.lang.String",
+      "_usageDataType": "java.util.List<String>",
       "validation": "^([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the filter."
     },
@@ -76,4 +66,3 @@
     }
   }
 }
-

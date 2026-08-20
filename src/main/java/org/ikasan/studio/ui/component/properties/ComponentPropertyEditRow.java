@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -35,7 +36,7 @@ public class ComponentPropertyEditRow {
     private JFormattedTextField propertyValueField;
     private JCheckBox propertyBooleanFieldTrue;
     private JCheckBox propertyBooleanFieldFalse;
-    private boolean affectsUserImplementedClass = false;
+    private final JLabel affectsUserImplementedClassIndicator;
     private boolean isList = false;
     private JButton defaultValueButton;
     private JCheckBox rowOverwriteCheckBox;
@@ -217,9 +218,12 @@ public class ComponentPropertyEditRow {
         }
 
         if (componentProperty.affectsUserImplementedClass() && !componentInitialisation) {
-            affectsUserImplementedClass = true;
-            // Cant edit unless the regenerateSource is selected
-            controlFieldsAffectingUserImplementedClass(false);
+            // Nothing to protect yet on first-time creation (componentInitialisation) - the indicator/confirmation
+            // only matters once a user-implemented class stub may already exist to be regenerated.
+            affectsUserImplementedClassIndicator = new JLabel(AllIcons.General.Warning);
+            affectsUserImplementedClassIndicator.setToolTipText(StudioBundle.message("tooltip.AffectsUserImplementedClass"));
+        } else {
+            affectsUserImplementedClassIndicator = null;
         }
 
         // A bespoke, user-owned stub already exists for this property - offer a per-row checkbox to allow
@@ -249,44 +253,6 @@ public class ComponentPropertyEditRow {
             returnValue = bracketedCommList.replace("[", "").replace("]", "");
         }
         return returnValue;
-    }
-
-    /**
-     * UperImplementedClasses are classes that Studio will create the stub for, with the intention that the
-     * user will complete the implementation.
-     * When some properties are set, those values might affect a UserImplementedClass, so we only
-     * enable those fields when the user explicit elects to do so
-     * @param enable any fields that are tagged as affecting user implemented classes.
-     */
-    public void controlFieldsAffectingUserImplementedClass(boolean enable) {
-        if (affectsUserImplementedClass) {
-            if (propertyChoiceValueField != null) {
-                propertyChoiceValueField.setEnabled(enable);
-                // If the regenerate code is disabled, reset the input boxes
-                if (!enable && propertyValueHasChanged()) {
-                    propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
-                }
-            } else if (propertyValueField != null) {
-                propertyValueField.setEditable(enable);
-                propertyValueField.setEnabled(enable);
-                // If the regenerate code is disabled, reset the input boxes
-                if (!enable && propertyValueHasChanged()) {
-                    if (isList) {
-                        propertyValueField.setValue(getListAsText((String)componentProperty.getValue()));
-                    } else {
-                        propertyValueField.setValue(componentProperty.getValue());
-                    }
-                }
-            } else if (propertyBooleanFieldTrue != null) {
-                propertyBooleanFieldTrue.setEnabled(enable);
-                propertyBooleanFieldFalse.setEnabled(enable);
-                if (!enable && propertyValueHasChanged()) {
-                    Boolean oldValue = (Boolean)componentProperty.getValue();
-                    propertyBooleanFieldTrue.setSelected(oldValue);
-                    propertyBooleanFieldFalse.setSelected(!oldValue);
-                }
-            }
-        }
     }
 
     /**
@@ -561,8 +527,8 @@ public class ComponentPropertyEditRow {
         return componentProperty;
     }
 
-    public boolean isAffectsUserImplementedClass() {
-        return affectsUserImplementedClass;
+    public JLabel getAffectsUserImplementedClassIndicator() {
+        return affectsUserImplementedClassIndicator;
     }
 
     public JCheckBox getRowOverwriteCheckBox() {

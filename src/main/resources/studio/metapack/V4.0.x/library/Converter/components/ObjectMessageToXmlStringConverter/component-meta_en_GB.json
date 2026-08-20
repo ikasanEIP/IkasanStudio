@@ -6,17 +6,12 @@
   "ikasanComponentFactoryMethod": "objectToXmlStringConverter",
   "useImplementingClassInFactory": true,
   "flowBuilderMethod": "converter",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,
       "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created."
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
@@ -24,8 +19,8 @@
       "setterProperty": true,
       "userSuppliedClass": true,
       "protectFromOverwrite": true,
-      "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "configurationId": {
@@ -33,13 +28,8 @@
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
-      "setterMethod" : "setConfiguredResourceId",
-      "usageDataType":"java.lang.String"
-    },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
+      "setterMethod": "setConfiguredResourceId",
+      "usageDataType": "java.lang.String"
     },
     "fastFailOnConfigurationLoad": {
       "propertyName": "fastFailOnConfigurationLoad",
@@ -66,15 +56,15 @@
     "objectClasses": {
       "propertyName": "objectClasses",
       "helpText": "Classes of the objects to be serialised, enter a comma seperated list of (unquoted) strings",
-      "propertyConfigFileLabel":"__flow.xml.converter.objectClasses",
+      "propertyConfigFileLabel": "__flow.xml.converter.objectClasses",
       "setterProperty": true,
-      "usageDataType":"List<java.Lang.Object>"
+      "usageDataType": "List<java.Lang.Object>"
     },
     "objectClass": {
       "propertyName": "objectClasses",
       "helpText": "Class of the objects to be serialised.",
       "setterProperty": true,
-      "usageDataType":"java.Lang.Object"
+      "usageDataType": "java.Lang.Object"
     },
     "rootClassName": {
       "propertyName": "rootClassName",
@@ -119,8 +109,8 @@
       "helpText": "Map of Class to XmlAdapter instance to override the XmlAdapter on the underlying marshaller",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter>",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter>",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the bean."
     }
   }

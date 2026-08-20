@@ -12,11 +12,13 @@
       "groupId": "org.ikasan",
       "artifactId": "ikasan-jms-spring-arjuna",
       "version": "3.3.9"
-    },{
+    },
+    {
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-client",
       "version": "5.17.6"
-    },{
+    },
+    {
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-broker",
       "version": "5.17.6"
@@ -24,17 +26,12 @@
   ],
   "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
       "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
@@ -52,22 +49,22 @@
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don'twant to update properties that may have already been stored in the override properties database.",
       "mandatory": true,
       "setterProperty": true,
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "connectionFactory": {
       "propertyName": "connectionFactory",
       "helpText": "Provide the classname that overrides and implements the default ConnectionFactory interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
-      "usageDataType":"javax.jms.ConnectionFactory",
-      "userSuppliedClass":true,
+      "usageDataType": "javax.jms.ConnectionFactory",
+      "userSuppliedClass": true,
       "noStubRequired": true
     },
     "connectionFactoryJNDIProperties": {
       "propertyName": "connectionFactoryJNDIProperties",
       "helpText": "JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
       "setterProperty": true,
-      "usageDataType":"java.util.Map<String, String>",
-      "userSuppliedClass":true
+      "usageDataType": "java.util.Map<String, String>",
+      "userSuppliedClass": true
     },
     "connectionFactoryJndiPropertyFactoryInitial": {
       "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
@@ -150,7 +147,7 @@
       "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiProperties": {
       "propertyName": "destinationJndiProperties",
@@ -163,7 +160,7 @@
       "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.initial",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertyProviderUrl": {
       "propertyName": "destinationJndiPropertyProviderUrl",
@@ -171,7 +168,7 @@
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.provider.url",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertySecurityCredentials": {
       "propertyName": "destinationJndiPropertySecurityCredentials",
@@ -179,7 +176,7 @@
       "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertySecurityPrincipal": {
       "propertyName": "destinationJndiPropertySecurityPrincipal",
@@ -187,7 +184,7 @@
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.user",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
@@ -200,17 +197,12 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
-    },
     "messageConverter": {
       "propertyName": "messageConverter",
       "helpText": "Default (false), set to true if the deliveryMode, priority or timeToLive qualities of service should be used when sending messages. Pre-built implementations you can wire in instead of writing your own: org.springframework.jms.support.converter.SimpleMessageConverter (Spring's default), org.springframework.jms.support.converter.MappingJackson2MessageConverter.",
       "setterProperty": true,
       "usageDataType": "org.springframework.jms.support.converter.MessageConverter",
-      "userSuppliedClass":true
+      "userSuppliedClass": true
     },
     "messageIdEnabled": {
       "propertyName": "messageIdEnabled",
@@ -229,7 +221,7 @@
       "helpText": "Post processing operations on the JMS message before being sent over the wire. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.jms.producer.JmsPostProcessor.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.component.endpoint.jms.producer.PostProcessor"
+      "usageDataType": "org.ikasan.component.endpoint.jms.producer.PostProcessor"
     },
     "priority": {
       "propertyName": "priority",

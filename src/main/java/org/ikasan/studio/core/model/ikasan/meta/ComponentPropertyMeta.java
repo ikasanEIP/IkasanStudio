@@ -65,6 +65,9 @@ public class ComponentPropertyMeta {
 
     public static final String STRING_LIST = "java.util.List<String>";
 
+    public static final String PROPERTY_GROUP_ADVANCED = "advanced";           // Rendered last of all groups in the Optional Properties section
+    public static final String PROPERTY_GROUP_MISCELLANEOUS = "Miscellaneous"; // Catch-all for non-mandatory properties with no explicit propertyGroup
+
     public static final ComponentPropertyMeta DUMB_VERSION =
             ComponentPropertyMeta.builder()
                     .propertyName(ComponentPropertyMeta.VERSION)
@@ -129,8 +132,10 @@ public class ComponentPropertyMeta {
                                                      // generate the stub into the user's protected source root and never silently overwrite it again.
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
-    private boolean advancedProperty = false;       // Rarely-needed property; render in the collapsible "Optional Properties" section
-                                                     // instead of the always-visible section, even if userSuppliedClass/affectsUserImplementedClass is also set.
+    private String propertyGroup = "";              // Logical group this property is shown under in the Optional Properties section, e.g. "advanced".
+                                                     // Assigning a group pulls the property into that group's sub-section of Optional Properties even
+                                                     // if userSuppliedClass/affectsUserImplementedClass would otherwise place it in the regenerating
+                                                     // section. Non-mandatory properties with no group fall back to PROPERTY_GROUP_MISCELLANEOUS.
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
     @Builder.Default
     private boolean noStubRequired = false;         // For userSuppliedClass properties that are always an externally-injected bean
@@ -169,6 +174,11 @@ public class ComponentPropertyMeta {
         return (!isMandatory()) && (!isAffectsUserImplementedClass());
     }
 
+    @JsonIgnore
+    public boolean isGroupedProperty() {
+        return propertyGroup != null && !propertyGroup.isBlank();
+    }
+
     /**
      * Patterns are expensive, so only generate one when we need it but share the same one thereafter.
      *
@@ -204,9 +214,9 @@ public class ComponentPropertyMeta {
                 userDefineResource == that.userDefineResource &&
                 userSuppliedClass == that.userSuppliedClass &&
                 protectFromOverwrite == that.protectFromOverwrite &&
-                advancedProperty == that.advancedProperty &&
                 noStubRequired == that.noStubRequired &&
                 Objects.equals(propertyName, that.propertyName) &&
+                Objects.equals(propertyGroup, that.propertyGroup) &&
                 Objects.equals(trueLabel, that.trueLabel) &&
                 Objects.equals(falseLabel, that.falseLabel) &&
                 Objects.equals(choices, that.choices) &&
@@ -227,11 +237,11 @@ public class ComponentPropertyMeta {
     @Override
     public int hashCode() {
 
-        return Objects.hash(propertyName, trueLabel, falseLabel, affectsUserImplementedClass, choices,
+        return Objects.hash(propertyName, propertyGroup, trueLabel, falseLabel, affectsUserImplementedClass, choices,
                 dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
-                protectFromOverwrite, advancedProperty, noStubRequired,
+                protectFromOverwrite, noStubRequired,
                 validation, validationMessage,
                 validationPattern!= null ? validationPattern.pattern() : "");
     }

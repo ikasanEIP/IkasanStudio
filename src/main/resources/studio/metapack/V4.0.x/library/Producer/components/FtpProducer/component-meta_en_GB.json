@@ -11,14 +11,16 @@
       "version": "4.1.6"
     }
   ],
-  "importConfigurationClasses": ["org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"],
+  "importConfigurationClasses": [
+    "org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"
+  ],
   "additionalKey": "FTP Producer",
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "producer",
   "ikasanComponentFactoryMethod": "ftpProducer",
   "endpointKey": "FTP Endpoint",
   "endpointTextKey": "remoteHost",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
@@ -27,13 +29,16 @@
     },
     "active": {
       "propertyName": "active",
+      "displayLabel": "Ftp Connection",
       "helpText": "Optional only available on FTP consumer. Default(False) Flag indicating whether the FTP connection is active or passive.",
       "setterProperty": true,
+      "trueLabel": "Active",
+      "falseLabel": "Passive",
       "propertyDataType": "java.lang.Boolean"
     },
     "ageOfFiles": {
       "propertyName": "ageOfFiles",
-      "helpText": "Default(-1) file filter related option expressed in days. Given that meta data of processed files is being collected on every successful file consumptions, the ageOfFiles option relates to housekeeping of the meta information. On every successful file consumption as part of postcommit process file (S)FTP consumer will attempt to delete records older than ageOfFiles records from file filter persistence table. The operation is skipped when ageOfFiles=-1.",
+      "helpText": "How many days to keep meta data relating to files already processedn (used to prevent processing the same file twice), the default is -1 means for ever.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -45,22 +50,17 @@
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
-      "helpText": "Default(true) Existing (S)FTP consumer is using DB persistence tables to establish different operations it is performing as part of the usage of command pattern (FileDiscovery, FileRename, FileRetrive). That persistent information is by defaultcleaned up when cleanupJournalOnComplete=true. It can be occasionally useful to cleanupJournalOnComplete=false when performing some debugging.",
+      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "clientID": {
       "propertyName": "clientID",
       "defaultValue": "__flow",
-      "helpText": "ClientID needs to be unique per module. Its typically used to identify this component uniquely. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
+      "helpText": "ClientID is used in the persisted meta data to identify this component uniquely in the context of the module. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.producer.clientID",
       "setterProperty": true
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
@@ -72,15 +72,9 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
-
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
-    },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
-      "helpText": "Default(60000) expressed in milliseconds. Internal (S)FTP connector connection timeout value.",
+      "helpText": "Internal (S)FTP connector connection timeout value in milliseconds. Default is 60000 (1 minute).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -98,57 +92,54 @@
     },
     "dataTimeout": {
       "propertyName": "dataTimeout",
-      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.",
+      "helpText": "Internal FTP connector data connection timeout value in milliseconds. Default is 300000 (5 minutes).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "ftps": {
       "propertyName": "ftps",
-      "helpText": "Optional only available on FTP consumer. Default(false) used to determine if connection is using FTPs.",
+      "helpText": "If true, the connection will be made using FTPs (FTP over SSL). Default is false.",
+      "defaultValue": false,
       "setterProperty": true,
+      "trueLabel": "FTPS",
+      "falseLabel": "FTP",
       "propertyDataType": "java.lang.Boolean"
     },
     "ftpsIsImplicit": {
       "propertyName": "ftpsIsImplicit",
-      "helpText": "Default(True) Flag indicating whether to include last modified date of the file when persisting meta information about processed file and whether to use the last modified date for filtering. If filterOnFilename=true and filterOnLastModifiedDate=false any modifications to the fileswould not be detected and file wouldn\u0092t be reprocessed.",
+      "displayLabel": "Support legacy ftps",
+      "helpText": "Requires ftps to be true. If set to false (the default), explicit FTPS (aka FTPES, RFC 4217-standard approach) is used, the client connects on the normal FTP port (defaults to 21) in plaintext, then explicitly sends an AUTH TLS/AUTH SSL command to upgrade the connection before authenticating. If true the older/deprecated connection stlye is supported i.e. the client opens a TLS/SSL handshake immediately on connect, before any FTP commands are exchanged. The port defaults to 990.",
+      "defaultValue": false,
       "setterProperty": true,
+      "trueLabel": "Legacy",
+      "falseLabel": "Standard (RFC-4217)",
       "propertyDataType": "java.lang.Boolean"
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
-      "helpText": "Optional only available on FTP consumer. Only applicable when FTPS=true.",
+      "helpText": "Requires ftps to be true. The password for the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "ftpsKeyStoreFilePath": {
       "propertyName": "ftpsKeyStoreFilePath",
-      "helpText": "Optional only available on FTP consumer. Only applicable when FTPS=true.",
+      "helpText": "Requires ftps to be true. The path to the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "ftpsPort": {
       "propertyName": "ftpsPort",
-      "helpText": "Optional only available on FTP consumer. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
+      "helpText": "Requires ftps to be true. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
       "propertyConfigFileLabel": "__flow.ftp.consumer.ftps-port"
     },
     "ftpsProtocol": {
       "propertyName": "ftpsProtocol",
-      "helpText": "Optional only available on FTP consumer. Default('SSL') only applicable when FTPS=true. The protocol used for remote FTPs connection.",
+      "helpText": "Requires ftps to be true. SSL/TLS protocol name used to negotiate the FTPS connection (e.g. \"SSL\", \"TLS\", \"TLSv1.2\"), passed to Java's SSLContext. The Ikasan defaults is \"SSL\"; \"TLS\" is the more modern, explicit choice.",
       "setterProperty": true,
-      "propertyDataType": "java.lang.Integer",
+      "propertyDataType": "java.lang.String",
       "propertyConfigFileLabel": "__flow.ftp.consumer.ftps-protocol"
-    },
-    "managedResourceRecoveryManager": {
-      "propertyName": "managedResourceRecoveryManager",
-      "helpText": "Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managedr esource recovery manager.",
-      "setterProperty": true,
-      "userSuppliedClass": true,
-      "noStubRequired": true,
-      "usageDataType": "org.ikasan.spec.management.ManagedResourceRecoveryManager",
-      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "maxRetryAttempts": {
       "propertyName": "maxRetryAttempts",
@@ -203,7 +194,9 @@
     },
     "socketTimeout": {
       "propertyName": "socketTimeout",
-      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.",
+      "displayLabel": "(S)FTP connector socket timeout (ms)",
+      "helpText": "Internal FTP connector socket connection timeout value. Default is 300000 milliseconds. ",
+      "defaultValue": 300000,
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },

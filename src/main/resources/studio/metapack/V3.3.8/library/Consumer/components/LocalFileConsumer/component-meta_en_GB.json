@@ -1,16 +1,16 @@
 {
   "name": "Local File Consumer",
-  "additionalKey":"LocalFileConsumer",
-  "builderFactory" : "org.ikasan.builder.BuilderFactory",
+  "additionalKey": "LocalFileConsumer",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
   "endpointKey": "File Endpoint",
   "endpointTextKey": "filenames",
   "flowBuilderMethod": "consumer",
   "helpText": "<strong>Local File Consumer</strong><p>Looks for a file on this host, in the directory where the module is executing, the frequency is configured in the cron expression.</p>You can set optional property 'logMatchedFilenames' so that you can see in the log, the full path of the file being searched for. You will need to move or remove the file(s) otherwise the same file will be repeatedly processed.</p>",
   "ikasanComponentFactoryMethod": "fileConsumer",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
-  "usesBuilderInFactory" : true,
+  "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
@@ -19,12 +19,12 @@
     },
     "cronExpression": {
       "propertyName": "cronExpression",
-      "dataValidationType" : "cronExpression",
+      "dataValidationType": "cronExpression",
       "defaultValue": "* * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
       "setterProperty": true,
       "mandatory": true,
-      "propertyConfigFileLabel":"__flow.file.consumer.cron-expression"
+      "propertyConfigFileLabel": "__flow.file.consumer.cron-expression"
     },
     "configuration": {
       "propertyName": "configuration",
@@ -32,27 +32,17 @@
       "setterProperty": true,
       "userSuppliedClass": true,
       "protectFromOverwrite": true,
-      "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
-      "setterMethod" : "setConfiguredResourceId",
-      "usageDataType":"java.lang.String"
-    },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
+      "setterMethod": "setConfiguredResourceId",
+      "usageDataType": "java.lang.String"
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
@@ -60,7 +50,6 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-
     "directoryDepth": {
       "propertyName": "directoryDepth",
       "helpText": "How deep down the directory tree to go to find matching filenames.",
@@ -69,13 +58,15 @@
     },
     "eager": {
       "propertyName": "eager",
-      "helpText": "When true the scheduled consumer is immediately called back on completion of flow execution i.e. attempts to consume all messages available. If false the scheduled consumers cron expression determines the callback.",
+      "displayLabel": "Transfer multiple files",
+      "defaultValue": false,
+      "helpText": "When true (default is false), attempt to process all available files. MaxEagerCallbacks can be used to limit the number of files before reverting to business schedule.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "encoding": {
       "propertyName": "encoding",
-      "defaultValue":"UTF-8",
+      "defaultValue": "UTF-8",
       "helpText": "Encoding of the files ie. UTF-8.",
       "setterProperty": true
     },
@@ -84,18 +75,18 @@
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.spec.event.EventFactory",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.spec.event.EventFactory",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "filenames": {
       "propertyName": "filenames",
-      "defaultValue":"myFile,anotherFile",
+      "defaultValue": "myFile,anotherFile",
       "helpText": "The list of filenames to consume, the files are assumed to be in the same directory as the running ikasan application or one of its subdirectories.",
       "mandatory": true,
-      "propertyConfigFileLabel":"__flow.file.consumer.filenames",
+      "propertyConfigFileLabel": "__flow.file.consumer.filenames",
       "setterProperty": true,
-      "usageDataType":"java.util.List<String>"
+      "usageDataType": "java.util.List<String>"
     },
     "ignoreFileRenameWhilstScanning": {
       "propertyName": "ignoreFileRenameWhilstScanning",
@@ -105,7 +96,7 @@
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
-      "helpText": "Default(True). Whether to ignore call back failures.",
+      "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -129,11 +120,11 @@
     },
     "managedEventIdentifierService": {
       "propertyName": "managedEventIdentifierService",
-      "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.HashedEventIdentifierServiceImpl, org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService, org.ikasan.component.endpoint.filesystem.messageprovider.FileLineEventIdentifierServiceImpl, org.ikasan.compatibility.component.endpoint.ManagedEventJmsIdentifierService.",
+      "helpText": "Optional, and safe to leave unset for most flows. Ikasan gives every message a tracking ID as it processes it - used to correlate a message in the audit trail/dashboard, and to recognise the same message again if a flow error 'parks' it for later retry. By default this ID is just a raw hash of the file's content (functional, but not human-readable). Setting this property lets you supply your own class to derive a more meaningful ID instead - for file consumers, a common choice is org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService, which uses the filename, making it much easier to recognise in the dashboard.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.spec.event.ManagedEventIdentifierService",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.spec.event.ManagedEventIdentifierService",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the consumer event provider bean."
     },
     "maxEagerCallbacks": {
@@ -147,8 +138,8 @@
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."
     },
     "messageProviderPostProcessor": {
@@ -156,8 +147,8 @@
       "helpText": "Provide the classname that overrides and implements the default MessageProviderPostProcessor interface. This class provide additional functionality to be applied to the payload as a post processor before returning for next component invocation. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProviderPostProcessorImpl.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider Post Processor bean."
     },
     "sortAscending": {

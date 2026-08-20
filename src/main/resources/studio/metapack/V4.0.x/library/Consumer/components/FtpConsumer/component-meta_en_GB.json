@@ -11,14 +11,16 @@
       "version": "4.1.6"
     }
   ],
-  "importConfigurationClasses": ["org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"],
+  "importConfigurationClasses": [
+    "org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"
+  ],
   "additionalKey": "FTP Consumer",
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "consumer",
   "ikasanComponentFactoryMethod": "ftpConsumer",
   "endpointKey": "FTP Endpoint",
   "endpointTextKey": "remoteHost",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
@@ -27,13 +29,16 @@
     },
     "active": {
       "propertyName": "active",
+      "displayLabel": "Ftp Connection",
       "helpText": "Optional only available on FTP consumer. Default(False) Flag indicating whether the FTP connection is active or passive.",
       "setterProperty": true,
+      "trueLabel": "Active",
+      "falseLabel": "Passive",
       "propertyDataType": "java.lang.Boolean"
     },
     "ageOfFiles": {
       "propertyName": "ageOfFiles",
-      "helpText": "Default(-1) file filter related option expressed in days. Given that meta data of processed files is being collected on every successful file consumptions, the ageOfFiles option relates to housekeeping of the meta information. On every successful file consumption as part of postcommit process file (S)FTP consumer will attempt to delete records older than ageOfFiles records from file filter persistence table. The operation is skipped when ageOfFiles=-1.",
+      "helpText": "How many days to keep meta data relating to files already processedn (used to prevent processing the same file twice), the default is -1 means for ever.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -45,51 +50,46 @@
     },
     "chronological": {
       "propertyName": "chronological",
-      "helpText": "Default(False) Flag indicating whether the file processing should be based on chronological order of file latest updates.",
+      "helpText": "If true, when multiple files are available, process the oldest first. Default is false which means order of processing is non-deterministic.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "chunkSize": {
       "propertyName": "chunkSize",
-      "helpText": "Optional only applicable when chunking=true. Default(1048576) 1MB.",
+      "helpText": "Size of chunks to use (when chunking=true). Default(1048576) 1MB.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "chunking": {
       "propertyName": "chunking",
-      "helpText": "Default(False) Flag indicating whether the file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration.",
+      "helpText": "If true, file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration. Default is false.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
-      "helpText": "Default(true) Existing (S)FTP consumer is using DB persistence tables to establish different operations it is performing as part of the usage of command pattern (FileDiscovery, FileRename, FileRetrive). That persistent information is by defaultcleaned up when cleanupJournalOnComplete=true. It can be occasionally useful to cleanupJournalOnComplete=false when performing some debugging.",
+      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "clientID": {
       "propertyName": "clientID",
       "defaultValue": "__flow",
-      "helpText": "ClientID needs to be unique per module. Its typically used to identify this component uniquely. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
+      "helpText": "ClientID is used in the persisted meta data to identify this component uniquely in the context of the module. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.clientID",
       "setterProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
-      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. This might also be useful if you want to extend the configuration with fields the builder doesn't expose (e.g. a failover host, see FtpConsumerAlternateConfiguration). Using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "advancedProperty": true,
+      "propertyGroup": "advanced",
       "protectFromOverwrite": true,
-      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "usageDataType": "org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configurationId": {
       "propertyName": "configurationId",
@@ -97,23 +97,24 @@
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
-      "usageDataType":"java.lang.String"
-    },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
-      "helpText": "Default(60000) expressed in milliseconds. Internal (S)FTP connector connection timeout value.",
+      "helpText": "Internal (S)FTP connector connection timeout value in milliseconds. Default is 60000 (1 minute).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
+    },
+    "criticalOnStartup": {
+      "propertyName": "criticalOnStartup",
+      "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
     },
     "cronExpression": {
       "propertyName": "cronExpression",
       "propertyDisplayOrder": -70,
-      "dataValidationType" : "cronExpression",
+      "dataValidationType": "cronExpression",
       "defaultValue": "* * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
       "setterProperty": true,
@@ -122,15 +123,33 @@
     },
     "dataTimeout": {
       "propertyName": "dataTimeout",
-      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector data connection timeout value.",
+      "helpText": "Internal FTP connector data connection timeout value in milliseconds. Default is 300000 (5 minutes).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "destructive": {
       "propertyName": "destructive",
-      "helpText": "Default(False) Flag indicating whether the processed file should be deleted after successful consumption.",
+      "helpText": "Delete file after successful consumption. Default is false.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
+    },
+    "eager": {
+      "propertyName": "eager",
+      "displayLabel": "Transfer multiple files",
+      "defaultValue": false,
+      "helpText": "When true (default is false), attempt to process all available files. MaxEagerCallbacks can be used to limit the number of files before reverting to business schedule.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "eventFactory": {
+      "propertyName": "eventFactory",
+      "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "propertyGroup": "advanced",
+      "usageDataType": "org.ikasan.spec.event.EventFactory",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "filenamePattern": {
       "propertyName": "filenamePattern",
@@ -143,90 +162,86 @@
     },
     "filterDuplicates": {
       "propertyName": "filterDuplicates",
-      "helpText": "Default(True) Flag indicating whether to filter out duplicates files based on previously persisted meta information. When value set to false no meta data is persisted hence same file could be processed over and over again.",
+      "helpText": "When true (the default), duplicates files are ignored (based on previously persisted meta information e.g. date-timestamp).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "filterOnFilename": {
       "propertyName": "filterOnFilename",
-      "helpText": "Default(True) Flag indicating whether to include file name when persisting meta information about processed file.",
+      "helpText": "When true (the default), the full remote path (not just the bare filename) is used to determine if this file is a duplicate. Also requires filterDuplicates to be true. Also required filterDuplicates to be true.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "filterOnLastModifiedDate": {
       "propertyName": "filterOnLastModifiedDate",
-      "helpText": "Default(True) Flag indicating whether to include last modified date of the file when persisting meta information about processed file and whether to use the last modified date for filtering. If filterOnFilename=true and filterOnLastModifiedDate=false any modifications to the files would not be detected and file wouldn\u0092t be reprocessed.",
+      "helpText": "When true (the default), the last modified date of the file is used to determine if this file is a duplicate. Also requires filterDuplicates to be true.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "ftps": {
       "propertyName": "ftps",
-      "helpText": "Optional only available on FTP consumer. Default(false) used to determine if connection is using FTPs.",
+      "helpText": "If true, the connection will be made using FTPs (FTP over SSL). Default is false.",
+      "defaultValue": false,
       "setterProperty": true,
+      "trueLabel": "FTPS",
+      "falseLabel": "FTP",
       "propertyDataType": "java.lang.Boolean"
     },
     "ftpsIsImplicit": {
       "propertyName": "ftpsIsImplicit",
-      "helpText": "Default(True) Flag indicating whether to include last modified date of the file when persisting meta information about processed file and whether to use the last modified date for filtering. If filterOnFilename=true and filterOnLastModifiedDate=false any modifications to the fileswould not be detected and file wouldn\u0092t be reprocessed.",
+      "displayLabel": "Support legacy ftps",
+      "helpText": "Requires ftps to be true. If set to false (the default), explicit FTPS (aka FTPES, RFC 4217-standard approach) is used, the client connects on the normal FTP port (defaults to 21) in plaintext, then explicitly sends an AUTH TLS/AUTH SSL command to upgrade the connection before authenticating. If true the older/deprecated connection stlye is supported i.e. the client opens a TLS/SSL handshake immediately on connect, before any FTP commands are exchanged. The port defaults to 990.",
+      "defaultValue": false,
       "setterProperty": true,
+      "trueLabel": "Legacy",
+      "falseLabel": "Standard (RFC-4217)",
       "propertyDataType": "java.lang.Boolean"
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
-      "helpText": "Optional only available on FTP consumer. Only applicable when FTPS=true.",
+      "helpText": "Requires ftps to be true. The password for the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
       "setterProperty": true
     },
     "ftpsKeyStoreFilePath": {
       "propertyName": "ftpsKeyStoreFilePath",
-      "helpText": "Optional only available on FTP consumer. Only applicable when FTPS=true.",
+      "helpText": "Requires ftps to be true. The path to the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
       "setterProperty": true
     },
     "ftpsPort": {
       "propertyName": "ftpsPort",
-      "helpText": "Optional only available on FTP consumer. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
+      "helpText": "Requires ftps to be true. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
       "propertyConfigFileLabel": "__flow.ftp.consumer.ftps-port"
     },
     "ftpsProtocol": {
       "propertyName": "ftpsProtocol",
-      "helpText": "Optional only available on FTP consumer. Default('SSL') only applicable when FTPS=true. The protocol used for remote FTPs connection.",
+      "helpText": "Requires ftps to be true. SSL/TLS protocol name used to negotiate the FTPS connection (e.g. \"SSL\", \"TLS\", \"TLSv1.2\"), passed to Java's SSLContext. The Ikasan defaults is \"SSL\"; \"TLS\" is the more modern, explicit choice.",
       "setterProperty": true,
-      "propertyDataType": "java.lang.Integer",
+      "propertyDataType": "java.lang.String",
       "propertyConfigFileLabel": "__flow.ftp.consumer.ftps-protocol"
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
-      "helpText": "Default(True). Whether to ignore call back failures.",
+      "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "isRecursive": {
       "propertyName": "isRecursive",
-      "helpText": "Default(False) Flag indicating whether the sourceDirectory file read should be performed in recursive manner. The option can be useful if once consumes files from top level directory without knowing the lower lever dir structure.",
+      "helpText": "Default(False) Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "managedEventIdentifierService": {
       "propertyName": "managedEventIdentifierService",
-      "helpText": "Provide the classname that overrides and implements the default ManagedEventIdentifierService interface. This is used to provide control over the flow event created by this consumer. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.HashedEventIdentifierServiceImpl, org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService, org.ikasan.component.endpoint.filesystem.messageprovider.FileLineEventIdentifierServiceImpl, org.ikasan.compatibility.component.endpoint.ManagedEventJmsIdentifierService.",
+      "helpText": "Optional, and safe to leave unset for most flows. Ikasan gives every message a tracking ID as it processes it - used to correlate a message in the audit trail/dashboard, and to recognise the same message again if a flow error 'parks' it for later retry. By default this ID is just a raw hash of the file's content (functional, but not human-readable). Setting this property lets you supply your own class to derive a more meaningful ID instead - for file consumers, a common choice is org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService, which uses the filename, making it much easier to recognise in the dashboard.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "advancedProperty": true,
+      "propertyGroup": "advanced",
       "usageDataType": "org.ikasan.spec.event.ManagedEventIdentifierService",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the consumer event provider bean."
-    },
-    "managedResourceRecoveryManager": {
-      "propertyName": "managedResourceRecoveryManager",
-      "helpText": "Provide the classname that overrides and implements the default ManagedResourceRecoveryManager interface. This is used to give the component a handle directly to the recovery manager or allow override of the managedr esource recovery manager.",
-      "setterProperty": true,
-      "userSuppliedClass": true,
-      "advancedProperty": true,
-      "noStubRequired": true,
-      "usageDataType": "org.ikasan.spec.management.ManagedResourceRecoveryManager",
-      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
@@ -243,7 +258,7 @@
     },
     "maxRows": {
       "propertyName": "maxRows",
-      "helpText": "Default(-1) file filter related option. Given that meta data of processed files is being collected on every successful file consumptions, the maxRows option relates to housekeeping of the meta information. On every successful file consumption as part of post commit process file(S)FTP consumer will attempt to delete maxRows records from file filter persistence table. The operation is skipped when maxRows=-1.",
+      "helpText": "When housekeeping the meta data, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. Default (-1) means unlimited.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -252,14 +267,14 @@
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "advancedProperty": true,
+      "propertyGroup": "advanced",
       "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."
     },
     "minAge": {
-      "propertyName": "maxRows",
-      "helpText": "efault(120) file filter related option, expressed in seconds, used to indicate minimum age of the file on the remote filesystem before file can be processed. This setting is in place to prevent (S)FTP consumer from picking up file which is still being written to.",
+      "propertyName": "minAge",
+      "helpText": "The minimum age of the file on the remote filesystem before file can be processed. This setting is in place to prevent (S)FTP consumer from picking up file which is still being written to. The default is 120 seconds.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Long"
     },
@@ -271,7 +286,7 @@
     },
     "moveOnSuccessNewPath": {
       "propertyName": "moveOnSuccessNewPath",
-      "helpText": "Optional only applicable when moveOnSuccess=true, it provides new directory path when the processed file is moved to.",
+      "helpText": "Optional only applicable when moveOnSuccess is set to true, it provides new directory path for the processed file to be moved to.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.move-on-success-new-path"
     },
@@ -286,7 +301,7 @@
     },
     "passwordFilePath": {
       "propertyName": "passwordFilePath",
-      "helpText": "Optional only available on FTP consumer. The path of the file that contains the password.",
+      "helpText": "The path of the file that contains the password.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.password-filepath"
     },
@@ -317,23 +332,15 @@
     },
     "renameOnSuccessExtension": {
       "propertyName": "renameOnSuccessExtension",
-      "helpText": "Optional only applicable when renameOnSuccess=true, renameOnSuccessExtension is suffixed to the processed fileName.",
+      "helpText": "Required renameOnSuccess set to true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
       "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "scheduledJobGroupName": {
-      "propertyName": "scheduledJobGroupName",
-      "helpText": "Group for scheduled jobs within the internal Ikasan scheduler.",
-      "setterProperty": true
-    },
-    "scheduledJobName": {
-      "propertyName": "scheduledJobName",
-      "helpText": "Name to identify this job within the internal Ikasan scheduler.",
-      "setterProperty": true
+      "propertyDataType": "java.lang.String"
     },
     "socketTimeout": {
       "propertyName": "socketTimeout",
-      "helpText": "Optional only available on FTP consumer. Default(300000) expressed in milliseconds. Internal FTP connector socket connection timeout value.",
+      "displayLabel": "(S)FTP connector socket timeout (ms)",
+      "helpText": "Internal FTP connector socket connection timeout value. Default is 300000 milliseconds. ",
+      "defaultValue": 300000,
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -351,7 +358,7 @@
       "helpText": "Provide the classname that overrides and implements the DirectoryURLFactory interface. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instance based on date.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "advancedProperty": true,
+      "propertyGroup": "advanced",
       "protectFromOverwrite": true,
       "usageDataType": "org.ikasan.framework.factory.DirectoryURLFactory",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
@@ -364,12 +371,17 @@
       "usageDataType": "java.lang.String",
       "propertyConfigFileLabel": "__flow.ftp.consumer.system-key"
     },
+    "timezone": {
+      "propertyName": "timezone",
+      "helpText": "Support for overriding the default timezone.",
+      "setterProperty": true
+    },
     "transactionManager": {
       "propertyName": "transactionManager",
       "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "advancedProperty": true,
+      "propertyGroup": "advanced",
       "noStubRequired": true,
       "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",

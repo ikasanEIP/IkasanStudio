@@ -43,13 +43,11 @@ java.lang.String myFlow1SftpConsumerSystemKey;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
 java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.endpoint.sftp.consumer.SftpConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService myManagedEventIdentifierServiceClass;
-@javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager myManagedResourceRecoveryManagerClass;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
@@ -80,12 +78,11 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setIsRecursive(true)
 .setKnownHostFilename(myFlow1SftpConsumerKnownHostsFilename)
 .setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
-.setManagedResourceRecoveryManager(myManagedResourceRecoveryManagerClass)
 .setMaxEagerCallbacks(1)
 .setMaxRetryAttempts(myFlow1SftpConsumerMaxRetryAttempts)
 .setMaxRows(11)
 .setMessageProvider(myMessageProviderClass)
-.setMaxRows(12)
+.setMinAge(12)
 .setMoveOnSuccessNewPath(myFlow1SftpConsumerMoveOnSuccessNewPath)
 .setPassword(myFlow1SftpConsumerPassword)
 .setPreferredKeyExchangeAlgorithm(myFlow1SftpConsumerPreferredKeyExchangeAlgorithm)
@@ -94,8 +91,6 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setRemotePort(myFlow1SftpConsumerRemotePort)
 .setRenameOnSuccess(true)
 .setRenameOnSuccessExtension(newExtension)
-.setScheduledJobGroupName(myScheduledJobGroupName)
-.setScheduledJobName(myScheduledJobName)
 .setSourceDirectory(myFlow1SftpConsumerSourceDirectory)
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
 .setSystemKey(myFlow1SftpConsumerSystemKey)

@@ -147,7 +147,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("ignoreMisfire",  true);
         flowElement.setPropertyValue("isRecursive", true);
         flowElement.setPropertyValue("managedEventIdentifierService", "myManagedEventIdentifierServiceClass");
-        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         flowElement.setPropertyValue("maxEagerCallbacks", 1);
         flowElement.setPropertyValue("maxRetryAttempts", 10);
         flowElement.setPropertyValue("maxRows", 11);
@@ -158,8 +157,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("passwordFilePath", "/test/password/file/path");
         flowElement.setPropertyValue("renameOnSuccessExtension", "newExtension");
         flowElement.setPropertyValue("renameOnSuccess", true);
-        flowElement.setPropertyValue("scheduledJobGroupName",  "myScheduledJobGroupName");
-        flowElement.setPropertyValue("scheduledJobName", "myScheduledJobName");
         flowElement.setPropertyValue("socketTimeout", 22);
         flowElement.setPropertyValue("sourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
         flowElement.setPropertyValue("systemKey", "mySystemKey");
@@ -203,7 +200,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("isRecursive", true);
         flowElement.setPropertyValue("knownHostFilename", "~/.ssh/known_hosts");
         flowElement.setPropertyValue("managedEventIdentifierService", "myManagedEventIdentifierServiceClass");
-        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         flowElement.setPropertyValue("maxEagerCallbacks", 1);
         flowElement.setPropertyValue("maxRetryAttempts", 10);
         flowElement.setPropertyValue("maxRows", 11);
@@ -215,8 +211,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("renameOnSuccess", true);
         flowElement.setPropertyValue("preferredKeyExchangeAlgorithm", "DFS");
         flowElement.setPropertyValue("privateKeyFilename", "~/.ssh/meyfile.jks");
-        flowElement.setPropertyValue("scheduledJobGroupName",  "myScheduledJobGroupName");
-        flowElement.setPropertyValue("scheduledJobName", "myScheduledJobName");
         flowElement.setPropertyValue("sourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
         flowElement.setPropertyValue("systemKey", "mySystemKey");
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
@@ -361,7 +355,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");
         flowElement.setPropertyValue("ignoreMisfire", true);
         flowElement.setPropertyValue("managedEventIdentifierService", "org.ikasan.myflow.myEventService");
-        flowElement.setPropertyValue("managedResourceRecoveryManager", "org.ikasan.myflow.myManagedResourceRecoveryManager");
         flowElement.setPropertyValue("maxEagerCallbacks", 10);
         flowElement.setPropertyValue("messageProvider", "org.ikasan.myflow.myMessageProvider");
         flowElement.setPropertyValue("timezone", "UTC");
@@ -676,7 +669,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("ftpsKeyStoreFilePath", "/test/ftps/keystore");
         flowElement.setPropertyValue("ftpsPort", 987);
         flowElement.setPropertyValue("ftpsProtocol", "SSL");
-        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         flowElement.setPropertyValue("maxRetryAttempts", 10);
         flowElement.setPropertyValue("outputDirectory", "/tmp/output");
         flowElement.setPropertyValue("overwrite", true);
@@ -782,7 +774,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("createParentDirectory", true);
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("knownHostFilename", "~/.ssh/knownhosts");
-        flowElement.setPropertyValue("managedResourceRecoveryManager", "myManagedResourceRecoveryManagerClass");
         flowElement.setPropertyValue("maxRetryAttempts", 10);
         flowElement.setPropertyValue("outputDirectory", "/tmp/output");
         flowElement.setPropertyValue("password", "secret");

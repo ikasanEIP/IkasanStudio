@@ -6,7 +6,7 @@
   "implementingClass": "org.ikasan.component.endpoint.email.producer.EmailProducer",
   "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
@@ -23,7 +23,7 @@
     "bccRecipients": {
       "propertyName": "bccRecipients",
       "helpText": "The list of BCC recipient, enter a comma seperated list of (unquoted) strings",
-      "propertyConfigFileLabel":"__flow.email.producer.bccRecipients",
+      "propertyConfigFileLabel": "__flow.email.producer.bccRecipients",
       "setterProperty": true,
       "usageDataType": "java.util.List<String>"
     },
@@ -37,14 +37,9 @@
     "ccRecipients": {
       "propertyName": "ccRecipients",
       "helpText": "The list of CC recipient, enter a comma seperated list of (unquoted) strings",
-      "propertyConfigFileLabel":"__flow.email.producer.ccRecipients",
+      "propertyConfigFileLabel": "__flow.email.producer.ccRecipients",
       "setterProperty": true,
       "usageDataType": "java.util.List<String>"
-    },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
     },
     "configuration": {
       "propertyName": "configuration",
@@ -55,11 +50,6 @@
       "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
-    },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
     },
     "createParentDirectory": {
       "propertyName": "createParentDirectory",

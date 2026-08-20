@@ -8,7 +8,7 @@
   "implementingClass": "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
   "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/jms-spring-arjuna/consumer.md",
-  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
@@ -22,7 +22,7 @@
       "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryName": {
       "propertyName": "connectionFactoryName",
@@ -30,7 +30,7 @@
       "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
@@ -39,7 +39,7 @@
       "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryUsername": {
       "propertyName": "connectionFactoryUsername",
@@ -48,7 +48,7 @@
       "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
@@ -56,7 +56,7 @@
       "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "autoContentConversion": {
       "propertyName": "autoContentConversion",
@@ -88,7 +88,7 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
-   "concurrentConsumers": {
+    "concurrentConsumers": {
       "propertyName": "concurrentConsumers",
       "helpText": "Initial number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.",
       "setterProperty": true,
@@ -104,38 +104,28 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
-    "configurable": {
-      "propertyName": "configurable",
-      "helpText": "This property reflects that a component has the necessary configuration setup so that it can be edited in the blue console. Its is more of a status and as such is not explicitly used.",
-      "ignoreProperty": true
-    },
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
-      "setterMethod" : "setConfiguredResourceId",
-      "usageDataType":"java.lang.String"
-    },
-    "invokerConfigurationId": {
-      "propertyName": "invokerConfigurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType + some RandomData. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "usageDataType":"java.lang.String"
+      "setterMethod": "setConfiguredResourceId",
+      "usageDataType": "java.lang.String"
     },
     "connectionFactory": {
       "propertyName": "connectionFactory",
       "helpText": "Provide the classname that overrides and implements the default ConnectionFactory interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
-      "usageDataType":"javax.jms.ConnectionFactory",
-      "userSuppliedClass":true,
+      "usageDataType": "javax.jms.ConnectionFactory",
+      "userSuppliedClass": true,
       "noStubRequired": true
     },
     "connectionFactoryJNDIProperties": {
       "propertyName": "connectionFactoryJNDIProperties",
       "helpText": "JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
       "setterProperty": true,
-      "usageDataType":"java.util.Map<String, String>",
-      "userSuppliedClass":true
+      "usageDataType": "java.util.Map<String, String>",
+      "userSuppliedClass": true
     },
     "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
@@ -143,7 +133,7 @@
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryJndiPropertySecurityCredentials": {
       "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
@@ -160,7 +150,7 @@
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
       "setterProperty": true
     },
-     "connectionPassword": {
+    "connectionPassword": {
       "propertyName": "connectionPassword",
       "helpText": "Authentication credential.This value is masked on all GUI views.",
       "setterProperty": true
@@ -170,7 +160,6 @@
       "helpText": "Authentication principal.",
       "setterProperty": true
     },
-
     "destinationJndiProperties": {
       "propertyName": "destinationJndiProperties",
       "helpText": "Optional JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
@@ -182,7 +171,7 @@
       "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.initial",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertyProviderUrl": {
       "propertyName": "destinationJndiPropertyProviderUrl",
@@ -190,7 +179,7 @@
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.provider.url",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertySecurityCredentials": {
       "propertyName": "destinationJndiPropertySecurityCredentials",
@@ -198,7 +187,7 @@
       "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertySecurityPrincipal": {
       "propertyName": "destinationJndiPropertySecurityPrincipal",
@@ -206,7 +195,7 @@
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.user",
-      "usageDataType":"java.lang.String"
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
@@ -229,8 +218,8 @@
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.spec.event.EventFactory",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.spec.event.EventFactory",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "managedIdentifierService": {
@@ -238,8 +227,8 @@
       "helpText": "Provide the classname that overrides and implements the default ManagedRelatedEventIdentifierService interface. The Related Event Identifier is a business identifier immutable for the business life of the event, allowing it to be tied to a main business event. This is commonly used if the business event mutates during a flow, for example in a Splitter, and tracking of the related business events is required. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.jms.JmsEventIdentifierServiceImpl.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.spec.event.ManagedRelatedEventIdentifierService",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.spec.event.ManagedRelatedEventIdentifierService",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "maxConcurrentConsumers": {
@@ -253,8 +242,8 @@
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "usageDataType":"org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
-      "validation":"^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."
     },
     "pubSubDomain": {

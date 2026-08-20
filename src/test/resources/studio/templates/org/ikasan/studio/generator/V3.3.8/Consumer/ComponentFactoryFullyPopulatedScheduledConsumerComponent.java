@@ -23,8 +23,6 @@ org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedEventIdentifierService orgIkasanMyflowMyEventService;
 @javax.annotation.Resource
-org.ikasan.spec.management.ManagedResourceRecoveryManager orgIkasanMyflowMyManagedResourceRecoveryManager;
-@javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.MessageProvider orgIkasanMyflowMyMessageProvider;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyScheduledConsumer() {
@@ -37,7 +35,6 @@ return builderFactory.getComponentBuilder().scheduledConsumer()
 .setEventFactory(orgIkasanMyflowMyEventFactory)
 .setIgnoreMisfire(true)
 .setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
-.setManagedResourceRecoveryManager(orgIkasanMyflowMyManagedResourceRecoveryManager)
 .setMaxEagerCallbacks(10)
 .setMessageProvider(orgIkasanMyflowMyMessageProvider)
 .setTimezone(UTC)
