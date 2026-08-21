@@ -187,13 +187,68 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     /**
      * Ask the user to confirm regeneration of the user implemented class, naming exactly which changed
-     * properties are driving that regeneration.
+     * properties are driving that regeneration, and (where they can be determined) exactly which hand-written
+     * class(es) will be regenerated as a result.
      * @return true if the user confirmed, false if they declined.
      */
     private boolean confirmRegenerateUserImplementedClass(List<String> changedPropertyLabels) {
-        String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClass", String.join(", ", changedPropertyLabels));
+        List<String> affectedClassDescriptions = getAffectedUserImplementedClassDescriptions();
+        String message = affectedClassDescriptions.isEmpty()
+                ? StudioBundle.message("message.ConfirmRegenerateUserImplementedClass", String.join(", ", changedPropertyLabels))
+                : StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed",
+                        String.join(", ", changedPropertyLabels), String.join("\n", affectedClassDescriptions));
         int result = Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"), Messages.getWarningIcon());
         return result == Messages.YES;
+    }
+
+    /**
+     * Name the hand-written class(es) the pending change will regenerate.
+     * - Editing a {@link FlowUserImplementedElement} directly (Debug, CustomConverter, GenericConsumer, etc.)
+     *   only ever affects that same component's own generated class.
+     * - Editing the {@link Module} itself is different: name/applicationPackageName/version determine the
+     *   package every {@link FlowUserImplementedElement} in every flow is generated into
+     *   ({@link org.ikasan.studio.core.generator.GeneratorUtils#getUserImplementedClassesPackageName}), so a
+     *   change there potentially affects every such class across the whole module.
+     * Returns an empty list (rather than guessing) for any other case, or where a class name can't yet be
+     * determined - the caller falls back to the generic, unnamed confirmation message.
+     */
+    private List<String> getAffectedUserImplementedClassDescriptions() {
+        if (getSelectedComponent() instanceof Module module) {
+            List<String> descriptions = new ArrayList<>();
+            if (module.getFlows() != null) {
+                for (Flow flow : module.getFlows()) {
+                    descriptions.addAll(userImplementedClassDescriptionsForFlow(flow));
+                }
+            }
+            return descriptions;
+        } else if (getSelectedComponent() instanceof FlowUserImplementedElement flowUserImplementedElement
+                && flowUserImplementedElement.getContainingFlow() != null) {
+            String description = userImplementedClassDescription(flowUserImplementedElement.getContainingFlow(), flowUserImplementedElement);
+            return description != null ? List.of(description) : List.of();
+        }
+        return List.of();
+    }
+
+    private List<String> userImplementedClassDescriptionsForFlow(Flow flow) {
+        List<String> descriptions = new ArrayList<>();
+        if (flow.getFlowRoute() == null) {
+            return descriptions;
+        }
+        for (FlowElement component : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+            if (component instanceof FlowUserImplementedElement) {
+                String description = userImplementedClassDescription(flow, component);
+                if (description != null) {
+                    descriptions.add(description);
+                }
+            }
+        }
+        return descriptions;
+    }
+
+    private String userImplementedClassDescription(Flow flow, FlowElement component) {
+        ComponentProperty classNameProperty = component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
+        String className = classNameProperty != null ? (String) classNameProperty.getValue() : null;
+        return className == null ? null : (flow.getIdentity() + ": " + className + ".java");
     }
 
     /**

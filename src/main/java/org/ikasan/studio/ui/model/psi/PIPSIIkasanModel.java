@@ -424,33 +424,38 @@ public class PIPSIIkasanModel {
         if (propertiesPsiFile == null || module.getFlows() == null) {
             return;
         }
-        String propertiesFileText = propertiesPsiFile.getText();
-        int searchFromOffset = 0;
-        for (Flow flow : module.getFlows()) {
-            IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
-            if (flowViewHandler != null) {
-                String flowConfigPrefix = "ikasan.flow.configuration[" + StudioBuildUtils.escapeSpringPropertiesMapKey(flow.getIdentity()) + "].";
-                int flowOffset = propertiesFileText.indexOf(flowConfigPrefix);
-                flowViewHandler.setPropertiesPsiFile(flowOffset >= 0 ? propertiesPsiFile : null);
-                if (flowOffset >= 0) {
-                    flowViewHandler.setOffsetInPropertiesFileToNavigateTo(flowOffset);
+        // PsiFile#getText() (and any other PSI access) requires a read action - initialisePsiFileHandles() runs
+        // this on a background pooled thread with no read lock held, unlike the sibling .java-file path a few
+        // lines below, which is already inside its own ReadAction.run(...).
+        ReadAction.run(() -> {
+            String propertiesFileText = propertiesPsiFile.getText();
+            int searchFromOffset = 0;
+            for (Flow flow : module.getFlows()) {
+                IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                if (flowViewHandler != null) {
+                    String flowConfigPrefix = "ikasan.flow.configuration[" + StudioBuildUtils.escapeSpringPropertiesMapKey(flow.getIdentity()) + "].";
+                    int flowOffset = propertiesFileText.indexOf(flowConfigPrefix);
+                    flowViewHandler.setPropertiesPsiFile(flowOffset >= 0 ? propertiesPsiFile : null);
+                    if (flowOffset >= 0) {
+                        flowViewHandler.setOffsetInPropertiesFileToNavigateTo(flowOffset);
+                    }
                 }
-            }
 
-            for (FlowElement flowElement : flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()) {
-                IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
-                if (flowComponentViewHandler == null) {
-                    continue;
-                }
-                String key = firstApplicationPropertiesKeyFor(module, flow, flowElement);
-                int offset = key != null ? propertiesFileText.indexOf(key + "=", searchFromOffset) : -1;
-                flowComponentViewHandler.setPropertiesPsiFile(offset >= 0 ? propertiesPsiFile : null);
-                if (offset >= 0) {
-                    flowComponentViewHandler.setOffsetInPropertiesFileToNavigateTo(offset);
-                    searchFromOffset = offset + key.length();
+                for (FlowElement flowElement : flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()) {
+                    IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
+                    if (flowComponentViewHandler == null) {
+                        continue;
+                    }
+                    String key = firstApplicationPropertiesKeyFor(module, flow, flowElement);
+                    int offset = key != null ? propertiesFileText.indexOf(key + "=", searchFromOffset) : -1;
+                    flowComponentViewHandler.setPropertiesPsiFile(offset >= 0 ? propertiesPsiFile : null);
+                    if (offset >= 0) {
+                        flowComponentViewHandler.setOffsetInPropertiesFileToNavigateTo(offset);
+                        searchFromOffset = offset + key.length();
+                    }
                 }
             }
-        }
+        });
     }
 
     /**
