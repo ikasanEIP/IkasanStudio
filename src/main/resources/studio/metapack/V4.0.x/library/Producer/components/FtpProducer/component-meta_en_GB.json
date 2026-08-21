@@ -29,7 +29,7 @@
     },
     "active": {
       "propertyName": "active",
-      "displayLabel": "Ftp Connection",
+      "displayLabel": "Ftp Active/Passive",
       "helpText": "Optional only available on FTP consumer. Default(False) Flag indicating whether the FTP connection is active or passive.",
       "setterProperty": true,
       "trueLabel": "Active",
@@ -98,9 +98,11 @@
     },
     "ftps": {
       "propertyName": "ftps",
+      "displayLabel": "Use ftps",
       "helpText": "If true, the connection will be made using FTPs (FTP over SSL). Default is false.",
       "defaultValue": false,
       "setterProperty": true,
+      "setterMethod": "setFTPS",
       "trueLabel": "FTPS",
       "falseLabel": "FTP",
       "propertyDataType": "java.lang.Boolean"
@@ -202,7 +204,7 @@
     },
     "systemKey": {
       "propertyName": "systemKey",
-      "helpText": "Optional only available on FTP consumer.",
+      "helpText": "Optional. Overrides FTP server-type auto-detection for parsing directory listings — normally the client infers this from the server's SYST reply, but that can be unreliable. Set to one of Apache Commons Net's FTPClientConfig system keys if listings come back empty or malformed, e.g. 'UNIX', 'WINDOWS', 'OS/400', 'VMS', 'AS/400'.",
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "propertyConfigFileLabel": "__flow.ftp.consumer.system-key"

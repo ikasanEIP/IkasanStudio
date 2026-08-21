@@ -80,11 +80,11 @@ return builderFactory.getComponentBuilder().jmsProducer()
 .setPriority(1)
 .setPubSubDomain(myPubSubDomain)
 .setPubSubNoLocal(true)
-.setReceiveTimeout(1000)
+.setReceiveTimeout(1000L)
 .setSessionAcknowledgeMode(1)
 .setSessionAcknowledgeModeName(AUTO_ACKNOWLEDGE)
 .setSessionTransacted(true)
-.setTimeToLive(100)
+.setTimeToLive(100L)
 .setTransactionManager(myTransactionManagerClass)
 .build();
 }}

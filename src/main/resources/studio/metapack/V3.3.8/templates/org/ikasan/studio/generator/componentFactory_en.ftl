@@ -97,7 +97,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
                     <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
                         <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     <#else>
-                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.toJavaLiteral(propValue.meta, StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString))})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     </#if>
                 </#if>
             </#if>

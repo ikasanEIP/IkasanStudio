@@ -29,7 +29,9 @@
     },
     "active": {
       "propertyName": "active",
-      "displayLabel": "Ftp Connection",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 200,
+      "displayLabel": "Ftp Active/Passive",
       "helpText": "Optional only available on FTP consumer. Flag indicating whether the FTP connection is active or passive. The default is false i.e. passive mode.",
       "setterProperty": true,
       "trueLabel": "Active",
@@ -39,6 +41,8 @@
     },
     "ageOfFiles": {
       "propertyName": "ageOfFiles",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 150,
       "displayLabel": "Retain Meta Data for (days)",
       "helpText": "How many days to keep meta data relating to files already processed (used to prevent processing the same file twice), the default is -1 means for ever.",
       "defaultValue": -1,
@@ -47,6 +51,8 @@
     },
     "checksum": {
       "propertyName": "checksum",
+      "propertyGroup": "File Transfer",
+      "propertyDisplayOrder": 190,
       "displayLabel": "Verify with Checksum",
       "helpText": "Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system. Default is false",
       "defaultValue": false,
@@ -55,6 +61,8 @@
     },
     "chronological": {
       "propertyName": "chronological",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 60,
       "displayLabel": "Oldest file first",
       "helpText": "If true, when multiple files are available, process the oldest first. Default is false which means order of processing is non-deterministic.",
       "defaultValue": false,
@@ -63,6 +71,8 @@
     },
     "chunkSize": {
       "propertyName": "chunkSize",
+      "propertyGroup": "File Transfer",
+      "propertyDisplayOrder": 180,
       "displayLabel": "Chunk Size",
       "helpText": "Size of chunks to use (when chunking=true). Default(1048576) 1MB.",
       "defaultValue": 1048576,
@@ -71,6 +81,8 @@
     },
     "chunking": {
       "propertyName": "chunking",
+      "propertyGroup": "File Transfer",
+      "propertyDisplayOrder": 170,
       "displayLabel": "Use chunking",
       "helpText": "If true, file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration. Default is false.",
       "defaultValue": false,
@@ -79,6 +91,8 @@
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 350,
       "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "defaultValue": true,
       "setterProperty": true,
@@ -98,6 +112,7 @@
       "setterProperty": true,
       "userSuppliedClass": true,
       "propertyGroup": "advanced",
+      "propertyDisplayOrder": 360,
       "protectFromOverwrite": true,
       "usageDataType": "org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
@@ -105,6 +120,8 @@
     },
     "configurationId": {
       "propertyName": "configurationId",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 370,
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
@@ -114,12 +131,16 @@
     "connectionTimeout": {
       "displayLabel": "(S)FTP connector connection timeout (ms)",
       "propertyName": "connectionTimeout",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 240,
       "helpText": "Internal (S)FTP connector connection timeout value in milliseconds. Default is 60000 (1 minute).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 380,
       "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "defaultValue": true,
@@ -139,6 +160,8 @@
     "dataTimeout": {
       "displayLabel": "FTP connector data timeout (ms)",
       "propertyName": "dataTimeout",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 260,
       "helpText": "Internal FTP connector data connection timeout value in milliseconds. Default is 300000 (5 minutes).",
       "setterProperty": true,
       "defaultValue": 300000,
@@ -146,6 +169,8 @@
     },
     "destructive": {
       "propertyName": "destructive",
+      "propertyGroup": "Post file transfer actions",
+      "propertyDisplayOrder": 50,
       "displayLabel": "Delete file after consumption",
       "helpText": "Delete file after successful consumption. Default is false.",
       "setterProperty": true,
@@ -154,6 +179,8 @@
     },
     "eager": {
       "propertyName": "eager",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 80,
       "displayLabel": "Transfer multiple files",
       "defaultValue": false,
       "helpText": "When true (default is false), attempt to process all available files. MaxEagerCallbacks can be used to limit the number of files before reverting to business schedule.",
@@ -181,6 +208,8 @@
     },
     "filterDuplicates": {
       "propertyName": "filterDuplicates",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 120,
       "helpText": "When true (the default), duplicates files are ignored (based on previously persisted meta information e.g. date-timestamp).",
       "setterProperty": true,
       "defaultValue": true,
@@ -188,6 +217,8 @@
     },
     "filterOnFilename": {
       "propertyName": "filterOnFilename",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 130,
       "helpText": "When true (the default), the full remote path (not just the bare filename) is used to determine if this file is a duplicate. Also requires filterDuplicates to be true. Also required filterDuplicates to be true.",
       "setterProperty": true,
       "defaultValue": true,
@@ -195,6 +226,8 @@
     },
     "filterOnLastModifiedDate": {
       "propertyName": "filterOnLastModifiedDate",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 140,
       "helpText": "When true (the default), the last modified date of the file is used to determine if this file is a duplicate. Also requires filterDuplicates to be true.",
       "setterProperty": true,
       "defaultValue": true,
@@ -202,15 +235,21 @@
     },
     "ftps": {
       "propertyName": "ftps",
+      "propertyGroup": "ftps Support",
+      "propertyDisplayOrder": 270,
+      "displayLabel": "Use ftps",
       "helpText": "If true, the connection will be made using FTPs (FTP over SSL). Default is false.",
       "defaultValue": false,
       "setterProperty": true,
+      "setterMethod": "setFTPS",
       "trueLabel": "FTPS",
       "falseLabel": "FTP",
       "propertyDataType": "java.lang.Boolean"
     },
     "ftpsIsImplicit": {
       "propertyName": "ftpsIsImplicit",
+      "propertyGroup": "ftps Support",
+      "propertyDisplayOrder": 290,
       "displayLabel": "Support legacy ftps",
       "helpText": "Requires ftps to be true. If set to false (the default), explicit FTPS (aka FTPES, RFC 4217-standard approach) is used, the client connects on the normal FTP port (defaults to 21) in plaintext, then explicitly sends an AUTH TLS/AUTH SSL command to upgrade the connection before authenticating. If true the older/deprecated connection stlye is supported i.e. the client opens a TLS/SSL handshake immediately on connect, before any FTP commands are exchanged. The port defaults to 990.",
       "defaultValue": false,
@@ -221,16 +260,22 @@
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
+      "propertyGroup": "ftps Support",
+      "propertyDisplayOrder": 320,
       "helpText": "Requires ftps to be true. The password for the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
       "setterProperty": true
     },
     "ftpsKeyStoreFilePath": {
       "propertyName": "ftpsKeyStoreFilePath",
+      "propertyGroup": "ftps Support",
+      "propertyDisplayOrder": 310,
       "helpText": "Requires ftps to be true. The path to the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
       "setterProperty": true
     },
     "ftpsPort": {
       "propertyName": "ftpsPort",
+      "propertyGroup": "ftps Support",
+      "propertyDisplayOrder": 280,
       "helpText": "Requires ftps to be true. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
@@ -238,6 +283,8 @@
     },
     "ftpsProtocol": {
       "propertyName": "ftpsProtocol",
+      "propertyGroup": "ftps Support",
+      "propertyDisplayOrder": 300,
       "helpText": "Requires ftps to be true. SSL/TLS protocol name used to negotiate the FTPS connection (e.g. \"SSL\", \"TLS\", \"TLSv1.2\"), passed to Java's SSLContext. The Ikasan defaults is \"SSL\"; \"TLS\" is the more modern, explicit choice.",
       "setterProperty": true,
       "propertyDataType": "java.lang.String",
@@ -245,12 +292,16 @@
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
+      "propertyGroup": "Scheduling",
+      "propertyDisplayOrder": 330,
       "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "isRecursive": {
       "propertyName": "isRecursive",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 70,
       "helpText": "Default(False) Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -261,12 +312,15 @@
       "setterProperty": true,
       "userSuppliedClass": true,
       "propertyGroup": "advanced",
+      "propertyDisplayOrder": 390,
       "usageDataType": "org.ikasan.spec.event.ManagedEventIdentifierService",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the consumer event provider bean."
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 90,
       "helpText": "When eager is set to true, this will limit the number of eligible files that are retrieved before reverting to cronExpression restart. Default (-1) means unlimited.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
@@ -274,6 +328,8 @@
     },
     "maxRetryAttempts": {
       "propertyName": "maxRetryAttempts",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 230,
       "helpText": "Default(3) internal (S)FTP connector retry count.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
@@ -282,6 +338,8 @@
     "maxRows": {
       "displayLabel": "Meta data housekeeping (max rows)",
       "propertyName": "maxRows",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 160,
       "helpText": "When housekeeping the meta data, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. Default (-1) means unlimited.",
       "setterProperty": true,
       "defaultValue": -1,
@@ -293,12 +351,15 @@
       "setterProperty": true,
       "userSuppliedClass": true,
       "propertyGroup": "advanced",
+      "propertyDisplayOrder": 400,
       "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."
     },
     "minAge": {
       "propertyName": "minAge",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 100,
       "displayLabel": "Minimum age of file (seconds)",
       "helpText": "The minimum age of the file on the remote filesystem before file can be processed. This setting is in place to prevent (S)FTP consumer from picking up file which is still being written to. The default is 120 seconds.",
       "setterProperty": true,
@@ -307,12 +368,16 @@
     },
     "moveOnSuccess": {
       "propertyName": "moveOnSuccess",
+      "propertyGroup": "Post file transfer actions",
+      "propertyDisplayOrder": 10,
       "helpText": "Default(False) Flag indicating whether to move the processed file after successful consumption to different location defined by moveOnSuccessNewPath configuration.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "moveOnSuccessNewPath": {
       "propertyName": "moveOnSuccessNewPath",
+      "propertyGroup": "Post file transfer actions",
+      "propertyDisplayOrder": 20,
       "helpText": "Optional only applicable when moveOnSuccess is set to true, it provides new directory path for the processed file to be moved to.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.move-on-success-new-path"
@@ -328,6 +393,8 @@
     },
     "passwordFilePath": {
       "propertyName": "passwordFilePath",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 210,
       "helpText": "The path of the file that contains the password.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.password-filepath"
@@ -353,18 +420,24 @@
     },
     "renameOnSuccess": {
       "propertyName": "renameOnSuccess",
+      "propertyGroup": "Post file transfer actions",
+      "propertyDisplayOrder": 30,
       "helpText": "Default(False) Flag indicating whether to rename the processed file after successful consumption.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "renameOnSuccessExtension": {
       "propertyName": "renameOnSuccessExtension",
+      "propertyGroup": "Post file transfer actions",
+      "propertyDisplayOrder": 40,
       "helpText": "Required renameOnSuccess set to true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
       "setterProperty": true,
       "propertyDataType": "java.lang.String"
     },
     "socketTimeout": {
       "propertyName": "socketTimeout",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 250,
       "displayLabel": "(S)FTP connector socket timeout (ms)",
       "helpText": "Internal FTP connector socket connection timeout value. Default is 300000 milliseconds. ",
       "defaultValue": 300000,
@@ -385,7 +458,8 @@
       "helpText": "Provide the classname that overrides and implements the DirectoryURLFactory interface. The factory provides more flexible way of defining source directory. Most common use case would be when source directory changes names for instance based on date.",
       "setterProperty": true,
       "userSuppliedClass": true,
-      "propertyGroup": "advanced",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 110,
       "protectFromOverwrite": true,
       "usageDataType": "org.ikasan.framework.factory.DirectoryURLFactory",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
@@ -393,15 +467,20 @@
     },
     "systemKey": {
       "propertyName": "systemKey",
-      "helpText": "Optional only available on FTP consumer.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 220,
+      "helpText": "Optional. Overrides FTP server-type auto-detection for parsing directory listings — normally the client infers this from the server's SYST reply, but that can be unreliable. Set to one of Apache Commons Net's FTPClientConfig system keys if listings come back empty or malformed, e.g. 'UNIX', 'WINDOWS', 'OS/400', 'VMS', 'AS/400'.",
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "propertyConfigFileLabel": "__flow.ftp.consumer.system-key"
     },
     "timezone": {
       "propertyName": "timezone",
-      "helpText": "Support for overriding the default timezone.",
-      "setterProperty": true
+      "propertyGroup": "Scheduling",
+      "propertyDisplayOrder": 340,
+      "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "transactionManager": {
       "propertyName": "transactionManager",
@@ -409,6 +488,7 @@
       "setterProperty": true,
       "userSuppliedClass": true,
       "propertyGroup": "advanced",
+      "propertyDisplayOrder": 410,
       "noStubRequired": true,
       "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",

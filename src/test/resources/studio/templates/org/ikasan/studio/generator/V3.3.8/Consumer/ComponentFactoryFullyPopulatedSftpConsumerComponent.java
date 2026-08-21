@@ -38,8 +38,6 @@ java.lang.String myFlow1SftpConsumerRemoteHost;
 java.lang.Integer myFlow1SftpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.source-directory}")
 java.lang.String myFlow1SftpConsumerSourceDirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.system-key}")
-java.lang.String myFlow1SftpConsumerSystemKey;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
 java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource
@@ -82,7 +80,7 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setMaxRetryAttempts(myFlow1SftpConsumerMaxRetryAttempts)
 .setMaxRows(11)
 .setMessageProvider(myMessageProviderClass)
-.setMinAge(12)
+.setMinAge(12L)
 .setMoveOnSuccessNewPath(myFlow1SftpConsumerMoveOnSuccessNewPath)
 .setPassword(myFlow1SftpConsumerPassword)
 .setPreferredKeyExchangeAlgorithm(myFlow1SftpConsumerPreferredKeyExchangeAlgorithm)
@@ -93,7 +91,6 @@ return builderFactory.getComponentBuilder().sftpConsumer()
 .setRenameOnSuccessExtension(newExtension)
 .setSourceDirectory(myFlow1SftpConsumerSourceDirectory)
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
-.setSystemKey(myFlow1SftpConsumerSystemKey)
 .setTransactionManager(myTransactionManagerClass)
 .setUsername(myFlow1SftpConsumerUsername)
 .build();

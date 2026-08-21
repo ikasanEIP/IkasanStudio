@@ -326,6 +326,23 @@ public class StudioBuildUtils {
     }
 
     /**
+     * ** Used by FTL ***
+     * Java does not auto-box a bare int literal into a Long parameter (e.g. ".setMinAge(120)" fails to compile with
+     * "incompatible types: int cannot be converted to Long" - ".setMinAge(120L)" is required). This appends the "L"
+     * suffix whenever the property's declared type is java.lang.Long, regardless of the runtime type of the value
+     * actually stored (which may be a plain Integer, e.g. from a test fixture or a small persisted number).
+     * @param meta of the property whose value is about to be emitted as a Java literal
+     * @param valueString the literal text about to be emitted as a Java method argument
+     * @return valueString, with an "L" suffix appended when the property's declared type is java.lang.Long
+     */
+    public static String toJavaLiteral(ComponentPropertyMeta meta, String valueString) {
+        if (meta != null && meta.getPropertyDataType() == Long.class && valueString != null && !valueString.isBlank()) {
+            return valueString + "L";
+        }
+        return valueString;
+    }
+
+    /**
      * Turn the comma seperated string and turn to list
      * @param commaSeperatedList to convert
      * @return List representing input string

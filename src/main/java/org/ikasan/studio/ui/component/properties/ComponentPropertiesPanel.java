@@ -55,9 +55,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private final SimpleChangeListener listenerForAnyEditChanges;
     private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
 
-    // Group display order: alphabetical for everything else, "Miscellaneous" second-to-last, "advanced" always last.
-    private static final Comparator<String> GROUP_DISPLAY_ORDER =
-            Comparator.comparingInt(ComponentPropertiesPanel::groupDisplayRank).thenComparing(Comparator.naturalOrder());
+    /**
+     * Group display order: for everything else, the order groups were first encountered while walking properties
+     * sorted by propertyDisplayOrder - i.e. whichever group's lowest-propertyDisplayOrder member is smallest comes
+     * first, letting metapack authors control group sequence the same way they control in-group property order.
+     * "Miscellaneous" is always second-to-last and "advanced" is always last, regardless of that natural order.
+     */
+    private static Comparator<String> groupDisplayOrderFor(Map<String, ?> groupedOptionalProperties) {
+        List<String> naturalOrder = new ArrayList<>(groupedOptionalProperties.keySet());
+        return Comparator.comparingInt(ComponentPropertiesPanel::groupDisplayRank).thenComparingInt(naturalOrder::indexOf);
+    }
 
     private static int groupDisplayRank(String group) {
         if (ComponentPropertyMeta.PROPERTY_GROUP_ADVANCED.equalsIgnoreCase(group)) return 2;
@@ -296,7 +303,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 groupGc.gridx = 0;
                 groupGc.weightx = 1;
                 groupGc.gridy = 0;
-                for (String groupName : groupedOptionalProperties.keySet().stream().sorted(GROUP_DISPLAY_ORDER).toList()) {
+                for (String groupName : groupedOptionalProperties.keySet().stream().sorted(groupDisplayOrderFor(groupedOptionalProperties)).toList()) {
                     JBPanel groupPanel = new JBPanel(new GridBagLayout());
                     groupPanel.setBorder(null);
                     int groupTabley = 0;

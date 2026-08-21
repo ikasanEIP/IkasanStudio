@@ -212,7 +212,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("preferredKeyExchangeAlgorithm", "DFS");
         flowElement.setPropertyValue("privateKeyFilename", "~/.ssh/meyfile.jks");
         flowElement.setPropertyValue("sourceDirectoryURLFactory", "myDirectoryURLFactoryClass");
-        flowElement.setPropertyValue("systemKey", "mySystemKey");
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
         flowElement.setPropertyValue("timeZone", "UTC");
         flowElement.defaultUnsetMandatoryProperties();

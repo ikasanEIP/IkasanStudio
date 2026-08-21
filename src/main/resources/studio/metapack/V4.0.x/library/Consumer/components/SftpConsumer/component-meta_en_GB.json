@@ -287,16 +287,9 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Source Directory URL Factory bean."
     },
-    "systemKey": {
-      "propertyName": "systemKey",
-      "helpText": "Optional only available on SFTP consumer.",
-      "setterProperty": true,
-      "usageDataType": "java.lang.String",
-      "propertyConfigFileLabel": "__flow.sftp.consumer.system-key"
-    },
     "timezone": {
       "propertyName": "timezone",
-      "helpText": "Support for overriding the default timezone.",
+      "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
       "setterProperty": true
     },
     "transactionManager": {
