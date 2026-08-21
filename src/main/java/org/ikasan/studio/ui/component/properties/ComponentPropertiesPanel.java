@@ -393,9 +393,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             if (optionalPropertiesExpandPanel == null) {
                 optionalPropertiesExpandPanel = getOptionalPropertiesExpandPanel();
             }
-            @SuppressWarnings("rawtypes")
-            JBPanel regeneratingPropertiesEditorPanel = new JBPanel(new GridBagLayout());
-            regeneratingPropertiesEditorPanel.setBorder(null);
             componentPropertyEditRowList = new ArrayList<>();
 
             GridBagConstraints gc = new GridBagConstraints();
@@ -403,7 +400,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc.insets = JBUI.insets(3, 4);
 
             int mandatoryTabley = 0;
-            int regenerateTabley = 0;
             int optionalTabley = 0;
             if (getSelectedComponent().getComponentMeta().isModule()) {
                 // Always refresh the list of choosable metapacks
@@ -436,13 +432,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             property = new ComponentProperty((getSelectedComponent()).getComponentMeta().getMetadata(key));
                         }
                         if (property.getMeta().isGroupedProperty()) {
-                            // Grouped property - keep it out of the always-visible sections even though it
-                            // may also be userSuppliedClass; tucked into "Optional Properties".
+                            // Grouped property - keep it out of the always-visible Mandatory section even
+                            // though it may also be userSuppliedClass; tucked into "Optional Properties".
+                            // A userSuppliedClass property that affects the user-implemented class already
+                            // gets the warning icon (getAffectsUserImplementedClassIndicator) and the save-time
+                            // confirmation dialog - no separate "regenerating" section needed any more.
                             groupedOptionalProperties.computeIfAbsent(property.getMeta().getPropertyGroup(), k -> new ArrayList<>()).add(property);
-                        } else if (property.getMeta().isUserSuppliedClass()) {
-                            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
-                                    regeneratingPropertiesEditorPanel,
-                                    property, gc, regenerateTabley++));
                         } else if (property.getMeta().isMandatory()) {
                             componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
                                     mandatoryPropertiesEditorPanel,
@@ -481,10 +476,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
             if (mandatoryTabley > 0) {
                 setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, StudioBundle.message("label.MandatoryProperties"), ThemeAwareColors.getImportantBorderColor(), gc1);
-            }
-
-            if (regenerateTabley > 0) {
-                setSubPanel(propertiesEditorPanel, regeneratingPropertiesEditorPanel, StudioBundle.message("label.UserCodeRegeneratingProperties"), getThemeAwareBorderColor(), gc1);
             }
 
             if (optionalTabley > 0) {

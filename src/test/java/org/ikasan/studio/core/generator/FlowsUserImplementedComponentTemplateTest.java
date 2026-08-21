@@ -29,6 +29,36 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyBroker.java"), templateString);
     }
 
+    //  ------------------------------- CONSUMER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Consumer/MyGenericConsumer.java
+     * @throws IOException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_genericConsumerComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getGenericConsumer(metaPackVersion);
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyGenericConsumer.java"), templateString);
+    }
+
+    //  ------------------------------- PRODUCER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Producer/MyGenericProducer.java
+     * @throws IOException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_genericProducerComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getGenericProducer(metaPackVersion);
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyGenericProducer.java"), templateString);
+    }
+
     //  ------------------------------- CONVERTER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyConverter.java

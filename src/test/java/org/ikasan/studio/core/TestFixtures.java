@@ -106,6 +106,17 @@ public class TestFixtures {
             .build();
     }
 
+    public static FlowElement getGenericConsumer(String metaPackVersion) throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Consumer");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+            .componentMeta(meta)
+            .componentName("My Generic Consumer")
+            .build();
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myGenericConsumer");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
     public static FlowElement getFtpConsumer(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "FTP Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
@@ -530,6 +541,18 @@ public class TestFixtures {
             .componentMeta(meta)
             .componentName("My DevNull Producer")
             .build();
+    }
+
+    public static FlowElement getGenericProducer(String metaPackVersion) throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Producer");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+            .componentMeta(meta)
+            .componentName("My Generic Producer")
+            .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myGenericProducer");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
     }
     public static FlowElement getDevNullProducerWithWiretaps(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");

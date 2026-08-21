@@ -38,6 +38,7 @@
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "protectFromOverwrite": true,
       "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
@@ -64,7 +65,8 @@
       "helpText": "JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
       "setterProperty": true,
       "usageDataType": "java.util.Map<String, String>",
-      "userSuppliedClass": true
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true
     },
     "connectionFactoryJndiPropertyFactoryInitial": {
       "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
@@ -202,7 +204,8 @@
       "helpText": "Default (false), set to true if the deliveryMode, priority or timeToLive qualities of service should be used when sending messages. Pre-built implementations you can wire in instead of writing your own: org.springframework.jms.support.converter.SimpleMessageConverter (Spring's default), org.springframework.jms.support.converter.MappingJackson2MessageConverter.",
       "setterProperty": true,
       "usageDataType": "org.springframework.jms.support.converter.MessageConverter",
-      "userSuppliedClass": true
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true
     },
     "messageIdEnabled": {
       "propertyName": "messageIdEnabled",
@@ -221,6 +224,7 @@
       "helpText": "Post processing operations on the JMS message before being sent over the wire. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.jms.producer.JmsPostProcessor.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.component.endpoint.jms.producer.PostProcessor"
     },
     "priority": {

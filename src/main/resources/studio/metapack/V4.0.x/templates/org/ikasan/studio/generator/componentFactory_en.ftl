@@ -21,7 +21,11 @@ org.ikasan.builder.BuilderFactory builderFactory;
         @javax.annotation.Resource
         <#if flowElement.componentMeta.generatesUserImplementedClass>
 <#--        ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${flowElement.getPropertyValue('userImplementedClassName')} ${flowElement.getJavaVariableName()};-->
+        <#if flowElement.getPropertyValue("requiresStub")?? && !flowElement.getPropertyValue("requiresStub")>
+        ${flowElement.getPropertyValue('userImplementedClassName')} ${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, flowElement.getJavaVariableName())};
+        <#else>
         ${module.getPropertyValue('applicationPackageName')}.${flow.getJavaPackageName()}.${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, flowElement, flowElement.getPropertyValue('userImplementedClassName'))} ${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, flowElement.getJavaVariableName())};
+        </#if>
         </#if>
     <#else>
     </#if>

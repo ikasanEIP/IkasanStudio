@@ -99,6 +99,7 @@
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "protectFromOverwrite": true,
       "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
@@ -125,7 +126,8 @@
       "helpText": "JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
       "setterProperty": true,
       "usageDataType": "java.util.Map<String, String>",
-      "userSuppliedClass": true
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true
     },
     "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
@@ -218,6 +220,7 @@
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.spec.event.EventFactory",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -227,6 +230,7 @@
       "helpText": "Provide the classname that overrides and implements the default ManagedRelatedEventIdentifierService interface. The Related Event Identifier is a business identifier immutable for the business life of the event, allowing it to be tied to a main business event. This is commonly used if the business event mutates during a flow, for example in a Splitter, and tracking of the related business events is required. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.jms.JmsEventIdentifierServiceImpl.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.spec.event.ManagedRelatedEventIdentifierService",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
@@ -242,6 +246,7 @@
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."

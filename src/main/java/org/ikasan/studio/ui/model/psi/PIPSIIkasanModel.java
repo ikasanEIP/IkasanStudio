@@ -323,7 +323,8 @@ public class PIPSIIkasanModel {
                 }
 
                 if (    component instanceof FlowUserImplementedElement &&
-                        (((FlowUserImplementedElement)component).isOverwriteEnabled() || component.getComponentMeta().isDebug())) {
+                        (((FlowUserImplementedElement)component).isOverwriteEnabled() || component.getComponentMeta().isDebug()) &&
+                        componentRequiresStub(component)) {
                     String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
                     String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                     String templateString = null;
@@ -340,6 +341,19 @@ public class PIPSIIkasanModel {
                 }
             }
         }
+    }
+
+    /**
+     * Most {@link FlowUserImplementedElement}s (Debug, CustomConverter, etc.) don't declare a "requiresStub"
+     * property at all, meaning Studio always generates and manages their stub - true unless the property is
+     * present and explicitly false. Only the "Generic"/self-implementing components (GenericConsumer,
+     * GenericBroker, etc.) expose this as a real, mandatory toggle: false means userImplementedClassName is
+     * already a fully-qualified class the user supplies themselves (see componentFactory_en.ftl, which stops
+     * assuming Studio's managed user-package for that same case).
+     */
+    private boolean componentRequiresStub(FlowElement component) {
+        Object requiresStub = component.getPropertyValue(ComponentPropertyMeta.REQUIRES_STUB);
+        return !(requiresStub instanceof Boolean) || (Boolean) requiresStub;
     }
 
     private void generateAndSaveJavaCodeIkasanComponentFactory(Project project, Module module, String flowPackageName, Flow ikasanFlow) {

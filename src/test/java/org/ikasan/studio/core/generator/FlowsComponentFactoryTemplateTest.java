@@ -4,6 +4,7 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -36,6 +37,43 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         FlowElement flowElement = TestFixtures.getGenericBroker(metaPackVersion);
         String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedGenericBrokerComponent.java"), templateString);
+    }
+
+    //  ------------------------------- CONSUMERS (Generic) ----------------------------------
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_genericConsumerComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getGenericConsumer(metaPackVersion);
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedGenericConsumerComponent.java"), templateString);
+    }
+
+    /**
+     * requiresStub=false: the factory field must be declared using the user-supplied fully-qualified class name
+     * verbatim, not Studio's managed user-package - see also
+     * resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedGenericConsumerNoStubComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_genericConsumerNoStubComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getGenericConsumer(metaPackVersion);
+        flowElement.setPropertyValue(ComponentPropertyMeta.REQUIRES_STUB, false);
+        flowElement.setPropertyValue(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME, "com.acme.reusable.MyExistingConsumer");
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedGenericConsumerNoStubComponent.java"), templateString);
+    }
+
+    //  ------------------------------- PRODUCER (Generic) ----------------------------------
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_genericProducerComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getGenericProducer(metaPackVersion);
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedGenericProducerComponent.java"), templateString);
     }
 
     //  ------------------------------- CONSUMERS ----------------------------------

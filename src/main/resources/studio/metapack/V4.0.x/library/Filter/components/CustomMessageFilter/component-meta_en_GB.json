@@ -17,6 +17,7 @@
       "helpText": "Provide the bean type that contains bespoke configurations for this component.",
       "setterProperty": true,
       "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
       "protectFromOverwrite": true,
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean.",

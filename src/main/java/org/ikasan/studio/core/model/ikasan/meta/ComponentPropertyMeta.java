@@ -29,6 +29,7 @@ public class ComponentPropertyMeta {
     public static final String DESCRIPTION = "description";
 
     public static final String USER_IMPLEMENTED_CLASS_NAME = "userImplementedClassName";    // Special meta for a user implemented class used as a property
+    public static final String REQUIRES_STUB = "requiresStub";                              // If false, userImplementedClassName is an existing, fully-qualified class - Studio must not generate a stub for it
     public static final String CONFIGURATION = "configuration";                             // Bean containing user defined, Ikasan maintained properties
     public static final String CONFIGURED_RESOURCE_INTERFACE = "configuredResource";        // Is the configuration exposed in the dashboard.
     public static final String IS_CONFIGURED_RESOURCE = "isConfiguredResource";             // Is the configuration exposed in the dashboard.
