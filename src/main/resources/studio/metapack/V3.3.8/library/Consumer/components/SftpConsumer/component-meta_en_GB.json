@@ -153,6 +153,7 @@
       "propertyName": "ignoreMisfire",
       "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
+      "defaultValue": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "isRecursive": {
@@ -260,6 +261,7 @@
       "propertyName": "renameOnSuccess",
       "helpText": "Default(False) Flag indicating whether to rename the processed file after successful consumption.",
       "setterProperty": true,
+      "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
     },
     "renameOnSuccessExtension": {

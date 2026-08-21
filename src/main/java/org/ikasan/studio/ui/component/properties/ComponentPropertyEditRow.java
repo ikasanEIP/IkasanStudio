@@ -38,6 +38,15 @@ public class ComponentPropertyEditRow {
     private JCheckBox propertyBooleanFieldFalse;
     private final JLabel affectsUserImplementedClassIndicator;
     private boolean isList = false;
+    // true when the field is currently showing the meta-declared default purely as a preview (e.g. after
+    // "Set Defaults", or a boolean's always-shown default) rather than a value the user has genuinely chosen.
+    // getValue() reports null while this is set, so previewing a default is never mistaken for a real edit and
+    // silently persisted into the model / generated code.
+    private boolean showingDefaultOnly = false;
+    // Guards the field listeners while we programmatically populate a preview, so that write doesn't itself
+    // clear showingDefaultOnly (Swing fires DocumentListener/ItemListener on programmatic changes too, unlike
+    // JCheckBox's ActionListener which only fires on genuine user clicks).
+    private boolean suppressChangeDetection = false;
     private JButton defaultValueButton;
     private JCheckBox rowOverwriteCheckBox;
     private final ComponentPropertyMeta meta;
@@ -92,7 +101,12 @@ public class ComponentPropertyEditRow {
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
             if (listenerFoAnyEditChanges != null) {
-                propertyChoiceValueField.addItemListener(e -> listenerFoAnyEditChanges.actionEvent());
+                propertyChoiceValueField.addItemListener(e -> {
+                    if (!suppressChangeDetection) {
+                        showingDefaultOnly = false;
+                    }
+                    listenerFoAnyEditChanges.actionEvent();
+                });
             }
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
@@ -105,14 +119,23 @@ public class ComponentPropertyEditRow {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
                     public void insertUpdate(DocumentEvent e) {
+                        if (!suppressChangeDetection) {
+                            showingDefaultOnly = false;
+                        }
                         listenerFoAnyEditChanges.actionEvent();
                     }
                     @Override
                     public void removeUpdate(DocumentEvent e) {
+                        if (!suppressChangeDetection) {
+                            showingDefaultOnly = false;
+                        }
                         listenerFoAnyEditChanges.actionEvent();
                     }
                     @Override
                     public void changedUpdate(DocumentEvent e) {
+                        if (!suppressChangeDetection) {
+                            showingDefaultOnly = false;
+                        }
                         listenerFoAnyEditChanges.actionEvent();
                     }
                 });
@@ -125,6 +148,9 @@ public class ComponentPropertyEditRow {
             propertyBooleanFieldTrue.setBackground(JBColor.WHITE);
             propertyBooleanFieldFalse.setBackground(JBColor.WHITE);
             propertyBooleanFieldTrue.addActionListener(e -> {
+                // A genuine click - Swing never fires ActionListener for the programmatic .setSelected() calls
+                // used to preview the default, so no suppressChangeDetection guard is needed here.
+                showingDefaultOnly = false;
                 if (propertyBooleanFieldTrue.isSelected() && propertyBooleanFieldFalse.isSelected()) {
                     propertyBooleanFieldFalse.setSelected(false);
                 } else if (isMandatory && !propertyBooleanFieldTrue.isSelected()) {
@@ -135,6 +161,7 @@ public class ComponentPropertyEditRow {
                 }
             });
             propertyBooleanFieldFalse.addActionListener(e -> {
+                showingDefaultOnly = false;
                 if (propertyBooleanFieldFalse.isSelected() && propertyBooleanFieldTrue.isSelected()) {
                     propertyBooleanFieldTrue.setSelected(false);
                 } else if (isMandatory && !propertyBooleanFieldFalse.isSelected()) {
@@ -157,11 +184,26 @@ public class ComponentPropertyEditRow {
                 this.propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
                     // @See ComponentPropertiesPanel#editBoxChangeListener()
                     @Override
-                    public void insertUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
+                    public void insertUpdate(DocumentEvent e) {
+                        if (!suppressChangeDetection) {
+                            showingDefaultOnly = false;
+                        }
+                        listenerFoAnyEditChanges.actionEvent();
+                    }
                     @Override
-                    public void removeUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
+                    public void removeUpdate(DocumentEvent e) {
+                        if (!suppressChangeDetection) {
+                            showingDefaultOnly = false;
+                        }
+                        listenerFoAnyEditChanges.actionEvent();
+                    }
                     @Override
-                    public void changedUpdate(DocumentEvent e) { listenerFoAnyEditChanges.actionEvent(); }
+                    public void changedUpdate(DocumentEvent e) {
+                        if (!suppressChangeDetection) {
+                            showingDefaultOnly = false;
+                        }
+                        listenerFoAnyEditChanges.actionEvent();
+                    }
                 });
             }
 
@@ -286,16 +328,42 @@ public class ComponentPropertyEditRow {
         return componentInput;
     }
 
+    /**
+     * "Set Defaults" - preview the meta-declared default in the field without committing it to the model.
+     * Nothing is persisted (and so nothing is written into generated code) unless the user goes on to
+     * genuinely interact with the field - typing, ticking a checkbox, or picking a choice.
+     */
     public void setDefaultValue() {
-        if (componentProperty != null && componentProperty.getDefaultValue() != null) {
-            componentProperty.setValue(componentProperty.getDefaultValue());
-            resetDataEntryComponentsWithNewValues();
+        if (componentProperty == null || componentProperty.getValue() != null) {
+            return;
         }
+        Object defaultValue = componentProperty.getDefaultValue();
+        // A "__..." substitution placeholder (e.g. configurationId's "__module-__flow-__component") is meant to
+        // be resolved via the separate "Default"/derive button (or by the generator's own substitution), not
+        // shown to the user as a literal string.
+        if (defaultValue == null || ComponentPropertyMeta.isSubstitutionValue(defaultValue)) {
+            return;
+        }
+        suppressChangeDetection = true;
+        try {
+            if (meta.getChoices() != null) {
+                propertyChoiceValueField.setSelectedItem(defaultValue);
+            } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
+                propertyValueField.setValue(defaultValue);
+            } else if (meta.getPropertyDataType() != java.lang.Boolean.class) {
+                // Boolean already previews its default unconditionally via resetDataEntryComponentsWithNewValues().
+                propertyValueField.setText(defaultValue.toString());
+            }
+        } finally {
+            suppressChangeDetection = false;
+        }
+        showingDefaultOnly = true;
     }
 
     public void clearValue() {
         if (componentProperty != null) {
             componentProperty.setValue(null);
+            showingDefaultOnly = false;
             if (meta.getChoices() != null) {
                 propertyChoiceValueField.setSelectedItem("");
             } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
@@ -315,6 +383,7 @@ public class ComponentPropertyEditRow {
             } else {
                 propertyChoiceValueField.setSelectedItem(meta.isOptional() ? "" : null);
             }
+            showingDefaultOnly = false;
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             if (value != null) {
@@ -327,14 +396,19 @@ public class ComponentPropertyEditRow {
                     }
                 }
                 this.propertyValueField.setValue(value);
+                showingDefaultOnly = false;
             }
+            // else: leave the field as-is - it may currently be previewing a default via setDefaultValue(),
+            // and there is nothing genuine to show instead.
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // Fall back to the meta-declared default purely for display - the property itself stays
             // unset (componentProperty.getValue() still returns null) until the user actually interacts
             // with it or clicks "Set Defaults". Without this, a never-set boolean (e.g. a brand new
             // Flow's isRecording) left both checkboxes in their fresh, unchecked Swing-default state
-            // instead of showing the declared default (false) as selected.
+            // instead of showing the declared default (false) as selected. showingDefaultOnly tracks that
+            // so this preview is never mistaken for a genuine, committed value.
             Object displayValue = value != null ? value : componentProperty.getDefaultValue();
+            showingDefaultOnly = (value == null && displayValue != null);
             if (displayValue != null) {
                 // Defensive, just in case not set correctly
                 if (displayValue instanceof String) {
@@ -371,7 +445,10 @@ public class ComponentPropertyEditRow {
                 } else {
                     this.propertyValueField.setText(value.toString());
                 }
+                showingDefaultOnly = false;
             }
+            // else: leave the field as-is - it may currently be previewing a default via setDefaultValue(),
+            // and there is nothing genuine to show instead.
         }
     }
 
@@ -380,6 +457,11 @@ public class ComponentPropertyEditRow {
      * @return the value of the property updated by the user.
      */
     public Object getValue() {
+        // The field may just be previewing the meta-declared default (a boolean's always-shown default, or
+        // "Set Defaults") rather than holding a value the user has genuinely chosen - report unset until it is.
+        if (showingDefaultOnly) {
+            return null;
+        }
         Object returnValue = null;
         if (isChoiceProperty()) {
             Object selected = propertyChoiceValueField.getSelectedItem();

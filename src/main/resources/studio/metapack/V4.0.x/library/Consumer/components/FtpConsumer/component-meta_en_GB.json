@@ -274,6 +274,7 @@
       "propertyDisplayOrder": 330,
       "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
+      "defaultValue": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "isRecursive": {
@@ -345,6 +346,7 @@
       "propertyDisplayOrder": 10,
       "helpText": "Default(False) Flag indicating whether to move the processed file after successful consumption to different location defined by moveOnSuccessNewPath configuration.",
       "setterProperty": true,
+      "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
     },
     "moveOnSuccessNewPath": {
@@ -397,6 +399,7 @@
       "propertyDisplayOrder": 30,
       "helpText": "Default(False) Flag indicating whether to rename the processed file after successful consumption.",
       "setterProperty": true,
+      "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
     },
     "renameOnSuccessExtension": {
