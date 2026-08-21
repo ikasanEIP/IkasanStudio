@@ -406,6 +406,73 @@ public class PIPSIIkasanModel {
     }
 
     /**
+     * "Jump to Properties" targets: application.properties has no per-component markers, but the key text
+     * itself is deterministic (built the same way the FTL builds it), so a component's target can be found by
+     * the same text-offset-search technique {@link #setFlowComponentNavigationTargets} uses against Flow.java.
+     * Covers two kinds of line the generator writes into application.properties:
+     * - the generic per-property lines (any property with a propertyConfigFileLabel and a value), and
+     * - the flow-level "ikasan.flow.configuration[...]" block (isRecording / recordedEventTimeToLive /
+     *   invokeContextListeners), keyed by the flow's own (already-unique) identity.
+     * Not covered: flowStartupType's indexed "flowStartupTypes[N]=..." line and the indexed
+     * "wiretap.triggers[N]=..." lines - both need an FTL-side counter replicated to build a unique search key,
+     * and wiretaps in particular have no single canvas element that naturally owns "jump to" for them.
+     * @param module owning the flows, used the same way the FTL uses it to build each property's key
+     * @param propertiesPsiFile the already-written, already-formatted application.properties, or null if it
+     *                          hasn't been generated yet (nothing to search, silently does nothing)
+     */
+    private void setPropertiesFileNavigationTargets(Module module, PsiFile propertiesPsiFile) {
+        if (propertiesPsiFile == null || module.getFlows() == null) {
+            return;
+        }
+        String propertiesFileText = propertiesPsiFile.getText();
+        int searchFromOffset = 0;
+        for (Flow flow : module.getFlows()) {
+            IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+            if (flowViewHandler != null) {
+                String flowConfigPrefix = "ikasan.flow.configuration[" + StudioBuildUtils.escapeSpringPropertiesMapKey(flow.getIdentity()) + "].";
+                int flowOffset = propertiesFileText.indexOf(flowConfigPrefix);
+                flowViewHandler.setPropertiesPsiFile(flowOffset >= 0 ? propertiesPsiFile : null);
+                if (flowOffset >= 0) {
+                    flowViewHandler.setOffsetInPropertiesFileToNavigateTo(flowOffset);
+                }
+            }
+
+            for (FlowElement flowElement : flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()) {
+                IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
+                if (flowComponentViewHandler == null) {
+                    continue;
+                }
+                String key = firstApplicationPropertiesKeyFor(module, flow, flowElement);
+                int offset = key != null ? propertiesFileText.indexOf(key + "=", searchFromOffset) : -1;
+                flowComponentViewHandler.setPropertiesPsiFile(offset >= 0 ? propertiesPsiFile : null);
+                if (offset >= 0) {
+                    flowComponentViewHandler.setOffsetInPropertiesFileToNavigateTo(offset);
+                    searchFromOffset = offset + key.length();
+                }
+            }
+        }
+    }
+
+    /**
+     * Mirrors the filter and key-construction the compress block in propertiesTemplate_en.ftl uses, so this
+     * finds the exact same "first" property (getStandardComponentProperties() is a TreeMap, so both iterate the
+     * same alphabetical order) that the FTL emits first for this component.
+     * @return the application.properties key for this component's first externalized property, or null if it
+     * has none
+     */
+    private String firstApplicationPropertiesKeyFor(Module module, Flow flow, FlowElement flowElement) {
+        for (Map.Entry<String, ComponentProperty> entry : flowElement.getStandardComponentProperties().entrySet()) {
+            ComponentProperty property = entry.getValue();
+            ComponentPropertyMeta meta = property.getMeta();
+            if (meta != null && meta.getPropertyConfigFileLabel() != null && !meta.getPropertyConfigFileLabel().isEmpty()
+                    && property.getValue() != null && !meta.isUserSuppliedClass()) {
+                return StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, meta.getPropertyConfigFileLabel());
+            }
+        }
+        return null;
+    }
+
+    /**
      * Components such as Debug or CustomConverter generate their own user-editable class under the project's
      * {@code user/src/main/java} tree (see {@link #generateAndSaveUserImplementClassStubsForFlow}). "Jump to code"
      * for these should navigate to that class rather than to the flow file. The class name is a persisted property
@@ -463,6 +530,7 @@ public class PIPSIIkasanModel {
             LOG.warn("STUDIO: initialisePsiFileHandles could not determine project base directory");
             return;
         }
+        setPropertiesFileNavigationTargets(module, resolveApplicationPropertiesPsiFile(projectBaseDir));
         for (Flow ikasanFlow : module.getFlows()) {
             String flowPackageName = Generator.STUDIO_FLOW_PACKAGE + "." + ikasanFlow.getJavaPackageName();
             // GENERATED_CONTENT_ROOT is "/generated" — strip the leading slash for findFileByRelativePath
@@ -518,6 +586,29 @@ public class PIPSIIkasanModel {
         if (templateString != null) {
 //            StudioPsiUtils.createFile(project, StudioPsiUtils.GENERATED_CONTENT_ROOT, StudioPsiUtils.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
             StudioPsiUtils.createPropertiesFile(project, templateString);
+            setPropertiesFileNavigationTargets(module, resolveApplicationPropertiesPsiFile(StudioPsiUtils.getProjectBaseDir(project)));
         }
+    }
+
+    /**
+     * Resolves the already-written, already-formatted application.properties as a PsiFile, the same way
+     * {@link #initialisePsiFileHandles()} resolves already-generated .java files - by relative path lookup
+     * against the project base directory, rather than depending on any deferred/async PSI-setting side effect
+     * of the write itself.
+     * @return the PsiFile, or null if it hasn't been generated (yet) or the project base directory is unknown
+     */
+    private PsiFile resolveApplicationPropertiesPsiFile(VirtualFile projectBaseDir) {
+        if (projectBaseDir == null) {
+            return null;
+        }
+        // GENERATED_CONTENT_ROOT is "/generated" — strip the leading slash for findFileByRelativePath
+        String relPath = StudioPsiUtils.GENERATED_CONTENT_ROOT.substring(1) + "/" +
+                StudioPsiUtils.SRC_MAIN_RESOURCES + "/" +
+                MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+        VirtualFile vFile = projectBaseDir.findFileByRelativePath(relPath);
+        if (vFile == null || !vFile.isValid()) {
+            return null;
+        }
+        return ReadAction.compute(() -> PsiManager.getInstance(project).findFile(vFile));
     }
 }

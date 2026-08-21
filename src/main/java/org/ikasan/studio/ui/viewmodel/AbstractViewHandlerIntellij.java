@@ -29,6 +29,10 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     PsiClass classToNavigateTo;
     PsiFile psiFile;
     int offsetInclassToNavigateTo;
+    // "Jump to Properties" target - a separate file/offset pair from the "Jump to Code" ones above, since a
+    // component's properties (when externalized) live in application.properties, not the generated Flow.java.
+    PsiFile propertiesPsiFile;
+    int offsetInPropertiesFileToNavigateTo;
     private int topY;
     private int leftX;
     private int width;
@@ -156,6 +160,15 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
 
     public void setAlreadySelected(boolean alreadySelected) {
         isAlreadySelected = alreadySelected;
+    }
+
+    /**
+     * @return true if a "Jump to Properties" target was found for this component - not every component has one,
+     * since only properties with a propertyConfigFileLabel (and a value) end up externalized in
+     * application.properties. Used to decide whether the menu item should even be shown.
+     */
+    public boolean hasPropertiesNavigationTarget() {
+        return propertiesPsiFile != null;
     }
 
     public void setPsiFile(PsiFile psiFile) {

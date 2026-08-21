@@ -10,6 +10,8 @@ import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
@@ -31,6 +33,7 @@ public class DesignCanvasContextMenu {
             menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, false));
+            addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
             menu.addSeparator();
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
@@ -56,6 +59,7 @@ public class DesignCanvasContextMenu {
             menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, true));
+            addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
             menu.addSeparator();
         }
         menu.add(createSaveAsMenuItem(project));
@@ -156,5 +160,19 @@ public class DesignCanvasContextMenu {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.JumpToCode"));
         item.addActionListener(new NavigateToCodeAction(project, ikasanBasicElement, jumpToLine));
         return item;
+    }
+
+    /**
+     * Unlike "Jump to code", not every component has properties externalized into application.properties (only
+     * ones with a propertyConfigFileLabel and a value ever appear there), so this item is only added when a
+     * target was actually found for this component - see {@link AbstractViewHandlerIntellij#hasPropertiesNavigationTarget()}.
+     */
+    private static void addNavigateToPropertiesMenuItemIfAvailable(JPopupMenu menu, Project project, BasicElement ikasanBasicElement) {
+        AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement);
+        if (viewHandler != null && viewHandler.hasPropertiesNavigationTarget()) {
+            JMenuItem item = new JMenuItem(StudioBundle.message("menu.JumpToProperties"));
+            item.addActionListener(new NavigateToPropertiesAction(project, ikasanBasicElement));
+            menu.add(item);
+        }
     }
 }
