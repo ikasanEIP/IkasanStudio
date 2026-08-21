@@ -46,6 +46,8 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -644,6 +646,28 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                 packageName.replace(".", "/") + "/" + className + ".java";
         VirtualFile virtualFile = getVirtualFile(project, relativeFilePath);
         return (virtualFile != null && virtualFile.isValid()) ? virtualFile : null;
+    }
+
+    private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+
+    /**
+     * Copy an existing file to a timestamped backup alongside it (e.g. Foo.java -&gt; Foo.java.backup20260821_153012)
+     * before it is about to be regenerated/overwritten, so the user's prior hand-written content isn't lost.
+     * @param project is the Intellij project instance
+     * @param fileToBackup the file to copy, ignored if null or already invalid - nothing to back up is not an error
+     */
+    public static void backupFile(Project project, VirtualFile fileToBackup) {
+        if (fileToBackup == null || !fileToBackup.isValid()) {
+            return;
+        }
+        String backupName = fileToBackup.getName() + ".backup" + LocalDateTime.now().format(BACKUP_TIMESTAMP_FORMAT);
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            try {
+                fileToBackup.copy(StudioPsiUtils.class, fileToBackup.getParent(), backupName);
+            } catch (IOException ee) {
+                LOG.warn("STUDIO: WARN: Unable to backup file " + fileToBackup.getPath() + " exception was " + ee.getMessage());
+            }
+        });
     }
 
     /**

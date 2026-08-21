@@ -4,10 +4,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -186,19 +188,55 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
+     * A hand-written class the pending change will regenerate: {@code description} for the confirmation dialog,
+     * {@code file} (may be null if nothing has been generated yet - nothing to back up) for the optional backup.
+     */
+    private record AffectedUserImplementedClass(String description, VirtualFile file) {}
+
+    /**
      * Ask the user to confirm regeneration of the user implemented class, naming exactly which changed
-     * properties are driving that regeneration, and (where they can be determined) exactly which hand-written
-     * class(es) will be regenerated as a result.
+     * properties are driving that regeneration and, where they can be determined, exactly which hand-written
+     * class(es) will be regenerated as a result - with the option to back each of those up first.
      * @return true if the user confirmed, false if they declined.
      */
     private boolean confirmRegenerateUserImplementedClass(List<String> changedPropertyLabels) {
-        List<String> affectedClassDescriptions = getAffectedUserImplementedClassDescriptions();
-        String message = affectedClassDescriptions.isEmpty()
-                ? StudioBundle.message("message.ConfirmRegenerateUserImplementedClass", String.join(", ", changedPropertyLabels))
-                : StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed",
-                        String.join(", ", changedPropertyLabels), String.join("\n", affectedClassDescriptions));
-        int result = Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"), Messages.getWarningIcon());
-        return result == Messages.YES;
+        List<AffectedUserImplementedClass> affected = getAffectedUserImplementedClasses();
+        if (affected.isEmpty()) {
+            String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClass", String.join(", ", changedPropertyLabels));
+            return Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"), Messages.getWarningIcon()) == Messages.YES;
+        }
+
+        List<String> descriptions = new ArrayList<>();
+        for (AffectedUserImplementedClass affectedClass : affected) {
+            descriptions.add(affectedClass.description());
+        }
+        String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed",
+                String.join(", ", changedPropertyLabels), String.join("\n", descriptions));
+
+        // showCheckboxMessageDialog's exitFunc is only invoked once, purely to translate the pressed button's
+        // index into a return value - it's just a convenient hook to also capture the checkbox's final state
+        // into an array the enclosing method can still read once the (modal) call below returns.
+        boolean[] backupTicked = {true};
+        int result = Messages.showCheckboxMessageDialog(
+                message,
+                StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"),
+                new String[]{Messages.getYesButton(), Messages.getNoButton()},
+                StudioBundle.message("checkbox.BackupUserImplementedClassBeforeOverwrite"),
+                true,
+                -1,
+                -1,
+                Messages.getWarningIcon(),
+                (exitCode, checkbox) -> {
+                    backupTicked[0] = checkbox.isSelected();
+                    return exitCode;
+                });
+        boolean confirmed = result == Messages.YES;
+        if (confirmed && backupTicked[0]) {
+            for (AffectedUserImplementedClass affectedClass : affected) {
+                StudioPsiUtils.backupFile(project, affectedClass.file());
+            }
+        }
+        return confirmed;
     }
 
     /**
@@ -212,43 +250,51 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * Returns an empty list (rather than guessing) for any other case, or where a class name can't yet be
      * determined - the caller falls back to the generic, unnamed confirmation message.
      */
-    private List<String> getAffectedUserImplementedClassDescriptions() {
+    private List<AffectedUserImplementedClass> getAffectedUserImplementedClasses() {
         if (getSelectedComponent() instanceof Module module) {
-            List<String> descriptions = new ArrayList<>();
+            List<AffectedUserImplementedClass> affected = new ArrayList<>();
             if (module.getFlows() != null) {
                 for (Flow flow : module.getFlows()) {
-                    descriptions.addAll(userImplementedClassDescriptionsForFlow(flow));
+                    affected.addAll(affectedUserImplementedClassesForFlow(module, flow));
                 }
             }
-            return descriptions;
+            return affected;
         } else if (getSelectedComponent() instanceof FlowUserImplementedElement flowUserImplementedElement
                 && flowUserImplementedElement.getContainingFlow() != null) {
-            String description = userImplementedClassDescription(flowUserImplementedElement.getContainingFlow(), flowUserImplementedElement);
-            return description != null ? List.of(description) : List.of();
+            Module module = project.getService(UiContext.class).getIkasanModule();
+            AffectedUserImplementedClass affectedClass = describeAffectedUserImplementedClass(module, flowUserImplementedElement.getContainingFlow(), flowUserImplementedElement);
+            return affectedClass != null ? List.of(affectedClass) : List.of();
         }
         return List.of();
     }
 
-    private List<String> userImplementedClassDescriptionsForFlow(Flow flow) {
-        List<String> descriptions = new ArrayList<>();
+    private List<AffectedUserImplementedClass> affectedUserImplementedClassesForFlow(Module module, Flow flow) {
+        List<AffectedUserImplementedClass> affected = new ArrayList<>();
         if (flow.getFlowRoute() == null) {
-            return descriptions;
+            return affected;
         }
         for (FlowElement component : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
             if (component instanceof FlowUserImplementedElement) {
-                String description = userImplementedClassDescription(flow, component);
-                if (description != null) {
-                    descriptions.add(description);
+                AffectedUserImplementedClass affectedClass = describeAffectedUserImplementedClass(module, flow, component);
+                if (affectedClass != null) {
+                    affected.add(affectedClass);
                 }
             }
         }
-        return descriptions;
+        return affected;
     }
 
-    private String userImplementedClassDescription(Flow flow, FlowElement component) {
+    private AffectedUserImplementedClass describeAffectedUserImplementedClass(Module module, Flow flow, FlowElement component) {
         ComponentProperty classNameProperty = component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
         String className = classNameProperty != null ? (String) classNameProperty.getValue() : null;
-        return className == null ? null : (flow.getIdentity() + ": " + className + ".java");
+        if (className == null) {
+            return null;
+        }
+        String description = flow.getIdentity() + ": " + className + ".java";
+        VirtualFile file = module != null
+                ? StudioPsiUtils.getUserImplementedClassFile(project, GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
+                : null;
+        return new AffectedUserImplementedClass(description, file);
     }
 
     /**
