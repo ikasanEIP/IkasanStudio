@@ -329,35 +329,13 @@ public class ComponentPropertyEditRow {
     }
 
     /**
-     * "Set Defaults" - preview the meta-declared default in the field without committing it to the model.
-     * Nothing is persisted (and so nothing is written into generated code) unless the user goes on to
-     * genuinely interact with the field - typing, ticking a checkbox, or picking a choice.
+     * "Set Defaults" - every field now previews its declared default unconditionally (see
+     * resetDataEntryComponentsWithNewValues()), so this just re-affirms that preview. Nothing is persisted
+     * (and so nothing is written into generated code) unless the user goes on to genuinely interact with the
+     * field - typing, ticking a checkbox, or picking a choice.
      */
     public void setDefaultValue() {
-        if (componentProperty == null || componentProperty.getValue() != null) {
-            return;
-        }
-        Object defaultValue = componentProperty.getDefaultValue();
-        // A "__..." substitution placeholder (e.g. configurationId's "__module-__flow-__component") is meant to
-        // be resolved via the separate "Default"/derive button (or by the generator's own substitution), not
-        // shown to the user as a literal string.
-        if (defaultValue == null || ComponentPropertyMeta.isSubstitutionValue(defaultValue)) {
-            return;
-        }
-        suppressChangeDetection = true;
-        try {
-            if (meta.getChoices() != null) {
-                propertyChoiceValueField.setSelectedItem(defaultValue);
-            } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
-                propertyValueField.setValue(defaultValue);
-            } else if (meta.getPropertyDataType() != java.lang.Boolean.class) {
-                // Boolean already previews its default unconditionally via resetDataEntryComponentsWithNewValues().
-                propertyValueField.setText(defaultValue.toString());
-            }
-        } finally {
-            suppressChangeDetection = false;
-        }
-        showingDefaultOnly = true;
+        resetDataEntryComponentsWithNewValues();
     }
 
     public void clearValue() {
@@ -380,10 +358,17 @@ public class ComponentPropertyEditRow {
         if (meta.getChoices() != null) {
             if (componentProperty.getValue() != null) {
                 propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
+                showingDefaultOnly = false;
             } else {
-                propertyChoiceValueField.setSelectedItem(meta.isOptional() ? "" : null);
+                Object defaultValue = previewableDefault();
+                showingDefaultOnly = defaultValue != null;
+                suppressChangeDetection = true;
+                try {
+                    propertyChoiceValueField.setSelectedItem(defaultValue != null ? defaultValue : (meta.isOptional() ? "" : null));
+                } finally {
+                    suppressChangeDetection = false;
+                }
             }
-            showingDefaultOnly = false;
         } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
             // NUMERIC INPUT
             if (value != null) {
@@ -397,17 +382,32 @@ public class ComponentPropertyEditRow {
                 }
                 this.propertyValueField.setValue(value);
                 showingDefaultOnly = false;
+            } else {
+                // Preview the declared default purely for display, same idea as the boolean fallback below -
+                // useful for reviewing e.g. timeout defaults without committing them. showingDefaultOnly (and
+                // suppressChangeDetection while writing the widget) keeps this from being mistaken for a
+                // genuinely-entered value.
+                Object defaultValue = previewableDefault();
+                showingDefaultOnly = defaultValue != null;
+                if (defaultValue != null) {
+                    suppressChangeDetection = true;
+                    try {
+                        this.propertyValueField.setValue(defaultValue);
+                    } finally {
+                        suppressChangeDetection = false;
+                    }
+                } else {
+                    this.propertyValueField.setValue(null);
+                }
             }
-            // else: leave the field as-is - it may currently be previewing a default via setDefaultValue(),
-            // and there is nothing genuine to show instead.
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // Fall back to the meta-declared default purely for display - the property itself stays
             // unset (componentProperty.getValue() still returns null) until the user actually interacts
-            // with it or clicks "Set Defaults". Without this, a never-set boolean (e.g. a brand new
-            // Flow's isRecording) left both checkboxes in their fresh, unchecked Swing-default state
-            // instead of showing the declared default (false) as selected. showingDefaultOnly tracks that
-            // so this preview is never mistaken for a genuine, committed value.
-            Object displayValue = value != null ? value : componentProperty.getDefaultValue();
+            // with it. Without this, a never-set boolean (e.g. a brand new Flow's isRecording) left both
+            // checkboxes in their fresh, unchecked Swing-default state instead of showing the declared
+            // default (false) as selected. showingDefaultOnly tracks that so this preview is never mistaken
+            // for a genuinely-chosen value.
+            Object displayValue = value != null ? value : previewableDefault();
             showingDefaultOnly = (value == null && displayValue != null);
             if (displayValue != null) {
                 // Defensive, just in case not set correctly
@@ -446,10 +446,29 @@ public class ComponentPropertyEditRow {
                     this.propertyValueField.setText(value.toString());
                 }
                 showingDefaultOnly = false;
+            } else {
+                // Preview the declared default purely for display - see the numeric branch above for why.
+                Object defaultValue = previewableDefault();
+                showingDefaultOnly = defaultValue != null;
+                suppressChangeDetection = true;
+                try {
+                    this.propertyValueField.setText(defaultValue != null ? defaultValue.toString() : "");
+                } finally {
+                    suppressChangeDetection = false;
+                }
             }
-            // else: leave the field as-is - it may currently be previewing a default via setDefaultValue(),
-            // and there is nothing genuine to show instead.
         }
+    }
+
+    /**
+     * @return the meta-declared default for this property, or null if there isn't one usable for preview - either
+     * because none is declared, or because it's a "__..." substitution placeholder (e.g. configurationId's
+     * "__module-__flow-__component") meant to be resolved via the separate "Default"/derive button or the
+     * generator's own substitution, not shown to the user as a literal string.
+     */
+    private Object previewableDefault() {
+        Object defaultValue = componentProperty.getDefaultValue();
+        return (defaultValue == null || ComponentPropertyMeta.isSubstitutionValue(defaultValue)) ? null : defaultValue;
     }
 
     /**
