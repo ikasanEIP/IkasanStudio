@@ -47,6 +47,11 @@ public class ComponentPropertyEditRow {
     // clear showingDefaultOnly (Swing fires DocumentListener/ItemListener on programmatic changes too, unlike
     // JCheckBox's ActionListener which only fires on genuine user clicks).
     private boolean suppressChangeDetection = false;
+    // True while this field's value was derived automatically from another field (see the "__fieldName:" Default
+    // button below) rather than typed directly by the user - while true, the derived field keeps tracking every
+    // change to its source field live. A genuine keystroke in this field clears it permanently, the same way
+    // showingDefaultOnly is cleared, so a deliberate override is never silently clobbered by further auto-sync.
+    private boolean autoDerivedValue = false;
     private JButton defaultValueButton;
     private JCheckBox rowOverwriteCheckBox;
     private final ComponentPropertyMeta meta;
@@ -187,6 +192,7 @@ public class ComponentPropertyEditRow {
                     public void insertUpdate(DocumentEvent e) {
                         if (!suppressChangeDetection) {
                             showingDefaultOnly = false;
+                            autoDerivedValue = false;
                         }
                         listenerFoAnyEditChanges.actionEvent();
                     }
@@ -194,6 +200,7 @@ public class ComponentPropertyEditRow {
                     public void removeUpdate(DocumentEvent e) {
                         if (!suppressChangeDetection) {
                             showingDefaultOnly = false;
+                            autoDerivedValue = false;
                         }
                         listenerFoAnyEditChanges.actionEvent();
                     }
@@ -201,6 +208,7 @@ public class ComponentPropertyEditRow {
                     public void changedUpdate(DocumentEvent e) {
                         if (!suppressChangeDetection) {
                             showingDefaultOnly = false;
+                            autoDerivedValue = false;
                         }
                         listenerFoAnyEditChanges.actionEvent();
                     }
@@ -223,27 +231,44 @@ public class ComponentPropertyEditRow {
                         defaultValueButton.addActionListener(e -> {
                             if (defaultButtonLabel.equals(defaultValueButton.getText())) {
                                 if (propertyValueField.getValue() == null || propertyValueField.getText().isBlank()) {
-                                    String derivedValue = targetComponentPropertyEditRow.getValue() + literal;
-                                    // This field drives a generated Java class (e.g. userImplementedClassName), so the
-                                    // derived value must itself be a legal Java class name, not a verbatim copy.
-                                    // Note: use the meta-driven flag here, not the affectsUserImplementedClass instance
-                                    // field - that field is deliberately left false during componentInitialisation
-                                    // (first-time component creation popup), but class-name sanitisation must still
-                                    // apply then, since that's exactly when this Default button is most commonly used.
-                                    if (componentProperty.affectsUserImplementedClass()) {
-                                        derivedValue = StudioBuildUtils.toJavaClassName(derivedValue);
+                                    applyDerivedValue(targetComponentPropertyEditRow, literal);
+                                    if (listenerFoAnyEditChanges != null) {
+                                        listenerFoAnyEditChanges.actionEvent();
                                     }
-                                    propertyValueField.setValue(derivedValue);
                                 }
+                                // A deliberate click re-enables live tracking even if a prior direct edit had
+                                // turned it off - the user is explicitly asking to follow the source field again.
+                                autoDerivedValue = true;
                                 defaultValueButton.setText(clearButtonLabel);
                                 defaultValueButton.setToolTipText(StudioBundle.message("message.ClearTheDefaultValue"));
                             } else {
                                 propertyValueField.setValue(null);
                                 propertyValueField.setText("");
+                                autoDerivedValue = false;
                                 defaultValueButton.setText(defaultButtonLabel);
                                 defaultValueButton.setToolTipText(setDefaultTooltip);
                             }
                         });
+
+                        // Keep this field silently tracking its source field's live (not yet saved) edits, so the
+                        // user never has to click Default at all - but only when this field is mandatory. A
+                        // mandatory field always ends up needing some value, so auto-deriving one is pure
+                        // convenience; a non-mandatory field left blank may be a deliberate "no user code needed"
+                        // choice, and auto-populating it would silently turn that into a real, changed value the
+                        // user never asked for - so those keep the manual Default button as their only path.
+                        if (meta.isMandatory() && initialValue == null) {
+                            autoDerivedValue = true;
+                            targetComponentPropertyEditRow.addValueChangeListener(() -> {
+                                if (autoDerivedValue) {
+                                    applyDerivedValue(targetComponentPropertyEditRow, literal);
+                                    defaultValueButton.setText(clearButtonLabel);
+                                    defaultValueButton.setToolTipText(StudioBundle.message("message.ClearTheDefaultValue"));
+                                    if (listenerFoAnyEditChanges != null) {
+                                        listenerFoAnyEditChanges.actionEvent();
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -274,6 +299,47 @@ public class ComponentPropertyEditRow {
         if (meta.isProtectFromOverwrite() && !componentInitialisation && componentProperty.getValue() != null) {
             rowOverwriteCheckBox = new JCheckBox();
             rowOverwriteCheckBox.setToolTipText(StudioBundle.message("tooltip.CheckTheBoxIfYouWishToRewriteOverwriteTheExistingCode"));
+        }
+    }
+
+    /**
+     * Resolve and write this field's value from a source field's current (possibly not yet saved) value plus any
+     * literal suffix from a "__fieldName:X:literal" default, sanitised into a legal Java class name when this
+     * property affects a generated user-implemented class - the same derivation the Default button always did,
+     * now shared with the live auto-sync listener below. No-ops while the source field has nothing typed into it
+     * yet. The write is guarded so it is never itself mistaken for a direct user edit (which would otherwise
+     * clear showingDefaultOnly/autoDerivedValue); callers that need listeners re-notified after calling this
+     * (the button click has no other row's listener to piggyback on) must do so themselves.
+     */
+    private void applyDerivedValue(ComponentPropertyEditRow sourceRow, String literal) {
+        Object sourceValue = sourceRow.getValue();
+        if (sourceValue == null || sourceValue.toString().isBlank()) {
+            return;
+        }
+        String derivedValue = sourceValue + literal;
+        if (componentProperty.affectsUserImplementedClass()) {
+            derivedValue = StudioBuildUtils.toJavaClassName(derivedValue);
+        }
+        suppressChangeDetection = true;
+        try {
+            propertyValueField.setValue(derivedValue);
+        } finally {
+            suppressChangeDetection = false;
+        }
+    }
+
+    /**
+     * Notify the given listener whenever this row's live (not yet saved) value may have changed - lets a
+     * dependent row (see the "__fieldName:" Default button above) track this field's edits as they happen. Only
+     * supported for plain string fields, the only kind ever used as a "__fieldName:" target today.
+     */
+    public void addValueChangeListener(Runnable onChange) {
+        if (propertyValueField != null) {
+            propertyValueField.getDocument().addDocumentListener(new DocumentListener() {
+                @Override public void insertUpdate(DocumentEvent e) { onChange.run(); }
+                @Override public void removeUpdate(DocumentEvent e) { onChange.run(); }
+                @Override public void changedUpdate(DocumentEvent e) { onChange.run(); }
+            });
         }
     }
 
