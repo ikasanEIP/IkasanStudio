@@ -188,18 +188,39 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
-     * A hand-written class the pending change will regenerate: {@code description} for the confirmation dialog,
-     * {@code file} (may be null if nothing has been generated yet - nothing to back up) for the optional backup.
+     * A hand-written class the pending change relates to: {@code flow}/{@code className} to compute old/new
+     * package (module-level relocation case), {@code description} for the confirmation dialog, {@code file}
+     * (may be null if nothing has been generated yet) for the optional backup (component self-edit case).
      */
-    private record AffectedUserImplementedClass(String description, VirtualFile file) {}
+    private record AffectedUserImplementedClass(Flow flow, String className, String description, VirtualFile file) {}
 
     /**
-     * Ask the user to confirm regeneration of the user implemented class, naming exactly which changed
-     * properties are driving that regeneration and, where they can be determined, exactly which hand-written
-     * class(es) will be regenerated as a result - with the option to back each of those up first.
+     * Ask the user to confirm the pending change, wording it according to what will actually happen to any
+     * hand-written class(es) it names:
+     * - Editing a {@link FlowUserImplementedElement} directly (Debug, CustomConverter, GenericConsumer, etc.)
+     *   really does regenerate that component's own class - {@link #confirmComponentSelfEdit} offers to back it
+     *   up first.
+     * - Editing the {@link Module} itself does not: {@code doOKAction} only ever flips a component's own
+     *   {@code overwriteEnabled}/{@code protectFromOverwrite} gates for the component currently being edited, so
+     *   a Module-level property change (name/applicationPackageName/version) never actually touches any other
+     *   flow's hand-written class - those files are simply left where they are. If applicationPackageName is
+     *   among the changed properties, {@link #confirmModuleLevelEdit} instead names the exact old package to new
+     *   package moves the user needs to make themselves (e.g. via IntelliJ's own "Move Package" refactor, which
+     *   correctly updates internal references in a way Studio copying a file never could).
      * @return true if the user confirmed, false if they declined.
      */
     private boolean confirmRegenerateUserImplementedClass(List<String> changedPropertyLabels) {
+        if (getSelectedComponent() instanceof Module module) {
+            return confirmModuleLevelEdit(module, changedPropertyLabels);
+        }
+        return confirmComponentSelfEdit(changedPropertyLabels);
+    }
+
+    /**
+     * Editing a {@link FlowUserImplementedElement} directly: its own class really will be regenerated, so name
+     * it and offer to back it up first (ticked by default).
+     */
+    private boolean confirmComponentSelfEdit(List<String> changedPropertyLabels) {
         List<AffectedUserImplementedClass> affected = getAffectedUserImplementedClasses();
         if (affected.isEmpty()) {
             String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClass", String.join(", ", changedPropertyLabels));
@@ -240,15 +261,49 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
-     * Name the hand-written class(es) the pending change will regenerate.
-     * - Editing a {@link FlowUserImplementedElement} directly (Debug, CustomConverter, GenericConsumer, etc.)
-     *   only ever affects that same component's own generated class.
-     * - Editing the {@link Module} itself is different: name/applicationPackageName/version determine the
-     *   package every {@link FlowUserImplementedElement} in every flow is generated into
-     *   ({@link org.ikasan.studio.core.generator.GeneratorUtils#getUserImplementedClassesPackageName}), so a
-     *   change there potentially affects every such class across the whole module.
-     * Returns an empty list (rather than guessing) for any other case, or where a class name can't yet be
-     * determined - the caller falls back to the generic, unnamed confirmation message.
+     * Editing the Module: no other flow's hand-written class is actually touched by this save. If
+     * applicationPackageName changed, name the exact old-package-to-new-package move for every affected class so
+     * the user can do it themselves; otherwise just note that hand-written classes are not auto-regenerated here.
+     */
+    private boolean confirmModuleLevelEdit(Module module, List<String> changedPropertyLabels) {
+        List<AffectedUserImplementedClass> affected = getAffectedUserImplementedClasses();
+        String pendingApplicationPackageName = getPendingApplicationPackageName();
+
+        List<String> relocations = new ArrayList<>();
+        if (pendingApplicationPackageName != null) {
+            for (AffectedUserImplementedClass affectedClass : affected) {
+                String oldPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, affectedClass.flow());
+                String newPackage = pendingApplicationPackageName + "." + affectedClass.flow().getJavaPackageName();
+                if (!oldPackage.equals(newPackage)) {
+                    relocations.add(oldPackage + "." + affectedClass.className() + "  ->  " + newPackage + "." + affectedClass.className());
+                }
+            }
+        }
+
+        String message = relocations.isEmpty()
+                ? StudioBundle.message("message.ConfirmModulePropertiesAffectUserImplementedClass", String.join(", ", changedPropertyLabels))
+                : StudioBundle.message("message.ConfirmModulePropertiesRequireManualRelocation",
+                        String.join(", ", changedPropertyLabels), String.join("\n", relocations));
+        return Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ModulePropertiesAffectUserImplementedClass"), Messages.getWarningIcon()) == Messages.YES;
+    }
+
+    /**
+     * @return the not-yet-saved applicationPackageName the user has entered, or null if that property isn't
+     * among the ones changed on this save (nothing to relocate).
+     */
+    private String getPendingApplicationPackageName() {
+        ComponentPropertyEditRow row = componentPropertyEditBoxMap.get(ComponentPropertyMeta.APPLICATION_PACKAGE_NAME);
+        if (row == null || !row.propertyValueHasChanged()) {
+            return null;
+        }
+        Object value = row.getValue();
+        return value instanceof String ? (String) value : null;
+    }
+
+    /**
+     * Name the hand-written class(es) associated with the pending change - see {@link #confirmRegenerateUserImplementedClass}
+     * for what each caller does with them. Returns an empty list (rather than guessing) where a class name can't
+     * yet be determined - the caller falls back to a generic confirmation message.
      */
     private List<AffectedUserImplementedClass> getAffectedUserImplementedClasses() {
         if (getSelectedComponent() instanceof Module module) {
@@ -294,7 +349,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         VirtualFile file = module != null
                 ? StudioPsiUtils.getUserImplementedClassFile(project, GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
                 : null;
-        return new AffectedUserImplementedClass(description, file);
+        return new AffectedUserImplementedClass(flow, className, description, file);
     }
 
     /**
