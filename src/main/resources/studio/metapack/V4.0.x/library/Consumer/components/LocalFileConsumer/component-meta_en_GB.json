@@ -5,7 +5,7 @@
   "endpointKey": "File Endpoint",
   "endpointTextKey": "filenames",
   "flowBuilderMethod": "consumer",
-  "helpText": "<strong>Local File Consumer</strong><p>Looks for a file on this host, in the directory where the module is executing, the frequency is configured in the cron expression.</p>You can set optional property 'logMatchedFilenames' so that you can see in the log, the full path of the file being searched for. You will need to move or remove the file(s) otherwise the same file will be repeatedly processed.</p>",
+  "helpText": "<strong>Local File Consumer</strong><p>Looks for a file on this host, in the directory where the module is executing, the frequency is configured in the cron expression.</p><p>You can set optional property 'logMatchedFilenames' so that you can see in the log, the full path of the file being searched for. You will need to move or remove the file(s) otherwise the same file will be repeatedly processed.</p>",
   "ikasanComponentFactoryMethod": "fileConsumer",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "usesBuilderInFactory": true,
@@ -19,6 +19,7 @@
     },
     "cronExpression": {
       "propertyName": "cronExpression",
+      "propertyDisplayOrder": -70,
       "dataValidationType": "cronExpression",
       "defaultValue": "* * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
@@ -28,6 +29,8 @@
     },
     "configuration": {
       "propertyName": "configuration",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 140,
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
       "setterProperty": true,
       "userSuppliedClass": true,
@@ -39,6 +42,8 @@
     },
     "configurationId": {
       "propertyName": "configurationId",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 150,
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
@@ -47,18 +52,26 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
-      "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 160,
+      "defaultValue": false,
+      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "directoryDepth": {
       "propertyName": "directoryDepth",
-      "helpText": "How deep down the directory tree to go to find matching filenames.",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 10,
+      "defaultValue": 1,
+      "helpText": "How deep down the directory tree to go to find matching filenames. Default is 1, i.e. only the top-level directory is searched, not its subdirectories.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "eager": {
       "propertyName": "eager",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 50,
       "displayLabel": "Transfer multiple files",
       "defaultValue": false,
       "helpText": "When true (default is false), attempt to process all available files. MaxEagerCallbacks can be used to limit the number of files before reverting to business schedule.",
@@ -67,12 +80,16 @@
     },
     "encoding": {
       "propertyName": "encoding",
+      "propertyGroup": "File Content",
+      "propertyDisplayOrder": 70,
       "defaultValue": "UTF-8",
       "helpText": "Encoding of the files ie. UTF-8.",
       "setterProperty": true
     },
     "eventFactory": {
       "propertyName": "eventFactory",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 170,
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
@@ -83,8 +100,9 @@
     },
     "filenames": {
       "propertyName": "filenames",
-      "defaultValue": "myFile,anotherFile",
-      "helpText": "The list of filenames to consume, the files are assumed to be in the same directory as the running ikasan application or one of its subdirectories.",
+      "propertyDisplayOrder": -10,
+      "defaultValue": "myFile\\.txt,anotherFile\\.txt",
+      "helpText": "A comma-separated list where each entry is compiled as a full Java regular expression (not a literal filename or a shell glob) and matched against candidate filenames - e.g. '.*\\.csv' matches any CSV file. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex). Files are assumed to be in the same directory as the running ikasan application, or one of its subdirectories (see directoryDepth), unless overridden via configuration.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.file.consumer.filenames",
       "setterProperty": true,
@@ -92,12 +110,17 @@
     },
     "ignoreFileRenameWhilstScanning": {
       "propertyName": "ignoreFileRenameWhilstScanning",
-      "helpText": "Ignore cases where the file has been renamed between scanning and retrieval.",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 20,
+      "defaultValue": true,
+      "helpText": "Default(True). Ignore cases where the file has been renamed between scanning and retrieval, rather than failing the scan.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
+      "propertyGroup": "Scheduling",
+      "propertyDisplayOrder": 110,
       "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "defaultValue": true,
@@ -105,24 +128,35 @@
     },
     "includeHeader": {
       "propertyName": "includeHeader",
-      "helpText": "Assume first line of the file is a header and include it as a header within the message payload.",
+      "propertyGroup": "File Content",
+      "propertyDisplayOrder": 80,
+      "defaultValue": false,
+      "helpText": "Default(False). Assume first line of the file is a header and include it as a header within the message payload.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "includeTrailer": {
       "propertyName": "includeTrailer",
-      "helpText": "Assume last line of the file is a trailer and include it as a trailer within the message payload.",
+      "propertyGroup": "File Content",
+      "propertyDisplayOrder": 90,
+      "defaultValue": false,
+      "helpText": "Default(False). Assume last line of the file is a trailer and include it as a trailer within the message payload.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "logMatchedFilenames": {
       "propertyName": "logMatchedFilenames",
-      "helpText": "Write any matching filenames found to the log files as additional information.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 130,
+      "defaultValue": false,
+      "helpText": "Default(False). Write any matching filenames found to the log files as additional information.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "managedEventIdentifierService": {
       "propertyName": "managedEventIdentifierService",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 180,
       "helpText": "Optional, and safe to leave unset for most flows. Ikasan gives every message a tracking ID as it processes it - used to correlate a message in the audit trail/dashboard, and to recognise the same message again if a flow error 'parks' it for later retry. By default this ID is just a raw hash of the file's content (functional, but not human-readable). Setting this property lets you supply your own class to derive a more meaningful ID instead - for file consumers, a common choice is org.ikasan.component.endpoint.filetransfer.ManagedEventFileTransferIdentifierService, which uses the filename, making it much easier to recognise in the dashboard.",
       "setterProperty": true,
       "userSuppliedClass": true,
@@ -133,12 +167,16 @@
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 60,
       "helpText": "The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "messageProvider": {
       "propertyName": "messageProvider",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 190,
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
@@ -149,6 +187,8 @@
     },
     "messageProviderPostProcessor": {
       "propertyName": "messageProviderPostProcessor",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 200,
       "helpText": "Provide the classname that overrides and implements the default MessageProviderPostProcessor interface. This class provide additional functionality to be applied to the payload as a post processor before returning for next component invocation. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProviderPostProcessorImpl.",
       "setterProperty": true,
       "userSuppliedClass": true,
@@ -159,18 +199,26 @@
     },
     "sortAscending": {
       "propertyName": "sortAscending",
-      "helpText": "Sort the list in ascending order (true) or descending order (false) when a sort method is used.",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 40,
+      "defaultValue": true,
+      "helpText": "Default(True). Sort the list in ascending order (true) or descending order (false) when a sort method is used.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "sortByModifiedDateTime": {
       "propertyName": "sortByModifiedDateTime",
-      "helpText": "Sort the received file list by last modified date time.",
+      "propertyGroup": "File selection",
+      "propertyDisplayOrder": 30,
+      "defaultValue": false,
+      "helpText": "Default(False). Sort the received file list by last modified date time, instead of filename.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "timezone": {
       "propertyName": "timezone",
+      "propertyGroup": "Scheduling",
+      "propertyDisplayOrder": 120,
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
       "setterProperty": true
     }

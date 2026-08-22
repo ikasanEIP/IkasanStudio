@@ -99,7 +99,8 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
-      "helpText": "Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "defaultValue": false,
+      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },

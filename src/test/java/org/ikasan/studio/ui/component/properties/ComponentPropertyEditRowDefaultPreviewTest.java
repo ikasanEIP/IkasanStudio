@@ -75,17 +75,17 @@ public class ComponentPropertyEditRowDefaultPreviewTest {
 
     @Test
     public void neverSetBooleanPropertyStaysUnsetDespiteShowingItsDefaultCheckbox() {
-        ComponentPropertyEditRow row = rowFor(newUnpopulatedFtpConsumer(), "criticalOnStartup");
+        ComponentPropertyEditRow row = rowFor(newUnpopulatedFtpConsumer(), "filterDuplicates");
         row.resetDataEntryComponentsWithNewValues();
-        assertNull(row.getValue(), "criticalOnStartup must stay unset - the checkbox is only previewing its default");
+        assertNull(row.getValue(), "filterDuplicates must stay unset - the checkbox is only previewing its default");
         assertFalse(row.propertyValueHasChanged());
     }
 
     @Test
     public void clickingTheCheckboxGenuinelyCommitsIt() {
-        ComponentPropertyEditRow row = rowFor(newUnpopulatedFtpConsumer(), "criticalOnStartup");
+        ComponentPropertyEditRow row = rowFor(newUnpopulatedFtpConsumer(), "filterDuplicates");
         row.resetDataEntryComponentsWithNewValues();
-        // criticalOnStartup defaults to true, so the "true" box already shows selected as a preview; click the
+        // filterDuplicates defaults to true, so the "true" box already shows selected as a preview; click the
         // "false" box instead to make a genuine, unambiguous choice that differs from the previewed default.
         row.getInputField().getFalseBox().doClick();
         assertEquals(Boolean.FALSE, row.getValue());
