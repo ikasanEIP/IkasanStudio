@@ -183,9 +183,9 @@ class IkasanComponentLibraryTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(41, IkasanComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
+            () -> assertEquals(42, IkasanComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
             () -> assertEquals(
-                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Custom Converter, Custom Message Filter, Custom Splitter, Custom Translator, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Broker, Generic Consumer, Generic Converter, Generic Filter, Generic Producer, Generic Splitter, Generic Translator, JMS Producer, Local File Consumer, Logging Producer, Module, Multi Recipient Router, Object Message To Object Converter, Object Message To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Producer, Scheduled Consumer, Single Recipient Router, Spring JMS Consumer]",
+                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Custom Converter, Custom Message Filter, Custom Splitter, Custom Translator, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Broker, Generic Consumer, Generic Converter, Generic Endpoint, Generic Filter, Generic Producer, Generic Splitter, Generic Translator, JMS Producer, Local File Consumer, Logging Producer, Module, Multi Recipient Router, Object Message To Object Converter, Object Message To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Producer, Scheduled Consumer, Single Recipient Router, Spring JMS Consumer]",
 //                new TreeSet<>(Arrays.asList("Custom Converter", ComponentMeta.EXCEPTION_RESOLVER_TYPE, "Event Generating Consumer", ComponentMeta.FLOW_TYPE, ComponentMeta.MODULE_TYPE, "Dev Null Producer")),
                 new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(BASE_META_PACK)).toString())
         );
@@ -221,6 +221,7 @@ class IkasanComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("DB Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("File Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("FTP Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("Generic Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("Router Endpoint"), 40, 27, 15, 60);
         verifyComponentUsesSvg(componentMetaList.get("Broker"));
         verifyComponentUsesSvg(componentMetaList.get("Generic Broker"));
