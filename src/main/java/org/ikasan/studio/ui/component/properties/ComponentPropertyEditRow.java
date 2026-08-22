@@ -593,6 +593,10 @@ public class ComponentPropertyEditRow {
         Object value = getValue();
         if (value == null) {
             fieldNotSet = true;
+        } else if (isList) {
+            List<?> listValue = (List<?>) value;
+            fieldNotSet = listValue.isEmpty() ||
+                    (listValue.size() == 1 && listValue.get(0) instanceof String && ((String)listValue.get(0)).isEmpty());
         } else if (meta.getPropertyDataType() == java.lang.String.class) {
             fieldNotSet = ((String)value).isEmpty();
         } else if (meta.getPropertyDataType() == java.lang.Long.class || meta.getPropertyDataType() == java.lang.Integer.class) {
