@@ -140,32 +140,38 @@
     "connectionFactoryJndiPropertySecurityCredentials": {
       "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
       "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryJndiPropertySecurityPrincipal": {
       "propertyName": "connectionFactoryJndiPropertySecurityPrincipal",
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryJndiPropertyUrlPkgPrefixes": {
       "propertyName": "connectionFactoryJndiPropertyUrlPkgPrefixes",
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "connectionPassword": {
       "propertyName": "connectionPassword",
       "helpText": "Authentication credential.This value is masked on all GUI views.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "connectionUsername": {
       "propertyName": "connectionUsername",
       "helpText": "Authentication principal.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiProperties": {
       "propertyName": "destinationJndiProperties",
       "helpText": "Optional JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertyFactoryInitial": {
       "propertyName": "destinationJndiPropertyFactoryInitial",
@@ -202,7 +208,8 @@
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "durable": {
       "propertyName": "durable",
@@ -213,7 +220,8 @@
     "durableSubscriptionName": {
       "propertyName": "durableSubscriptionName",
       "helpText": "Id set on the JMS session for durable subscribers.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "eventFactory": {
       "propertyName": "eventFactory",

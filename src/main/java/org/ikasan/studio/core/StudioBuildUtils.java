@@ -415,6 +415,27 @@ public class StudioBuildUtils {
     }
 
     /**
+     * Escape a component property's value before writing it as the right-hand side of a line in
+     * application.properties. Called only from propertiesTemplate_en.ftl (both V3.3.8 and V4.0.x) via the
+     * {@code statics} binding, which static-usage analysis can't see - despite the "unused" warning, this is
+     * load-bearing for any property value containing a backslash (e.g. a filenamePattern regex like ".*\.tmp",
+     * or a Windows-style file path). Without it, java.util.Properties' own loader treats an unescaped backslash
+     * as the start of an escape sequence: since "\." isn't one of the recognised sequences (backslash, \n, \r,
+     * \t, \f, or a unicode escape), it silently drops the backslash and keeps the following character - so a user-entered
+     * ".*\.tmp" would come back out at runtime as ".*.tmp", changing the regex's meaning without any error.
+     * Unlike escapeSpringPropertiesMapKey, this deliberately does not escape spaces - embedded spaces in a
+     * properties value do not need escaping, only backslashes and literal control characters do.
+     */
+    @SuppressWarnings("unused")
+    public static String escapeSpringPropertiesValue(String value) {
+        return value == null ? "" : value
+                .replace("\\", "\\\\")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    /**
      * Given a string that potentially contains placeholders ${label}, attempt to extract the placeholder labels
      * @param input to be examined
      * @return a list of placeholder labels or empty list of there were none

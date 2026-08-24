@@ -41,12 +41,14 @@
     "namespacePrefix": {
       "propertyName": "namespacePrefix",
       "helpText": "Optionally set namespace prefix (see https://docs.oracle.com/javase/8/docs/api/javax/xml/namespace/QName.html).",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "namespaceURI": {
       "propertyName": "namespaceURI",
       "helpText": "Optionally set namespace URI (see https://docs.oracle.com/javase/8/docs/api/javax/xml/namespace/QName.html).",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "noNamespaceSchema": {
       "propertyName": "noNamespaceSchema",
@@ -70,12 +72,14 @@
     "rootClassName": {
       "propertyName": "rootClassName",
       "helpText": "Optionally set root class name (QNAME).",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "rootName": {
       "propertyName": "rootName",
       "helpText": "Optionally set root name (QNAME).",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "routeOnValidationException": {
       "propertyName": "routeOnValidationException",
@@ -86,12 +90,14 @@
     "schemaLocation": {
       "propertyName": "schemaLocation",
       "helpText": "Schema location as put in the root attribute of the generated XML.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "schema": {
       "propertyName": "schema",
       "helpText": "Actual schema against which validation will occur.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "useNamespacePrefix": {
       "propertyName": "useNamespacePrefix",

@@ -103,7 +103,8 @@
     "timezone": {
       "propertyName": "timezone",
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     }
   }
 }

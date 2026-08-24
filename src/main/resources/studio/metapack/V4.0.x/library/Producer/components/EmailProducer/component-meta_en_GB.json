@@ -17,6 +17,7 @@
       "propertyName": "bccRecipient",
       "helpText": "The Bcc recipient",
       "setterProperty": true,
+      "usageDataType": "java.lang.String",
       "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
       "validationMessage": "Please provide a valid formatted email address."
     },
@@ -31,6 +32,7 @@
       "propertyName": "ccRecipient",
       "helpText": "The BCC recipient",
       "setterProperty": true,
+      "usageDataType": "java.lang.String",
       "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
       "validationMessage": "Please provide a valid formatted email address."
     },
@@ -68,12 +70,14 @@
     "emailBody": {
       "propertyName": "emailBody",
       "helpText": "Text body for the email.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "emailFormat": {
       "propertyName": "emailFormat",
       "helpText": "Set the format for this email e.g. plain text, html.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "extendedMailSessionProperties": {
       "propertyName": "extendedMailSessionProperties",
@@ -85,6 +89,7 @@
       "propertyName": "from",
       "helpText": "Email address of the sender",
       "setterProperty": true,
+      "usageDataType": "java.lang.String",
       "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
       "validationMessage": "Please provide a valid formatted email address."
     },
@@ -115,7 +120,8 @@
     "mailPopClass": {
       "propertyName": "mailPopClass",
       "helpText": "Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailPopPort": {
       "propertyName": "mailPopPort",
@@ -126,17 +132,20 @@
     "mailPopUser": {
       "propertyName": "mailPopUser",
       "helpText": "The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailSmtpClass": {
       "propertyName": "mailSmtpClass",
       "helpText": "Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailSmtpHost": {
       "propertyName": "mailSmtpHost",
       "helpText": "Specifies the fully qualified class name of the provider for the specified protocol. Used in cases where more than one provider for a given protocol exists; this property can be used to specify which provider to use by default.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailSmtpPort": {
       "propertyName": "mailSmtpPort",
@@ -147,32 +156,38 @@
     "mailSmtpUser": {
       "propertyName": "mailSmtpUser",
       "helpText": "The user name to use when connecting to mail servers using the specified protocol. Overrides the user property.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailStoreProtocol": {
       "propertyName": "mailStoreProtocol",
       "helpText": "Specifies the default message access protocol.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailSubject": {
       "propertyName": "mailSubject",
       "helpText": "Email subject line.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailPassword": {
       "propertyName": "mailPassword",
       "helpText": "Password for the mail server.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "mailRuntimeEnvironment": {
       "propertyName": "mailRuntimeEnvironment",
       "helpText": "Addition property which may be specified to denote the runtime instance generating the email. ie. dev, uat.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "toRecipient": {
       "propertyName": "toRecipient",
       "helpText": "The To recipient.",
       "setterProperty": true,
+      "usageDataType": "java.lang.String",
       "validation": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$",
       "validationMessage": "Please provide a valid formatted email address."
     },
@@ -185,12 +200,14 @@
     "transportProtocol": {
       "propertyName": "transportProtocol",
       "helpText": "Specifies the default message transport protocol.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "user": {
       "propertyName": "user",
       "helpText": "The default user name to use when connecting to the mail server. Used if the mail.protocol.user property isn't set.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     }
   }
 }

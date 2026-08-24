@@ -266,14 +266,16 @@
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 320,
       "helpText": "Requires ftps to be true. The password for the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "ftpsKeyStoreFilePath": {
       "propertyName": "ftpsKeyStoreFilePath",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 310,
       "helpText": "Requires ftps to be true. The path to the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "ftpsPort": {
       "propertyName": "ftpsPort",
@@ -446,6 +448,7 @@
       "propertyDisplayOrder": 40,
       "helpText": "Required renameOnSuccess set to true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
       "setterProperty": true,
+      "usageDataType": "java.lang.String",
       "propertyDataType": "java.lang.String"
     },
     "socketTimeout": {

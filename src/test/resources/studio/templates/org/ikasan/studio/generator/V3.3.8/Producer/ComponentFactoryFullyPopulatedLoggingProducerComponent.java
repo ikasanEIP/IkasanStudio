@@ -21,7 +21,7 @@ public org.ikasan.spec.component.endpoint.Producer getMyLoggingProducer() {
 return builderFactory.getComponentBuilder().logProducer()
 .setConfiguredResourceId("MyResourceID")
 .setLogEveryNth(2L)
-.setRegExpPattern(this)
-.setReplacementText(that)
+.setRegExpPattern("this")
+.setReplacementText("that")
 .build();
 }}

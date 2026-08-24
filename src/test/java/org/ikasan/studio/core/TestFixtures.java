@@ -183,7 +183,7 @@ public class TestFixtures {
             .build();
         // Mandatory properties
         flowElement.setPropertyValue("cronExpression", "*/5 * * * * ?");
-        flowElement.setPropertyValue("filenamePattern", "*Test.txt");
+        flowElement.setPropertyValue("filenamePattern", ".*\\.txt");
         flowElement.setPropertyValue("password", "secret");
         flowElement.setPropertyValue("remoteHost", "myRemortHost");
         flowElement.setPropertyValue("remotePort", "1024");

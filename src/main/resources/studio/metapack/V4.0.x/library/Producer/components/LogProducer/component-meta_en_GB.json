@@ -24,12 +24,14 @@
     "replacementText": {
       "propertyName": "replacementText",
       "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "regExpPattern": {
       "propertyName": "regExpPattern",
       "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     }
   }
 }

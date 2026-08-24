@@ -350,6 +350,7 @@
       "propertyDisplayOrder": 40,
       "helpText": "Required renameOnSuccess set to true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
       "setterProperty": true,
+      "usageDataType": "java.lang.String",
       "propertyDataType": "java.lang.String"
     },
     "sourceDirectory": {
@@ -379,7 +380,8 @@
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 340,
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
-      "setterProperty": true
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
     },
     "transactionManager": {
       "propertyName": "transactionManager",

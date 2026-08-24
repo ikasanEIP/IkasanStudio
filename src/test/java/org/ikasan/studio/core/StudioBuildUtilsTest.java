@@ -130,4 +130,29 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.convertStringToMap("").size(), is(0));
         assertThat(StudioBuildUtils.convertStringToMap(null).size(), is(0));
     }
+
+    /**
+     * A raw backslash written unescaped into an application.properties value is silently eaten by
+     * java.util.Properties' own loader on the way back in - "\." isn't a recognised escape sequence, so it just
+     * drops the backslash - which is exactly what turned a user's filenamePattern regex ".*\.tmp" into ".*.tmp"
+     * at runtime. escapeSpringPropertiesValue must produce output that survives a real Properties round trip.
+     */
+    @Test
+    public void testEscapeSpringPropertiesValue_survives_a_real_properties_round_trip() throws IOException {
+        String original = ".*\\.tmp";
+        String escaped = StudioBuildUtils.escapeSpringPropertiesValue(original);
+
+        java.util.Properties properties = new java.util.Properties();
+        properties.load(new java.io.StringReader("filenamePattern=" + escaped));
+
+        assertThat("the escaped form must decode back to exactly what the user typed",
+                properties.getProperty("filenamePattern"), is(original));
+    }
+
+    @Test
+    public void testEscapeSpringPropertiesValue_leaves_ordinary_values_and_spaces_untouched() {
+        assertThat(StudioBuildUtils.escapeSpringPropertiesValue("plain value with spaces"), is("plain value with spaces"));
+        assertThat(StudioBuildUtils.escapeSpringPropertiesValue(""), is(""));
+        assertThat(StudioBuildUtils.escapeSpringPropertiesValue(null), is(""));
+    }
 }

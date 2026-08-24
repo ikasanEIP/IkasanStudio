@@ -37,6 +37,6 @@ return builderFactory.getComponentBuilder().scheduledConsumer()
 .setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
 .setMaxEagerCallbacks(10)
 .setMessageProvider(orgIkasanMyflowMyMessageProvider)
-.setTimezone(UTC)
+.setTimezone("UTC")
 .build();
 }}
