@@ -155,7 +155,8 @@
       "propertyName": "ftpsKeyStoreFilePassword",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 320,
-      "helpText": "Requires ftps to be true. The password for the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
+      "helpText": "The password for the keystore file used to validate the server certificate. Mandatory once ftps is enabled - there is no fallback to a default Java keystore; the connection will fail to establish if this is left blank while ftps is true.",
+      "mandatoryIfTrue": "ftps",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
@@ -163,7 +164,8 @@
       "propertyName": "ftpsKeyStoreFilePath",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 310,
-      "helpText": "Requires ftps to be true. The path to the keystore file used to validate the server certificate. If not provided, the default Java keystore will be used.",
+      "helpText": "The path to the keystore file used to validate the server certificate. Mandatory once ftps is enabled - there is no fallback to a default Java keystore; the connection will fail to establish if this is left blank while ftps is true.",
+      "mandatoryIfTrue": "ftps",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },

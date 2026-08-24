@@ -92,6 +92,11 @@ public class ComponentPropertyEditRow {
             // the actual either/or requirement - e.g. "Password (or privateKeyFilename)".
             labelText += " (or " + String.join(" / ", componentProperty.getMeta().getMandatoryUnlessAnyOf()) + ")";
         }
+        if (componentProperty.getMeta().hasMandatoryIfTrue()) {
+            // Derived from the same field doValidateAll() enforces, so the cue can never drift out of sync -
+            // e.g. FtpConsumer's "ftpsKeyStoreFilePath (required if ftps is enabled)".
+            labelText += " (required if " + componentProperty.getMeta().getMandatoryIfTrue() + " is enabled)";
+        }
         this.propertyTitleField = new JLabel(labelText);
         this.meta = componentProperty.getMeta();
         this.componentPropertyEditBoxMap = componentPropertyEditBoxMap;
@@ -612,6 +617,19 @@ public class ComponentPropertyEditRow {
     }
 
     /**
+     * @param siblingPropertyName propertyName key to look up in the shared componentPropertyEditBoxMap.
+     * @return true if that sibling row currently holds a genuinely set value (not merely a previewed default -
+     * see anySiblingHasValue() above) of Boolean.TRUE.
+     */
+    private boolean siblingIsTrue(String siblingPropertyName) {
+        if (componentPropertyEditBoxMap == null) {
+            return false;
+        }
+        ComponentPropertyEditRow sibling = componentPropertyEditBoxMap.get(siblingPropertyName);
+        return sibling != null && Boolean.TRUE.equals(sibling.getValue());
+    }
+
+    /**
      * For the given field type, determine if a valid value has been set.
      * @return true if the field is empty or unset
      */
@@ -653,6 +671,9 @@ public class ComponentPropertyEditRow {
         } else if (meta.hasMandatoryUnlessAnyOf() && inputfieldIsUnset() && !anySiblingHasValue(meta.getMandatoryUnlessAnyOf())) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set, unless "
                     + String.join(" or ", meta.getMandatoryUnlessAnyOf()) + " is provided instead", getOverridingInputField()));
+        } else if (meta.hasMandatoryIfTrue() && inputfieldIsUnset() && siblingIsTrue(meta.getMandatoryIfTrue())) {
+            result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set, because "
+                    + meta.getMandatoryIfTrue() + " is enabled", getOverridingInputField()));
         }
         // 2. Apply a regex validation pattern as defined in the component's meta pack definition
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
