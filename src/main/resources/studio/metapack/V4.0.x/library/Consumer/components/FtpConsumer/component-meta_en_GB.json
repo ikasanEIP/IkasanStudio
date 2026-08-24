@@ -458,7 +458,7 @@
     "sourceDirectory": {
       "propertyName": "sourceDirectory",
       "propertyDisplayOrder": -20,
-      "helpText": "Remote directory from which to discover files.",
+      "helpText": "Remote directory from which to discover files, e.g. /home/myuser/inbound. Whether this path resolves relative to the account's home directory or the server's real filesystem root depends entirely on the FTP server's configuration (e.g. vsftpd chroot_local_user) - confirm with the server admin, or use the full absolute path if unsure. A wrong value here causes the consumer to silently find zero files, with no error logged.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.source-directory",
       "setterProperty": true,

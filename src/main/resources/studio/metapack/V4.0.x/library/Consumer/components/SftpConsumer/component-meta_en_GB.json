@@ -356,7 +356,7 @@
     "sourceDirectory": {
       "propertyName": "sourceDirectory",
       "propertyDisplayOrder": -20,
-      "helpText": "Remote directory from which to discover files.",
+      "helpText": "Remote directory from which to discover files, e.g. /home/myuser/inbound. Unless the SFTP server is explicitly configured to chroot the session to the account's home directory, this path resolves against the server's real filesystem root, NOT the home directory - a value like '/inbound' will not automatically mean '<home>/inbound'. If in doubt, use the full absolute path on the server rather than assuming home-relative resolution: a wrong path here causes the consumer to silently find zero files, with no error logged.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.source-directory",
       "setterProperty": true,
