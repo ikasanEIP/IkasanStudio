@@ -85,7 +85,8 @@
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
-      "helpText": "The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.",
+      "defaultValue": 0,
+      "helpText": "Default(0), meaning unlimited. The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },

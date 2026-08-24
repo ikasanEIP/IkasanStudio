@@ -32,6 +32,7 @@
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 200,
       "displayLabel": "Ftp Active/Passive",
+      "defaultValue": false,
       "helpText": "Optional only available on FTP consumer. Default(False) Flag indicating whether the FTP connection is active or passive.",
       "setterProperty": true,
       "trueLabel": "Active",
@@ -42,6 +43,8 @@
       "propertyName": "ageOfFiles",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 150,
+      "displayLabel": "Age Of Files (days)",
+      "defaultValue": -1,
       "helpText": "How many days to keep meta data relating to files already processedn (used to prevent processing the same file twice), the default is -1 means for ever.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
@@ -50,6 +53,7 @@
       "propertyName": "checksum",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 190,
+      "defaultValue": false,
       "helpText": "Default(False) Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -58,7 +62,8 @@
       "propertyName": "chronological",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 60,
-      "helpText": "If true, when multiple files are available, process the oldest first. Default is false which means order of processing is non-deterministic.",
+      "defaultValue": true,
+      "helpText": "Default(True). If true (the default), when multiple files are available, process the oldest first; if false, order of processing is non-deterministic.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -66,6 +71,8 @@
       "propertyName": "chunkSize",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 180,
+      "displayLabel": "Chunk Size (bytes)",
+      "defaultValue": 1048576,
       "helpText": "Size of chunks to use (when chunking=true). Default(1048576) 1MB.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
@@ -74,6 +81,7 @@
       "propertyName": "chunking",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 170,
+      "defaultValue": false,
       "helpText": "If true, file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration. Default is false.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -82,6 +90,7 @@
       "propertyName": "cleanupJournalOnComplete",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
+      "defaultValue": true,
       "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -121,6 +130,8 @@
       "propertyName": "connectionTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 240,
+      "displayLabel": "Connection Timeout (ms)",
+      "defaultValue": 60000,
       "helpText": "Internal (S)FTP connector connection timeout value in milliseconds. Default is 60000 (1 minute).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
@@ -148,6 +159,8 @@
       "propertyName": "dataTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 260,
+      "displayLabel": "Data Timeout (ms)",
+      "defaultValue": 300000,
       "helpText": "Internal FTP connector data connection timeout value in milliseconds. Default is 300000 (5 minutes).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
@@ -156,6 +169,7 @@
       "propertyName": "destructive",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 50,
+      "defaultValue": false,
       "helpText": "Delete file after successful consumption. Default is false.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -184,7 +198,7 @@
     "filenamePattern": {
       "propertyName": "filenamePattern",
       "propertyDisplayOrder": -10,
-      "helpText": "Regular expression for matching file names to be transported.",
+      "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex).",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.filename-pattern",
       "setterProperty": true,
@@ -194,6 +208,7 @@
       "propertyName": "filterDuplicates",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 120,
+      "defaultValue": true,
       "helpText": "When true (the default), duplicates files are ignored (based on previously persisted meta information e.g. date-timestamp).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -202,6 +217,7 @@
       "propertyName": "filterOnFilename",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 130,
+      "defaultValue": true,
       "helpText": "When true (the default), the full remote path (not just the bare filename) is used to determine if this file is a duplicate. Also requires filterDuplicates to be true. Also required filterDuplicates to be true.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -210,6 +226,7 @@
       "propertyName": "filterOnLastModifiedDate",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 140,
+      "defaultValue": true,
       "helpText": "When true (the default), the last modified date of the file is used to determine if this file is a duplicate. Also requires filterDuplicates to be true.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -257,6 +274,7 @@
       "propertyName": "ftpsPort",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 280,
+      "defaultValue": 21,
       "helpText": "Requires ftps to be true. Default(21) only applicable when FTPS=true. The remote port of FTPs server where consumer needs to connect.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
@@ -266,6 +284,7 @@
       "propertyName": "ftpsProtocol",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 300,
+      "defaultValue": "SSL",
       "helpText": "Requires ftps to be true. SSL/TLS protocol name used to negotiate the FTPS connection (e.g. \"SSL\", \"TLS\", \"TLSv1.2\"), passed to Java's SSLContext. The Ikasan defaults is \"SSL\"; \"TLS\" is the more modern, explicit choice.",
       "setterProperty": true,
       "propertyDataType": "java.lang.String",
@@ -284,6 +303,7 @@
       "propertyName": "isRecursive",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 70,
+      "defaultValue": false,
       "helpText": "Default(False) Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -304,7 +324,8 @@
       "propertyName": "maxEagerCallbacks",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 90,
-      "helpText": "The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule. Default is unlimited until no more data available.",
+      "defaultValue": 0,
+      "helpText": "Default(0), meaning unlimited. The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -312,6 +333,7 @@
       "propertyName": "maxRetryAttempts",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 230,
+      "defaultValue": 3,
       "helpText": "Default(3) internal (S)FTP connector retry count.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
@@ -321,6 +343,7 @@
       "propertyName": "maxRows",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 160,
+      "defaultValue": -1,
       "helpText": "When housekeeping the meta data, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. Default (-1) means unlimited.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
@@ -341,6 +364,8 @@
       "propertyName": "minAge",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 100,
+      "displayLabel": "Minimum Age (secs)",
+      "defaultValue": 120,
       "helpText": "The minimum age of the file on the remote filesystem before file can be processed. This setting is in place to prevent (S)FTP consumer from picking up file which is still being written to. The default is 120 seconds.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Long"
@@ -382,7 +407,8 @@
     "remoteHost": {
       "propertyName": "remoteHost",
       "propertyDisplayOrder": -60,
-      "helpText": "Default('localhost') host name of the remote (S)FTP server where consumer needs to connect.",
+      "defaultValue": "127.0.0.1",
+      "helpText": "Default('127.0.0.1') host name of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-host",
       "setterProperty": true,
@@ -391,7 +417,8 @@
     "remotePort": {
       "propertyName": "remotePort",
       "propertyDisplayOrder": -50,
-      "helpText": "Default(22) port of the remote (S)FTP server where consumer needs to connect.",
+      "defaultValue": 21,
+      "helpText": "Default(21) port of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-port",
       "setterProperty": true,

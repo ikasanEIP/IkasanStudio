@@ -18,7 +18,7 @@
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "producer",
   "ikasanComponentFactoryMethod": "sftpProducer",
-  "endpointKey": "FTP Endpoint",
+  "endpointKey": "SFTP Endpoint",
   "endpointTextKey": "remoteHost",
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
@@ -29,18 +29,28 @@
     },
     "checksumDelivered": {
       "propertyName": "checksumDelivered",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 70,
+      "defaultValue": false,
       "helpText": "Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "cleanupChunks": {
       "propertyName": "cleanupChunks",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 80,
+      "defaultValue": true,
+      "setterMethod": "setCleanUpChunks",
       "helpText": "Default(true) Flag indicating whether chunk file information persisted in DB should be removed by producer after successful file delivery aka. successful file assembling from chunks.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 350,
+      "defaultValue": true,
       "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -55,6 +65,8 @@
     },
     "configuration": {
       "propertyName": "configuration",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 360,
       "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
       "setterProperty": true,
       "userSuppliedClass": true,
@@ -66,18 +78,27 @@
     },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 240,
+      "displayLabel": "Connection Timeout (ms)",
+      "defaultValue": 60000,
       "helpText": "Internal (S)FTP connector connection timeout value in milliseconds. Default is 60000 (1 minute).",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "createParentDirectory": {
       "propertyName": "createParentDirectory",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 20,
+      "defaultValue": false,
       "helpText": "Default(false) Flag indicating whether outputDirectory should be created if it does not exist.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 380,
       "defaultValue": false,
       "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
@@ -85,13 +106,22 @@
     },
     "knownHostFilename": {
       "propertyName": "knownHostFilename",
-      "helpText": "The location of the known hosts file.",
-      "propertyConfigFileLabel": "__flow.sftp.consumer.known-hosts-filename",
+      "propertyDisplayOrder": -22,
+      "displayLabel": "Known Hosts Filename",
+      "mandatoryUnlessAnyOf": [
+        "password"
+      ],
+      "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 <host> >> <this file>\" once beforehand, or connect manually first and accept the host key.",
+      "propertyConfigFileLabel": "__flow.sftp.producer.known-hosts-filename",
+      "setterMethod": "setKnownHostsFilename",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "maxRetryAttempts": {
       "propertyName": "maxRetryAttempts",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 230,
+      "defaultValue": 3,
       "helpText": "Default(3) internal (S)FTP connector retry count.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer",
@@ -99,6 +129,8 @@
     },
     "outputDirectory": {
       "propertyName": "outputDirectory",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 10,
       "defaultValue": ".",
       "helpText": "Remote directory where to deliver the file.",
       "setterProperty": true,
@@ -106,27 +138,40 @@
     },
     "password": {
       "propertyName": "password",
-      "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.",
-      "mandatory": true,
-      "propertyConfigFileLabel": "__flow.sftp.consumer.password",
+      "propertyDisplayOrder": -35,
+      "displayLabel": "Password",
+      "mandatoryUnlessAnyOf": [
+        "privateKeyFilename"
+      ],
+      "helpText": "Password to login to the SFTP server. Optional if privateKeyFilename is set instead for key-based authentication - provide one or the other. If both are supplied, password takes precedence and the private key is ignored. username is always required regardless of which method is used.",
+      "propertyConfigFileLabel": "__flow.sftp.producer.password",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "preferredKeyExchangeAlgorithm": {
       "propertyName": "preferredKeyExchangeAlgorithm",
-      "helpText": "The key algorithm.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 280,
+      "helpText": "The preferred SSH key exchange algorithm to use when negotiating the SFTP connection, e.g. 'diffie-hellman-group14-sha256'. Optional — if left unset, the client and server negotiate automatically.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.preferred-key-exchange-algorithm"
     },
     "privateKeyFilename": {
       "propertyName": "privateKeyFilename",
-      "helpText": "Flename for the private key.",
+      "propertyDisplayOrder": -25,
+      "displayLabel": "Private Key Filename",
+      "mandatoryUnlessAnyOf": [
+        "password"
+      ],
+      "helpText": "Filename of the private key used for public-key authentication to the SFTP server. Optional — only needed if authenticating via key rather than password.",
       "setterProperty": true,
-      "propertyConfigFileLabel": "__flow.sftp.consumer.private-key-filename"
+      "propertyConfigFileLabel": "__flow.sftp.producer.private-key-filename"
     },
     "remoteHost": {
       "propertyName": "remoteHost",
-      "helpText": "Default('localhost') host name of the remote (S)FTP server where consumer needs to connect.",
+      "propertyDisplayOrder": -60,
+      "defaultValue": "127.0.0.1",
+      "helpText": "Default('127.0.0.1') host name of the remote (S)FTP server where producer needs to deliver the file.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.remote-host",
       "setterProperty": true,
@@ -134,6 +179,8 @@
     },
     "remotePort": {
       "propertyName": "remotePort",
+      "propertyDisplayOrder": -50,
+      "defaultValue": 22,
       "helpText": "Default(22) port of the remote (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.remote-port",
@@ -143,24 +190,33 @@
     },
     "renameExtension": {
       "propertyName": "renameExtension",
-      "helpText": "Default('tmp') file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 40,
+      "helpText": "Default('.tmp') file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.",
       "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
+      "defaultValue": ".tmp",
+      "usageDataType": "java.lang.String"
     },
     "tempFileName": {
       "propertyName": "tempFileName",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 50,
       "helpText": "Temporary filename to use for incomplete transfer.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "unzip": {
       "propertyName": "unzip",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 60,
+      "defaultValue": false,
       "helpText": "Default(false) Flag indicating whether the file should be unzipped on remote server as post delivery task. This makes an assumption that delivered stream is zipped.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "username": {
       "propertyName": "username",
+      "propertyDisplayOrder": -40,
       "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.username",

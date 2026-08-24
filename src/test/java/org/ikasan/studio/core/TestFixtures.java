@@ -202,7 +202,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("configurationId", "myUniqueConfiguredResourceIdName");
         flowElement.setPropertyValue("connectionTimeout", 600001);
         flowElement.setPropertyValue("criticalOnStartup", true);
-        flowElement.setPropertyValue("dataTimeout", 300001);
         flowElement.setPropertyValue("destructive", true);
         flowElement.setPropertyValue("eager", true);
         flowElement.setPropertyValue("eventFactory", "org.ikasan.myflow.myEventFactory");

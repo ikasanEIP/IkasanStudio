@@ -99,6 +99,12 @@ public class ComponentPropertyMeta {
     @Builder.Default
     private boolean mandatory = false;        // The value must be supplied for the component to be valid
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    private List<String> mandatoryUnlessAnyOf;  // This property is treated as mandatory unless at least one of these
+                                                 // sibling property names (by propertyName) currently has a genuinely
+                                                 // set value - e.g. password's ["privateKeyFilename"] and
+                                                 // privateKeyFilename's ["password"] express that exactly one of the
+                                                 // two credential mechanisms must be supplied, without forcing both.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private int propertyDisplayOrder = 0;   // Optional explicit display order in the properties panel; 0 (default) preserves JSON insertion order
     private String propertyConfigFileLabel; // Identifies the spring injected property name
@@ -180,6 +186,11 @@ public class ComponentPropertyMeta {
         return propertyGroup != null && !propertyGroup.isBlank();
     }
 
+    @JsonIgnore
+    public boolean hasMandatoryUnlessAnyOf() {
+        return mandatoryUnlessAnyOf != null && !mandatoryUnlessAnyOf.isEmpty();
+    }
+
     /**
      * Patterns are expensive, so only generate one when we need it but share the same one thereafter.
      *
@@ -221,6 +232,7 @@ public class ComponentPropertyMeta {
                 Objects.equals(trueLabel, that.trueLabel) &&
                 Objects.equals(falseLabel, that.falseLabel) &&
                 Objects.equals(choices, that.choices) &&
+                Objects.equals(mandatoryUnlessAnyOf, that.mandatoryUnlessAnyOf) &&
                 Objects.equals(dataValidationType, that.dataValidationType) &&
                 Objects.equals(defaultValue, that.defaultValue) &&
                 Objects.equals(helpText, that.helpText) &&
@@ -239,7 +251,7 @@ public class ComponentPropertyMeta {
     public int hashCode() {
 
         return Objects.hash(propertyName, propertyGroup, trueLabel, falseLabel, affectsUserImplementedClass, choices,
-                dataValidationType, defaultValue, helpText,
+                mandatoryUnlessAnyOf, dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
                 protectFromOverwrite, noStubRequired,

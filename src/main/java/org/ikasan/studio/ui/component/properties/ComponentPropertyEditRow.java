@@ -58,6 +58,10 @@ public class ComponentPropertyEditRow {
     private final ComponentProperty componentProperty;
     private final Project project;
     private final Object initialValue;
+    // Shared across every row in the panel so a property's validation can consult a sibling's current value -
+    // see doValidateAll()'s handling of ComponentPropertyMeta#mandatoryUnlessAnyOf (e.g. an SFTP consumer's
+    // password/privateKeyFilename, where exactly one of the two must be supplied, not both).
+    private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap;
 
     /**
      * Constructor
@@ -83,8 +87,14 @@ public class ComponentPropertyEditRow {
         this.componentProperty = componentProperty;
         this.initialValue = componentProperty.getValue();
         String labelText = componentProperty.getMeta().getDisplayLabel() != null ? componentProperty.getMeta().getDisplayLabel() : componentProperty.getMeta().getPropertyName();
+        if (componentProperty.getMeta().hasMandatoryUnlessAnyOf()) {
+            // Derived from the same list doValidateAll() enforces, so the cue can never drift out of sync with
+            // the actual either/or requirement - e.g. "Password (or privateKeyFilename)".
+            labelText += " (or " + String.join(" / ", componentProperty.getMeta().getMandatoryUnlessAnyOf()) + ")";
+        }
         this.propertyTitleField = new JLabel(labelText);
         this.meta = componentProperty.getMeta();
+        this.componentPropertyEditBoxMap = componentPropertyEditBoxMap;
         if (componentPropertyEditBoxMap != null) {
             componentPropertyEditBoxMap.put(getPropertyKey(), this);
         }
@@ -583,6 +593,25 @@ public class ComponentPropertyEditRow {
     }
 
     /**
+     * @param siblingPropertyNames propertyName keys to look up in the shared componentPropertyEditBoxMap.
+     * @return true if any of the named sibling rows currently holds a genuinely set value (a merely-previewed
+     * default doesn't count - inputfieldIsUnset()/getValue() already treat that as unset, which is exactly right
+     * here too: previewing a default for one of two mutually exclusive fields must not silently satisfy the other).
+     */
+    private boolean anySiblingHasValue(List<String> siblingPropertyNames) {
+        if (componentPropertyEditBoxMap == null) {
+            return false;
+        }
+        for (String siblingPropertyName : siblingPropertyNames) {
+            ComponentPropertyEditRow sibling = componentPropertyEditBoxMap.get(siblingPropertyName);
+            if (sibling != null && !sibling.inputfieldIsUnset()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * For the given field type, determine if a valid value has been set.
      * @return true if the field is empty or unset
      */
@@ -616,10 +645,14 @@ public class ComponentPropertyEditRow {
     protected java.util.List<ValidationInfo> doValidateAll() {
         //@todo setup once in class and clear down
         List<ValidationInfo> result = new ArrayList<>();
-        // 1. force population of mandatory properties
-        if (meta.isMandatory() &&
-                inputfieldIsUnset()) {
+        // 1. force population of mandatory properties - either unconditionally, or conditionally where none of
+        // this property's mandatoryUnlessAnyOf siblings has been genuinely set (e.g. an SFTP consumer's password
+        // is only required if privateKeyFilename hasn't been supplied instead, and vice versa).
+        if (meta.isMandatory() && inputfieldIsUnset()) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
+        } else if (meta.hasMandatoryUnlessAnyOf() && inputfieldIsUnset() && !anySiblingHasValue(meta.getMandatoryUnlessAnyOf())) {
+            result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set, unless "
+                    + String.join(" or ", meta.getMandatoryUnlessAnyOf()) + " is provided instead", getOverridingInputField()));
         }
         // 2. Apply a regex validation pattern as defined in the component's meta pack definition
         if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {

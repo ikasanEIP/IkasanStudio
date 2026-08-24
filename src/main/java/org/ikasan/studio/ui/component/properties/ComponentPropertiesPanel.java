@@ -438,7 +438,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             // gets the warning icon (getAffectsUserImplementedClassIndicator) and the save-time
                             // confirmation dialog - no separate "regenerating" section needed any more.
                             groupedOptionalProperties.computeIfAbsent(property.getMeta().getPropertyGroup(), k -> new ArrayList<>()).add(property);
-                        } else if (property.getMeta().isMandatory()) {
+                        } else if (property.getMeta().isMandatory() || property.getMeta().hasMandatoryUnlessAnyOf()) {
+                            // hasMandatoryUnlessAnyOf: e.g. an SFTP consumer's password/privateKeyFilename - one
+                            // of the two is genuinely required, so (as long as neither carries its own
+                            // propertyGroup) both belong in the always-visible Mandatory section rather than
+                            // hidden behind the Optional Properties toggle. The row's label carries the "(or ...)"
+                            // cue so it's clear at a glance that only one of the pair, not both, needs a value.
                             componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
                                     mandatoryPropertiesEditorPanel,
                                     property, gc, mandatoryTabley++));
@@ -483,7 +488,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 setToggleOptionalPropertiesButton(false);
                 optionalPropertiesEditorPanel.setVisible(false);
                 setSubPanel(propertiesEditorPanel, optionalPropertiesExpandPanel, null, null, gc1);
-                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, StudioBundle.message("label.OptionalProperties"), getThemeAwareBorderColor(), gc1);
+                setSubPanel(propertiesEditorPanel, optionalPropertiesEditorPanel, null, null, gc1);
             } else if (optionalPropertiesExpandPanel != null) {
                 optionalPropertiesExpandPanel.setVisible(false);
             }

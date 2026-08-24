@@ -16,18 +16,18 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.clientID}")
 java.lang.String myFlow1SftpProducerClientID;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.known-hosts-filename}")
-java.lang.String myFlow1SftpConsumerKnownHostsFilename;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.known-hosts-filename}")
+java.lang.String myFlow1SftpProducerKnownHostsFilename;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.max-retry-attempts}")
 java.lang.Integer myFlow1SftpConsumerMaxRetryAttempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.outputDirectory}")
 java.lang.String myFlow1SftpProducerOutputDirectory;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.password}")
-java.lang.String myFlow1SftpConsumerPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.password}")
+java.lang.String myFlow1SftpProducerPassword;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.preferred-key-exchange-algorithm}")
 java.lang.String myFlow1SftpConsumerPreferredKeyExchangeAlgorithm;
-@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.private-key-filename}")
-java.lang.String myFlow1SftpConsumerPrivateKeyFilename;
+@org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.private-key-filename}")
+java.lang.String myFlow1SftpProducerPrivateKeyFilename;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.remote-host}")
 java.lang.String myFlow1SftpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.remote-port}")
@@ -40,22 +40,22 @@ org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfigurati
 public org.ikasan.spec.component.endpoint.Producer getMySFTPProducer() {
 return builderFactory.getComponentBuilder().sftpProducer()
 .setChecksumDelivered(true)
-.setCleanupChunks(true)
+.setCleanUpChunks(true)
 .setCleanupJournalOnComplete(true)
 .setClientID(myFlow1SftpProducerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setCreateParentDirectory(true)
 .setCriticalOnStartup(true)
-.setKnownHostFilename(myFlow1SftpConsumerKnownHostsFilename)
+.setKnownHostsFilename(myFlow1SftpProducerKnownHostsFilename)
 .setMaxRetryAttempts(myFlow1SftpConsumerMaxRetryAttempts)
 .setOutputDirectory(myFlow1SftpProducerOutputDirectory)
-.setPassword(myFlow1SftpConsumerPassword)
+.setPassword(myFlow1SftpProducerPassword)
 .setPreferredKeyExchangeAlgorithm(myFlow1SftpConsumerPreferredKeyExchangeAlgorithm)
-.setPrivateKeyFilename(myFlow1SftpConsumerPrivateKeyFilename)
+.setPrivateKeyFilename(myFlow1SftpProducerPrivateKeyFilename)
 .setRemoteHost(myFlow1SftpConsumerRemoteHost)
 .setRemotePort(myFlow1SftpConsumerRemotePort)
-.setRenameExtension(tmp)
+.setRenameExtension("tmp")
 .setTempFileName("myTempFiilename")
 .setUnzip(true)
 .setUsername(myFlow1SftpConsumerUsername)
