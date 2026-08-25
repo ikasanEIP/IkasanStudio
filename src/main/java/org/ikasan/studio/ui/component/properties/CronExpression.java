@@ -69,18 +69,36 @@ public enum CronExpression {
             monthOfYear = Map.copyOf(tempMap); // making it unmodifiable
         }
 
-    public static String explainCronExpression(String cronExpression) {
-        String[] fields = cronExpression.split(" ");
+    /**
+     * Build a single plain English sentence describing every field of a cron expression, e.g.
+     * "Every second, at 30 minutes, at 14 hours, no specific day of month, every month, on Monday, every year."
+     * Fields whose value can't be described (blank, or not yet recognised by {@link #describeField}) are
+     * silently omitted, so a partially-edited expression still yields a best-effort sentence rather than none.
+     * @param cronExpression the space separated cron expression, e.g. "0 30 14 ? * MON *"
+     * @return a plain English description of the whole expression, or an empty string if nothing could be described
+     */
+    public static String describeCronExpression(String cronExpression) {
+        if (cronExpression == null) {
+            return "";
+        }
+        String[] fields = cronExpression.trim().split(" ");
+        CronExpression[] allFields = CronExpression.values();
 
-        Map<CronExpression, String> explanations = new HashMap<>();
-        for (int index = 0 ; index < fields.length ; index++) {
-            CronExpression cronField = CronExpression.values()[index];
-            explanations.put(cronField, fields[index]);
-        }
         StringBuilder result = new StringBuilder();
-        for (Map.Entry<CronExpression, String> entry : explanations.entrySet()) {
-            result.append(entry.getKey() + ": " + describeField(entry.getValue(), entry.getKey()));
+        for (int index = 0; index < fields.length && index < allFields.length; index++) {
+            String fieldDescription = describeField(fields[index], allFields[index]);
+            if (!fieldDescription.isEmpty()) {
+                if (!result.isEmpty()) {
+                    result.append(", ");
+                }
+                result.append(fieldDescription);
+            }
         }
+        if (result.isEmpty()) {
+            return "";
+        }
+        result.setCharAt(0, Character.toUpperCase(result.charAt(0)));
+        result.append(".");
         return result.toString();
     }
 

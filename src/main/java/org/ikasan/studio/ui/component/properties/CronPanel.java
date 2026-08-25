@@ -29,6 +29,7 @@ public class CronPanel extends JBPanel {
     private String title = StudioBundle.message("dialog.QuartzCronConfiguration");
     JTextField[] textFields = new JTextField[CronExpression.values().length];
     JLabel[] labelFields = new JLabel[CronExpression.values().length];
+    JTextArea summaryTextArea;
     JTextPane helpTextPane;
     JFrame testFrame;
     @SuppressWarnings("rawtypes")
@@ -79,7 +80,31 @@ public class CronPanel extends JBPanel {
             addRow(gc, dataEntryPanel, cronField, textFields[index], labelFields[index], cronField.defaultValue, cronField.defaultValue, toolTip(cronField));
         }
 
-        add(dataEntryPanel, BorderLayout.NORTH);
+        @SuppressWarnings("rawtypes")
+        JBPanel summaryPanel = new JBPanel(new BorderLayout());
+        Border summaryBorder = BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(ThemeAwareColors.getBorderColor()),
+                StudioBundle.message("label.CronSummary"),
+                TitledBorder.LEFT,
+                TitledBorder.TOP);
+        summaryPanel.setBorder(summaryBorder);
+        summaryTextArea = new JTextArea();
+        summaryTextArea.setEditable(false);
+        summaryTextArea.setLineWrap(true);
+        summaryTextArea.setWrapStyleWord(true);
+        summaryTextArea.setFont(summaryTextArea.getFont().deriveFont(Font.BOLD));
+        summaryTextArea.setBackground(ThemeAwareColors.getBackgroundColor());
+        summaryTextArea.setForeground(ThemeAwareColors.getTextColor());
+        summaryTextArea.setBorder(JBUI.Borders.empty(5));
+        summaryPanel.add(summaryTextArea, BorderLayout.CENTER);
+        updateSummary();
+
+        @SuppressWarnings("rawtypes")
+        JBPanel topPanel = new JBPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.add(dataEntryPanel);
+        topPanel.add(summaryPanel);
+        add(topPanel, BorderLayout.NORTH);
 
         @SuppressWarnings("rawtypes")
         JBPanel okCancelPanel = new JBPanel();
@@ -96,12 +121,6 @@ public class CronPanel extends JBPanel {
             }
             helpEnabled = expanding;
             helpButton.setText(helpEnabled ? StudioBundle.message("button.CollapseHelp") : StudioBundle.message("button.ExpandHelp"));
-            // TEMPORARY - diagnosing why Collapse doesn't shrink the dialog back down; remove once fixed.
-            LOG.warn("STUDIO: CRON RESIZE before setVisible(" + helpEnabled + ") - window.size=" + (window == null ? "null" : window.getSize())
-                    + " window.minimumSize=" + (window == null ? "null" : window.getMinimumSize())
-                    + " window.isMinimumSizeSet=" + (window == null ? "null" : window.isMinimumSizeSet())
-                    + " window.isValid=" + (window == null ? "null" : window.isValid())
-                    + " collapsedSize=" + collapsedSize);
             helpPanel.setVisible(helpEnabled);
             if (window != null) {
                 if (helpEnabled) {
@@ -228,6 +247,20 @@ public class CronPanel extends JBPanel {
             description.setText(cronDescription);
             description.setForeground(ThemeAwareColors.getTextColor());
         }
+        updateSummary();
+    }
+
+    /**
+     * Refreshes the plain English summary of the whole cron expression from the current contents of
+     * {@link #textFields}. A no-op while the panel is still under construction, since rows are populated
+     * one at a time and {@link #summaryTextArea} does not exist yet at that point.
+     */
+    protected void updateSummary() {
+        if (summaryTextArea == null) {
+            return;
+        }
+        String summary = CronExpression.describeCronExpression(getValue());
+        summaryTextArea.setText(summary.isEmpty() ? StudioBundle.message("label.CronSummaryEmpty") : summary);
     }
 
     protected String validateFields(CronExpression cronField) {
