@@ -10,7 +10,6 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -294,9 +293,14 @@ public class ComponentPropertyEditRow {
         resetDataEntryComponentsWithNewValues();
         propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
         if (componentProperty.getMeta().getDataValidationType() != null) {
-            dataValidationHelper = new JButton();
-            dataValidationHelper.setIcon(IkasanComponentLibrary.getSmallHelpIcon(StudioBundle.message("tooltip.HelpWithCronConfiguration")));
-            dataValidationHelper.setBorder(JBUI.Borders.empty(5, 15));
+            // "..." rather than a help/"?" icon: this button opens a builder popup (currently always the cron
+            // expression builder) to construct the value, it doesn't just show help text. Revisit with a proper
+            // icon-per-dataValidationType scheme once a second popup type exists.
+            dataValidationHelper = new JButton("...");
+            dataValidationHelper.setToolTipText(StudioBundle.message("tooltip.HelpWithCronConfiguration"));
+            // A margin (not setBorder) just pads the label - setBorder(...) previously replaced the button's
+            // whole default border/chrome, which is why it rendered with no visible outline at all.
+            dataValidationHelper.setMargin(JBUI.insets(2, 8));
             dataValidationHelper.addActionListener(e -> doDataValidationHelperPopup());
         } else {
             dataValidationHelper = null;

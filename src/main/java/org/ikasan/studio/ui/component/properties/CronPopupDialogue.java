@@ -36,9 +36,4 @@ public class CronPopupDialogue extends DialogWrapper {
     protected @Nullable JComponent createCenterPanel() {
         return cronPanel;
     }
-
-    public void redraw() {
-//        pack();
-        repaint();
-    }
 }

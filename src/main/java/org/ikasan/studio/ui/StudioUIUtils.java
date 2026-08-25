@@ -12,7 +12,6 @@ import java.util.List;
 
 public class StudioUIUtils {
     public static final String NOTIFICATION_GROUP_ID = "Ikasan Studio";
-//    public static final NotificationGroup IKASAN_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID);
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
     private StudioUIUtils() {}
 

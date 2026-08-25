@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
@@ -10,6 +11,7 @@ import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -23,7 +25,7 @@ import static org.ikasan.studio.ui.component.properties.CronExpression.DAY_OF_WE
 @Getter
 @SuppressWarnings("rawtypes")
 public class CronPanel extends JBPanel {
-//    private static final Logger LOG = Logger.getInstance("#CronPanel");
+    private static final Logger LOG = Logger.getInstance("#CronPanel");
     private String title = StudioBundle.message("dialog.QuartzCronConfiguration");
     JTextField[] textFields = new JTextField[CronExpression.values().length];
     JLabel[] labelFields = new JLabel[CronExpression.values().length];
@@ -32,6 +34,11 @@ public class CronPanel extends JBPanel {
     @SuppressWarnings("rawtypes")
     JBPanel helpPanel;
     boolean helpEnabled = false;
+    // The dialog's size immediately before Expand Help grows it - pack() alone doesn't reliably shrink the
+    // dialog back down on Collapse (Container caches getPreferredSize() while still "valid", so a pack() issued
+    // in the same tick as the setVisible(false) that should invalidate it can read stale, still-expanded
+    // dimensions) - so Collapse restores this explicitly rather than trusting a recomputed preferred size.
+    private Dimension collapsedSize;
 
     protected final Project project;
     private transient CronPopupDialogue cronPopupDialogue;
@@ -82,29 +89,71 @@ public class CronPanel extends JBPanel {
         JButton helpButton = new JButton(StudioBundle.message("button.ExpandHelp"));
         okCancelPanel.add(helpButton);
         helpButton.addActionListener( e -> {
-            helpEnabled = !helpEnabled;
+            Window window = getContainingWindow();
+            boolean expanding = !helpEnabled;
+            if (expanding && window != null) {
+                collapsedSize = window.getSize();
+            }
+            helpEnabled = expanding;
             helpButton.setText(helpEnabled ? StudioBundle.message("button.CollapseHelp") : StudioBundle.message("button.ExpandHelp"));
+            // TEMPORARY - diagnosing why Collapse doesn't shrink the dialog back down; remove once fixed.
+            LOG.warn("STUDIO: CRON RESIZE before setVisible(" + helpEnabled + ") - window.size=" + (window == null ? "null" : window.getSize())
+                    + " window.minimumSize=" + (window == null ? "null" : window.getMinimumSize())
+                    + " window.isMinimumSizeSet=" + (window == null ? "null" : window.isMinimumSizeSet())
+                    + " window.isValid=" + (window == null ? "null" : window.isValid())
+                    + " collapsedSize=" + collapsedSize);
             helpPanel.setVisible(helpEnabled);
-            if (testFrame != null) {
-                testFrame.pack();
-                testFrame.repaint();
-            } else {
-                cronPopupDialogue.redraw();
+            if (window != null) {
+                if (helpEnabled) {
+                    window.pack();
+                } else if (collapsedSize != null) {
+                    // Confirmed via debug logging: IntelliJ's DialogWrapper leaves an explicit, stuck
+                    // Window#minimumSize behind from Expand's auto-grow - its own validate() pass does NOT
+                    // relax it back down even though the rest of the layout (preferredSize, child components)
+                    // correctly recomputes to the smaller, collapsed size. That stale minimum silently clamps
+                    // any setSize() attempting to shrink below it. Clear it explicitly, then resize, then
+                    // validate() to force children to reflow to the new (smaller) bounds - skipping that last
+                    // step previously left the window resized but its contents un-relaid-out.
+                    window.setMinimumSize(null);
+                    window.setSize(collapsedSize);
+                    window.validate();
+                    LOG.warn("STUDIO: CRON RESIZE after setMinimumSize(null)+setSize(" + collapsedSize + ")+validate() - window.size=" + window.getSize()
+                            + " window.minimumSize=" + window.getMinimumSize()
+                            + " window.isMinimumSizeSet=" + window.isMinimumSizeSet());
+                }
+                window.repaint();
             }
         });
 
         add(okCancelPanel, BorderLayout.SOUTH);
 
         helpPanel = new JBPanel(new BorderLayout());
-        Border helpBorder = BorderFactory.createTitledBorder(StudioBundle.message("label.QuartzCronConfigurationHelp"));
+        // Match the titled-border styling used for the property groups (ComponentPropertiesPanel#setSubPanel)
+        // rather than the plain default-look-and-feel titled border this used to have.
+        Border helpBorder = BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(ThemeAwareColors.getBorderColor()),
+                StudioBundle.message("label.QuartzCronConfigurationHelp"),
+                TitledBorder.LEFT,
+                TitledBorder.TOP);
         helpPanel.setBorder(helpBorder);
         helpTextPane = new JTextPane();
         helpTextPane.setContentType("text/html");
         helpTextPane.setText(StudioBundle.message("label.CronHelpText"));
-        helpPanel.setBackground(IKASAN_GREY);
+        helpPanel.setBackground(ThemeAwareColors.getBackgroundColor());
         helpPanel.add(helpTextPane, BorderLayout.CENTER);
         add(helpPanel, BorderLayout.CENTER);
         helpPanel.setVisible(helpEnabled);
+    }
+
+    /**
+     * @return the top-level window hosting this panel - the test harness's plain JFrame if set, otherwise the
+     * real popup dialog's underlying Window, or null if neither has been wired up yet.
+     */
+    private Window getContainingWindow() {
+        if (testFrame != null) {
+            return testFrame;
+        }
+        return cronPopupDialogue != null ? cronPopupDialogue.getWindow() : null;
     }
 
     protected String getValue() {
