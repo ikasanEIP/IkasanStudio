@@ -22,6 +22,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.NavigateToCodeAction;
 import org.ikasan.studio.ui.actions.SendTestMessageAction;
+import org.ikasan.studio.ui.actions.TriggerScheduledConsumerAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
@@ -286,10 +287,15 @@ public class DesignerCanvas extends JPanel {
 //            } else {
 //                DesignCanvasContextMenu.showPopupMenu(project,this, me);
 //            }
-        } // Left-click on the Send Test Message badge
+        } // Left-click on the Send Test Message / Trigger badge
         else if (me.getButton() == MouseEvent.BUTTON1 && sendTestMessageOwner != null) {
-            new SendTestMessageAction(project, sendTestMessageOwner)
-                    .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "sendTestMessage"));
+            if (IkasanFlowRouteViewHandler.usesTriggerBadge(sendTestMessageOwner)) {
+                new TriggerScheduledConsumerAction(project, sendTestMessageOwner)
+                        .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "triggerScheduledConsumer"));
+            } else {
+                new SendTestMessageAction(project, sendTestMessageOwner)
+                        .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "sendTestMessage"));
+            }
         } // Double-click -> go to source
         else if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && ! me.isConsumed()) {
             me.consume();

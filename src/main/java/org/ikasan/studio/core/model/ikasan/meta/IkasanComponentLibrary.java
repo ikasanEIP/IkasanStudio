@@ -206,6 +206,13 @@ public class IkasanComponentLibrary {
         return SEND_TEST_MESSAGE_FILE_ICON;
     }
 
+    // Badge variant for time-event (Quartz-scheduled) consumers with no real message payload to simulate - see
+    // ComponentMeta#isTimeEventConsumer() and TriggerScheduledConsumerAction.
+    public static Icon TRIGGER_ICON = getGeneralIcon("trigger.png", "Trigger Now");
+    public static Icon getTriggerIcon() {
+        return TRIGGER_ICON;
+    }
+
     public static final Icon REPLAY_SERVICE_ICON = getGeneralIcon("replay-service.png", "Flow recording enabled");
     public static Icon getReplayServiceIcon() {
         return REPLAY_SERVICE_ICON;

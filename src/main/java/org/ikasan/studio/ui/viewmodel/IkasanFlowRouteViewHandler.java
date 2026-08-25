@@ -39,6 +39,17 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private static final Set<String> FILE_BASED_CONSUMER_NAMES = Set.of(
             "FTP Consumer", "SFTP Consumer", "Local File Consumer", "Generic Consumer");
 
+    /**
+     * True for a time-event consumer (see {@link org.ikasan.studio.core.model.ikasan.meta.ComponentMeta#isTimeEventConsumer()})
+     * with no file/message semantics of its own - i.e. not one of the file-based ones above, which still get
+     * the file badge and a real text payload to simulate. These have no meaningful payload to inject, so they
+     * get the Trigger badge instead, wired up to TriggerScheduledConsumerAction rather than SendTestMessageAction
+     * (see DesignerCanvas#mouseClickAction).
+     */
+    public static boolean usesTriggerBadge(FlowElement owner) {
+        return owner.getComponentMeta().isTimeEventConsumer() && !FILE_BASED_CONSUMER_NAMES.contains(owner.getComponentMeta().getName());
+    }
+
     private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
     private final Flow flow;
     private final FlowRoute flowRoute;
@@ -235,9 +246,14 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
      *                          icon if the consumer has one, otherwise the consumer's own icon
      */
     private void paintSendTestMessageBadge(JPanel canvas, Graphics g, FlowElement owner, IkasanFlowComponentViewHandler anchorViewHandler) {
-        Icon sendTestMessageIcon = FILE_BASED_CONSUMER_NAMES.contains(owner.getComponentMeta().getName())
-                ? IkasanComponentLibrary.getSendTestMessageFileIcon()
-                : IkasanComponentLibrary.getSendTestMessageIcon();
+        Icon sendTestMessageIcon;
+        if (usesTriggerBadge(owner)) {
+            sendTestMessageIcon = IkasanComponentLibrary.getTriggerIcon();
+        } else if (FILE_BASED_CONSUMER_NAMES.contains(owner.getComponentMeta().getName())) {
+            sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageFileIcon();
+        } else {
+            sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageIcon();
+        }
         int anchorIconWidth = anchorViewHandler.getCanvasIcon().getIconWidth();
         int badgeLeftX = anchorViewHandler.getLeftX() + ((anchorIconWidth - sendTestMessageIcon.getIconWidth()) / 2);
         int badgeTopY = anchorViewHandler.getTopY() - sendTestMessageIcon.getIconHeight() - SEND_TEST_MESSAGE_VERTICAL_GAP;

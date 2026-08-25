@@ -11,6 +11,7 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowRouteViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
@@ -43,7 +44,9 @@ public class DesignCanvasContextMenu {
             }
             if (flowElement.getComponentMeta().isConsumer()
                     && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
-                menu.add(createSendTestMessageMenuItem(project, ikasanBasicElement));
+                menu.add(IkasanFlowRouteViewHandler.usesTriggerBadge(flowElement)
+                        ? createTriggerScheduledConsumerMenuItem(project, ikasanBasicElement)
+                        : createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
             menu.addSeparator();
             addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
@@ -79,6 +82,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createSendTestMessageMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.SendTestMessage"));
         item.addActionListener(new SendTestMessageAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createTriggerScheduledConsumerMenuItem(Project project, BasicElement ikasanBasicElement) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.TriggerScheduledConsumer"));
+        item.addActionListener(new TriggerScheduledConsumerAction(project, ikasanBasicElement));
         return item;
     }
 

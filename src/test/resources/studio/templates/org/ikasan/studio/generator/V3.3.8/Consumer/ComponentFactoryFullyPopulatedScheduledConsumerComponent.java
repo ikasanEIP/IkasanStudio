@@ -17,7 +17,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.scheduled.consumer.cron-expression}")
 java.lang.String myFlow1ScheduledConsumerCronExpression;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
+org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
 org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 @javax.annotation.Resource

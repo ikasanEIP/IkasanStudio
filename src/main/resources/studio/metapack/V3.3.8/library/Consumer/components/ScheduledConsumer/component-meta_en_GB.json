@@ -6,6 +6,8 @@
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "consumer",
+  "endpointKey": "Scheduler Endpoint",
+  "endpointTextKey": "cronExpression",
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
@@ -15,6 +17,7 @@
     },
     "cronExpression": {
       "propertyName": "cronExpression",
+      "propertyDisplayOrder": -70,
       "dataValidationType": "cronExpression",
       "defaultValue": "* * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
@@ -24,17 +27,21 @@
     },
     "configuration": {
       "propertyName": "configuration",
-      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 200,
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. Using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
       "protectFromOverwrite": true,
-      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
+      "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "configurationId": {
       "propertyName": "configurationId",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 210,
       "defaultValue": "__module-__flow-__component",
       "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
       "setterProperty": true,
@@ -43,6 +50,8 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 220,
       "defaultValue": false,
       "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
@@ -50,24 +59,30 @@
     },
     "eager": {
       "propertyName": "eager",
-      "displayLabel": "Transfer multiple files",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 230,
+      "displayLabel": "Eager re-invoke",
       "defaultValue": false,
-      "helpText": "When true (default is false), attempt to process all available files. MaxEagerCallbacks can be used to limit the number of files before reverting to business schedule.",
+      "helpText": "Default(False). When true, immediately re-invoke this consumer after a successful run instead of waiting for the next cron fire, capped by maxEagerCallbacks. Only useful once messageProvider is overridden with a custom implementation that signals 'no more work' by returning null from invoke() - as the file-based consumers' providers do (e.g. FileMessageProvider, FtpMessageProvider). The default QuartzMessageProvider never returns null, so leaving eager enabled without also overriding messageProvider will make the consumer re-fire continuously instead of following the cron schedule.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "eventFactory": {
       "propertyName": "eventFactory",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 260,
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.spec.event.EventFactory",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
+      "validationMessage": "Provide a java classname for the Event Factory bean."
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
+      "propertyGroup": "Scheduling",
+      "propertyDisplayOrder": 100,
       "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "defaultValue": true,
@@ -75,33 +90,41 @@
     },
     "managedEventIdentifierService": {
       "propertyName": "managedEventIdentifierService",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 270,
       "helpText": "Optional, and safe to leave unset for most flows. Ikasan gives every message a tracking ID as it processes it - used to correlate a message in the audit trail/dashboard, and to recognise the same message again if a flow error 'parks' it for later retry. By default this ID is just a raw hash of the message content (functional, but not human-readable). Setting this property lets you supply your own class to derive a more meaningful ID instead, e.g. from a business key in the message payload.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.spec.event.ManagedEventIdentifierService",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
+      "validationMessage": "Provide a java classname for the consumer event provider bean."
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 240,
       "defaultValue": 0,
-      "helpText": "Default(0), meaning unlimited. The maximum number of consecutive eager scheduled callbacks (when eager is set to true) before reverting to business schedule.",
+      "helpText": "Default(0), meaning unlimited. The maximum number of consecutive eager re-invocations (when eager is true) before reverting to the cron-based business schedule. Only meaningful alongside a custom messageProvider - see the eager property's help text.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
     "messageProvider": {
       "propertyName": "messageProvider",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 280,
       "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
+      "validationMessage": "Provide a java classname for the Message Provider bean."
     },
     "timezone": {
       "propertyName": "timezone",
+      "propertyGroup": "Scheduling",
+      "propertyDisplayOrder": 110,
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"

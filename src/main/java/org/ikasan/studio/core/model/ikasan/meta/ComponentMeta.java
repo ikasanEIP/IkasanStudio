@@ -51,6 +51,8 @@ public class ComponentMeta implements IkasanMeta {
     public static final String EXCEPTION_RESOLVER_TYPE = "Exception Resolver";
     public static final String GENERIC_KEY = "Generic";  // This component is a generic component i.e. the user will supply the class implementing the interface of this component type
     public static final String DEBUG_KEY = "DebugTransition";
+    // Shared by every "time event" consumer (Scheduled/FTP/SFTP/Local File Consumer) - see isTimeEventConsumer().
+    public static final String SCHEDULED_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -138,6 +140,14 @@ public class ComponentMeta implements IkasanMeta {
     }
     public boolean isConsumer() {
         return COMSUMER_TYPE.equals(componentTypeMeta.getComponentShortType());
+    }
+    /**
+     * True for every Consumer backed by Ikasan's Quartz ScheduledConsumer (Scheduled/FTP/SFTP/Local File
+     * Consumer) - these are driven by a cron schedule rather than a broker/listener, so "at will" testing
+     * means triggering an invocation now rather than injecting a payload.
+     */
+    public boolean isTimeEventConsumer() {
+        return SCHEDULED_CONSUMER_IMPLEMENTING_CLASS.equals(implementingClass);
     }
     public boolean isDebug() {
         return DEBUG_KEY.equals(additionalKey);
