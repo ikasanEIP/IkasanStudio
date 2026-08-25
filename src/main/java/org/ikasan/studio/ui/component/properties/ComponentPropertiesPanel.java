@@ -103,7 +103,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      *                                false if this is for the canvas sidebar.
      */
     public ComponentPropertiesPanel(Project project, boolean componentInitialisation) {
-        super(project, componentInitialisation);
+        super(project, componentInitialisation, true);
         this.setBorder(null);
         listenerForAnyEditChanges = () -> {
             boolean okToProcess = dataHasChangedAndOKToProcess() && doValidateAll().isEmpty();
@@ -499,7 +499,56 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             if (htmlScrollingDisplayPanel != null) {
                 htmlScrollingDisplayPanel.setText(getSelectedComponent().getComponentMeta().getHelpText());
             }
+
+            // Rows are freshly rebuilt above - re-apply any search text already typed (e.g. the user switched
+            // to a different component on the canvas while a filter was active) rather than silently dropping it.
+            if (propertySearchField != null) {
+                applyPropertySearchFilter(propertySearchField.getText());
+            }
         }
+    }
+
+    /**
+     * Live-filters property rows by name/help text as the user types into propertySearchField - see that field's
+     * javadoc in PropertiesPanel for why. A property whose row lives in the (possibly collapsed) Optional
+     * Properties section is forced visible while a search is active and matches something there, so the user
+     * never has to manually expand it first; the section reverts to whatever the Expand/Ignore toggle last left
+     * it at once the search is cleared.
+     * @param query the search field's current, un-trimmed text.
+     */
+    @Override
+    protected void onPropertySearchChanged(String query) {
+        applyPropertySearchFilter(query);
+    }
+
+    private void applyPropertySearchFilter(String query) {
+        if (componentPropertyEditRowList == null) {
+            return;
+        }
+        boolean searching = query != null && !query.isBlank();
+        boolean anyOptionalMatch = false;
+        for (ComponentPropertyEditRow row : componentPropertyEditRowList) {
+            boolean matches = row.matchesSearch(query);
+            row.setRowVisible(matches);
+            if (matches && !isInMandatorySection(row.getMeta())) {
+                anyOptionalMatch = true;
+            }
+        }
+        if (optionalPropertiesEditorPanel != null) {
+            optionalPropertiesEditorPanel.setVisible(searching ? anyOptionalMatch : isExpanded);
+        }
+        // false: don't steal focus back to the first row - the user is actively typing in propertySearchField.
+        redrawPanel(false);
+    }
+
+    /**
+     * Mirrors the placement decision made while building the panel (see the loop in populatePropertiesEditorPanel
+     * above): a property lands in the always-visible Mandatory section only if it isn't grouped and is mandatory
+     * (unconditionally or via mandatoryUnlessAnyOf) - everything else, including mandatoryIfTrue properties like
+     * FtpConsumer's ftpsKeyStoreFilePath, lives in the Optional section.
+     */
+    private boolean isInMandatorySection(ComponentPropertyMeta meta) {
+        return !meta.isGroupedProperty() && (meta.isMandatory() || meta.hasMandatoryUnlessAnyOf());
     }
 
     private void toggleOptionalSection() {

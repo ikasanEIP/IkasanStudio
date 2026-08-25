@@ -8,7 +8,6 @@ import com.intellij.openapi.project.Project;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 public class StudioUIUtils {
@@ -91,6 +90,7 @@ public class StudioUIUtils {
         int stringHeight = StudioUIUtils.getTextHeight(g);
         // remember the y co-ord for drawstring is the baseline, not the top of the string.
         drawAliasedText((Graphics2D)g, text, leftX, topY + stringHeight, font);
+        g.setFont(origFont);
     }
 
     /**
@@ -253,5 +253,35 @@ public class StudioUIUtils {
             uiFont = UIManager.getFont("EditorPane.font");
         }
         return uiFont;
+    }
+
+    /**
+     * Adds a right-click "Copy" context menu item to a plain, non-editable display component (e.g. a property's
+     * JLabel) that copies the supplied text to the system clipboard. JLabel offers no built-in text selection, so
+     * without this a user troubleshooting a specific property has no way to copy its exact name to paste into a
+     * bug report / support message.
+     * @param component the component to attach the popup trigger to (typically a JLabel).
+     * @param textSupplier supplies the text to copy at click time, rather than a fixed String, so callers whose
+     *                      label can change (e.g. a live cue appended to it) always copy the current text.
+     */
+    public static void makeCopyable(JComponent component, java.util.function.Supplier<String> textSupplier) {
+        JPopupMenu copyMenu = new JPopupMenu();
+        JMenuItem copyItem = new JMenuItem(StudioBundle.message("button.Copy"));
+        copyItem.addActionListener(e -> {
+            String text = textSupplier.get();
+            if (text != null) {
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(text), null);
+            }
+        });
+        copyMenu.add(copyItem);
+        component.addMouseListener(new java.awt.event.MouseAdapter() {
+            private void maybeShowPopup(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    copyMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+            @Override public void mousePressed(java.awt.event.MouseEvent e) { maybeShowPopup(e); }
+            @Override public void mouseReleased(java.awt.event.MouseEvent e) { maybeShowPopup(e); }
+        });
     }
 }

@@ -98,6 +98,9 @@ public class ComponentPropertyEditRow {
             labelText += " (required if " + componentProperty.getMeta().getMandatoryIfTrue() + " is enabled)";
         }
         this.propertyTitleField = new JLabel(labelText);
+        // A user troubleshooting a specific property (e.g. reporting an issue) needs to be able to grab its
+        // exact name - JLabel has no built-in text selection, so this offers a right-click "Copy" instead.
+        StudioUIUtils.makeCopyable(propertyTitleField, propertyTitleField::getText);
         this.meta = componentProperty.getMeta();
         this.componentPropertyEditBoxMap = componentPropertyEditBoxMap;
         if (componentPropertyEditBoxMap != null) {
@@ -708,6 +711,50 @@ public class ComponentPropertyEditRow {
         }
 
         return hasValue;
+    }
+
+    /**
+     * @param query a search term in any case/whitespace - normalised internally, so callers never need to
+     *              pre-process it. A null/blank term always matches (nothing typed yet means show everything).
+     * @return true if this row's property name, display label, or help text contains the term.
+     */
+    public boolean matchesSearch(String query) {
+        if (query == null || query.isBlank()) {
+            return true;
+        }
+        String normalizedQuery = query.trim().toLowerCase();
+        return containsIgnoreCase(meta.getDisplayLabel(), normalizedQuery)
+                || containsIgnoreCase(meta.getPropertyName(), normalizedQuery)
+                || containsIgnoreCase(meta.getHelpText(), normalizedQuery);
+    }
+
+    private static boolean containsIgnoreCase(String haystack, String normalizedNeedle) {
+        return haystack != null && haystack.toLowerCase().contains(normalizedNeedle);
+    }
+
+    /**
+     * Show/hide every rendered component for this row (label and input, plus any auxiliary buttons/indicators) -
+     * used by the properties-search filter. GridBagLayout reclaims a row's space once every component in it
+     * reports isVisible()==false, so hidden rows leave no blank gap in the parent panel.
+     */
+    public void setRowVisible(boolean visible) {
+        propertyTitleField.setVisible(visible);
+        if (dataValidationHelper != null) {
+            dataValidationHelper.setVisible(visible);
+        }
+        if (defaultValueButton != null) {
+            defaultValueButton.setVisible(visible);
+        }
+        if (rowOverwriteCheckBox != null) {
+            rowOverwriteCheckBox.setVisible(visible);
+        }
+        if (affectsUserImplementedClassIndicator != null) {
+            affectsUserImplementedClassIndicator.setVisible(visible);
+        }
+        ComponentInput inputField = getInputField();
+        if (inputField != null) {
+            inputField.setVisible(visible);
+        }
     }
 
     /**

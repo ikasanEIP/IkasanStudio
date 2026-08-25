@@ -6,6 +6,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
@@ -14,6 +15,8 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -31,11 +34,26 @@ public abstract class PropertiesPanel extends JBPanel {
     protected final ScrollableGridbagPanel propertiesEditorScrollingContainer;
     protected JBPanel propertiesEditorPanel = new JBPanel();
     private final JBScrollPane scrollPane;
+    // Null unless this panel was constructed with supportsPropertySearch=true - large components (SFTP Consumer,
+    // SpringJmsConsumer) can have 20-30+ properties, and hunting through collapsed optional groups for a
+    // half-remembered name is a real pain point. Live-filters rows by name/help text as you type - see
+    // onPropertySearchChanged().
+    protected final JBTextField propertySearchField;
 
     protected JButton updateCodeButton;
     private boolean dataValid = true;
 
     protected PropertiesPanel(Project project, boolean componentInitialisation) {
+        this(project, componentInitialisation, false);
+    }
+
+    /**
+     * @param supportsPropertySearch true to show a live search/filter field above the property rows - see
+     *                                {@link #onPropertySearchChanged(String)}. Only meaningful for subclasses
+     *                                whose rows are individually filterable (ComponentPropertiesPanel); panels
+     *                                like ExceptionResolutionPanel/ExceptionResolverPanel don't opt in.
+     */
+    protected PropertiesPanel(Project project, boolean componentInitialisation, boolean supportsPropertySearch) {
         super();
         this.project = project;
         this.componentInitialisation = componentInitialisation;
@@ -55,6 +73,23 @@ public abstract class PropertiesPanel extends JBPanel {
         JBPanel propertiesBodyPanel = new JBPanel(new BorderLayout());
         propertiesBodyPanel.setBorder(null);
         propertiesBodyPanel.setBackground(JBColor.WHITE);
+
+        if (supportsPropertySearch) {
+            propertySearchField = new JBTextField();
+            propertySearchField.getEmptyText().setText(StudioBundle.message("label.SearchProperties"));
+            propertySearchField.getDocument().addDocumentListener(new DocumentListener() {
+                @Override public void insertUpdate(DocumentEvent e) { onPropertySearchChanged(propertySearchField.getText()); }
+                @Override public void removeUpdate(DocumentEvent e) { onPropertySearchChanged(propertySearchField.getText()); }
+                @Override public void changedUpdate(DocumentEvent e) { onPropertySearchChanged(propertySearchField.getText()); }
+            });
+            JBPanel searchPanel = new JBPanel(new BorderLayout());
+            searchPanel.setBorder(JBUI.Borders.empty(4, 8));
+            searchPanel.setBackground(JBColor.WHITE);
+            searchPanel.add(propertySearchField, BorderLayout.CENTER);
+            propertiesBodyPanel.add(searchPanel, BorderLayout.NORTH);
+        } else {
+            propertySearchField = null;
+        }
 
         // Palette editor mode, add an OK button at the bottom.
         if (! componentInitialisation) {
@@ -148,13 +183,25 @@ public abstract class PropertiesPanel extends JBPanel {
     }
 
     protected void redrawPanel() {
+        redrawPanel(true);
+    }
+
+    /**
+     * @param refocusFirstField false to skip {@link #setFocusOnFirstComponent()} - needed when the redraw is
+     *                           itself a side effect of typing elsewhere (e.g. the property search filter
+     *                           hiding/showing rows on every keystroke), where stealing focus back to the first
+     *                           row would yank it out of the field the user is actively typing in.
+     */
+    protected void redrawPanel(boolean refocusFirstField) {
         propertiesEditorScrollingContainer.revalidate();
         propertiesEditorScrollingContainer.repaint();
         if (propertiesPopupDialogue != null) {
             propertiesPopupDialogue.pack();
             propertiesPopupDialogue.repaint();
         }
-        setFocusOnFirstComponent();
+        if (refocusFirstField) {
+            setFocusOnFirstComponent();
+        }
     }
 
     /**
@@ -169,6 +216,13 @@ public abstract class PropertiesPanel extends JBPanel {
      * For the given component, get all the editable properties and add them the to properties edit panel.
      */
     protected abstract void populatePropertiesEditorPanel();
+
+    /**
+     * Invoked on every keystroke in {@link #propertySearchField} (only ever non-null when supportsPropertySearch
+     * was true at construction) - default no-op, overridden by subclasses whose rows are individually filterable.
+     * @param query the search field's current, un-trimmed text.
+     */
+    protected void onPropertySearchChanged(String query) { }
 
     public void setFocusOnFirstComponent() {
         JComponent firstComponent = getFirstFocusField();
