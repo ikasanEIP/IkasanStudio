@@ -166,10 +166,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private void displayExternalEndpointIfExists(JPanel canvas, Graphics g, FlowElement targetFlowElement) {
         FlowElement endpointFlowElement = getEndpointForGivenComponent(project.getService(UiContext.class).getIkasanModule().getMetaVersion(), targetFlowElement);
         if (endpointFlowElement == null) {
-            // No external endpoint (e.g. Generic Consumer, Event Generating Consumer) - Send Test Message is
-            // still available for any Consumer (see DesignCanvasContextMenu), so the badge belongs directly
-            // above the consumer's own icon instead of an endpoint that doesn't exist.
-            if (targetFlowElement.getComponentMeta().isConsumer()
+            // No external endpoint (e.g. Generic Consumer) - Send Test Message is still available for any
+            // Consumer (see DesignCanvasContextMenu) other than a self-generating one (Event Generating
+            // Consumer - it already fires continuously on its own, nothing meaningful to trigger), so the
+            // badge belongs directly above the consumer's own icon instead of an endpoint that doesn't exist.
+            if (targetFlowElement.getComponentMeta().supportsSendTestMessage()
                     && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
                 IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
                 if (targetFlowElementViewHandler != null) {

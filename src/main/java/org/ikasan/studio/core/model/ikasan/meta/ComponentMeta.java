@@ -53,6 +53,8 @@ public class ComponentMeta implements IkasanMeta {
     public static final String DEBUG_KEY = "DebugTransition";
     // Shared by every "time event" consumer (Scheduled/FTP/SFTP/Local File Consumer) - see isTimeEventConsumer().
     public static final String SCHEDULED_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer";
+    // See isSelfGeneratingConsumer().
+    public static final String EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -148,6 +150,23 @@ public class ComponentMeta implements IkasanMeta {
      */
     public boolean isTimeEventConsumer() {
         return SCHEDULED_CONSUMER_IMPLEMENTING_CLASS.equals(implementingClass);
+    }
+    /**
+     * True for Ikasan's EventGeneratingConsumer, which drives itself continuously (many events per second) once
+     * the flow starts rather than waiting on a broker, listener or schedule - there's no meaningful "send one
+     * test message"/"trigger now" action for it, since it's already firing on its own. See
+     * {@link #supportsSendTestMessage()}, the positive-sense predicate callers should use instead.
+     */
+    private boolean isSelfGeneratingConsumer() {
+        return EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS.equals(implementingClass);
+    }
+    /**
+     * True if this component should offer the canvas "Send Test Message"/"Trigger Now" action: any Consumer
+     * except a self-generating one (Event Generating Consumer - see {@link #isSelfGeneratingConsumer()}), which
+     * already fires continuously on its own and has nothing meaningful to trigger.
+     */
+    public boolean supportsSendTestMessage() {
+        return isConsumer() && !isSelfGeneratingConsumer();
     }
     public boolean isDebug() {
         return DEBUG_KEY.equals(additionalKey);

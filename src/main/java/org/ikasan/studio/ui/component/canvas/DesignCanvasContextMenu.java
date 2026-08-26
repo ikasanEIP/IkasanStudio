@@ -42,7 +42,7 @@ public class DesignCanvasContextMenu {
             if (!flowElement.getComponentMeta().isProducer() && !flowElement.getComponentMeta().isDebug()) {
                 menu.add(createDebugComponentMenuItem(project, ikasanBasicElement));
             }
-            if (flowElement.getComponentMeta().isConsumer()
+            if (flowElement.getComponentMeta().supportsSendTestMessage()
                     && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
                 menu.add(IkasanFlowRouteViewHandler.usesTriggerBadge(flowElement)
                         ? createTriggerScheduledConsumerMenuItem(project, ikasanBasicElement)
