@@ -183,7 +183,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
             uiContext.getDesignerCanvas().repaint();
             uiContext.getPalettePanel().repaint();
-            uiContext.setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
+            // Stay on the Properties tab after Update Code - populatePropertiesEditorPanel() (called above) and
+            // updateComponentsWithNewValues() (called above that) both already leave it here; this used to
+            // switch to Palette afterwards, which discarded that and jumped the user away from the panel they
+            // were just working in.
+            uiContext.setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
         } else {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasntChangedIgnoringOKAction"));
         }
