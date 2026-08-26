@@ -355,12 +355,12 @@ public class PIPSIIkasanModel {
     }
 
     /**
-     * Most {@link FlowUserImplementedElement}s (Debug, CustomConverter, etc.) don't declare a "requiresStub"
-     * property at all, meaning Studio always generates and manages their stub - true unless the property is
-     * present and explicitly false. Only the "Generic"/self-implementing components (GenericConsumer,
-     * GenericBroker, etc.) expose this as a real, mandatory toggle: false means userImplementedClassName is
-     * already a fully-qualified class the user supplies themselves (see componentFactory_en.ftl, which stops
-     * assuming Studio's managed user-package for that same case).
+     * Some {@link FlowUserImplementedElement}s (Debug, etc.) don't declare a "requiresStub" property at all,
+     * meaning Studio always generates and manages their stub - true unless the property is present and
+     * explicitly false. Components that can also point at an already-existing implementation (Broker, Consumer,
+     * Converter, Filter, Producer, Splitter, Translator) expose this as a real, mandatory toggle: false means
+     * userImplementedClassName is already a fully-qualified class the user supplies themselves (see
+     * componentFactory_en.ftl, which stops assuming Studio's managed user-package for that same case).
      */
     private boolean componentRequiresStub(FlowElement component) {
         Object requiresStub = component.getPropertyValue(ComponentPropertyMeta.REQUIRES_STUB);
@@ -503,7 +503,7 @@ public class PIPSIIkasanModel {
     }
 
     /**
-     * Components such as Debug or CustomConverter generate their own user-editable class under the project's
+     * Components such as Debug or Converter generate their own user-editable class under the project's
      * {@code user/src/main/java} tree (see {@link #generateAndSaveUserImplementClassStubsForFlow}). "Jump to code"
      * for these should navigate to that class rather than to the flow file. The class name is a persisted property
      * ({@link ComponentPropertyMeta#USER_IMPLEMENTED_CLASS_NAME}) so, unlike the flow-file offset above, this target

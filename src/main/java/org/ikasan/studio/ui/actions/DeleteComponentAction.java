@@ -109,7 +109,7 @@ public class DeleteComponentAction implements ActionListener {
    }
 
    /**
-    * Components such as Debug or CustomConverter generate their own hand-editable class under the project's user
+    * Components such as Debug or Converter generate their own hand-editable class under the project's user
     * source tree (see {@code PIPSIIkasanModel.generateAndSaveUserImplementClassStubsForFlow}). When such a
     * component is removed from the canvas (directly, or as a side effect of deleting a router or a whole flow),
     * that generated class is no longer referenced by anything, so offer to delete it too.

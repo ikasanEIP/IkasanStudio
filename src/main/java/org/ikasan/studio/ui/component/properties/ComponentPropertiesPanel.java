@@ -240,7 +240,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     /**
      * Ask the user to confirm the pending change, wording it according to what will actually happen to any
      * hand-written class(es) it names:
-     * - Editing a {@link FlowUserImplementedElement} directly (Debug, CustomConverter, GenericConsumer, etc.)
+     * - Editing a {@link FlowUserImplementedElement} directly (Debug, Converter, GenericConsumer, etc.)
      *   really does regenerate that component's own class - {@link #confirmComponentSelfEdit} offers to back it
      *   up first.
      * - Editing the {@link Module} itself does not: {@code doOKAction} only ever flips a component's own

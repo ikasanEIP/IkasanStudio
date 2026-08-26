@@ -76,19 +76,6 @@ public class TestFixtures {
         return flowElement;
     }
 
-    public static FlowElement getGenericBroker(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Broker");
-        FlowElement flowElement =  FlowElement.flowElementBuilder()
-            .componentMeta(meta)
-            .componentName("My Broker")
-            .build();
-        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
-        flowElement.setPropertyValue(TO_TYPE, "java.lang.Integer");
-        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myBroker");
-        flowElement.defaultUnsetMandatoryProperties();
-        return flowElement;
-    }
-
     // -------------------------- Consumers -------------------------
     public static FlowElement getEventGeneratingConsumer(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer");
@@ -367,7 +354,7 @@ public class TestFixtures {
     // ------------------------- Converters -------------------------
 
     public static FlowElement getCustomConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Custom Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Custom Converter")
@@ -415,7 +402,7 @@ public class TestFixtures {
 
     // ------------------------- Translators -------------------------
     public static FlowElement getCustomTranslator(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Custom Translator");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Translator");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Custom Translator")
@@ -478,7 +465,7 @@ public class TestFixtures {
     // ------------------------- Filters -------------------------
 
     public static FlowElement getMessageFilter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Custom Message Filter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Message Filter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Message Filter")
@@ -498,22 +485,6 @@ public class TestFixtures {
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Message Filter")
-            .build();
-
-        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
-        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myFilter");
-        flowElement.setPropertyValue("configurationId", "MyResourceID");
-        flowElement.setPropertyValue("configuration", "MyConfigurationClass");
-        flowElement.setPropertyValue("configuredResource", true);
-        flowElement.defaultUnsetMandatoryProperties();
-        return flowElement;
-    }
-
-    public static FlowElement getGenericFilter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Filter");
-        FlowElement flowElement =  FlowElement.flowElementBuilder()
-            .componentMeta(meta)
-            .componentName("My Generic Filter")
             .build();
 
         flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
@@ -857,7 +828,7 @@ public class TestFixtures {
 
     // ------------------------- Splitter -------------------------
     public static FlowElement getCustomSplitter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Custom Splitter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Splitter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Custom Splitter")

@@ -630,7 +630,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     }
 
     /**
-     * Locate the on-disk java file for a user implemented class (e.g. a Debug or CustomConverter stub), if it
+     * Locate the on-disk java file for a user implemented class (e.g. a Debug or Converter stub), if it
      * has been generated. Mirrors the relative path construction used to write the file in
      * {@code PIPSIIkasanModel.generateAndSaveUserImplementClassStubsForFlow}.
      * @param project is the Intellij project instance

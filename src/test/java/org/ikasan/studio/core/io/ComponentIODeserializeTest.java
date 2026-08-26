@@ -109,8 +109,8 @@ class ComponentIODeserializeTest {
 
             () -> assertEquals("My Event Generating Consumer", eventGeneratingConsumer.getComponentProperties().get(COMPONENT_NAME).getValue()),
 
-            () -> assertEquals(4, customConverter.getComponentProperties().size()),
-            () -> assertEquals("Custom Converter", customConverter.getComponentMeta().getName()),
+            () -> assertEquals(5, customConverter.getComponentProperties().size()),
+            () -> assertEquals("Converter", customConverter.getComponentMeta().getName()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter", customConverter.getComponentMeta().getComponentType()),
             () -> assertEquals("org.ikasan.spec.component.transformation.Converter.Custom", customConverter.getComponentMeta().getImplementingClass()),
             () -> assertEquals("myConverter", customConverter.getComponentProperties().get(USER_IMPLEMENTED_CLASS_NAME).getValue()),

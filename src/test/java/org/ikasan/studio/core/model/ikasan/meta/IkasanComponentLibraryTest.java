@@ -183,9 +183,9 @@ class IkasanComponentLibraryTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(44, IkasanComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
+            () -> assertEquals(39, IkasanComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
             () -> assertEquals(
-                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Custom Converter, Custom Message Filter, Custom Splitter, Custom Translator, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Broker, Generic Consumer, Generic Converter, Generic Endpoint, Generic Filter, Generic Producer, Generic Splitter, Generic Translator, JMS Producer, Local File Consumer, Logging Producer, Module, Multi Recipient Router, Object Message To Object Converter, Object Message To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Spring JMS Consumer]",
+                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Producer, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object Message To Object Converter, Object Message To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Translator]",
 //                new TreeSet<>(Arrays.asList("Custom Converter", ComponentMeta.EXCEPTION_RESOLVER_TYPE, "Event Generating Consumer", ComponentMeta.FLOW_TYPE, ComponentMeta.MODULE_TYPE, "Dev Null Producer")),
                 new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(BASE_META_PACK)).toString())
         );
@@ -194,15 +194,13 @@ class IkasanComponentLibraryTest {
         verifyDefaultModuleMeta(componentMetaList.get(ComponentMeta.MODULE_TYPE));
         verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_TYPE));
         verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_TYPE));
-        verifyComponentUsesSvg(componentMetaList.get("Custom Converter"));
-        verifyComponentUsesSvg(componentMetaList.get("Generic Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Channel Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("JMS Producer"));
         verifyComponentUsesSvg(componentMetaList.get("Basic AMQ JMS Producer"));
         verifyComponentUsesSvg(componentMetaList.get("Object Message To Object Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Object Message To XML String Converter"));
-        verifyComponentUsesSvg(componentMetaList.get("Custom Translator"));
-        verifyComponentUsesSvg(componentMetaList.get("Generic Translator"));
+        verifyComponentUsesSvg(componentMetaList.get("Translator"));
         verifyComponentUsesSvg(componentMetaList.get("Email Producer"));
         verifyComponentUsesSvg(componentMetaList.get("Dev Null Producer"));
         verifyComponentUsesSvg(componentMetaList.get("FTP Producer"));
@@ -226,18 +224,15 @@ class IkasanComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("Scheduler Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("Router Endpoint"), 40, 27, 15, 60);
         verifyComponentUsesSvg(componentMetaList.get("Broker"));
-        verifyComponentUsesSvg(componentMetaList.get("Generic Broker"));
         verifyComponentUsesSvg(componentMetaList.get("Debug Transition"), 27, 27, 40, 60);
-        verifyComponentUsesSvg(componentMetaList.get("Custom Message Filter"));
+        verifyComponentUsesSvg(componentMetaList.get("Message Filter"));
         verifyComponentUsesSvg(componentMetaList.get("Default Message Filter"));
-        verifyComponentUsesSvg(componentMetaList.get("Generic Filter"));
         verifyComponentUsesSvg(componentMetaList.get("Flow"));
         verifyComponentUsesSvg(componentMetaList.get("Module"), 378, 496, 378, 496);
         verifyComponentUsesSvg(componentMetaList.get("Multi Recipient Router"));
         verifyComponentUsesSvg(componentMetaList.get("Single Recipient Router"));
-        verifyComponentUsesSvg(componentMetaList.get("Custom Splitter"));
+        verifyComponentUsesSvg(componentMetaList.get("Splitter"));
         verifyComponentUsesSvg(componentMetaList.get("Default List Splitter"));
-        verifyComponentUsesSvg(componentMetaList.get("Generic Splitter"));
     }
 
     private void verifyComponentUsesSvg(ComponentMeta component) {
