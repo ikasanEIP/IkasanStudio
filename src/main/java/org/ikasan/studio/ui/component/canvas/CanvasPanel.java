@@ -13,6 +13,7 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
+import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
@@ -30,6 +31,11 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
+    // Studio already loads the module automatically on project open - this button is only for manually
+    // reloading model.json from disk after an external change, which most users never need day to day. Gated
+    // behind the "Show advanced controls" setting (see IkasanStudioSettings) rather than removed outright,
+    // since it's still a legitimate escape hatch for that rare case.
+    JButton loadModuleButton = new JButton(StudioBundle.message("label.Load"), LOAD_ICON);
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -55,7 +61,8 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(canvasHeaderButtonPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console"), CONSOLE_ICON), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Load"), LOAD_ICON), new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
+        addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
+        refreshAdvancedControlsVisibility();
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
@@ -131,5 +138,14 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
     public void setStopModuleEnabled(boolean flag) {
         stopModuleButton.setEnabled(flag);
+    }
+
+    /**
+     * Re-applies the "Show advanced controls" setting to whichever controls it currently gates (just the
+     * Load button for now). Called once at construction and again from IkasanStudioSettingsConfigurable when
+     * the user changes the setting on an already-open canvas.
+     */
+    public void refreshAdvancedControlsVisibility() {
+        loadModuleButton.setVisible(IkasanStudioSettings.isShowAdvancedControlsEnabled());
     }
 }

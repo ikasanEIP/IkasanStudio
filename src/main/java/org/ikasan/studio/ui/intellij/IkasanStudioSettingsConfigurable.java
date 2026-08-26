@@ -21,6 +21,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     private JCheckBox gettingStartedHintsCheckBox;
     private JCheckBox promptBeforeDeletingUserCodeCheckBox;
+    private JCheckBox showAdvancedControlsCheckBox;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -50,10 +51,21 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         userCodeNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
         userCodePanel.add(userCodeNote, BorderLayout.CENTER);
 
+        showAdvancedControlsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowAdvancedControls"));
+
+        JPanel advancedControlsPanel = new JPanel(new BorderLayout(0, 4));
+        advancedControlsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.AdvancedControls")));
+        advancedControlsPanel.add(showAdvancedControlsCheckBox, BorderLayout.NORTH);
+
+        JLabel advancedControlsNote = new JLabel(StudioBundle.message("label.AdvancedControlsNote"));
+        advancedControlsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        advancedControlsPanel.add(advancedControlsNote, BorderLayout.CENTER);
+
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
         northPanel.add(hintsPanel);
         northPanel.add(userCodePanel);
+        northPanel.add(advancedControlsPanel);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -66,7 +78,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     @Override
     public boolean isModified() {
         return gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
-                || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode();
+                || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
+                || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled();
     }
 
     @Override
@@ -76,6 +89,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         if (state != null) {
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
+            state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
         }
         repaintOpenCanvases();
     }
@@ -84,6 +98,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     public void reset() {
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
+        showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());
     }
 
     @Override
@@ -96,6 +111,9 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             UiContext context = project.getService(UiContext.class);
             if (context != null && context.getDesignerCanvas() != null) {
                 context.getDesignerCanvas().repaint();
+            }
+            if (context != null && context.getCanvasPanel() != null) {
+                context.getCanvasPanel().refreshAdvancedControlsVisibility();
             }
         }
     }

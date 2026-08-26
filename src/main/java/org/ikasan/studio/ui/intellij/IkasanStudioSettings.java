@@ -22,6 +22,14 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
 
         /** Prompt for confirmation before deleting a component's generated class from the user source tree. */
         public boolean promptBeforeDeletingUserCode = true;
+
+        /**
+         * Show rarely-needed controls that most users won't touch day to day - currently just the canvas
+         * toolbar's "Load" button (Studio already loads the module automatically on project open; this is
+         * only for manually reloading model.json from disk after an external change). Off by default so the
+         * common toolbar stays uncluttered; can be switched back on here for the rare case it's needed.
+         */
+        public boolean showAdvancedControls = false;
     }
 
     private State state = new State();
@@ -59,6 +67,21 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         State s = instance != null ? instance.getState() : null;
         if (s != null) {
             s.promptBeforeDeletingUserCode = promptBeforeDeletingUserCode;
+        }
+    }
+
+    public static boolean isShowAdvancedControlsEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return false;
+        State s = instance.getState();
+        return s != null && s.showAdvancedControls;
+    }
+
+    public static void setShowAdvancedControls(boolean showAdvancedControls) {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.showAdvancedControls = showAdvancedControls;
         }
     }
 }
