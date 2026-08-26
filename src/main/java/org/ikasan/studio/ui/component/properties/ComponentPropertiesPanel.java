@@ -54,6 +54,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton toggleOptionalPropertiesButton;
     private JButton setDefaultsButton;
     private JButton clearDefaultsButton;
+    // Only visible when the selected component is a FlowUserImplementedElement (Broker, Converter, etc.) - see
+    // populatePropertiesEditorPanel(). Lets the user force a resync of a hand-written class against its current
+    // properties without first having to change (and revert) some unrelated property just to trigger doOKAction's
+    // changed-property-driven regenerate.
+    private JButton regenerateClassButton;
     private final SimpleChangeListener listenerForAnyEditChanges;
     private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
 
@@ -114,6 +119,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 getPropertiesDialogue().setOKActionEnabled(okToProcess);
             }
         };
+        if (footerPanel != null) {
+            regenerateClassButton = new JButton(StudioBundle.message("button.RegenerateClass"));
+            regenerateClassButton.addActionListener(e -> regenerateSelectedUserImplementedClass());
+            regenerateClassButton.setVisible(false);
+            footerPanel.add(regenerateClassButton);
+        }
     }
 
     /**
@@ -179,6 +190,27 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
+     * "Regenerate Class" button handler: force-regenerates the selected {@link FlowUserImplementedElement}'s own
+     * hand-written class from its current properties, without requiring any property to actually change first -
+     * contrast {@link #doOKAction()}, whose confirm+regenerate flow only ever fires as a side effect of a real
+     * edit. Reuses the same confirm/backup ({@link #confirmForceRegenerateUserImplementedClass()}) and
+     * overwrite-enable/refresh plumbing doOKAction uses for a component self-edit, so this doesn't need to
+     * duplicate any of the generation logic itself.
+     */
+    private void regenerateSelectedUserImplementedClass() {
+        if (!(getSelectedComponent() instanceof FlowUserImplementedElement flowUserImplementedElement)
+                || flowUserImplementedElement.getContainingFlow() == null) {
+            return;
+        }
+        if (!confirmForceRegenerateUserImplementedClass()) {
+            return;
+        }
+        StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
+        flowUserImplementedElement.setOverwriteEnabled(true);
+        StudioPsiUtils.refreshCodeFromModel(project, GenerationRequest.flow(flowUserImplementedElement.getContainingFlow()));
+    }
+
+    /**
      * @return the display labels of changed properties that affect a user implemented class, in row order.
      */
     private List<String> getChangedAffectsUserImplementedClassPropertyLabels() {
@@ -240,7 +272,36 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed",
                 String.join(", ", changedPropertyLabels), String.join("\n", descriptions));
+        return confirmWithOptionalBackup(message, affected);
+    }
 
+    /**
+     * "Regenerate Class" button handler's confirmation: same backup-checkbox dialog {@link #confirmComponentSelfEdit}
+     * uses for a changed-property-triggered regenerate, but worded for an explicit force-regenerate - there are
+     * no changed properties to name here, since this button doesn't require anything to have actually changed
+     * (unlike doOKAction, where a real property edit is what triggers the confirm+regenerate flow in the first place).
+     */
+    private boolean confirmForceRegenerateUserImplementedClass() {
+        List<AffectedUserImplementedClass> affected = getAffectedUserImplementedClasses();
+        if (affected.isEmpty()) {
+            String message = StudioBundle.message("message.ConfirmForceRegenerateUserImplementedClass");
+            return Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"), Messages.getWarningIcon()) == Messages.YES;
+        }
+
+        List<String> descriptions = new ArrayList<>();
+        for (AffectedUserImplementedClass affectedClass : affected) {
+            descriptions.add(affectedClass.description());
+        }
+        String message = StudioBundle.message("message.ConfirmForceRegenerateUserImplementedClassNamed", String.join("\n", descriptions));
+        return confirmWithOptionalBackup(message, affected);
+    }
+
+    /**
+     * Shared backup-checkbox confirmation dialog for both the changed-property-triggered regenerate
+     * ({@link #confirmComponentSelfEdit}) and the on-demand "Regenerate Class" button
+     * ({@link #confirmForceRegenerateUserImplementedClass}) - only the message text differs between the two.
+     */
+    private boolean confirmWithOptionalBackup(String message, List<AffectedUserImplementedClass> affected) {
         // showCheckboxMessageDialog's exitFunc is only invoked once, purely to translate the pressed button's
         // index into a return value - it's just a convenient hook to also capture the checkbox's final state
         // into an array the enclosing method can still read once the (modal) call below returns.
@@ -385,6 +446,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     protected void populatePropertiesEditorPanel() {
         if (!componentInitialisation) {
             updateCodeButton.setEnabled(false);
+            // Guarded: this is first called from the PropertiesPanel superclass constructor, before this
+            // subclass's own constructor body (which creates regenerateClassButton) has run.
+            if (regenerateClassButton != null) {
+                regenerateClassButton.setVisible(getSelectedComponent() instanceof FlowUserImplementedElement);
+            }
         }
 
         if (getSelectedComponent() != null && getSelectedComponent().getComponentMeta() != null) {

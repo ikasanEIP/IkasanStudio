@@ -41,6 +41,10 @@ public abstract class PropertiesPanel extends JBPanel {
     protected final JBTextField propertySearchField;
 
     protected JButton updateCodeButton;
+    // Null when componentInitialisation is true (the first-configuration popup has no footer at all) - exposed
+    // so subclasses can add their own footer buttons (e.g. ComponentPropertiesPanel's "Regenerate Class") after
+    // super() returns, without this base class needing to know about every subclass-specific action.
+    protected JBPanel footerPanel;
     private boolean dataValid = true;
 
     protected PropertiesPanel(Project project, boolean componentInitialisation) {
@@ -101,7 +105,7 @@ public abstract class PropertiesPanel extends JBPanel {
                     }
                }
             );
-            JBPanel footerPanel = new JBPanel();
+            footerPanel = new JBPanel();
             footerPanel.setBorder(null);
             footerPanel.add(updateCodeButton);
             add(footerPanel, BorderLayout.SOUTH);
