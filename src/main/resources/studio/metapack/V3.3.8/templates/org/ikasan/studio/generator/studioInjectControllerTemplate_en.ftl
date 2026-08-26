@@ -40,11 +40,25 @@ public org.springframework.http.ResponseEntity<?> inject(
         org.ikasan.spec.component.endpoint.Consumer consumer = (org.ikasan.spec.component.endpoint.Consumer) consumerElement.getFlowComponent();
         org.ikasan.spec.event.EventFactory eventFactory = (org.ikasan.spec.event.EventFactory) consumer.getEventFactory();
         String identifier = request.getIdentifier() != null ? request.getIdentifier() : java.util.UUID.randomUUID().toString();
+        // If the user picked a payload class in the dialog, the payload text is JSON to deserialize into a
+        // real instance of that class (relying on its own fields, via Jackson) rather than the raw JSON
+        // string - resolved against flow's classloader for the same reason newSyntheticJmsMessage below needs
+        // to (see its comment). setVisibility(FIELD, ANY) makes Jackson bind directly to fields regardless of
+        // access modifier or whether a getter/setter exists - "Generate Sample JSON" in the dialog offers
+        // every field of the chosen class as a JSON key, including plain package-private ones with no
+        // accessors, so deserialization needs to accept exactly those same fields or it rejects its own
+        // generated payload (Jackson's default visibility only auto-detects public fields/accessors).
+        Object rawPayload = (request.getPayloadClassName() != null && !request.getPayloadClassName().isBlank())
+                ? new com.fasterxml.jackson.databind.ObjectMapper()
+                        .setVisibility(com.fasterxml.jackson.annotation.PropertyAccessor.FIELD, com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)
+                        .readValue(request.getPayload(),
+                        Class.forName(request.getPayloadClassName(), true, flow.getClass().getClassLoader()))
+                : request.getPayload();
         // JMS-backed consumers are also a Converter<Message,Object> that unconditionally runs before the flow
         // proper, expecting a real javax.jms.Message rather than the raw payload - synthesize a minimal one.
         Object payload = (consumer instanceof javax.jms.MessageListener)
-                ? newSyntheticJmsMessage(request.getPayload(), flow.getClass().getClassLoader())
-                : request.getPayload();
+                ? newSyntheticJmsMessage(rawPayload, flow.getClass().getClassLoader())
+                : rawPayload;
         Object event = eventFactory.newEvent(identifier, payload);
         ((org.ikasan.spec.event.EventListener) flow).invoke(event);
         java.util.Map<String, String> responseBody = new java.util.HashMap<>();
@@ -57,13 +71,15 @@ public org.springframework.http.ResponseEntity<?> inject(
 }
 
 // Implements both TextMessage and ObjectMessage on the one proxy so it works regardless of which one the
-// consumer/downstream converter actually expects: getText() and getObject() both just hand back the typed
-// payload (a String is a perfectly valid ObjectMessage payload). JmsMessageConverter.extractContent() checks
-// TextMessage first, so with autoContentConversion on this is always read as text; leave autoContentConversion
-// off (so the raw message reaches a downstream component like Object Message To Object Converter untouched)
-// to exercise the ObjectMessage path instead. Everything else on either interface can safely return a
-// zero/null default via a dynamic proxy, avoiding a dependency on any specific JMS provider (e.g. ActiveMQ)
-// not guaranteed to be on the classpath for every JMS consumer.
+// consumer/downstream converter actually expects: getObject() hands back the real payload value (a String,
+// or the deserialized payload-class instance), while getText() falls back to its String.valueOf() so a
+// TextMessage-only reader still gets something sane. JmsMessageConverter.extractContent() checks TextMessage
+// first, so with autoContentConversion on this is always read as text; leave autoContentConversion off (so
+// the raw message reaches a downstream component like Object Message To Object Converter untouched) to
+// exercise the ObjectMessage path - the only way a payload-class instance survives intact rather than being
+// stringified. Everything else on either interface can safely return a zero/null default via a dynamic
+// proxy, avoiding a dependency on any specific JMS provider (e.g. ActiveMQ) not guaranteed to be on the
+// classpath for every JMS consumer.
 // The defining classloader matters and must be passed in from the caller: under Spring Boot's embedded Tomcat,
 // this controller class itself can be loaded by a TomcatEmbeddedWebappClassLoader that holds its OWN separate
 // copy of javax.jms.* (so neither Thread.currentThread().getContextClassLoader() nor
@@ -74,7 +90,7 @@ public org.springframework.http.ResponseEntity<?> inject(
 // wired the flow together with its Consumer/Converter components (loaded from ikasan-* jars) if they're all
 // mutually visible on one delegation chain, so flow.getClass().getClassLoader() reaches the same javax.jms
 // those Ikasan classes see.
-private static Object newSyntheticJmsMessage(String text, ClassLoader ikasanClassLoader) throws ClassNotFoundException {
+private static Object newSyntheticJmsMessage(Object value, ClassLoader ikasanClassLoader) throws ClassNotFoundException {
     // The interface Class objects must themselves be resolved via ikasanClassLoader too, not referenced as
     // javax.jms.TextMessage.class literals (which the compiler would resolve via THIS class's own loader) -
     // Proxy.newProxyInstance requires every interface to be the exact same Class object as loader would
@@ -85,8 +101,11 @@ private static Object newSyntheticJmsMessage(String text, ClassLoader ikasanClas
             ikasanClassLoader,
             new Class<?>[] { textMessageClass, objectMessageClass },
             (proxy, method, args) -> {
-                if ("getText".equals(method.getName()) || "getObject".equals(method.getName())) {
-                    return text;
+                if ("getText".equals(method.getName())) {
+                    return String.valueOf(value);
+                }
+                if ("getObject".equals(method.getName())) {
+                    return value;
                 }
                 Class<?> returnType = method.getReturnType();
                 if (returnType == boolean.class) {
@@ -102,9 +121,14 @@ private static Object newSyntheticJmsMessage(String text, ClassLoader ikasanClas
 public static class InjectRequest {
     private String identifier;
     private String payload;
+    // Fully-qualified name of a project class to deserialize payload (as JSON) into before injection - see
+    // SendTestMessagePayloadDialog. Null means the default plain-text/string payload.
+    private String payloadClassName;
     public String getIdentifier() { return identifier; }
     public void setIdentifier(String identifier) { this.identifier = identifier; }
     public String getPayload() { return payload; }
     public void setPayload(String payload) { this.payload = payload; }
+    public String getPayloadClassName() { return payloadClassName; }
+    public void setPayloadClassName(String payloadClassName) { this.payloadClassName = payloadClassName; }
 }
 }

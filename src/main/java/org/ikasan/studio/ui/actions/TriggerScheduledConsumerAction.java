@@ -64,7 +64,7 @@ public class TriggerScheduledConsumerAction implements ActionListener {
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, NO_PAYLOAD);
+                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, NO_PAYLOAD, null);
 
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());

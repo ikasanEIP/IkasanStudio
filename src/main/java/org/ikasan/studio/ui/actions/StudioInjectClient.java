@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -21,7 +22,20 @@ import java.util.Map;
  * credentials are easy to let drift out of sync between the two callers.
  */
 final class StudioInjectClient {
-    static final Duration HTTP_TIMEOUT = Duration.ofSeconds(5);
+    // How long to wait to establish the TCP connection itself - localhost, so this can stay short; if the
+    // module isn't listening yet at all, callers want to fail fast into the "not yet accepting connections"
+    // ConnectException path rather than hang. 5s is already generous for a loopback handshake - a real delay
+    // here means the port genuinely isn't open yet, not that the connection is merely slow.
+    static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+    // How long to wait for the full response. Unlike the connect above, inject() runs the flow synchronously
+    // server-side before it responds at all - JMS broker connects, JNDI lookups and converters can genuinely
+    // take longer than a few seconds, especially on first invocation (class loading/JIT warmup) or against a
+    // real (non-embedded) broker. 30s is a deliberately generous round number to comfortably cover that kind
+    // of one-off slow path while still eventually giving up on a truly hung flow rather than waiting forever.
+    // This call already runs as a background IDE task, not on the EDT, so a generous timeout here costs
+    // nothing in UI responsiveness - it just keeps the progress indicator up longer for genuinely slow flows
+    // instead of reporting a spurious timeout. If real-world use still hits this, it's cheap to raise further.
+    static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(30);
     // Ikasan's default seeded admin user (see overwriteDBCreation.sql in ikasan-h2-standalone-persistence),
     // granted the ALL authority so it can reach any endpoint. If a module's admin password has been changed
     // from the default, this will fail with a 401 - callers handle that status explicitly.
@@ -32,13 +46,18 @@ final class StudioInjectClient {
     // client object is garbage collected, so repeated calls (e.g. retrying "Send Test Message" a few times
     // while the module is still starting up) could pile up live threads faster than GC reclaims them.
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(HTTP_TIMEOUT)
+            .connectTimeout(CONNECT_TIMEOUT)
             .build();
 
     private StudioInjectClient() {
     }
 
-    static HttpResponse<String> postPayload(Module module, String flowName, String payload) throws Exception {
+    /**
+     * @param payloadClassName fully-qualified name of a project class to deserialize {@code payload} (as JSON)
+     *                         into before injection, or null for the default plain-text/string payload - see
+     *                         SendTestMessagePayloadDialog.
+     */
+    static HttpResponse<String> postPayload(Module module, String flowName, String payload, String payloadClassName) throws Exception {
         String port = module.getPort() != null ? module.getPort() : "8080";
         // The generated app sets server.servlet.context-path to the module's name (see propertiesTemplate_en.ftl),
         // so every endpoint lives under /<module-name>/... - the same transform (StudioBuildUtils.toUrlString)
@@ -49,12 +68,17 @@ final class StudioInjectClient {
         URI uri = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + "/studio/inject/" + flowName, null, null);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String requestBody = objectMapper.writeValueAsString(Map.of("payload", payload));
+        Map<String, String> requestBodyMap = new LinkedHashMap<>();
+        requestBodyMap.put("payload", payload);
+        if (payloadClassName != null && !payloadClassName.isBlank()) {
+            requestBodyMap.put("payloadClassName", payloadClassName);
+        }
+        String requestBody = objectMapper.writeValueAsString(requestBodyMap);
 
         String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
-                .timeout(HTTP_TIMEOUT)
+                .timeout(RESPONSE_TIMEOUT)
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Basic " + credentials)
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))

@@ -53,6 +53,7 @@ public class SendTestMessageAction implements ActionListener {
             return;
         }
         String payload = payloadDialog.getPayload();
+        String payloadClassName = payloadDialog.getPayloadClassName();
 
         Module module = project.getService(UiContext.class).getIkasanModule();
         String flowName = flowElement.getContainingFlow().getIdentity();
@@ -65,7 +66,7 @@ public class SendTestMessageAction implements ActionListener {
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, payload);
+                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, payload, payloadClassName);
 
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());
