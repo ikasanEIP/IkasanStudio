@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.actions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -17,6 +18,7 @@ import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.ConnectException;
 import java.net.http.HttpResponse;
 
 /**
@@ -25,6 +27,7 @@ import java.net.http.HttpResponse;
  * (the studio-debug Spring profile). Bypasses the real broker entirely.
  */
 public class SendTestMessageAction implements ActionListener {
+    private static final Logger LOG = Logger.getInstance("#SendTestMessageAction");
     private final Project project;
     private final BasicElement ikasanBasicElement;
 
@@ -77,9 +80,22 @@ public class SendTestMessageAction implements ActionListener {
                         ApplicationManager.getApplication().invokeLater(() ->
                                 StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
                     }
-                } catch (Exception e) {
+                } catch (ConnectException e) {
+                    // The single most common real-world cause: the debug process is alive (isDebugModuleRunning()
+                    // above only checks the ProcessHandler, not whether Spring Boot has finished starting) but
+                    // Tomcat hasn't bound its port yet - Spring only opens it right at the end of context
+                    // refresh, and a JMS-backed consumer's listener container/JNDI setup can push that out by
+                    // several seconds. Give a specific, actionable message rather than the generic one below.
+                    LOG.warn("STUDIO: Could not send test message to flow " + flowName + " - module not yet accepting connections", e);
                     ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", e.getMessage())));
+                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ModuleNotYetAcceptingConnections")));
+                } catch (Exception e) {
+                    // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
+                    // user, and this is already surfaced via the popup below - see CLAUDE.md.
+                    LOG.warn("STUDIO: Could not send test message to flow " + flowName, e);
+                    String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                    ApplicationManager.getApplication().invokeLater(() ->
+                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
                 }
             }
         });

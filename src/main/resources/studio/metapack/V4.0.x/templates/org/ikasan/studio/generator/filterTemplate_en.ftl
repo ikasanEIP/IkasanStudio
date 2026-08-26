@@ -3,6 +3,10 @@ package ${studioPackageTag};
 /**
 * Base interface for filtering messages.
 *
+* Note: filter() below always receives just the payload, never the full FlowEvent - unlike Broker/Converter,
+* there is no full-event mode to opt into here. If your filter logic needs the event's identifier, timestamp
+* or other metadata, a Broker (with its input type set to org.ikasan.spec.flow.FlowEvent) is a better fit.
+*
 * @author Ikasan Development Team
 *
 */

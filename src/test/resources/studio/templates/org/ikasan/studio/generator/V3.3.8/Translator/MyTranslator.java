@@ -3,6 +3,11 @@ package org.ikasan;
 /**
  * The main responsibility of a translator is to translate the payload (not the type).
  *
+ * Note: translate() below always receives just the payload, never the full FlowEvent - unlike Broker/Converter,
+ * there is no full-event mode to opt into here. If your translation logic needs the event's identifier,
+ * timestamp or other metadata, a Broker (with its input type set to org.ikasan.spec.flow.FlowEvent) is a
+ * better fit.
+ *
  * This is an auto generated stub. The user is expected to fill in the details of the conversion below.
  * This stub will not be over-written unless the overwrite checkbox is explicitly selected.
  */

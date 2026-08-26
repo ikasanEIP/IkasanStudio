@@ -80,10 +80,10 @@
     },
     "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
-      "propertyGroup": "Connection",
-      "propertyDisplayOrder": 140,
+      "propertyDisplayOrder": -80,
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
+      "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url"
     },

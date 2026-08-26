@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.actions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -17,6 +18,7 @@ import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.ConnectException;
 import java.net.http.HttpResponse;
 
 /**
@@ -27,6 +29,7 @@ import java.net.http.HttpResponse;
  * for the next cron fire. See ComponentMeta#isTimeEventConsumer().
  */
 public class TriggerScheduledConsumerAction implements ActionListener {
+    private static final Logger LOG = Logger.getInstance("#TriggerScheduledConsumerAction");
     // No real payload applies to a time-based trigger - see class javadoc.
     private static final String NO_PAYLOAD = "";
 
@@ -76,9 +79,19 @@ public class TriggerScheduledConsumerAction implements ActionListener {
                         ApplicationManager.getApplication().invokeLater(() ->
                                 StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
                     }
-                } catch (Exception e) {
+                } catch (ConnectException e) {
+                    // See the matching catch in SendTestMessageAction - isDebugModuleRunning() above only
+                    // checks the ProcessHandler, not whether Spring Boot has finished starting/bound its port.
+                    LOG.warn("STUDIO: Could not trigger scheduled consumer for flow " + flowName + " - module not yet accepting connections", e);
                     ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", e.getMessage())));
+                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ModuleNotYetAcceptingConnections")));
+                } catch (Exception e) {
+                    // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
+                    // user, and this is already surfaced via the popup below - see CLAUDE.md.
+                    LOG.warn("STUDIO: Could not trigger scheduled consumer for flow " + flowName, e);
+                    String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                    ApplicationManager.getApplication().invokeLater(() ->
+                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
                 }
             }
         });

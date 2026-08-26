@@ -26,6 +26,14 @@ final class StudioInjectClient {
     // granted the ALL authority so it can reach any endpoint. If a module's admin password has been changed
     // from the default, this will fail with a 401 - callers handle that status explicitly.
     private static final String DEFAULT_CREDENTIALS = "admin:admin";
+    // HttpClient is immutable/thread-safe and documented to be shared and reused across many requests (it
+    // pools connections internally) - building a new one per call (as this used to do) is a known anti-pattern:
+    // each instance spins up its own background selector-manager thread that only gets cleaned up once that
+    // client object is garbage collected, so repeated calls (e.g. retrying "Send Test Message" a few times
+    // while the module is still starting up) could pile up live threads faster than GC reclaims them.
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(HTTP_TIMEOUT)
+            .build();
 
     private StudioInjectClient() {
     }
@@ -43,9 +51,6 @@ final class StudioInjectClient {
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(Map.of("payload", payload));
 
-        HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(HTTP_TIMEOUT)
-                .build();
         String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
@@ -54,6 +59,6 @@ final class StudioInjectClient {
                 .header("Authorization", "Basic " + credentials)
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 }
