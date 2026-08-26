@@ -133,6 +133,13 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
+            // ComponentPropertyEditRow#initialValue is captured once, at row construction, and is immutable -
+            // rebuilding the rows against the just-committed model is the only way to make
+            // dataHasChangedAndOKToProcess() (and so isDebugModuleRunning-time callers like
+            // LaunchApplicationAction's unsaved-changes check) correctly see "no changes" again after a
+            // successful save, rather than comparing forever against the pre-edit values.
+            populatePropertiesEditorPanel();
+            redrawPanel();
             if (metaPackChanged) {
                 Module module = uiContext.getIkasanModule();
                 // If the version has changed, we need to update the component meta

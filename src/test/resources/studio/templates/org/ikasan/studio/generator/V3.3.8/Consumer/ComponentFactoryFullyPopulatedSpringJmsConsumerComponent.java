@@ -35,32 +35,30 @@ java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiPasswor
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.destination.jndi.user}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiUser;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 javax.jms.ConnectionFactory myConnectionFactory;
-@javax.annotation.Resource
-java.util.Map<String, String> key1value1key2value2;
 @javax.annotation.Resource
 org.ikasan.spec.event.EventFactory orgIkasanMyflowMyEventFactory;
 @javax.annotation.Resource
 org.ikasan.spec.event.ManagedRelatedEventIdentifierService orgIkasanSpecEventManagedRelatedEventIdentifierService;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.quartz.consumer.MessageProvider myMessageProviderClass;
+org.ikasan.component.endpoint.jms.consumer.MessageProvider myMessageProviderClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyJSpringJMSConsumer() {
-return builderFactory.getComponentBuilder().springJMSConsumer()
+return builderFactory.getComponentBuilder().jmsConsumer()
 .setAutoContentConversion(true)
 .setAutoSplitBatch(true)
 .setBatchMode(true)
-.setBatchMode(1)
+.setBatchSize(1)
 .setCacheLevel(1)
 .setConcurrentConsumers(2)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("aToBConvertmyFlow1myJSpringJMSConsumer")
 .setConnectionFactory(myConnectionFactory)
-.setConnectionFactoryJNDIProperties(key1value1key2value2)
+.setConnectionFactoryJndiProperties(key1value1key2value2)
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryJndiProviderUrl)
 .setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
@@ -72,7 +70,7 @@ return builderFactory.getComponentBuilder().springJMSConsumer()
 .setConnectionPassword("myConnectionPassword")
 .setConnectionUsername("myConnectionUsername")
 .setDestinationJndiName(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestination)
-.setDestinationJndiProperties("myDestinationJndiProperties")
+.setDestinationJndiProperties(myDestinationJndiProperties)
 .setDestinationJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiInitial)
 .setDestinationJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiProviderUrl)
 .setDestinationJndiPropertySecurityCredentials(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiPassword)

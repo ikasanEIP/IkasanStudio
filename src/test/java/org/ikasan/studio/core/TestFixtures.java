@@ -98,14 +98,6 @@ public class TestFixtures {
             .build();
     }
 
-    public static FlowElement getEventGeneratingConsumerWithWiretaps(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer");
-        return FlowElement.flowElementBuilder()
-            .componentMeta(meta)
-            .componentName("My Event Generating Consumer")
-            .build();
-    }
-
     public static FlowElement getGenericConsumer(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Consumer");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
@@ -292,7 +284,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configurationId", "__module__flow__component");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
-        flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
+        flowElement.setPropertyValue("connectionFactoryJndiProperties", "key1value1key2value2");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
@@ -717,7 +709,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResourceId", "__module.__flow.__component");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
-        flowElement.setPropertyValue("connectionFactoryJNDIProperties", "{key1:'value1',key2:'value2'}");
+        flowElement.setPropertyValue("connectionFactoryJndiProperties", "key1value1key2value2");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
@@ -979,17 +971,6 @@ public class TestFixtures {
                 .childRoutes(childRoutes)
                 .build());
         return flow;
-    }
-
-    /**
-     * Only Flow and Module have this property.
-     * @return the component property meta for the flow or module name.
-     */
-    public static ComponentPropertyMeta getNameComponentPropertyMeta() {
-        return ComponentPropertyMeta.builder()
-                .propertyName("name")
-                .helpText("The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.")
-                .build();
     }
 
     /**

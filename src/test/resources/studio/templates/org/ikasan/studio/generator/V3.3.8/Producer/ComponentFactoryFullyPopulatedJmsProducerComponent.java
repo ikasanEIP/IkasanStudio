@@ -35,11 +35,9 @@ java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.destination.jndi.user}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiUser;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 javax.jms.ConnectionFactory myConnectionFactory;
-@javax.annotation.Resource
-java.util.Map<String, String> key1value1key2value2;
 @javax.annotation.Resource
 org.springframework.jms.support.converter.MessageConverter myMessageConverter;
 @javax.annotation.Resource
@@ -52,7 +50,7 @@ return builderFactory.getComponentBuilder().jmsProducer()
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("aToBConvertMyFlow1MyJMSProducer")
 .setConnectionFactory(myConnectionFactory)
-.setConnectionFactoryJNDIProperties(key1value1key2value2)
+.setConnectionFactoryJndiProperties(key1value1key2value2)
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiProviderUrl)
 .setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
@@ -66,7 +64,7 @@ return builderFactory.getComponentBuilder().jmsProducer()
 .setDeliveryMode(1)
 .setDeliveryPersistent(true)
 .setDestinationJndiName(jmsAToBConvertMyFlow1MyJMSProducerDestination)
-.setDestinationJndiProperties("myDestinationJndiProperties")
+.setDestinationJndiProperties(myDestinationJndiProperties)
 .setDestinationJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiInitial)
 .setDestinationJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiProviderUrl)
 .setDestinationJndiPropertySecurityCredentials(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiPassword)

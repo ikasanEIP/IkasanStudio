@@ -5,7 +5,25 @@
   "endpointTextKey": "destinationJndiName",
   "flowBuilderMethod": "consumer",
   "helpText": "<strong>Spring JMS Consumer</strong><p>The JMS consumer is Event Driven Consumer, used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p>\n",
+  "ikasanComponentFactoryMethod": "jmsConsumer",
   "implementingClass": "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-jms-spring-arjuna",
+      "version": "4.1.6"
+    },
+    {
+      "groupId": "org.apache.activemq",
+      "artifactId": "activemq-client",
+      "version": "5.16.3"
+    },
+    {
+      "groupId": "org.apache.activemq",
+      "artifactId": "activemq-broker",
+      "version": "5.16.3"
+    }
+  ],
   "usesBuilderInFactory": true,
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/jms-spring-arjuna/consumer.md",
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
@@ -15,43 +33,9 @@
       "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
       "mandatory": true
     },
-    "connectionFactoryJndiPropertyFactoryInitial": {
-      "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
-      "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
-      "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial",
-      "usageDataType": "java.lang.String"
-    },
-    "connectionFactoryName": {
-      "propertyName": "connectionFactoryName",
-      "helpText": "ConnectionFactory|ConnectionFactoryName is required if not already passed on the constructor.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
-      "usageDataType": "java.lang.String"
-    },
-    "connectionFactoryPassword": {
-      "propertyName": "connectionFactoryPassword",
-      "defaultValue": "admin",
-      "helpText": "Id set on the JMS connection for durable subscribers.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
-      "usageDataType": "java.lang.String"
-    },
-    "connectionFactoryUsername": {
-      "propertyName": "connectionFactoryUsername",
-      "defaultValue": "admin",
-      "helpText": "Authentication principal.",
-      "mandatory": true,
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
-      "usageDataType": "java.lang.String"
-    },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
+      "propertyDisplayOrder": -60,
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
       "mandatory": true,
       "setterProperty": true,
@@ -60,121 +44,152 @@
     },
     "autoContentConversion": {
       "propertyName": "autoContentConversion",
-      "helpText": "Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.",
+      "propertyDisplayOrder": -50,
+      "defaultValue": false,
+      "helpText": "Default(False). Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "autoSplitBatch": {
-      "propertyName": "autoSplitBatch",
-      "helpText": "When batchMode is true this option determines whether to automatically split the batch of messages into individual messages to fire downstream (true); or to simply pass them as a list of messages downstream (false).",
+    "connectionFactoryName": {
+      "propertyName": "connectionFactoryName",
+      "propertyDisplayOrder": -70,
+      "defaultValue": "ConnectionFactory",
+      "helpText": "The JNDI name the ConnectionFactory is registered under, looked up via the connectionFactoryJndiProperty* settings below. Default('ConnectionFactory') matches the fixed name ActiveMQ's embedded broker auto-binds its connection factory under - only change this if you're pointing at a different/remote broker or JNDI provider that registers it under another name.",
+      "mandatory": true,
       "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "batchMode": {
-      "propertyName": "batchMode",
-      "helpText": "Use message batching.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "batchSize": {
-      "propertyName": "batchMode",
-      "helpText": "Batching consumer maximum messages per batch limit.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
-    "cacheLevel": {
-      "propertyName": "cacheLevel",
-      "helpText": "Caching level of the underlying message listener container (for XA transactions with AMQ, this must be set to 1). CACHE_NONE = 0, CACHE_CONNECTION = 1, CACHE_SESSION = 2, CACHE_CONSUMER = 3, CACHE_AUTO = 4.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
-    "concurrentConsumers": {
-      "propertyName": "concurrentConsumers",
-      "helpText": "Initial number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
-    "configuration": {
-      "propertyName": "configuration",
-      "helpText": "Provide the classname that overrides and implements the default FileConsumerConfiguration interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
-      "setterProperty": true,
-      "userSuppliedClass": true,
-      "affectsUserImplementedClass": true,
-      "protectFromOverwrite": true,
-      "usageDataType": "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration",
-      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
-    },
-    "configurationId": {
-      "propertyName": "configurationId",
-      "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
-      "setterProperty": true,
-      "setterMethod": "setConfiguredResourceId",
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.name",
       "usageDataType": "java.lang.String"
     },
-    "connectionFactory": {
-      "propertyName": "connectionFactory",
-      "helpText": "Provide the classname that overrides and implements the default ConnectionFactory interface. The class encapsulates all the properties here into a single bean, using it will reduce your ability to configure the component within this tool.",
+    "connectionFactoryUsername": {
+      "propertyName": "connectionFactoryUsername",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 110,
+      "defaultValue": "admin",
+      "helpText": "Authentication principal used to look up the ConnectionFactory via JNDI - see connectionFactoryJndiProperty* below. Unrelated to connectionUsername, which authenticates a directly-supplied connectionFactory bean instead.",
       "setterProperty": true,
-      "usageDataType": "javax.jms.ConnectionFactory",
-      "userSuppliedClass": true,
-      "noStubRequired": true
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user",
+      "usageDataType": "java.lang.String"
     },
-    "connectionFactoryJNDIProperties": {
-      "propertyName": "connectionFactoryJNDIProperties",
-      "helpText": "JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
+    "connectionFactoryPassword": {
+      "propertyName": "connectionFactoryPassword",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 120,
+      "defaultValue": "admin",
+      "helpText": "Authentication credential paired with connectionFactoryUsername, used to look up the ConnectionFactory via JNDI.",
       "setterProperty": true,
-      "usageDataType": "java.util.Map<String, String>",
-      "userSuppliedClass": true,
-      "affectsUserImplementedClass": true
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password",
+      "usageDataType": "java.lang.String"
+    },
+    "connectionFactoryJndiPropertyFactoryInitial": {
+      "propertyName": "connectionFactoryJndiPropertyFactoryInitial",
+      "propertyDisplayOrder": -65,
+      "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+      "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
+      "mandatory": true,
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.initial",
+      "usageDataType": "java.lang.String"
     },
     "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 140,
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.jndi.provider.url",
       "usageDataType": "java.lang.String"
     },
-    "connectionFactoryJndiPropertySecurityCredentials": {
-      "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
-      "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
+    "connectionFactoryJndiPropertySecurityPrincipal": {
+      "propertyName": "connectionFactoryJndiPropertySecurityPrincipal",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 150,
+      "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
-    "connectionFactoryJndiPropertySecurityPrincipal": {
-      "propertyName": "connectionFactoryJndiPropertySecurityPrincipal",
-      "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
+    "connectionFactoryJndiPropertySecurityCredentials": {
+      "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 160,
+      "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "connectionFactoryJndiPropertyUrlPkgPrefixes": {
       "propertyName": "connectionFactoryJndiPropertyUrlPkgPrefixes",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 170,
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "connectionFactoryJndiProperties": {
+      "propertyName": "connectionFactoryJndiProperties",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 180,
+      "helpText": "JNDI parameters map used to look up the ConnectionFactory, as an alternative to the individual connectionFactoryJndiProperty* fields above. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
+      "setterProperty": true,
+      "usageDataType": "java.util.Map<String, String>"
+    },
+    "connectionFactory": {
+      "propertyName": "connectionFactory",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 190,
+      "helpText": "Provide the classname that overrides and implements the default ConnectionFactory interface, bypassing the JNDI lookup above entirely and using this bean directly. If connectionUsername is also set, the supplied factory is wrapped so each connection authenticates with those credentials.",
+      "setterProperty": true,
+      "usageDataType": "jakarta.jms.ConnectionFactory",
+      "userSuppliedClass": true,
+      "noStubRequired": true
+    },
+    "connectionUsername": {
+      "propertyName": "connectionUsername",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 200,
+      "helpText": "Authentication principal used only when connectionFactory (a directly-supplied bean) is also set - wraps that connection factory so each connection it opens authenticates with this username/connectionPassword. Has no effect if connectionFactory is left unset (i.e. when resolving via JNDI, use connectionFactoryUsername instead).",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "connectionPassword": {
       "propertyName": "connectionPassword",
-      "helpText": "Authentication credential.This value is masked on all GUI views.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 210,
+      "helpText": "Authentication credential paired with connectionUsername. This value is masked on all GUI views.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
-    "connectionUsername": {
-      "propertyName": "connectionUsername",
-      "helpText": "Authentication principal.",
+    "pubSubDomain": {
+      "propertyName": "pubSubDomain",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 300,
+      "defaultValue": false,
+      "helpText": "Default(False). Set to true to indicate that destination is a topic, otherwise destination is a queue.",
       "setterProperty": true,
-      "usageDataType": "java.lang.String"
+      "trueLabel": "Topic",
+      "falseLabel": "Queue",
+      "propertyDataType": "java.lang.Boolean"
     },
-    "destinationJndiProperties": {
-      "propertyName": "destinationJndiProperties",
-      "helpText": "Optional JNDI parameters map. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
+    "durable": {
+      "propertyName": "durable",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 310,
+      "defaultValue": false,
+      "helpText": "Default(False). Create a durable subscription (true) on the destination which will ensure messages aren't missed when the flow is stopped or paused. If not durable (false) messages on the destination will be missed when the flow is stopped or paused. This is only applicable to topics.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "durableSubscriptionName": {
+      "propertyName": "durableSubscriptionName",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 320,
+      "helpText": "Required when durable is true. Id set on the JMS session for durable subscribers.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
     "destinationJndiPropertyFactoryInitial": {
       "propertyName": "destinationJndiPropertyFactoryInitial",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 330,
       "defaultValue": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
       "helpText": "The fully qualified class name of the factory class that will create the initial context. An initial context is the starting point for naming operations. For more information, see the Java API documentation for javax.naming.Context.INITIAL_CONTEXT_FACTORY.",
       "setterProperty": true,
@@ -183,113 +198,196 @@
     },
     "destinationJndiPropertyProviderUrl": {
       "propertyName": "destinationJndiPropertyProviderUrl",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 340,
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.provider.url",
       "usageDataType": "java.lang.String"
     },
-    "destinationJndiPropertySecurityCredentials": {
-      "propertyName": "destinationJndiPropertySecurityCredentials",
-      "defaultValue": "admin",
-      "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
-      "setterProperty": true,
-      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password",
-      "usageDataType": "java.lang.String"
-    },
     "destinationJndiPropertySecurityPrincipal": {
       "propertyName": "destinationJndiPropertySecurityPrincipal",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 350,
       "defaultValue": "admin",
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.user",
       "usageDataType": "java.lang.String"
     },
+    "destinationJndiPropertySecurityCredentials": {
+      "propertyName": "destinationJndiPropertySecurityCredentials",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 360,
+      "defaultValue": "admin",
+      "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "jms.__module.__flow.__component.destination.jndi.password",
+      "usageDataType": "java.lang.String"
+    },
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 370,
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },
-    "durable": {
-      "propertyName": "durable",
-      "helpText": "Create a durable subscription (true) on the destination which will ensure messages aren't missed when the flow is stopped or paused.If not durable (false) messages on the destination will be missed when the flow is stopped or paused. This is only applicable to topics.",
+    "destinationJndiProperties": {
+      "propertyName": "destinationJndiProperties",
+      "propertyGroup": "Destination",
+      "propertyDisplayOrder": 380,
+      "helpText": "Optional JNDI parameters map used to look up the destination, as an alternative to the individual destinationJndiProperty* fields above. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
+      "setterProperty": true,
+      "usageDataType": "java.util.Map<String, String>"
+    },
+    "sessionTransacted": {
+      "propertyName": "sessionTransacted",
+      "propertyGroup": "Session",
+      "propertyDisplayOrder": 400,
+      "defaultValue": false,
+      "helpText": "Default(False). Sets whether the session should be part of a local JMS transaction - when true, the broker holds the message until the session commits/rolls back; when false, acknowledgement is governed by sessionAcknowledgeMode instead.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "durableSubscriptionName": {
-      "propertyName": "durableSubscriptionName",
-      "helpText": "Id set on the JMS session for durable subscribers.",
+    "sessionAcknowledgeMode": {
+      "propertyName": "sessionAcknowledgeMode",
+      "propertyGroup": "Session",
+      "propertyDisplayOrder": 410,
+      "helpText": "Ignored when sessionTransacted is true. The JMS acknowledgement mode that is used when creating a JMS Session to send a message, valid values are: SESSION_TRANSACTED = 0, AUTO_ACKNOWLEDGE = 1, CLIENT_ACKNOWLEDGE = 2, DUPS_OK_ACKNOWLEDGE = 3",
       "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "transactionManager": {
+      "propertyName": "transactionManager",
+      "propertyGroup": "Session",
+      "propertyDisplayOrder": 420,
+      "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
+      "setterProperty": true,
+      "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
+      "userSuppliedClass": true,
+      "noStubRequired": true
+    },
+    "batchMode": {
+      "propertyName": "batchMode",
+      "propertyGroup": "Batching",
+      "propertyDisplayOrder": 500,
+      "defaultValue": false,
+      "helpText": "Default(False). Use message batching.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "batchSize": {
+      "propertyName": "batchSize",
+      "propertyGroup": "Batching",
+      "propertyDisplayOrder": 510,
+      "helpText": "Required when batchMode is true. Batching consumer maximum messages per batch limit.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "autoSplitBatch": {
+      "propertyName": "autoSplitBatch",
+      "propertyGroup": "Batching",
+      "propertyDisplayOrder": 520,
+      "defaultValue": true,
+      "helpText": "Default(True). Only applicable when batchMode is true. When true (the default), automatically split the batch of messages into individual messages to fire downstream; when false, pass them as a single list of messages downstream instead.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "concurrentConsumers": {
+      "propertyName": "concurrentConsumers",
+      "propertyGroup": "Concurrency",
+      "propertyDisplayOrder": 600,
+      "defaultValue": 1,
+      "helpText": "Default(1). Initial number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "maxConcurrentConsumers": {
+      "propertyName": "maxConcurrentConsumers",
+      "propertyGroup": "Concurrency",
+      "propertyDisplayOrder": 610,
+      "defaultValue": 1,
+      "helpText": "Default(1). Maximum number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "cacheLevel": {
+      "propertyName": "cacheLevel",
+      "propertyGroup": "Concurrency",
+      "propertyDisplayOrder": 620,
+      "defaultValue": 1,
+      "helpText": "Default(1 = CACHE_CONNECTION). Caching level of the underlying message listener container (for XA transactions with AMQ, this must be set to 1). CACHE_NONE = 0, CACHE_CONNECTION = 1, CACHE_SESSION = 2, CACHE_CONSUMER = 3, CACHE_AUTO = 4.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 700,
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. Using it will reduce your ability to configure the component within this tool.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "protectFromOverwrite": true,
+      "usageDataType": "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 710,
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "setterProperty": true,
+      "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"
     },
     "eventFactory": {
       "propertyName": "eventFactory",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 720,
       "helpText": "Provide the classname that overrides and implements the default EventFactory interface. The Event factory used to instantiate ikasan flow events based on incoming payload from the tech endpoint. Pre-built implementations you can wire in instead of writing your own: org.ikasan.spec.flow.FlowEventFactory (Ikasan's built-in default, used automatically unless overridden).",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.spec.event.EventFactory",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
+      "validationMessage": "Provide a java classname for the Event Factory bean."
     },
     "managedIdentifierService": {
       "propertyName": "managedIdentifierService",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 730,
       "helpText": "Provide the classname that overrides and implements the default ManagedRelatedEventIdentifierService interface. The Related Event Identifier is a business identifier immutable for the business life of the event, allowing it to be tied to a main business event. This is commonly used if the business event mutates during a flow, for example in a Splitter, and tracking of the related business events is required. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.jms.JmsEventIdentifierServiceImpl.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
       "usageDataType": "org.ikasan.spec.event.ManagedRelatedEventIdentifierService",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
-      "validationMessage": "Provide a java classname for the Configuration bean."
-    },
-    "maxConcurrentConsumers": {
-      "propertyName": "maxConcurrentConsumers",
-      "helpText": "Maximum number of concurrent consumers within this message listener. WARNING: Using concurrent concurrency on the consumer requires downstream components within this flow to be thread safe.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
+      "validationMessage": "Provide a java classname for the consumer event provider bean."
     },
     "messageProvider": {
       "propertyName": "messageProvider",
-      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 740,
+      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface (a lifecycle contract - start()/stop()/isRunning() - for the underlying Spring message listener container, not a source of message payloads despite the name). The default, built automatically from the connection/destination/session properties above, is org.ikasan.component.endpoint.jms.spring.listener.ArjunaIkasanMessageListenerContainer. There are no other built-in implementations to wire in - overriding this replaces the whole listener container, including how it connects and listens, so only do so if you need to plug in your own container implementation.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
-      "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
+      "usageDataType": "org.ikasan.component.endpoint.jms.consumer.MessageProvider",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."
     },
-    "pubSubDomain": {
-      "propertyName": "pubSubDomain",
-      "helpText": "Set to true to indicate that destination is a topic, otherwise destination is a queue.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
     "receiveTimeout": {
       "propertyName": "receiveTimeout",
-      "helpText": "Sets the receive timout (in milliseconds) for querying and download of content. Defaults to the JMS spring timeout.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 750,
+      "helpText": "Only applied when messageProvider is left at its default (see above). Sets the receive timeout (in milliseconds) the underlying listener container waits for a message before looping again. Defaults to the JMS spring timeout.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Long"
-    },
-    "sessionAcknowledgeMode": {
-      "propertyName": "sessionAcknowledgeMode",
-      "helpText": "The JMS acknowledgement mode that is used when creating a JMS Session to send a message, valid values are: SESSION_TRANSACTED = 0, AUTO_ACKNOWLEDGE = 1, CLIENT_ACKNOWLEDGE = 2, DUPS_OK_ACKNOWLEDGE = 3",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Integer"
-    },
-    "sessionTransacted": {
-      "propertyName": "sessionTransacted",
-      "helpText": "Sets whether the session should be part of a transaction.",
-      "setterProperty": true,
-      "propertyDataType": "java.lang.Boolean"
-    },
-    "transactionManager": {
-      "propertyName": "transactionManager",
-      "helpText": "Provide the classname that overrides and implements the default JtaTransactionManager interface. Typically this is the Spring transaction manager, overriding may be needed to interface into third party containers.",
-      "setterProperty": true,
-      "usageDataType": "org.springframework.transaction.jta.JtaTransactionManager",
-      "userSuppliedClass": true,
-      "noStubRequired": true
     }
   }
 }
