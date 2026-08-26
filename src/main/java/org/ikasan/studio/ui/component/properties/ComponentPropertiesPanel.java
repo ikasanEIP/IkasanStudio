@@ -696,6 +696,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc.weightx = 1.0;
             propertiesEditorPanel.add(componentInput.getFirstFocusComponent(), gc);
         } else {
+            // Match the text-field branch's weightx=1.0: without it, this column only gets stretch/left-anchor
+            // behaviour when some OTHER row sharing this group panel's GridBagLayout happens to be a text field
+            // that sets it - a boolean-only group (e.g. a single checkbox row with no sibling text rows) would
+            // otherwise get weightx=0 for every column, which GridBagLayout centers instead of left-anchoring.
+            gc.weightx = 1.0;
             JBPanel booleanPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             booleanPanel.setBackground(getThemeAwareBackgroundColor());
             String trueLabel = (meta != null && meta.getTrueLabel() != null) ? meta.getTrueLabel() : StudioBundle.message("label.True");

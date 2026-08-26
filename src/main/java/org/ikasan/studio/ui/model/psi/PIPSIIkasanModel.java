@@ -283,6 +283,17 @@ public class PIPSIIkasanModel {
         generateAndSaveJavaCodeIkasanComponentFactory(project, module, flowPackageName, ikasanFlow);
         generateAndSaveJavaCodeIkasanFlow(project, module, flowPackageName, ikasanFlow);
         generateAndSaveUserImplementClassStubsForFlow(project, module, ikasanFlow);
+        // generateAndSaveJavaCodeIkasanFlow (above) unconditionally points every component's "jump to code"
+        // target at the Flow.java file via setFlowComponentNavigationTargets - correct as a default, but wrong
+        // for a FlowUserImplementedElement (Broker, Converter, etc.) whose stub, once generated, is normally
+        // NOT regenerated on every save (see isOverwriteEnabled() in generateAndSaveUserImplementClassStubsForFlow
+        // above), so nothing re-points the target back at its own class file after this first clobber. Re-running
+        // this after every save (not just on project load, where it was previously the only caller) keeps "jump
+        // to code" pointing at the user's own class regardless of whether its stub was actually rewritten.
+        VirtualFile projectBaseDir = StudioPsiUtils.getProjectBaseDir(project);
+        if (projectBaseDir != null) {
+            setUserImplementedClassNavigationTargets(module, ikasanFlow, projectBaseDir);
+        }
     }
 
     private void generateAndSaveUserImplementClassStubsForFlow(Project project, Module module, Flow ikasanFlow) {

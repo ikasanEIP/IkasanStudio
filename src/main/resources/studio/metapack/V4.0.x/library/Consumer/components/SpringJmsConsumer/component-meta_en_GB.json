@@ -44,6 +44,7 @@
     },
     "autoContentConversion": {
       "propertyName": "autoContentConversion",
+      "propertyGroup": "Popular",
       "propertyDisplayOrder": -50,
       "defaultValue": false,
       "helpText": "Default(False). Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.",
