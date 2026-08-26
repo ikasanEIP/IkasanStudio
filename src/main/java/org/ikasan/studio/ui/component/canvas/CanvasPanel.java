@@ -63,7 +63,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console"), CONSOLE_ICON), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         refreshAdvancedControlsVisibility();
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.Save"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
+        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.RegenerateCode"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
 //        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
 
