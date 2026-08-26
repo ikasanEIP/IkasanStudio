@@ -43,7 +43,7 @@ public org.springframework.http.ResponseEntity<?> inject(
         // JMS-backed consumers are also a Converter<Message,Object> that unconditionally runs before the flow
         // proper, expecting a real jakarta.jms.Message rather than the raw payload - synthesize a minimal one.
         Object payload = (consumer instanceof jakarta.jms.MessageListener)
-                ? newSyntheticTextMessage(request.getPayload())
+                ? newSyntheticJmsMessage(request.getPayload(), flow.getClass().getClassLoader())
                 : request.getPayload();
         Object event = eventFactory.newEvent(identifier, payload);
         ((org.ikasan.spec.event.EventListener) flow).invoke(event);
@@ -56,15 +56,36 @@ public org.springframework.http.ResponseEntity<?> inject(
     }
 }
 
-// Only getText() is load-bearing for JmsMessageConverter.extractContent's TextMessage branch - everything
-// else on the interface can safely return a zero/null default via a dynamic proxy, avoiding a dependency on
-// any specific JMS provider (e.g. ActiveMQ) not guaranteed to be on the classpath for every JMS consumer.
-private static Object newSyntheticTextMessage(String text) {
+// Implements both TextMessage and ObjectMessage on the one proxy so it works regardless of which one the
+// consumer/downstream converter actually expects: getText() and getObject() both just hand back the typed
+// payload (a String is a perfectly valid ObjectMessage payload). JmsMessageConverter.extractContent() checks
+// TextMessage first, so with autoContentConversion on this is always read as text; leave autoContentConversion
+// off (so the raw message reaches a downstream component like Object Message To Object Converter untouched)
+// to exercise the ObjectMessage path instead. Everything else on either interface can safely return a
+// zero/null default via a dynamic proxy, avoiding a dependency on any specific JMS provider (e.g. ActiveMQ)
+// not guaranteed to be on the classpath for every JMS consumer.
+// The defining classloader matters and must be passed in from the caller: under Spring Boot's embedded Tomcat,
+// this controller class itself can be loaded by a TomcatEmbeddedWebappClassLoader that holds its OWN separate
+// copy of jakarta.jms.* (so neither Thread.currentThread().getContextClassLoader() nor
+// SomeJmsInterface.class.getClassLoader(), both resolved from THIS class, escape it) - a proxy built against
+// that loader implements a same-named-but-distinct ObjectMessage/TextMessage Class object, so a real checkcast
+// against it (e.g. ObjectMessageToObjectConverter's generic bridge method) throws ClassCastException even
+// though the interface names match. flow's classloader is guaranteed correct instead: Spring can only have
+// wired the flow together with its Consumer/Converter components (loaded from ikasan-* jars) if they're all
+// mutually visible on one delegation chain, so flow.getClass().getClassLoader() reaches the same jakarta.jms
+// those Ikasan classes see.
+private static Object newSyntheticJmsMessage(String text, ClassLoader ikasanClassLoader) throws ClassNotFoundException {
+    // The interface Class objects must themselves be resolved via ikasanClassLoader too, not referenced as
+    // jakarta.jms.TextMessage.class literals (which the compiler would resolve via THIS class's own loader) -
+    // Proxy.newProxyInstance requires every interface to be the exact same Class object as loader would
+    // resolve, or it throws IllegalArgumentException("interface not visible from class loader").
+    Class<?> textMessageClass = Class.forName("jakarta.jms.TextMessage", false, ikasanClassLoader);
+    Class<?> objectMessageClass = Class.forName("jakarta.jms.ObjectMessage", false, ikasanClassLoader);
     return java.lang.reflect.Proxy.newProxyInstance(
-            Thread.currentThread().getContextClassLoader(),
-            new Class<?>[] { jakarta.jms.TextMessage.class },
+            ikasanClassLoader,
+            new Class<?>[] { textMessageClass, objectMessageClass },
             (proxy, method, args) -> {
-                if ("getText".equals(method.getName())) {
+                if ("getText".equals(method.getName()) || "getObject".equals(method.getName())) {
                     return text;
                 }
                 Class<?> returnType = method.getReturnType();
