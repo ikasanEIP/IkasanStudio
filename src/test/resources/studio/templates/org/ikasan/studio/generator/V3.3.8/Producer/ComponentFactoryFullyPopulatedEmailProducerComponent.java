@@ -19,7 +19,7 @@ java.util.List<String> myFlow1EmailProducerBccRecipients;
 @org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.ccRecipients}'.split(',')}")
 java.util.List<String> myFlow1EmailProducerCcRecipients;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyEmailProducer() {
 return builderFactory.getComponentBuilder().emailProducer()

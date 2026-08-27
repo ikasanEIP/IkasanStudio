@@ -123,7 +123,7 @@
     "configuration": {
       "propertyName": "configuration",
       "propertyGroup": "advanced",
-      "helpText": "Provide the classname of a bean that fully replaces XmlConfiguration, encapsulating all the settings above into your own class. Using this bypasses the individual properties on this component.",
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. This might also be useful if you want to extend the configuration with fields the builder doesn't expose. Using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,

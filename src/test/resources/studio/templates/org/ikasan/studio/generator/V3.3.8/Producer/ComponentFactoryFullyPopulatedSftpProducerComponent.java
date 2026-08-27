@@ -35,7 +35,7 @@ java.lang.Integer myFlow1SftpConsumerRemotePort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
 java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.endpoint.sftp.producer.SftpProducerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMySFTPProducer() {
 return builderFactory.getComponentBuilder().sftpProducer()

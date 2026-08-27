@@ -65,10 +65,16 @@ public class ComponentPropertyMeta {
     public static final String SUBSTITUTION_FIELD_NAME = "__fieldName" + SUBSTITUTION_NAME_VALUE_DELIM;
 
     public static final String STRING_LIST = "java.util.List<String>";
-    // Marker usageDataType for a property the user fills in as a fully-qualified class name, but whose real
-    // setter takes a java.lang.Class literal (e.g. ObjectToXmlStringConverterBuilder#setObjectClass(Class)) -
-    // see StudioBuildUtils#toJavaLiteral. Also offers a "Choose Class..." project-scope chooser in the
-    // Properties panel (see ComponentPropertyEditRow), since the value is always an existing project class.
+    // Marker usageDataType for a property the user fills in as a fully-qualified class name. Two independent
+    // effects, either or both may apply depending on the property:
+    //  1. If the real setter takes a java.lang.Class literal (e.g.
+    //     ObjectToXmlStringConverterBuilder#setObjectClass(Class)), StudioBuildUtils#toJavaLiteral appends
+    //     ".class" when rendering the value into generated code.
+    //  2. The Properties panel (see ComponentPropertyEditRow) offers a "Choose Class..." project-scope chooser
+    //     for it, since the value is always an existing project class either way.
+    // A property whose template uses the raw value directly (e.g. Translator's "type", used as a generic type
+    // parameter/method parameter type, not a Class argument) only picks up effect 2 - toJavaLiteral is never
+    // called on it, so no ".class" ever gets appended.
     public static final String CLASS_LITERAL = "classLiteral";
 
     public static final String PROPERTY_GROUP_ADVANCED = "advanced";           // Rendered last of all groups in the Optional Properties section

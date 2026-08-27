@@ -95,7 +95,7 @@
       "propertyName": "configuration",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 360,
-      "helpText": "Provide the classname of a class that extends SftpConsumerConfiguration, encapsulating all the properties here into a single bean. Useful for binding config via Spring @ConfigurationProperties, or extending with fields the builder doesn't expose (e.g. a failover host, see FtpConsumerAlternateConfiguration for the equivalent FTP pattern). Using it will reduce your ability to configure the component within this tool.",
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. This might also be useful if you want to extend the configuration with fields the builder doesn't expose. Using it will reduce your ability to configure the component within this tool.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,

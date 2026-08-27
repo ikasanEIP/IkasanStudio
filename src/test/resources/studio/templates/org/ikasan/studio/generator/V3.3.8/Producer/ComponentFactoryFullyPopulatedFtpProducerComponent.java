@@ -35,7 +35,7 @@ java.lang.String myFlow1FtpConsumerSystemKey;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")
 java.lang.String myFlow1FtpConsumerUsername;
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration myConfigurationClass;
 @javax.annotation.Resource
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
