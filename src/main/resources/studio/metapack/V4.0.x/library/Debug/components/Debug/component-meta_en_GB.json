@@ -17,7 +17,7 @@
     "userImplementedClassName": {
       "propertyName": "userImplementedClassName",
       "affectsUserImplementedClass": "true",
-      "defaultValue": "__module__flow__componentDebug",
+      "defaultValue": "__flow__component",
       "mandatory": true,
       "readOnlyProperty" : true,
       "userImplementClassFtlTemplate": "debugTransitionTemplate.ftl"

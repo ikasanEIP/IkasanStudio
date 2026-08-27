@@ -921,13 +921,21 @@ public class DesignerCanvas extends JPanel {
                     targetRoute = containingFlow.getFlowRouteContaining(containingFlow.getFlowRoute(), surroundingComponents.getLeft());
                 }
 
-                FlowElement debugNamingAnchor = surroundingComponents.getRight() != null
-                        ? surroundingComponents.getRight() : surroundingComponents.getLeft();
+                // Prefer the LEFT (preceding) component for naming, matching insertDebugComponentAfter's
+                // convention (a Debug names itself after the component it follows, e.g. "MytDebug" for a Debug
+                // dropped right after "myt") - RIGHT is only a fallback for the edge case of dropping a Debug
+                // at the very start of a route, before anything else exists to its left.
+                FlowElement debugNamingAnchor = surroundingComponents.getLeft() != null
+                        ? surroundingComponents.getLeft() : surroundingComponents.getRight();
                 if (ikasanFlowComponent.getComponentMeta().isDebug() && debugNamingAnchor != null) {
-                    ikasanFlowComponent.setIdentity(debugNamingAnchor.getIdentity()+"Debug");
-                    String rawClassname = ikasanFlowComponent.getPropertyValueAsString(USER_IMPLEMENTED_CLASS_NAME);
-                    String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, ikasanFlowComponent, rawClassname);
-                    ikasanFlowComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);
+                    // The LEFT neighbour picked above may itself be a Debug (dropping a second Debug right
+                    // after an existing one) - name after the real component the chain is actually debugging,
+                    // not after the other Debug (which would otherwise compound into e.g. "MytDebugDebug").
+                    FlowElement realAnchor = resolveRealDebugAnchor(debugNamingAnchor, targetRoute, containingFlow);
+                    if (realAnchor == null) {
+                        realAnchor = debugNamingAnchor;
+                    }
+                    assignDebugIdentityAndClassName(ikasanFlowComponent, realAnchor.getIdentity(), containingFlow);
                 }
                 if (targetRoute != null) {
                     List<FlowElement> components = targetRoute.getFlowElements();
@@ -1015,10 +1023,7 @@ public class DesignerCanvas extends JPanel {
             return null;
         }
 
-        debugComponent.setIdentity(targetElement.getIdentity() + "Debug");
-        String rawClassname = debugComponent.getPropertyValueAsString(USER_IMPLEMENTED_CLASS_NAME);
-        String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, debugComponent, rawClassname);
-        debugComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);
+        assignDebugIdentityAndClassName(debugComponent, targetElement.getIdentity(), containingFlow);
 
         List<FlowElement> components = containingFlowRoute.getFlowElements();
         if (targetElement.getComponentMeta().isConsumer()) {
@@ -1037,6 +1042,74 @@ public class DesignerCanvas extends JPanel {
         initialiseAllDimensions = true;
         repaint();
         return debugComponent;
+    }
+
+    /**
+     * Sets a Debug component's identity (derived from the component it's attached to) and, from that, its
+     * generated userImplementedClassName - called from both debug-insertion paths (context-menu
+     * insertDebugComponentAfter and drag-and-drop insertNewComponentBetweenSurroundingPair).
+     * -
+     * Must derive the classname from the PRISTINE "__module__flow__componentDebug" template read straight off
+     * the component-TYPE metadata (getComponentMeta().getAllowableProperties()), not from this FlowElement's
+     * own current property value/meta. By the time this runs, createViableComponent's generic
+     * StudioBuildUtils#substituteAllPlaceholderInPascalCase call has already substituted "__component" once,
+     * using whatever placeholder/still-default identity the component had at THAT point - i.e. before this
+     * method gives it its real, per-anchor identity below. Every Debug component created in the same flow hits
+     * that generic substitution with the same not-yet-real identity, so without re-deriving from the pristine
+     * template here, they'd all resolve to the exact same userImplementedClassName and silently overwrite one
+     * another's generated file - only ever leaving one Debug class behind, no matter how many were added.
+     */
+    private void assignDebugIdentityAndClassName(FlowElement debugComponent, String anchorIdentity, Flow containingFlow) {
+        // Multiple Debugs can legitimately end up wanting the same base name - e.g. two Debugs dropped right
+        // after the same real component (via the context menu twice), or several chained one after another
+        // (resolveRealDebugAnchor collapses those all onto the same real anchor). Appending an ascending
+        // integer (2, 3, ...) keeps each one uniquely identified/generated instead of silently colliding.
+        String candidateIdentity = anchorIdentity + "Debug";
+        int suffix = 2;
+        while (isIdentityTakenByAnotherComponent(candidateIdentity, debugComponent, containingFlow)) {
+            candidateIdentity = anchorIdentity + "Debug" + suffix;
+            suffix++;
+        }
+        debugComponent.setIdentity(candidateIdentity);
+        String pristineClassnameTemplate = (String) debugComponent.getComponentMeta()
+                .getAllowableProperties().get(USER_IMPLEMENTED_CLASS_NAME).getDefaultValue();
+        String substitutedClassname = substitutePlaceholderInPascalCase(getIkasanModule(), containingFlow, debugComponent, pristineClassnameTemplate);
+        debugComponent.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, substitutedClassname);
+    }
+
+    private boolean isIdentityTakenByAnotherComponent(String candidateIdentity, FlowElement debugComponent, Flow containingFlow) {
+        return containingFlow.ftlGetConsumerAndFlowElements().stream()
+                .anyMatch(sibling -> sibling != debugComponent && candidateIdentity.equals(sibling.getIdentity()));
+    }
+
+    /**
+     * Walks backward from candidate through any chain of Debug components already attached one after another,
+     * to find the nearest REAL (non-Debug) component - a Debug should always be named after what it's actually
+     * debugging, not after another Debug it happens to be chained onto. Falls back to the flow's consumer if
+     * the chain runs all the way back to the start of the route.
+     * @return the real component, or null if candidate itself is null or the route can't be resolved.
+     */
+    private FlowElement resolveRealDebugAnchor(FlowElement candidate, FlowRoute route, Flow containingFlow) {
+        FlowElement current = candidate;
+        while (current != null && current.getComponentMeta().isDebug()) {
+            current = previousComponentInRoute(current, route, containingFlow);
+        }
+        return current;
+    }
+
+    private FlowElement previousComponentInRoute(FlowElement component, FlowRoute route, Flow containingFlow) {
+        if (route == null) {
+            return null;
+        }
+        List<FlowElement> components = route.getFlowElements();
+        int index = components.indexOf(component);
+        if (index > 0) {
+            return components.get(index - 1);
+        }
+        // Either the very first element in the route, or not found in this route at all (e.g. it's the
+        // consumer, which is never a member of route.getFlowElements()) - either way, the consumer is the
+        // correct "previous" component to fall back to.
+        return containingFlow.getConsumer();
     }
 
     /**

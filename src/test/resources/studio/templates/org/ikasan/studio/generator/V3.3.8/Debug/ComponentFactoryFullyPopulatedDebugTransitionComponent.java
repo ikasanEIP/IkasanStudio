@@ -15,7 +15,7 @@ private String moduleName;
 org.ikasan.builder.BuilderFactory builderFactory;
 
 @javax.annotation.Resource
-co.uk.test.myflow1.AToBConvertMyFlow1SetByIDEEndingInDebugDebug setByIDEEndingInDebug;
+co.uk.test.myflow1.MyFlow1SetByIDEEndingInDebug setByIDEEndingInDebug;
 
 
 public org.ikasan.spec.component.filter.Filter getSetByIDEEndingInDebug() {

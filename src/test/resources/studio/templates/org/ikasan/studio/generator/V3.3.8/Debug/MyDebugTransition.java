@@ -9,7 +9,7 @@ import org.ikasan.studio.component.DebugTransitionComponent;
 
 @org.springframework.stereotype.Component
 
-public class AToBConvertMyFlow1SetByIDEEndingInDebugDebug extends org.ikasan.studio.component.DebugTransitionComponent
+public class MyFlow1SetByIDEEndingInDebug extends org.ikasan.studio.component.DebugTransitionComponent
 {
 
 /**
