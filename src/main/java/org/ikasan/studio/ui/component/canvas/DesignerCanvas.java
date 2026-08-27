@@ -1099,7 +1099,7 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
-    enum GettingStartedHint {
+    public enum GettingStartedHint {
         NONE,
         NO_FLOWS,
         EMPTY_FLOW,
@@ -1126,26 +1126,100 @@ public class DesignerCanvas extends JPanel {
     }
 
     private void paintGettingStartedHint(Graphics graphics, Module module) {
-        GettingStartedHint hint = getGettingStartedHint(module);
-        if (hint == GettingStartedHint.READY_TO_RUN) {
+        GettingStartedHint moduleHint = getGettingStartedHint(module);
+        if (moduleHint == GettingStartedHint.READY_TO_RUN) {
             // Once the flow is valid there's always something to say - either "you can keep adding
             // components" (READY_TO_RUN, despite the name) or, briefly after launch, "open the console".
             // Unlike the other onboarding hints this one is never fully suppressed.
             PropertiesComponent properties = PropertiesComponent.getInstance(project);
             if (properties.getBoolean(MODULE_LAUNCHED_PROPERTY, false) && !properties.getBoolean(CONSOLE_OPENED_PROPERTY, false)) {
-                hint = GettingStartedHint.OPEN_CONSOLE;
+                moduleHint = GettingStartedHint.OPEN_CONSOLE;
             }
         }
-        if (hint == GettingStartedHint.NONE) {
+        if (moduleHint == GettingStartedHint.NONE) {
             return;
         }
 
         boolean detailed = IkasanStudioSettings.areGettingStartedHintsEnabled();
-        if (hint != GettingStartedHint.NO_FLOWS && !detailed) {
+        if (moduleHint != GettingStartedHint.NO_FLOWS && !detailed) {
             return;
         }
 
-        String heading = switch (hint) {
+        Graphics2D g = (Graphics2D) graphics.create();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            if (moduleHint == GettingStartedHint.NO_FLOWS) {
+                drawHintBlock(g, moduleHint, getWidth() / 2, getHeight() / 2, detailed);
+            } else if (moduleHint == GettingStartedHint.EMPTY_FLOW || moduleHint == GettingStartedHint.ADD_COMPONENTS) {
+                // Each incomplete flow gets its own hint, positioned under itself, judged independently of
+                // its siblings - previously a single global hint category was picked for the whole module and
+                // anchored under just the first flow matching it, so with two flows both needing attention
+                // (even for different reasons) only one of them ever showed a visible hint at all.
+                for (Flow flow : module.getFlows()) {
+                    GettingStartedHint flowHint = getFlowHint(flow);
+                    if (flowHint == null) {
+                        continue;
+                    }
+                    IkasanFlowViewHandler handler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                    if (handler == null) {
+                        continue;
+                    }
+                    int centreX = (handler.getLeftX() + handler.getRightX()) / 2;
+                    int centreY = handler.getBottomY() + JBUI.scale(28);
+                    drawHintBlock(g, flowHint, centreX, centreY, detailed);
+                }
+            } else {
+                // READY_TO_RUN / OPEN_CONSOLE - a whole-module status once every flow is already complete, so
+                // (unlike EMPTY_FLOW/ADD_COMPONENTS above) there's nothing per-flow to say - anchor below
+                // whichever flow sits lowest on the canvas (largest bottomY), not just the first one in list
+                // order. Anchoring under an arbitrary "first" flow could land the hint in the gap immediately
+                // above a second flow stacked closely below it, overlapping that flow's own label/box - picking
+                // the lowest flow guarantees nothing else is rendered below the hint to collide with.
+                IkasanFlowViewHandler lowestHandler = null;
+                for (Flow flow : module.getFlows()) {
+                    if (flow == null) {
+                        continue;
+                    }
+                    IkasanFlowViewHandler handler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                    if (handler != null && (lowestHandler == null || handler.getBottomY() > lowestHandler.getBottomY())) {
+                        lowestHandler = handler;
+                    }
+                }
+                int centreX = getWidth() / 2;
+                int centreY = getHeight() / 2;
+                if (lowestHandler != null) {
+                    centreX = (lowestHandler.getLeftX() + lowestHandler.getRightX()) / 2;
+                    centreY = lowestHandler.getBottomY() + JBUI.scale(28);
+                }
+                drawHintBlock(g, moduleHint, centreX, centreY, detailed);
+            }
+        } finally {
+            g.dispose();
+        }
+    }
+
+    /**
+     * @return this flow's own getting-started hint (EMPTY_FLOW if it has no consumer, ADD_COMPONENTS if it has
+     * a consumer but is otherwise incomplete), or null if the flow is already complete. Lets each flow be
+     * judged independently, rather than one incomplete flow's category winning for the whole module (see
+     * getGettingStartedHint) and masking a sibling flow's own, possibly different, issue.
+     */
+    public static GettingStartedHint getFlowHint(Flow flow) {
+        if (flow == null) {
+            return null;
+        }
+        if (!flow.hasConsumer()) {
+            return GettingStartedHint.EMPTY_FLOW;
+        }
+        if (!flow.getFlowIntegrityStatus().isBlank()) {
+            return GettingStartedHint.ADD_COMPONENTS;
+        }
+        return null;
+    }
+
+    private static String headingTextFor(GettingStartedHint hint) {
+        return switch (hint) {
             case NO_FLOWS -> StudioBundle.message("label.NoFlowsAdded");
             case EMPTY_FLOW -> StudioBundle.message("label.AddAConsumer");
             case ADD_COMPONENTS -> StudioBundle.message("label.AddAProducer");
@@ -1153,7 +1227,10 @@ public class DesignerCanvas extends JPanel {
             case OPEN_CONSOLE -> StudioBundle.message("label.ModuleStarting");
             default -> "";
         };
-        String instruction = switch (hint) {
+    }
+
+    private static String instructionTextFor(GettingStartedHint hint) {
+        return switch (hint) {
             case NO_FLOWS -> StudioBundle.message("message.DragAFlowFromThePaletteOntoTheCanvas");
             case EMPTY_FLOW -> StudioBundle.message("message.DragAConsumerFromThePaletteOntoThisFlow");
             case ADD_COMPONENTS -> StudioBundle.message("message.DragAProducerFromThePaletteOntoThisFlow");
@@ -1161,71 +1238,96 @@ public class DesignerCanvas extends JPanel {
             case OPEN_CONSOLE -> StudioBundle.message("message.WaitForModuleStartupToComplete");
             default -> "";
         };
+    }
 
-        int centreX = getWidth() / 2;
-        int centreY = getHeight() / 2;
-        GettingStartedHint positionedHint = hint;
-        if (hint != GettingStartedHint.NO_FLOWS) {
-            Flow emptyFlow = module.getFlows().stream()
-                    .filter(flow -> flow != null && (positionedHint == GettingStartedHint.EMPTY_FLOW
-                            ? !flow.hasConsumer()
-                            : positionedHint != GettingStartedHint.ADD_COMPONENTS || !flow.getFlowIntegrityStatus().isBlank()))
-                    .findFirst().orElse(null);
-            IkasanFlowViewHandler handler = emptyFlow == null ? null
-                    : ViewHandlerCache.getFlowViewHandler(project, emptyFlow);
-            if (handler != null) {
-                centreX = (handler.getLeftX() + handler.getRightX()) / 2;
-                centreY = handler.getBottomY() + JBUI.scale(28);
-            }
+    // Text is centred on centreX, so a long single line can run off the left edge of whatever's currently
+    // scrolled into view. Wrap onto extra lines instead. Deriving this from the live viewport extent didn't
+    // pan out in practice, so a fixed width is used for now. Shared by drawHintBlock and measureHintBlockHeight
+    // so a hint's measured height always matches what actually gets drawn. Scaled per-call (not cached), same
+    // as every other JBUI.scale(...) call here, so a runtime DPI/scaling change is still picked up live.
+    private static int hintMaxTextWidth() {
+        return JBUI.scale(420);
+    }
+
+    /**
+     * Draws one heading (+ instruction, when detailed) block of getting-started hint text centred on centreX,
+     * with its heading's top edge at centreY - callers may invoke this multiple times per paint (once per
+     * incomplete flow) to show several hints at once, each positioned under the flow it applies to.
+     */
+    private void drawHintBlock(Graphics2D g, GettingStartedHint hint, int centreX, int centreY, boolean detailed) {
+        String heading = headingTextFor(hint);
+        String instruction = instructionTextFor(hint);
+
+        // A flow with a consumer but no producer will not run, so make this hint stand out rather than
+        // blending in with the other, purely informational, getting-started hints.
+        boolean needsProducer = hint == GettingStartedHint.ADD_COMPONENTS;
+        Color foreground = UIManager.getColor("Label.foreground");
+        Color secondary = UIManager.getColor("Label.disabledForeground");
+        Color headingColor = needsProducer ? ThemeAwareColors.getWarningColor() : (foreground != null ? foreground : JBColor.GRAY);
+        Color instructionColor = needsProducer ? ThemeAwareColors.getWarningColor() : (secondary != null ? secondary : (foreground != null ? foreground : JBColor.GRAY));
+        Font headingFont = getFont().deriveFont(Font.BOLD, getFont().getSize2D() + 2f);
+        Font instructionFont = getFont();
+
+        g.setColor(headingColor);
+        g.setFont(headingFont);
+        FontMetrics headingMetrics = g.getFontMetrics(headingFont);
+        List<String> headingLines = wrapText(heading, headingMetrics, hintMaxTextWidth());
+        int headingLineHeight = headingMetrics.getHeight();
+        int headingBaseline = centreY - JBUI.scale(5);
+        for (String line : headingLines) {
+            g.drawString(line, centreX - headingMetrics.stringWidth(line) / 2, headingBaseline);
+            headingBaseline += headingLineHeight;
         }
 
-        Graphics2D g = (Graphics2D) graphics.create();
-        try {
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            // A flow with a consumer but no producer will not run, so make this hint stand out rather than
-            // blending in with the other, purely informational, getting-started hints.
-            boolean needsProducer = hint == GettingStartedHint.ADD_COMPONENTS;
-            Color foreground = UIManager.getColor("Label.foreground");
-            Color secondary = UIManager.getColor("Label.disabledForeground");
-            Color headingColor = needsProducer ? ThemeAwareColors.getWarningColor() : (foreground != null ? foreground : JBColor.GRAY);
-            Color instructionColor = needsProducer ? ThemeAwareColors.getWarningColor() : (secondary != null ? secondary : (foreground != null ? foreground : JBColor.GRAY));
-            Font headingFont = getFont().deriveFont(Font.BOLD, getFont().getSize2D() + 2f);
-            Font instructionFont = getFont();
-
-            // Text is centred on centreX, so a long single line can run off the left edge of whatever's
-            // currently scrolled into view. Wrap onto extra lines instead. Deriving this from the live viewport
-            // extent didn't pan out in practice, so a fixed width is used for now.
-            int maxTextWidth = JBUI.scale(420);
-
-            g.setColor(headingColor);
-            g.setFont(headingFont);
-            FontMetrics headingMetrics = g.getFontMetrics(headingFont);
-            List<String> headingLines = wrapText(heading, headingMetrics, maxTextWidth);
-            int headingLineHeight = headingMetrics.getHeight();
-            int headingBaseline = centreY - JBUI.scale(5);
-            for (String line : headingLines) {
-                g.drawString(line, centreX - headingMetrics.stringWidth(line) / 2, headingBaseline);
-                headingBaseline += headingLineHeight;
+        if (detailed) {
+            g.setColor(instructionColor);
+            g.setFont(instructionFont);
+            FontMetrics instructionMetrics = g.getFontMetrics(instructionFont);
+            List<String> instructionLines = wrapText(instruction, instructionMetrics, hintMaxTextWidth());
+            int instructionLineHeight = instructionMetrics.getHeight();
+            // headingBaseline has already been advanced past the last heading line drawn above, so this
+            // preserves the original ~22px gap after the (possibly multi-line) heading block.
+            int instructionBaseline = headingBaseline - headingLineHeight + JBUI.scale(22);
+            for (String line : instructionLines) {
+                g.drawString(line, centreX - instructionMetrics.stringWidth(line) / 2, instructionBaseline);
+                instructionBaseline += instructionLineHeight;
             }
-
-            if (detailed) {
-                g.setColor(instructionColor);
-                g.setFont(instructionFont);
-                FontMetrics instructionMetrics = g.getFontMetrics(instructionFont);
-                List<String> instructionLines = wrapText(instruction, instructionMetrics, maxTextWidth);
-                int instructionLineHeight = instructionMetrics.getHeight();
-                // headingBaseline has already been advanced past the last heading line drawn above, so this
-                // preserves the original ~22px gap after the (possibly multi-line) heading block.
-                int instructionBaseline = headingBaseline - headingLineHeight + JBUI.scale(22);
-                for (String line : instructionLines) {
-                    g.drawString(line, centreX - instructionMetrics.stringWidth(line) / 2, instructionBaseline);
-                    instructionBaseline += instructionLineHeight;
-                }
-            }
-        } finally {
-            g.dispose();
         }
+    }
+
+    /**
+     * The total vertical space (in px, below a flow's own getBottomY()) that drawHintBlock will actually use to
+     * render this hint at that same position - i.e. how far centreY (== bottomY + 28, see
+     * paintGettingStartedHint) needs to be from the NEXT flow's own top edge to avoid the two overlapping.
+     * Mirrors drawHintBlock's geometry exactly (same fonts/wrapping/gaps) rather than an approximation, so
+     * layout (IkasanModuleViewHandler, which reserves this much space) and painting never drift out of sync.
+     * @param graphics used only for FontMetrics - never drawn to.
+     * @param baseFont the canvas's own (non-bold, non-derived) font - matches what drawHintBlock derives from
+     *                  getFont() when actually painting.
+     */
+    public static int measureHintBlockHeight(Graphics graphics, Font baseFont, GettingStartedHint hint, boolean detailed) {
+        if (hint == null || hint == GettingStartedHint.NONE) {
+            return 0;
+        }
+        Font headingFont = baseFont.deriveFont(Font.BOLD, baseFont.getSize2D() + 2f);
+        FontMetrics headingMetrics = graphics.getFontMetrics(headingFont);
+        List<String> headingLines = wrapText(headingTextFor(hint), headingMetrics, hintMaxTextWidth());
+        int headingLineHeight = headingMetrics.getHeight();
+
+        // Offset of the last drawn line's baseline from bottomY, replicating drawHintBlock's own maths:
+        // headingBaseline starts at (bottomY + 28) - 5, then advances by headingLineHeight per heading line.
+        int offset = JBUI.scale(28) - JBUI.scale(5) + headingLineHeight * Math.max(1, headingLines.size());
+
+        if (detailed) {
+            FontMetrics instructionMetrics = graphics.getFontMetrics(baseFont);
+            List<String> instructionLines = wrapText(instructionTextFor(hint), instructionMetrics, hintMaxTextWidth());
+            int instructionLineHeight = instructionMetrics.getHeight();
+            // instructionBaseline starts at headingBaseline - headingLineHeight + 22, then advances per line.
+            offset = offset - headingLineHeight + JBUI.scale(22) + instructionLineHeight * Math.max(1, instructionLines.size());
+        }
+        // Breathing room (covers font descent below the last baseline, plus a visible gap) before whatever's
+        // rendered next - without this the next flow's box would start flush against the last line of text.
+        return offset + JBUI.scale(15);
     }
 
     /**

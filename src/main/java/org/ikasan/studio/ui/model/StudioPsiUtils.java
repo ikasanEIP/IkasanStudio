@@ -480,16 +480,30 @@ public class StudioPsiUtils {
 
                 DumbService.getInstance(project).runWhenSmart(() -> {
                     if (psiFile != null && psiFile.isWritable()) {
-                        Document psiDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-                        runGeneratedDocumentWriteCommand(project, psiDocument, () -> {
-                            if (file.getName().endsWith(".java")) {
+                        // Only Java sources get shortenClassReferences/reformat - other generated file types
+                        // (model.json, pom.xml, application.properties) are emitted by their own templates
+                        // already in their final desired form (e.g. model.json's compact single-line JSON) and
+                        // must not be silently reformatted.
+                        if (file.getName().endsWith(".java")) {
+                            Document psiDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+                            runGeneratedDocumentWriteCommand(project, psiDocument, () -> {
                                 JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
+                                CodeStyleManager.getInstance(project).reformat(psiFile);
+                            });
+                            // shortenClassReferences()/reformat() above mutate the in-memory Document (e.g.
+                            // rewriting fully-qualified names to short names + import statements), but that
+                            // mutation was never itself persisted - only the earlier raw setText()/saveDocument()
+                            // was. Without this, the VirtualFile on disk permanently disagrees with what IntelliJ
+                            // holds in memory, surfacing later (whenever anything else next touches the file) as
+                            // a "File Cache Conflict" popup asking the user to reconcile changes Studio itself
+                            // made to both sides.
+                            if (psiDocument != null) {
+                                documentManager.saveDocument(psiDocument);
                             }
-                            CodeStyleManager.getInstance(project).reformat(psiFile);
-                            if (componentViewHandler != null) {
-                                componentViewHandler.setPsiFile(psiFile);
-                            }
-                        });
+                        }
+                        if (componentViewHandler != null) {
+                            componentViewHandler.setPsiFile(psiFile);
+                        }
                     }
                 });
             }

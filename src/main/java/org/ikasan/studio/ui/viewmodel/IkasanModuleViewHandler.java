@@ -5,6 +5,8 @@ import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +33,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     @Override
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         int currentY = 0;
+        Flow previousFlow = null;
         LOG.debug("STUDIO: paintComponent invoked");
         // Module name
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont(g));
@@ -42,12 +45,32 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
                 if (currentY == 0) {
                     currentY = flowViewViewHandler.getTopY();
                 } else {
-                    currentY += FLOW_VERTICAL_SPACING;
+                    currentY += gapAfterFlow(previousFlow, g);
                 }
                 currentY = flowViewViewHandler.paintComponent(canvas, g, -1, currentY);
+                previousFlow = ikasanFlow;
             }
         }
         return currentY;
+    }
+
+    /**
+     * The vertical gap to leave below the given (previous) flow before the next one starts - normally the
+     * fixed FLOW_VERTICAL_SPACING, but widened to also fit that flow's own getting-started hint block when
+     * it's incomplete and hints are enabled (see DesignerCanvas#paintGettingStartedHint, which positions each
+     * flow's own hint starting right at that flow's getBottomY(), independently of this gap). Without this, a
+     * flow needing "Add a Producer"/"Add a Consumer" would have its hint text drawn straight over the top of
+     * whatever flow is stacked immediately below it.
+     */
+    private int gapAfterFlow(Flow previousFlow, Graphics graphics) {
+        if (previousFlow != null && IkasanStudioSettings.areGettingStartedHintsEnabled()) {
+            DesignerCanvas.GettingStartedHint flowHint = DesignerCanvas.getFlowHint(previousFlow);
+            if (flowHint != null) {
+                return Math.max(FLOW_VERTICAL_SPACING,
+                        DesignerCanvas.measureHintBlockHeight(graphics, graphics.getFont(), flowHint, true));
+            }
+        }
+        return FLOW_VERTICAL_SPACING;
     }
 
     // Might revert to centralised model but that will require double initialise.
@@ -81,7 +104,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
                 // initialise width/height to maximum, it will be adjusted down after reset
                 flowViewHandler.initialiseDimensions(graphics, getFlowXStartPoint(), minimumTopY, width, height);
                 minimumTopY = flowViewHandler.getBottomY();
-                minimumTopY += FLOW_VERTICAL_SPACING;
+                minimumTopY += gapAfterFlow(ikasanFlow, graphics);
 
                 // Real width of Module = Max flow + left + right
                 maxWidth = Math.max(maxWidth, flowViewHandler.getWidth());

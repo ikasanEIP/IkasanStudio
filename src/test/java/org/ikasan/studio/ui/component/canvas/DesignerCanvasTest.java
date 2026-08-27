@@ -5,6 +5,9 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -72,5 +75,57 @@ class DesignerCanvasTest {
         when(flow.getFlowIntegrityStatus()).thenReturn("");
         assertThat(DesignerCanvas.getGettingStartedHint(module))
                 .isEqualTo(DesignerCanvas.GettingStartedHint.READY_TO_RUN);
+    }
+
+    /**
+     * Regression test: previously, with two flows both incomplete (even for different reasons), a single
+     * global hint category was picked for the whole module and only the first matching flow ever got a
+     * visible hint - the second flow's own issue was silently masked. getFlowHint() lets each flow be judged
+     * independently, which is what fixed that.
+     */
+    @Test
+    void flowHintIsJudgedIndependentlyPerFlow() {
+        Flow needsConsumer = mock(Flow.class);
+        when(needsConsumer.hasConsumer()).thenReturn(false);
+        assertThat(DesignerCanvas.getFlowHint(needsConsumer)).isEqualTo(DesignerCanvas.GettingStartedHint.EMPTY_FLOW);
+
+        Flow needsProducer = mock(Flow.class);
+        when(needsProducer.hasConsumer()).thenReturn(true);
+        when(needsProducer.getFlowIntegrityStatus()).thenReturn("The flow needs a producer.");
+        assertThat(DesignerCanvas.getFlowHint(needsProducer)).isEqualTo(DesignerCanvas.GettingStartedHint.ADD_COMPONENTS);
+
+        Flow complete = mock(Flow.class);
+        when(complete.hasConsumer()).thenReturn(true);
+        when(complete.getFlowIntegrityStatus()).thenReturn("");
+        assertThat(DesignerCanvas.getFlowHint(complete)).isNull();
+
+        assertThat(DesignerCanvas.getFlowHint(null)).isNull();
+    }
+
+    /**
+     * Regression test for the multi-flow overlap bug: IkasanModuleViewHandler reserves vertical space below an
+     * incomplete flow using this exact measurement (see gapAfterFlow there), so it must agree with what
+     * drawHintBlock actually renders - a null hint needs no space, and a "detailed" (heading + instruction)
+     * hint measures taller than heading-only, since the paint code draws both.
+     */
+    @Test
+    void measureHintBlockHeightReflectsWhatWillActuallyBeDrawn() {
+        BufferedImage scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = scratch.createGraphics();
+        try {
+            Font baseFont = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+
+            assertThat(DesignerCanvas.measureHintBlockHeight(g, baseFont, null, true)).isZero();
+
+            int headingOnly = DesignerCanvas.measureHintBlockHeight(
+                    g, baseFont, DesignerCanvas.GettingStartedHint.ADD_COMPONENTS, false);
+            int headingAndInstruction = DesignerCanvas.measureHintBlockHeight(
+                    g, baseFont, DesignerCanvas.GettingStartedHint.ADD_COMPONENTS, true);
+
+            assertThat(headingOnly).isPositive();
+            assertThat(headingAndInstruction).isGreaterThan(headingOnly);
+        } finally {
+            g.dispose();
+        }
     }
 }
