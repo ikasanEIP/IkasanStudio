@@ -738,11 +738,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getChooseClassButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
         return componentPropertyEditRow;
     }
 
-    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JCheckBox overwriteCheckBox, JLabel affectsUserImplementedClassIndicator, ComponentInput componentInput, ComponentPropertyMeta meta) {
+    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JButton chooseClassButton, JCheckBox overwriteCheckBox, JLabel affectsUserImplementedClassIndicator, ComponentInput componentInput, ComponentPropertyMeta meta) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -751,6 +751,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         List<JComponent> auxiliaryWidgets = new ArrayList<>();
         if (helpButton != null) auxiliaryWidgets.add(helpButton);
         if (defaultValueButton != null) auxiliaryWidgets.add(defaultValueButton);
+        if (chooseClassButton != null) auxiliaryWidgets.add(chooseClassButton);
         if (overwriteCheckBox != null) auxiliaryWidgets.add(overwriteCheckBox);
         if (affectsUserImplementedClassIndicator != null) auxiliaryWidgets.add(affectsUserImplementedClassIndicator);
         if (auxiliaryWidgets.size() > 1) {

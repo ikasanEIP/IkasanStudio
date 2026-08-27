@@ -1,10 +1,13 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.TreeClassChooser;
+import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.psi.PsiClass;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -52,6 +55,7 @@ public class ComponentPropertyEditRow {
     // showingDefaultOnly is cleared, so a deliberate override is never silently clobbered by further auto-sync.
     private boolean autoDerivedValue = false;
     private JButton defaultValueButton;
+    private JButton chooseClassButton;
     private JCheckBox rowOverwriteCheckBox;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
@@ -200,6 +204,14 @@ public class ComponentPropertyEditRow {
             // For list, allow comma seperated entry then convert to/from at start/end
             if (meta.getUsageDataType().equals(STRING_LIST)) {
                 isList = true;
+            }
+
+            // CLASS_LITERAL properties (e.g. Object To XML String Converter's objectClass) always name
+            // an existing project class, exactly like SendTestMessagePayloadDialog's payload class field - offer
+            // the same project-scope TreeClassChooser rather than requiring the fully-qualified name to be typed.
+            if (CLASS_LITERAL.equals(meta.getUsageDataType())) {
+                chooseClassButton = new JButton(StudioBundle.message("button.ChooseClass"));
+                chooseClassButton.addActionListener(e -> chooseClass());
             }
 
             if (listenerFoAnyEditChanges != null) {
@@ -362,6 +374,23 @@ public class ComponentPropertyEditRow {
                 @Override public void removeUpdate(DocumentEvent e) { onChange.run(); }
                 @Override public void changedUpdate(DocumentEvent e) { onChange.run(); }
             });
+        }
+    }
+
+    /**
+     * Project scope only (not libraries) - mirrors SendTestMessagePayloadDialog's chooseClass(), since this is
+     * for a CLASS_LITERAL property naming one of the user's own project classes (e.g. objectClass on Object
+     * Message To XML String Converter), not an arbitrary library/JDK class.
+     */
+    private void chooseClass() {
+        TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
+                .createProjectScopeChooser(StudioBundle.message("dialog.ChooseClass"));
+        chooser.showDialog();
+        PsiClass selected = chooser.getSelected();
+        if (selected != null) {
+            // A genuine, deliberate edit - goes through the field's own DocumentListener like any typed change,
+            // so showingDefaultOnly/autoDerivedValue are cleared and listenerFoAnyEditChanges fires normally.
+            propertyValueField.setText(selected.getQualifiedName());
         }
     }
 
@@ -749,6 +778,9 @@ public class ComponentPropertyEditRow {
         if (defaultValueButton != null) {
             defaultValueButton.setVisible(visible);
         }
+        if (chooseClassButton != null) {
+            chooseClassButton.setVisible(visible);
+        }
         if (rowOverwriteCheckBox != null) {
             rowOverwriteCheckBox.setVisible(visible);
         }
@@ -788,6 +820,9 @@ public class ComponentPropertyEditRow {
     }
     public JButton getDefaultValueButton() {
         return defaultValueButton;
+    }
+    public JButton getChooseClassButton() {
+        return chooseClassButton;
     }
     public JFormattedTextField getOverridingInputField() {
         return propertyValueField;

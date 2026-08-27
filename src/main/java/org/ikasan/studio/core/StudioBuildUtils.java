@@ -31,11 +31,14 @@ public class StudioBuildUtils {
     private StudioBuildUtils() {}
 
     /**
+     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * static-usage analysis can't see - despite the "unused" warning, this is load-bearing there.
      * Given a string delimited by tokens e.g. this.is.my.class.bob then get the last string, bob in this case
      * @param delimiter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
      * @param input string to analyse
      * @return The last stoken of the string or an empty sp
      */
+    @SuppressWarnings("unused")
     public static String getLastToken(String delimiter, String input) {
         String returnString = "";
         if (input != null && delimiter != null) {
@@ -48,11 +51,14 @@ public class StudioBuildUtils {
     }
 
     /**
+     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * static-usage analysis can't see - despite the "unused" warning, this is load-bearing there.
      * Given a string delimited by tokens e.g. this.is.my.class.bob then get all but the last string, this.is.my.class in this case
      * @param delimiter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
      * @param input string to analyse
      * @return All but the last stoken of the string or an empty sp
      */
+    @SuppressWarnings("unused")
     public static String getAllButLastToken(String delimiter, String input) {
         StringBuilder returnString = new StringBuilder();
         if (input != null && delimiter != null) {
@@ -176,11 +182,16 @@ public class StudioBuildUtils {
 
     /**
      * Get the subdirectories of a given directory on the classpath, when in a jar file or file system
+     * Neither the jar FileSystem nor the Files.walk() stream below is closed - both must stay open for the
+     * lifetime of the Intellij process, since closing the FileSystem invalidates every Path handed out from it
+     * (including the ones this method returns), so this deliberately isn't try-with-resources - hence the
+     * "resource" suppression rather than an actual leak.
      * @param dir to look through
      * @return a string array of subdirectories
      * @throws URISyntaxException if there were issues
      * @throws IOException if there were issues
      */
+    @SuppressWarnings("resource")
     public static String[] getDirectories(final String dir) throws URISyntaxException, IOException {
         String[] directoriesNames = new String[0];
 
@@ -297,7 +308,8 @@ public class StudioBuildUtils {
     }
 
     /**
-     * ** Used by FTL ***
+     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * static-usage analysis can't see - despite the "unused" warning, this is load-bearing there.
      * The supplied string template e.g. __flow.ftp.consumer.cron-expression, replacing meta tags so that the final
      * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
      * @param module in scope that might relate to this property
@@ -306,6 +318,7 @@ public class StudioBuildUtils {
      * @param template to be updated
      * @return A string representing a property
      */
+    @SuppressWarnings("unused")
     public static String substitutePlaceholderInJavaCamelCase(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
@@ -326,7 +339,9 @@ public class StudioBuildUtils {
     }
 
     /**
-     * ** Used by FTL ***
+     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * static-usage analysis can't see - despite the "unused" warning, this is load-bearing wherever a Long or
+     * CLASS_LITERAL property value is emitted as a Java literal.
      * Java does not auto-box a bare int literal into a Long parameter (e.g. ".setMinAge(120)" fails to compile with
      * "incompatible types: int cannot be converted to Long" - ".setMinAge(120L)" is required). This appends the "L"
      * suffix whenever the property's declared type is java.lang.Long, regardless of the runtime type of the value
@@ -335,9 +350,17 @@ public class StudioBuildUtils {
      * @param valueString the literal text about to be emitted as a Java method argument
      * @return valueString, with an "L" suffix appended when the property's declared type is java.lang.Long
      */
+    @SuppressWarnings("unused")
     public static String toJavaLiteral(ComponentPropertyMeta meta, String valueString) {
         if (meta != null && meta.getPropertyDataType() == Long.class && valueString != null && !valueString.isBlank()) {
             return valueString + "L";
+        }
+        // A property the user fills in as a fully-qualified class name (e.g. "com.example.MyPojo"), but whose
+        // real setter takes a java.lang.Class literal (e.g. ObjectToXmlStringConverterBuilder#setObjectClass(Class)),
+        // not a String - CLASS_LITERAL is a marker usageDataType (like "configurationDefined") that tells the
+        // template to append ".class" so the emitted argument is a real Class literal instead of a bare/quoted name.
+        if (meta != null && ComponentPropertyMeta.CLASS_LITERAL.equals(meta.getUsageDataType()) && valueString != null && !valueString.isBlank()) {
+            return valueString + ".class";
         }
         return valueString;
     }

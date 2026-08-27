@@ -75,7 +75,7 @@ public org.springframework.http.ResponseEntity<?> inject(
 // or the deserialized payload-class instance), while getText() falls back to its String.valueOf() so a
 // TextMessage-only reader still gets something sane. JmsMessageConverter.extractContent() checks TextMessage
 // first, so with autoContentConversion on this is always read as text; leave autoContentConversion off (so
-// the raw message reaches a downstream component like Object Message To Object Converter untouched) to
+// the raw message reaches a downstream component like JMS Object Message To Object Converter untouched) to
 // exercise the ObjectMessage path - the only way a payload-class instance survives intact rather than being
 // stringified. Everything else on either interface can safely return a zero/null default via a dynamic
 // proxy, avoiding a dependency on any specific JMS provider (e.g. ActiveMQ) not guaranteed to be on the

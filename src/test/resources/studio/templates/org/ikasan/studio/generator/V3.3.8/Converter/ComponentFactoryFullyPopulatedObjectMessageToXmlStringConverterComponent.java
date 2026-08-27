@@ -14,23 +14,21 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("${myflow1.xml.converter.objectClasses}")
-java.lang.String myFlow1XmlConverterObjectClasses;
+
 @javax.annotation.Resource
-org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration myConfigurationClass;
+co.uk.test.myflow1.MyConfigurationClass myConfigurationClass;
 @javax.annotation.Resource
 java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter> myXmlAdapterMap;
 
 public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToXMLStringConverter() {
-org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder component = new org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder();
+return builderFactory.getComponentBuilder().objectToXmlStringConverter()
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setFastFailOnConfigurationLoad(true)
 .setNamespacePrefix("myNamespacePrefix")
 .setNamespaceURI("myNamespaceURI")
 .setNoNamespaceSchema(true)
-.setObjectClasses(class java.lang.String)
-.setObjectClasses(myFlow1XmlConverterObjectClasses)
+.setObjectClass(java.lang.String.class)
 .setRootClassName("java.lang.String")
 .setRootName("myRootName")
 .setRouteOnValidationException(true)
@@ -39,5 +37,5 @@ org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder compone
 .setUseNamespacePrefix(true)
 .setValidate(true)
 .setXmlAdapterMap(myXmlAdapterMap)
-return component;
+.build();
 }}

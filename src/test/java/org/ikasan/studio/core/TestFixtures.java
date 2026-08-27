@@ -367,7 +367,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getObjectMessageToObjectConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Object Message To Object Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Object Message To Object Converter");
         return FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Object Message To Object Converter")
@@ -375,7 +375,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getObjectMessageToXmlStringtConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Object Message To XML String Converter");
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Object To XML String Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Object Message To XML String Converter")
@@ -386,8 +386,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("namespacePrefix", "myNamespacePrefix");
         flowElement.setPropertyValue("namespaceURI", "myNamespaceURI");
         flowElement.setPropertyValue("noNamespaceSchema", true);
-        flowElement.setPropertyValue("objectClass", String.class);
-        flowElement.setPropertyValue("objectClasses", "String.class,String.class");
+        flowElement.setPropertyValue("objectClass", "java.lang.String");
         flowElement.setPropertyValue("rootClassName", "java.lang.String");
         flowElement.setPropertyValue("rootName", "myRootName");
         flowElement.setPropertyValue("routeOnValidationException", true);

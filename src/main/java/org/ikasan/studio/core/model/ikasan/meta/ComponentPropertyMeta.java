@@ -65,6 +65,11 @@ public class ComponentPropertyMeta {
     public static final String SUBSTITUTION_FIELD_NAME = "__fieldName" + SUBSTITUTION_NAME_VALUE_DELIM;
 
     public static final String STRING_LIST = "java.util.List<String>";
+    // Marker usageDataType for a property the user fills in as a fully-qualified class name, but whose real
+    // setter takes a java.lang.Class literal (e.g. ObjectToXmlStringConverterBuilder#setObjectClass(Class)) -
+    // see StudioBuildUtils#toJavaLiteral. Also offers a "Choose Class..." project-scope chooser in the
+    // Properties panel (see ComponentPropertyEditRow), since the value is always an existing project class.
+    public static final String CLASS_LITERAL = "classLiteral";
 
     public static final String PROPERTY_GROUP_ADVANCED = "advanced";           // Rendered last of all groups in the Optional Properties section
     public static final String PROPERTY_GROUP_MISCELLANEOUS = "Miscellaneous"; // Catch-all for non-mandatory properties with no explicit propertyGroup
