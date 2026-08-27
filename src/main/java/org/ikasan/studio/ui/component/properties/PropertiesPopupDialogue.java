@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.SystemInfoRt;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +40,22 @@ public class PropertiesPopupDialogue extends DialogWrapper {
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText(propertiesPanel.getOKButtonText());
         setOKActionEnabled(actionButtonDefault);
+    }
+
+    /**
+     * Mirrors ComponentPropertiesPanel's own "Update Code" button treatment onto this dialog's OK button - a
+     * pulsating border to draw the eye, plus the joined validation message as a tooltip (visible even while the
+     * button is disabled) - so a first-time popup with e.g. a duplicate component name gets the same visible
+     * explanation as the in-canvas sidebar panel, rather than just silently refusing to enable OK.
+     * @param hasValidationIssues whether to pulse (true) or stop and restore the normal border (false).
+     * @param tooltip the joined validation message to show on hover, or null to clear it.
+     */
+    public void setValidationFeedback(boolean hasValidationIssues, String tooltip) {
+        JButton okButton = getButton(getOKAction());
+        if (okButton != null) {
+            okButton.setToolTipText(tooltip);
+        }
+        StudioUIUtils.setAttentionPulse(okButton, hasValidationIssues);
     }
 
     /**

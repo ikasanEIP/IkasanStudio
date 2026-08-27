@@ -4,11 +4,15 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StudioUIUtils {
     public static final String NOTIFICATION_GROUP_ID = "Ikasan Studio";
@@ -154,22 +158,22 @@ public class StudioUIUtils {
         return numberOfLines > 0 ? textY - stringHeight : topY;
     }
 
-    /**
-     * Draw the text string, center the first line at centerX and CenterY
-     * If the string is bigger then maxWidth, split it over multiple substrings
-     * @param g the graphics object
-     * @param text to display
-     * @param centerX for the text
-     * @param centerY for the text
-     * @param maxWidth for the text
-     * @param font for the text
-     * @return the bottom y value of the last string (se we know how far down we went)
-     */
-    public static int drawCenteredStringFromMiddleCentre(Graphics g, PaintMode paintMode, String text, int centerX, int centerY, int maxWidth, Font font) {
-        int stringHeight = StudioUIUtils.getTextHeight(g);
-        int initialY = centerY - (stringHeight / 2);
-        return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, initialY, maxWidth, font);
-    }
+//    /**
+//     * Draw the text string, center the first line at centerX and CenterY
+//     * If the string is bigger then maxWidth, split it over multiple substrings
+//     * @param g the graphics object
+//     * @param text to display
+//     * @param centerX for the text
+//     * @param centerY for the text
+//     * @param maxWidth for the text
+//     * @param font for the text
+//     * @return the bottom y value of the last string (se we know how far down we went)
+//     */
+//    public static int drawCenteredStringFromMiddleCentre(Graphics g, PaintMode paintMode, String text, int centerX, int centerY, int maxWidth, Font font) {
+//        int stringHeight = StudioUIUtils.getTextHeight(g);
+//        int initialY = centerY - (stringHeight / 2);
+//        return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, initialY, maxWidth, font);
+//    }
 
     public static List<String> splitStringIntoMultipleRows(String text, int numberOfRows) {
         List<String> returnList = new ArrayList<>() ;
@@ -282,5 +286,71 @@ public class StudioUIUtils {
             @Override public void mousePressed(java.awt.event.MouseEvent e) { maybeShowPopup(e); }
             @Override public void mouseReleased(java.awt.event.MouseEvent e) { maybeShowPopup(e); }
         });
+    }
+
+    /**
+     * @return all validationIssues' messages joined one-per-line, or the empty string if there are none - shared
+     * by every "OK"/"Update Code" button that surfaces its own disabled-reason as a tooltip (see
+     * setAttentionPulse below), so the sidebar panel and the first-time popup dialogue present the same message.
+     */
+    public static String joinValidationMessages(List<ValidationInfo> validationIssues) {
+        return validationIssues == null ? "" :
+                validationIssues.stream().map(issue -> issue.message).collect(Collectors.joining("\n"));
+    }
+
+    private static final String ATTENTION_PULSE_TIMER_PROPERTY = "ikasan.studio.attentionPulseTimer";
+    private static final String ATTENTION_PULSE_ORIGINAL_BORDER_PROPERTY = "ikasan.studio.attentionPulseOriginalBorder";
+    // Ikasan brand orange (same values as ThemeAwareColors#getImportantBorderColor's own fallback) - deliberately
+    // NOT sourced via that method (or ThemeAwareColors#getUrgentColor), since both look up UIManager keys like
+    // "Component.borderColor"/"Separator.separatorColor" first, which are non-null in virtually every theme and
+    // so silently shadow the intended orange/red fallback with a neutral, barely-visible border colour - exactly
+    // why the original pulse "didn't stand out" in either light or dark mode. A slightly brighter shade is used
+    // for dark themes, since the same fixed orange reads as muddier against a dark background.
+    private static final JBColor ATTENTION_PULSE_COLOR = new JBColor(new Color(241, 90, 35), new Color(255, 140, 70));
+
+    /**
+     * Starts (or stops) a pulsating coloured border on the given button - used to draw the developer's eye to a
+     * button that's gone disabled specifically because of a validation failure (as opposed to merely "nothing
+     * has changed yet"), since a silently-disabled button is easy to miss, especially when the actual reason is
+     * only discoverable by hovering over its tooltip. Idempotent and safe to call on every validation pass:
+     * calling with active=true while already pulsing, or active=false while already stopped, is a no-op, so
+     * callers never need to track pulsing state themselves.
+     * -
+     * State (the running Timer and the button's original border, to restore exactly) is stashed on the button
+     * itself via client properties rather than in some external map, so it's inherently scoped to the button's
+     * own lifecycle - no separate cleanup/disposal path is needed.
+     * @param button the button to pulse - a no-op if null (e.g. a dialog whose buttons haven't been created yet).
+     * @param active true to start pulsing (or keep pulsing), false to stop and restore the original border.
+     */
+    public static void setAttentionPulse(JButton button, boolean active) {
+        if (button == null) {
+            return;
+        }
+        Timer existingTimer = (Timer) button.getClientProperty(ATTENTION_PULSE_TIMER_PROPERTY);
+        if (active) {
+            if (existingTimer != null) {
+                return;
+            }
+            Border originalBorder = button.getBorder();
+            // Same outer inset (3px) on both the "on" and "off" borders - only the line's colour changes between
+            // the vivid orange and fully transparent, so the button's size/position never jitters as it pulses.
+            Border pulseOnBorder = BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(ATTENTION_PULSE_COLOR, 3), originalBorder);
+            Border pulseOffBorder = BorderFactory.createCompoundBorder(
+                    BorderFactory.createEmptyBorder(3, 3, 3, 3), originalBorder);
+            boolean[] pulseOn = {false};
+            Timer timer = new Timer(450, e -> {
+                pulseOn[0] = !pulseOn[0];
+                button.setBorder(pulseOn[0] ? pulseOnBorder : pulseOffBorder);
+            });
+            button.putClientProperty(ATTENTION_PULSE_ORIGINAL_BORDER_PROPERTY, originalBorder);
+            button.putClientProperty(ATTENTION_PULSE_TIMER_PROPERTY, timer);
+            timer.start();
+        } else if (existingTimer != null) {
+            existingTimer.stop();
+            button.setBorder((Border) button.getClientProperty(ATTENTION_PULSE_ORIGINAL_BORDER_PROPERTY));
+            button.putClientProperty(ATTENTION_PULSE_TIMER_PROPERTY, null);
+            button.putClientProperty(ATTENTION_PULSE_ORIGINAL_BORDER_PROPERTY, null);
+        }
     }
 }

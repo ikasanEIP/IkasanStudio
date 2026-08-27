@@ -111,12 +111,26 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         super(project, componentInitialisation, true);
         this.setBorder(null);
         listenerForAnyEditChanges = () -> {
-            boolean okToProcess = dataHasChangedAndOKToProcess() && doValidateAll().isEmpty();
+            List<ValidationInfo> validationIssues = doValidateAll();
+            boolean hasValidationIssues = !validationIssues.isEmpty();
+            boolean okToProcess = dataHasChangedAndOKToProcess() && !hasValidationIssues;
+            // A disabled button still shows its tooltip on hover (Swing dispatches hover/mouse-motion events to
+            // disabled components; only the click itself is suppressed), and the pulsating border draws the
+            // developer's eye there in the first place - without both, a validation failure (e.g. a duplicate
+            // component name) just disabled the button with no visible explanation at all. Applied to both the
+            // in-canvas sidebar's own button AND, via getPropertiesDialogue(), the first-time popup's OK button -
+            // DialogWrapper's own doValidateAll()-based balloon requires explicitly opting in to continuous
+            // validation (startTrackingValidation()), which this codebase never does, so the popup had exactly
+            // the same silent-disable problem.
+            String tooltip = hasValidationIssues ? StudioUIUtils.joinValidationMessages(validationIssues) : null;
             if (updateCodeButton != null) {
                 updateCodeButton.setEnabled(okToProcess);
+                updateCodeButton.setToolTipText(tooltip);
+                StudioUIUtils.setAttentionPulse(updateCodeButton, hasValidationIssues);
             }
             if (getPropertiesDialogue() != null) {
                 getPropertiesDialogue().setOKActionEnabled(okToProcess);
+                getPropertiesDialogue().setValidationFeedback(hasValidationIssues, tooltip);
             }
         };
         if (footerPanel != null) {
@@ -866,7 +880,41 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         for (final ComponentPropertyEditRow editPair: getComponentPropertyEditBoxList()) {
             result.addAll(editPair.doValidateAll());
         }
+        result.addAll(validateComponentNameIsUniqueInFlow());
         return result;
+    }
+
+    /**
+     * componentName's own helpText already documents "should be unique for the flow", but nothing previously
+     * enforced it - two components silently sharing a name overwrite each other's generated bean, since
+     * componentName becomes the Spring bean id. A flow only ever has a handful of components, so this is a
+     * single small in-memory pass, not worth worrying about cost.
+     * @return a single ValidationInfo if the currently-edited component's name collides with a sibling in the
+     * same flow, otherwise empty.
+     */
+    private List<ValidationInfo> validateComponentNameIsUniqueInFlow() {
+        if (!(getSelectedComponent() instanceof FlowElement flowElement) || flowElement.getContainingFlow() == null) {
+            return List.of();
+        }
+        String identityKey = flowElement.getIdentityPropertyMetaKey();
+        ComponentPropertyEditRow componentNameRow = getComponentPropertyEditBoxList().stream()
+                .filter(row -> identityKey.equals(row.getPropertyKey()))
+                .findFirst().orElse(null);
+        if (componentNameRow == null) {
+            return List.of();
+        }
+        Object candidateValue = componentNameRow.getValue();
+        if (!(candidateValue instanceof String candidateName) || candidateName.isBlank()) {
+            return List.of();
+        }
+        boolean duplicate = flowElement.getContainingFlow().ftlGetConsumerAndFlowElements().stream()
+                .anyMatch(sibling -> sibling != flowElement && candidateName.equals(sibling.getIdentity()));
+        if (duplicate) {
+            return List.of(new ValidationInfo(
+                    StudioBundle.message("message.ComponentNameMustBeUniqueInFlow", candidateName),
+                    componentNameRow.getOverridingInputField()));
+        }
+        return List.of();
     }
 
     @Override
