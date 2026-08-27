@@ -48,15 +48,19 @@ public class SendTestMessageAction implements ActionListener {
             return;
         }
 
-        SendTestMessagePayloadDialog payloadDialog = new SendTestMessagePayloadDialog(project);
+        Module module = project.getService(UiContext.class).getIkasanModule();
+        String flowName = flowElement.getContainingFlow().getIdentity();
+        // Namespaces the dialog's persisted last-used payload - componentName is only guaranteed unique within
+        // its own flow (see BasicElement javadoc), so module+flow+component avoids collisions between two
+        // different flows that happen to reuse the same component name.
+        String componentKey = module.getIdentity() + "/" + flowName + "/" + flowElement.getIdentity();
+
+        SendTestMessagePayloadDialog payloadDialog = new SendTestMessagePayloadDialog(project, componentKey);
         if (!payloadDialog.showAndGet()) {
             return;
         }
         String payload = payloadDialog.getPayload();
         String payloadClassName = payloadDialog.getPayloadClassName();
-
-        Module module = project.getService(UiContext.class).getIkasanModule();
-        String flowName = flowElement.getContainingFlow().getIdentity();
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.SendingTestMessage")) {
             // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md) because

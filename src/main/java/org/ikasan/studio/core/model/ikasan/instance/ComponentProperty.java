@@ -9,7 +9,6 @@ import lombok.ToString;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,7 +48,14 @@ public class ComponentProperty {
         String returnValue = "null";
         if (value != null) {
             if (value instanceof List) {
-                returnValue = Arrays.toString(((List<?>) value).toArray());
+                // Plain comma-joined, no brackets/spaces - this feeds straight into a Spring Boot properties
+                // value (see propertiesTemplate_en.ftl), which splits a List<String> property on commas with no
+                // awareness of Java's Arrays.toString()/List.toString() bracket-and-space convention. Using that
+                // convention here previously wrote e.g. "[myFile\.txt, anotherFile\.txt]" into
+                // application.properties, which Spring's comma-splitting then rebound as two broken entries
+                // ("[myFile\.txt" and " anotherFile\.txt]") - the first of which isn't even a valid regex,
+                // crashing FileMatcher's PatternSyntaxException at startup.
+                returnValue = String.join(",", ((List<?>) value).stream().map(String::valueOf).toList());
             } else
                 returnValue = value.toString();
         }
@@ -67,11 +73,14 @@ public class ComponentProperty {
     }
 
     /**
-     * Used by template library, IDE may incorrectly identify as redundant
+     * Called only from flowTemplate_en.ftl (both V3.3.8 and V4.0.x) via FreeMarker's bean-property syntax
+     * (${param.templateRepresentationOfValue}), which static-usage analysis can't see - despite the "unused"
+     * warning, this is load-bearing there.
      * Get the value and present it in such a way as to be appropriate for display in the template language
      * @return a string that contains the value display in such a way as to be appropriate for inclusion in a template
      */
     @JsonIgnore
+    @SuppressWarnings("unused")
     public String getTemplateRepresentationOfValue() {
         String displayValue = "";
         if (value == null) {

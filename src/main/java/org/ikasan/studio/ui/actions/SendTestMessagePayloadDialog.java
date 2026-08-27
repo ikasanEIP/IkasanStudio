@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.application.ModalityState;
@@ -46,20 +47,75 @@ import java.util.List;
  * Sample JSON" writes a skeleton JSON object (one entry per field, with a type-appropriate placeholder value)
  * into the text area, based on the chosen class's PSI - a starting point the user can then edit with real
  * values before sending.
+ * -
+ * Whatever payload text and payload class were last confirmed (OK, not Cancel) for a given component are
+ * persisted via PropertiesComponent, keyed by componentKey, and restored the next time this dialog is opened
+ * for that same component - so re-testing the same consumer repeatedly doesn't mean retyping the same JSON
+ * every time. Scoped per-component (not shared globally) since different consumers typically expect
+ * completely different payload shapes.
  */
 public class SendTestMessagePayloadDialog extends DialogWrapper {
+    private static final String PAYLOAD_PROPERTY_PREFIX = "ikasan.studio.sendTestMessage.payload.";
+    private static final String PAYLOAD_CLASS_PROPERTY_PREFIX = "ikasan.studio.sendTestMessage.payloadClass.";
+
     private final Project project;
+    private final String componentKey;
     private final JBTextArea payloadTextArea = new JBTextArea(10, 60);
     private final JBTextField payloadClassField = new JBTextField();
     private final JBLabel payloadLabel = new JBLabel();
     private final JButton generateJsonButton = new JButton(StudioBundle.message("button.GenerateSampleJson"));
     private String payloadClassName;
 
-    public SendTestMessagePayloadDialog(Project project) {
+    /**
+     * @param componentKey a string that uniquely identifies the target component (e.g. module + flow + component
+     *                      name) - used only to namespace this dialog's persisted last-used payload/class, never
+     *                      sent anywhere. Pass null to disable persistence (nothing is restored or saved).
+     */
+    public SendTestMessagePayloadDialog(Project project, String componentKey) {
         super(project, true);
         this.project = project;
+        this.componentKey = componentKey;
+        restorePersistedValues();
         init();
         setTitle(StudioBundle.message("dialog.SendTestMessage"));
+    }
+
+    private void restorePersistedValues() {
+        if (componentKey == null) {
+            return;
+        }
+        PropertiesComponent properties = PropertiesComponent.getInstance(project);
+        String persistedPayload = properties.getValue(PAYLOAD_PROPERTY_PREFIX + componentKey);
+        if (persistedPayload != null) {
+            payloadTextArea.setText(persistedPayload);
+        }
+        String persistedClassName = properties.getValue(PAYLOAD_CLASS_PROPERTY_PREFIX + componentKey);
+        if (persistedClassName != null && !persistedClassName.isBlank()) {
+            // Sets payloadClassName and refreshes payloadClassField/payloadLabel - all already constructed via
+            // field initialisers at this point, even though createCenterPanel() (called from init() below)
+            // hasn't run yet.
+            setPayloadClassName(persistedClassName);
+        }
+    }
+
+    /**
+     * Only reached on OK (not Cancel or closing the dialog) - persisting on Cancel would remember a payload the
+     * user explicitly chose not to send.
+     */
+    @Override
+    protected void doOKAction() {
+        if (componentKey != null) {
+            PropertiesComponent properties = PropertiesComponent.getInstance(project);
+            properties.setValue(PAYLOAD_PROPERTY_PREFIX + componentKey, payloadTextArea.getText());
+            if (payloadClassName != null) {
+                properties.setValue(PAYLOAD_CLASS_PROPERTY_PREFIX + componentKey, payloadClassName);
+            } else {
+                // Explicitly cleared by the user (see setPayloadClassName(null) below) - forget it too, rather
+                // than resurrecting a stale class next time.
+                properties.unsetValue(PAYLOAD_CLASS_PROPERTY_PREFIX + componentKey);
+            }
+        }
+        super.doOKAction();
     }
 
     @Override
