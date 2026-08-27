@@ -1,7 +1,7 @@
 {
   "name": "Single Recipient Router",
   "componentType": "org.ikasan.spec.component.routing.SingleRecipientRouter",
-  "helpText": "<strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p>",
+  "helpText": "<strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p><p>Requires at least two route names to be configured below (Route Names) - with only one, there would be nothing to actually choose between.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "org.ikasan.spec.component.routing.SingleRecipientRouter",
   "flowBuilderMethod": "singleRecipientRouter",
@@ -70,11 +70,12 @@
     "routeNames": {
       "propertyName": "routeNames",
       "affectsUserImplementedClass": "true",
-      "helpText": "The commma seperated list of names to identify the different routes",
+      "defaultValue": "route1,route2",
+      "helpText": "A comma-separated list of route names your router logic (see the generated class) picks exactly one from per message. At least two are required - with only one, there would be nothing to actually route between.",
       "mandatory": true,
-      "usageDataType": "java.util.List<java.lang.String>",
-      "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
-      "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
+      "usageDataType": "java.util.List<String>",
+      "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)+$",
+      "validationMessage": "Provide at least two comma-separated route names (duplicates will be ignored)."
     }
   }
 }

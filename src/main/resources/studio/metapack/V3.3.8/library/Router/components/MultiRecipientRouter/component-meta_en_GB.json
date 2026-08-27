@@ -70,11 +70,12 @@
     "routeNames": {
       "propertyName": "routeNames",
       "affectsUserImplementedClass": "true",
-      "helpText": "The commma seperated list of names to identify the different routes",
+      "defaultValue": "route1,route2",
+      "helpText": "A comma-separated list of route names your router logic (see the generated class) selects from per message - it can choose none, one, or many of them.",
       "mandatory": true,
       "usageDataType": "java.util.List<String>",
       "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
-      "validationMessage": "Provide a comma seperated list of route names. Duplicates will be ignored."
+      "validationMessage": "Provide a comma-separated list of route names (duplicates will be ignored)."
     }
   }
 }
