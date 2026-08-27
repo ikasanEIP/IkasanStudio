@@ -20,7 +20,8 @@ co.uk.test.myflow1.myFilter myMessageFilter;
 co.uk.test.myflow1.MyConfigurationClass myConfigurationClass;
 
 public org.ikasan.spec.component.filter.Filter getMyMessageFilter() {
+org.ikasan.filter.DefaultMessageFilter component = new org.ikasan.filter.DefaultMessageFilter(myMessageFilter);
 myMessageFilter.setConfiguration(myConfigurationClass);
 myMessageFilter.setConfiguredResourceId("MyResourceID");
-return myMessageFilter;
+return component;
 }}

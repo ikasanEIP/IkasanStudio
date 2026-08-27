@@ -32,6 +32,7 @@
     },
     "fromType": {
       "propertyName": "fromType",
+      "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to come into the broker. This can be any Java class.",
@@ -41,6 +42,7 @@
     },
     "toType": {
       "propertyName": "toType",
+      "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to be the output of the the broker. This can be any Java class.",

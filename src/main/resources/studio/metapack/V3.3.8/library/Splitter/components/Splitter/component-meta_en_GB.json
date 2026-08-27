@@ -53,6 +53,7 @@
     },
     "fromType": {
       "propertyName": "fromType",
+      "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The data type of the objects in the list being sent to this splitter.",
@@ -62,6 +63,7 @@
     },
     "toType": {
       "propertyName": "toType",
+      "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
       "helpText": "The data type of the objects being sent to the downstream consumer.",

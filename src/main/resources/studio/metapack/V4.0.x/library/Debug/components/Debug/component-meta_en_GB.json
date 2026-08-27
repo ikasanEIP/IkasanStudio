@@ -24,6 +24,7 @@
     },
     "fromType": {
       "propertyName": "fromType",
+      "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.Object",
       "hiddenProperty" : true,

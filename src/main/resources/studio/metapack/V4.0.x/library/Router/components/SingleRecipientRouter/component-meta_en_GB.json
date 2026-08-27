@@ -56,12 +56,13 @@
       "defaultValue": "java.lang.String",
       "helpText": "The type of data we expect to come into the router. This can be any Java class.",
       "mandatory": true,
-      "usageDataType": "java.lang.Class",
+      "usageDataType": "classLiteral",
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the router."
     },
     "toType": {
       "propertyName": "toType",
+      "usageDataType": "classLiteral",
       "defaultValue": "java.lang.String",
       "hiddenProperty": true,
       "mandatory": true

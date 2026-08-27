@@ -176,6 +176,24 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedMessageFilterComponent.java"), templateString);
     }
 
+    /**
+     * Regression test: org.ikasan.filter.DefaultMessageFilter has no no-arg constructor - it requires a
+     * FilterRule instance be passed in. Studio generates a FilterRule stub (see FlowsUserImplementedComponentTemplateTest's
+     * DefaultMessageFilter.java) and this factory must wrap it: "new DefaultMessageFilter(stub)", then return
+     * that wrapping instance (not the raw stub, which doesn't itself satisfy the Filter interface this method
+     * declares as its return type).
+     * See also resources/studio/templates/org/ikasan/studio/generator/Filter/ComponentFactoryFullyPopulatedDefaultMessageFilterComponent.java
+     * @throws IOException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_defaultMessageFilterComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getDefaultMessageFilter(metaPackVersion);
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedDefaultMessageFilterComponent.java"), templateString);
+    }
+
     // ------------------------------------- CONVERTERS -------------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedCustomConverterComponent.java

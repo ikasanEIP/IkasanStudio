@@ -81,7 +81,14 @@ org.ikasan.builder.BuilderFactory builderFactory;
         </#if>
     <#else>
         <#if flowElement.componentMeta.useImplementingClassInFactory>
-            ${flowElement.componentMeta.implementingClass} component = new ${flowElement.componentMeta.implementingClass}();
+            <#if flowElement.componentMeta.generatesUserImplementedClass>
+                <#-- e.g. DefaultMessageFilter, whose only constructor takes the FilterRule Studio just generated
+                     a stub for above - the wrapping implementingClass instance (not the raw stub) is what
+                     actually satisfies this flow element's own componentType, see the return statement below. -->
+                ${flowElement.componentMeta.implementingClass} component = new ${flowElement.componentMeta.implementingClass}(${flowElement.getJavaVariableName()});
+            <#else>
+                ${flowElement.componentMeta.implementingClass} component = new ${flowElement.componentMeta.implementingClass}();
+            </#if>
         </#if>
     </#if>
 
@@ -111,10 +118,14 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.identity)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");
     </#if>
-    <#if flowElement.componentMeta.generatesUserImplementedClass>
-        return ${flowElement.getJavaVariableName()};
-    <#elseif flowElement.componentMeta.useImplementingClassInFactory>
+    <#-- useImplementingClassInFactory checked first: when a component (e.g. DefaultMessageFilter) combines
+         both flags, the wrapping "component" instance built above (which takes the generated stub as a
+         constructor arg) is what satisfies this method's own componentType return type - the raw stub alone
+         (returned by the generatesUserImplementedClass branch) generally does not. -->
+    <#if flowElement.componentMeta.useImplementingClassInFactory>
         return component;
+    <#elseif flowElement.componentMeta.generatesUserImplementedClass>
+        return ${flowElement.getJavaVariableName()};
     <#else>
         .build();
     </#if>
