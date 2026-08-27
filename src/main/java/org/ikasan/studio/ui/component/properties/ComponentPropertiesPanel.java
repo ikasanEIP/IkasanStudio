@@ -132,9 +132,17 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 getPropertiesDialogue().setOKActionEnabled(okToProcess);
                 getPropertiesDialogue().setValidationFeedback(hasValidationIssues, tooltip);
             }
+            // Regenerating the stub class only makes sense once the model is in a settled state - not while
+            // Update Code is enabled (there are unsaved edits it would ignore, regenerating against stale
+            // values) and not while it's pulsating (the edits aren't even valid yet). Disabling it in both
+            // cases avoids a confusing "regenerate against what, exactly?" moment.
+            if (regenerateClassButton != null) {
+                regenerateClassButton.setEnabled(!okToProcess && !hasValidationIssues);
+            }
         };
         if (footerPanel != null) {
             regenerateClassButton = new JButton(StudioBundle.message("button.RegenerateClass"));
+            regenerateClassButton.setToolTipText(StudioBundle.message("tooltip.RegenerateClass"));
             regenerateClassButton.addActionListener(e -> regenerateSelectedUserImplementedClass());
             regenerateClassButton.setVisible(false);
             footerPanel.add(regenerateClassButton);
@@ -467,7 +475,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // Guarded: this is first called from the PropertiesPanel superclass constructor, before this
             // subclass's own constructor body (which creates regenerateClassButton) has run.
             if (regenerateClassButton != null) {
-                regenerateClassButton.setVisible(getSelectedComponent() instanceof FlowUserImplementedElement);
+                // Debug excluded: its stub is a transient debugging aid regenerated on every save anyway (and
+                // never persisted once the project closes - see the Debug component's own helpText), not a
+                // long-lived user-customised class someone would deliberately ask to regenerate on demand.
+                regenerateClassButton.setVisible(getSelectedComponent() instanceof FlowUserImplementedElement
+                        && !getSelectedComponent().getComponentMeta().isDebug());
+                // Fresh/just-saved state: nothing pending, nothing invalid - matches listenerForAnyEditChanges'
+                // own baseline, so Regenerate Class starts enabled here rather than waiting for a first edit.
+                regenerateClassButton.setEnabled(true);
             }
         }
 
