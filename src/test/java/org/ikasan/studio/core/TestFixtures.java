@@ -943,6 +943,33 @@ public class TestFixtures {
         return flow;
     }
 
+    public static Flow getEventGeneratingConsumerSingleRecipientRouterFlow(String metaPackVersion) throws StudioBuildException {
+        FlowElement eventGeneratingConsumer = getEventGeneratingConsumer(metaPackVersion);
+        FlowElement customConverter = getCustomConverter(metaPackVersion);
+        FlowElement router = getSingleRecipientRouter(metaPackVersion);
+        FlowElement devNullProducer1 = TestFixtures.getDevNullProducer(metaPackVersion);
+        devNullProducer1.setComponentName("My DevNull Producer1");
+        FlowElement devNullProducer2 = TestFixtures.getDevNullProducer(metaPackVersion);
+        devNullProducer2.setComponentName("My DevNull Producer2");
+
+        Flow flow = getUnbuiltFlow(metaPackVersion)
+                .consumer(eventGeneratingConsumer)
+                .build();
+
+        FlowRoute firstRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route1").flowElements(new ArrayList<>(Collections.singletonList(devNullProducer1))).build();
+        FlowRoute secondRoute = FlowRoute.flowRouteBuilder().flow(flow).routeName("route2").flowElements(new ArrayList<>(Collections.singletonList(devNullProducer2))).build();
+        List<FlowRoute> childRoutes = new ArrayList<>();
+        childRoutes.add(firstRoute);
+        childRoutes.add(secondRoute);
+
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder()
+                .flow(flow)
+                .flowElements(new ArrayList<>(Arrays.asList(customConverter, router)))
+                .childRoutes(childRoutes)
+                .build());
+        return flow;
+    }
+
     /**
      * Every component that is not a flow or modules has this property.
      * @return the component property meta for the component name.

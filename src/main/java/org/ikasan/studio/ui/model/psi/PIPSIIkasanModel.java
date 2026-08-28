@@ -297,9 +297,16 @@ public class PIPSIIkasanModel {
     }
 
     private void generateAndSaveUserImplementClassStubsForFlow(Project project, Module module, Flow ikasanFlow) {
-        if (!ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements().isEmpty()) {
+        // FlowRoute#getConsumerAndFlowRouteElements() only ever returns ITS OWN route's elements - for a
+        // router flow, that's just the consumer and whatever leads up to the router itself, never anything
+        // inside a branch (route1/route2 etc). Using Flow#getFlowElementsNoExternalEndPoints() instead walks
+        // every route recursively (see Flow#getAllFlowElementsInAnyRoute), so a Debug (or any other
+        // user-implemented component) dropped into a router branch gets its stub generated too. Router
+        // Endpoint markers are internal endpoints so they pass this method's own endpoint filter, but they
+        // are neither hasUserSuppliedClass() nor a FlowUserImplementedElement, so the loop below skips them.
+        if (!ikasanFlow.getFlowElementsNoExternalEndPoints().isEmpty()) {
             // Must do User Implemented class stubs first otherwise resolution will not auto generate imports.
-            for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+            for (FlowElement component : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
                 IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, component);
                 if (component.hasUserSuppliedClass()) {
                     for (ComponentProperty property : component.getUserSuppliedClassProperties()) {

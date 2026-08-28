@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +92,40 @@ public class FlowRoute  implements IkasanComponent {
         return null;
     }
 
+    /**
+     * Ensure this route has a child FlowRoute (with its Router Endpoint marker already in place, matching what
+     * {@link org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer#addNewRoutesForRouter}
+     * builds on a full model.json reload) for every name currently in the given router's routeNames property.
+     * Live add/edit of a router never keeps childRoutes in sync with routeNames on its own - only a full reload
+     * does that - so without this, a freshly added or just-edited router has no branches to actually drop
+     * components into, and the canvas wrongly reports "cannot have a router AND a producer" against this
+     * (the router's own containing) route instead. Existing child routes (and anything already inside them)
+     * are left untouched; only routeNames not yet represented get a new (empty, endpoint-only) child route.
+     * @param metapackVersion of the router
+     * @param router whose routeNames should be reflected in this route's children
+     */
+    public void syncChildRoutesForRouter(String metapackVersion, FlowElement router) throws StudioBuildException {
+        Object rawRouteNames = router.getPropertyValue(ROUTE_NAMES);
+        if (!(rawRouteNames instanceof List<?> routeNames)) {
+            return;
+        }
+        String endpointComponentName = router.getComponentMeta().getEndpointKey();
+        if (endpointComponentName == null) {
+            LOG.warn("STUDIO: SERIOUS: syncChildRoutesForRouter could not find an endpoint key for router " + router);
+            return;
+        }
+        for (Object routeNameObj : routeNames) {
+            if (routeNameObj instanceof String routeName && !routeName.isBlank() && findRouteOfName(routeName) == null) {
+                FlowRoute newChild = FlowRoute.flowRouteBuilder().flow(flow).routeName(routeName).build();
+                childRoutes.add(newChild);
+                ComponentMeta endpointMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
+                FlowElement endpoint = FlowElementFactory.createFlowElement(metapackVersion, endpointMeta, flow, newChild, routeName);
+                endpoint.setContainingFlowRoute(newChild);
+                newChild.getFlowElements().add(endpoint);
+            }
+        }
+    }
+
 
     /**
      * Attempt to remove the element from the flow. Note that the UI threads can sometimes call this multiple times so
@@ -142,14 +177,23 @@ public class FlowRoute  implements IkasanComponent {
     @JsonIgnore
     public String getFlowIntegrityStatus() {
         String status = "";
-        if (childRoutes != null) {
-            status = childRoutes.stream().map(FlowRoute::getFlowIntegrityStatus).collect(Collectors.joining (","));
-        }
-        if (!flow.hasConsumer()) {
-            status += "The flow needs a consumer. ";
-        }
-        if (! hasProducer()) {
-            status += "The flow needs a producer. ";
+        if (childRoutes != null && !childRoutes.isEmpty()) {
+            // A router always marks the end of a route (see ModuleDeserializer#buildRouteTree) - this route's
+            // own flowElements never include a producer once it ends in one, completeness is entirely
+            // delegated to the branches below. Checking hasProducer() on this route too (as previously
+            // happened unconditionally) meant a router-terminated route was reported as needing a producer
+            // even when every one of its branches already had one.
+            status = childRoutes.stream()
+                    .map(FlowRoute::getFlowIntegrityStatus)
+                    .filter(childStatus -> !childStatus.isBlank())
+                    .collect(Collectors.joining (","));
+        } else {
+            if (!flow.hasConsumer()) {
+                status += "The flow needs a consumer. ";
+            }
+            if (! hasProducer()) {
+                status += "The flow needs a producer. ";
+            }
         }
         return status;
     }

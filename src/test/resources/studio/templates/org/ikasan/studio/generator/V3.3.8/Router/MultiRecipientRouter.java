@@ -9,9 +9,10 @@ package org.ikasan;
 
 @org.springframework.stereotype.Component
 
-public class myMultiRecipientRouter implements org.ikasan.spec.component.routing.MultiRecipientRouter<java.lang.String>,    org.ikasan.spec.configuration.Configured<MyConfigurationClass>
+public class myMultiRecipientRouter implements org.ikasan.spec.component.routing.MultiRecipientRouter<java.lang.String>, org.ikasan.spec.configuration.ConfiguredResource<    MyConfigurationClass>
 {
 MyConfigurationClass configuration;
+String configurationId;
 
 public static final String ROUTE1 = "route1";
 public static final String ROUTE2 = "route2";
@@ -19,21 +20,26 @@ public static final String ROUTE2 = "route2";
 /**
 * <strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or many routes e.g. the logic could send the payload to routeA AND routeB.</p>
 *
-* @param payload to be evaluated and passed to the router routes
-* @return A list of routerNames that payload will be passed to
+* @param payload to be evaluated to choose which of the routes above (see the constants above) payload should be sent to
+* @return the route names (see the constants above) payload should be sent to, in any combination - null or an
+* empty list is not valid, at least one route is always required (there is no "default" fallback for this
+* router type - see org.ikasan.flow.visitorPattern.invoker.MultiRecipientRouterFlowElementInvoker)
 */
 @Override
 public java.util.List<java.lang.String> route(java.lang.String payload) throws org.ikasan.spec.component.routing.RouterException
 {
-//List<String>routes = new ArrayList();
-//if (true) {
-//@TODO implement your filter logic, return the message if it is allowed by your filter
-//routes.add("firstRoute");
-//}
-//else {
-//routes.add("secondRoute");
-//}
-return null;
+//@TODO implement your routing logic, returning the route name(s) (see the constants above) payload should be sent to
+return java.util.List.of(ROUTE1, ROUTE2);
+}
+
+@Override
+public String getConfiguredResourceId() {
+return configurationId;
+}
+
+@Override
+public void setConfiguredResourceId(String id) {
+this.configurationId = id;
 }
 
 @Override

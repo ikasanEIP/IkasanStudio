@@ -77,6 +77,32 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         }
     }
 
+    /**
+     * childFlowRouteViewHandlers was previously only ever populated once, at construction time, from whatever
+     * flowRoute.getChildRoutes() held at that moment. Once live editing started able to add new child routes
+     * afterwards (see FlowRoute#syncChildRoutesForRouter, used when a router is added or its routeNames edited),
+     * that fixed snapshot went stale: the new branch's initialiseDimensions never ran, so its elements kept
+     * their default (0,0) position - drawing a line straight to the top-left corner instead of to the branch.
+     * Reconciling here on every layout pass keeps this in step with the model, reusing existing handlers (and
+     * so their state) for routes that are still present, rather than only building this list once.
+     */
+    private void syncChildFlowRouteViewHandlers() {
+        List<FlowRoute> modelChildRoutes = flowRoute.getChildRoutes();
+        if (modelChildRoutes == null || modelChildRoutes.isEmpty()) {
+            childFlowRouteViewHandlers.clear();
+            return;
+        }
+        Map<FlowRoute, IkasanFlowRouteViewHandler> existingByRoute = new HashMap<>();
+        for (IkasanFlowRouteViewHandler existing : childFlowRouteViewHandlers) {
+            existingByRoute.put(existing.getFlowRoute(), existing);
+        }
+        childFlowRouteViewHandlers.clear();
+        for (FlowRoute childRoute : modelChildRoutes) {
+            IkasanFlowRouteViewHandler handler = existingByRoute.get(childRoute);
+            childFlowRouteViewHandlers.add(handler != null ? handler : new IkasanFlowRouteViewHandler(project, flow, childRoute));
+        }
+    }
+
     public List<IkasanFlowRouteViewHandler> getAllFlowRouteViewHandlers(List<IkasanFlowRouteViewHandler> flowRouteViewHandlers, IkasanFlowRouteViewHandler currentRoot) {
         if (currentRoot != null) {
             flowRouteViewHandlers.add(currentRoot);
@@ -305,6 +331,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
      * @return the new top Y for flow elements
      */
     protected int initialiseDimensions(Graphics graphics, int currentX, int topYForElements) {
+        syncChildFlowRouteViewHandlers();
         this.setTopY( topYForElements);
         this.setLeftX(currentX);
         java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();

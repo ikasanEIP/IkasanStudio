@@ -4,7 +4,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextArea;
@@ -38,7 +37,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JButton;
-import javax.swing.UIManager;
 import com.intellij.openapi.ui.ComboBox;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -778,6 +776,9 @@ public class DesignerCanvas extends JPanel {
                     } else {
                         ((FlowElement) newComponent).defaultUnsetMandatoryProperties();
                         insertNewComponentBetweenSurroundingPair(containingFlow, containingFlowRoute, (FlowElement) newComponent, x, y);
+                        if (newComponent.getComponentMeta().isRouter()) {
+                            syncChildRoutesForRouter((FlowElement) newComponent);
+                        }
                     }
                 } else {
                     return false;
@@ -956,7 +957,15 @@ public class DesignerCanvas extends JPanel {
                         for (int ii = 0; ii < numberOfComponents; ii++) {
                             if (components.get(ii).equals(surroundingComponents.getRight()) ||
                                     ((components.get(ii).equals(surroundingComponents.getLeft())) && surroundingComponents.getLeft().getComponentMeta().isProducer())) {
-                                components.add(ii, ikasanFlowComponent);
+                                // A Router Endpoint (isInternalEndpoint) always anchors the very start of its
+                                // route - it's the branch's connection point back to the router, so nothing may
+                                // ever land before it here, however the left/right proximity resolved. Without
+                                // this, a drop that misjudges which side of a freshly-created branch's endpoint
+                                // it landed on inserts the new component before the endpoint, drawing it before
+                                // the "ball" instead of after (only a full model.json reload self-heals that,
+                                // since ModuleDeserializer always rebuilds a branch with its endpoint first).
+                                int insertAt = components.get(ii).getComponentMeta().isInternalEndpoint() ? ii + 1 : ii;
+                                components.add(insertAt, ikasanFlowComponent);
                                 inserted = true;
                                 break;
                             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
@@ -977,6 +986,26 @@ public class DesignerCanvas extends JPanel {
                     LOG.warn("STUDIO: Could not resolve a target FlowRoute to insert " + ikasanFlowComponent.getIdentity() + " into at (" + x + "," + y + "); nothing was added.");
                 }
             }
+        }
+    }
+
+    /**
+     * A router's childRoutes only ever get built from its routeNames property during a full model.json reload
+     * (see ModuleDeserializer#addNewRoutesForRouter) - a live drag-and-drop add never does that, so without
+     * this a freshly dropped router has no branches to drop a Producer (or anything else) into, and the canvas
+     * would wrongly report "cannot have a router AND a producer" against the router's own containing route.
+     * @param router just added to the canvas
+     */
+    private void syncChildRoutesForRouter(FlowElement router) {
+        FlowRoute containingFlowRoute = router.getContainingFlowRoute();
+        if (containingFlowRoute == null) {
+            LOG.warn("STUDIO: SERIOUS: Newly added router " + router.getIdentity() + " had no containing FlowRoute, could not sync its child routes.");
+            return;
+        }
+        try {
+            containingFlowRoute.syncChildRoutesForRouter(getIkasanModule().getMetaVersion(), router);
+        } catch (StudioBuildException se) {
+            LOG.warn("STUDIO: A studio exception was raised while syncing child routes for router " + router.getIdentity() + ", please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
         }
     }
 
@@ -1334,10 +1363,13 @@ public class DesignerCanvas extends JPanel {
         // A flow with a consumer but no producer will not run, so make this hint stand out rather than
         // blending in with the other, purely informational, getting-started hints.
         boolean needsProducer = hint == GettingStartedHint.ADD_COMPONENTS;
-        Color foreground = UIManager.getColor("Label.foreground");
-        Color secondary = UIManager.getColor("Label.disabledForeground");
-        Color headingColor = needsProducer ? ThemeAwareColors.getWarningColor() : (foreground != null ? foreground : JBColor.GRAY);
-        Color instructionColor = needsProducer ? ThemeAwareColors.getWarningColor() : (secondary != null ? secondary : (foreground != null ? foreground : JBColor.GRAY));
+        // Label.disabledForeground previously used for the instruction line is designed for disabled controls,
+        // not body text painted straight onto the canvas background - too low-contrast to read in either theme.
+        // The heading's bold weight already gives it enough visual priority over the (regular-weight)
+        // instruction line, so both can safely share the same readable, theme-aware text color.
+        Color textColor = ThemeAwareColors.getTextColor();
+        Color headingColor = needsProducer ? ThemeAwareColors.getWarningColor() : textColor;
+        Color instructionColor = needsProducer ? ThemeAwareColors.getWarningColor() : textColor;
         Font headingFont = getFont().deriveFont(Font.BOLD, getFont().getSize2D() + 2f);
         Font instructionFont = getFont();
 

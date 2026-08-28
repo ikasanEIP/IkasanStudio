@@ -9,9 +9,10 @@ package org.ikasan;
 
 @org.springframework.stereotype.Component
 
-public class mySingleRecipientRouter implements org.ikasan.spec.component.routing.SingleRecipientRouter<java.lang.String>,    org.ikasan.spec.configuration.Configured<MyConfigurationClass>
+public class mySingleRecipientRouter implements org.ikasan.spec.component.routing.SingleRecipientRouter<java.lang.String>, org.ikasan.spec.configuration.ConfiguredResource<    MyConfigurationClass>
 {
 MyConfigurationClass configuration;
+String configurationId;
 
 public static final String ROUTE1 = "route1";
 public static final String ROUTE2 = "route2";
@@ -19,21 +20,28 @@ public static final String ROUTE2 = "route2";
 /**
 * <strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p><p>Requires at least two route names to be configured below (Route Names) - with only one, there would be nothing to actually choose between.</p>
 *
-* @param payload to be evaluated and passed to the router routes
-* @return A list of routerNames that payload will be passed to
+* @param payload to be evaluated to choose exactly one of the routes above (see the constants above) for payload to take next
+* @return the single route name (see the constants above) payload should be sent to. Returning null routes to
+* a "default" transition if (and only if) one has been configured below - if not, or if the returned name
+* matches none of this router's own routes, the flow throws an InvalidFlowException at runtime (see
+* org.ikasan.flow.visitorPattern.invoker.SingleRecipientRouterFlowElementInvoker), so only rely on null if a
+* "default" route genuinely exists among the route names above.
 */
 @Override
 public java.lang.String route(java.lang.String payload) throws org.ikasan.spec.component.routing.RouterException
 {
-//List<String>routes = new ArrayList();
-//if (true) {
-//@TODO implement your filter logic, return the message if it is allowed by your filter
-//routes.add("firstRoute");
-//}
-//else {
-//routes.add("secondRoute");
-//}
-return null;
+//@TODO implement your routing logic, returning exactly one of the route names (see the constants above) payload should be sent to
+return ROUTE1;
+}
+
+@Override
+public String getConfiguredResourceId() {
+return configurationId;
+}
+
+@Override
+public void setConfiguredResourceId(String id) {
+this.configurationId = id;
 }
 
 @Override

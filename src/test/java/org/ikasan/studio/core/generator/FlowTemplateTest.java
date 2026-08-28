@@ -278,6 +278,25 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, router, TEST_FLOW_NAME + "FullyPopulatedMultiRecipientRouterComponent.java"), templateString);
     }
 
+    /**
+     * Regression test: unlike Multi Recipient Router (which has a ready-made, no-code-needed framework
+     * implementation - RecipientListRouter), Single Recipient Router requires real per-message routing logic,
+     * which only exists in the user-implemented class Studio generates for it. The flow template previously
+     * hardcoded `new RecipientListRouter(...)` for every router regardless of type, which doesn't implement
+     * SingleRecipientRouter - that failed to compile in a real generated project. It must be wired in via
+     * componentFactory.get{JavaClassName}() instead, exactly like any other user-implemented component.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_singleRecipientRouter(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, Collections.singletonList(TestFixtures.getEventGeneratingConsumerSingleRecipientRouterFlow(metaPackVersion)));
+        List<FlowElement> flowElements = module.getFlows().get(0).getFlowRoute().getFlowElements();
+        BasicElement router = flowElements.get(flowElements.size() - 1);
+
+        String templateString = generateFlowTemplateStringForModule(module);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, router, TEST_FLOW_NAME + "FullyPopulatedSingleRecipientRouterComponent.java"), templateString);
+    }
+
 
     // ------------------------------------- PRODUCERS -------------------------------------
 

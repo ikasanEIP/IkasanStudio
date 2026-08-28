@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
@@ -29,6 +30,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -166,6 +168,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
+            if (getSelectedComponent() instanceof FlowElement router
+                    && router.getComponentMeta().isRouter()
+                    && router.getContainingFlowRoute() != null) {
+                // routeNames may just have changed (a route added/renamed) - childRoutes only ever get built
+                // from it during a full model.json reload, so a live edit needs the same sync a fresh router
+                // drop does (see DesignerCanvas#syncChildRoutesForRouter), or new branches have nothing to
+                // drop components into.
+                try {
+                    router.getContainingFlowRoute().syncChildRoutesForRouter(uiContext.getIkasanModule().getMetaVersion(), router);
+                } catch (StudioBuildException se) {
+                    LOG.warn("STUDIO: A studio exception was raised while syncing child routes for router " + router.getIdentity() + ", please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+                }
+            }
             // ComponentPropertyEditRow#initialValue is captured once, at row construction, and is immutable -
             // rebuilding the rows against the just-committed model is the only way to make
             // dataHasChangedAndOKToProcess() (and so isDebugModuleRunning-time callers like

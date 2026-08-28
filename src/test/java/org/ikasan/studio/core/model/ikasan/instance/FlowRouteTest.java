@@ -5,6 +5,7 @@ import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -256,6 +257,85 @@ class FlowRouteTest {
         assertTrue(result.isBlank());
     }
 
+    /**
+     * Regression test: a router-terminated route's own flowElements never include a producer - that's always
+     * on one of its childRoutes instead - so checking hasProducer() on the router's own containing route (as
+     * well as recursing into the children) meant a fully valid router flow was always wrongly reported as
+     * "needs a producer", even when every branch already had one.
+     */
+    @Test
+    public void test_getFlowIntegrityStatus_returns_true_when_every_router_branch_has_a_producer() throws StudioBuildException {
+        testFlow.setConsumer(TestFixtures.getEventGeneratingConsumer(BASE_META_PACK));
+        FlowElement router = TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
+        FlowRoute rootRoute = FlowRoute.flowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(new ArrayList<>(List.of(router)))
+                .build();
+        router.setContainingFlowRoute(rootRoute);
+
+        FlowRoute route1 = FlowRoute.flowRouteBuilder().flow(testFlow).routeName("route1")
+                .flowElements(new ArrayList<>(List.of(TestFixtures.getLoggingProducer(BASE_META_PACK)))).build();
+        FlowRoute route2 = FlowRoute.flowRouteBuilder().flow(testFlow).routeName("route2")
+                .flowElements(new ArrayList<>(List.of(TestFixtures.getLoggingProducer(BASE_META_PACK)))).build();
+        rootRoute.getChildRoutes().add(route1);
+        rootRoute.getChildRoutes().add(route2);
+
+        assertThat(rootRoute.getFlowIntegrityStatus()).isBlank();
+    }
+
+    /**
+     * Companion to the above: a router branch that is still missing its own producer must still be reported,
+     * even though the router-terminated root route itself no longer performs that check directly.
+     */
+    @Test
+    public void test_getFlowIntegrityStatus_stillReportsAMissingProducerOnOneRouterBranch() throws StudioBuildException {
+        testFlow.setConsumer(TestFixtures.getEventGeneratingConsumer(BASE_META_PACK));
+        FlowElement router = TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
+        FlowRoute rootRoute = FlowRoute.flowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(new ArrayList<>(List.of(router)))
+                .build();
+        router.setContainingFlowRoute(rootRoute);
+
+        FlowRoute route1 = FlowRoute.flowRouteBuilder().flow(testFlow).routeName("route1")
+                .flowElements(new ArrayList<>(List.of(TestFixtures.getLoggingProducer(BASE_META_PACK)))).build();
+        FlowRoute route2 = FlowRoute.flowRouteBuilder().flow(testFlow).routeName("route2").build();
+        rootRoute.getChildRoutes().add(route1);
+        rootRoute.getChildRoutes().add(route2);
+
+        assertThat(rootRoute.getFlowIntegrityStatus()).contains("The flow needs a producer.");
+    }
+
+    /**
+     * Regression test: PIPSIIkasanModel#generateAndSaveUserImplementClassStubsForFlow used to iterate
+     * FlowRoute#getConsumerAndFlowRouteElements(), which only returns the ROOT route's own elements - for a
+     * router flow, that's the consumer and whatever leads up to the router itself, never anything inside a
+     * branch. That meant a Debug (or any other user-implemented component, e.g. Broker/Converter) dropped
+     * into a router branch never got its stub class generated. The fix switched to
+     * Flow#getFlowElementsNoExternalEndPoints(), which this test confirms actually walks every route
+     * recursively (see Flow#getAllFlowElementsInAnyRoute) - a Debug placed inside a branch must be present.
+     */
+    @Test
+    public void test_getFlowElementsNoExternalEndPoints_includesElementsInsideRouterBranches() throws StudioBuildException {
+        testFlow.setConsumer(TestFixtures.getEventGeneratingConsumer(BASE_META_PACK));
+        FlowElement router = TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
+        FlowRoute rootRoute = FlowRoute.flowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(new ArrayList<>(List.of(router)))
+                .build();
+        router.setContainingFlowRoute(rootRoute);
+
+        FlowElement route1Debug = TestFixtures.getDebugTransition(BASE_META_PACK);
+        FlowElement route1Producer = TestFixtures.getLoggingProducer(BASE_META_PACK);
+        FlowRoute route1 = FlowRoute.flowRouteBuilder().flow(testFlow).routeName("route1")
+                .flowElements(new ArrayList<>(List.of(route1Debug, route1Producer))).build();
+        rootRoute.getChildRoutes().add(route1);
+        testFlow.setFlowRoute(rootRoute);
+
+        assertThat(testFlow.getFlowElementsNoExternalEndPoints())
+                .contains(router, route1Debug, route1Producer);
+    }
+
     @Test
     public void test_returns_all_flow_elements_including_consumer_in_default_route() throws StudioBuildException {
         // Create a FlowRoute object
@@ -457,5 +537,46 @@ class FlowRouteTest {
                         Comparator.nullsFirst(
                                 Comparator.comparing(Pattern::pattern)), Pattern.class)
                 .isEqualTo(xProducerComponent.getComponentProperties());
+    }
+
+    /**
+     * Regression test: a router's childRoutes previously only ever got built from its routeNames property
+     * during a full model.json reload (ModuleDeserializer#addNewRoutesForRouter) - a live drag-and-drop add
+     * or property edit never created them, so a freshly added router had no branches to drop a Producer into,
+     * and the canvas wrongly reported "cannot have a router AND a producer" against the router's own
+     * containing route. syncChildRoutesForRouter is the live-editing equivalent of that reload-time logic.
+     */
+    @Test
+    public void test_syncChildRoutesForRouter_createsAChildRouteWithRouterEndpointForEachRouteName() throws StudioBuildException {
+        FlowElement router = TestFixtures.getMultiRecipientRouter(BASE_META_PACK);
+        FlowRoute rootRoute = FlowRoute.flowRouteBuilder()
+                .flow(testFlow)
+                .flowElements(new ArrayList<>(List.of(router)))
+                .build();
+        router.setContainingFlowRoute(rootRoute);
+        assertThat(rootRoute.getChildRoutes()).isEmpty();
+
+        rootRoute.syncChildRoutesForRouter(BASE_META_PACK, router);
+
+        assertThat(rootRoute.getChildRoutes()).hasSize(2);
+        assertThat(rootRoute.getChildRoutes().stream().map(FlowRoute::getRouteName).toList())
+                .containsExactlyInAnyOrder("route1", "route2");
+        for (FlowRoute childRoute : rootRoute.getChildRoutes()) {
+            assertThat(childRoute.getFlowElements()).hasSize(1);
+            assertThat(childRoute.getFlowElements().get(0).getComponentMeta().isInternalEndpoint()).isTrue();
+        }
+
+        // A route that was subsequently added to routeNames (e.g. a live edit) gets a new child route...
+        router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("route1", "route2", "route3"));
+        rootRoute.syncChildRoutesForRouter(BASE_META_PACK, router);
+        assertThat(rootRoute.getChildRoutes().stream().map(FlowRoute::getRouteName).toList())
+                .containsExactlyInAnyOrder("route1", "route2", "route3");
+
+        // ...but existing routes (and anything already placed inside them) are left untouched.
+        FlowRoute route1 = rootRoute.getChildRoutes().stream().filter(r -> "route1".equals(r.getRouteName())).findFirst().orElseThrow();
+        FlowElement producer1 = TestFixtures.getDevNullProducer(BASE_META_PACK);
+        route1.getFlowElements().add(producer1);
+        rootRoute.syncChildRoutesForRouter(BASE_META_PACK, router);
+        assertThat(route1.getFlowElements()).contains(producer1);
     }
 }
