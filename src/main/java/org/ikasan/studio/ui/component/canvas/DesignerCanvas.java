@@ -1,7 +1,9 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBLabel;
@@ -20,6 +22,7 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.NavigateToCodeAction;
+import org.ikasan.studio.ui.actions.DeleteComponentUndoableAction;
 import org.ikasan.studio.ui.actions.SendTestMessageAction;
 import org.ikasan.studio.ui.actions.TriggerScheduledConsumerAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
@@ -63,6 +66,10 @@ public class DesignerCanvas extends JPanel {
     private int clickStartMouseX = 0 ;
     private int clickStartMouseY = 0 ;
     private boolean screenChanged = false;
+    private static final int COMPONENT_DRAG_THRESHOLD = 5;
+    private FlowElement dragCandidate;
+    private FlowElement draggedElement;
+    private Point dragPoint;
     // The OS-level click that brings the whole IDE window back into focus (e.g. after switching to
     // another desktop app) is also delivered to whichever component is underneath it as a genuine
     // MOUSE_PRESSED event. If that happens to land on empty canvas, it would otherwise be treated as a
@@ -110,7 +117,7 @@ public class DesignerCanvas extends JPanel {
             @Override
             public void mouseReleased(MouseEvent e) {
                 LOG.trace("STUDIO: Mouse release click x "+ e.getX() + " y " + e.getY());
-                mouseReleaseAction();
+                mouseReleaseAction(e.getX(), e.getY());
             }
         });
         addMouseMotionListener(new MouseAdapter() {
@@ -274,6 +281,8 @@ public class DesignerCanvas extends JPanel {
         clickStartMouseY = y;
         FlowElement sendTestMessageOwner = getOwnerForSendTestMessageAtXY(x, y);
         IkasanComponent selectedComponent = getComponentAtXY(x, y);
+        dragCandidate = me.getButton() == MouseEvent.BUTTON1 && selectedComponent instanceof FlowElement flowElement
+                && !flowElement.getComponentMeta().isInternalEndpoint() ? flowElement : null;
 
         if (!(selectedComponent instanceof BasicElement ikasanBasicElement)) {
             return;
@@ -350,7 +359,12 @@ public class DesignerCanvas extends JPanel {
      * component to move across the screen but not redraw the connectors, this will ensure all connectors and whole
      * screen is redrawn
      */
-    private void mouseReleaseAction(){
+    private void mouseReleaseAction(int mouseX, int mouseY){
+        if (draggedElement != null) completeComponentMove(mouseX, mouseY);
+        dragCandidate = null;
+        draggedElement = null;
+        dragPoint = null;
+        resetContextSensitiveHighlighting();
         if (screenChanged) {
             this.repaint();
             screenChanged = false;
@@ -378,34 +392,61 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY at the start of the drag
      */
     private void mouseDragAction(int mouseX, int mouseY) {
-        IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
-        LOG.trace("STUDIO: Mouse Motion listening x " + mouseX + " y " + mouseY + " component " + mouseSelectedComponent);
+        if (dragCandidate == null) return;
+        if (draggedElement == null && Point.distance(clickStartMouseX, clickStartMouseY, mouseX, mouseY) < COMPONENT_DRAG_THRESHOLD) return;
+        draggedElement = dragCandidate;
+        dragPoint = new Point(mouseX, mouseY);
+        screenChanged = true;
+        componentDraggedToFlowAction(mouseX, mouseY, draggedElement);
+        repaint();
+    }
 
-        if (mouseSelectedComponent instanceof FlowElement flowElement) {
-            screenChanged = true;
-            AbstractViewHandlerIntellij vh = ViewHandlerCache.getAbstractViewHandler(project, flowElement);
-            if (vh != null) {
-                LOG.trace("STUDIO: Mouse drag start x[ " + clickStartMouseX + "] y " + clickStartMouseY + "] now  x [" + mouseX + "] y [" + mouseY +
-                        "] Generator selected [" + flowElement.getComponentName() + "] x [" + vh.getLeftX() + "] y [" + vh.getTopY() + "] ");
-
-                final int componentX = vh.getLeftX();
-                final int componentY = vh.getTopY();
-                final int deltaX = mouseX - clickStartMouseX;
-                final int deltaY = mouseY - clickStartMouseY;
-
-                if (deltaX != 0 || deltaY != 0) {
-                    repaint(componentX, componentY, vh.getWidth(), vh.getHeight());
-                    // Update coordinates.
-                    vh.setLeftX(componentX + deltaX);
-                    vh.setTopY(componentY + deltaY);
-
-                    // Repaint the square at the new location.
-                    repaint(vh.getLeftX(), vh.getTopY(), vh.getWidth(), vh.getHeight());
-                    clickStartMouseX = mouseX;
-                    clickStartMouseY = mouseY;
+    private void completeComponentMove(int mouseX, int mouseY) {
+        IkasanComponent target = getComponentAtXY(mouseX, mouseY);
+        Flow targetFlow = target instanceof Flow flow ? flow : target instanceof FlowRoute route ? route.getFlow()
+                : target instanceof FlowElement element ? element.getContainingFlow() : null;
+        FlowRoute targetRoute = target instanceof FlowRoute route ? route
+                : target instanceof FlowElement element ? element.getContainingFlowRoute()
+                : targetFlow != null ? targetFlow.getFlowRoute() : null;
+        if (targetFlow == null) return;
+        int insertionIndex = insertionIndexAtX(targetRoute, mouseX);
+        if (target instanceof FlowElement targetElement && targetRoute != null) {
+            if (targetElement.getComponentMeta().isConsumer()) {
+                // Consumers live on Flow rather than in FlowRoute.flowElements. Dropping on the consumer
+                // means immediately after it: index zero of the root route, not the route's end.
+                insertionIndex = 0;
+            } else {
+                int targetIndex = targetRoute.getFlowElements().indexOf(targetElement);
+                if (targetIndex >= 0) {
+                    AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, targetElement);
+                    insertionIndex = mouseX < handler.getCentrePoint().x ? targetIndex : targetIndex + 1;
                 }
             }
         }
+        Flow sourceFlow = draggedElement.getContainingFlow();
+        FlowElement movingElement = draggedElement;
+        int destinationIndex = insertionIndex;
+        CommandProcessor.getInstance().executeCommand(project, () -> {
+            FlowElementMove.MoveResult result = FlowElementMove.move(
+                    movingElement, targetFlow, targetRoute, destinationIndex);
+            if (!result.accepted() || !result.changed()) return;
+            GenerationRequest request = sourceFlow == targetFlow
+                    ? GenerationRequest.flow(targetFlow) : GenerationRequest.full();
+            UndoManager.getInstance(project).undoableActionPerformed(new DeleteComponentUndoableAction(
+                    project, () -> result.undo(movingElement), () -> result.redo(movingElement), request));
+            StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, request);
+            initialiseAllDimensions = true;
+        }, StudioBundle.message("menu.MoveComponent"), null);
+    }
+
+    private int insertionIndexAtX(FlowRoute route, int mouseX) {
+        if (route == null) return 0;
+        List<FlowElement> elements = route.getFlowElements();
+        for (int i = 0; i < elements.size(); i++) {
+            AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, elements.get(i));
+            if (handler != null && mouseX < handler.getCentrePoint().x) return i;
+        }
+        return elements.size();
     }
 
     /**
@@ -1218,10 +1259,26 @@ public class DesignerCanvas extends JPanel {
                 revalidate();
                 super.paintComponent(g);
                 moduleViewHandler.paintComponent(this, g, -1, -1);
+                paintDraggedComponentGhost(g);
             }
         }
         paintGettingStartedHint(g, ikasanModule);
         updateRunModuleButtonState(ikasanModule);
+    }
+
+    private void paintDraggedComponentGhost(Graphics graphics) {
+        if (draggedElement == null || dragPoint == null || !(graphics instanceof Graphics2D)) return;
+        IkasanFlowComponentViewHandler handler = ViewHandlerCache.getFlowComponentViewHandler(project, draggedElement);
+        if (handler == null || handler.getCanvasIcon() == null) return;
+        Graphics2D ghost = (Graphics2D) graphics.create();
+        try {
+            ghost.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+            int x = dragPoint.x - handler.getCanvasIcon().getIconWidth() / 2;
+            int y = dragPoint.y - handler.getCanvasIcon().getIconHeight() / 2;
+            handler.getCanvasIcon().paintIcon(this, ghost, x, y);
+        } finally {
+            ghost.dispose();
+        }
     }
 
     /**

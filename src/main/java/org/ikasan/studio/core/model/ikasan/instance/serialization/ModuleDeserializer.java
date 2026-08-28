@@ -346,6 +346,13 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      */
     protected void buildRouteTree(String metapackVersion, Flow flow, FlowRoute currentFlowRoute, Map<String, List<Transition>> transitionsMap,
                                   Map<String, FlowElement> flowElementsMap, Transition currentTransition) throws StudioBuildException {
+        buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, currentTransition, null);
+    }
+
+    private void buildRouteTree(String metapackVersion, Flow flow, FlowRoute currentFlowRoute,
+                                Map<String, List<Transition>> transitionsMap,
+                                Map<String, FlowElement> flowElementsMap, Transition currentTransition,
+                                FlowRoute pendingRouterRoute) throws StudioBuildException {
         if (currentTransition != null) {
             FlowElement fromElement = flowElementsMap.get(currentTransition.getFrom());
             if (fromElement == null) {
@@ -353,7 +360,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             // We never add the consumer
             // We never add the router as a fromElement, the endpoint is its connector in the new route
             } else {
-                addToRouteIfAllowed(fromElement, currentFlowRoute);
+                if (pendingRouterRoute != null) {
+                    addBeforePendingRouterIfAllowed(fromElement, currentFlowRoute);
+                } else {
+                    addToRouteIfAllowed(fromElement, currentFlowRoute);
+                }
             }
 
             // This could be an MRR
@@ -379,21 +390,66 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
             if (nextTransitionList != null) {
                 // This must be a split for a router
-                if (routerDetected) {
+                if (routerDetected && transitionsTargetRouterBranches(currentFlowRoute, nextTransitionList)) {
                     // The new flow route was created about and should be accessible via routeName
                     for (Transition nextTransition : nextTransitionList) {
                         // The newRoute will already contain the router endpoint
                         FlowRoute newRoute = getChildWithName(currentFlowRoute.getChildRoutes(), nextTransition.getName());
                         if (newRoute != null) {
-                            buildRouteTree(metapackVersion, flow, newRoute, transitionsMap, flowElementsMap, nextTransition);
+                            buildRouteTree(metapackVersion, flow, newRoute, transitionsMap, flowElementsMap,
+                                    nextTransition, null);
                         }
+                    }
+                } else if (pendingRouterRoute != null && transitionsTargetRouterBranches(
+                        pendingRouterRoute, nextTransitionList)) {
+                    // Recover a persisted route where components were accidentally serialized after a
+                    // router in its parent route. They are the common chain leading into that router, not
+                    // part of either named branch, so place them immediately before the router. This keeps
+                    // the router as the visual and structural anchor of its child routes.
+                    addBeforePendingRouterIfAllowed(toElement, currentFlowRoute);
+                    for (Transition nextTransition : nextTransitionList) {
+                        FlowRoute newRoute = findChildWithName(
+                                pendingRouterRoute.getChildRoutes(), nextTransition.getName());
+                        Transition branchStart = Transition.builder()
+                                .from("").to(nextTransition.getTo()).name(nextTransition.getName()).build();
+                        buildRouteTree(metapackVersion, flow, newRoute, transitionsMap, flowElementsMap,
+                                branchStart, null);
                     }
                 } else {
                     // Just another element
-                    buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap, nextTransitionList.get(0));
+                    buildRouteTree(metapackVersion, flow, currentFlowRoute, transitionsMap, flowElementsMap,
+                            nextTransitionList.get(0),
+                            pendingRouterRoute != null ? pendingRouterRoute : (routerDetected ? currentFlowRoute : null));
                 }
             }
         }
+    }
+
+    private void addBeforePendingRouterIfAllowed(FlowElement flowElement, FlowRoute route) {
+        if (flowElement == null || flowElement.getComponentMeta().isConsumer()
+                || flowElement.getComponentMeta().isEndpoint() || flowElement.getComponentMeta().isRouter()
+                || route.getFlowElements().contains(flowElement)) {
+            return;
+        }
+        int routerIndex = route.getFlowElements().size();
+        for (int i = route.getFlowElements().size() - 1; i >= 0; i--) {
+            if (route.getFlowElements().get(i).getComponentMeta().isRouter()) {
+                routerIndex = i;
+                break;
+            }
+        }
+        flowElement.setContainingFlowRoute(route);
+        route.getFlowElements().add(routerIndex, flowElement);
+    }
+
+    private boolean transitionsTargetRouterBranches(FlowRoute routerRoute, List<Transition> transitions) {
+        return transitions != null && !transitions.isEmpty() && transitions.stream()
+                .allMatch(transition -> findChildWithName(routerRoute.getChildRoutes(), transition.getName()) != null);
+    }
+
+    private FlowRoute findChildWithName(List<FlowRoute> children, String routeName) {
+        if (children == null || routeName == null) return null;
+        return children.stream().filter(child -> routeName.equals(child.getRouteName())).findFirst().orElse(null);
     }
 
     private FlowRoute getChildWithName(List<FlowRoute> children, String routeName) {
