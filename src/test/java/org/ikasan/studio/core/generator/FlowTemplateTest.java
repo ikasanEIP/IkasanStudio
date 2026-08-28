@@ -279,12 +279,14 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
     /**
-     * Regression test: unlike Multi Recipient Router (which has a ready-made, no-code-needed framework
-     * implementation - RecipientListRouter), Single Recipient Router requires real per-message routing logic,
-     * which only exists in the user-implemented class Studio generates for it. The flow template previously
-     * hardcoded `new RecipientListRouter(...)` for every router regardless of type, which doesn't implement
-     * SingleRecipientRouter - that failed to compile in a real generated project. It must be wired in via
-     * componentFactory.get{JavaClassName}() instead, exactly like any other user-implemented component.
+     * Regression test: both router types require real per-message routing logic, which only exists in the
+     * user-implemented class Studio generates for it (see routerTemplate_en.ftl). The flow template previously
+     * hardcoded `new RecipientListRouter(...)` for every router regardless of type - that ready-made Ikasan core
+     * class always fans every event out to every configured route unconditionally, ignoring the payload, so
+     * it doesn't implement Single Recipient Router (which failed to compile in a real generated project) and
+     * for Multi Recipient Router it silently discarded whatever conditional logic the user had written in the
+     * generated class. Both router types must instead be wired in via componentFactory.get{JavaClassName}(),
+     * exactly like any other user-implemented component - see testCreateFlowWith_multiRecipientRouter below.
      */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")

@@ -6,16 +6,15 @@
     <#list __flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
     <#-- The MRR is always the last element of the list of flowElements -->
         <#if flowElement.getComponentMeta().isRouter()>
-            <#-- Multi Recipient Router has a ready-made, no-code-needed implementation (fans out to every
-                 listed route automatically) - every other router (e.g. Single Recipient) requires real routing
-                 logic, which only exists in the user-implemented class Studio generates for it (see
-                 routerTemplate_en.ftl / componentFactory_en.ftl's get${r"${JavaClassName}"}() accessor), so it
-                 must be wired in via componentFactory here just like any other user-implemented component. -->
-            <#if flowElement.getComponentMeta().getName() == "Multi Recipient Router">
-            ,builderFactory.getRouteBuilder().${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(<#list flowElement.getPropertyValue("routeNames")![] as route> "${route}"<#sep>, </#sep></#list>)))
-            <#else>
+            <#-- Both router types (Single and Multi Recipient) require real routing logic, which only exists
+                 in the user-implemented class Studio generates for it (see routerTemplate_en.ftl /
+                 componentFactory_en.ftl's get${r"${JavaClassName}"}() accessor) - see MultiRecipientRouter.route()
+                 in Ikasan core, which requires the returned List<String> to name at least one of this router's
+                 configured routes (never empty/null) but may name several, all of which are then invoked in
+                 that order against a separate clone of the event (see MultiRecipientRouterInvokerConfiguration.
+                 cloneEventPerRoute, default true) - so it must be wired in via componentFactory here just like
+                 any other user-implemented component. -->
             ,builderFactory.getRouteBuilder().${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", componentFactory.get${flowElement.getJavaClassName()}())
-            </#if>
             <#list __flowRoute.getChildRoutes()![] as childRoute>
                 <@iterateSubflow childRoute />
             </#list>
@@ -75,11 +74,7 @@ org.ikasan.spec.flow.Flow ${flow.getJavaVariableName()} = flowBuilder
     <#list flow.getFlowRoute().ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
     <#-- The MRR is always the last element of the list of flowElements -->
         <#if flowElement.componentMeta.isRouter()>
-            <#if flowElement.getComponentMeta().getName() == "Multi Recipient Router">
-            .${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList(<#list flowElement.getPropertyValue("routeNames")![] as route> "${route}"<#sep>, </#sep></#list>)))
-            <#else>
             .${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", componentFactory.get${flowElement.getJavaClassName()}())
-            </#if>
             <#list flow.getFlowRoute().getChildRoutes()![] as childRoute>
                 <@iterateSubflow childRoute />
             </#list>

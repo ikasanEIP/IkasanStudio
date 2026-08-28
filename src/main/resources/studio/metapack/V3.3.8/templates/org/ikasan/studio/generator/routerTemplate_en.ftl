@@ -24,7 +24,11 @@ public static final String ${route?upper_case} = "${route}";
 
 <#if flowElement.getComponentMeta().getName() == "Multi Recipient Router">
 /**
-* ${flowElement.getComponentMeta().getHelpText()}
+* <strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to one or many
+* routes e.g. the logic could send the payload to routeA AND routeB.</p><p>Unlike the Single Recipient Router there
+* is no "default" fallback - the router must always return at least one route name, it can never return zero.</p>
+* <p>Each matched route runs to completion, in order, before the next one starts. By default the payload is cloned
+* before being sent down each route (except the last) so routes cannot affect each other by mutating a shared payload.</p>
 *
 * @param payload to be evaluated to choose which of the routes above (see the constants above) payload should be sent to
 * @return the route names (see the constants above) payload should be sent to, in any combination - null or an

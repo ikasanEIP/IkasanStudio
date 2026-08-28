@@ -31,7 +31,7 @@ org.ikasan.spec.flow.Flow myFlow1 = flowBuilder
 componentFactory.getMyEventGeneratingConsumer())
 .converter("My Custom Converter",
 componentFactory.getMyCustomConverter())
-.multiRecipientRouter("My Multi Recipient Router", new org.ikasan.component.router.multirecipient.RecipientListRouter(java.util.Arrays.asList( "route1", "route2")))
+.multiRecipientRouter("My Multi Recipient Router", componentFactory.getMyMultiRecipientRouter())
 .when("route1"
 ,builderFactory.getRouteBuilder().producer("My DevNull Producer1",
 componentFactory.getMyDevNullProducer1())
