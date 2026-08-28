@@ -994,6 +994,17 @@ public class DesignerCanvas extends JPanel {
      * (see ModuleDeserializer#addNewRoutesForRouter) - a live drag-and-drop add never does that, so without
      * this a freshly dropped router has no branches to drop a Producer (or anything else) into, and the canvas
      * would wrongly report "cannot have a router AND a producer" against the router's own containing route.
+     * -
+     * A router must always be the LAST element of the FlowRoute it lives in (see the comment in
+     * ModuleDeserializer#buildRouteTree: "the router always marks the end of a route") - both rendering
+     * (IkasanFlowRouteViewHandler lays out a route's own flowElements in one straight line, then starts its
+     * childRoutes from wherever that line ends up) and code generation assume this. Dropping a router in the
+     * MIDDLE of an existing chain (e.g. just before an already-placed Producer) only satisfies half of that:
+     * insertNewComponentBetweenSurroundingPair splices the router into the flat list at the drop point, but
+     * leaves whatever already followed it still sitting after it in that SAME list - so any such trailing
+     * elements are relocated into the router's own first new branch below, matching the drag-and-drop's own
+     * intent (auto-attach the existing downstream chain onto the router's first route, leaving the rest
+     * dangling for the user to complete) instead of them staying wrongly attached past the router itself.
      * @param router just added to the canvas
      */
     private void syncChildRoutesForRouter(FlowElement router) {
@@ -1006,6 +1017,36 @@ public class DesignerCanvas extends JPanel {
             containingFlowRoute.syncChildRoutesForRouter(getIkasanModule().getMetaVersion(), router);
         } catch (StudioBuildException se) {
             LOG.warn("STUDIO: A studio exception was raised while syncing child routes for router " + router.getIdentity() + ", please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+            return;
+        }
+        moveTrailingElementsIntoRoutersFirstBranch(containingFlowRoute, router);
+    }
+
+    /**
+     * See syncChildRoutesForRouter above - if the router was dropped in the middle of an existing chain rather
+     * than at its own route's very end, whatever already followed it there is moved into the router's first
+     * branch (right after that branch's own Router Endpoint marker), instead of being left dangling past the
+     * router in the same flat list.
+     */
+    private void moveTrailingElementsIntoRoutersFirstBranch(FlowRoute containingFlowRoute, FlowElement router) {
+        List<FlowElement> components = containingFlowRoute.getFlowElements();
+        int routerIndex = components.indexOf(router);
+        if (routerIndex < 0 || routerIndex == components.size() - 1) {
+            // Router is already the last element (the common case - dropped at the end of the chain, or
+            // standalone) - nothing to relocate.
+            return;
+        }
+        List<FlowElement> trailingElements = new ArrayList<>(components.subList(routerIndex + 1, components.size()));
+        components.subList(routerIndex + 1, components.size()).clear();
+
+        if (containingFlowRoute.getChildRoutes() == null || containingFlowRoute.getChildRoutes().isEmpty()) {
+            LOG.warn("STUDIO: SERIOUS: Router " + router.getIdentity() + " had trailing elements to relocate but no child routes were created for it.");
+            return;
+        }
+        FlowRoute firstBranch = containingFlowRoute.getChildRoutes().get(0);
+        for (FlowElement trailingElement : trailingElements) {
+            trailingElement.setContainingFlowRoute(firstBranch);
+            firstBranch.getFlowElements().add(trailingElement);
         }
     }
 
