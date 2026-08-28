@@ -148,6 +148,64 @@ public class Flow extends BasicElement {
     }
 
     /**
+     * Walks backwards from flowElement to the nearest upstream element whose declared type represents the
+     * actual payload flowing into flowElement - Routers are skipped over since they pass the payload through
+     * unchanged (a router's own 'toType', where it declares one, describes the routing decision, not the
+     * payload). Used for a best-effort design-time check (see FlowElement#getUpstreamTypeMismatchWarning) -
+     * not a substitute for real type resolution.
+     * @param flowElement to find the payload-bearing predecessor of
+     * @return the nearest non-Router upstream FlowElement, the flow's Consumer, or null if there is nothing
+     * upstream to inspect (flowElement's containing route is not wired into this flow at all)
+     */
+    public FlowElement findPayloadSourceElement(FlowElement flowElement) {
+        FlowElement predecessor = findImmediatePredecessor(flowElement);
+        while (predecessor != null && predecessor.getComponentMeta() != null && predecessor.getComponentMeta().isRouter()) {
+            predecessor = findImmediatePredecessor(predecessor);
+        }
+        return predecessor;
+    }
+
+    /**
+     * The element immediately before flowElement in model order: its previous sibling in the same FlowRoute,
+     * or - if flowElement is the first thing in its route - the router owning that route (when the route is
+     * a branch) or the flow's Consumer (when the route is the flow's own top-level route).
+     */
+    private FlowElement findImmediatePredecessor(FlowElement flowElement) {
+        FlowRoute route = flowElement.getContainingFlowRoute();
+        if (route == null || route.getFlowElements() == null) {
+            return null;
+        }
+        int index = route.getFlowElements().indexOf(flowElement);
+        if (index > 0) {
+            return route.getFlowElements().get(index - 1);
+        }
+        FlowElement owningRouter = findOwningRouter(getFlowRoute(), route);
+        return owningRouter != null ? owningRouter : getConsumer();
+    }
+
+    /**
+     * Finds the router whose branch targetChildRoute is, by searching the route tree for whichever route lists
+     * targetChildRoute among its own childRoutes - that route's own last element is, by construction, the router
+     * that owns the branch (see the "MRR is always the last element" convention used throughout the ftl templates).
+     */
+    private FlowElement findOwningRouter(FlowRoute searchRoute, FlowRoute targetChildRoute) {
+        if (searchRoute == null || searchRoute.getChildRoutes() == null) {
+            return null;
+        }
+        if (searchRoute.getChildRoutes().contains(targetChildRoute)) {
+            List<FlowElement> elements = searchRoute.getFlowElements();
+            return (elements != null && !elements.isEmpty()) ? elements.get(elements.size() - 1) : null;
+        }
+        for (FlowRoute childRoute : searchRoute.getChildRoutes()) {
+            FlowElement found = findOwningRouter(childRoute, targetChildRoute);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
      * This method is used by FreeMarker, the IDE may incorrectly identify it as unused.
      * @return A list of all non-null flow elements, including the consumer
      */

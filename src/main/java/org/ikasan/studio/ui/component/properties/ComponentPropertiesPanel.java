@@ -618,7 +618,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             uiContext.setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
 
             if (htmlScrollingDisplayPanel != null) {
-                htmlScrollingDisplayPanel.setText(getSelectedComponent().getComponentMeta().getHelpText());
+                htmlScrollingDisplayPanel.setText(getDisplayedHelpTextForSelectedComponent());
             }
 
             // Rows are freshly rebuilt above - re-apply any search text already typed (e.g. the user switched
@@ -627,6 +627,23 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 applyPropertySearchFilter(propertySearchField.getText());
             }
         }
+    }
+
+    /**
+     * The static component help text, with a best-effort upstream type-mismatch warning prepended when
+     * applicable (see FlowElement#getUpstreamTypeMismatchWarning). Kept separate from the raw meta helpText so
+     * the warning never leaks into anything that reads getComponentMeta().getHelpText() directly (e.g. the
+     * palette tooltip for a component not yet on the canvas, where there is no upstream to check against).
+     */
+    private String getDisplayedHelpTextForSelectedComponent() {
+        String helpText = getSelectedComponent().getComponentMeta().getHelpText();
+        if (getSelectedComponent() instanceof FlowElement flowElement) {
+            String warning = flowElement.getUpstreamTypeMismatchWarning();
+            if (warning != null) {
+                helpText = "<p><b><font color=\"red\">Warning: " + warning + "</font></b></p>" + helpText;
+            }
+        }
+        return helpText;
     }
 
     /**

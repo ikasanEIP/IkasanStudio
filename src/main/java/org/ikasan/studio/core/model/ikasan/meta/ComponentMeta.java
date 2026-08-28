@@ -90,6 +90,10 @@ public class ComponentMeta implements IkasanMeta {
     private String ikasanComponentFactoryMethod;    // used by ftl to invoke the correct factory method for this component
     @lombok.NonNull
     private String implementingClass;               // e.g. org.ikasan.spec.component.filter.Filter.Custom
+    private String expectedInputType;               // Optional: a fully-qualified type (or simple name e.g. "List") this component's incoming
+                                                      // payload is expected to be assignable to, e.g. Default List Splitter expects "java.util.List".
+                                                      // Drives a best-effort canvas warning (see FlowElement#getUpstreamTypeMismatchWarning) when the
+                                                      // nearest upstream component's declared 'toType' clearly doesn't match - absent for most components.
     private boolean isEndpoint;                     // Is this component an endpoint e.g. DB endpoint, sftp location
     private boolean isInternalEndpoint;             // This endpoint is internal to the flow
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.
