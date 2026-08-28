@@ -22,7 +22,7 @@ String configurationId;
 public static final String ${route?upper_case} = "${route}";
 </#list>
 
-<#if flowElement.getComponentMeta().getName() == "Multi Recipient Router">
+<#if flowElement.getComponentMeta().isRoutesToMultipleTargets()>
 /**
 * <strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to one or many
 * routes e.g. the logic could send the payload to routeA AND routeB.</p><p>Unlike the Single Recipient Router there

@@ -94,6 +94,13 @@ public class ComponentMeta implements IkasanMeta {
                                                       // payload is expected to be assignable to, e.g. Default List Splitter expects "java.util.List".
                                                       // Drives a best-effort canvas warning (see FlowElement#getUpstreamTypeMismatchWarning) when the
                                                       // nearest upstream component's declared 'toType' clearly doesn't match - absent for most components.
+    private boolean routesToMultipleTargets;         // Router only: true if route() may return more than one target in a single
+                                                      // invocation and so needs a List<String> return type (e.g. Multi Recipient Router) -
+                                                      // false (the default) for routers whose route() returns a single String (e.g. Single
+                                                      // Recipient Router). Drives routerTemplate_en.ftl's generated method shape - see there.
+    private boolean isFileBasedConsumer;             // Consumer only: true if the payload it deals in is file content/a file path rather
+                                                      // than a message (e.g. FTP/SFTP/Local File/Generic Consumer) - drives the canvas's
+                                                      // file-flavoured Send Test Message badge, see IkasanFlowRouteViewHandler.
     private boolean isEndpoint;                     // Is this component an endpoint e.g. DB endpoint, sftp location
     private boolean isInternalEndpoint;             // This endpoint is internal to the flow
     @JsonSetter(nulls = Nulls.SKIP)                 // If the supplied value is null, ignore it.

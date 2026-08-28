@@ -1,5 +1,6 @@
 {
   "name": "Local File Consumer",
+  "isFileBasedConsumer": "true",
   "additionalKey": "LocalFileConsumer",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "endpointKey": "File Endpoint",

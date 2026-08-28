@@ -1,5 +1,6 @@
 {
   "name": "FTP Consumer",
+  "isFileBasedConsumer": "true",
   "helpText": "<strong>FTP Consumer</strong><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule, backed by FTP MessageProvider.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",

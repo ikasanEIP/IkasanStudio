@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
 
@@ -33,21 +32,15 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     public static final int FLOW_CONTAINER_BORDER = 10;
     // Gap between the top of the Send Test Message badge and the top of the EndPoint icon it sits above.
     private static final int SEND_TEST_MESSAGE_VERTICAL_GAP = 4;
-    // Consumer component names (see Consumer/components/*/component-meta_en_GB.json "name") that deal in
-    // files rather than messages - these get the file-flavoured Send Test Message badge instead of the
-    // envelope one.
-    private static final Set<String> FILE_BASED_CONSUMER_NAMES = Set.of(
-            "FTP Consumer", "SFTP Consumer", "Local File Consumer", "Generic Consumer");
-
     /**
      * True for a time-event consumer (see {@link org.ikasan.studio.core.model.ikasan.meta.ComponentMeta#isTimeEventConsumer()})
-     * with no file/message semantics of its own - i.e. not one of the file-based ones above, which still get
-     * the file badge and a real text payload to simulate. These have no meaningful payload to inject, so they
-     * get the Trigger badge instead, wired up to TriggerScheduledConsumerAction rather than SendTestMessageAction
-     * (see DesignerCanvas#mouseClickAction).
+     * with no file/message semantics of its own - i.e. not one flagged isFileBasedConsumer in its metadata
+     * (see Consumer/components/*&#47;component-meta_en_GB.json), which still get the file badge and a real text
+     * payload to simulate. These have no meaningful payload to inject, so they get the Trigger badge instead,
+     * wired up to TriggerScheduledConsumerAction rather than SendTestMessageAction (see DesignerCanvas#mouseClickAction).
      */
     public static boolean usesTriggerBadge(FlowElement owner) {
-        return owner.getComponentMeta().isTimeEventConsumer() && !FILE_BASED_CONSUMER_NAMES.contains(owner.getComponentMeta().getName());
+        return owner.getComponentMeta().isTimeEventConsumer() && !owner.getComponentMeta().isFileBasedConsumer();
     }
 
     private static final Logger LOG = Logger.getInstance("#IkasanFlowViewHandler");
@@ -276,7 +269,7 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
         Icon sendTestMessageIcon;
         if (usesTriggerBadge(owner)) {
             sendTestMessageIcon = IkasanComponentLibrary.getTriggerIcon();
-        } else if (FILE_BASED_CONSUMER_NAMES.contains(owner.getComponentMeta().getName())) {
+        } else if (owner.getComponentMeta().isFileBasedConsumer()) {
             sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageFileIcon();
         } else {
             sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageIcon();
