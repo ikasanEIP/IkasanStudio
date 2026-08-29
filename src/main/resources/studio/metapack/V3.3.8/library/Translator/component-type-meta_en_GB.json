@@ -16,6 +16,7 @@
     },
     "type": {
       "propertyName": "type",
+      "propertyDisplayOrder": -40,
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.Object",
       "helpText": "The type of data we expect to come into the translator. This must be a <b>mutable<b> instance that can be updated via its reference within the translator",

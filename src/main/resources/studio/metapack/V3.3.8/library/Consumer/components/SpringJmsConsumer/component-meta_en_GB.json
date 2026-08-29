@@ -35,6 +35,7 @@
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
+      "displayLabel": "Queue/Topic (destinationJndiName)",
       "propertyDisplayOrder": -60,
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
       "mandatory": true,
