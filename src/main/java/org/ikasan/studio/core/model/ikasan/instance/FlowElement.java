@@ -151,7 +151,10 @@ public class FlowElement extends BasicElement {
 
     // The full-event escape hatch documented in converterTemplate_en.ftl / brokerTemplate_en.ftl / splitterTemplate_en.ftl -
     // a component deliberately set to receive org.ikasan.spec.flow.FlowEvent gets the whole event, not the upstream's
-    // declared payload type, so that is never a real mismatch. Compared against as a simple (unqualified) type name.
+    // declared payload type, so that is never a real mismatch. Object means "accepts/declares anything" (e.g. a
+    // Debug breakpoint's fixed, hidden fromType), so it can never conflict with anything either. Applied
+    // symmetrically to both sides of the comparison - this component's expected input and the upstream's declared
+    // output - and compared against as a simple (unqualified) type name.
     private static final String FLOW_EVENT_SIMPLE_NAME = "FlowEvent";
     private static final String OBJECT_SIMPLE_NAME = "Object";
 
@@ -183,6 +186,10 @@ public class FlowElement extends BasicElement {
         }
         String upstreamOutputType = upstream.getEffectiveOutputTypeDescription();
         if (upstreamOutputType == null || upstreamOutputType.isBlank()) {
+            return null;
+        }
+        String upstreamSimpleName = upstreamOutputType.substring(upstreamOutputType.lastIndexOf('.') + 1);
+        if (OBJECT_SIMPLE_NAME.equals(upstreamSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(upstreamSimpleName)) {
             return null;
         }
         if (upstreamOutputType.toLowerCase().contains(expectedSimpleName.toLowerCase())) {

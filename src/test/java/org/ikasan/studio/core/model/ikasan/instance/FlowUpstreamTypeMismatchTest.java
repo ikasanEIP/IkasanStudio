@@ -161,6 +161,45 @@ class FlowUpstreamTypeMismatchTest {
     }
 
     @Test
+    public void findPayloadSourceElement_skips_over_a_debug_breakpoint_to_find_the_real_payload_source() throws StudioBuildException {
+        // Converter(toType=Integer) -> Debug (always transparent, fromType fixed to java.lang.Object) ->
+        // DefaultListSplitter. The Debug breakpoint itself must not be mistaken for the payload source.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        FlowElement debug = TestFixtures.getDebugTransition(BASE_META_PACK);
+        FlowElement splitter = TestFixtures.getDefaultListSplitter(BASE_META_PACK);
+        Flow flow = buildFlowWithTopLevelElements(converter, debug, splitter);
+
+        assertEquals(converter, flow.findPayloadSourceElement(splitter));
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_still_fires_for_a_real_mismatch_behind_a_debug_breakpoint() throws StudioBuildException {
+        // Skipping the Debug breakpoint to find the real payload source must not swallow a genuine mismatch
+        // that exists further upstream.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
+        FlowElement debug = TestFixtures.getDebugTransition(BASE_META_PACK);
+        FlowElement splitter = TestFixtures.getCustomSplitter(BASE_META_PACK);   // fromType = java.lang.String
+        buildFlowWithTopLevelElements(converter, debug, splitter);
+
+        String warning = splitter.getUpstreamTypeMismatchWarning();
+
+        assertTrue(warning != null && warning.contains("java.lang.Integer"), "Expected a warning naming the mismatched upstream type, got: " + warning);
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_is_silent_when_upstream_declares_its_output_as_Object() throws StudioBuildException {
+        // Object means "declares/accepts anything" on either side of the comparison - not just when it's this
+        // component's own expected input (already covered above), but also when it's the upstream's declared
+        // output, e.g. a component whose toType was explicitly set to java.lang.Object.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "java.lang.Object");
+        FlowElement splitter = TestFixtures.getCustomSplitter(BASE_META_PACK); // fromType = java.lang.String
+        buildFlowWithTopLevelElements(converter, splitter);
+
+        assertNull(splitter.getUpstreamTypeMismatchWarning());
+    }
+
+    @Test
     public void skipNonPayloadBearingElements_is_directly_callable_with_a_known_starting_candidate() throws StudioBuildException {
         // DesignerCanvas#applySuggestedInputTypeFromUpstream resolves its starting candidate from drop
         // coordinates (getSurroundingComponents) rather than from a downstream FlowElement's own position, so

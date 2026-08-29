@@ -163,19 +163,21 @@ public class Flow extends BasicElement {
     /**
      * Starting from candidate (typically an immediate upstream neighbour, however that was determined), walks
      * further back past any component that never changes the payload's type - Routers (whose own 'toType',
-     * where they declare one, is the routing decision, not the payload) and Filters (which only decide
-     * accept/reject, with no 'toType' of their own at all) - to the nearest element whose declared type really
-     * is what flows into whatever candidate feeds. Also usable directly against a not-yet-inserted candidate
-     * (e.g. resolved from drop coordinates before a new component has a position of its own - see
-     * DesignerCanvas#applySuggestedInputTypeFromUpstream), unlike {@link #findPayloadSourceElement} which
-     * requires flowElement to already have a containingFlowRoute.
-     * @param candidate the starting point to walk back from (may itself be a Router/Filter, or null)
-     * @return the nearest non-Router, non-Filter FlowElement reachable from candidate, or null
+     * where they declare one, is the routing decision, not the payload), Filters (which only decide
+     * accept/reject, with no 'toType' of their own at all), and Debug breakpoints (which always pass the
+     * original message through unchanged - see DebugTransitionComponent#filter) - to the nearest element whose
+     * declared type really is what flows into whatever candidate feeds. Also usable directly against a
+     * not-yet-inserted candidate (e.g. resolved from drop coordinates before a new component has a position of
+     * its own - see DesignerCanvas#applySuggestedInputTypeFromUpstream), unlike {@link #findPayloadSourceElement}
+     * which requires flowElement to already have a containingFlowRoute.
+     * @param candidate the starting point to walk back from (may itself be a Router/Filter/Debug, or null)
+     * @return the nearest non-Router, non-Filter, non-Debug FlowElement reachable from candidate, or null
      */
     public FlowElement skipNonPayloadBearingElements(FlowElement candidate) {
         FlowElement predecessor = candidate;
         while (predecessor != null && predecessor.getComponentMeta() != null
-                && (predecessor.getComponentMeta().isRouter() || predecessor.getComponentMeta().isFilter())) {
+                && (predecessor.getComponentMeta().isRouter() || predecessor.getComponentMeta().isFilter()
+                    || predecessor.getComponentMeta().isDebug())) {
             predecessor = findImmediatePredecessor(predecessor);
         }
         return predecessor;
