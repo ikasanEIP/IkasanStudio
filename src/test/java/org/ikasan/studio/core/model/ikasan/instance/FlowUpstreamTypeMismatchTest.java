@@ -29,6 +29,80 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SharedResourceExtension.class)
 class FlowUpstreamTypeMismatchTest {
 
+    // ---- getEffectiveInputTypeDescription / getEffectiveOutputTypeDescription (no Flow context needed) ----
+
+    @Test
+    public void getEffectiveOutputTypeDescription_returns_producedOutputType_for_a_consumer_with_a_fixed_output() throws StudioBuildException {
+        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+
+        assertEquals("java.util.List<java.io.File>", localFileConsumer.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveInputTypeDescription_is_always_null_for_a_consumer() throws StudioBuildException {
+        FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+
+        assertNull(localFileConsumer.getEffectiveInputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_is_null_for_a_generic_consumer_with_no_fixed_output() throws StudioBuildException {
+        FlowElement genericConsumer = TestFixtures.getGenericConsumer(BASE_META_PACK);
+
+        assertNull(genericConsumer.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_is_null_for_a_producer_since_it_is_terminal() throws StudioBuildException {
+        FlowElement devNullProducer = TestFixtures.getDevNullProducer(BASE_META_PACK);
+
+        assertNull(devNullProducer.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_for_a_router_mirrors_its_own_input_not_its_toType() throws StudioBuildException {
+        // MultiRecipientRouter's own toType ("java.util.List<java.lang.String>") is the routing decision, not
+        // the payload - the payload passes through unchanged, so output must mirror fromType instead.
+        FlowElement router = TestFixtures.getMultiRecipientRouter(BASE_META_PACK);
+
+        assertEquals("java.lang.String", router.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_for_a_filter_mirrors_its_own_input() throws StudioBuildException {
+        FlowElement filter = TestFixtures.getMessageFilter(BASE_META_PACK);
+
+        assertEquals("java.lang.String", filter.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_for_a_translator_uses_its_own_type_property() throws StudioBuildException {
+        // Translator has no 'fromType'/'toType' of its own - both input and output come from its 'type'
+        // property (see expectedInputTypeProperty="type" in its component-meta_en_GB.json).
+        FlowElement translator = TestFixtures.getCustomTranslator(BASE_META_PACK);
+
+        assertEquals("java.lang.String", translator.getEffectiveInputTypeDescription());
+        assertEquals("java.lang.String", translator.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_uses_producedOutputType_for_a_fixed_shape_converter_too() throws StudioBuildException {
+        // producedOutputType isn't Consumer-only - Object To XML String Converter has no 'toType' property of
+        // its own either, but its real output (a marshalled XML string) is just as fixed and knowable.
+        FlowElement xmlConverter = TestFixtures.getObjectMessageToXmlStringtConverter(BASE_META_PACK);
+
+        assertEquals("java.lang.String", xmlConverter.getEffectiveOutputTypeDescription());
+    }
+
+    @Test
+    public void getEffectiveOutputTypeDescription_is_null_when_no_toType_is_declared_eg_default_list_splitter() throws StudioBuildException {
+        // Default List Splitter's real output is whichever type was inside the incoming list - not captured
+        // anywhere in Studio's metadata, so null (not a guess) is the honest answer.
+        FlowElement defaultListSplitter = TestFixtures.getDefaultListSplitter(BASE_META_PACK);
+
+        assertNull(defaultListSplitter.getEffectiveOutputTypeDescription());
+    }
+
     @Test
     public void findPayloadSourceElement_returns_previous_sibling_in_same_route() throws StudioBuildException {
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);

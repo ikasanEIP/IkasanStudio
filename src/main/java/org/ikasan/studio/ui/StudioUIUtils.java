@@ -22,6 +22,111 @@ public class StudioUIUtils {
     //    public static final Color IKASAN_ORANGE = new JBColor(new Color(241, 90, 35), new Color(241, 90, 35));
     private static final Logger LOG = Logger.getInstance("#StudioUIUtils");
 
+    /**
+     * Escapes text so it renders literally inside an HTML fragment instead of being parsed as markup - e.g. a
+     * generic Java type like "java.util.List&lt;java.io.File&gt;" would otherwise have its "&lt;java.io.File&gt;"
+     * read as an (unrecognised) tag, which Swing's HTML renderer draws as a stray bordered box rather than
+     * plain text. Callers building HTML strings from plain-text values (component names, type descriptions,
+     * warning messages, ...) must run each one through this before concatenating it into markup.
+     * @param text plain text that may contain HTML-significant characters
+     * @return text with &amp;, &lt; and &gt; replaced by their HTML entities
+     */
+    public static String escapeHtml(String text) {
+        if (text == null) {
+            return null;
+        }
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    /**
+     * A compact "Input: X" / "Output: Y" HTML block, shared by the properties panel (a real component on the
+     * canvas, showing its actual configured values) and the palette (no instance yet, showing what a
+     * freshly-dropped one would default to - see ComponentMeta#getEffectiveInputTypeDescriptionPreview). Either
+     * half is omitted (not replaced with a placeholder) when nothing can be said - e.g. no Output for a
+     * terminal Producer, no Input for a flow-starting Consumer.
+     * @param input from FlowElement#getEffectiveInputTypeDescription or ComponentMeta's preview equivalent
+     * @param output from FlowElement#getEffectiveOutputTypeDescription or ComponentMeta's preview equivalent
+     * @param isPreview true for the palette (values are defaults, not live) - appends a qualifier so it can't
+     *                  be mistaken for a fixed guarantee
+     * @return an HTML fragment, or null if neither half has anything to show
+     */
+    public static String buildInputOutputSummaryHtml(String input, String output, boolean isPreview) {
+        if (input == null && output == null) {
+            return null;
+        }
+        String suffix = isPreview ? " <i>(default)</i>" : "";
+        StringBuilder summary = new StringBuilder("<p>");
+        if (input != null) {
+            summary.append("<b>Input:</b> ").append(escapeHtml(input)).append(suffix);
+        }
+        if (output != null) {
+            if (input != null) {
+                summary.append("<br>");
+            }
+            summary.append("<b>Output:</b> ").append(escapeHtml(output)).append(suffix);
+        }
+        summary.append("</p>");
+        return summary.toString();
+    }
+
+    /**
+     * The full help-panel summary block: the component's own name as a heading, always first (with the
+     * underlying Ikasan class alongside it, where meaningful - see implementingClassName below), followed by
+     * the "Input:/Output:" block from {@link #buildInputOutputSummaryHtml} (if either has anything to show).
+     * The name comes from metadata (ComponentMeta#getName()) rather than relying on it already being
+     * hand-written into the component's helpText - every component's helpText used to open with its own
+     * hardcoded "&lt;strong&gt;Name&lt;/strong&gt;", which not only put the name in the wrong place relative to
+     * this summary but meant every metapack author had to remember to keep it in sync with the component's
+     * actual name by hand.
+     * @param componentName the component's own name, e.g. "Local File Consumer"
+     * @param implementingClassName the fully-qualified (or simple) Ikasan core class this component wires in
+     *                              directly, or null/blank to omit - only pass this for components with no
+     *                              user-implemented class of their own, where ComponentMeta#getImplementingClass()
+     *                              names a real, concrete class rather than an interface used purely as a
+     *                              deserialisation key (see ComponentMeta#isUseImplementingClassInFactory() -
+     *                              that flag is precisely "implementingClass is real and gets 'new'd directly",
+     *                              see componentFactory_en.ftl) - passing an interface/placeholder here would
+     *                              mislead rather than help
+     * @param input from FlowElement#getEffectiveInputTypeDescription or ComponentMeta's preview equivalent
+     * @param output from FlowElement#getEffectiveOutputTypeDescription or ComponentMeta's preview equivalent
+     * @param isPreview true for the palette (values are defaults, not live) - see buildInputOutputSummaryHtml
+     * @return an HTML fragment - never null/empty as long as componentName is set
+     */
+    public static String buildComponentSummaryHtml(String componentName, String implementingClassName, String input, String output, boolean isPreview) {
+        StringBuilder summary = new StringBuilder();
+        if (componentName != null && !componentName.isBlank()) {
+            summary.append("<p><b>").append(escapeHtml(componentName)).append("</b>");
+            if (implementingClassName != null && !implementingClassName.isBlank()) {
+                String simpleName = implementingClassName.contains(".")
+                        ? implementingClassName.substring(implementingClassName.lastIndexOf('.') + 1) : implementingClassName;
+                summary.append(" <font color=\"gray\">(Ikasan class: ").append(escapeHtml(simpleName)).append(")</font>");
+            }
+            summary.append("</p>");
+        }
+        String inputOutput = buildInputOutputSummaryHtml(input, output, isPreview);
+        if (inputOutput != null) {
+            summary.append(inputOutput);
+        }
+        return summary.toString();
+    }
+
+    /**
+     * A "More info" link to a component's webHelpURL, shown at the end of its help text (see
+     * ComponentPropertiesPanel#getDisplayedHelpTextForSelectedComponent / IkasanPaletteElementViewHandler#
+     * getHelpText). Requires the containing panel to be non-editable with a HyperlinkListener wired up (see
+     * HtmlScrollingDisplayPanel) - Swing only fires hyperlink events under those conditions, otherwise this
+     * would render as blue, underlined text that does nothing when clicked.
+     * @param webHelpURL from ComponentMeta#getWebHelpURL() - never null (defaults to a bundled Readme.md
+     *                   reference), but check for blank defensively since a metapack could still set it that way
+     * @return an HTML fragment, or null if webHelpURL is blank
+     */
+    public static String buildMoreInfoLinkHtml(String webHelpURL) {
+        if (webHelpURL == null || webHelpURL.isBlank()) {
+            return null;
+        }
+        return "<p><a href=\"" + escapeHtml(webHelpURL) + "\">More info</a></p>";
+    }
+
     public static void setLine(Graphics g, float width) {
         if (g instanceof Graphics2D g2d) {
             g2d.setStroke(new BasicStroke(width));

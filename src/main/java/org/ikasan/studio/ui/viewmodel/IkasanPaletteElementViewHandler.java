@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,8 +40,21 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
     public String getText() {
         return componentMeta.getName();
     }
+    /**
+     * The static component help text, with the component's own name as a heading and a compact "Input:/Output:"
+     * type preview prepended - see StudioUIUtils#buildComponentSummaryHtml and ComponentMeta#
+     * getEffectiveInputTypeDescriptionPreview/getEffectiveOutputTypeDescriptionPreview. The Input/Output half is
+     * a preview only (each property's own declared default, not a live value, since a palette item has no
+     * FlowElement instance yet) - compare ComponentPropertiesPanel#getDisplayedHelpTextForSelectedComponent,
+     * which shows the same summary for a real, already-configured component once it's on the canvas.
+     */
     public String getHelpText() {
-        return componentMeta.getHelpText();
+        String implementingClassName = componentMeta.isUseImplementingClassInFactory() ? componentMeta.getImplementingClass() : null;
+        String helpText = StudioUIUtils.buildComponentSummaryHtml(componentMeta.getName(), implementingClassName,
+                componentMeta.getEffectiveInputTypeDescriptionPreview(), componentMeta.getEffectiveOutputTypeDescriptionPreview(), true)
+                + componentMeta.getHelpText();
+        String moreInfo = StudioUIUtils.buildMoreInfoLinkHtml(componentMeta.getWebHelpURL());
+        return moreInfo != null ? helpText + moreInfo : helpText;
     }
 
     public Icon getDisplayIcon() {

@@ -2,5 +2,5 @@
   "componentType" : "org.ikasan.exceptionResolver.ExceptionResolver",
   "paletteDisplayOrder": 20,
   "componentShortType": "Exception Resolver",
-  "helpText": "<strong>Exception Resolver</strong><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>"
+  "helpText": "<p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>"
 }

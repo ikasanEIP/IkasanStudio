@@ -17,6 +17,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
@@ -630,20 +631,28 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
-     * The static component help text, with a best-effort upstream type-mismatch warning prepended when
-     * applicable (see FlowElement#getUpstreamTypeMismatchWarning). Kept separate from the raw meta helpText so
-     * the warning never leaks into anything that reads getComponentMeta().getHelpText() directly (e.g. the
-     * palette tooltip for a component not yet on the canvas, where there is no upstream to check against).
+     * The static component help text, with the component's own name as a heading, a compact "Input:/Output:"
+     * type summary, and a best-effort upstream type-mismatch warning all prepended - see
+     * StudioUIUtils#buildComponentSummaryHtml and FlowElement#getEffectiveInputTypeDescription /
+     * #getEffectiveOutputTypeDescription / #getUpstreamTypeMismatchWarning. Kept separate from the raw meta
+     * helpText (which no longer carries its own hardcoded name heading - see buildComponentSummaryHtml) so none
+     * of this leaks into anything that reads getComponentMeta().getHelpText() directly.
      */
     private String getDisplayedHelpTextForSelectedComponent() {
-        String helpText = getSelectedComponent().getComponentMeta().getHelpText();
+        ComponentMeta componentMeta = getSelectedComponent().getComponentMeta();
+        String helpText = componentMeta.getHelpText();
         if (getSelectedComponent() instanceof FlowElement flowElement) {
+            String implementingClassName = componentMeta.isUseImplementingClassInFactory() ? componentMeta.getImplementingClass() : null;
+            StringBuilder prefix = new StringBuilder(StudioUIUtils.buildComponentSummaryHtml(componentMeta.getName(), implementingClassName,
+                    flowElement.getEffectiveInputTypeDescription(), flowElement.getEffectiveOutputTypeDescription(), false));
             String warning = flowElement.getUpstreamTypeMismatchWarning();
             if (warning != null) {
-                helpText = "<p><b><font color=\"red\">Warning: " + warning + "</font></b></p>" + helpText;
+                prefix.append("<p><b><font color=\"red\">Warning: ").append(StudioUIUtils.escapeHtml(warning)).append("</font></b></p>");
             }
+            helpText = prefix + helpText;
         }
-        return helpText;
+        String moreInfo = StudioUIUtils.buildMoreInfoLinkHtml(componentMeta.getWebHelpURL());
+        return moreInfo != null ? helpText + moreInfo : helpText;
     }
 
     /**

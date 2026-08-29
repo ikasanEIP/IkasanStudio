@@ -157,7 +157,7 @@ public class FlowElement extends BasicElement {
 
     /**
      * Best-effort design-time check: if this component has an effective expected input type (see
-     * {@link #resolveExpectedInputType()}) and the nearest upstream element whose declared 'toType' represents
+     * {@link #getEffectiveInputTypeDescription()}) and the nearest upstream element whose declared 'toType' represents
      * the actual incoming payload (see {@link Flow#findPayloadSourceElement}) has a type that clearly doesn't
      * match, returns a warning message suitable for display. Returns null whenever there isn't enough
      * information to check - including the very common case of an upstream Consumer, which never declares an
@@ -169,7 +169,7 @@ public class FlowElement extends BasicElement {
         if (getComponentMeta() == null || containingFlow == null) {
             return null;
         }
-        String expectedInputType = resolveExpectedInputType();
+        String expectedInputType = getEffectiveInputTypeDescription();
         if (expectedInputType == null || expectedInputType.isBlank()) {
             return null;
         }
@@ -181,7 +181,7 @@ public class FlowElement extends BasicElement {
         if (upstream == null) {
             return null;
         }
-        String upstreamOutputType = upstream.getPropertyValueAsString(ComponentPropertyMeta.TO_TYPE);
+        String upstreamOutputType = upstream.getEffectiveOutputTypeDescription();
         if (upstreamOutputType == null || upstreamOutputType.isBlank()) {
             return null;
         }
@@ -199,14 +199,35 @@ public class FlowElement extends BasicElement {
      * a fixed metadata constant when the component has no user-configurable input type of its own (e.g.
      * Default List Splitter, JMS Object Message To Object Converter - see {@link ComponentMeta#getExpectedInputType()}),
      * otherwise the current value of whichever of this component's own properties represents that (see
-     * {@link ComponentMeta#getEffectiveInputTypePropertyName()}) if that property is currently set.
+     * {@link ComponentMeta#getEffectiveInputTypePropertyName()}) if that property is currently set. Consumers
+     * always return null here - they start the flow, nothing flows into them.
+     * -
+     * This just supplies live property values to {@link ComponentMeta#getEffectiveInputTypeDescription} - see
+     * there for the actual rules, and for the metadata-only variant used where there's no FlowElement instance
+     * yet (e.g. a palette item, see IkasanPaletteElementViewHandler).
+     * @return a display-ready type description, or null if this component declares no input type (Consumers,
+     * or any component whose declared input-type property is currently unset)
      */
-    private String resolveExpectedInputType() {
-        String fixedExpectedType = getComponentMeta().getExpectedInputType();
-        if (fixedExpectedType != null && !fixedExpectedType.isBlank()) {
-            return fixedExpectedType;
+    public String getEffectiveInputTypeDescription() {
+        if (getComponentMeta() == null) {
+            return null;
         }
-        return getPropertyValueAsString(getComponentMeta().getEffectiveInputTypePropertyName());
+        return getComponentMeta().getEffectiveInputTypeDescription(this::getPropertyValueAsString);
+    }
+
+    /**
+     * The type this component hands to whatever comes after it, or null if that can't be stated from metadata
+     * alone - see {@link ComponentMeta#getEffectiveOutputTypeDescription} for the actual rules (Producers are
+     * terminal, Routers/Filters/Translators/Debug pass the payload through unchanged, everything else is its
+     * own 'toType' property or a fixed {@link ComponentMeta#getProducedOutputType()}). This just supplies live
+     * property values to that shared engine.
+     * @return a display-ready type description, or null if nothing can be said
+     */
+    public String getEffectiveOutputTypeDescription() {
+        if (getComponentMeta() == null) {
+            return null;
+        }
+        return getComponentMeta().getEffectiveOutputTypeDescription(this::getPropertyValueAsString);
     }
 
     @Override

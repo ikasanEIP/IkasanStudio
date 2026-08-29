@@ -1,7 +1,8 @@
 {
   "name": "FTP Consumer",
+  "producedOutputType": "org.ikasan.filetransfer.Payload",
   "isFileBasedConsumer": "true",
-  "helpText": "<strong>FTP Consumer</strong><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule, backed by FTP MessageProvider.</p>",
+  "helpText": "<p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule, backed by FTP MessageProvider.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
@@ -153,7 +154,7 @@
       "propertyName": "cronExpression",
       "propertyDisplayOrder": -70,
       "dataValidationType": "cronExpression",
-      "defaultValue": "* * * * * ? *",
+      "defaultValue": "0 * * * * ? *",
       "displayLabel": "Cron expression",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
       "setterProperty": true,

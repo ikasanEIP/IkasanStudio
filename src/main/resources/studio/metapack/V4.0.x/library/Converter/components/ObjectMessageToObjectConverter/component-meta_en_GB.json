@@ -1,6 +1,6 @@
 {
   "name": "JMS Object Message To Object Converter",
-  "helpText": "<strong>JMS Object Message To Object Converter</strong> (Ikasan class: ObjectMessageToObjectConverter)<p>Unwraps a JMS ObjectMessage into the plain Java object serialized inside it, by calling ObjectMessage.getObject() and passing that object on to the rest of the flow. Use this directly after a JMS consumer when the upstream sender put a serialized Java object on the queue (via ObjectMessage) rather than text/XML/JSON, so the flow works with the real object instead of the JMS message wrapper.</p>",
+  "helpText": "<p>Unwraps a JMS ObjectMessage into the plain Java object serialized inside it, by calling ObjectMessage.getObject() and passing that object on to the rest of the flow. Use this directly after a JMS consumer when the upstream sender put a serialized Java object on the queue (via ObjectMessage) rather than text/XML/JSON, so the flow works with the real object instead of the JMS message wrapper.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/ObjectMessageToObjectConverter.md",
   "implementingClass": "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
   "useImplementingClassInFactory": true,

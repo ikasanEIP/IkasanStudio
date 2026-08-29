@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.filter.Filter",
   "paletteDisplayOrder": 7,
   "componentShortType": "Filter",
-  "helpText": "<strong>Filter</strong><p>The filter can be used to stop certain payloads from advancing any further in the flow.</p>",
+  "helpText": "<p>The filter can be used to stop certain payloads from advancing any further in the flow.</p>",
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {

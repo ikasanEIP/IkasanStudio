@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 /**
  * See Readme.md for a description of the meta-pack and how it is used.
@@ -45,6 +46,7 @@ public class ComponentMeta implements IkasanMeta {
     public static final String COMSUMER_TYPE = "Consumer";
     public static final String ROUTER_TYPE = "Router";
     public static final String FILTER_TYPE = "Filter";
+    public static final String TRANSLATOR_TYPE = "Translator";
     public static final String END_POINT_TYPE = "End Point";
     public static final String FLOW_TYPE = "Flow";
     public static final String MODULE_TYPE = "Module";
@@ -104,6 +106,18 @@ public class ComponentMeta implements IkasanMeta {
                                                       // absent, since that is the overwhelming convention - only needed where a component uses a
                                                       // differently-named property for the same purpose (e.g. Object To XML String Converter's
                                                       // 'objectClass'). See FlowElement#getUpstreamTypeMismatchWarning.
+    private String producedOutputType;               // A fixed, fully-qualified type this component hands downstream as the payload, for
+                                                      // components with no 'toType' property of their own to hold a user-configured answer -
+                                                      // e.g. Local File Consumer produces "java.util.List<java.io.File>" (see its default
+                                                      // messageProvider, FileMessageProvider), Object To XML String Converter produces
+                                                      // "java.lang.String". Consumers are the main users of this (they have no 'toType' at all,
+                                                      // since nothing flows into them to transform), but any component whose real output type is
+                                                      // fixed rather than user-configurable can use it. Absent means either the component is
+                                                      // generic (isGeneric() - depends entirely on the user's own implementation), genuinely
+                                                      // configuration-dependent (e.g. the base Scheduled Consumer's messageProvider), or its real
+                                                      // output genuinely isn't captured anywhere in Studio's metadata (e.g. Default List
+                                                      // Splitter's output is whichever type was inside the incoming list). See
+                                                      // FlowElement#getEffectiveOutputTypeDescription.
     private boolean routesToMultipleTargets;         // Router only: true if route() may return more than one target in a single
                                                       // invocation and so needs a List<String> return type (e.g. Multi Recipient Router) -
                                                       // false (the default) for routers whose route() returns a single String (e.g. Single
@@ -201,6 +215,9 @@ public class ComponentMeta implements IkasanMeta {
     public boolean isFilter() {
         return FILTER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
+    public boolean isTranslator() {
+        return TRANSLATOR_TYPE.equals(componentTypeMeta.getComponentShortType());
+    }
     public boolean isEndpoint() {
         return END_POINT_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
@@ -257,5 +274,69 @@ public class ComponentMeta implements IkasanMeta {
     public String getEffectiveInputTypePropertyName() {
         return (expectedInputTypeProperty != null && !expectedInputTypeProperty.isBlank())
                 ? expectedInputTypeProperty : ComponentPropertyMeta.FROM_TYPE;
+    }
+
+    /**
+     * The type this component itself expects its incoming payload to be, or null if it doesn't declare one -
+     * see {@link org.ikasan.studio.core.model.ikasan.instance.FlowElement#getEffectiveInputTypeDescription()}
+     * for the full rules; this is the shared engine behind it, taking a propertyValueResolver so the same
+     * logic works both against a real FlowElement's current property values (see there) and, with no
+     * FlowElement instance at all, against this metadata's own property defaults (see
+     * {@link org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler} - a palette item has no instance
+     * yet, so it can only ever preview what a freshly-dropped one would default to).
+     * @param propertyValueResolver given a property name, returns that property's current (or default) value
+     * as a display string, or null/blank if unset
+     */
+    public String getEffectiveInputTypeDescription(Function<String, String> propertyValueResolver) {
+        if (isConsumer()) {
+            return null;
+        }
+        if (expectedInputType != null && !expectedInputType.isBlank()) {
+            return expectedInputType;
+        }
+        return propertyValueResolver.apply(getEffectiveInputTypePropertyName());
+    }
+
+    /**
+     * The type this component hands to whatever comes after it, or null if that can't be stated - see
+     * {@link org.ikasan.studio.core.model.ikasan.instance.FlowElement#getEffectiveOutputTypeDescription()} for
+     * the full rules; this is the shared engine behind it, see {@link #getEffectiveInputTypeDescription} for
+     * why it takes a propertyValueResolver rather than reading property values itself.
+     */
+    public String getEffectiveOutputTypeDescription(Function<String, String> propertyValueResolver) {
+        if (isProducer()) {
+            return null;
+        }
+        if (isRouter() || isFilter() || isTranslator() || isDebug()) {
+            return getEffectiveInputTypeDescription(propertyValueResolver);
+        }
+        String toType = propertyValueResolver.apply(ComponentPropertyMeta.TO_TYPE);
+        if (toType != null && !toType.isBlank()) {
+            return toType;
+        }
+        return (producedOutputType != null && !producedOutputType.isBlank()) ? producedOutputType : null;
+    }
+
+    /**
+     * Preview of {@link #getEffectiveInputTypeDescription(Function)} with no FlowElement instance to read live
+     * property values from (e.g. a palette item, which hasn't been dropped onto a flow yet) - falls back to
+     * each property's own declared default value instead, i.e. what a freshly-dropped instance would start
+     * with before the user changes anything.
+     */
+    public String getEffectiveInputTypeDescriptionPreview() {
+        return getEffectiveInputTypeDescription(this::getDefaultValueAsString);
+    }
+
+    /** Preview counterpart to {@link #getEffectiveInputTypeDescriptionPreview()} - see there for why. */
+    public String getEffectiveOutputTypeDescriptionPreview() {
+        return getEffectiveOutputTypeDescription(this::getDefaultValueAsString);
+    }
+
+    private String getDefaultValueAsString(String propertyName) {
+        ComponentPropertyMeta propertyMeta = getMetadata(propertyName);
+        if (propertyMeta == null || propertyMeta.getDefaultValue() == null) {
+            return null;
+        }
+        return String.valueOf(propertyMeta.getDefaultValue());
     }
 }

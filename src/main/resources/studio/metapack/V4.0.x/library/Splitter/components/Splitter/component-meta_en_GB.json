@@ -2,7 +2,7 @@
   "name": "Splitter",
   "generatesUserImplementedClass": "true",
   "flowBuilderMethod": "splitter",
-  "helpText": "<strong>Splitter</strong><p>Splitters typically take in a single payload and split it into a number of smaller payloads that are sent to the downstream consumer one by one.</p><p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p><p>The splitter must always return at least one payload - a null or empty list is not valid and will cause the flow to fail at runtime.</p>",
+  "helpText": "<p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p><p>The splitter must always return at least one payload - a null or empty list is not valid and will cause the flow to fail at runtime.</p>",
   "_implementingClass": "In this case is just used an a key to indicate for uniqueness",
   "implementingClass": "org.ikasan.component.splitter.Custom",
   "_useImplementingClassInFactory": true,
@@ -23,7 +23,7 @@
       "helpText": "The data type of the single incoming payload to this splitter (not a list) - the splitter reads one of these and produces a list of 'toType' payloads from it.",
       "mandatory": true,
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
-      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the splitter."
     },
     "toType": {
       "propertyName": "toType",
@@ -34,7 +34,7 @@
       "helpText": "The data type of the objects being sent to the downstream consumer.",
       "mandatory": true,
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
-      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the output of the splitter."
     },
     "requiresStub": {
       "propertyName": "requiresStub",

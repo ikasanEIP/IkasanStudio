@@ -382,9 +382,38 @@ public class DesignerCanvas extends JPanel {
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (mouseSelectedComponent instanceof Flow && ((Flow) mouseSelectedComponent).getFlowIntegrityStatus() != null) {
             this.setToolTipText(((Flow) mouseSelectedComponent).getFlowIntegrityStatus());
+        } else if (mouseSelectedComponent instanceof FlowElement flowElement) {
+            this.setToolTipText(buildInputOutputTooltip(flowElement));
         } else {
             this.setToolTipText("");
         }
+    }
+
+    /**
+     * Compact hover tooltip naming what payload type flows into/out of this component - the same data source
+     * as the properties panel's Input:/Output: summary and the upstream type-mismatch warning (see
+     * FlowElement#getEffectiveInputTypeDescription / #getEffectiveOutputTypeDescription), so all three can
+     * never disagree. Returns "" (never null) when nothing can be said (e.g. an Endpoint marker, which has no
+     * payload type of its own), matching this method's existing "no tooltip" convention below.
+     */
+    private String buildInputOutputTooltip(FlowElement flowElement) {
+        String input = flowElement.getEffectiveInputTypeDescription();
+        String output = flowElement.getEffectiveOutputTypeDescription();
+        if (input == null && output == null) {
+            return "";
+        }
+        StringBuilder tooltip = new StringBuilder("<html>");
+        if (input != null) {
+            tooltip.append("Input: ").append(StudioUIUtils.escapeHtml(input));
+        }
+        if (output != null) {
+            if (input != null) {
+                tooltip.append("<br>");
+            }
+            tooltip.append("Output: ").append(StudioUIUtils.escapeHtml(output));
+        }
+        tooltip.append("</html>");
+        return tooltip.toString();
     }
 
     /**

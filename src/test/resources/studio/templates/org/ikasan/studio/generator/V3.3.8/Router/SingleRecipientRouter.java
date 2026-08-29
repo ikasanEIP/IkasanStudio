@@ -18,7 +18,7 @@ public static final String ROUTE1 = "route1";
 public static final String ROUTE2 = "route2";
 
 /**
-* <strong>Single Recipient Router</strong><p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p><p>Requires at least two route names to be configured below (Route Names) - with only one, there would be nothing to actually choose between.</p>
+* <p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p><p>Requires at least two route names to be configured below (Route Names) - with only one, there would be nothing to actually choose between.</p>
 *
 * @param payload to be evaluated to choose exactly one of the routes above (see the constants above) for payload to take next
 * @return the single route name (see the constants above) payload should be sent to. Returning null routes to

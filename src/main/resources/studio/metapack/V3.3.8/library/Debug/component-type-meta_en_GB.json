@@ -2,5 +2,5 @@
   "componentType": "org.ikasan.spec.component.filter.Filter",
   "paletteDisplayOrder": 1,
   "componentShortType": "Debug",
-  "helpText": "<strong>Debug</strong><p>These components are transient, design to help when running the application in debug mode.</p>"
+  "helpText": "<p>These components are transient, design to help when running the application in debug mode.</p>"
 }

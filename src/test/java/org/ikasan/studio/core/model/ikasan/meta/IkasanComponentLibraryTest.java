@@ -256,7 +256,7 @@ class IkasanComponentLibraryTest {
         assertAll(
             "Check the flow contains the expected values",
             () -> assertEquals(ComponentMeta.FLOW_TYPE, flow.getName()),
-            () -> assertEquals("<strong>Flow</strong><p>The flow is the container for components and generally represents an atomic action.</p>", flow.getHelpText()),
+            () -> assertEquals("<p>The flow is the container for components and generally represents an atomic action.</p>", flow.getHelpText()),
             () -> assertEquals("org.ikasan.spec.flow.Flow", flow.getComponentType()),
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
             () -> assertFalse(flow.getSmallIcon() instanceof ImageIcon),
@@ -285,7 +285,7 @@ class IkasanComponentLibraryTest {
                 "Check the Exception Resolver contains the expected values",
                 () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_TYPE, exceptionResolver.getName()),
                 () -> assertEquals("org.ikasan.exceptionResolver.ExceptionResolver", exceptionResolver.getComponentType()),
-                () -> assertEquals("<strong>Exception Resolver</strong><p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>", exceptionResolver.getHelpText()),
+                () -> assertEquals("<p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>", exceptionResolver.getHelpText()),
                 () -> assertEquals(0, exceptionResolver.getAllowableProperties().size()),
                 () -> assertEquals(5, exceptionResolver.getActionList().size())
         );

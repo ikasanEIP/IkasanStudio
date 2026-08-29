@@ -1,6 +1,6 @@
 {
   "name": "Scheduled Consumer",
-  "helpText": "<strong>Scheduled Consumer</strong><p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule.</p>",
+  "helpText": "<p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule.</p><p>Left unconfigured, its default messageProvider (QuartzMessageProvider) hands the raw Quartz JobExecutionContext downstream - a 'timer fired' signal, not real business data. This is the generic building block underneath Local File/FTP/SFTP Consumer, each of which points messageProvider at something more useful by default - override messageProvider yourself (see its own help text) if none of those fit; whatever you set it to determines what payload type actually flows downstream, not this component itself.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
@@ -19,7 +19,7 @@
       "propertyName": "cronExpression",
       "propertyDisplayOrder": -70,
       "dataValidationType": "cronExpression",
-      "defaultValue": "* * * * * ? *",
+      "defaultValue": "0 * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
       "setterProperty": true,
       "mandatory": true,

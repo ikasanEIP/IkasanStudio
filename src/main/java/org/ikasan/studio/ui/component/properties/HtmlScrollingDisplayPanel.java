@@ -1,11 +1,13 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.Styling;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 
 /**
@@ -36,6 +38,15 @@ public class HtmlScrollingDisplayPanel extends JBPanel {
         paletteHelpTextArea = new JTextPane();
         paletteHelpTextArea.setBorder(null);
         paletteHelpTextArea.setContentType("text/html");
+        // This panel is display-only (never meant to accept typed edits) - non-editable is also required for
+        // Swing to fire HyperlinkEvents at all, which is what makes a "More info" link (see
+        // StudioUIUtils#buildMoreInfoLinkHtml) actually clickable rather than just blue, underlined text.
+        paletteHelpTextArea.setEditable(false);
+        paletteHelpTextArea.addHyperlinkListener(event -> {
+            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                BrowserUtil.browse(event.getURL() != null ? event.getURL().toString() : event.getDescription());
+            }
+        });
 
         if (dimension != null) {
             paletteHelpTextArea.setPreferredSize(JBUI.size(dimension.width, dimension.height));
