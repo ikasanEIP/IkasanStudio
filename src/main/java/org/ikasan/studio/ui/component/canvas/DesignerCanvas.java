@@ -495,12 +495,12 @@ public class DesignerCanvas extends JPanel {
                     .stream()
                     .flatMap(x -> x.getFlowRoute().getConsumerAndFlowRouteElements().stream())
                     .filter(x -> x.equals(ikasanBasicElement))
-                    .peek(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(true));
+                    .forEach(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(true));
         } else if (ikasanBasicElement instanceof Flow) {
             ikasanModule.getFlows()
                     .stream()
                     .filter(x -> x.equals(ikasanBasicElement))
-                    .peek(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(true));
+                    .forEach(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(true));
         } else {
             ViewHandlerCache.getAbstractViewHandler(project, ikasanModule).setAlreadySelected(true);
         }
@@ -518,7 +518,7 @@ public class DesignerCanvas extends JPanel {
                 .peek(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(false))
                 .flatMap(x -> x.getFlowRoute().getConsumerAndFlowRouteElements().stream())
                 .filter(x -> ViewHandlerCache.getAbstractViewHandler(project, x).isAlreadySelected())
-                .peek(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(false));
+                .forEach(x -> ViewHandlerCache.getAbstractViewHandler(project, x).setAlreadySelected(false));
     }
 
     /**
@@ -918,8 +918,11 @@ public class DesignerCanvas extends JPanel {
      * Pre-fills newComponent's declared input-type property (see ComponentMeta#getExpectedInputTypeProperty -
      * 'fromType' by convention, e.g. Converter/Broker/Splitter/Filter/Router/Producer, or a differently-named
      * property such as Object To XML String Converter's 'objectClass') with whatever the nearest upstream
-     * payload-bearing component at the drop point has declared as its own output type ('toType') - Routers and
-     * Filters are skipped over since neither changes the payload's type (see Flow#skipNonPayloadBearingElements).
+     * payload-bearing component at the drop point declares as its effective output type (see
+     * FlowElement#getEffectiveOutputTypeDescription) - a live 'toType' property for most components, but also a
+     * fixed metadata constant for components with no such property of their own (e.g. a Consumer's
+     * producedOutputType). Routers, Filters and Debug breakpoints are skipped over since none of them change the
+     * payload's type (see Flow#skipNonPayloadBearingElements).
      * -
      * This is only a starting suggestion shown (and freely editable) in the properties dialog that follows -
      * left alone whenever newComponent has no such property, or there is nothing upstream to suggest from (e.g.
@@ -945,7 +948,7 @@ public class DesignerCanvas extends JPanel {
         if (upstream == null) {
             return;
         }
-        String upstreamOutputType = upstream.getPropertyValueAsString(ComponentPropertyMeta.TO_TYPE);
+        String upstreamOutputType = upstream.getEffectiveOutputTypeDescription();
         if (upstreamOutputType != null && !upstreamOutputType.isBlank()) {
             newComponent.setPropertyValue(propertyName, upstreamOutputType);
         }
