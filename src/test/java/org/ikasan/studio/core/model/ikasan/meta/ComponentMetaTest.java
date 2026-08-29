@@ -7,7 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Covers ComponentMeta#getEffectiveInputTypeDescriptionPreview / #getEffectiveOutputTypeDescriptionPreview -
@@ -55,5 +57,38 @@ class ComponentMetaTest {
         ComponentMeta router = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Multi Recipient Router");
 
         assertEquals(router.getEffectiveInputTypeDescriptionPreview(), router.getEffectiveOutputTypeDescriptionPreview());
+    }
+
+    @Test
+    public void producesFileListPayload_is_true_for_local_file_consumer() throws StudioBuildException {
+        ComponentMeta localFileConsumer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Local File Consumer");
+
+        assertTrue(localFileConsumer.producesFileListPayload());
+    }
+
+    @Test
+    public void producesFileListPayload_is_false_for_ftp_consumer_since_its_real_payload_is_a_richer_transfer_object() throws StudioBuildException {
+        // FTP/SFTP Consumer's producedOutputType is org.ikasan.filetransfer.Payload, not java.util.List<java.io.File> -
+        // isFileBasedConsumer() is still true for it (it drives the badge icon only), but a local file picker
+        // can't honestly stand in for that richer transfer-metadata object.
+        ComponentMeta ftpConsumer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "FTP Consumer");
+
+        assertTrue(ftpConsumer.isFileBasedConsumer());
+        assertFalse(ftpConsumer.producesFileListPayload());
+    }
+
+    @Test
+    public void producesFileListPayload_is_false_for_generic_consumer_since_it_has_no_fixed_output_type() throws StudioBuildException {
+        ComponentMeta genericConsumer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Generic Consumer");
+
+        assertTrue(genericConsumer.isFileBasedConsumer());
+        assertFalse(genericConsumer.producesFileListPayload());
+    }
+
+    @Test
+    public void producesFileListPayload_is_false_for_a_non_file_component() throws StudioBuildException {
+        ComponentMeta converter = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Converter");
+
+        assertFalse(converter.producesFileListPayload());
     }
 }

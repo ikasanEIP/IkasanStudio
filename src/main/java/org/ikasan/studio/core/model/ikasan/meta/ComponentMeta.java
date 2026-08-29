@@ -56,6 +56,8 @@ public class ComponentMeta implements IkasanMeta {
     public static final String DEBUG_KEY = "DebugTransition";
     // Shared by every "time event" consumer (Scheduled/FTP/SFTP/Local File Consumer) - see isTimeEventConsumer().
     public static final String SCHEDULED_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer";
+    // See producesFileListPayload().
+    public static final String FILE_LIST_TYPE = "java.util.List<java.io.File>";
     // See isSelfGeneratingConsumer().
     public static final String EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer";
 
@@ -315,6 +317,19 @@ public class ComponentMeta implements IkasanMeta {
             return toType;
         }
         return (producedOutputType != null && !producedOutputType.isBlank()) ? producedOutputType : null;
+    }
+
+    /**
+     * True only for a Consumer whose declared payload really is a real {@code java.util.List<java.io.File>}
+     * (currently just Local File Consumer) - narrower than {@link #isFileBasedConsumer()}, which also covers
+     * FTP/SFTP Consumer (payload is {@code org.ikasan.filetransfer.Payload}, a richer transfer-metadata object
+     * a local file picker can't honestly stand in for) and Generic Consumer (output type is whatever the user's
+     * own implementation decides - not captured in metadata at all). Drives whether "Send Test Message" offers
+     * a real (multi-select) file picker instead of the generic text/JSON payload dialog - see
+     * SendTestMessageAction.
+     */
+    public boolean producesFileListPayload() {
+        return FILE_LIST_TYPE.equals(producedOutputType);
     }
 
     /**

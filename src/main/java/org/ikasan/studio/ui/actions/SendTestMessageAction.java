@@ -4,10 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -20,6 +25,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.ConnectException;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Prompts for a payload and POSTs it to the running module's /studio/inject/{flowName} endpoint (generated
@@ -55,12 +62,34 @@ public class SendTestMessageAction implements ActionListener {
         // different flows that happen to reuse the same component name.
         String componentKey = module.getIdentity() + "/" + flowName + "/" + flowElement.getIdentity();
 
-        SendTestMessagePayloadDialog payloadDialog = new SendTestMessagePayloadDialog(project, componentKey);
-        if (!payloadDialog.showAndGet()) {
-            return;
+        String payload;
+        String payloadClassName;
+        if (flowElement.getComponentMeta().producesFileListPayload()) {
+            // A real file picker instead of the generic text/JSON dialog - see ComponentMeta#producesFileListPayload
+            // for why this is only offered when the declared payload really is java.util.List<java.io.File>.
+            List<String> filePaths = chooseTestFilePaths();
+            if (filePaths == null) {
+                return;
+            }
+            try {
+                payload = new ObjectMapper().writeValueAsString(filePaths);
+            } catch (Exception e) {
+                LOG.warn("STUDIO: Could not build JSON payload from chosen test files", e);
+                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", e.getMessage()));
+                return;
+            }
+            // Matches ComponentMeta#FILE_LIST_TYPE - resolved on the generated controller side via Jackson's
+            // TypeFactory#constructFromCanonical (see studioInjectControllerTemplate_en.ftl), which already
+            // knows how to deserialize each JSON string element into a real java.io.File.
+            payloadClassName = flowElement.getEffectiveOutputTypeDescription();
+        } else {
+            SendTestMessagePayloadDialog payloadDialog = new SendTestMessagePayloadDialog(project, componentKey);
+            if (!payloadDialog.showAndGet()) {
+                return;
+            }
+            payload = payloadDialog.getPayload();
+            payloadClassName = payloadDialog.getPayloadClassName();
         }
-        String payload = payloadDialog.getPayload();
-        String payloadClassName = payloadDialog.getPayloadClassName();
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.SendingTestMessage")) {
             // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md) because
@@ -104,5 +133,27 @@ public class SendTestMessageAction implements ActionListener {
                 }
             }
         });
+    }
+
+    /**
+     * Lets the user pick one or more real files from disk, in place of typing/pasting a payload - only offered
+     * when the target Consumer's declared payload really is java.util.List<java.io.File> (see
+     * ComponentMeta#producesFileListPayload). Synchronous/modal, matching how the rest of this codebase already
+     * uses the file chooser (see SendTestMessagePayloadDialog#loadFromFile).
+     * @return the chosen files' absolute paths, or null if the dialog was cancelled (nothing chosen)
+     */
+    private List<String> chooseTestFilePaths() {
+        FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createMultipleFilesNoJarsDescriptor()
+                .withTitle(StudioBundle.message("dialog.ChooseTestFiles"))
+                .withDescription(StudioBundle.message("message.ChooseTestFilesDescription"));
+        VirtualFile[] files = FileChooser.chooseFiles(descriptor, project, null);
+        if (files.length == 0) {
+            return null;
+        }
+        List<String> paths = new ArrayList<>();
+        for (VirtualFile file : files) {
+            paths.add(VfsUtilCore.virtualToIoFile(file).getAbsolutePath());
+        }
+        return paths;
     }
 }

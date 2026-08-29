@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.intellij.editor;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.ikasan.studio.ui.DesignerUI;
@@ -68,7 +69,13 @@ final class IkasanStudioFileEditor extends UserDataHolderBase implements FileEdi
     public void dispose() {
         if (!disposed) {
             disposed = true;
-            designerUI.dispose();
+            // Not a plain designerUI.dispose() call: DesignerUI registers itself as a message-bus connection's
+            // parent Disposable in its own constructor, which silently adopts it as a ROOT_DISPOSABLE child the
+            // first time anything is registered under it - a raw method call runs its dispose() logic but never
+            // tells Disposer's own tree that node (and its registered children, e.g. CanvasPanel) was disposed,
+            // which IntelliJ's leak detector then reports as a permanent leak at IDE shutdown. Disposer.dispose()
+            // both invokes dispose() and correctly retires the tree node, wherever in the tree it ended up.
+            Disposer.dispose(designerUI);
         }
     }
 }
