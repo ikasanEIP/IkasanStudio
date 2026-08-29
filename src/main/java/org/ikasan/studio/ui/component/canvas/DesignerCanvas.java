@@ -17,6 +17,7 @@ import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -806,7 +807,7 @@ public class DesignerCanvas extends JPanel {
 
                 newComponent = null;
                 try {
-                    newComponent = createViableFlowComponent(ikasanComponentType, containingFlow, containingFlowRoute);
+                    newComponent = createViableFlowComponent(ikasanComponentType, containingFlow, containingFlowRoute, x, y);
                 } catch (Exception ex) {
                     // Any exceptions raised here were silently handled, now exposed at least as logs
                     LOG.warn("STUDIO: ERROR: Intercept silent popup box failure, " + ex + " trace: " + Arrays.toString(ex.getStackTrace()));
@@ -861,9 +862,13 @@ public class DesignerCanvas extends JPanel {
      * Creation for a flow component
      * @param ikasanComponentType to create
      * @param containingFlow that will hold this component
+     * @param x drop location, used only to suggest a starting value for the new component's declared input
+     *          type (see {@link #applySuggestedInputTypeFromUpstream}) before its properties dialog is shown -
+     *          the component is not actually positioned in the flow until insertNewComponentBetweenSurroundingPair
+     * @param y drop location, see x
      * @return the fully populated component or null if the action was cancelled.
      */
-    private FlowElement createViableFlowComponent(ComponentMeta ikasanComponentType, Flow containingFlow, FlowRoute containingFlowFoute) {
+    private FlowElement createViableFlowComponent(ComponentMeta ikasanComponentType, Flow containingFlow, FlowRoute containingFlowFoute, int x, int y) {
         UiContext uiContext = project.getService(UiContext.class);
         FlowElement newComponent = null;
         try {
@@ -872,6 +877,7 @@ public class DesignerCanvas extends JPanel {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ThereWasAProblemTryingToGetMetaPackInfo", e.getMessage()));
             return newComponent;
         }
+        applySuggestedInputTypeFromUpstream(newComponent, containingFlow, x, y);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver((ExceptionResolver)newComponent);
         } else {
@@ -879,6 +885,42 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    /**
+     * Pre-fills newComponent's declared input-type property (see ComponentMeta#getExpectedInputTypeProperty -
+     * 'fromType' by convention, e.g. Converter/Broker/Splitter/Filter/Router/Producer, or a differently-named
+     * property such as Object To XML String Converter's 'objectClass') with whatever the nearest upstream
+     * payload-bearing component at the drop point has declared as its own output type ('toType') - Routers and
+     * Filters are skipped over since neither changes the payload's type (see Flow#skipNonPayloadBearingElements).
+     * -
+     * This is only a starting suggestion shown (and freely editable) in the properties dialog that follows -
+     * left alone whenever newComponent has no such property, or there is nothing upstream to suggest from (e.g.
+     * dropped right after a Consumer, or right after a component with no declared output type of its own).
+     * @param newComponent just created, not yet positioned in the flow
+     * @param containingFlow the new component is being added to
+     * @param x drop location
+     * @param y drop location
+     */
+    private void applySuggestedInputTypeFromUpstream(FlowElement newComponent, Flow containingFlow, int x, int y) {
+        if (newComponent == null || newComponent.getComponentMeta() == null) {
+            return;
+        }
+        String propertyName = newComponent.getComponentMeta().getEffectiveInputTypePropertyName();
+        ComponentPropertyMeta propertyMeta = newComponent.getComponentMeta().getMetadata(propertyName);
+        if (propertyMeta == null || propertyMeta.isHiddenProperty()) {
+            // No such property (most components), or it's hidden from the user (e.g. Debug's fromType, always
+            // java.lang.Object by design) - nothing sensible to suggest either way.
+            return;
+        }
+        Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
+        FlowElement upstream = containingFlow.skipNonPayloadBearingElements(surroundingComponents.getLeft());
+        if (upstream == null) {
+            return;
+        }
+        String upstreamOutputType = upstream.getPropertyValueAsString(ComponentPropertyMeta.TO_TYPE);
+        if (upstreamOutputType != null && !upstreamOutputType.isBlank()) {
+            newComponent.setPropertyValue(propertyName, upstreamOutputType);
+        }
+    }
 
     /**
      * Create the popup properties panel for a new component
@@ -1128,7 +1170,9 @@ public class DesignerCanvas extends JPanel {
             return null;
         }
 
-        FlowElement debugComponent = createViableFlowComponent(debugMeta, containingFlow, containingFlowRoute);
+        // No drag position exists for this programmatic insertion path (see class javadoc above) - harmless,
+        // since Debug's fromType is hidden and skipped by applySuggestedInputTypeFromUpstream regardless.
+        FlowElement debugComponent = createViableFlowComponent(debugMeta, containingFlow, containingFlowRoute, 0, 0);
         if (debugComponent == null) {
             // User cancelled the properties popup, or an error was already reported.
             return null;

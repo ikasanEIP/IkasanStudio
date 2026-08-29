@@ -149,23 +149,32 @@ public class FlowElement extends BasicElement {
         return clonedFlowElement;
     }
 
+    // The full-event escape hatch documented in converterTemplate_en.ftl / brokerTemplate_en.ftl / splitterTemplate_en.ftl -
+    // a component deliberately set to receive org.ikasan.spec.flow.FlowEvent gets the whole event, not the upstream's
+    // declared payload type, so that is never a real mismatch. Compared against as a simple (unqualified) type name.
+    private static final String FLOW_EVENT_SIMPLE_NAME = "FlowEvent";
+    private static final String OBJECT_SIMPLE_NAME = "Object";
+
     /**
-     * Best-effort design-time check: if this component's metadata declares an expectedInputType (e.g. Default
-     * List Splitter expects java.util.List - see {@link ComponentMeta#getExpectedInputType()}) and the nearest
-     * upstream element whose declared 'toType' represents the actual incoming payload (see
-     * {@link Flow#findPayloadSourceElement}) has a type that clearly doesn't match, returns a warning message
-     * suitable for display. Returns null whenever there isn't enough information to check - including the very
-     * common case of an upstream Consumer, which never declares an output type in Studio's metadata - since
-     * staying silent is safer than a false alarm; this is a textual heuristic, not real type resolution, so a
-     * genuine mismatch can still slip through unflagged.
+     * Best-effort design-time check: if this component has an effective expected input type (see
+     * {@link #resolveExpectedInputType()}) and the nearest upstream element whose declared 'toType' represents
+     * the actual incoming payload (see {@link Flow#findPayloadSourceElement}) has a type that clearly doesn't
+     * match, returns a warning message suitable for display. Returns null whenever there isn't enough
+     * information to check - including the very common case of an upstream Consumer, which never declares an
+     * output type in Studio's metadata - since staying silent is safer than a false alarm; this is a textual
+     * heuristic, not real type resolution, so a genuine mismatch can still slip through unflagged.
      * @return a human-readable warning, or null if nothing is wrong (or nothing could be checked)
      */
     public String getUpstreamTypeMismatchWarning() {
         if (getComponentMeta() == null || containingFlow == null) {
             return null;
         }
-        String expectedInputType = getComponentMeta().getExpectedInputType();
+        String expectedInputType = resolveExpectedInputType();
         if (expectedInputType == null || expectedInputType.isBlank()) {
+            return null;
+        }
+        String expectedSimpleName = expectedInputType.substring(expectedInputType.lastIndexOf('.') + 1);
+        if (OBJECT_SIMPLE_NAME.equals(expectedSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(expectedSimpleName)) {
             return null;
         }
         FlowElement upstream = containingFlow.findPayloadSourceElement(this);
@@ -176,14 +185,28 @@ public class FlowElement extends BasicElement {
         if (upstreamOutputType == null || upstreamOutputType.isBlank()) {
             return null;
         }
-        String expectedSimpleName = expectedInputType.substring(expectedInputType.lastIndexOf('.') + 1);
         if (upstreamOutputType.toLowerCase().contains(expectedSimpleName.toLowerCase())) {
             return null;
         }
         return "Possible type mismatch: the nearest upstream component, '" + upstream.getComponentName()
                 + "', declares its output type as '" + upstreamOutputType + "', which does not look like a "
                 + expectedSimpleName + ". " + getComponentMeta().getName() + " expects its incoming payload to be a "
-                + expectedInputType + " - if it isn't, the flow will fail at runtime with a ClassCastException.";
+                + expectedInputType + " - if it isn't, the flow may fail at runtime.";
+    }
+
+    /**
+     * The type this component itself expects its incoming payload to be, or null if it doesn't declare one:
+     * a fixed metadata constant when the component has no user-configurable input type of its own (e.g.
+     * Default List Splitter, JMS Object Message To Object Converter - see {@link ComponentMeta#getExpectedInputType()}),
+     * otherwise the current value of whichever of this component's own properties represents that (see
+     * {@link ComponentMeta#getEffectiveInputTypePropertyName()}) if that property is currently set.
+     */
+    private String resolveExpectedInputType() {
+        String fixedExpectedType = getComponentMeta().getExpectedInputType();
+        if (fixedExpectedType != null && !fixedExpectedType.isBlank()) {
+            return fixedExpectedType;
+        }
+        return getPropertyValueAsString(getComponentMeta().getEffectiveInputTypePropertyName());
     }
 
     @Override

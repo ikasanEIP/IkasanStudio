@@ -149,17 +149,33 @@ public class Flow extends BasicElement {
 
     /**
      * Walks backwards from flowElement to the nearest upstream element whose declared type represents the
-     * actual payload flowing into flowElement - Routers are skipped over since they pass the payload through
-     * unchanged (a router's own 'toType', where it declares one, describes the routing decision, not the
-     * payload). Used for a best-effort design-time check (see FlowElement#getUpstreamTypeMismatchWarning) -
-     * not a substitute for real type resolution.
+     * actual payload flowing into flowElement (see {@link #skipNonPayloadBearingElements} for which component
+     * types get walked past). Used for a best-effort design-time check (see
+     * FlowElement#getUpstreamTypeMismatchWarning) - not a substitute for real type resolution.
      * @param flowElement to find the payload-bearing predecessor of
-     * @return the nearest non-Router upstream FlowElement, the flow's Consumer, or null if there is nothing
-     * upstream to inspect (flowElement's containing route is not wired into this flow at all)
+     * @return the nearest payload-bearing upstream FlowElement, the flow's Consumer, or null if there is
+     * nothing upstream to inspect (flowElement's containing route is not wired into this flow at all)
      */
     public FlowElement findPayloadSourceElement(FlowElement flowElement) {
-        FlowElement predecessor = findImmediatePredecessor(flowElement);
-        while (predecessor != null && predecessor.getComponentMeta() != null && predecessor.getComponentMeta().isRouter()) {
+        return skipNonPayloadBearingElements(findImmediatePredecessor(flowElement));
+    }
+
+    /**
+     * Starting from candidate (typically an immediate upstream neighbour, however that was determined), walks
+     * further back past any component that never changes the payload's type - Routers (whose own 'toType',
+     * where they declare one, is the routing decision, not the payload) and Filters (which only decide
+     * accept/reject, with no 'toType' of their own at all) - to the nearest element whose declared type really
+     * is what flows into whatever candidate feeds. Also usable directly against a not-yet-inserted candidate
+     * (e.g. resolved from drop coordinates before a new component has a position of its own - see
+     * DesignerCanvas#applySuggestedInputTypeFromUpstream), unlike {@link #findPayloadSourceElement} which
+     * requires flowElement to already have a containingFlowRoute.
+     * @param candidate the starting point to walk back from (may itself be a Router/Filter, or null)
+     * @return the nearest non-Router, non-Filter FlowElement reachable from candidate, or null
+     */
+    public FlowElement skipNonPayloadBearingElements(FlowElement candidate) {
+        FlowElement predecessor = candidate;
+        while (predecessor != null && predecessor.getComponentMeta() != null
+                && (predecessor.getComponentMeta().isRouter() || predecessor.getComponentMeta().isFilter())) {
             predecessor = findImmediatePredecessor(predecessor);
         }
         return predecessor;

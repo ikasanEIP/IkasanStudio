@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
+import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.FROM_TYPE;
 import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.TO_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -19,8 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Covers Flow#findPayloadSourceElement (the upstream-neighbour traversal, including crossing router branch
- * boundaries) and FlowElement#getUpstreamTypeMismatchWarning (the best-effort Default List Splitter check built
- * on top of it) - see DefaultListSplitter/component-meta_en_GB.json's "expectedInputType".
+ * boundaries) and FlowElement#getUpstreamTypeMismatchWarning (the best-effort type check built on top of it) -
+ * both the fixed expectedInputType shape (e.g. Default List Splitter, JMS Object Message To Object Converter)
+ * and the per-instance expectedInputTypeProperty shape (e.g. Converter/Broker/Splitter's own 'fromType',
+ * Object To XML String Converter's 'objectClass') - see ComponentMeta#getExpectedInputType() and
+ * #getExpectedInputTypeProperty().
  */
 @ExtendWith(SharedResourceExtension.class)
 class FlowUpstreamTypeMismatchTest {
@@ -71,6 +75,30 @@ class FlowUpstreamTypeMismatchTest {
     }
 
     @Test
+    public void findPayloadSourceElement_skips_over_a_filter_to_find_the_real_payload_source() throws StudioBuildException {
+        // Converter(toType=Integer) -> MessageFilter(fromType=String, no toType - it never changes the payload) ->
+        // DefaultListSplitter. The Filter itself must not be mistaken for the payload source.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        FlowElement filter = TestFixtures.getMessageFilter(BASE_META_PACK);
+        FlowElement splitter = TestFixtures.getDefaultListSplitter(BASE_META_PACK);
+        Flow flow = buildFlowWithTopLevelElements(converter, filter, splitter);
+
+        assertEquals(converter, flow.findPayloadSourceElement(splitter));
+    }
+
+    @Test
+    public void skipNonPayloadBearingElements_is_directly_callable_with_a_known_starting_candidate() throws StudioBuildException {
+        // DesignerCanvas#applySuggestedInputTypeFromUpstream resolves its starting candidate from drop
+        // coordinates (getSurroundingComponents) rather than from a downstream FlowElement's own position, so
+        // this must be usable as a public entry point in its own right, not just via findPayloadSourceElement.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        FlowElement router = TestFixtures.getMultiRecipientRouter(BASE_META_PACK);
+        Flow flow = buildFlowWithTopLevelElements(converter, router);
+
+        assertEquals(converter, flow.skipNonPayloadBearingElements(router));
+    }
+
+    @Test
     public void getUpstreamTypeMismatchWarning_fires_when_upstream_toType_does_not_look_like_a_list() throws StudioBuildException {
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
         FlowElement splitter = TestFixtures.getDefaultListSplitter(BASE_META_PACK);
@@ -102,13 +130,65 @@ class FlowUpstreamTypeMismatchTest {
     }
 
     @Test
-    public void getUpstreamTypeMismatchWarning_is_silent_for_components_with_no_expectedInputType() throws StudioBuildException {
-        // The (custom) Splitter component declares no expectedInputType - only Default List Splitter does.
+    public void getUpstreamTypeMismatchWarning_also_checks_a_components_own_fromType_when_it_has_no_fixed_expectedInputType() throws StudioBuildException {
+        // The (custom) Splitter declares no fixed expectedInputType, but does have its own 'fromType' (default
+        // convention - see ComponentMeta#getExpectedInputTypeProperty) which should be checked the same way.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
+        FlowElement splitter = TestFixtures.getCustomSplitter(BASE_META_PACK);   // fromType = java.lang.String
+        buildFlowWithTopLevelElements(converter, splitter);
+
+        String warning = splitter.getUpstreamTypeMismatchWarning();
+
+        assertTrue(warning != null && warning.contains("java.lang.Integer"), "Expected a warning naming the mismatched upstream type, got: " + warning);
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_is_silent_for_a_component_with_neither_expectedInputType_nor_fromType() throws StudioBuildException {
+        // DevNullProducer has no fromType property at all and declares no expectedInputType - there is simply
+        // nothing on this component to check, regardless of what the upstream declares.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        FlowElement devNullProducer = TestFixtures.getDevNullProducer(BASE_META_PACK);
+        buildFlowWithTopLevelElements(converter, devNullProducer);
+
+        assertNull(devNullProducer.getUpstreamTypeMismatchWarning());
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_is_silent_when_this_components_own_input_type_is_FlowEvent() throws StudioBuildException {
+        // Deliberately opting into the full-event escape hatch (see brokerTemplate_en.ftl / converterTemplate_en.ftl
+        // / splitterTemplate_en.ftl) is not a mismatch, even though it will never textually match any upstream toType.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
         FlowElement splitter = TestFixtures.getCustomSplitter(BASE_META_PACK);
+        splitter.setPropertyValue(FROM_TYPE, "org.ikasan.spec.flow.FlowEvent");
         buildFlowWithTopLevelElements(converter, splitter);
 
         assertNull(splitter.getUpstreamTypeMismatchWarning());
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_fires_for_a_component_with_a_fixed_expectedInputType() throws StudioBuildException {
+        // JMS Object Message To Object Converter has no user-configurable input type of its own - it always
+        // expects a raw JMS ObjectMessage (see its component-meta_en_GB.json "expectedInputType").
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
+        FlowElement objectMessageConverter = TestFixtures.getObjectMessageToObjectConverter(BASE_META_PACK);
+        buildFlowWithTopLevelElements(converter, objectMessageConverter);
+
+        String warning = objectMessageConverter.getUpstreamTypeMismatchWarning();
+
+        assertTrue(warning != null && warning.contains("ObjectMessage"), "Expected a warning naming the expected ObjectMessage type, got: " + warning);
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_uses_expectedInputTypeProperty_when_the_component_names_a_different_property() throws StudioBuildException {
+        // Object To XML String Converter has no 'fromType' - its metadata instead points expectedInputTypeProperty
+        // at 'objectClass', which TestFixtures sets to java.lang.String.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
+        FlowElement xmlConverter = TestFixtures.getObjectMessageToXmlStringtConverter(BASE_META_PACK);
+        buildFlowWithTopLevelElements(converter, xmlConverter);
+
+        String warning = xmlConverter.getUpstreamTypeMismatchWarning();
+
+        assertTrue(warning != null && warning.contains("java.lang.Integer"), "Expected a warning naming the mismatched upstream type, got: " + warning);
     }
 
     /**

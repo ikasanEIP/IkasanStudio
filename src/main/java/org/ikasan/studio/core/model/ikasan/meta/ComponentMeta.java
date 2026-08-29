@@ -44,6 +44,7 @@ public class ComponentMeta implements IkasanMeta {
     // Essential Ikasan Components
     public static final String COMSUMER_TYPE = "Consumer";
     public static final String ROUTER_TYPE = "Router";
+    public static final String FILTER_TYPE = "Filter";
     public static final String END_POINT_TYPE = "End Point";
     public static final String FLOW_TYPE = "Flow";
     public static final String MODULE_TYPE = "Module";
@@ -92,8 +93,17 @@ public class ComponentMeta implements IkasanMeta {
     private String implementingClass;               // e.g. org.ikasan.spec.component.filter.Filter.Custom
     private String expectedInputType;               // Optional: a fully-qualified type (or simple name e.g. "List") this component's incoming
                                                       // payload is expected to be assignable to, e.g. Default List Splitter expects "java.util.List".
-                                                      // Drives a best-effort canvas warning (see FlowElement#getUpstreamTypeMismatchWarning) when the
-                                                      // nearest upstream component's declared 'toType' clearly doesn't match - absent for most components.
+                                                      // Used for components with no user-configurable input type of their own - see
+                                                      // expectedInputTypeProperty below for components that do. Drives a best-effort canvas warning
+                                                      // (see FlowElement#getUpstreamTypeMismatchWarning) when the nearest upstream component's
+                                                      // declared 'toType' clearly doesn't match - absent (both this and expectedInputTypeProperty
+                                                      // apply their own fallbacks) means no check is attempted for this component.
+    private String expectedInputTypeProperty;        // Optional: names which of THIS component's own properties declares its expected input
+                                                      // type, for components (Converter, Broker, Splitter, Filter, Router, Producer, ...) whose
+                                                      // expected input type is user-configurable rather than fixed. Defaults to 'fromType' when
+                                                      // absent, since that is the overwhelming convention - only needed where a component uses a
+                                                      // differently-named property for the same purpose (e.g. Object To XML String Converter's
+                                                      // 'objectClass'). See FlowElement#getUpstreamTypeMismatchWarning.
     private boolean routesToMultipleTargets;         // Router only: true if route() may return more than one target in a single
                                                       // invocation and so needs a List<String> return type (e.g. Multi Recipient Router) -
                                                       // false (the default) for routers whose route() returns a single String (e.g. Single
@@ -188,6 +198,9 @@ public class ComponentMeta implements IkasanMeta {
     public boolean isRouter() {
         return ROUTER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
+    public boolean isFilter() {
+        return FILTER_TYPE.equals(componentTypeMeta.getComponentShortType());
+    }
     public boolean isEndpoint() {
         return END_POINT_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
@@ -230,5 +243,19 @@ public class ComponentMeta implements IkasanMeta {
         } else {
             return helpText;
         }
+    }
+
+    /**
+     * Which of this component's own properties declares its expected input type - expectedInputTypeProperty
+     * when set (e.g. Object To XML String Converter's 'objectClass'), otherwise the 'fromType' convention used
+     * by Converter, Broker, Splitter, Filter, Router and Producer components. Used both to check a component's
+     * declared input type against its upstream neighbour's declared output type (see
+     * FlowElement#getUpstreamTypeMismatchWarning) and to suggest a starting value for it when the component is
+     * first dropped onto the canvas (see DesignerCanvas#applySuggestedInputTypeFromUpstream) - callers must
+     * still confirm the named property actually exists (via getMetadata) since most components have neither.
+     */
+    public String getEffectiveInputTypePropertyName() {
+        return (expectedInputTypeProperty != null && !expectedInputTypeProperty.isBlank())
+                ? expectedInputTypeProperty : ComponentPropertyMeta.FROM_TYPE;
     }
 }
