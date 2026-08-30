@@ -1,0 +1,80 @@
+name: Bug report
+description: Report reproducible behavior that appears to be incorrect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. Search existing issues first and remove credentials, production payloads, and other sensitive information from everything you attach.
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+      placeholder: Describe the visible behavior and its impact.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide a minimal, ordered set of steps that reliably demonstrates the problem.
+      placeholder: |
+        1. Create or open ...
+        2. Drag or select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Ikasan Studio version
+      placeholder: 1.0.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: idea-version
+    attributes:
+      label: IntelliJ IDEA version
+      description: Include the edition and full build number from Help → About.
+      placeholder: IntelliJ IDEA Community 2024.3.7, IC-243.28141.18
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and Java runtime, if relevant.
+      placeholder: Ubuntu 24.04; JetBrains Runtime 21.0.7
+    validations:
+      required: true
+  - type: input
+    id: ikasan-version
+    attributes:
+      label: Ikasan/meta-pack version
+      placeholder: V3.3.8 or V4.0.x
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and model details
+      description: Paste relevant IDE log output and a minimal sanitized model.json excerpt. Use code blocks for text.
+      render: shell
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add screenshots, recordings, or other information that helps explain the problem.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed credentials, private keys, production payloads, and other sensitive data.
+          required: true
+        - label: This is not a security vulnerability; security reports follow SECURITY.md.
+          required: true
+

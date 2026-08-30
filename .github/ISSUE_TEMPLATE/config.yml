@@ -1,0 +1,6 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/ikasanEIP/IkasanStudio/security
+    about: Review the security policy and report vulnerabilities privately rather than opening a public issue.
+

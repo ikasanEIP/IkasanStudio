@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an improvement to Ikasan Studio
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the developer problem first. This helps us evaluate an IntelliJ-native solution without committing prematurely to one interface.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Developer problem
+      description: What workflow is difficult or impossible today, and who is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should a developer be able to accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Suggested approach
+      description: Describe an interaction or implementation if you have one. Alternatives are welcome.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Canvas and visual workflow
+        - Palette and component metadata
+        - Properties and validation
+        - Code generation and meta-packs
+        - IntelliJ integration and lifecycle
+        - Build, testing, or Marketplace distribution
+        - Documentation and onboarding
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include examples, screenshots, relevant Ikasan versions, or links to related issues.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and pull requests for this request.
+          required: true
+
