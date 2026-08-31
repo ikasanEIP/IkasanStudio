@@ -1372,6 +1372,7 @@ public class DesignerCanvas extends JPanel {
     private static final float[] JMS_CONNECTOR_DASH = {6f, 4f};
     private static final int JMS_CONNECTOR_GUTTER_MARGIN = 30;
     private static final int JMS_CONNECTOR_STANDOFF = 20;
+    private static final int JMS_CONNECTOR_GAP_CLEARANCE = 10;
     private static final int JMS_CONNECTOR_STAGGER = 14;
     private static final int JMS_CONNECTOR_ARROW_SIZE = 6;
 
@@ -1435,6 +1436,13 @@ public class DesignerCanvas extends JPanel {
      * whichever flow it passes over. Each additional link (index &gt; 0) is staggered slightly so parallel
      * links don't draw directly on top of one another.
      * -
+     * The horizontal corridor hugs the BOTTOM of the gap (just above the lower flow's own top edge), not the
+     * midpoint: an incomplete upper flow's own "getting started" hint text (see {@code paintGettingStartedHint})
+     * is drawn with no background fill, growing downward starting right at that flow's own bottom edge - it's
+     * exactly why {@code gapAfterFlow} widens the gap to fit it in the first place - so a line sitting in the
+     * gap's own upper portion would visibly run through the hint's bare glyphs. Hints only ever grow downward
+     * from the upper flow, never upward from the lower one, so hugging the bottom clears them reliably.
+     * -
      * Known limitation: if another flow's row lies between the producer's and the consumer's (not adjacent),
      * the horizontal corridor may still cross that intervening row - out of scope for this pass.
      */
@@ -1442,7 +1450,8 @@ public class DesignerCanvas extends JPanel {
                                      IkasanFlowViewHandler producerFlowHandler, IkasanFlowViewHandler consumerFlowHandler, int index) {
         IkasanFlowViewHandler upperFlow = producerFlowHandler.getTopY() <= consumerFlowHandler.getTopY() ? producerFlowHandler : consumerFlowHandler;
         IkasanFlowViewHandler lowerFlow = upperFlow == producerFlowHandler ? consumerFlowHandler : producerFlowHandler;
-        int corridorY = upperFlow.getBottomY() + ((lowerFlow.getTopY() - upperFlow.getBottomY()) / 2) + (index * JMS_CONNECTOR_STAGGER);
+        int corridorY = Math.max(upperFlow.getBottomY() + JMS_CONNECTOR_GAP_CLEARANCE,
+                lowerFlow.getTopY() - JMS_CONNECTOR_GAP_CLEARANCE - (index * JMS_CONNECTOR_STAGGER));
         // Derived from the pill's own entry point (end.x), not consumerFlowHandler.getLeftX() - the pill is
         // drawn OUTSIDE its flow's own left border (see displayExternalEndpointIfExists), so the flow box's
         // edge alone sits well short of clearing the pill itself.
