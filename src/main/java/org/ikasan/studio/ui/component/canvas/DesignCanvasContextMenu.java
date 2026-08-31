@@ -5,9 +5,11 @@ import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
@@ -16,6 +18,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 public class DesignCanvasContextMenu {
     public static final Logger LOG = Logger.getInstance("DesignCanvasContextMenu");
@@ -27,10 +30,11 @@ public class DesignCanvasContextMenu {
     public static void showPopupAndNavigateMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
 
-        if (ikasanBasicElement instanceof Flow) {
+        if (ikasanBasicElement instanceof Flow flow) {
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
             menu.addSeparator();
+            addMoveFlowMenuItemsIfApplicable(menu, project, flow);
             menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, false));
@@ -157,6 +161,33 @@ public class DesignCanvasContextMenu {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.LaunchH2"));
         item.addActionListener(new LaunchH2Action(project, item));
         return item;
+    }
+
+    /**
+     * "Move Flow Up"/"Move Flow Down" - lets the user manually order flows exactly as they like (e.g. to sit a
+     * JMS-connected pair adjacent to one another), rather than any automatic heuristic guessing on their
+     * behalf. Only added when applicable: the first flow can only move down, the last only up.
+     */
+    private static void addMoveFlowMenuItemsIfApplicable(JPopupMenu menu, Project project, Flow flow) {
+        Module ikasanModule = project.getService(UiContext.class).getIkasanModule();
+        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+            return;
+        }
+        List<Flow> flows = ikasanModule.getFlows();
+        int index = flows.indexOf(flow);
+        if (index < 0) {
+            return;
+        }
+        if (index > 0) {
+            JMenuItem moveUpItem = new JMenuItem(StudioBundle.message("menu.MoveFlowUp"));
+            moveUpItem.addActionListener(new MoveFlowAction(project, flow, true));
+            menu.add(moveUpItem);
+        }
+        if (index < flows.size() - 1) {
+            JMenuItem moveDownItem = new JMenuItem(StudioBundle.message("menu.MoveFlowDown"));
+            moveDownItem.addActionListener(new MoveFlowAction(project, flow, false));
+            menu.add(moveDownItem);
+        }
     }
 
     private static JMenuItem createDebugMenuItem(Project project) {
