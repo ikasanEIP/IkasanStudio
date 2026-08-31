@@ -126,7 +126,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
 
     private int paintFlowTitle(Graphics g, PaintMode paintMode) {
         return StudioUIUtils.drawCenteredStringFromTopCentre
-                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont(g));
+                (g, paintMode, getText(), getLeftX() + (getWidth() / 2), getTopY() + FLOW_CONTAINER_BORDER, getWidth(), getBoldFont());
     }
 
     private void paintFlowBox(JPanel canvas, Graphics g) {

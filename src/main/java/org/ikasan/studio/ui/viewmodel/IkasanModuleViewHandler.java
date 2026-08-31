@@ -36,7 +36,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         Flow previousFlow = null;
         LOG.debug("STUDIO: paintComponent invoked");
         // Module name
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont(g));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont());
         for (Flow ikasanFlow : module.getFlows()) {
             // remember initialise has already set TestV1,y, but we may be dealing with component move
             IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(project, ikasanFlow);
@@ -93,7 +93,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         setWidth(width);
         setHeight(height);
         // Module title
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getIdentity(),10,10, StudioUIUtils.getBoldFont(graphics));
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getIdentity(),10,10, StudioUIUtils.getBoldFont());
         int minimumTopY = FLOW_Y_START_POINT;
         int maxWidth = 0;
         int maxHeight;

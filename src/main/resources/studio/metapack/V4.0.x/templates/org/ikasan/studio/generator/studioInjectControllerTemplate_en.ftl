@@ -112,12 +112,34 @@ private static Object newSyntheticJmsMessage(Object value, ClassLoader ikasanCla
                 if ("getObject".equals(method.getName())) {
                     return value;
                 }
+                if ("toString".equals(method.getName()) && (args == null || args.length == 0)) {
+                    return "SyntheticJmsMessage[" + value + "]";
+                }
                 Class<?> returnType = method.getReturnType();
+                if (returnType == java.util.Enumeration.class) {
+                    // getPropertyNames() - ActiveMQMessageTransformation.copyProperties (seen crashing twice
+                    // already on this synthetic message, for different reasons) enumerates this without a
+                    // null check first; an empty enumeration is both type-safe and semantically correct,
+                    // since this synthetic message has no custom properties.
+                    return java.util.Collections.emptyEnumeration();
+                }
+                if (returnType == void.class) {
+                    // void.class.isPrimitive() is true, so this must be checked before the primitive branch
+                    // below - e.g. setStringProperty(...)/clearProperties() return nothing, and
+                    // Array.newInstance(void.class, 1) itself throws IllegalArgumentException.
+                    return null;
+                }
                 if (returnType == boolean.class) {
                     return false;
                 }
                 if (returnType.isPrimitive()) {
-                    return 0;
+                    // A 1-element array of returnType is JVM-zero-initialised; reading element 0 back
+                    // autoboxes to the EXACT wrapper class matching returnType (Long for long, Short for
+                    // short, etc.) - Proxy.invoke requires that exact match or throws ClassCastException, as
+                    // a bare "return 0" (always boxed Integer) did for every long-returning javax/jakarta.jms
+                    // Message method (getJMSExpiration/getJMSTimestamp/getJMSDeliveryTime), since an Integer
+                    // cannot be unboxed to long.
+                    return java.lang.reflect.Array.get(java.lang.reflect.Array.newInstance(returnType, 1), 0);
                 }
                 return null;
             });
