@@ -8,7 +8,7 @@ package org.ikasan;
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.myGenericProducer")
 
 public class myGenericProducer implements org.ikasan.spec.component.endpoint.Producer<java.lang.String>
 {

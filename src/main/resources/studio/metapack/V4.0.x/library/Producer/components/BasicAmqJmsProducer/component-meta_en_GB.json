@@ -88,6 +88,7 @@
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
+      "displayLabel": "Queue/Topic name",
       "propertyDisplayOrder": -60,
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
       "mandatory": true,
@@ -137,8 +138,9 @@
     },
     "pubSubDomain": {
       "propertyName": "pubSubDomain",
-      "propertyGroup": "Destination",
-      "propertyDisplayOrder": 300,
+      "displayLabel": "Queue/Topic",
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -60,
       "defaultValue": false,
       "helpText": "Default(False). Set to true to indicate that destination is a topic, otherwise destination is a queue.",
       "setterProperty": true,
@@ -148,8 +150,8 @@
     },
     "sessionTransacted": {
       "propertyName": "sessionTransacted",
-      "propertyGroup": "Session",
-      "propertyDisplayOrder": 400,
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -50,
       "displayLabel": "Support Transactions",
       "helpText": "sessionTransacted\n\nA boolean that controls whether the JMS session used to send messages operates within a local transaction. It defaults to false.\n\nWhat it does\n\nIt is passed to jmsTemplate.setSessionTransacted(...) and to connection.createSession(sessionTransacted, sessionAcknowledgeMode) when the producer's session is created.\n\nWhen true — the send is wrapped in a local JMS transaction; the message is only committed to the broker when the session commits.\nWhen false — the message is sent immediately, governed by sessionAcknowledgeMode instead.\n\nLocal transaction vs. XA/distributed transaction\n\nThis is a local JMS-only transaction — it only covers the JMS session itself, not any downstream database or other resource. For an atomic send alongside other work (e.g. a database write), use XA via an Arjuna/JTA-managed connection factory instead.\n\nTypical usage\n\nFire-and-forget (most common, lower overhead):\n\n.setSessionTransacted(false) // default — can be omitted\n\nWhen the send must be atomic with other local session work:\n\n.setSessionTransacted(true)",
       "setterProperty": true,

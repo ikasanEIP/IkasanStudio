@@ -7,7 +7,7 @@ package org.ikasan;
 import org.springframework.stereotype.Component;
 import org.ikasan.studio.component.DebugTransitionComponent;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MyFlow1SetByIDEEndingInDebug")
 
 public class MyFlow1SetByIDEEndingInDebug extends org.ikasan.studio.component.DebugTransitionComponent
 {

@@ -18,7 +18,7 @@ package ${studioPackageTag};
 * private String brokerUrl;
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.ResourceFactoryImpl")
 public class ResourceFactoryImpl implements ResourceFactory
 {
 <#compress>

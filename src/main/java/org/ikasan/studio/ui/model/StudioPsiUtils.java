@@ -662,6 +662,36 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         return (virtualFile != null && virtualFile.isValid()) ? virtualFile : null;
     }
 
+    /**
+     * Ensure the on-disk directory for a user implemented class's package exists (creating any missing
+     * directories along the way), mirroring the relative path construction used by
+     * {@link #getUserImplementedClassFile}/{@code PIPSIIkasanModel.generateAndSaveUserImplementClassStubsForFlow}.
+     * Used when physically relocating an existing hand-written class to a new flow's package - the
+     * destination package may never have held a user-implemented class before.
+     * @param project is the Intellij project instance
+     * @param packageName of the user implemented class, see {@code GeneratorUtils.getUserImplementedClassesPackageName}
+     * @return the directory's VirtualFile, or null if it could not be created (e.g. no project base dir)
+     */
+    public static VirtualFile ensureUserImplementedClassPackageDirectory(Project project, String packageName) {
+        if (project == null || isBlank(packageName)) {
+            return null;
+        }
+        VirtualFile baseDir = getProjectBaseDir(project);
+        if (baseDir == null) {
+            return null;
+        }
+        String relativePath = USER_CONTENT_ROOT.substring(1) + "/" + SRC_MAIN_JAVA_CODE + "/" + packageName.replace(".", "/");
+        VirtualFile[] result = new VirtualFile[1];
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            try {
+                result[0] = createDirectories(baseDir, relativePath);
+            } catch (IOException ee) {
+                LOG.warn("STUDIO: WARN: Unable to create directory for user implemented class package [" + packageName + "] exception was " + ee.getMessage());
+            }
+        });
+        return result[0];
+    }
+
     private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     /**

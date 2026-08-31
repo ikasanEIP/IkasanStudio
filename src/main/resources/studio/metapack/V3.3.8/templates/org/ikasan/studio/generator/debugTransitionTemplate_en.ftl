@@ -8,7 +8,7 @@ package ${studioPackageTag};
 import org.springframework.stereotype.Component;
 import org.ikasan.studio.component.DebugTransitionComponent;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, flowElement, flowElement.getPropertyValue('userImplementedClassName'))}")
 
 public class ${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, flowElement, flowElement.getPropertyValue('userImplementedClassName'))} extends org.ikasan.studio.component.DebugTransitionComponent
 {

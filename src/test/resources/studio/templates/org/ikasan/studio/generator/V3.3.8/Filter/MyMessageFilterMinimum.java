@@ -7,7 +7,7 @@ package org.ikasan;
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MyMessageFilter")
 
 public class MyMessageFilter implements org.ikasan.spec.component.filter.Filter<class java.lang.String>
 {

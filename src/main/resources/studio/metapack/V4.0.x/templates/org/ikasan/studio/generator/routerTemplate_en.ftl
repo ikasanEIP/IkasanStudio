@@ -7,7 +7,7 @@ package ${studioPackageTag};
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.${flowElement.getPropertyValue("userImplementedClassName")}")
 
 public class ${flowElement.getPropertyValue("userImplementedClassName")} implements ${flowElement.getComponentMeta().getComponentType()}<${flowElement.getPropertyValue("fromType")}><#if flowElement.getPropertyValue("configuredResource")?has_content && flowElement.getPropertyValue("configuredResource")>, org.ikasan.spec.configuration.ConfiguredResource<    ${flowElement.getPropertyValue("configuration")}><#elseif flowElement.getPropertyValue("configuration")?has_content>,    org.ikasan.spec.configuration.Configured<${flowElement.getPropertyValue("configuration")}></#if>
 {

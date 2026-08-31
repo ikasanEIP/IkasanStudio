@@ -36,7 +36,7 @@
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
-      "displayLabel": "Queue/Topic (destinationJndiName)",
+      "displayLabel": "Queue/Topic name",
       "propertyDisplayOrder": -60,
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
       "mandatory": true,
@@ -163,6 +163,7 @@
     },
     "pubSubDomain": {
       "propertyName": "pubSubDomain",
+      "displayLabel": "Queue/Topic",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 300,
       "defaultValue": false,

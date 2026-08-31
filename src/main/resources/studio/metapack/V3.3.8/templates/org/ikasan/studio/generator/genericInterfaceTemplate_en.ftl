@@ -7,7 +7,7 @@ package ${studioPackageTag};
 * This stub will not be over-written unless the overwrite checkbox is explicitly selected.
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.${className}")
 public class ${className} implements ${interfaceName}
 {
 }

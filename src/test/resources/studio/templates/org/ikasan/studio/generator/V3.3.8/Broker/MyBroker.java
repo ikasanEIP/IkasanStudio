@@ -22,7 +22,7 @@ package org.ikasan;
 import org.ikasan.spec.component.endpoint.Broker;
 import org.ikasan.spec.component.endpoint.EndpointException;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MyBroker")
 public class MyBroker implements Broker<java.lang.String, java.lang.Integer>
 {
 

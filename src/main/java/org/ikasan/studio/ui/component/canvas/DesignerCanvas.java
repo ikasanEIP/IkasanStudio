@@ -31,6 +31,7 @@ import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
 import org.ikasan.studio.ui.model.StudioPsiUtils;
 import org.ikasan.studio.ui.model.psi.GenerationRequest;
+import org.ikasan.studio.ui.model.psi.UserImplementedClassRelocator;
 import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
@@ -460,6 +461,9 @@ public class DesignerCanvas extends JPanel {
             FlowElementMove.MoveResult result = FlowElementMove.move(
                     movingElement, targetFlow, targetRoute, destinationIndex);
             if (!result.accepted() || !result.changed()) return;
+            if (sourceFlow != targetFlow) {
+                UserImplementedClassRelocator.relocateIfNeeded(project, getIkasanModule(), movingElement, sourceFlow, targetFlow);
+            }
             GenerationRequest request = sourceFlow == targetFlow
                     ? GenerationRequest.flow(targetFlow) : GenerationRequest.full();
             UndoManager.getInstance(project).undoableActionPerformed(new DeleteComponentUndoableAction(

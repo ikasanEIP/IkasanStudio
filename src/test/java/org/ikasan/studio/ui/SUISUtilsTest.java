@@ -177,4 +177,56 @@ public class SUISUtilsTest {
         assertThat(actual.contains("More info"), is(true));
     }
 
+    @Test
+    public void test_buildPropertyTooltipHtml_puts_the_raw_propertyName_first_in_bold() {
+        // Deliberately the raw propertyName, not the displayLabel - it's what shows up in the generated
+        // code's builder setter calls (e.g. .setPubSubDomain(...)), so a developer can tie the tooltip
+        // straight back to that code even where a friendlier displayLabel is shown as the field's own label.
+        String actual = StudioUIUtils.buildPropertyTooltipHtml("pubSubDomain", "Queue/Topic (pubSubDomain)", "Some help text.");
+        assertThat(actual, is("<html><b>pubSubDomain</b> - Some help text.</html>"));
+    }
+
+    @Test
+    public void test_buildPropertyTooltipHtml_strips_a_leading_duplicate_of_the_propertyName() {
+        // Regression: pubSubDomain's helpText already opens with the raw propertyName as a heading - the
+        // bolded prefix must not end up followed by the same name again.
+        String actual = StudioUIUtils.buildPropertyTooltipHtml("pubSubDomain", "Queue/Topic (pubSubDomain)",
+                "pubSubDomain\n\nThis is a boolean flag that controls whether the destination is a topic.");
+        assertThat(actual, is("<html><b>pubSubDomain</b> - This is a boolean flag that controls whether the destination is a topic.</html>"));
+    }
+
+    @Test
+    public void test_buildPropertyTooltipHtml_strips_a_leading_duplicate_of_the_display_label() {
+        String actual = StudioUIUtils.buildPropertyTooltipHtml("sessionTransacted", "Support Transactions",
+                "Support Transactions: commits or rolls back the JMS session.");
+        assertThat(actual, is("<html><b>sessionTransacted</b> - commits or rolls back the JMS session.</html>"));
+    }
+
+    @Test
+    public void test_buildPropertyTooltipHtml_dedup_is_case_insensitive() {
+        String actual = StudioUIUtils.buildPropertyTooltipHtml("pubSubDomain", "Queue/Topic (pubSubDomain)",
+                "PUBSUBDOMAIN is used to pick queue vs topic.");
+        assertThat(actual, is("<html><b>pubSubDomain</b> - is used to pick queue vs topic.</html>"));
+    }
+
+    @Test
+    public void test_buildPropertyTooltipHtml_no_dash_when_helpText_is_blank() {
+        assertThat(StudioUIUtils.buildPropertyTooltipHtml("sessionTransacted", "Support Transactions", null),
+                is("<html><b>sessionTransacted</b></html>"));
+        assertThat(StudioUIUtils.buildPropertyTooltipHtml("sessionTransacted", "Support Transactions", "  "),
+                is("<html><b>sessionTransacted</b></html>"));
+    }
+
+    @Test
+    public void test_buildPropertyTooltipHtml_escapes_the_propertyName() {
+        String actual = StudioUIUtils.buildPropertyTooltipHtml("tom&jerry", "Tom & Jerry", "Some help text.");
+        assertThat(actual.contains("<b>tom&amp;jerry</b>"), is(true));
+    }
+
+    @Test
+    public void test_buildPropertyTooltipHtml_returns_helpText_unchanged_when_propertyName_is_blank() {
+        assertThat(StudioUIUtils.buildPropertyTooltipHtml(null, "Display Label", "Some help text."), is("Some help text."));
+        assertThat(StudioUIUtils.buildPropertyTooltipHtml("", "Display Label", "Some help text."), is("Some help text."));
+    }
+
 }

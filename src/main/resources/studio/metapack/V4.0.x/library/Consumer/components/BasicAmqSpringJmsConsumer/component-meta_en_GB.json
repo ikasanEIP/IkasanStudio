@@ -37,6 +37,7 @@
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
+      "displayLabel": "Queue/Topic name",
       "propertyDisplayOrder": -60,
       "helpText": "<p>Typically for Ikasan modules, the queue/topic e.g. dynamicQueues/myQName or dynamicTopics/myTopicName</p><p><strong>However</strong>, if destinationJndiProperty* properties are set — it is used as a JNDI lookup name to resolve the Destination from the JNDI context (JndiUtils.getDestination(…)), same pattern as the connection factory lookup.</p>",
       "mandatory": true,
@@ -45,12 +46,12 @@
       "usageDataType": "java.lang.String"
     },
     "autoContentConversion": {
-      "comments": "This is technically not mandatory but should always be considered when creating this component",
+      "comments": "Not mandatory, but commonly configured - grouped under Popular so it isn't missed.",
       "propertyName": "autoContentConversion",
-      "propertyDisplayOrder": -50,
-      "defaultValue": "true",
-      "helpText": "<p>When true, extracts the message payload, otherwise the raw JMS message is transmitted.</p><p>Default: true — the payload is unwrapped as shown below.</p><p>When true, these conversions are applied :</p><table><thead><tr class=\"header\"><th>JMS Message Type</th><th>Payload delivered to flow</th></tr></thead><tbody><tr class=\"odd\"><td>TextMessage</td><td>String</td></tr><tr class=\"even\"><td>MapMessage</td><td>Map&lt;String, Object&gt;</td></tr><tr class=\"odd\"><td>ObjectMessage</td><td>The unwrapped Object</td></tr><tr class=\"even\"><td>BytesMessage</td><td>byte[]</td></tr><tr class=\"odd\"><td>StreamMessage</td><td>Raw Message (passed through unchanged)</td></tr><tr class=\"even\"><td>Anything else</td><td>Raw Message (passed through unchanged)</td></tr></tbody></table><p>When to leave it false:</p><p>Leave it false when you need access to JMS message headers or properties (e.g. message.getJMSCorrelationID(), message.getStringProperty(“someHeader”)) in your downstream components, since those are only available on the Message object itself. You would then use a JMS-aware converter (e.g. MapMessageToPayloadConverter) to extract what you need explicitly.</p>",
-      "mandatory": true,
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -40,
+      "defaultValue": "false",
+      "helpText": "<p>When true, extracts the message payload, otherwise the raw JMS message is transmitted.</p><p>Default: false — the raw JMS message is passed through unchanged unless this is explicitly enabled.</p><p>When true, these conversions are applied :</p><table><thead><tr class=\"header\"><th>JMS Message Type</th><th>Payload delivered to flow</th></tr></thead><tbody><tr class=\"odd\"><td>TextMessage</td><td>String</td></tr><tr class=\"even\"><td>MapMessage</td><td>Map&lt;String, Object&gt;</td></tr><tr class=\"odd\"><td>ObjectMessage</td><td>The unwrapped Object</td></tr><tr class=\"even\"><td>BytesMessage</td><td>byte[]</td></tr><tr class=\"odd\"><td>StreamMessage</td><td>Raw Message (passed through unchanged)</td></tr><tr class=\"even\"><td>Anything else</td><td>Raw Message (passed through unchanged)</td></tr></tbody></table><p>When to leave it false:</p><p>Leave it false when you need access to JMS message headers or properties (e.g. message.getJMSCorrelationID(), message.getStringProperty(“someHeader”)) in your downstream components, since those are only available on the Message object itself. You would then use a JMS-aware converter (e.g. MapMessageToPayloadConverter) to extract what you need explicitly.</p>",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean",
       "usageDataType": "java.lang.Boolean"
@@ -86,25 +87,26 @@
       "usageDataType": "java.lang.String"
     },
     "pubSubDomain": {
-      "comments": "This is not mandatory but should always be considered when creating this component",
+      "comments": "Not mandatory, but commonly configured - grouped under Popular so it isn't missed.",
       "propertyName": "pubSubDomain",
-      "propertyDisplayOrder": -85,
+      "displayLabel": "Queue/Topic",
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -60,
       "helpText": "pubSubDomain\n\nThis is a boolean flag that controls whether the destination is a topic (true) or a queue (false). It defaults to false (queue).\n\nWhat it does\n\nThe flag is used in two ways at consumer start-up:\n\nDestination creation — when resolving the destination directly from the broker session (no JNDI), it determines whether to call session.createTopic(name) or session.createQueue(name).\nSpring container — it is passed to the underlying DefaultMessageListenerContainer.setPubSubDomain(), which tells Spring's JMS infrastructure how to treat the destination for all subsequent operations (acknowledgement, transactions, etc.).\nGetting this wrong means your consumer will look for the wrong destination type and fail to connect, or silently consume from the wrong place.\n\nTypical usage\n\n// Consuming from a queue (default — can be omitted) .setPubSubDomain(false)\n\n// Consuming from a topic .setPubSubDomain(true)\n\nInteraction with durable subscriptions\n\nWhen pubSubDomain is true (topic), you will typically also set:\n\n.setPubSubDomain(true)\n.setDurable(true) // survive flow restarts\n.setDurableSubscriptionName(\"mySubName\") // unique name for the durable subscription\nDurable subscriptions only apply to topics — they have no meaning for queues.\n\nSummary\n\nValue\tDestination type\tUse when\nfalse (default)\tQueue\tPoint-to-point — one consumer receives each message\ntrue\tTopic\tPublish-subscribe — all subscribers receive each message",
       "setterProperty": true,
-      "mandatory": true,
       "defaultValue": false,
       "trueLabel": "Topic",
       "falseLabel": "Queue",
       "propertyDataType": "java.lang.Boolean"
     },
     "sessionTransacted": {
-      "comments": "This is not mandatory but should always be considered when creating this component",
+      "comments": "Not mandatory, but commonly configured - grouped under Popular so it isn't missed.",
       "propertyName": "sessionTransacted",
-      "propertyDisplayOrder": -80,
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -50,
       "displayLabel": "Support Transactions",
       "helpText": "sessionTransacted\n\nA boolean that controls whether the JMS session operates within a local transaction. It defaults to false.\n\nWhat it does\n\nIt is passed directly to connection.createSession(sessionTransacted, acknowledgeMode) at consumer start-up.\n\nWhen true — the broker holds the message until the session explicitly commits or rolls back. The message is only removed from the queue/topic on a successful commit.\nWhen false — acknowledgement is controlled by sessionAcknowledgeMode instead (default AUTO_ACKNOWLEDGE), meaning the broker removes the message as soon as it is delivered.\nLocal transaction vs. XA/distributed transaction\n\nThis is a local JMS-only transaction — it only covers the JMS session itself. It is not the same as a distributed (XA) transaction coordinated by Arjuna/JTA, which spans both the JMS session and a database in a single atomic unit.\n\nSetting\tTransaction scope\tCoordinator\nsessionTransacted=true\tJMS session only\tAMQ broker\nXA via JmsXA connection factory\tJMS + DB (distributed)\tArjuna/JTA\nNote: The arjuna consumer docs show sessionTransacted=true used alongside connectionFactoryName=\"java:/JmsXA\" and an Arjuna transaction manager. In that setup the local session transaction is subordinate to the XA transaction.\n\nTypical usage\n\nStandard flow with redelivery on failure (most common):\n\n.setSessionTransacted(true)\n\nIf the flow throws an exception the JMS session rolls back and the broker redelivers the message, preventing message loss.\n\nFire-and-forget / best-effort (lower overhead, acceptable message loss):\n\n.setSessionTransacted(false) // default — can be omitted\n\nThe message is acknowledged immediately on delivery regardless of whether processing succeeds.\n\nRelationship to sessionAcknowledgeMode\n\n▎ When sessionTransacted is true, the sessionAcknowledgeMode value is effectively ignored by the JMS spec — acknowledgement is driven by commit/rollback, not the acknowledge mode. Only set sessionAcknowledgeMode when sessionTransacted is false.",
       "setterProperty": true,
-      "mandatory": true,
       "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
     },

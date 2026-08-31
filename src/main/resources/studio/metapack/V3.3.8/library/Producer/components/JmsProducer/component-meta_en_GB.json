@@ -35,6 +35,7 @@
     },
     "destinationJndiName": {
       "propertyName": "destinationJndiName",
+      "displayLabel": "Queue/Topic name",
       "propertyDisplayOrder": -60,
       "helpText": "Destination(Topic/Queue) name, which could refer as well to JNDI name.",
       "mandatory": true,
@@ -53,19 +54,19 @@
     },
     "connectionFactoryUsername": {
       "propertyName": "connectionFactoryUsername",
-      "propertyDisplayOrder": -95,
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -50,
       "defaultValue": "admin",
-      "helpText": "Authentication principal used to look up the ConnectionFactory via JNDI - see connectionFactoryJndiProperty* below. Unrelated to connectionUsername, which authenticates a directly-supplied connectionFactory bean instead.",
-      "mandatory": true,
+      "helpText": "Authentication principal used to look up the ConnectionFactory via JNDI - see connectionFactoryJndiProperty* below. Unrelated to connectionUsername, which authenticates a directly-supplied connectionFactory bean instead. Only used when set - the ConnectionFactory JNDI lookup falls back to an unauthenticated lookup when this is left blank.",
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.user"
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
-      "propertyDisplayOrder": -90,
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -40,
       "defaultValue": "admin",
       "helpText": "Authentication credential paired with connectionFactoryUsername, used to look up the ConnectionFactory via JNDI.",
-      "mandatory": true,
       "setterProperty": true,
       "propertyConfigFileLabel": "jms.__module.__flow.__component.connection.factory.password"
     },
@@ -147,6 +148,7 @@
     },
     "pubSubDomain": {
       "propertyName": "pubSubDomain",
+      "displayLabel": "Queue/Topic",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 300,
       "defaultValue": false,

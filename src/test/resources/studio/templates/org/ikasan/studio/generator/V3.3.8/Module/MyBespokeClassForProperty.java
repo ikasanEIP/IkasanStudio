@@ -7,7 +7,7 @@ package org.ikasan;
 * This stub will not be over-written unless the overwrite checkbox is explicitly selected.
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MyUserImplementedClassForProperty")
 public class MyUserImplementedClassForProperty implements org.ikasan.component.endpoint.filesystem.messageprovider.MessageProviderPostProcessor
 {
 }

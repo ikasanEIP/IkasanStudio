@@ -111,6 +111,47 @@ public class StudioUIUtils {
     }
 
     /**
+     * A property's tooltip with its own raw propertyName prefixed in bold, followed by " - ", mirroring how
+     * {@link #buildComponentSummaryHtml} always puts a component's own name first rather than relying on it
+     * being hand-written into helpText - every metapack author would otherwise have to remember to open every
+     * property's helpText with that property's exact name. propertyName (not the on-screen displayLabel) is
+     * used deliberately: it's what a developer sees in the generated code's builder setter calls (e.g.
+     * .setPubSubDomain(...)), so leading with it lets them tie a tooltip straight back to that code even where a
+     * friendlier displayLabel is shown as the field's own on-screen label. If helpText already opens with that
+     * same propertyName, or with the property's displayLabel (case-insensitive - some helpText values already
+     * open with one or the other as a heading), that leading occurrence - and any separator immediately
+     * following it, e.g. "pubSubDomain\n\n..." or "Support Transactions: ..." - is stripped first so the name
+     * isn't shown twice. Returned wrapped in an &lt;html&gt; tag, since JLabel/JComponent tooltips only honour
+     * the &lt;b&gt; markup once wrapped this way.
+     * @param propertyName the name to show in bold - ComponentPropertyMeta#getPropertyName(), e.g. "pubSubDomain"
+     * @param propertyDisplayLabel the property's on-screen ComponentPropertyMeta#getDisplayLabel(), checked as a
+     *                              second, already-duplicated-in-existing-content candidate for stripping - pass
+     *                              null/blank (or the same value as propertyName) if there's no separate label
+     * @param helpText the property's own help text, or null/blank
+     * @return "&lt;html&gt;&lt;b&gt;Name&lt;/b&gt; - helpText&lt;/html&gt;" (just the bolded name, no dash, if
+     *         helpText is blank), or the raw helpText unchanged if propertyName is blank
+     */
+    public static String buildPropertyTooltipHtml(String propertyName, String propertyDisplayLabel, String helpText) {
+        if (propertyName == null || propertyName.isBlank()) {
+            return helpText;
+        }
+        String remainder = helpText == null ? "" : helpText.strip();
+        for (String candidate : new String[]{propertyName, propertyDisplayLabel}) {
+            if (candidate != null && !candidate.isBlank() && remainder.regionMatches(true, 0, candidate, 0, candidate.length())) {
+                remainder = remainder.substring(candidate.length()).stripLeading();
+                remainder = remainder.replaceFirst("^[\\s:\\-–—]+", "");
+                break;
+            }
+        }
+        StringBuilder tooltip = new StringBuilder("<html><b>").append(escapeHtml(propertyName)).append("</b>");
+        if (!remainder.isBlank()) {
+            tooltip.append(" - ").append(remainder);
+        }
+        tooltip.append("</html>");
+        return tooltip.toString();
+    }
+
+    /**
      * A "More info" link to a component's webHelpURL, shown at the end of its help text (see
      * ComponentPropertiesPanel#getDisplayedHelpTextForSelectedComponent / IkasanPaletteElementViewHandler#
      * getHelpText). Requires the containing panel to be non-editable with a HyperlinkListener wired up (see
@@ -134,7 +175,7 @@ public class StudioUIUtils {
     }
 
 
-    public static Font getBoldFont(Graphics g) {
+    public static Font getBoldFont() {
         return StudioUIUtils.getMainFont();
     }
 
@@ -306,7 +347,7 @@ public class StudioUIUtils {
 
     public static void paintWarningPopup(Graphics g, int x, int y, int maxX,int maxY, String text) {
         if (!text.isEmpty()) {
-            Font font = StudioUIUtils.getBoldFont(g) ;
+            Font font = StudioUIUtils.getBoldFont() ;
 
             int width = StudioUIUtils.getTextWidth(g, text, font) + 10;
             int height = StudioUIUtils.getTextHeight(g, font) + 10;

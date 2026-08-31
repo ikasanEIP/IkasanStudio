@@ -7,7 +7,7 @@ package org.ikasan;
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.myMultiRecipientRouter")
 
 public class myMultiRecipientRouter implements org.ikasan.spec.component.routing.MultiRecipientRouter<java.lang.String>, org.ikasan.spec.configuration.ConfiguredResource<    MyConfigurationClass>
 {

@@ -21,7 +21,7 @@ package org.ikasan;
 import org.ikasan.spec.component.splitting.Splitter;
 import org.ikasan.spec.component.splitting.SplitterException;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MySplitter")
 public class MySplitter implements Splitter<java.lang.String, java.lang.String>
 {
 /**

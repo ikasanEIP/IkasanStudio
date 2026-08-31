@@ -312,6 +312,7 @@ public class TestFixtures {
             .componentName("My Basic AMQ JSpring JMS Consumer")
             .build();
 
+        flowElement.setPropertyValue("autoContentConversion", true);
         flowElement.setPropertyValue("configuredResourceId", "__module__flow__component");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");

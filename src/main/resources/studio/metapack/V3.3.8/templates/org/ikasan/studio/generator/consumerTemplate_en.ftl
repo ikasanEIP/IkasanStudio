@@ -8,7 +8,7 @@ package ${studioPackageTag};
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.${flowElement.getPropertyValue("userImplementedClassName")}")
 
 public class ${flowElement.getPropertyValue("userImplementedClassName")} implements ${flowElement.getComponentMeta().getComponentType()}<org.ikasan.spec.event.EventListener, org.ikasan.spec.event.EventFactory>
 {

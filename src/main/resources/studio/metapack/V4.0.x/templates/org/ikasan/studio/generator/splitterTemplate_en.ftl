@@ -22,7 +22,7 @@ package ${studioPackageTag};
 import org.ikasan.spec.component.splitting.Splitter;
 import org.ikasan.spec.component.splitting.SplitterException;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}")
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Splitter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
 {
 /**

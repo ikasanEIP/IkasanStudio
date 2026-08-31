@@ -19,7 +19,7 @@ package org.ikasan;
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.myFilter")
 
 public class myFilter implements org.ikasan.spec.component.filter.FilterRule<java.lang.String>,org.ikasan.spec.configuration.ConfiguredResource<MyConfigurationClass>
 {

@@ -16,7 +16,7 @@ package ${studioPackageTag};
 import org.ikasan.spec.component.transformation.Translator;
 import org.ikasan.spec.component.transformation.TransformationException;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}")
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Translator<${flowElement.getPropertyValue('type')}>
 {
 /**

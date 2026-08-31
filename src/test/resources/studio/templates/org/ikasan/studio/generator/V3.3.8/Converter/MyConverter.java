@@ -15,7 +15,7 @@ package org.ikasan;
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MyConverter")
 public class MyConverter implements Converter<java.lang.String, java.lang.Integer>
 {
 public java.lang.Integer convert(java.lang.String payload) throws TransformationException

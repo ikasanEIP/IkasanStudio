@@ -8,7 +8,7 @@ package org.ikasan;
 *
 */
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.myGenericConsumer")
 
 public class myGenericConsumer implements org.ikasan.spec.component.endpoint.Consumer<org.ikasan.spec.event.EventListener, org.ikasan.spec.event.EventFactory>
 {

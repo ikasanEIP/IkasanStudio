@@ -89,7 +89,8 @@ public class ComponentPropertyEditRow {
         this.project = project;
         this.componentProperty = componentProperty;
         this.initialValue = componentProperty.getValue();
-        String labelText = componentProperty.getMeta().getDisplayLabel() != null ? componentProperty.getMeta().getDisplayLabel() : componentProperty.getMeta().getPropertyName();
+        String propertyDisplayName = componentProperty.getMeta().getDisplayLabel() != null ? componentProperty.getMeta().getDisplayLabel() : componentProperty.getMeta().getPropertyName();
+        String labelText = propertyDisplayName;
         if (componentProperty.getMeta().hasMandatoryUnlessAnyOf()) {
             // Derived from the same list doValidateAll() enforces, so the cue can never drift out of sync with
             // the actual either/or requirement - e.g. "Password (or privateKeyFilename)".
@@ -303,7 +304,7 @@ public class ComponentPropertyEditRow {
             }
         }
         resetDataEntryComponentsWithNewValues();
-        propertyTitleField.setToolTipText(componentProperty.getMeta().getHelpText());
+        propertyTitleField.setToolTipText(StudioUIUtils.buildPropertyTooltipHtml(componentProperty.getMeta().getPropertyName(), propertyDisplayName, componentProperty.getMeta().getHelpText()));
         if (componentProperty.getMeta().getDataValidationType() != null) {
             // "..." rather than a help/"?" icon: this button opens a builder popup (currently always the cron
             // expression builder) to construct the value, it doesn't just show help text. Revisit with a proper

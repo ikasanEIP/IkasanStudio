@@ -15,7 +15,7 @@ package org.ikasan;
 import org.ikasan.spec.component.transformation.Translator;
 import org.ikasan.spec.component.transformation.TransformationException;
 
-@org.springframework.stereotype.Component
+@org.springframework.stereotype.Component("org.ikasan.MyTranslator")
 public class MyTranslator implements Translator<java.lang.String>
 {
 /**
