@@ -6,6 +6,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextArea;
@@ -47,6 +48,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -1340,6 +1342,7 @@ public class DesignerCanvas extends JPanel {
                 super.paintComponent(g);
                 moduleViewHandler.paintComponent(this, g, -1, -1);
                 paintDraggedComponentGhost(g);
+                paintJmsDestinationConnectors(g, ikasanModule);
             }
         }
         paintGettingStartedHint(g, ikasanModule);
@@ -1359,6 +1362,114 @@ public class DesignerCanvas extends JPanel {
         } finally {
             ghost.dispose();
         }
+    }
+
+    // Deliberately its own fixed colour (light/dark variants), not sourced via ThemeAwareColors - those look
+    // up generic UIManager keys first, which are non-null in virtually every theme and so silently shadow a
+    // custom accent colour with a neutral one (see StudioUIUtils#ATTENTION_PULSE_COLOR's own comment for the
+    // same reasoning).
+    private static final JBColor JMS_CONNECTOR_COLOR = new JBColor(new Color(70, 130, 180), new Color(120, 170, 220));
+    private static final float[] JMS_CONNECTOR_DASH = {6f, 4f};
+    private static final int JMS_CONNECTOR_GUTTER_MARGIN = 30;
+    private static final int JMS_CONNECTOR_STANDOFF = 20;
+    private static final int JMS_CONNECTOR_STAGGER = 14;
+    private static final int JMS_CONNECTOR_ARROW_SIZE = 6;
+
+    /**
+     * Draws an ESB-style orthogonal connector between a JMS Producer and a JMS Consumer, in different flows of
+     * this module, that reference the same destination - see {@link JmsFlowConnections#findMatchingLinks}. All
+     * flows have already had {@code initialiseDimensions} run for this paint cycle by the time this is called
+     * (it runs after {@code moduleViewHandler.paintComponent} above), so every component's connector points are
+     * safe to read.
+     */
+    private void paintJmsDestinationConnectors(Graphics graphics, Module ikasanModule) {
+        if (ikasanModule == null || !(graphics instanceof Graphics2D) || !IkasanStudioSettings.areJmsConnectorsEnabled()) {
+            return;
+        }
+        List<JmsFlowConnections.JmsLink> links = JmsFlowConnections.findMatchingLinks(ikasanModule);
+        if (links.isEmpty()) {
+            return;
+        }
+
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            g2d.setColor(JMS_CONNECTOR_COLOR);
+            g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, JMS_CONNECTOR_DASH, 0));
+            int index = 0;
+            for (JmsFlowConnections.JmsLink link : links) {
+                IkasanFlowViewHandler producerFlowHandler = flowHandlerFor(link.producer());
+                IkasanFlowViewHandler consumerFlowHandler = flowHandlerFor(link.consumer());
+                AbstractViewHandlerIntellij producerHandler = producerFlowHandler != null ? producerFlowHandler.getEndpointViewHandlerFor(link.producer()) : null;
+                AbstractViewHandlerIntellij consumerHandler = consumerFlowHandler != null ? consumerFlowHandler.getEndpointViewHandlerFor(link.consumer()) : null;
+                if (producerFlowHandler == null || consumerFlowHandler == null || producerHandler == null || consumerHandler == null) {
+                    continue;
+                }
+                paintElbowConnector(g2d, producerHandler.getRightConnectorPoint(), consumerHandler.getLeftConnectorPoint(),
+                        producerFlowHandler, consumerFlowHandler, index);
+                index++;
+            }
+        } finally {
+            g2d.dispose();
+        }
+    }
+
+    /**
+     * A consumer/producer's own in-route box is not what's visually at the edge of its flow - Consumer and
+     * Producer components are also drawn with a separate, externally-positioned "channel endpoint" pill
+     * outside the flow's border (see {@code IkasanFlowRouteViewHandler#displayExternalEndpointIfExists}), and
+     * that pill is what a connector line needs to touch. This gets the containing flow's own handler, needed
+     * both to resolve the pill ({@link IkasanFlowViewHandler#getEndpointViewHandlerFor}) and to route around
+     * that flow's own content (see {@link #paintElbowConnector}).
+     */
+    private IkasanFlowViewHandler flowHandlerFor(FlowElement owner) {
+        Flow containingFlow = owner != null ? owner.getContainingFlow() : null;
+        return containingFlow != null ? ViewHandlerCache.getFlowViewHandler(project, containingFlow) : null;
+    }
+
+    /**
+     * Routes through the empty gap between the two flows' rows, never through either flow's own components:
+     * down from the producer's pill into that gap, left along the gap to a corridor left of every flow's
+     * shared left edge (flows are always left-aligned to the same X, see {@code IkasanModuleViewHandler}), down
+     * that corridor to the consumer's own row, then right into its pill - matching the "down, left, down,
+     * right" shape a straight point-to-point or single-side-gutter line can't achieve without cutting across
+     * whichever flow it passes over. Each additional link (index &gt; 0) is staggered slightly so parallel
+     * links don't draw directly on top of one another.
+     * -
+     * Known limitation: if another flow's row lies between the producer's and the consumer's (not adjacent),
+     * the horizontal corridor may still cross that intervening row - out of scope for this pass.
+     */
+    private void paintElbowConnector(Graphics2D g2d, Point start, Point end,
+                                     IkasanFlowViewHandler producerFlowHandler, IkasanFlowViewHandler consumerFlowHandler, int index) {
+        IkasanFlowViewHandler upperFlow = producerFlowHandler.getTopY() <= consumerFlowHandler.getTopY() ? producerFlowHandler : consumerFlowHandler;
+        IkasanFlowViewHandler lowerFlow = upperFlow == producerFlowHandler ? consumerFlowHandler : producerFlowHandler;
+        int corridorY = upperFlow.getBottomY() + ((lowerFlow.getTopY() - upperFlow.getBottomY()) / 2) + (index * JMS_CONNECTOR_STAGGER);
+        // Derived from the pill's own entry point (end.x), not consumerFlowHandler.getLeftX() - the pill is
+        // drawn OUTSIDE its flow's own left border (see displayExternalEndpointIfExists), so the flow box's
+        // edge alone sits well short of clearing the pill itself.
+        int approachX = end.x - JMS_CONNECTOR_GUTTER_MARGIN - (index * JMS_CONNECTOR_STAGGER);
+        // A small clear-of-the-pill stand-off right after exiting, before turning down into the gap - turning
+        // immediately at start.x draws the corner right on the pill's own edge.
+        int standoffX = start.x + JMS_CONNECTOR_STANDOFF;
+
+        Path2D path = new Path2D.Double();
+        path.moveTo(start.x, start.y);
+        path.lineTo(standoffX, start.y);
+        path.lineTo(standoffX, corridorY);
+        path.lineTo(approachX, corridorY);
+        path.lineTo(approachX, end.y);
+        path.lineTo(end.x, end.y);
+        g2d.draw(path);
+        paintArrowhead(g2d, end);
+    }
+
+    /** A small filled triangle pointing right, into the consumer's left edge - fill isn't affected by the
+     * connector's dashed stroke, so no stroke needs saving/restoring around this. */
+    private void paintArrowhead(Graphics2D g2d, Point tip) {
+        Polygon arrow = new Polygon();
+        arrow.addPoint(tip.x, tip.y);
+        arrow.addPoint(tip.x - JMS_CONNECTOR_ARROW_SIZE, tip.y - (JMS_CONNECTOR_ARROW_SIZE / 2));
+        arrow.addPoint(tip.x - JMS_CONNECTOR_ARROW_SIZE, tip.y + (JMS_CONNECTOR_ARROW_SIZE / 2));
+        g2d.fill(arrow);
     }
 
     /**

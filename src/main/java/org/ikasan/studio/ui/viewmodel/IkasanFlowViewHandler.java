@@ -75,6 +75,15 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
     }
 
     /**
+     * The already-positioned view handler for a consumer/producer's externally-drawn "channel endpoint" pill -
+     * see {@link IkasanFlowRouteViewHandler#getEndpointViewHandlerForOwner}. Returns null if owner has no
+     * external endpoint, isn't in this flow, or hasn't been painted yet this cycle.
+     */
+    public IkasanFlowComponentViewHandler getEndpointViewHandlerFor(FlowElement owner) {
+        return flowRouteViewHandler.getEndpointViewHandlerForOwner(owner);
+    }
+
+    /**
      * If the click coordinates fall within a rendered Send Test Message badge for this flow, return the
      * owning Consumer FlowElement. Returns null if the click does not hit any badge.
      */

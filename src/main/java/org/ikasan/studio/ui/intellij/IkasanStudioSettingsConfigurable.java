@@ -22,6 +22,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox gettingStartedHintsCheckBox;
     private JCheckBox promptBeforeDeletingUserCodeCheckBox;
     private JCheckBox showAdvancedControlsCheckBox;
+    private JCheckBox showJmsConnectorsCheckBox;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -61,11 +62,22 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         advancedControlsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
         advancedControlsPanel.add(advancedControlsNote, BorderLayout.CENTER);
 
+        showJmsConnectorsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowJmsConnectors"));
+
+        JPanel jmsConnectorsPanel = new JPanel(new BorderLayout(0, 4));
+        jmsConnectorsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.JmsConnectors")));
+        jmsConnectorsPanel.add(showJmsConnectorsCheckBox, BorderLayout.NORTH);
+
+        JLabel jmsConnectorsNote = new JLabel(StudioBundle.message("label.JmsConnectorsNote"));
+        jmsConnectorsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        jmsConnectorsPanel.add(jmsConnectorsNote, BorderLayout.CENTER);
+
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
         northPanel.add(hintsPanel);
         northPanel.add(userCodePanel);
         northPanel.add(advancedControlsPanel);
+        northPanel.add(jmsConnectorsPanel);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -79,7 +91,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     public boolean isModified() {
         return gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
-                || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled();
+                || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
+                || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled();
     }
 
     @Override
@@ -90,6 +103,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
             state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
+            state.jmsConnectorsEnabled = showJmsConnectorsCheckBox.isSelected();
         }
         repaintOpenCanvases();
     }
@@ -99,6 +113,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
         showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());
+        showJmsConnectorsCheckBox.setSelected(IkasanStudioSettings.areJmsConnectorsEnabled());
     }
 
     @Override

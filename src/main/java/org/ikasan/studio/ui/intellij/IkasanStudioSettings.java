@@ -30,6 +30,14 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          * common toolbar stays uncluttered; can be switched back on here for the rare case it's needed.
          */
         public boolean showAdvancedControls = false;
+
+        /**
+         * Draw a connector line on the canvas between a JMS Producer and a JMS Consumer (in a different flow
+         * of the same module) that reference the same destination/connection factory - an ESB-style visual
+         * cue for "flow A feeds flow B", without needing a second consuming flow to trace it manually. On by
+         * default; can be switched off if it clutters a larger module.
+         */
+        public boolean jmsConnectorsEnabled = true;
     }
 
     private State state = new State();
@@ -82,6 +90,21 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         State s = instance != null ? instance.getState() : null;
         if (s != null) {
             s.showAdvancedControls = showAdvancedControls;
+        }
+    }
+
+    public static boolean areJmsConnectorsEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return true;
+        State s = instance.getState();
+        return s == null || s.jmsConnectorsEnabled;
+    }
+
+    public static void setJmsConnectorsEnabled(boolean jmsConnectorsEnabled) {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.jmsConnectorsEnabled = jmsConnectorsEnabled;
         }
     }
 }

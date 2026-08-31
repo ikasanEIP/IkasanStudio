@@ -49,6 +49,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final List<IkasanFlowRouteViewHandler> childFlowRouteViewHandlers = new ArrayList<>();
     // Populated during each paint pass so that click detection can resolve an endpoint click back to its owner.
     private final Map<FlowElement, FlowElement> cachedEndpointToOwner = new HashMap<>();
+    // The forward direction of the same relationship, populated at the same point - lets a consumer/producer's
+    // externally-drawn "channel endpoint" pill (a separate, positioned FlowElement/ViewHandler distinct from
+    // the owner's own in-route box - see displayExternalEndpointIfExists) be found from the owner, e.g. so a
+    // connector line drawn elsewhere on the canvas can touch the pill's actual edge rather than the owner's.
+    private final Map<FlowElement, FlowElement> cachedOwnerToEndpoint = new HashMap<>();
     // Populated during each paint pass so that click detection can resolve a Send Test Message badge click back to its owner.
     private final Map<FlowElement, Rectangle> cachedSendTestMessageBadge = new HashMap<>();
 
@@ -198,6 +203,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
             }
         } else {
             cachedEndpointToOwner.put(endpointFlowElement, targetFlowElement);
+            cachedOwnerToEndpoint.put(targetFlowElement, endpointFlowElement);
             // Position and draw the endpoint
             IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
             IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(project, endpointFlowElement);
@@ -250,6 +256,29 @@ if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAI
             FlowElement owner = child.getOwnerForEndpointAtXY(x, y);
             if (owner != null) {
                 return owner;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The already-positioned view handler for a consumer/producer's externally-drawn "channel endpoint" pill
+     * (see {@link #displayExternalEndpointIfExists}) - distinct from the owner's own in-route box, so callers
+     * wanting to draw against the pill's actual on-screen edge (e.g. a cross-flow connector line) must use this
+     * rather than the owner's own view handler. Searches this route and, recursively, every child/branch route,
+     * since a producer can sit behind a router. Returns null if owner has no external endpoint (e.g. Generic
+     * Consumer), or hasn't been painted yet this cycle.
+     * @param owner the consumer or producer FlowElement whose endpoint pill is wanted
+     */
+    public IkasanFlowComponentViewHandler getEndpointViewHandlerForOwner(FlowElement owner) {
+        FlowElement endpoint = cachedOwnerToEndpoint.get(owner);
+        if (endpoint != null) {
+            return ViewHandlerCache.getFlowComponentViewHandler(project, endpoint);
+        }
+        for (IkasanFlowRouteViewHandler child : childFlowRouteViewHandlers) {
+            IkasanFlowComponentViewHandler found = child.getEndpointViewHandlerForOwner(owner);
+            if (found != null) {
+                return found;
             }
         }
         return null;
