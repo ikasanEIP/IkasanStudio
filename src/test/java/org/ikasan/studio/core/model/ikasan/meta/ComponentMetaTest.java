@@ -44,6 +44,30 @@ class ComponentMetaTest {
     }
 
     @Test
+    public void output_is_the_raw_jms_message_type_when_auto_content_conversion_is_off() throws StudioBuildException {
+        ComponentMeta basicAmqSpringJmsConsumer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ Spring JMS Consumer");
+
+        String output = basicAmqSpringJmsConsumer.getEffectiveOutputTypeDescription(
+                propertyName -> "autoContentConversion".equals(propertyName) ? "false" : "");
+
+        assertEquals("javax.jms.Message", output);
+    }
+
+    @Test
+    public void output_reflects_the_unwrapped_payload_type_when_auto_content_conversion_is_on() throws StudioBuildException {
+        // With Auto Content Conversion on, JmsMessageConverter unwraps the raw message before the flow ever
+        // sees it - the declared producedOutputType (javax.jms.Message) is never what's actually delivered
+        // once this is true, so the description must change to reflect that, not keep claiming the raw type.
+        ComponentMeta basicAmqSpringJmsConsumer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ Spring JMS Consumer");
+
+        String output = basicAmqSpringJmsConsumer.getEffectiveOutputTypeDescription(
+                propertyName -> "autoContentConversion".equals(propertyName) ? "true" : "");
+
+        assertTrue(output.contains("java.lang.Object"));
+        assertFalse(output.contains("jms.Message"));
+    }
+
+    @Test
     public void preview_output_is_null_for_a_producer_since_it_is_terminal() throws StudioBuildException {
         ComponentMeta devNullProducer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Dev Null Producer");
 
@@ -57,6 +81,20 @@ class ComponentMetaTest {
         ComponentMeta router = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Multi Recipient Router");
 
         assertEquals(router.getEffectiveInputTypeDescriptionPreview(), router.getEffectiveOutputTypeDescriptionPreview());
+    }
+
+    @Test
+    public void input_description_is_null_not_blank_for_a_producer_with_no_fromType_property_at_all() throws StudioBuildException {
+        // Basic AMQ JMS Producer wraps its implementingClass directly - it declares neither fromType nor a
+        // custom expectedInputTypeProperty. The palette preview path (getDefaultValueAsString) already
+        // correctly returns null for a property that doesn't exist. A live FlowElement's own resolver
+        // (BasicElement#getPropertyValueAsString) instead returns "" for a property that doesn't exist at all
+        // (as opposed to one that exists but is unset) - simulated here directly against the shared engine
+        // method, since that's the exact distinction the fix depends on. Regression test for a stray "Input:"
+        // with nothing after it showing up in the properties panel/canvas summary for any such component.
+        ComponentMeta basicAmqJmsProducer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ JMS Producer");
+
+        assertNull(basicAmqJmsProducer.getEffectiveInputTypeDescription(propertyName -> ""));
     }
 
     @Test

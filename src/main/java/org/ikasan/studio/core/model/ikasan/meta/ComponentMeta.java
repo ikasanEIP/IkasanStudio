@@ -296,7 +296,14 @@ public class ComponentMeta implements IkasanMeta {
         if (expectedInputType != null && !expectedInputType.isBlank()) {
             return expectedInputType;
         }
-        return propertyValueResolver.apply(getEffectiveInputTypePropertyName());
+        // A component with no "fromType"/custom expectedInputTypeProperty at all (e.g. any Producer wrapping
+        // an implementingClass directly, like Basic AMQ Spring JMS Producer) genuinely has nothing to state
+        // here - blank-check the resolved value the same way getEffectiveOutputTypeDescription already does
+        // for toType/producedOutputType below, rather than let a resolver's "not set" convention (some return
+        // "" for a property that doesn't exist at all, not just an unset one - see BasicElement#getPropertyValueAsString)
+        // leak through as a stray "Input:" with nothing after it.
+        String resolvedInputType = propertyValueResolver.apply(getEffectiveInputTypePropertyName());
+        return (resolvedInputType != null && !resolvedInputType.isBlank()) ? resolvedInputType : null;
     }
 
     /**
@@ -315,6 +322,16 @@ public class ComponentMeta implements IkasanMeta {
         String toType = propertyValueResolver.apply(ComponentPropertyMeta.TO_TYPE);
         if (toType != null && !toType.isBlank()) {
             return toType;
+        }
+        // A JMS consumer's declared producedOutputType (javax/jakarta.jms.Message) is only what's actually
+        // delivered downstream while Auto Content Conversion is off - once it's on, JmsMessageConverter
+        // unwraps the raw message before the flow ever sees it (see autoContentConversion's own help text for
+        // the exact per-message-type mapping: TextMessage->String, MapMessage->Map, ObjectMessage->the
+        // unwrapped Object, BytesMessage->byte[] - Studio has no way to know which of those a given consumer
+        // will actually receive at runtime, so java.lang.Object is the one static type that's honestly always
+        // correct here, rather than continuing to claim the never-actually-delivered raw Message type).
+        if ("true".equalsIgnoreCase(propertyValueResolver.apply(ComponentPropertyMeta.AUTO_CONTENT_CONVERSION))) {
+            return "java.lang.Object (auto-converted)";
         }
         return (producedOutputType != null && !producedOutputType.isBlank()) ? producedOutputType : null;
     }
