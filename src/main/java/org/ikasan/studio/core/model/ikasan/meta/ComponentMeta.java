@@ -60,6 +60,8 @@ public class ComponentMeta implements IkasanMeta {
     public static final String FILE_LIST_TYPE = "java.util.List<java.io.File>";
     // See isSelfGeneratingConsumer().
     public static final String EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer";
+    // See supportsTestMailServer().
+    public static final String EMAIL_PRODUCER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.email.producer.EmailProducer";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -204,6 +206,18 @@ public class ComponentMeta implements IkasanMeta {
      */
     public boolean supportsSendTestMessage() {
         return isConsumer() && !isSelfGeneratingConsumer();
+    }
+    /**
+     * True for the Email Producer - offers the canvas "Start Test Mail Server" action, which downloads (once,
+     * cached) and launches MailHog, a local SMTP server with a web-based inbox UI, bound to this component's
+     * configured mailSmtpHost/mailSmtpPort - so the user can see what the flow actually sends without a real
+     * mail account. Gated on implementingClass rather than name, matching isTimeEventConsumer() above. A click
+     * on the Email Endpoint node resolves back to this same Email Producer FlowElement before the context menu
+     * is built (see DesignerCanvas#getComponentAtXY / IkasanFlowRouteViewHandler#getOwnerForEndpointAtXY), so
+     * this one predicate covers both right-click targets the user expects it from.
+     */
+    public boolean supportsTestMailServer() {
+        return EMAIL_PRODUCER_IMPLEMENTING_CLASS.equals(implementingClass);
     }
     public boolean isDebug() {
         return DEBUG_KEY.equals(additionalKey);

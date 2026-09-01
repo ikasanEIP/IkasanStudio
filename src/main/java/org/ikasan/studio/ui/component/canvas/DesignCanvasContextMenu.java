@@ -52,6 +52,10 @@ public class DesignCanvasContextMenu {
                         ? createTriggerScheduledConsumerMenuItem(project, ikasanBasicElement)
                         : createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
+            if (flowElement.getComponentMeta().supportsTestMailServer()) {
+                menu.add(createStartTestMailServerMenuItem(project, ikasanBasicElement));
+                menu.add(createStopTestMailServerMenuItem(project, ikasanBasicElement));
+            }
             menu.addSeparator();
             addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
                     DECORATOR_POSITION.BEFORE, "menu.AddWiretapBefore", "menu.DeleteWiretapBefore");
@@ -92,6 +96,18 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createTriggerScheduledConsumerMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.TriggerScheduledConsumer"));
         item.addActionListener(new TriggerScheduledConsumerAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createStartTestMailServerMenuItem(Project project, BasicElement ikasanBasicElement) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.StartTestMailServer"));
+        item.addActionListener(new StartTestMailServerAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createStopTestMailServerMenuItem(Project project, BasicElement ikasanBasicElement) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.StopTestMailServer"));
+        item.addActionListener(new StopTestMailServerAction(project, ikasanBasicElement));
         return item;
     }
 

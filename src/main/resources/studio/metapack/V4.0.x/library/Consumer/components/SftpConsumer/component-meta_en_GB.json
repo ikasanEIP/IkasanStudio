@@ -182,7 +182,9 @@
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.filename-pattern",
       "setterProperty": true,
-      "usageDataType": "java.lang.String"
+      "usageDataType": "java.lang.String",
+      "validation": "^(?![*+?]).*$",
+      "validationMessage": "This must be a Java regular expression, not a shell glob - a bare *, + or ? at the very start has nothing to repeat and fails at runtime with a PatternSyntaxException. Did you mean '.*' instead of '*'? e.g. '.*\\.txt' matches any .txt file."
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
