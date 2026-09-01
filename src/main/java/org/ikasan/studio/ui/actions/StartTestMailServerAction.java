@@ -15,8 +15,10 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.TestMailServerLinks;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
 
@@ -66,8 +68,8 @@ public class StartTestMailServerAction implements ActionListener {
             return;
         }
 
-        String smtpHost = TestMailServerSupport.resolveSmtpHost(flowElement);
-        int smtpPort = TestMailServerSupport.resolveSmtpPort(flowElement);
+        String smtpHost = TestMailServerLinks.resolveSmtpHost(flowElement);
+        int smtpPort = TestMailServerLinks.resolveSmtpPort(flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
         String uiUrl = "http://" + TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT;
 
@@ -79,6 +81,7 @@ public class StartTestMailServerAction implements ActionListener {
             @Override
             public void run(ProgressIndicator indicator) {
                 if (TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
+                    project.getService(TestMailServerSessionService.class).pollNow();
                     ApplicationManager.getApplication().invokeLater(() -> {
                         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestMailServerAlreadyRunning", smtpAddress, uiUrl));
                         BrowserUtil.browse(uiUrl);
@@ -92,6 +95,10 @@ public class StartTestMailServerAction implements ActionListener {
                         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.StartingTestMailServer", smtpAddress, uiUrl));
                         BrowserUtil.browse(uiUrl);
                     });
+                    // Best-effort instant canvas update - MailHog usually binds its port within a few dozen
+                    // milliseconds of the command being sent, but if it hasn't quite yet, the node simply
+                    // appears on the session service's own next scheduled poll a few seconds later instead.
+                    project.getService(TestMailServerSessionService.class).pollNow();
                 } catch (UnsupportedPlatformException e) {
                     LOG.warn("STUDIO: No test mail server build available for this platform", e);
                     ApplicationManager.getApplication().invokeLater(() ->

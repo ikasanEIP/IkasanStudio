@@ -25,8 +25,8 @@ public class MyEmailConverter implements Converter<java.lang.String, EmailPayloa
 public EmailPayload convert(java.lang.String payload) throws TransformationException
 {
 DefaultEmailPayload emailPayload = (DefaultEmailPayload) EmailPayload.newInstance();
-// TODO populate the email body, and any attachments, from the incoming payload, e.g.
-// emailPayload.setEmailBody(payload.toString());
+emailPayload.setEmailBody(payload.toString());
+// TODO review the default body above, and populate any attachments, from the incoming payload, e.g.
 // emailPayload.addAttachment("report.pdf", "application/pdf", attachmentBytes);
 return emailPayload;
 }

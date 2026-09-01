@@ -91,9 +91,12 @@ public class ComponentPropertyEditRow {
         this.initialValue = componentProperty.getValue();
         String propertyDisplayName = componentProperty.getMeta().getDisplayLabel() != null ? componentProperty.getMeta().getDisplayLabel() : componentProperty.getMeta().getPropertyName();
         String labelText = propertyDisplayName;
-        if (componentProperty.getMeta().hasMandatoryUnlessAnyOf()) {
+        if (componentProperty.getMeta().hasMandatoryUnlessAnyOf() && !componentProperty.getMeta().hasMandatorySectionHeading()) {
             // Derived from the same list doValidateAll() enforces, so the cue can never drift out of sync with
-            // the actual either/or requirement - e.g. "Password (or privateKeyFilename)".
+            // the actual either/or requirement - e.g. "Password (or privateKeyFilename)". Skipped when a
+            // mandatorySectionHeading is set instead (e.g. Email Producer's six recipient fields, clustered
+            // under "At least one of..." in ComponentPropertiesPanel) - a five-way "(or a / b / c / d / e)"
+            // suffix on every single row is unreadable, and the shared group heading already says it once.
             labelText += " (or " + String.join(" / ", componentProperty.getMeta().getMandatoryUnlessAnyOf()) + ")";
         }
         if (componentProperty.getMeta().hasMandatoryIfTrue()) {

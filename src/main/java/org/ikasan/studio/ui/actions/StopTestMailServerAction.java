@@ -11,8 +11,10 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.TestMailServerLinks;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
 
 import java.awt.event.ActionEvent;
@@ -52,8 +54,8 @@ public class StopTestMailServerAction implements ActionListener {
             return;
         }
 
-        String smtpHost = TestMailServerSupport.resolveSmtpHost(flowElement);
-        int smtpPort = TestMailServerSupport.resolveSmtpPort(flowElement);
+        String smtpHost = TestMailServerLinks.resolveSmtpHost(flowElement);
+        int smtpPort = TestMailServerLinks.resolveSmtpPort(flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.StoppingTestMailServer")) {
@@ -92,6 +94,7 @@ public class StopTestMailServerAction implements ActionListener {
             // true (disposeContent) tears down the tab's terminal widget, which kills its shell (and MailHog,
             // the shell's foreground child) exactly as the user's own close-tab gesture would.
             window.getContentManager().removeContent(existingTab, true);
+            project.getService(TestMailServerSessionService.class).pollNow();
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestMailServerStopped"));
         } catch (Exception e) {
             // warn (not error): IntelliJ's logger renders error-level stack traces directly to the user, and

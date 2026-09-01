@@ -167,19 +167,6 @@ public class IkasanComponentLibrary {
         }
     }
 
-    public static Icon getSmallHelpIcon(String description) {
-//
-//        ImageIcon imageIcon;
-//        String iconLocation = GENERAL_ICONS_DIR + "/help.png";
-//        URL iconURL = IkasanComponentLibrary.class.getClassLoader().getResource(iconLocation);
-//        if (iconURL == null) {
-//            LOG.warn("STUDIO: Could not create Icon for " + iconLocation + " using default");
-//        }
-//        imageIcon = new ImageIcon(iconURL, description);
-//        return imageIcon;
-        return getGeneralIcon("help.png", description);
-    }
-
     public static Icon WIRETAP_ICON = getGeneralIcon("wiretap.png", "Wiretap");
     public static Icon getWiretapIcon() {
         return WIRETAP_ICON;
@@ -216,6 +203,13 @@ public class IkasanComponentLibrary {
     public static final Icon REPLAY_SERVICE_ICON = getGeneralIcon("replay-service.png", "Flow recording enabled");
     public static Icon getReplayServiceIcon() {
         return REPLAY_SERVICE_ICON;
+    }
+
+    // The shared canvas node drawn while a local test mail server (MailHog) is running - see
+    // ComponentMeta#supportsTestMailServer(), StartTestMailServerAction and DesignerCanvas#paintTestMailServerNode.
+    public static final Icon MAIL_SERVER_ICON = getGeneralIcon("mailserver.png", "Test Mail Server");
+    public static Icon getMailServerIcon() {
+        return MAIL_SERVER_ICON;
     }
 
     public static Icon getGeneralIcon(String iconFilename, String description) {

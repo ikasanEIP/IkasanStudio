@@ -122,6 +122,15 @@ public class ComponentPropertyMeta {
                                                  // privateKeyFilename's ["password"] express that exactly one of the
                                                  // two credential mechanisms must be supplied, without forcing both.
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    private String mandatorySectionHeading;     // Optional: clusters this property, together with every other mandatory-
+                                                 // section property sharing the exact same heading text, under a titled
+                                                 // sub-panel inside the always-visible Mandatory Properties section (see
+                                                 // ComponentPropertiesPanel#populatePropertiesEditorPanel) - e.g. Email
+                                                 // Producer's six recipient fields all carry "At least one of..." here.
+                                                 // Deliberately distinct from propertyGroup, which instead moves a
+                                                 // property into the collapsed-by-default Optional Properties panel -
+                                                 // see feedback_mandatory_properties_must_stay_ungrouped.
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private String mandatoryIfTrue;             // This property is treated as mandatory whenever the named sibling
                                                  // boolean property (by propertyName) currently holds a genuinely
                                                  // set value of true - e.g. FtpConsumer's ftpsKeyStoreFilePath has
@@ -219,6 +228,11 @@ public class ComponentPropertyMeta {
         return mandatoryIfTrue != null && !mandatoryIfTrue.isBlank();
     }
 
+    @JsonIgnore
+    public boolean hasMandatorySectionHeading() {
+        return mandatorySectionHeading != null && !mandatorySectionHeading.isBlank();
+    }
+
     /**
      * Patterns are expensive, so only generate one when we need it but share the same one thereafter.
      *
@@ -263,6 +277,7 @@ public class ComponentPropertyMeta {
                 Objects.equals(choices, that.choices) &&
                 Objects.equals(mandatoryUnlessAnyOf, that.mandatoryUnlessAnyOf) &&
                 Objects.equals(mandatoryIfTrue, that.mandatoryIfTrue) &&
+                Objects.equals(mandatorySectionHeading, that.mandatorySectionHeading) &&
                 Objects.equals(dataValidationType, that.dataValidationType) &&
                 Objects.equals(defaultValue, that.defaultValue) &&
                 Objects.equals(helpText, that.helpText) &&
@@ -281,7 +296,7 @@ public class ComponentPropertyMeta {
     public int hashCode() {
 
         return Objects.hash(propertyName, propertyGroup, trueLabel, falseLabel, affectsUserImplementedClass, choicesEditable, choices,
-                mandatoryUnlessAnyOf, mandatoryIfTrue, dataValidationType, defaultValue, helpText,
+                mandatoryUnlessAnyOf, mandatoryIfTrue, mandatorySectionHeading, dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
                 protectFromOverwrite, noStubRequired,

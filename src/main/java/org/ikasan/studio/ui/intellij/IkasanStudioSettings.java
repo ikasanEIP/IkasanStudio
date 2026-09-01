@@ -38,6 +38,21 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          * default; can be switched off if it clutters a larger module.
          */
         public boolean jmsConnectorsEnabled = true;
+
+        /**
+         * Periodically poll (every few seconds, in the background) whether a local test mail server is
+         * actually listening at each Email Producer's configured address, so the canvas's "Test Mail Server"
+         * node/connector lines (see {@code DesignerCanvas#paintTestMailServerNode}) appear and disappear on
+         * their own - including if the server is stopped by some means other than the "Stop Test Mail Server"
+         * action (e.g. closing its terminal tab directly). On by default, since the check is a near-instant
+         * loopback TCP probe in the common case; switch off if mailSmtpHost is ever pointed at something
+         * non-local/slow to respond, or in an environment where even loopback connection attempts are
+         * intercepted (e.g. some endpoint-security software), where the same probe could block for its full
+         * timeout on a background thread every cycle. With this off, the canvas only reflects a one-off check
+         * made at the moment "Start Test Mail Server"/"Stop Test Mail Server" is actually clicked - accurate
+         * right after a click, but won't notice an externally-stopped server on its own until the next click.
+         */
+        public boolean testMailServerLivePollingEnabled = true;
     }
 
     private State state = new State();
@@ -85,6 +100,12 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         return s != null && s.showAdvancedControls;
     }
 
+    // No caller today (IkasanStudioSettingsConfigurable#apply() currently writes the State field directly, like
+    // the other settings here) - kept as the public setter symmetric with isShowAdvancedControlsEnabled() and
+    // this class's other isX()/setX() pairs, matching setPromptBeforeDeletingUserCode's own real external
+    // caller (DeleteComponentAction) as the precedent for why a settings setter earns its place even before a
+    // second caller exists.
+    @SuppressWarnings("unused")
     public static void setShowAdvancedControls(boolean showAdvancedControls) {
         IkasanStudioSettings instance = getInstance();
         State s = instance != null ? instance.getState() : null;
@@ -100,11 +121,38 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         return s == null || s.jmsConnectorsEnabled;
     }
 
+    // No caller today (IkasanStudioSettingsConfigurable#apply() currently writes the State field directly, like
+    // the other settings here) - kept as the public setter symmetric with areJmsConnectorsEnabled() and this
+    // class's other isX()/setX() pairs, matching setPromptBeforeDeletingUserCode's own real external caller
+    // (DeleteComponentAction) as the precedent for why a settings setter earns its place even before a second
+    // caller exists.
+    @SuppressWarnings("unused")
     public static void setJmsConnectorsEnabled(boolean jmsConnectorsEnabled) {
         IkasanStudioSettings instance = getInstance();
         State s = instance != null ? instance.getState() : null;
         if (s != null) {
             s.jmsConnectorsEnabled = jmsConnectorsEnabled;
+        }
+    }
+
+    public static boolean isTestMailServerLivePollingEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return true;
+        State s = instance.getState();
+        return s == null || s.testMailServerLivePollingEnabled;
+    }
+
+    // No caller today (IkasanStudioSettingsConfigurable#apply() currently writes the State field directly, like
+    // the other settings here) - kept as the public setter symmetric with isTestMailServerLivePollingEnabled()
+    // and this class's other isX()/setX() pairs, matching setPromptBeforeDeletingUserCode's own real external
+    // caller (DeleteComponentAction) as the precedent for why a settings setter earns its place even before a
+    // second caller exists.
+    @SuppressWarnings("unused")
+    public static void setTestMailServerLivePollingEnabled(boolean testMailServerLivePollingEnabled) {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.testMailServerLivePollingEnabled = testMailServerLivePollingEnabled;
         }
     }
 }

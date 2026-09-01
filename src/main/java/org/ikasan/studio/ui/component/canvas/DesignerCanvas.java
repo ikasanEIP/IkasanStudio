@@ -20,6 +20,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -35,12 +36,14 @@ import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.model.psi.UserImplementedClassRelocator;
 import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import com.intellij.openapi.ui.ComboBox;
@@ -1343,6 +1346,7 @@ public class DesignerCanvas extends JPanel {
                 moduleViewHandler.paintComponent(this, g, -1, -1);
                 paintDraggedComponentGhost(g);
                 paintJmsDestinationConnectors(g, ikasanModule);
+                paintTestMailServerNode(g, ikasanModule);
             }
         }
         paintGettingStartedHint(g, ikasanModule);
@@ -1479,6 +1483,122 @@ public class DesignerCanvas extends JPanel {
         arrow.addPoint(tip.x - JMS_CONNECTOR_ARROW_SIZE, tip.y - (JMS_CONNECTOR_ARROW_SIZE / 2));
         arrow.addPoint(tip.x - JMS_CONNECTOR_ARROW_SIZE, tip.y + (JMS_CONNECTOR_ARROW_SIZE / 2));
         g2d.fill(arrow);
+    }
+
+    // Gap between the anchor's own real Email Endpoint pill and this node, matching the rhythm of
+    // JMS_CONNECTOR_GUTTER_MARGIN rather than inventing a new spacing constant.
+    private static final int TEST_MAIL_SERVER_NODE_GAP = JMS_CONNECTOR_GUTTER_MARGIN;
+    // Matches mailserver.svg/mailserver_dark.svg's own canvas size (same convention as every other endpoint
+    // icon, e.g. Email Endpoint's normal.svg).
+    private static final int TEST_MAIL_SERVER_NODE_WIDTH = 90;
+    private static final int TEST_MAIL_SERVER_NODE_HEIGHT = 60;
+    private static final int TEST_MAIL_SERVER_LABEL_GAP = 4;
+    private static final String TEST_MAIL_SERVER_LABEL = "Test Mail Server";
+
+    /**
+     * Draws the shared "Test Mail Server" node immediately to the right of the first flow (in module order)
+     * that has a matching Email Producer - positioned exactly like that producer's own real Email Endpoint
+     * pill would be, one gap further right - with a connector line from every OTHER matching Email Producer
+     * elsewhere in the module (which, being later in module order, is always positioned lower on the canvas -
+     * see {@code IkasanModuleViewHandler}) routed upward into it. Only for a Link whose address a
+     * locally-launched test mail server (MailHog) is actually listening on right now - see
+     * {@link TestMailServerLinks#findLinks} (grouping, framework-independent) and
+     * {@link TestMailServerSessionService#isListening} (the live, polled state); nothing is drawn at all
+     * otherwise, so the node/lines simply vanish the poll tick after the user stops it (see
+     * {@code StopTestMailServerAction}) - there is deliberately no separate "was it ever started" state to go
+     * stale.
+     * -
+     * Module-level, like {@link #paintJmsDestinationConnectors} above and for the same reason: the matching
+     * Email Producers can be spread across several different flows.
+     */
+    private void paintTestMailServerNode(Graphics graphics, Module ikasanModule) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
+            return;
+        }
+        List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
+        if (links.isEmpty()) {
+            return;
+        }
+        TestMailServerSessionService sessionService = project.getService(TestMailServerSessionService.class);
+
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            for (TestMailServerLinks.Link link : links) {
+                if (sessionService.isListening(link.host(), link.port())) {
+                    paintTestMailServerLink(graphics, g2d, ikasanModule, link);
+                }
+            }
+        } finally {
+            g2d.dispose();
+        }
+    }
+
+    private void paintTestMailServerLink(Graphics graphics, Graphics2D g2d, Module ikasanModule, TestMailServerLinks.Link link) {
+        FlowElement anchorProducer = firstByModuleOrder(ikasanModule, link.producers());
+        IkasanFlowViewHandler anchorFlowHandler = flowHandlerFor(anchorProducer);
+        IkasanFlowComponentViewHandler anchorEndpointHandler = anchorFlowHandler != null ? anchorFlowHandler.getEndpointViewHandlerFor(anchorProducer) : null;
+        if (anchorEndpointHandler == null) {
+            return;
+        }
+
+        Point anchorRight = anchorEndpointHandler.getRightConnectorPoint();
+        int nodeLeftX = anchorRight.x + TEST_MAIL_SERVER_NODE_GAP;
+        int nodeTopY = anchorRight.y - (TEST_MAIL_SERVER_NODE_HEIGHT / 2);
+        Point nodeLeft = new Point(nodeLeftX, anchorRight.y);
+
+        // Deliberately no g2d.setColor() call here, same as drawConnector() above (the plain lines joining
+        // ordinary flow components) - both render in whatever the inherited default paint colour is, which is
+        // exactly how they end up matching without this needing to guess at and hard-code that colour itself.
+        g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2d.drawLine(anchorRight.x, anchorRight.y, nodeLeft.x, nodeLeft.y);
+        paintArrowhead(g2d, nodeLeft);
+
+        // Every other matching producer is, by definition of "anchor = first in module order", in a flow
+        // positioned lower on the canvas. Rather than the JMS connectors' own per-pair gap-routing (which,
+        // sharing the canvas with an existing JMS line, could end up visually overlapping it - see the anchor
+        // line above for why this feature draws its own dedicated line instead), every other producer instead
+        // branches into one shared vertical trunk hanging straight down from the midpoint of the anchor's own
+        // line - simpler, and reads as one visibly distinct spine of "things pointing at this Test Mail
+        // Server", however many flows are on it.
+        int dropX = (anchorRight.x + nodeLeft.x) / 2;
+        for (FlowElement producer : link.producers()) {
+            if (producer == anchorProducer) {
+                continue;
+            }
+            IkasanFlowViewHandler otherFlowHandler = flowHandlerFor(producer);
+            IkasanFlowComponentViewHandler otherEndpointHandler = otherFlowHandler != null ? otherFlowHandler.getEndpointViewHandlerFor(producer) : null;
+            if (otherEndpointHandler == null) {
+                continue;
+            }
+            Point otherRight = otherEndpointHandler.getRightConnectorPoint();
+            Path2D path = new Path2D.Double();
+            path.moveTo(dropX, anchorRight.y);
+            path.lineTo(dropX, otherRight.y);
+            path.lineTo(otherRight.x, otherRight.y);
+            g2d.draw(path);
+        }
+
+        paintTestMailServerIcon(graphics, nodeLeftX, nodeTopY);
+    }
+
+    /** @return the element of {@code candidates} belonging to the flow that comes first in {@code module.getFlows()}. */
+    private FlowElement firstByModuleOrder(Module module, List<FlowElement> candidates) {
+        for (Flow flow : module.getFlows()) {
+            for (FlowElement candidate : candidates) {
+                if (candidate.getContainingFlow() == flow) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void paintTestMailServerIcon(Graphics graphics, int nodeLeftX, int nodeTopY) {
+        Icon icon = IkasanComponentLibrary.getMailServerIcon();
+        icon.paintIcon(this, graphics, nodeLeftX, nodeTopY);
+        StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_MAIL_SERVER_LABEL,
+                nodeLeftX + (TEST_MAIL_SERVER_NODE_WIDTH / 2), nodeTopY + TEST_MAIL_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
+                TEST_MAIL_SERVER_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
     }
 
     /**

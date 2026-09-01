@@ -53,6 +53,7 @@ public class DesignCanvasContextMenu {
                         : createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
             if (flowElement.getComponentMeta().supportsTestMailServer()) {
+                menu.addSeparator();
                 menu.add(createStartTestMailServerMenuItem(project, ikasanBasicElement));
                 menu.add(createStopTestMailServerMenuItem(project, ikasanBasicElement));
             }

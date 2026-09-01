@@ -545,6 +545,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                                 .thenComparing(Map.Entry::getKey, String.CASE_INSENSITIVE_ORDER))
                         .toList();
                 Map<String, List<ComponentProperty>> groupedOptionalProperties = new LinkedHashMap<>();
+                GridBagConstraints mandatoryHeadingGc = new GridBagConstraints();
+                mandatoryHeadingGc.fill = GridBagConstraints.HORIZONTAL;
+                mandatoryHeadingGc.insets = JBUI.insets(3, 4);
+                mandatoryHeadingGc.gridx = 0;
+                mandatoryHeadingGc.weightx = 1;
+                // Consecutive mandatory-section properties sharing the same mandatorySectionHeading (e.g. Email
+                // Producer's six recipient fields, all "At least one of...") are clustered into one titled
+                // sub-panel rather than added as flat rows - see flushMandatoryHeadingGroup. Buffered here and
+                // flushed as soon as a differently-headed (or header-less) property is encountered, so a group
+                // stays contiguous and lands exactly where its properties' own propertyDisplayOrder puts it,
+                // the same way groupedOptionalProperties below does for the Optional Properties section.
+                String openMandatoryHeading = null;
+                List<ComponentProperty> openMandatoryHeadingProperties = new ArrayList<>();
                 for (Map.Entry<String, ComponentPropertyMeta> entry : sortedProperties) {
                     String key = entry.getKey();
                     if (!ComponentPropertyMeta.isIdentityKey(key) && !entry.getValue().isHiddenProperty() && !entry.getValue().isIgnoreProperty()) {
@@ -559,20 +572,51 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             // A userSuppliedClass property that affects the user-implemented class already
                             // gets the warning icon (getAffectsUserImplementedClassIndicator) and the save-time
                             // confirmation dialog - no separate "regenerating" section needed any more.
+                            if (openMandatoryHeading != null) {
+                                mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                openMandatoryHeading = null;
+                                openMandatoryHeadingProperties = new ArrayList<>();
+                            }
                             groupedOptionalProperties.computeIfAbsent(property.getMeta().getPropertyGroup(), k -> new ArrayList<>()).add(property);
                         } else if (property.getMeta().isMandatory() || property.getMeta().hasMandatoryUnlessAnyOf()) {
                             // hasMandatoryUnlessAnyOf: e.g. an SFTP consumer's password/privateKeyFilename - one
                             // of the two is genuinely required, so (as long as neither carries its own
                             // propertyGroup) both belong in the always-visible Mandatory section rather than
-                            // hidden behind the Optional Properties toggle. The row's label carries the "(or ...)"
-                            // cue so it's clear at a glance that only one of the pair, not both, needs a value.
-                            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
-                                    mandatoryPropertiesEditorPanel,
-                                    property, gc, mandatoryTabley++));
+                            // hidden behind the Optional Properties toggle. A pairwise case like that carries
+                            // the "(or ...)" label cue instead of a mandatorySectionHeading - see
+                            // ComponentPropertyEditRow; a wider group (e.g. email's six recipient fields) uses
+                            // a shared heading instead, since a five-way "(or a / b / c / d / e)" suffix on
+                            // every row is unreadable.
+                            if (property.getMeta().hasMandatorySectionHeading()) {
+                                String heading = property.getMeta().getMandatorySectionHeading();
+                                if (openMandatoryHeading != null && !openMandatoryHeading.equals(heading)) {
+                                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                    openMandatoryHeadingProperties = new ArrayList<>();
+                                }
+                                openMandatoryHeading = heading;
+                                openMandatoryHeadingProperties.add(property);
+                            } else {
+                                if (openMandatoryHeading != null) {
+                                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                    openMandatoryHeading = null;
+                                    openMandatoryHeadingProperties = new ArrayList<>();
+                                }
+                                componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
+                                        mandatoryPropertiesEditorPanel,
+                                        property, gc, mandatoryTabley++));
+                            }
                         } else {
+                            if (openMandatoryHeading != null) {
+                                mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                openMandatoryHeading = null;
+                                openMandatoryHeadingProperties = new ArrayList<>();
+                            }
                             groupedOptionalProperties.computeIfAbsent(ComponentPropertyMeta.PROPERTY_GROUP_MISCELLANEOUS, k -> new ArrayList<>()).add(property);
                         }
                     }
+                }
+                if (openMandatoryHeading != null) {
+                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
                 }
 
                 GridBagConstraints groupGc = new GridBagConstraints();
@@ -677,7 +721,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         for (ComponentPropertyEditRow row : componentPropertyEditRowList) {
             boolean matches = row.matchesSearch(query);
             row.setRowVisible(matches);
-            if (matches && !isInMandatorySection(row.getMeta())) {
+            if (matches && isInOptionalSection(row.getMeta())) {
                 anyOptionalMatch = true;
             }
         }
@@ -690,19 +734,27 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     /**
      * Mirrors the placement decision made while building the panel (see the loop in populatePropertiesEditorPanel
-     * above): a property lands in the always-visible Mandatory section only if it isn't grouped and is mandatory
-     * (unconditionally or via mandatoryUnlessAnyOf) - everything else, including mandatoryIfTrue properties like
-     * FtpConsumer's ftpsKeyStoreFilePath, lives in the Optional section.
+     * above), inverted: a property lands in the always-visible Mandatory section only if it isn't grouped and is
+     * mandatory (unconditionally or via mandatoryUnlessAnyOf) - everything else, including mandatoryIfTrue
+     * properties like FtpConsumer's ftpsKeyStoreFilePath, lives in the Optional section, i.e. this is true for it.
      */
-    private boolean isInMandatorySection(ComponentPropertyMeta meta) {
-        return !meta.isGroupedProperty() && (meta.isMandatory() || meta.hasMandatoryUnlessAnyOf());
+    private boolean isInOptionalSection(ComponentPropertyMeta meta) {
+        return meta.isGroupedProperty() || (!meta.isMandatory() && !meta.hasMandatoryUnlessAnyOf());
     }
 
     private void toggleOptionalSection() {
         isExpanded = !isExpanded;
         setToggleOptionalPropertiesButton(isExpanded);
         for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
-            if (componentPropertyEditRow.getMeta().isOptional()) {
+            // isInOptionalSection(), not getMeta().isOptional() - isOptional() only checks the raw `mandatory`
+            // flag and knows nothing of hasMandatoryUnlessAnyOf(), so a field like Email Producer's toRecipient
+            // (mandatory-unless-any-of, not unconditionally mandatory) read as "optional" here even though it
+            // lives in the always-visible Mandatory section. resetDataEntryComponentsWithNewValues() re-derives
+            // the widget's text from the still-uncommitted model value (typed text is never live-bound to the
+            // model - see updateValueObjectWithEnteredValues(), only called from "Update Code") - so calling it
+            // on a Mandatory-section row wiped out whatever the user had just typed there, the moment they
+            // clicked Expand/Collapse on the unrelated Optional Properties section.
+            if (isInOptionalSection(componentPropertyEditRow.getMeta())) {
                 componentPropertyEditRow.resetDataEntryComponentsWithNewValues();
             }
         }
@@ -749,7 +801,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     protected void clearOptionalProperties() {
         for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
-            if (componentPropertyEditRow.getMeta().isOptional()) {
+            // isInOptionalSection(), not getMeta().isOptional() - see the identical fix/comment in
+            // toggleOptionalSection(). Here the stakes are higher than a display refresh: clearValue() commits
+            // componentProperty.setValue(null), so this button would otherwise silently wipe a genuinely
+            // conditionally-mandatory field's saved value (e.g. Email Producer's toRecipient, SFTP's password)
+            // while believing it was only clearing optional ones.
+            if (isInOptionalSection(componentPropertyEditRow.getMeta())) {
                 componentPropertyEditRow.clearValue();
             }
         }
@@ -758,7 +815,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     protected void setOptionalPropertiesToDefaultVales() {
         for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
-            if (componentPropertyEditRow.getMeta().isOptional()) {
+            // isInOptionalSection(), not getMeta().isOptional() - see the identical fix/comment in
+            // toggleOptionalSection() and clearOptionalProperties() above.
+            if (isInOptionalSection(componentPropertyEditRow.getMeta())) {
                 componentPropertyEditRow.setDefaultValue();
             }
         }
@@ -775,6 +834,35 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             firstComponent = componentPropertyEditRowList.get(0).getInputField().getFirstFocusComponent();
         }
         return firstComponent;
+    }
+
+    /**
+     * Builds a titled sub-panel for one run of mandatory-section properties that share a
+     * {@code mandatorySectionHeading} (e.g. Email Producer's six recipient fields under "At least one of..."),
+     * adds it into {@code mandatoryPropertiesEditorPanel} at the given row, and returns the next free row -
+     * mirrors the optional-groups loop in {@link #populatePropertiesEditorPanel()} but embedded inside the
+     * Mandatory Properties section instead of Optional Properties, so these fields stay always-visible (see
+     * feedback_mandatory_properties_must_stay_ungrouped).
+     * @param mandatoryPropertiesEditorPanel the always-visible Mandatory section panel to add the sub-panel into
+     * @param headingGc layout constraints tracking the next free row in mandatoryPropertiesEditorPanel - mutated
+     *                  (gridy advanced) by this call, same pattern as setSubPanel's own gc1
+     * @param mandatoryTabley the row this heading group's sub-panel should be placed at
+     * @param heading the shared mandatorySectionHeading text, used as this sub-panel's titled border
+     * @param properties every buffered property sharing this heading, in display order
+     * @param rowGc layout constraints reused for each property's own row inside the sub-panel
+     * @return the next free row in mandatoryPropertiesEditorPanel, for the caller to resume flat-row placement at
+     */
+    private int flushMandatoryHeadingGroup(JBPanel mandatoryPropertiesEditorPanel, GridBagConstraints headingGc, int mandatoryTabley,
+                                            String heading, List<ComponentProperty> properties, GridBagConstraints rowGc) {
+        JBPanel headingPanel = new JBPanel(new GridBagLayout());
+        headingPanel.setBorder(null);
+        int innerTabley = 0;
+        for (ComponentProperty property : properties) {
+            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(headingPanel, property, rowGc, innerTabley++));
+        }
+        headingGc.gridy = mandatoryTabley;
+        setSubPanel(mandatoryPropertiesEditorPanel, headingPanel, heading, getThemeAwareBorderColor(), headingGc);
+        return headingGc.gridy;
     }
 
     /**

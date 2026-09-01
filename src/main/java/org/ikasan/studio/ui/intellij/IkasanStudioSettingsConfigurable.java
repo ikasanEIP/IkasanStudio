@@ -23,6 +23,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox promptBeforeDeletingUserCodeCheckBox;
     private JCheckBox showAdvancedControlsCheckBox;
     private JCheckBox showJmsConnectorsCheckBox;
+    private JCheckBox testMailServerLivePollingCheckBox;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -72,12 +73,23 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         jmsConnectorsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
         jmsConnectorsPanel.add(jmsConnectorsNote, BorderLayout.CENTER);
 
+        testMailServerLivePollingCheckBox = new JCheckBox(StudioBundle.message("checkbox.TestMailServerLivePolling"));
+
+        JPanel testMailServerPanel = new JPanel(new BorderLayout(0, 4));
+        testMailServerPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.TestMailServerLivePolling")));
+        testMailServerPanel.add(testMailServerLivePollingCheckBox, BorderLayout.NORTH);
+
+        JLabel testMailServerNote = new JLabel(StudioBundle.message("label.TestMailServerLivePollingNote"));
+        testMailServerNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        testMailServerPanel.add(testMailServerNote, BorderLayout.CENTER);
+
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
         northPanel.add(hintsPanel);
         northPanel.add(userCodePanel);
         northPanel.add(advancedControlsPanel);
         northPanel.add(jmsConnectorsPanel);
+        northPanel.add(testMailServerPanel);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -92,7 +104,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         return gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
                 || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
-                || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled();
+                || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled()
+                || testMailServerLivePollingCheckBox.isSelected() != IkasanStudioSettings.isTestMailServerLivePollingEnabled();
     }
 
     @Override
@@ -104,6 +117,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
             state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
             state.jmsConnectorsEnabled = showJmsConnectorsCheckBox.isSelected();
+            state.testMailServerLivePollingEnabled = testMailServerLivePollingCheckBox.isSelected();
         }
         repaintOpenCanvases();
     }
@@ -114,6 +128,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
         showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());
         showJmsConnectorsCheckBox.setSelected(IkasanStudioSettings.areJmsConnectorsEnabled());
+        testMailServerLivePollingCheckBox.setSelected(IkasanStudioSettings.isTestMailServerLivePollingEnabled());
     }
 
     @Override

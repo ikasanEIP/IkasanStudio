@@ -26,21 +26,23 @@
     "toRecipient": {
       "propertyName": "toRecipient",
       "helpText": "A single To recipient. At least one recipient must be provided across To, CC or BCC.",
-      "propertyGroup": "Popular",
-      "propertyDisplayOrder": -60,
+      "propertyDisplayOrder": -100,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-      "validationMessage": "Please provide a valid formatted email address."
+      "validationMessage": "Please provide a valid formatted email address.",
+      "mandatoryUnlessAnyOf": ["toRecipients", "ccRecipient", "ccRecipients", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
     },
     "toRecipients": {
       "propertyName": "toRecipients",
       "helpText": "The list of To recipients, enter a comma seperated list of (unquoted) strings.",
       "propertyConfigFileLabel": "__flow.email.producer.toRecipients",
-      "propertyGroup": "Popular",
-      "propertyDisplayOrder": -50,
+      "propertyDisplayOrder": -95,
       "setterProperty": true,
-      "usageDataType": "java.util.List<String>"
+      "usageDataType": "java.util.List<String>",
+      "mandatoryUnlessAnyOf": ["toRecipient", "ccRecipient", "ccRecipients", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
     },
     "mailSubject": {
       "propertyName": "mailSubject",
@@ -60,9 +62,10 @@
     },
     "emailFormat": {
       "propertyName": "emailFormat",
-      "helpText": "The MIME content type for the email body, e.g. text/plain or text/html. Unlike emailBody, this is always used as the sent message's MIME content type, even when the upstream <strong>Email Converter</strong> supplies the body text itself. Pick one of the suggestions, or type any other MIME type directly (e.g. with a charset, such as text/plain; charset=utf-8).",
-      "propertyGroup": "Popular",
-      "propertyDisplayOrder": -20,
+      "helpText": "The MIME content type for the email body, e.g. text/plain or text/html. Unlike emailBody, this is always used as the sent message's MIME content type, even when the upstream <strong>Email Converter</strong> supplies the body text itself. Pick one of the suggestions, or type any other MIME type directly (e.g. with a charset, such as text/plain; charset=utf-8). Unconditionally mandatory - unlike most other properties here, EmailProducerConfiguration has no Java-level default for this one, so leaving it unset sends null through to javax.mail's MimeBodyPart, which throws \"ParseException: Expected MIME type, got null\" at send time rather than falling back to anything sensible.",
+      "propertyDisplayOrder": -70,
+      "mandatory": true,
+      "defaultValue": "text/plain",
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "choices": ["text/plain", "text/html"],
@@ -80,41 +83,45 @@
     },
     "ccRecipient": {
       "propertyName": "ccRecipient",
-      "helpText": "The CC recipient",
-      "propertyGroup": "Recipients",
-      "propertyDisplayOrder": 100,
+      "helpText": "The CC recipient. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDisplayOrder": -90,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-      "validationMessage": "Please provide a valid formatted email address."
+      "validationMessage": "Please provide a valid formatted email address.",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipients", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
     },
     "ccRecipients": {
       "propertyName": "ccRecipients",
-      "helpText": "The list of CC recipient, enter a comma seperated list of (unquoted) strings",
+      "helpText": "The list of CC recipient, enter a comma seperated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.email.producer.ccRecipients",
-      "propertyGroup": "Recipients",
-      "propertyDisplayOrder": 110,
+      "propertyDisplayOrder": -85,
       "setterProperty": true,
-      "usageDataType": "java.util.List<String>"
+      "usageDataType": "java.util.List<String>",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
     },
     "bccRecipient": {
       "propertyName": "bccRecipient",
-      "helpText": "The Bcc recipient",
-      "propertyGroup": "Recipients",
-      "propertyDisplayOrder": 120,
+      "helpText": "The Bcc recipient. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDisplayOrder": -80,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
-      "validationMessage": "Please provide a valid formatted email address."
+      "validationMessage": "Please provide a valid formatted email address.",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
     },
     "bccRecipients": {
       "propertyName": "bccRecipients",
-      "helpText": "The list of BCC recipient, enter a comma seperated list of (unquoted) strings",
+      "helpText": "The list of BCC recipient, enter a comma seperated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.email.producer.bccRecipients",
-      "propertyGroup": "Recipients",
-      "propertyDisplayOrder": 130,
+      "propertyDisplayOrder": -75,
+      "mandatorySectionHeading": "At least one of...",
       "setterProperty": true,
-      "usageDataType": "java.util.List<String>"
+      "usageDataType": "java.util.List<String>",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipient"]
     },
     "hasAttachments": {
       "propertyName": "hasAttachments",

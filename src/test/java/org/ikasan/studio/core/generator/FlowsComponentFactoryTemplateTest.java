@@ -317,6 +317,30 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     }
 
     /**
+     * Regression test: EmailProducerConfiguration has no Java-level default for emailFormat (unlike e.g.
+     * mailhost's "localhost") - a component left with no .setEmailFormat(...) call at all sends a null MIME
+     * type straight through to javax.mail's MimeBodyPart, which throws "ParseException: Expected MIME type,
+     * got null" at send time. emailFormat is now mandatory with a real defaultValue ("text/plain"), so
+     * defaultUnsetMandatoryProperties() (called for every fresh component, e.g. on model.json load - see
+     * ModuleDeserializer#getInitialFlowElement) fills it in automatically rather than leaving it unset.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_emailProducerComponentDefaultsEmailFormat(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+            .componentMeta(meta)
+            .componentName("My Email Producer")
+            .build();
+        flowElement.setPropertyValue("from", "FromAddress");
+        flowElement.setPropertyValue("toRecipient", "valid@example.com");
+        flowElement.defaultUnsetMandatoryProperties();
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertTrue(templateString.contains(".setEmailFormat(\"text/plain\")"), "an unset emailFormat must default to a real MIME type, not be left out entirely:\n" + templateString);
+    }
+
+    /**
      * Regression test: a now-fixed older bug could persist the literal string "[]" (java.util.List#toString()
      * of an empty list) as a List property's value in model.json, rather than leaving it genuinely unset.
      * Reloading such a file must not resurrect an uncompilable/broken ".setToRecipients(...)" call - see
