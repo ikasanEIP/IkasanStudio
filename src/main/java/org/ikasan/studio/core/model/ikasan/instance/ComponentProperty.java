@@ -107,6 +107,20 @@ public class ComponentProperty {
                 (value instanceof Integer && ((Integer) value) == 0) ||
                 (value instanceof Long && ((Long) value) == 0) ||
                 (value instanceof Double && ((Double) value) == 0.0) ||
-                (value instanceof Float && ((Float) value) == 0.0);
+                (value instanceof Float && ((Float) value) == 0.0) ||
+                (value instanceof List && ((List<?>) value).isEmpty()) ||
+                (value instanceof String && isStaleEmptyListLiteral((String) value));
+    }
+
+    // model.json saved by a now-fixed older bug could hold the literal 2-character string "[]" for a List
+    // property (java.util.List#toString() of an empty list, written out as a raw value rather than treated as
+    // unset) - a genuinely unset field is expected here instead, so treat that stale literal the same way: as
+    // not set. Left unguarded, it survives JSON round-tripping as a non-null, non-blank String and slips past
+    // every other check here, then reaches Spring's @Value SpEL list-split in componentFactory_en.ftl as a
+    // single-element list containing the text "[]" - which is not a valid email address.
+    private boolean isStaleEmptyListLiteral(String stringValue) {
+        return meta != null && meta.getUsageDataType() != null
+                && meta.getUsageDataType().startsWith("java.util.List")
+                && "[]".equals(stringValue.trim());
     }
 }

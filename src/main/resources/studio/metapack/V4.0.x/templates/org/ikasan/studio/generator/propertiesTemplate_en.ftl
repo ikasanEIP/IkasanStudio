@@ -111,7 +111,7 @@ ikasan.flow.configuration[${escapedFlowName}].invokeContextListeners=${flow.getP
                 <#if componentProperty?? && componentProperty.getMeta()?? &&
                         componentProperty.getMeta().getPropertyConfigFileLabel()?? &&
                         componentProperty.getMeta().getPropertyConfigFileLabel() != "" &&
-                        componentProperty.getValue()?? &&
+                        !componentProperty.valueNotSet() &&
                         !componentProperty.getMeta().isUserSuppliedClass()>
                     ${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, basicElement, componentProperty.getMeta().getPropertyConfigFileLabel())}=${StudioBuildUtils.escapeSpringPropertiesValue(componentProperty.getValueString())}
                 </#if>

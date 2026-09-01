@@ -18,6 +18,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
 java.util.List<String> myFlow1EmailProducerBccRecipients;
 @org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.ccRecipients}'.split(',')}")
 java.util.List<String> myFlow1EmailProducerCcRecipients;
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.toRecipients}'.split(',')}")
+java.util.List<String> myFlow1EmailProducerToRecipients;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration myConfigurationClass;
 
@@ -34,23 +36,23 @@ return builderFactory.getComponentBuilder().emailProducer()
 .setEmailFormat("html")
 .setExtendedMailSessionProperties(key1value1key2value2)
 .setFrom("FromAddress")
-.setHasAttachments(true)
+.setHasAttachment(true)
 .setMailDebug(true)
 .setMailMimeAddressStrict(true)
-.setMailPassword("myMailPassword")
+.setPassword("myMailPassword")
 .setMailPopClass("myMailPopClass")
 .setMailPopPort(100)
 .setMailPopUser("myMailPopUser")
-.setMailRuntimeEnvironment("myMailRuntimeEnvironment")
+.setRuntimeEnvironment("myMailRuntimeEnvironment")
 .setMailSmtpClass("myMailSmtpClass")
 .setMailSmtpHost("myMailSmtpHost")
 .setMailSmtpPort(101)
 .setMailSmtpUser("myMailSmtpUser")
 .setMailStoreProtocol("myMailStoreProtocol")
 .setMailSubject("myMailSubject")
-.setMailhost(myMailhostAddress)
+.setMailhost("myMailhostAddress")
 .setToRecipient("myToRecipient")
-.setToRecipients(to1,to2)
+.setToRecipients(myFlow1EmailProducerToRecipients)
 .setTransportProtocol("myTransportProtocol")
 .setUser("myUser")
 .build();

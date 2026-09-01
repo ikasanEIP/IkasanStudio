@@ -18,7 +18,7 @@
       "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
-      "helpText": "The type of data we expect to come into the converter. This can be any Java class.",
+      "helpText": "The type of data we expect to come into the converter, e.g. java.lang.Object or java.lang.String - enter just the plain class name. If the upstream component's own Output: text ends with an annotation like '(auto-converted)', that's an explanatory note, not part of the type - do not paste it in here.",
       "mandatory": true,
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."

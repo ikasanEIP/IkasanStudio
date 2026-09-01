@@ -183,9 +183,9 @@ class IkasanComponentLibraryTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(39, IkasanComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
+            () -> assertEquals(41, IkasanComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
             () -> assertEquals(
-                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Object Message To Object Converter, JMS Producer, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Translator]",
+                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Converter, Email Endpoint, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Object Message To Object Converter, JMS Producer, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Translator]",
 //                new TreeSet<>(Arrays.asList("Custom Converter", ComponentMeta.EXCEPTION_RESOLVER_TYPE, "Event Generating Consumer", ComponentMeta.FLOW_TYPE, ComponentMeta.MODULE_TYPE, "Dev Null Producer")),
                 new TreeSet<>(IkasanComponentLibrary.getIkasanComponentNames(BASE_META_PACK)).toString())
         );
@@ -220,6 +220,8 @@ class IkasanComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("File Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("FTP Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("SFTP Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("Email Endpoint"));
+        verifyComponentUsesSvg(componentMetaList.get("Email Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Generic Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("Scheduler Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("Router Endpoint"), 40, 27, 15, 60);
@@ -233,6 +235,23 @@ class IkasanComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("Single Recipient Router"));
         verifyComponentUsesSvg(componentMetaList.get("Splitter"));
         verifyComponentUsesSvg(componentMetaList.get("Default List Splitter"));
+    }
+
+    @Test
+    void emailProducerResolvesToAnEmailEndpointLabelledWithItsToRecipient() throws Exception {
+        org.ikasan.studio.core.model.ikasan.instance.FlowElement emailProducer =
+                org.ikasan.studio.core.TestFixtures.getEmailProducer(BASE_META_PACK);
+
+        org.ikasan.studio.core.model.ikasan.instance.FlowElement endpoint =
+                IkasanComponentLibrary.getEndpointForGivenComponent(BASE_META_PACK, emailProducer);
+
+        assertAll(
+                "Email Producer must resolve to its own Email Endpoint, labelled with its toRecipient",
+                () -> assertEquals("Email Endpoint", emailProducer.getComponentMeta().getEndpointKey()),
+                () -> assertNotNull(endpoint, "Email Producer must resolve to a real endpoint, not silently return null"),
+                () -> assertEquals("Email Endpoint", endpoint.getComponentMeta().getName()),
+                () -> assertEquals(emailProducer.getPropertyValueAsString("toRecipient"), endpoint.getComponentName())
+        );
     }
 
     private void verifyComponentUsesSvg(ComponentMeta component) {

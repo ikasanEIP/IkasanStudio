@@ -1,10 +1,11 @@
 <#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
 <#assign fromType=StudioBuildUtils.toJavaTypeLiteral(flowElement.getPropertyValue('fromType'))>
-<#assign toType=StudioBuildUtils.toJavaTypeLiteral(flowElement.getPropertyValue('toType'))>
 package ${studioPackageTag};
 
 /**
-* The main responsibility of a converter is to convert from one POJO type to another.
+* Builds the EmailPayload the Email Producer needs to send a message. EmailPayload.newInstance() always
+* returns a DefaultEmailPayload - cast to it to reach setEmailBody(...) and addAttachment(name, type, bytes),
+* neither of which are on the EmailPayload interface itself.
 *
 * Unlike Broker, this component detects "full event" mode safely: set the input type below to the real payload
 * type (e.g. String) to receive just the payload, or to org.ikasan.spec.flow.FlowEvent to receive the full event
@@ -15,14 +16,20 @@ package ${studioPackageTag};
 * This stub will not be overwritten unless the overwrite checkbox is explicitly selected.
 */
 
+import org.ikasan.component.endpoint.email.producer.DefaultEmailPayload;
+import org.ikasan.component.endpoint.email.producer.EmailPayload;
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
 @org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}")
-public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Converter<${fromType}, ${toType}>
+public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Converter<${fromType}, EmailPayload>
 {
-public ${toType} convert(${fromType} payload) throws TransformationException
+public EmailPayload convert(${fromType} payload) throws TransformationException
 {
-return new ${toType}(payload);
+DefaultEmailPayload emailPayload = (DefaultEmailPayload) EmailPayload.newInstance();
+// TODO populate the email body, and any attachments, from the incoming payload, e.g.
+// emailPayload.setEmailBody(payload.toString());
+// emailPayload.addAttachment("report.pdf", "application/pdf", attachmentBytes);
+return emailPayload;
 }
 }

@@ -1,10 +1,19 @@
 {
-  "name": "Converter",
+  "name": "Email Converter",
   "flowBuilderMethod": "converter",
   "generatesUserImplementedClass": "true",
-  "helpText": "<p>The purpose of this converter is to support any type of conversion required, implemented by a bespoke converter class.</p>",
+  "helpText": "<p>Builds the org.ikasan.component.endpoint.email.producer.EmailPayload required by the <strong>Email Producer</strong>. The downstream component fed by this one should be an <strong>Email Producer</strong>, which sends the EmailPayload (email body plus any attachments) this converter builds.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
+  "additionalKey": "EmailConverter",
+  "producedOutputType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-email-endpoint",
+      "version": "4.1.6"
+    }
+  ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
@@ -18,21 +27,10 @@
       "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
-      "helpText": "The type of data we expect to come into the converter, e.g. java.lang.Object or java.lang.String - enter just the plain class name. If the upstream component's own Output: text ends with an annotation like '(auto-converted)', that's an explanatory note, not part of the type - do not paste it in here.",
+      "helpText": "The type of data coming into this converter from the previous component in the flow, e.g. java.lang.Object or java.lang.String - enter just the plain class name. If the upstream component's own Output: text ends with an annotation like '(auto-converted)', that's an explanatory note, not part of the type - do not paste it in here.",
       "mandatory": true,
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
-    },
-    "toType": {
-      "propertyName": "toType",
-      "propertyDisplayOrder": -30,
-      "usageDataType": "classLiteral",
-      "affectsUserImplementedClass": "true",
-      "defaultValue": "java.lang.String",
-      "helpText": "The type of data we expect to be the output of the converter. This can be any Java class.",
-      "mandatory": true,
-      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
-      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the output of the converter."
     },
     "requiresStub": {
       "propertyName": "requiresStub",
@@ -48,10 +46,10 @@
       "propertyDisplayOrder": -10,
       "affectsUserImplementedClass": "true",
       "defaultValue": "__fieldName:componentName",
-      "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
+      "helpText": "The name of the class that will build the EmailPayload, the IDE will create a template for this class, the user must fill in the email body/attachment logic.",
       "mandatory": true,
-      "userImplementClassFtlTemplate": "converterTemplate.ftl",
-      "validation": "^[A-Z_$][a-zA-Z\\d_$\u00a3]*$",
+      "userImplementClassFtlTemplate": "emailConverterTemplate.ftl",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
     },
     "configuration": {
@@ -62,7 +60,7 @@
       "affectsUserImplementedClass": true,
       "protectFromOverwrite": true,
       "usageDataType": "configurationDefined",
-      "validation": "^[A-Z_$][a-zA-Z\\d_$\u00a3]*$",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
     "configurationId": {

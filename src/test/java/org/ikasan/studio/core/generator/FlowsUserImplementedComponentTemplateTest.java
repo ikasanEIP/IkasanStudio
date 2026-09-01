@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FlowsUserImplementedComponentTemplateTest extends AbstractGeneratorTestFixtures {
     //  ------------------------------- BROKER ----------------------------------
@@ -72,6 +74,39 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
         assertNotNull(templateString);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyConverter.java"), templateString);
+    }
+
+    //  ------------------------------- CONVERTER ----------------------------------
+    /**
+     * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyEmailConverter.java
+     * @throws IOException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_emailConverterComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getEmailConverter(metaPackVersion);
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyEmailConverter.java"), templateString);
+    }
+
+    /**
+     * Regression test: fromType is free text, and a user can copy an upstream component's Output: display text
+     * (e.g. "java.lang.Object (auto-converted)" for a JMS consumer with Auto Content Conversion on) verbatim into
+     * it, which used to generate an uncompilable type literal - see StudioBuildUtils#toJavaTypeLiteral.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_emailConverterComponent_stripsAnAutoConvertedAnnotationFromFromType(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getEmailConverter(metaPackVersion);
+        flowElement.setPropertyValue(org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+        assertNotNull(templateString);
+        assertTrue(templateString.contains("Converter<java.lang.Object, EmailPayload>"));
+        assertTrue(templateString.contains("convert(java.lang.Object payload)"));
+        assertFalse(templateString.contains("auto-converted"));
     }
 
     //  ------------------------------- CONVERTER ----------------------------------

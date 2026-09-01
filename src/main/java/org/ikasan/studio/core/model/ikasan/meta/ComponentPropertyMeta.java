@@ -96,6 +96,11 @@ public class ComponentPropertyMeta {
     private boolean affectsUserImplementedClass = false;  // A change to this property should result in an update to the user implemnted class
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     private List<String> choices;           // The value can be only one of the items in this list
+    @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
+    @Builder.Default
+    private boolean choicesEditable = false; // When true, the choices dropdown is also directly editable - a free-text
+                                              // escape hatch for values outside the suggested list (e.g. emailFormat's
+                                              // MIME type), rather than choices being the only permitted values.
     private String dataValidationType;      // Support for popup data entry helpers / data types
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
@@ -241,6 +246,7 @@ public class ComponentPropertyMeta {
     public boolean equals(Object o) {
         if (!(o instanceof ComponentPropertyMeta that)) return false;
         return affectsUserImplementedClass == that.affectsUserImplementedClass &&
+                choicesEditable == that.choicesEditable &&
                 hiddenProperty == that.hiddenProperty &&
                 ignoreProperty == that.ignoreProperty &&
                 mandatory == that.mandatory &&
@@ -274,7 +280,7 @@ public class ComponentPropertyMeta {
     @Override
     public int hashCode() {
 
-        return Objects.hash(propertyName, propertyGroup, trueLabel, falseLabel, affectsUserImplementedClass, choices,
+        return Objects.hash(propertyName, propertyGroup, trueLabel, falseLabel, affectsUserImplementedClass, choicesEditable, choices,
                 mandatoryUnlessAnyOf, mandatoryIfTrue, dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,

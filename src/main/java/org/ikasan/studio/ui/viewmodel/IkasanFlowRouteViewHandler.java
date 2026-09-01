@@ -217,7 +217,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     // is added - anchoring to the target element made the gap collapse once a decorator was present.
                     int endpointLeftX = ViewHandlerCache.getFlowViewHandler(project, flow).getLeftX() - FLOW_CONTAINER_BORDER - UiContext.getMinimumComponentXSpacing() - endpointViewHandler.getWidth();
                     if (endpointLeftX < -10) {
-                        LOG.error("STUDIO: 1 Left X being set to a -ve of " + endpointLeftX);
+                        LOG.warn("STUDIO: Consumer endpoint left X being set to a -ve of " + endpointLeftX);
                     }
                     endpointViewHandler.setLeftX(endpointLeftX);
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
@@ -226,12 +226,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                         paintSendTestMessageBadge(canvas, g, targetFlowElement, endpointViewHandler);
                     }
                 } else {
-//                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + FLOW_X_SPACING);
-//XXXX
-if (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing() < -10) {
-    LOG.error("STUDIO: 2 Left X being set to a -ve of " + (ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing()));
-}
-                    endpointViewHandler.setLeftX(ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing());
+                    int endpointLeftX = ViewHandlerCache.getFlowViewHandler(project, flow).getRightX() + FLOW_CONTAINER_BORDER + UiContext.getMinimumComponentXSpacing();
+                    if (endpointLeftX < -10) {
+                        LOG.warn("STUDIO: Producer endpoint left X being set to a -ve of " + endpointLeftX);
+                    }
+                    endpointViewHandler.setLeftX(endpointLeftX);
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, targetFlowElementViewHandler, endpointViewHandler);
                 }

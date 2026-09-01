@@ -98,6 +98,13 @@ class ComponentMetaTest {
     }
 
     @Test
+    public void preview_output_uses_the_fixed_producedOutputType_for_the_email_converter_since_it_has_no_toType_property() throws StudioBuildException {
+        ComponentMeta emailConverter = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Converter");
+
+        assertEquals("org.ikasan.component.endpoint.email.producer.EmailPayload", emailConverter.getEffectiveOutputTypeDescriptionPreview());
+    }
+
+    @Test
     public void producesFileListPayload_is_true_for_local_file_consumer() throws StudioBuildException {
         ComponentMeta localFileConsumer = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Local File Consumer");
 

@@ -4,7 +4,9 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -12,6 +14,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
@@ -289,6 +293,56 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         FlowElement flowElement = TestFixtures.getEmailProducer(metaPackVersion);
         String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedEmailProducerComponent.java"), templateString);
+    }
+
+    /**
+     * Regression test: an Email Producer with no toRecipient(s) entered must not emit a call to the
+     * List&lt;String&gt;-typed setToRecipients(), which requires a non-empty argument to compile - see
+     * {@link org.ikasan.studio.ui.component.properties.ComponentPropertyEditRowStringListTest}.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_emailProducerComponentWithNoRecipients(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+            .componentMeta(meta)
+            .componentName("My Email Producer")
+            .build();
+        flowElement.setPropertyValue("from", "FromAddress");
+        flowElement.defaultUnsetMandatoryProperties();
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertFalse(templateString.contains(".setToRecipients("), "no toRecipients were entered, so .setToRecipients( must not be generated:\n" + templateString);
+        assertFalse(templateString.contains(".setToRecipient("), "no toRecipient was entered, so .setToRecipient( must not be generated:\n" + templateString);
+    }
+
+    /**
+     * Regression test: a now-fixed older bug could persist the literal string "[]" (java.util.List#toString()
+     * of an empty list) as a List property's value in model.json, rather than leaving it genuinely unset.
+     * Reloading such a file must not resurrect an uncompilable/broken ".setToRecipients(...)" call - see
+     * {@link org.ikasan.studio.core.model.ikasan.instance.ComponentPropertyTest}.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_emailProducerComponentWithStaleEmptyListLiteral(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        FlowElement flowElement = FlowElement.flowElementBuilder()
+            .componentMeta(meta)
+            .componentName("My Email Producer")
+            .build();
+        flowElement.setPropertyValue("from", "FromAddress");
+        flowElement.setPropertyValue("toRecipient", "valid@example.com");
+        // Simulates a stale model.json produced by the older bug, not a fresh UI edit.
+        flowElement.setPropertyValue("toRecipients", "[]");
+        flowElement.setPropertyValue("ccRecipients", "[]");
+        flowElement.setPropertyValue("bccRecipients", "[]");
+        flowElement.defaultUnsetMandatoryProperties();
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertFalse(templateString.contains(".setToRecipients("), "a stale \"[]\" toRecipients must not be generated:\n" + templateString);
+        assertFalse(templateString.contains(".setCcRecipients("), "a stale \"[]\" ccRecipients must not be generated:\n" + templateString);
+        assertFalse(templateString.contains(".setBccRecipients("), "a stale \"[]\" bccRecipients must not be generated:\n" + templateString);
+        assertTrue(templateString.contains(".setToRecipient(\"valid@example.com\")"), "the valid singular toRecipient must still be generated:\n" + templateString);
     }
 
     /**

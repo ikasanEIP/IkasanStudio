@@ -63,6 +63,18 @@ public class StudioBuildUtilsTest {
     }
 
     @Test
+    public void toJavaTypeLiteral_strips_a_trailing_explanatory_annotation_like_the_upstream_output_description_carries() {
+        // Regression test: a fromType/toType property is free text, and a user can easily copy the display text
+        // shown for an upstream component's Output: (e.g. a JMS consumer with Auto Content Conversion on reads
+        // "java.lang.Object (auto-converted)" - see ComponentMeta#getEffectiveOutputTypeDescription) verbatim into
+        // a Converter's fromType field, which would otherwise generate an uncompilable Java type literal.
+        assertThat(StudioBuildUtils.toJavaTypeLiteral("java.lang.Object (auto-converted)"), is("java.lang.Object"));
+        assertThat(StudioBuildUtils.toJavaTypeLiteral("java.lang.String"), is("java.lang.String"));
+        assertThat(StudioBuildUtils.toJavaTypeLiteral("  java.lang.String  "), is("java.lang.String"));
+        assertThat(StudioBuildUtils.toJavaTypeLiteral(null), is((String) null));
+    }
+
+    @Test
     public void testToJavaIdentifier() {
         assertThat(StudioBuildUtils.toJavaIdentifier(""), is(""));
         assertThat(StudioBuildUtils.toJavaIdentifier("a"), is("a"));

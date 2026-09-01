@@ -127,6 +127,36 @@ public class ComponentPropertyEditRow {
             }
             meta.getChoices()
                 .forEach( choice -> propertyChoiceValueField.addItem(choice));
+            // choicesEditable is a free-text escape hatch (e.g. emailFormat's MIME type) - the suggested choices
+            // stay one click away, but typing any other value directly into the field is also accepted.
+            if (meta.isChoicesEditable()) {
+                propertyChoiceValueField.setEditable(true);
+                if (listenerFoAnyEditChanges != null && propertyChoiceValueField.getEditor().getEditorComponent() instanceof javax.swing.text.JTextComponent editorField) {
+                    editorField.getDocument().addDocumentListener(new DocumentListener() {
+                        @Override
+                        public void insertUpdate(DocumentEvent e) {
+                            if (!suppressChangeDetection) {
+                                showingDefaultOnly = false;
+                            }
+                            listenerFoAnyEditChanges.actionEvent();
+                        }
+                        @Override
+                        public void removeUpdate(DocumentEvent e) {
+                            if (!suppressChangeDetection) {
+                                showingDefaultOnly = false;
+                            }
+                            listenerFoAnyEditChanges.actionEvent();
+                        }
+                        @Override
+                        public void changedUpdate(DocumentEvent e) {
+                            if (!suppressChangeDetection) {
+                                showingDefaultOnly = false;
+                            }
+                            listenerFoAnyEditChanges.actionEvent();
+                        }
+                    });
+                }
+            }
             if (listenerFoAnyEditChanges != null) {
                 propertyChoiceValueField.addItemListener(e -> {
                     if (!suppressChangeDetection) {
@@ -617,13 +647,21 @@ public class ComponentPropertyEditRow {
                 rawValue = propertyValueField.getText();
             }
 
-            List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
-            Set<String> deduplicate = new HashSet<>(rawList);
-            if (rawList.size() > deduplicate.size()) {
-                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DuplicatesInTheListWillBeRemoved"));
-                returnValue = new ArrayList<>(deduplicate);
-            } else {
-                returnValue = rawList;
+            // An emptied field must report as genuinely unset, not a value - "".split(",") still yields a single
+            // blank element ([""]), which downstream code (e.g. componentFactory_en.ftl, which only skips
+            // emitting a setter call for a null property value) would otherwise treat as "has a value",
+            // generating an uncompilable empty-argument setter call like ".setToRecipients()". So only parse
+            // the list out when there's really something there - a blank field leaves returnValue at its
+            // already-null default.
+            if (!rawValue.isBlank()) {
+                List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
+                Set<String> deduplicate = new HashSet<>(rawList);
+                if (rawList.size() > deduplicate.size()) {
+                    StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DuplicatesInTheListWillBeRemoved"));
+                    returnValue = new ArrayList<>(deduplicate);
+                } else {
+                    returnValue = rawList;
+                }
             }
         } else if (meta.getPropertyDataType() == java.lang.String.class) {
             // The formatter would be null if this was a standard text field.
@@ -722,7 +760,7 @@ public class ComponentPropertyEditRow {
                 valueToBeChecked = (String) getValue();
             }
             if (!meta.getValidationPattern().matcher(valueToBeChecked).matches()) {
-                result.add(new ValidationInfo(meta.getValidationMessage(), getOverridingInputField()));
+                result.add(new ValidationInfo(meta.getPropertyName() + ": " + meta.getValidationMessage(), getOverridingInputField()));
             }
         }
         return result;

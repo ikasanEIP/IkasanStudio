@@ -54,7 +54,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
 
     private void paintFlowchartSymbol(JPanel canvas, Graphics g) {
         if ( getLeftX() < -10 ) {
-            LOG.error("STUDIO: X was negative !!");
+            LOG.warn("STUDIO: paintFlowchartSymbol leftX " + getLeftX() + " was negative for component " + flowElement);
         }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         paintDecorators(canvas, g);

@@ -1,4 +1,6 @@
 <#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
+<#assign fromType=StudioBuildUtils.toJavaTypeLiteral(flowElement.getPropertyValue('fromType'))>
+<#assign toType=StudioBuildUtils.toJavaTypeLiteral(flowElement.getPropertyValue('toType'))>
 package ${studioPackageTag};
 
 /**
@@ -17,10 +19,10 @@ import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
 @org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}")
-public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Converter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
+public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Converter<${fromType}, ${toType}>
 {
-public ${flowElement.getPropertyValue('toType')} convert(${flowElement.getPropertyValue('fromType')} payload) throws TransformationException
+public ${toType} convert(${fromType} payload) throws TransformationException
 {
-return new ${flowElement.getPropertyValue('toType')}(payload);
+return new ${toType}(payload);
 }
 }

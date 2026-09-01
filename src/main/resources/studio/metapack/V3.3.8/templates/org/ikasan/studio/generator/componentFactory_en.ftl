@@ -31,7 +31,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#if>
 
     <#list flowElement.getStandardComponentProperties()![] as propKey, componentProperty>
-        <#if componentProperty.meta.propertyConfigFileLabel?? && componentProperty.value??>
+        <#if componentProperty.meta.propertyConfigFileLabel?? && !componentProperty.valueNotSet()>
             <#if componentProperty.meta.usageDataType?starts_with("java.util.List")>
                 <#assign f_startTag = r"#{'${" >
                 <#assign f_endTag = r"}'.split(',')}" >
@@ -93,7 +93,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#if>
 
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
-        <#if propValue.value?? && propValue.meta.isSetterProperty() >
+        <#if !propValue.valueNotSet() && propValue.meta.isSetterProperty() >
             <#if propValue.meta.getSetterMethod()?? && propValue.meta.getSetterMethod()!= "">
                 <#assign setter="${propValue.meta.getSetterMethod()}">
             <#else>

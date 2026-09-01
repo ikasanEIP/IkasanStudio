@@ -367,6 +367,18 @@ public class TestFixtures {
         return flowElement;
     }
 
+    public static FlowElement getEmailConverter(String metaPackVersion) throws StudioBuildException {
+        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Converter");
+        FlowElement flowElement =  FlowElement.flowElementBuilder()
+            .componentMeta(meta)
+            .componentName("My Email Converter")
+            .build();
+        flowElement.setPropertyValue(FROM_TYPE, "java.lang.String");
+        flowElement.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "myEmailConverter");
+        flowElement.defaultUnsetMandatoryProperties();
+        return flowElement;
+    }
+
     public static FlowElement getObjectMessageToObjectConverter(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Object Message To Object Converter");
         return FlowElement.flowElementBuilder()

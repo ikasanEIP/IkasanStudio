@@ -98,6 +98,23 @@ public class StudioBuildUtils {
     }
 
     /**
+     * A fromType/toType property is free text, and its help/tooltip text is drawn from the same engine that
+     * describes an upstream component's Output: for humans (see ComponentMeta#getEffectiveOutputTypeDescription) -
+     * that description can carry a trailing explanatory annotation e.g. "java.lang.Object (auto-converted)" for a
+     * JMS consumer with Auto Content Conversion on. A user copying that display text verbatim into a fromType/
+     * toType field would otherwise generate an uncompilable type literal - strip such a trailing "(...)" before
+     * using the value as an actual Java type, so the annotation is silently dropped rather than breaking the build.
+     * @param input string to be converted
+     * @return the input string with any trailing bracketed annotation removed, and surrounding whitespace trimmed
+     */
+    public static String toJavaTypeLiteral(final String input) {
+        if (input == null) {
+            return null;
+        }
+        return input.replaceAll("\\s*\\([^)]*\\)\\s*$", "").trim();
+    }
+
+    /**
      * Convert the supplied string so that it confirms to the naming rules for java package names i.e.
      *    no spaces
      *    if there is a leading digit, prepend with _
@@ -465,7 +482,7 @@ public class StudioBuildUtils {
      */
     public static List<String> extractLabels(String input) {
         // Define regex patterns for different placeholder formats and capture the variable name
-        String placeholderPattern = "\\$\\{([^}]+)\\}";
+        String placeholderPattern = "\\$\\{([^}]+)}";
         Pattern pattern = Pattern.compile(placeholderPattern);
         Matcher matcher = pattern.matcher(input);
         List<String> labels = new ArrayList<>();
