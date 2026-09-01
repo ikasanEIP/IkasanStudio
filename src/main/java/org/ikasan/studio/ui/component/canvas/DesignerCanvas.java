@@ -21,7 +21,6 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
-import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -85,7 +84,7 @@ public class DesignerCanvas extends JPanel {
     private FlowElement draggedElement;
     private Point dragPoint;
     // Lazily started the first time a flow is flagged in error, stopped again once none are - see
-    // paintFlowErrorFlashes(). Kept as a plain Swing Timer, not an Alarm, since it exists purely to drive
+    // updateFlowErrorFlashState(). Kept as a plain Swing Timer, not an Alarm, since it exists purely to drive
     // repaint() on the EDT at a fixed visual cadence - it has no work of its own to do off-EDT.
     private Timer flowErrorFlashTimer;
     private boolean flowErrorFlashOn = false;
@@ -1383,7 +1382,7 @@ public class DesignerCanvas extends JPanel {
                 paintDraggedComponentGhost(g);
                 paintJmsDestinationConnectors(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
-                paintFlowErrorFlashes(g, ikasanModule);
+                updateFlowErrorFlashState(ikasanModule);
                 paintFlowTransportControls(g, ikasanModule);
             }
         }
@@ -1640,58 +1639,26 @@ public class DesignerCanvas extends JPanel {
     }
 
     private static final int FLOW_ERROR_FLASH_INTERVAL_MS = 500;
-    private static final float FLOW_ERROR_FLASH_STROKE_WIDTH = 3f;
-    private static final int FLOW_ERROR_FLASH_MARGIN = 4;
 
     /**
-     * Draws a flashing red outline around any flow that {@link FlowErrorMonitorService} currently has flagged as
-     * stopped in error (as opposed to a clean stop) - see that service's own javadoc for how it detects this via
-     * the running module's REST interface. Nothing is drawn, and the flash timer stops itself, the poll tick
-     * after a flow recovers or the module is stopped - same "no separate state to go stale" approach as
-     * {@link #paintTestMailServerNode}.
+     * Drives {@link #flowErrorFlashOn} - the 500ms on/off tick consumed by {@code paintFlowTransportControls}'
+     * {@code statusLabelColor} to flash the "Stopped in Error" status text red. Used to also draw a matching red
+     * outline around the whole flow, but that competed with the status text for attention rather than
+     * reinforcing it - the status text is the one thing worth hovering over (it reveals the error detail), so
+     * it's now the sole flashing "look here" cue; a flow's error state otherwise only shows via its (static,
+     * non-flashing) transport-control status label. The timer still stops itself the poll tick after every
+     * flagged flow recovers, same "no separate state to go stale" approach as {@link #paintTestMailServerNode}.
      * -
-     * The timer is (re)started/stopped here, on every paint, rather than by the monitor service itself: this
-     * keeps the service free of any UI/Swing-timer concerns (it only ever calls {@code canvas.repaint()}), and
-     * naturally self-corrects if the canvas is ever repainted for an unrelated reason while flags are stale.
+     * (Re)started/stopped here, on every paint, rather than by the monitor service itself: this keeps the
+     * service free of any UI/Swing-timer concerns (it only ever calls {@code canvas.repaint()}), and naturally
+     * self-corrects if the canvas is ever repainted for an unrelated reason while the flag is stale.
      */
-    private void paintFlowErrorFlashes(Graphics graphics, Module ikasanModule) {
-        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
+    private void updateFlowErrorFlashState(Module ikasanModule) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null) {
             return;
         }
         FlowErrorStates errorStates = project.getService(FlowErrorMonitorService.class).getErrorStates();
-        boolean anyFlagged = errorStates.hasAnyFlagged();
-        updateFlowErrorFlashTimer(anyFlagged);
-        if (!anyFlagged || !flowErrorFlashOn) {
-            return;
-        }
-
-        Graphics2D g2d = (Graphics2D) graphics.create();
-        try {
-            g2d.setColor(Styling.IKASAN_RED);
-            g2d.setStroke(new BasicStroke(FLOW_ERROR_FLASH_STROKE_WIDTH));
-            for (String flowName : errorStates.flaggedFlowNames()) {
-                IkasanFlowViewHandler flowHandler = flowViewHandlerByName(ikasanModule, flowName);
-                if (flowHandler != null) {
-                    g2d.drawRoundRect(
-                            flowHandler.getLeftX() - FLOW_ERROR_FLASH_MARGIN,
-                            flowHandler.getTopY() - FLOW_ERROR_FLASH_MARGIN,
-                            flowHandler.getWidth() + (2 * FLOW_ERROR_FLASH_MARGIN),
-                            flowHandler.getHeight() + (2 * FLOW_ERROR_FLASH_MARGIN),
-                            12, 12);
-                }
-            }
-        } finally {
-            g2d.dispose();
-        }
-    }
-
-    private IkasanFlowViewHandler flowViewHandlerByName(Module module, String flowName) {
-        for (Flow flow : module.getFlows()) {
-            if (flow != null && flowName.equals(flow.getIdentity())) {
-                return ViewHandlerCache.getFlowViewHandler(project, flow);
-            }
-        }
-        return null;
+        updateFlowErrorFlashTimer(errorStates.hasAnyFlagged());
     }
 
     private void updateFlowErrorFlashTimer(boolean anyFlagged) {
@@ -1743,8 +1710,8 @@ public class DesignerCanvas extends JPanel {
      * Draws the 4 transport-control buttons (Start/Pause/Stop/Start-Paused) and a status label
      * (Running/Stopped/Paused/Stopped in Error/Unknown) to the left of every flow, sourced from
      * {@link FlowErrorMonitorService#getFlowStatuses()} - the same poll loop that drives
-     * {@link #paintFlowErrorFlashes}, just reading the raw per-flow state it already tracks rather than only the
-     * error flag. Lets a flow be started/stopped/paused, and its status checked, without ever opening IntelliJ's
+     * {@link #updateFlowErrorFlashState}, just reading the raw per-flow state it already tracks rather than only
+     * the error flag. Lets a flow be started/stopped/paused, and its status checked, without ever opening IntelliJ's
      * Run/Debug console. Click handling lives in {@link #getFlowTransportButtonAtXY}, hover tooltips in
      * {@link #mouseMoveAction}.
      */
@@ -1764,6 +1731,13 @@ public class DesignerCanvas extends JPanel {
                     continue;
                 }
                 String rawState = flowStatuses.getRawState(flow.getIdentity());
+                if (rawState == null) {
+                    // Nothing to show while the module isn't running (or hasn't been reached by a poll yet) -
+                    // the buttons/status only have relevance once there's a real state to act on or display; a
+                    // permanently-disabled "Unknown" row for every flow before the module is even started was
+                    // just noise.
+                    continue;
+                }
                 int buttonLeftX = TRANSPORT_BUTTONS_LEFT_X;
                 int buttonsTopY = transportButtonsTopY(flowHandler);
 
@@ -1868,8 +1842,8 @@ public class DesignerCanvas extends JPanel {
     /**
      * The status label's text colour, per the user's own spec for this feature: grey while Unknown, green while
      * Running, orange while Paused, red while Stopped, and red flashing while Stopped in Error - the flash in
-     * lockstep with {@code paintFlowErrorFlashes}' own {@link #flowErrorFlashOn} tick (that method always runs
-     * earlier in the same paint pass - see the call order in {@code paint()} - so its flash state is already
+     * lockstep with {@link #updateFlowErrorFlashState}'s own {@link #flowErrorFlashOn} tick (that method always
+     * runs earlier in the same paint pass - see the call order in {@code paint()} - so its flash state is already
      * current by the time this reads it). "Recovering" isn't part of the spec - falls back to the default text
      * colour, same as any state that reaches here unrecognised.
      */
@@ -1903,8 +1877,9 @@ public class DesignerCanvas extends JPanel {
         if (ikasanModule == null || ikasanModule.getFlows() == null) {
             return null;
         }
+        FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
         for (Flow flow : ikasanModule.getFlows()) {
-            if (flow == null) {
+            if (flow == null || flowStatuses.getRawState(flow.getIdentity()) == null) {
                 continue;
             }
             IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
@@ -1935,8 +1910,9 @@ public class DesignerCanvas extends JPanel {
         if (ikasanModule == null || ikasanModule.getFlows() == null) {
             return null;
         }
+        FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
         for (Flow flow : ikasanModule.getFlows()) {
-            if (flow == null) {
+            if (flow == null || flowStatuses.getRawState(flow.getIdentity()) == null) {
                 continue;
             }
             IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
