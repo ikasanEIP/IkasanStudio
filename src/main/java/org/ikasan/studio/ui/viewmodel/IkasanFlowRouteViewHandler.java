@@ -194,8 +194,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
             // Consumer (see DesignCanvasContextMenu) other than a self-generating one (Event Generating
             // Consumer - it already fires continuously on its own, nothing meaningful to trigger), so the
             // badge belongs directly above the consumer's own icon instead of an endpoint that doesn't exist.
-            if (targetFlowElement.getComponentMeta().supportsSendTestMessage()
-                    && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
+            if (targetFlowElement.getComponentMeta().supportsSendTestMessage() && isModuleReadyForSendTestMessage()) {
                 IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
                 if (targetFlowElementViewHandler != null) {
                     paintSendTestMessageBadge(canvas, g, targetFlowElement, targetFlowElementViewHandler);
@@ -222,7 +221,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     endpointViewHandler.setLeftX(endpointLeftX);
                     endpointViewHandler.paintComponent(canvas, g, -1, -1);
                     drawConnector(g, endpointViewHandler, targetFlowElementViewHandler);
-                    if (project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
+                    if (isModuleReadyForSendTestMessage()) {
                         paintSendTestMessageBadge(canvas, g, targetFlowElement, endpointViewHandler);
                     }
                 } else {
@@ -281,6 +280,18 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
             }
         }
         return null;
+    }
+
+    /**
+     * True once the debug module is both running AND has actually answered its own REST interface - see
+     * {@link IkasanDebugSessionService#isModuleReachable()}'s own javadoc for why the plain "is the process
+     * alive" check alone isn't enough: clicking the badge during that startup window used to fail with
+     * "module not yet accepting connections" (see {@code SendTestMessageAction}/{@code TriggerScheduledConsumerAction}),
+     * which this now prevents by simply not showing the badge until it would actually work.
+     */
+    private boolean isModuleReadyForSendTestMessage() {
+        IkasanDebugSessionService debugSessionService = project.getService(IkasanDebugSessionService.class);
+        return debugSessionService.isDebugModuleRunning() && debugSessionService.isModuleReachable();
     }
 
     /**
