@@ -21,6 +21,7 @@ import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
+import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -36,6 +37,7 @@ import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.model.psi.UserImplementedClassRelocator;
 import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
 import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.ui.intellij.FlowErrorMonitorService;
 import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
@@ -46,6 +48,7 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.Timer;
 import com.intellij.openapi.ui.ComboBox;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -77,6 +80,11 @@ public class DesignerCanvas extends JPanel {
     private FlowElement dragCandidate;
     private FlowElement draggedElement;
     private Point dragPoint;
+    // Lazily started the first time a flow is flagged in error, stopped again once none are - see
+    // paintFlowErrorFlashes(). Kept as a plain Swing Timer, not an Alarm, since it exists purely to drive
+    // repaint() on the EDT at a fixed visual cadence - it has no work of its own to do off-EDT.
+    private Timer flowErrorFlashTimer;
+    private boolean flowErrorFlashOn = false;
     // The OS-level click that brings the whole IDE window back into focus (e.g. after switching to
     // another desktop app) is also delivered to whichever component is underneath it as a genuine
     // MOUSE_PRESSED event. If that happens to land on empty canvas, it would otherwise be treated as a
@@ -1347,6 +1355,7 @@ public class DesignerCanvas extends JPanel {
                 paintDraggedComponentGhost(g);
                 paintJmsDestinationConnectors(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
+                paintFlowErrorFlashes(g, ikasanModule);
             }
         }
         paintGettingStartedHint(g, ikasanModule);
@@ -1599,6 +1608,77 @@ public class DesignerCanvas extends JPanel {
         StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_MAIL_SERVER_LABEL,
                 nodeLeftX + (TEST_MAIL_SERVER_NODE_WIDTH / 2), nodeTopY + TEST_MAIL_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
                 TEST_MAIL_SERVER_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
+    }
+
+    private static final int FLOW_ERROR_FLASH_INTERVAL_MS = 500;
+    private static final float FLOW_ERROR_FLASH_STROKE_WIDTH = 3f;
+    private static final int FLOW_ERROR_FLASH_MARGIN = 4;
+
+    /**
+     * Draws a flashing red outline around any flow that {@link FlowErrorMonitorService} currently has flagged as
+     * stopped in error (as opposed to a clean stop) - see that service's own javadoc for how it detects this via
+     * the running module's REST interface. Nothing is drawn, and the flash timer stops itself, the poll tick
+     * after a flow recovers or the module is stopped - same "no separate state to go stale" approach as
+     * {@link #paintTestMailServerNode}.
+     * -
+     * The timer is (re)started/stopped here, on every paint, rather than by the monitor service itself: this
+     * keeps the service free of any UI/Swing-timer concerns (it only ever calls {@code canvas.repaint()}), and
+     * naturally self-corrects if the canvas is ever repainted for an unrelated reason while flags are stale.
+     */
+    private void paintFlowErrorFlashes(Graphics graphics, Module ikasanModule) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
+            return;
+        }
+        FlowErrorStates errorStates = project.getService(FlowErrorMonitorService.class).getErrorStates();
+        boolean anyFlagged = errorStates.hasAnyFlagged();
+        updateFlowErrorFlashTimer(anyFlagged);
+        if (!anyFlagged || !flowErrorFlashOn) {
+            return;
+        }
+
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            g2d.setColor(Styling.IKASAN_RED);
+            g2d.setStroke(new BasicStroke(FLOW_ERROR_FLASH_STROKE_WIDTH));
+            for (String flowName : errorStates.flaggedFlowNames()) {
+                IkasanFlowViewHandler flowHandler = flowViewHandlerByName(ikasanModule, flowName);
+                if (flowHandler != null) {
+                    g2d.drawRoundRect(
+                            flowHandler.getLeftX() - FLOW_ERROR_FLASH_MARGIN,
+                            flowHandler.getTopY() - FLOW_ERROR_FLASH_MARGIN,
+                            flowHandler.getWidth() + (2 * FLOW_ERROR_FLASH_MARGIN),
+                            flowHandler.getHeight() + (2 * FLOW_ERROR_FLASH_MARGIN),
+                            12, 12);
+                }
+            }
+        } finally {
+            g2d.dispose();
+        }
+    }
+
+    private IkasanFlowViewHandler flowViewHandlerByName(Module module, String flowName) {
+        for (Flow flow : module.getFlows()) {
+            if (flow != null && flowName.equals(flow.getIdentity())) {
+                return ViewHandlerCache.getFlowViewHandler(project, flow);
+            }
+        }
+        return null;
+    }
+
+    private void updateFlowErrorFlashTimer(boolean anyFlagged) {
+        if (anyFlagged) {
+            if (flowErrorFlashTimer == null) {
+                flowErrorFlashTimer = new Timer(FLOW_ERROR_FLASH_INTERVAL_MS, e -> {
+                    flowErrorFlashOn = !flowErrorFlashOn;
+                    repaint();
+                });
+                flowErrorFlashTimer.start();
+            }
+        } else if (flowErrorFlashTimer != null) {
+            flowErrorFlashTimer.stop();
+            flowErrorFlashTimer = null;
+            flowErrorFlashOn = false;
+        }
     }
 
     /**

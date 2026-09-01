@@ -24,6 +24,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox showAdvancedControlsCheckBox;
     private JCheckBox showJmsConnectorsCheckBox;
     private JCheckBox testMailServerLivePollingCheckBox;
+    private JCheckBox flowErrorMonitoringCheckBox;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -83,6 +84,16 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         testMailServerNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
         testMailServerPanel.add(testMailServerNote, BorderLayout.CENTER);
 
+        flowErrorMonitoringCheckBox = new JCheckBox(StudioBundle.message("checkbox.FlowErrorMonitoring"));
+
+        JPanel flowErrorMonitoringPanel = new JPanel(new BorderLayout(0, 4));
+        flowErrorMonitoringPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.FlowErrorMonitoring")));
+        flowErrorMonitoringPanel.add(flowErrorMonitoringCheckBox, BorderLayout.NORTH);
+
+        JLabel flowErrorMonitoringNote = new JLabel(StudioBundle.message("label.FlowErrorMonitoringNote"));
+        flowErrorMonitoringNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        flowErrorMonitoringPanel.add(flowErrorMonitoringNote, BorderLayout.CENTER);
+
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
         northPanel.add(hintsPanel);
@@ -90,6 +101,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         northPanel.add(advancedControlsPanel);
         northPanel.add(jmsConnectorsPanel);
         northPanel.add(testMailServerPanel);
+        northPanel.add(flowErrorMonitoringPanel);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -105,7 +117,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
                 || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
                 || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled()
-                || testMailServerLivePollingCheckBox.isSelected() != IkasanStudioSettings.isTestMailServerLivePollingEnabled();
+                || testMailServerLivePollingCheckBox.isSelected() != IkasanStudioSettings.isTestMailServerLivePollingEnabled()
+                || flowErrorMonitoringCheckBox.isSelected() != IkasanStudioSettings.isFlowErrorMonitoringEnabled();
     }
 
     @Override
@@ -118,6 +131,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
             state.jmsConnectorsEnabled = showJmsConnectorsCheckBox.isSelected();
             state.testMailServerLivePollingEnabled = testMailServerLivePollingCheckBox.isSelected();
+            state.flowErrorMonitoringEnabled = flowErrorMonitoringCheckBox.isSelected();
         }
         repaintOpenCanvases();
     }
@@ -129,6 +143,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());
         showJmsConnectorsCheckBox.setSelected(IkasanStudioSettings.areJmsConnectorsEnabled());
         testMailServerLivePollingCheckBox.setSelected(IkasanStudioSettings.isTestMailServerLivePollingEnabled());
+        flowErrorMonitoringCheckBox.setSelected(IkasanStudioSettings.isFlowErrorMonitoringEnabled());
     }
 
     @Override

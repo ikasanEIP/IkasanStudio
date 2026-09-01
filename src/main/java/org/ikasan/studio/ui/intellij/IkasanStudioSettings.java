@@ -53,6 +53,18 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          * right after a click, but won't notice an externally-stopped server on its own until the next click.
          */
         public boolean testMailServerLivePollingEnabled = true;
+
+        /**
+         * Periodically poll (every few seconds, in the background) the running module's own Ikasan REST
+         * interface for each flow's state, so a flow that has stopped in error (as opposed to a clean stop)
+         * flashes red on the canvas without needing to watch the console - see
+         * {@code DesignerCanvas#paintFlowErrorFlashes} and {@code FlowErrorMonitorService}. On by default; the
+         * check is a single lightweight local HTTP call per tick (no different in kind from the "Send Test
+         * Message" or debug-injection calls Studio already makes), and fails silently (no flash, no flagged
+         * flows) whenever the module simply isn't running. Switch off if this ever proves unwanted background
+         * noise - e.g. running many module instances at once.
+         */
+        public boolean flowErrorMonitoringEnabled = true;
     }
 
     private State state = new State();
@@ -153,6 +165,27 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         State s = instance != null ? instance.getState() : null;
         if (s != null) {
             s.testMailServerLivePollingEnabled = testMailServerLivePollingEnabled;
+        }
+    }
+
+    public static boolean isFlowErrorMonitoringEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return true;
+        State s = instance.getState();
+        return s == null || s.flowErrorMonitoringEnabled;
+    }
+
+    // No caller today (IkasanStudioSettingsConfigurable#apply() currently writes the State field directly, like
+    // the other settings here) - kept as the public setter symmetric with isFlowErrorMonitoringEnabled() and
+    // this class's other isX()/setX() pairs, matching setPromptBeforeDeletingUserCode's own real external
+    // caller (DeleteComponentAction) as the precedent for why a settings setter earns its place even before a
+    // second caller exists.
+    @SuppressWarnings("unused")
+    public static void setFlowErrorMonitoringEnabled(boolean flowErrorMonitoringEnabled) {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.flowErrorMonitoringEnabled = flowErrorMonitoringEnabled;
         }
     }
 }
