@@ -72,6 +72,16 @@ public final class FlowErrorMonitorService implements Disposable {
         pollAndUpdateState();
     }
 
+    /**
+     * Drops states obtained from the module process that has just terminated. Without this reset the canvas
+     * continues to paint the per-flow controls and the final status returned by that no-longer-live process.
+     */
+    public void clearRuntimeStatuses() {
+        if (flowStatuses.clear()) {
+            repaintCanvas();
+        }
+    }
+
     private void scheduleNextPoll() {
         if (!alarm.isDisposed()) {
             alarm.addRequest(this::pollAndReschedule, POLL_INTERVAL_MS);

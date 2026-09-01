@@ -176,6 +176,7 @@ public final class IkasanDebugSessionService implements Disposable {
 
     private void updateProcess(ProcessHandler handler, boolean running, boolean debug) {
         boolean visibilityChanged;
+        boolean moduleStopped;
         boolean debugStarted = false;
         boolean debugStopped = false;
         synchronized (this) {
@@ -191,7 +192,9 @@ public final class IkasanDebugSessionService implements Disposable {
                 debugProcesses.remove(handler);
             }
             boolean isDebugRunningNow = !debugProcesses.isEmpty();
-            visibilityChanged = wasModuleRunning != !moduleProcesses.isEmpty() || wasDebugRunning != isDebugRunningNow;
+            boolean isModuleRunningNow = !moduleProcesses.isEmpty();
+            moduleStopped = wasModuleRunning && !isModuleRunningNow;
+            visibilityChanged = wasModuleRunning != isModuleRunningNow || wasDebugRunning != isDebugRunningNow;
             debugStarted = !wasDebugRunning && isDebugRunningNow;
             debugStopped = wasDebugRunning && !isDebugRunningNow;
             if (debugStopped) {
@@ -202,6 +205,9 @@ public final class IkasanDebugSessionService implements Disposable {
             reachabilityAlarm.cancelAllRequests();
         } else if (debugStarted) {
             scheduleReachabilityProbe();
+        }
+        if (moduleStopped) {
+            project.getService(FlowErrorMonitorService.class).clearRuntimeStatuses();
         }
         if (visibilityChanged) {
             repaintCanvas();

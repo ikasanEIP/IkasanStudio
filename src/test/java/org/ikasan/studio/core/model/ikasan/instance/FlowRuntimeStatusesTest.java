@@ -7,6 +7,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FlowRuntimeStatusesTest {
 
     @Test
+    void clearRemovesAllLastKnownRuntimeStates() {
+        FlowRuntimeStatuses statuses = new FlowRuntimeStatuses();
+        statuses.update("flowOne", "running");
+        statuses.update("flowTwo", "paused");
+
+        assertThat(statuses.clear()).isTrue();
+        assertThat(statuses.getRawState("flowOne")).isNull();
+        assertThat(statuses.getRawState("flowTwo")).isNull();
+        assertThat(statuses.clear()).isFalse();
+    }
+
+    @Test
     void updateReportsChangedForANewlySeenFlow() {
         FlowRuntimeStatuses statuses = new FlowRuntimeStatuses();
 

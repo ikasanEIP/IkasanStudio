@@ -1716,7 +1716,8 @@ public class DesignerCanvas extends JPanel {
      * {@link #mouseMoveAction}.
      */
     private void paintFlowTransportControls(Graphics graphics, Module ikasanModule) {
-        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)
+                || !project.getService(IkasanDebugSessionService.class).isModuleRunning()) {
             return;
         }
         FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
@@ -1874,7 +1875,8 @@ public class DesignerCanvas extends JPanel {
      */
     private Pair<Flow, FlowTransportAction> getFlowTransportButtonAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
-        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null
+                || !project.getService(IkasanDebugSessionService.class).isModuleRunning()) {
             return null;
         }
         FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
@@ -1907,7 +1909,8 @@ public class DesignerCanvas extends JPanel {
      */
     private Flow getFlowStatusLabelOwnerAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
-        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null
+                || !project.getService(IkasanDebugSessionService.class).isModuleRunning()) {
             return null;
         }
         FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();

@@ -28,4 +28,13 @@ public final class FlowRuntimeStatuses {
     public String getRawState(String flowName) {
         return rawStateByFlow.get(flowName);
     }
+
+    /** Clears every last-known runtime state when the module process is no longer running. */
+    public boolean clear() {
+        if (rawStateByFlow.isEmpty()) {
+            return false;
+        }
+        rawStateByFlow.clear();
+        return true;
+    }
 }
