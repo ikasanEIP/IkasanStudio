@@ -29,6 +29,8 @@ import org.ikasan.studio.ui.actions.NavigateToCodeAction;
 import org.ikasan.studio.ui.actions.DeleteComponentUndoableAction;
 import org.ikasan.studio.ui.actions.SendTestMessageAction;
 import org.ikasan.studio.ui.actions.TriggerScheduledConsumerAction;
+import org.ikasan.studio.ui.actions.FlowTransportAction;
+import org.ikasan.studio.ui.actions.FlowTransportControlAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
@@ -54,7 +56,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -294,6 +298,18 @@ public class DesignerCanvas extends JPanel {
     private void mouseClickAction(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
+        if (me.getButton() == MouseEvent.BUTTON1) {
+            Pair<Flow, FlowTransportAction> transportClick = getFlowTransportButtonAtXY(x, y);
+            if (transportClick != null) {
+                Flow flow = transportClick.getLeft();
+                FlowTransportAction action = transportClick.getRight();
+                String rawState = project.getService(FlowErrorMonitorService.class).getFlowStatuses().getRawState(flow.getIdentity());
+                if (FlowTransportAction.isEnabledFor(action, rawState)) {
+                    FlowTransportControlAction.fire(project, flow.getIdentity(), action, rawState);
+                }
+                return;
+            }
+        }
         FlowElement sendTestMessageOwner = getOwnerForSendTestMessageAtXY(x, y);
         IkasanComponent selectedComponent = getComponentAtXY(x, y);
         dragCandidate = me.getButton() == MouseEvent.BUTTON1 && selectedComponent instanceof FlowElement flowElement
@@ -393,6 +409,18 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY of the current pointer
      */
     private void mouseMoveAction(int mouseX, int mouseY) {
+        Pair<Flow, FlowTransportAction> transportButton = getFlowTransportButtonAtXY(mouseX, mouseY);
+        if (transportButton != null) {
+            this.setToolTipText(transportButton.getRight().getTooltip());
+            return;
+        }
+        Flow statusLabelOwner = getFlowStatusLabelOwnerAtXY(mouseX, mouseY);
+        if (statusLabelOwner != null) {
+            FlowErrorStates.ErrorInfo error = project.getService(FlowErrorMonitorService.class)
+                    .getErrorStates().getError(statusLabelOwner.getIdentity());
+            this.setToolTipText(error != null && error.summary() != null ? error.summary() : "");
+            return;
+        }
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (mouseSelectedComponent instanceof Flow && ((Flow) mouseSelectedComponent).getFlowIntegrityStatus() != null) {
             this.setToolTipText(((Flow) mouseSelectedComponent).getFlowIntegrityStatus());
@@ -1356,6 +1384,7 @@ public class DesignerCanvas extends JPanel {
                 paintJmsDestinationConnectors(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
                 paintFlowErrorFlashes(g, ikasanModule);
+                paintFlowTransportControls(g, ikasanModule);
             }
         }
         paintGettingStartedHint(g, ikasanModule);
@@ -1679,6 +1708,252 @@ public class DesignerCanvas extends JPanel {
             flowErrorFlashTimer = null;
             flowErrorFlashOn = false;
         }
+    }
+
+    private static final int TRANSPORT_BUTTON_SIZE = 14;
+    private static final int TRANSPORT_BUTTON_GAP = 3;
+    // Fixed left-hand gutter for every flow's transport-control buttons - deliberately NOT computed relative to
+    // each flow's own left edge (the original approach): that left the buttons crowding the flow's leftmost
+    // endpoint icon instead of reading as a distinct control column. Pinning it here, flush near the canvas's own
+    // left edge, keeps the whole column visually separate from the flows regardless of how far right
+    // IkasanModuleViewHandler.FLOW_X_START_POINT positions them.
+    private static final int TRANSPORT_BUTTONS_LEFT_X = 24;
+    private static final int TRANSPORT_STATUS_LABEL_GAP = 6;
+    // Deliberately just these 4 - the same set (and order) exposed by IntelliJ's own Run/Debug console for a
+    // flow: Start, Pause, Stop, Start-Paused. There's a 5th Ikasan action (plain "resume" from Paused back to
+    // Running) that the console doesn't surface as its own button either - see FlowTransportAction#isEnabledFor's
+    // javadoc for how Start doubles as "resume" here.
+    private static final FlowTransportAction[] TRANSPORT_BUTTON_ORDER = {
+            FlowTransportAction.START, FlowTransportAction.PAUSE, FlowTransportAction.STOP, FlowTransportAction.START_PAUSE
+    };
+    private static final int TRANSPORT_BUTTON_STACK_HEIGHT =
+            (TRANSPORT_BUTTON_ORDER.length * TRANSPORT_BUTTON_SIZE) + ((TRANSPORT_BUTTON_ORDER.length - 1) * TRANSPORT_BUTTON_GAP);
+
+    /**
+     * Where the button stack (and status label) should start vertically for a given flow - centred on the flow's
+     * own vertical midpoint (its title bar included), not pinned to its top edge, so the controls read as
+     * belonging to the flow as a whole rather than sitting up near its title. Shared by the paint method and
+     * both of its hit-test twins below so the 3 never drift out of sync with each other.
+     */
+    private int transportButtonsTopY(IkasanFlowViewHandler flowHandler) {
+        return flowHandler.getCentrePoint().y - (TRANSPORT_BUTTON_STACK_HEIGHT / 2);
+    }
+
+    /**
+     * Draws the 4 transport-control buttons (Start/Pause/Stop/Start-Paused) and a status label
+     * (Running/Stopped/Paused/Stopped in Error/Unknown) to the left of every flow, sourced from
+     * {@link FlowErrorMonitorService#getFlowStatuses()} - the same poll loop that drives
+     * {@link #paintFlowErrorFlashes}, just reading the raw per-flow state it already tracks rather than only the
+     * error flag. Lets a flow be started/stopped/paused, and its status checked, without ever opening IntelliJ's
+     * Run/Debug console. Click handling lives in {@link #getFlowTransportButtonAtXY}, hover tooltips in
+     * {@link #mouseMoveAction}.
+     */
+    private void paintFlowTransportControls(Graphics graphics, Module ikasanModule) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
+            return;
+        }
+        FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            for (Flow flow : ikasanModule.getFlows()) {
+                if (flow == null) {
+                    continue;
+                }
+                IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                if (flowHandler == null) {
+                    continue;
+                }
+                String rawState = flowStatuses.getRawState(flow.getIdentity());
+                int buttonLeftX = TRANSPORT_BUTTONS_LEFT_X;
+                int buttonsTopY = transportButtonsTopY(flowHandler);
+
+                for (int i = 0; i < TRANSPORT_BUTTON_ORDER.length; i++) {
+                    FlowTransportAction action = TRANSPORT_BUTTON_ORDER[i];
+                    int buttonTopY = buttonsTopY + i * (TRANSPORT_BUTTON_SIZE + TRANSPORT_BUTTON_GAP);
+                    boolean enabled = FlowTransportAction.isEnabledFor(action, rawState);
+                    Color buttonColor = enabled ? action.getColor() : ThemeAwareColors.getDisabledTextColor();
+                    paintTransportButtonShape(g2d, action, buttonLeftX, buttonTopY, buttonColor);
+                }
+
+                String statusLabel = flowStatusDisplayLabel(rawState);
+                Font statusFont = StudioUIUtils.getMainFont();
+                int labelLeftX = buttonLeftX + TRANSPORT_BUTTON_SIZE + TRANSPORT_STATUS_LABEL_GAP;
+                // One word per line - trades the vertical room the button stack already has (4 rows tall) for
+                // horizontal room, so "Stopped in Error" wraps to 3 short lines instead of one wide one that
+                // either pushes the flow further right or gets clipped/overlapped. Single-word statuses
+                // (Running/Stopped/Paused/Unknown/Recovering) just render as their usual single line.
+                String[] statusWords = statusLabel.split(" ");
+                int lineHeight = StudioUIUtils.getTextHeight(g2d, statusFont);
+                int textBlockHeight = statusWords.length * lineHeight;
+                int labelTopY = buttonsTopY + (TRANSPORT_BUTTON_STACK_HEIGHT / 2) - (textBlockHeight / 2);
+                Color originalColor = g2d.getColor();
+                g2d.setColor(statusLabelColor(statusLabel));
+                for (int i = 0; i < statusWords.length; i++) {
+                    StudioUIUtils.drawStringLeftAlignedFromTopLeft(g2d, statusWords[i], labelLeftX, labelTopY + (i * lineHeight), statusFont);
+                }
+                g2d.setColor(originalColor);
+            }
+        } finally {
+            g2d.dispose();
+        }
+    }
+
+    // All 4 shapes are authored on a 16x16 grid (matching the retired flow-*.svg icons they replace) and scaled
+    // to TRANSPORT_BUTTON_SIZE below - drawn directly, rather than as static icon files, so the colour can vary
+    // per action and per enabled/disabled state (see FlowTransportAction#getColor) without needing a coloured
+    // variant of every icon for every state.
+    private static final double TRANSPORT_ICON_GRID = 16.0;
+
+    /** Draws one transport-control button's glyph at (x,y), filled with {@code color} - see {@link #paintFlowTransportControls}. */
+    private void paintTransportButtonShape(Graphics2D g2d, FlowTransportAction action, int x, int y, Color color) {
+        AffineTransform originalTransform = g2d.getTransform();
+        Color originalColor = g2d.getColor();
+        Object originalAntialiasing = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+        try {
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.translate(x, y);
+            g2d.scale(TRANSPORT_BUTTON_SIZE / TRANSPORT_ICON_GRID, TRANSPORT_BUTTON_SIZE / TRANSPORT_ICON_GRID);
+            g2d.setColor(color);
+            switch (action) {
+                case START -> g2d.fill(triangle(4, 2.5, 13, 8, 4, 13.5));
+                case STOP -> g2d.fill(new RoundRectangle2D.Double(3, 3, 10, 10, 2, 2));
+                case PAUSE -> {
+                    g2d.fill(new RoundRectangle2D.Double(3.5, 2.5, 3, 11, 1.5, 1.5));
+                    g2d.fill(new RoundRectangle2D.Double(9.5, 2.5, 3, 11, 1.5, 1.5));
+                }
+                case START_PAUSE -> {
+                    g2d.fill(triangle(1.5, 2.5, 8.5, 8, 1.5, 13.5));
+                    g2d.fill(new RoundRectangle2D.Double(10.5, 2.5, 2, 11, 1.2, 1.2));
+                    g2d.fill(new RoundRectangle2D.Double(13.5, 2.5, 2, 11, 1.2, 1.2));
+                }
+            }
+        } finally {
+            g2d.setTransform(originalTransform);
+            g2d.setColor(originalColor);
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    originalAntialiasing != null ? originalAntialiasing : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+        }
+    }
+
+    private static Path2D.Double triangle(double x1, double y1, double x2, double y2, double x3, double y3) {
+        Path2D.Double path = new Path2D.Double();
+        path.moveTo(x1, y1);
+        path.lineTo(x2, y2);
+        path.lineTo(x3, y3);
+        path.closePath();
+        return path;
+    }
+
+    private static final String UNKNOWN_DISPLAY_LABEL = "Unknown";
+    private static final String STOPPED_DISPLAY_LABEL = "Stopped";
+    private static final String STOPPED_IN_ERROR_DISPLAY_LABEL = "Stopped in Error";
+    private static final String RUNNING_DISPLAY_LABEL = "Running";
+    private static final String PAUSED_DISPLAY_LABEL = "Paused";
+
+    /** @return the human-readable status label for a flow's raw Ikasan state - see org.ikasan.spec.flow.Flow's state constants. */
+    private String flowStatusDisplayLabel(String rawState) {
+        if (rawState == null) {
+            return UNKNOWN_DISPLAY_LABEL;
+        }
+        return switch (rawState) {
+            case "running" -> RUNNING_DISPLAY_LABEL;
+            case "stopped" -> STOPPED_DISPLAY_LABEL;
+            case "paused" -> PAUSED_DISPLAY_LABEL;
+            case "stoppedInError" -> STOPPED_IN_ERROR_DISPLAY_LABEL;
+            case "recovering" -> "Recovering";
+            default -> rawState;
+        };
+    }
+
+    /**
+     * The status label's text colour, per the user's own spec for this feature: grey while Unknown, green while
+     * Running, orange while Paused, red while Stopped, and red flashing while Stopped in Error - the flash in
+     * lockstep with {@code paintFlowErrorFlashes}' own {@link #flowErrorFlashOn} tick (that method always runs
+     * earlier in the same paint pass - see the call order in {@code paint()} - so its flash state is already
+     * current by the time this reads it). "Recovering" isn't part of the spec - falls back to the default text
+     * colour, same as any state that reaches here unrecognised.
+     */
+    private Color statusLabelColor(String statusLabel) {
+        if (UNKNOWN_DISPLAY_LABEL.equals(statusLabel)) {
+            return ThemeAwareColors.getDisabledTextColor();
+        }
+        if (RUNNING_DISPLAY_LABEL.equals(statusLabel)) {
+            return ThemeAwareColors.getSuccessColor();
+        }
+        if (PAUSED_DISPLAY_LABEL.equals(statusLabel)) {
+            return FlowTransportAction.pauseOrange();
+        }
+        if (STOPPED_DISPLAY_LABEL.equals(statusLabel)) {
+            return FlowTransportAction.stopRed();
+        }
+        if (STOPPED_IN_ERROR_DISPLAY_LABEL.equals(statusLabel)) {
+            return flowErrorFlashOn ? FlowTransportAction.stopRed() : ThemeAwareColors.getTextColor();
+        }
+        return ThemeAwareColors.getTextColor();
+    }
+
+    /**
+     * Given x,y coords, check whether the pointer is over one of a flow's transport-control buttons (see
+     * {@link #paintFlowTransportControls}) - purely geometric, regardless of whether that button is currently
+     * enabled, so a disabled (dimmed) button still shows its own tooltip in {@link #mouseMoveAction}.
+     * {@link #mouseClickAction} additionally checks {@link FlowTransportAction#isEnabledFor} before firing one.
+     */
+    private Pair<Flow, FlowTransportAction> getFlowTransportButtonAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
+        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+            return null;
+        }
+        for (Flow flow : ikasanModule.getFlows()) {
+            if (flow == null) {
+                continue;
+            }
+            IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+            if (flowHandler == null) {
+                continue;
+            }
+            if (xpos < TRANSPORT_BUTTONS_LEFT_X || xpos > TRANSPORT_BUTTONS_LEFT_X + TRANSPORT_BUTTON_SIZE) {
+                continue;
+            }
+            int buttonsTopY = transportButtonsTopY(flowHandler);
+            for (int i = 0; i < TRANSPORT_BUTTON_ORDER.length; i++) {
+                int buttonTopY = buttonsTopY + i * (TRANSPORT_BUTTON_SIZE + TRANSPORT_BUTTON_GAP);
+                if (ypos >= buttonTopY && ypos <= buttonTopY + TRANSPORT_BUTTON_SIZE) {
+                    return new Pair<>(flow, TRANSPORT_BUTTON_ORDER[i]);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Given x,y coords, check whether the pointer is over a flow's status label (see
+     * {@link #paintFlowTransportControls}) - used only to decide whether {@link #mouseMoveAction} should show the
+     * flow's latest error as a tooltip, so a hit here doesn't need to distinguish which status is showing.
+     */
+    private Flow getFlowStatusLabelOwnerAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
+        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+            return null;
+        }
+        for (Flow flow : ikasanModule.getFlows()) {
+            if (flow == null) {
+                continue;
+            }
+            IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+            if (flowHandler == null) {
+                continue;
+            }
+            int labelLeftX = TRANSPORT_BUTTONS_LEFT_X + TRANSPORT_BUTTON_SIZE + TRANSPORT_STATUS_LABEL_GAP;
+            int buttonsTopY = transportButtonsTopY(flowHandler);
+            int labelBottomY = buttonsTopY + TRANSPORT_BUTTON_STACK_HEIGHT;
+            int labelTopY = buttonsTopY;
+            // Generous, un-measured horizontal band to the right of the button column - the label's actual
+            // width varies per status text and isn't worth recomputing here just to shrink a hover target.
+            if (xpos > labelLeftX && xpos < labelLeftX + 160 && ypos >= labelTopY && ypos <= labelBottomY) {
+                return flow;
+            }
+        }
+        return null;
     }
 
     /**

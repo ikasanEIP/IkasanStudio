@@ -62,4 +62,25 @@ class ModuleControlClientTest {
 
         assertThat(summary).isNull();
     }
+
+    @Test
+    void buildsAChangeFlowStateRequestBodyMatchingIkasansChangeFlowStateDto() throws Exception {
+        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowTransportAction.START_PAUSE, "stopped");
+
+        assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"startPause\"}");
+    }
+
+    @Test
+    void sendsResumeRatherThanStartWhenTheStartButtonIsClickedOnAPausedFlow() throws Exception {
+        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowTransportAction.START, "paused");
+
+        assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"resume\"}");
+    }
+
+    @Test
+    void sendsStartAsIsWhenTheFlowIsNotCurrentlyPaused() throws Exception {
+        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowTransportAction.START, "stopped");
+
+        assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"start\"}");
+    }
 }

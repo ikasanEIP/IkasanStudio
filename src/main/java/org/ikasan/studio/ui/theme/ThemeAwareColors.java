@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui.theme;
 
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -76,7 +79,7 @@ public final class ThemeAwareColors {
             return bg;
         }
         // Use JBColor so fallback respects light/dark themes
-        return new com.intellij.ui.JBColor(Color.WHITE, new Color(60, 63, 65));
+        return new JBColor(Color.WHITE, new Color(60, 63, 65));
     }
 
     /**
@@ -101,7 +104,7 @@ public final class ThemeAwareColors {
             return label;
         }
         // Fallback to JBColor that is black on light theme and white on dark theme
-        return new com.intellij.ui.JBColor(Color.BLACK, Color.WHITE);
+        return new JBColor(Color.BLACK, Color.WHITE);
     }
 
     /**
@@ -141,7 +144,9 @@ public final class ThemeAwareColors {
         if (c != null) {
             return c;
         }
-        return new com.intellij.ui.JBColor(new Color(120, 120, 120), new Color(150, 150, 150));
+        // Gray._n (rather than new Color(n, n, n)) for equal-RGB values - IntelliJ's own inspection wants
+        // genuine greys expressed via com.intellij.ui.Gray, not the AWT Color constructor.
+        return new JBColor(Gray._120, Gray._150);
     }
 
     /**
@@ -190,20 +195,24 @@ public final class ThemeAwareColors {
         if (ui != null) {
             return ui;
         }
-        return new com.intellij.ui.JBColor(new Color(241, 90, 35), new Color(255, 140, 70));
+        return new JBColor(new Color(241, 90, 35), new Color(255, 140, 70));
     }
 
     /**
-     * Pick the first non-null color from UIManager using the supplied keys, or return a JBColor fallback.
+     * Pick the first non-null color from UIManager using the supplied keys, or return the given fallback.
+     * Callers build that fallback as a {@code new JBColor(light, dark)} literal at the call site (rather than
+     * this method taking two separate light/dark {@code Color} params and constructing the JBColor itself) so
+     * every raw {@code new Color(...)} in this class stays visibly paired with the JBColor it belongs to, for
+     * IntelliJ's own "use JBColor instead of Color" inspection.
      */
-    private static Color pickFromUiKeysOrFallback(String[] uiKeys, Color lightFallback, Color darkFallback) {
+    private static Color pickFromUiKeysOrFallback(String[] uiKeys, Color fallback) {
         for (String key : uiKeys) {
             Color c = UIManager.getColor(key);
             if (c != null) {
                 return c;
             }
         }
-        return new com.intellij.ui.JBColor(lightFallback, darkFallback);
+        return fallback;
     }
 
     /**
@@ -225,7 +234,7 @@ public final class ThemeAwareColors {
             "Notifications.errorForeground",
             "Component.focusColor"
         };
-        return pickFromUiKeysOrFallback(keys, new Color(211, 47, 47), new Color(255, 107, 107));
+        return pickFromUiKeysOrFallback(keys, new JBColor(new Color(211, 47, 47), new Color(255, 107, 107)));
     }
 
     /**
@@ -247,6 +256,28 @@ public final class ThemeAwareColors {
             "Notifications.warningForeground",
             "Component.focusColor"
         };
-        return pickFromUiKeysOrFallback(keys, new Color(255, 160, 0), new Color(255, 200, 100));
+        return pickFromUiKeysOrFallback(keys, new JBColor(new Color(255, 160, 0), new Color(255, 200, 100)));
+    }
+
+    /**
+     * Get a theme-aware "success/running" color suitable for borders, badges and small accents.
+     *
+     * Lookup order (first hit returned):
+     * 1. Notifications.successForeground
+     * 2. Green (final fallback for regular and dark themes)
+     *
+     * Deliberately does NOT fall through to Component.borderColor/Component.focusColor the way
+     * {@link #getUrgentColor()}/{@link #getWarningColor()} do - those two happen to read as red/orange-ish under
+     * most themes' border colour, but focusColor is very commonly the theme's blue accent, which would make a
+     * "success/go" indicator render blue instead of green (this is exactly what happened to the canvas's Start
+     * flow-transport-control button before this fix).
+     *
+     * @return a non-null Color that respects the active theme where possible
+     */
+    public static Color getSuccessColor() {
+        String[] keys = new String[]{
+            "Notifications.successForeground"
+        };
+        return pickFromUiKeysOrFallback(keys, new JBColor(new Color(46, 125, 50), new Color(106, 191, 105)));
     }
 }

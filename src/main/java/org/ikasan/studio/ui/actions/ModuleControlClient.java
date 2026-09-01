@@ -28,6 +28,9 @@ import java.util.Map;
  * same context-path derivation (module identity -&gt; server.servlet.context-path), same seeded admin:admin
  * basic auth - rather than inventing a second way to reach the same running module.
  * -
+ * Also PUTs to the same endpoint to change a flow's state - see {@link #changeFlowState} - the click handler
+ * behind the canvas's per-flow Start/Stop/Pause/Start-Paused buttons (see {@code FlowTransportControlAction}).
+ * -
  * This REST interface comes from the {@code ikasan-rest-module} artifact, which every Studio-generated module
  * already depends on unconditionally and transitively (via {@code ikasan-eip-standalone}, itself always in
  * {@code Module}'s own jarDependencies) - so no pom.xml change was needed to enable this. A module that isn't
@@ -133,6 +136,51 @@ public final class ModuleControlClient {
     private static String shortClassName(String fullyQualifiedName) {
         int lastDot = fullyQualifiedName.lastIndexOf('.');
         return lastDot >= 0 ? fullyQualifiedName.substring(lastDot + 1) : fullyQualifiedName;
+    }
+
+    /**
+     * Starts/stops/pauses/start-pauses/resumes a single flow via {@code PUT /rest/moduleControl} - the
+     * non-deprecated form of the endpoint (ChangeFlowStateDto{moduleName,flowName,action}), confirmed identical
+     * between the V3.3.8 and V4.0.x Ikasan cores (org.ikasan.rest.module.ModuleControlApplication#changeFlowState
+     * in both). Throws on anything other than HTTP 200 - callers (FlowTransportControlAction) surface the
+     * failure, they don't need the response body parsed since there's no state to read back from a successful
+     * change.
+     *
+     * @param rawState the flow's current raw state (as last polled), so {@link FlowTransportAction#resolveWireValue}
+     *                  can send "resume" rather than "start" for a paused flow - see its own javadoc.
+     */
+    public static void changeFlowState(Module module, String flowName, FlowTransportAction action, String rawState) throws Exception {
+        String requestBody = buildChangeFlowStateRequestBody(module.getIdentity(), flowName, action, rawState);
+        HttpResponse<String> response = put(module, "/rest/moduleControl", requestBody);
+        if (response.statusCode() != 200) {
+            throw new IOException("moduleControl PUT responded with HTTP " + response.statusCode()
+                    + (response.body() != null && !response.body().isBlank() ? ": " + response.body() : ""));
+        }
+    }
+
+    /** Split out from {@link #changeFlowState} purely so the request-body shape (ChangeFlowStateDto's field names) can be unit tested without a live server. */
+    static String buildChangeFlowStateRequestBody(String moduleName, String flowName, FlowTransportAction action, String rawState) throws Exception {
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("moduleName", moduleName);
+        requestBody.put("flowName", flowName);
+        requestBody.put("action", action.resolveWireValue(rawState));
+        return OBJECT_MAPPER.writeValueAsString(requestBody);
+    }
+
+    private static HttpResponse<String> put(Module module, String path, String jsonBody) throws Exception {
+        String port = module.getPort() != null ? module.getPort() : "8080";
+        String contextPath = "/" + StudioBuildUtils.toUrlString(module.getIdentity());
+        URI uri = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + path, null, null);
+
+        String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .timeout(RESPONSE_TIMEOUT)
+                .header("Authorization", "Basic " + credentials)
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     private static HttpResponse<String> get(Module module, String path, String query) throws Exception {

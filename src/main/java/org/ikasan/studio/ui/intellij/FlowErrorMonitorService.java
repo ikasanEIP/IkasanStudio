@@ -7,6 +7,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
 import org.ikasan.studio.core.model.ikasan.instance.FlowErrorStates;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRuntimeStatuses;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -28,6 +29,9 @@ import java.util.Map;
  * connectivity failure) shows up here as an unreachable endpoint - handled the same as "nothing to report" (see
  * {@link #pollAndUpdateState}), not logged above info, since that's the overwhelmingly common case between
  * debug sessions.
+ * -
+ * Also tracks every flow's raw status (not just the error flag) in {@link #flowStatuses}, for the canvas's
+ * per-flow status label and transport-control button enablement - see {@code DesignerCanvas#paintFlowTransportControls}.
  */
 @Service(Service.Level.PROJECT)
 public final class FlowErrorMonitorService implements Disposable {
@@ -40,6 +44,7 @@ public final class FlowErrorMonitorService implements Disposable {
     private final Project project;
     private final Alarm alarm;
     private final FlowErrorStates errorStates = new FlowErrorStates();
+    private final FlowRuntimeStatuses flowStatuses = new FlowRuntimeStatuses();
 
     public FlowErrorMonitorService(Project project) {
         this.project = project;
@@ -50,6 +55,21 @@ public final class FlowErrorMonitorService implements Disposable {
     /** @return the live, poll-maintained set of flows currently flagged as stopped in error - read by DesignerCanvas during paint. */
     public FlowErrorStates getErrorStates() {
         return errorStates;
+    }
+
+    /** @return every flow's last-polled raw state - read by DesignerCanvas for the per-flow status label/button enablement. */
+    public FlowRuntimeStatuses getFlowStatuses() {
+        return flowStatuses;
+    }
+
+    /**
+     * Polls immediately, bypassing the regular ~6s schedule and {@code IkasanStudioSettings#isFlowErrorMonitoringEnabled()}
+     * - called right after {@code FlowTransportControlAction} changes a flow's state, so the canvas reflects the
+     * user's own click straight away rather than waiting for the next scheduled tick (or, with background
+     * monitoring switched off, not at all). Safe to call from any thread.
+     */
+    public void pollNow() {
+        pollAndUpdateState();
     }
 
     private void scheduleNextPoll() {
@@ -82,6 +102,9 @@ public final class FlowErrorMonitorService implements Disposable {
         boolean changed = false;
         for (Map.Entry<String, String> entry : flowStates.entrySet()) {
             String flowName = entry.getKey();
+            if (flowStatuses.update(flowName, entry.getValue())) {
+                changed = true;
+            }
             boolean nowInError = STOPPED_IN_ERROR_STATE.equals(entry.getValue());
             if (nowInError) {
                 if (!errorStates.isFlagged(flowName)) {

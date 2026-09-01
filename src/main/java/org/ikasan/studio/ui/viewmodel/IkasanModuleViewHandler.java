@@ -14,7 +14,10 @@ import java.awt.*;
 public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
     public static final int FLOW_VERTICAL_SPACING = 20;
-    public static final int FLOW_X_START_POINT = 150;
+    // Wide enough to fit DesignerCanvas's per-flow transport-control buttons and status label (up to
+    // "Stopped in Error") to the left of every flow, clear of the endpoint's own icon - was 150, too tight once
+    // those were added, so the status label was overlapping/clipping the flow's leftmost endpoint.
+    public static final int FLOW_X_START_POINT = 260;
     public static final int FLOW_X_RIGHT_BUFFER = 150;
     public static final int FLOW_Y_START_POINT = 100;
     public static final int FLOW_Y_BOTTTOM_BUFFER = 100;
