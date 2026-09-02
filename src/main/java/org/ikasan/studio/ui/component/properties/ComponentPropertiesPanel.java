@@ -1,12 +1,19 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.generation.GenerationRequest;
@@ -27,6 +34,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
@@ -673,7 +681,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             String implementingClassName = componentMeta.isUseImplementingClassInFactory() ? componentMeta.getImplementingClass() : null;
             StringBuilder prefix = new StringBuilder(StudioUIUtils.buildComponentSummaryHtml(componentMeta.getName(), implementingClassName,
                     flowElement.getEffectiveInputTypeDescription(), flowElement.getEffectiveOutputTypeDescription(), false));
-            String warning = flowElement.getUpstreamTypeMismatchWarning();
+            String warning = flowElement.getUpstreamTypeMismatchWarning(this::isConfirmedSerializable);
             if (warning != null) {
                 prefix.append("<p><b><font color=\"red\">Warning: ").append(StudioUIUtils.escapeHtml(warning)).append("</font></b></p>");
             }
@@ -681,6 +689,67 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         String moreInfo = StudioUIUtils.buildMoreInfoLinkHtml(componentMeta.getWebHelpURL());
         return moreInfo != null ? helpText + moreInfo : helpText;
+    }
+
+    // class name -> confirmed answer, once a background resolution has actually completed for it.
+    private final Map<String, Boolean> serializableResolutionCache = new ConcurrentHashMap<>();
+    // Guards against firing a second background resolution for a class that's already got one in flight -
+    // e.g. rapidly clicking between flow elements that share the same upstream type before the first
+    // lookup has returned.
+    private final Set<String> serializableResolutionInFlight = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Resolves whether a fully-qualified class implements java.io.Serializable, for
+     * FlowElement#getUpstreamTypeMismatchWarning(Function)'s one Serializable candidate - which that method
+     * can't check itself, since it lives in the framework-independent core layer and must never depend on PSI
+     * (see LayerBoundaryTest/ArchitectureBoundaryTest). Mirrors SendTestMessagePayloadDialog's own
+     * InheritanceUtil.isInheritor usage for the identical question.
+     * -
+     * PREVIOUSLY ran this synchronously via runReadAction, on the (wrong) assumption that a single class lookup
+     * plus one interface check was cheap enough to do inline - that broke in practice: this is called from
+     * getDisplayedHelpTextForSelectedComponent(), invoked directly off DesignerCanvas's mouse-click handling
+     * (i.e. on the EDT) every time a component is selected, and IntelliJ's platform enforces "Slow operations
+     * are prohibited on EDT" for exactly this kind of PSI/index access (confirmed via a real stack trace off
+     * that exact call chain, not assumed) - the very SlowOperations violation SendTestMessagePayloadDialog's
+     * own comment already warns about, which its own async ReadAction.nonBlocking already avoids. Now mirrors
+     * that: resolves in the background, caches the answer once known, and returns null (unknown) immediately
+     * for any not-yet-resolved class - which getUpstreamTypeMismatchWarning already treats as "stay silent",
+     * so the very first render simply shows no Serializable-related warning until the async lookup catches up,
+     * at which point the properties panel's help text is refreshed once for the currently-selected component
+     * (guarded so a late callback for a component the user has since deselected doesn't overwrite what's shown).
+     * -
+     * expireWith(this) - PropertiesPanel now implements Disposable purely so panel-scoped async work like this
+     * has a real, narrow-lived parent to hang off (JetBrains' own "Choosing a Disposable Parent" guidance warns
+     * against using Project itself here, which is what this originally did before that warning was raised - a
+     * whole-project-lived anchor for a single panel's background lookup was a mismatch). PropertiesPopupDialogue
+     * registers whichever panel it wraps against its own getDisposable(), and DesignerUI's persistent
+     * canvas-sidebar instance is registered the same way CanvasPanel already is - so this panel is genuinely
+     * disposed, and any in-flight resolution cancelled, whenever its own dialog/sidebar goes away.
+     */
+    private Boolean isConfirmedSerializable(String fullyQualifiedClassName) {
+        Boolean cached = serializableResolutionCache.get(fullyQualifiedClassName);
+        if (cached != null) {
+            return cached;
+        }
+        if (serializableResolutionInFlight.add(fullyQualifiedClassName)) {
+            BasicElement requestingComponent = getSelectedComponent();
+            ReadAction.nonBlocking(() -> {
+                        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, GlobalSearchScope.allScope(project));
+                        return psiClass != null ? InheritanceUtil.isInheritor(psiClass, "java.io.Serializable") : null;
+                    })
+                    .expireWith(this)
+                    .finishOnUiThread(ModalityState.any(), resolved -> {
+                        serializableResolutionInFlight.remove(fullyQualifiedClassName);
+                        if (resolved != null) {
+                            serializableResolutionCache.put(fullyQualifiedClassName, resolved);
+                            if (htmlScrollingDisplayPanel != null && getSelectedComponent() == requestingComponent) {
+                                htmlScrollingDisplayPanel.setText(getDisplayedHelpTextForSelectedComponent());
+                            }
+                        }
+                    })
+                    .submit(AppExecutorUtil.getAppExecutorService());
+        }
+        return null;
     }
 
     /**

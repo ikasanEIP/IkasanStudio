@@ -69,6 +69,10 @@ public class DesignerUI implements Disposable {
         }
 
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(project, false);
+        // Same reasoning as canvasPanel's own registration below - this persistent sidebar instance (as
+        // opposed to a popup-created one, which PropertiesPopupDialogue registers against itself) needs a
+        // properly-lived Disposable parent for its own panel-scoped background work.
+        Disposer.register(this, componentPropertiesPanel);
         uiContext.setPropertiesPanel(componentPropertiesPanel);
         ComponentPropertiesTabPanel componentPropertiesTabPanel = new ComponentPropertiesTabPanel(componentPropertiesPanel);
         uiContext.setPropertiesTabPanel(componentPropertiesTabPanel);

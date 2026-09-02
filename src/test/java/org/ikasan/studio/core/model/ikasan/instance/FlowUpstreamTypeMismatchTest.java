@@ -3,6 +3,8 @@ package org.ikasan.studio.core.model.ikasan.instance;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -21,9 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Covers Flow#findPayloadSourceElement (the upstream-neighbour traversal, including crossing router branch
  * boundaries) and FlowElement#getUpstreamTypeMismatchWarning (the best-effort type check built on top of it) -
- * both the fixed expectedInputType shape (e.g. Default List Splitter, JMS Object Message To Object Converter)
+ * both the fixed expectedInputTypes shape (e.g. Default List Splitter, JMS Object Message To Object Converter,
+ * or Basic AMQ JMS Producer's multi-candidate "java.lang.String, byte[], java.util.Map, java.io.Serializable")
  * and the per-instance expectedInputTypeProperty shape (e.g. Converter/Broker/Splitter's own 'fromType',
- * Object To XML String Converter's 'objectClass') - see ComponentMeta#getExpectedInputType() and
+ * Object To XML String Converter's 'objectClass') - see ComponentMeta#getExpectedInputTypes() and
  * #getExpectedInputTypeProperty().
  */
 @ExtendWith(SharedResourceExtension.class)
@@ -244,7 +247,7 @@ class FlowUpstreamTypeMismatchTest {
 
     @Test
     public void getUpstreamTypeMismatchWarning_also_checks_a_components_own_fromType_when_it_has_no_fixed_expectedInputType() throws StudioBuildException {
-        // The (custom) Splitter declares no fixed expectedInputType, but does have its own 'fromType' (default
+        // The (custom) Splitter declares no fixed expectedInputTypes, but does have its own 'fromType' (default
         // convention - see ComponentMeta#getExpectedInputTypeProperty) which should be checked the same way.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
         FlowElement splitter = TestFixtures.getCustomSplitter(BASE_META_PACK);   // fromType = java.lang.String
@@ -257,7 +260,7 @@ class FlowUpstreamTypeMismatchTest {
 
     @Test
     public void getUpstreamTypeMismatchWarning_is_silent_for_a_component_with_neither_expectedInputType_nor_fromType() throws StudioBuildException {
-        // DevNullProducer has no fromType property at all and declares no expectedInputType - there is simply
+        // DevNullProducer has no fromType property at all and declares no expectedInputTypes - there is simply
         // nothing on this component to check, regardless of what the upstream declares.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         FlowElement devNullProducer = TestFixtures.getDevNullProducer(BASE_META_PACK);
@@ -279,9 +282,9 @@ class FlowUpstreamTypeMismatchTest {
     }
 
     @Test
-    public void getUpstreamTypeMismatchWarning_fires_for_a_component_with_a_fixed_expectedInputType() throws StudioBuildException {
+    public void getUpstreamTypeMismatchWarning_fires_for_a_component_with_a_fixed_expectedInputTypes() throws StudioBuildException {
         // JMS Object Message To Object Converter has no user-configurable input type of its own - it always
-        // expects a raw JMS ObjectMessage (see its component-meta_en_GB.json "expectedInputType").
+        // expects a raw JMS ObjectMessage (see its component-meta_en_GB.json "expectedInputTypes").
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
         FlowElement objectMessageConverter = TestFixtures.getObjectMessageToObjectConverter(BASE_META_PACK);
         buildFlowWithTopLevelElements(converter, objectMessageConverter);
@@ -329,5 +332,106 @@ class FlowUpstreamTypeMismatchTest {
         for (FlowRoute childRoute : route.getChildRoutes()) {
             wireContainingFlowRoute(childRoute);
         }
+    }
+
+    // Real component - Basic AMQ JMS Producer declares expectedInputTypes="java.lang.String, byte[],
+    // java.util.Map, java.io.Serializable" (Spring JmsTemplate's actual accepted set, verified from its real
+    // source this session) - the motivating multi-candidate case for this whole feature.
+    private FlowElement getBasicAmqJmsProducer() throws StudioBuildException {
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ JMS Producer");
+        return FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("My Basic AMQ JMS Producer")
+                .build();
+    }
+
+    // ---- getUpstreamTypeMismatchWarning(Function) - multi-candidate expectedInputTypes ----
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_is_silent_when_upstream_matches_any_one_of_several_candidates() throws StudioBuildException {
+        // Upstream declares java.util.HashMap - doesn't match "java.lang.String" or "byte[]", but does match
+        // "java.util.Map" (the third of four comma-separated candidates) via the existing substring heuristic.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "java.util.HashMap");
+        FlowElement producer = getBasicAmqJmsProducer();
+        buildFlowWithTopLevelElements(converter, producer);
+
+        assertNull(producer.getUpstreamTypeMismatchWarning(candidate -> null));
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_lists_every_candidate_when_none_match_and_serializable_is_confirmed_false() throws StudioBuildException {
+        // org.ikasan.filetransfer.Payload matches none of String/byte[]/Map by name, and the checker confirms
+        // it does NOT implement Serializable either (the real, verified fact behind this whole feature -
+        // Ikasan's DefaultPayload implements Payload, not Serializable) - every candidate is now definitively
+        // ruled out, so the warning fires and names all four.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
+        FlowElement producer = getBasicAmqJmsProducer();
+        buildFlowWithTopLevelElements(converter, producer);
+
+        String warning = producer.getUpstreamTypeMismatchWarning(candidate -> Boolean.FALSE);
+
+        assertTrue(warning != null
+                        && warning.contains("java.lang.String") && warning.contains("byte[]")
+                        && warning.contains("java.util.Map") && warning.contains("java.io.Serializable"),
+                "Expected a warning naming all 4 candidates, got: " + warning);
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_is_silent_when_serializable_is_confirmed_true() throws StudioBuildException {
+        // Same non-matching-by-name upstream type as above, but this time the checker confirms it DOES
+        // implement Serializable - that one candidate is satisfied, so no warning despite the other 3 not
+        // matching by name.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
+        FlowElement producer = getBasicAmqJmsProducer();
+        buildFlowWithTopLevelElements(converter, producer);
+
+        assertNull(producer.getUpstreamTypeMismatchWarning(candidate -> Boolean.TRUE));
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_is_silent_when_serializable_cannot_be_resolved_either_way() throws StudioBuildException {
+        // The checker returns null (couldn't resolve the class at all, or genuinely doesn't know) - this is the
+        // "not enough information" case this method has always stayed silent for elsewhere, not a real mismatch.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
+        FlowElement producer = getBasicAmqJmsProducer();
+        buildFlowWithTopLevelElements(converter, producer);
+
+        assertNull(producer.getUpstreamTypeMismatchWarning(candidate -> null));
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_no_arg_overload_behaves_as_if_serializable_is_always_unresolved() throws StudioBuildException {
+        // The plain no-arg overload (used by anything without real PSI access) supplies a checker that always
+        // returns null - so on its own it can only ever use a Serializable candidate to suppress a warning it
+        // can't rule out, never to confirm a real one; the same upstream type that produces a definite warning
+        // with a checker confirming Boolean.FALSE (see the test above) must stay silent here.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
+        FlowElement producer = getBasicAmqJmsProducer();
+        buildFlowWithTopLevelElements(converter, producer);
+
+        assertNull(producer.getUpstreamTypeMismatchWarning());
+    }
+
+    @Test
+    public void getUpstreamTypeMismatchWarning_single_candidate_backward_compatibility_is_unaffected_by_the_rename() throws StudioBuildException {
+        // JMS Object Message To Object Converter's expectedInputTypes has no comma - a single candidate must
+        // behave exactly as it did before this field was renamed/reinterpreted (see the equivalent pre-existing
+        // test above, getUpstreamTypeMismatchWarning_fires_for_a_component_with_a_fixed_expectedInputTypes) -
+        // this one just also exercises the Function-taking overload directly with an always-null checker, to
+        // confirm the Serializable special case never fires for a candidate list that doesn't contain it.
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK); // toType = java.lang.Integer
+        FlowElement objectMessageConverter = TestFixtures.getObjectMessageToObjectConverter(BASE_META_PACK);
+        buildFlowWithTopLevelElements(converter, objectMessageConverter);
+
+        String warning = objectMessageConverter.getUpstreamTypeMismatchWarning(candidate -> {
+            throw new AssertionError("serializableChecker should never be invoked - java.io.Serializable is not among this component's candidates");
+        });
+
+        assertTrue(warning != null && warning.contains("ObjectMessage"), "Expected a warning naming the expected ObjectMessage type, got: " + warning);
     }
 }

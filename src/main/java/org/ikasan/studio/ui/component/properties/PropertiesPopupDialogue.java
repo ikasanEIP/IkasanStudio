@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.properties;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfoRt;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,11 @@ public class PropertiesPopupDialogue extends DialogWrapper {
         super(project, true);
         propertiesPanel.setPropertiesDialogue(this);
         this.propertiesPanel = propertiesPanel;
+        // The panel now implements Disposable purely so panel-scoped background work (e.g.
+        // ComponentPropertiesPanel's async Serializable resolution) has a properly-lived parent rather than
+        // Project itself - this dialog is that natural owner for a popup-created panel, matching how
+        // DesignerUI registers its own persistent (non-popup) instance against itself.
+        Disposer.register(getDisposable(), propertiesPanel);
         init();  // from DialogWrapper which calls createCenterPanel() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText(propertiesPanel.getOKButtonText());

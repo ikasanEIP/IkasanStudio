@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "paletteDisplayOrder": 5,
   "componentShortType": "Converter",
-  "helpText": "<p>The main responsibility of a converter is to convert the payload from one type to another e.g. JSON to XML.</p>",
+  "helpText": "<p>The main responsibility of a converter is to <b>convert the payload from one type to another</b> e.g. JSON to XML - it returns a new object, so the output type can differ from the input type. This is the key difference from a <b>Translator</b>, which changes the payload's content in place while keeping its type unchanged.</p>",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",

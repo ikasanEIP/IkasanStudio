@@ -4,7 +4,7 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/ObjectMessageToObjectConverter.md",
   "implementingClass": "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
   "useImplementingClassInFactory": true,
-  "expectedInputType": "jakarta.jms.ObjectMessage",
+  "expectedInputTypes": "jakarta.jms.ObjectMessage",
   "flowBuilderMethod": "converter",
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {

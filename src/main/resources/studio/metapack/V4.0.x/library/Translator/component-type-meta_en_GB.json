@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.transformation.Translator",
   "paletteDisplayOrder": 6,
   "componentShortType": "Translator",
-  "helpText": "<p>The main responsibility of a translator is to convert the contents of the payload, not the type. This means it is expected that the payload is a mutable class.</p>",
+  "helpText": "<p>The main responsibility of a translator is to <b>convert the contents of the payload, not the type</b>. This means it is expected that the payload is a mutable class. This is the key difference from a <b>Converter</b>, which returns a new object and can change the payload's type.</p>",
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {

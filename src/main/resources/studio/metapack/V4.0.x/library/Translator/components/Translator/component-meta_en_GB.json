@@ -2,7 +2,7 @@
   "name": "Translator",
   "flowBuilderMethod": "translator",
   "generatesUserImplementedClass": "true",
-  "helpText": "<p>The purpose of this translator is to support any type of transformation required, implemented by a bespoke translator class.</p>",
+  "helpText": "<p><b>Use a Translator when the payload keeps the same Java type and only its existing state or values need to change.</b> A Translator mutates the current payload in place and does not return a replacement object. By contrast, a <b>Converter</b> returns a target value and may change the payload's Java type or structure.</p><p>Implement the required in-place transformation in the generated bespoke translator class.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Translator.Custom",
   "expectedInputTypeProperty": "type",
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

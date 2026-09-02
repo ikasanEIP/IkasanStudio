@@ -294,7 +294,7 @@ class ComponentLibraryTest {
         assertAll(
             "Check the module contains the expected values",
             () -> assertEquals(ComponentMeta.MODULE_TYPE, module.getName()),
-            () -> assertEquals("The module is the container for all flows", module.getHelpText()),
+            () -> assertEquals("<p>The module is the container for all flows</p>", module.getHelpText()),
             () -> assertEquals("org.ikasan.spec.module.Module", module.getComponentType()),
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
             () -> assertFalse(ComponentIconProvider.getSmallIcon(module) instanceof ImageIcon),

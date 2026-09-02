@@ -96,13 +96,19 @@ public class ComponentMeta implements IkasanMeta {
     private String ikasanComponentFactoryMethod;    // used by ftl to invoke the correct factory method for this component
     @lombok.NonNull
     private String implementingClass;               // e.g. org.ikasan.spec.component.filter.Filter.Custom
-    private String expectedInputType;               // Optional: a fully-qualified type (or simple name e.g. "List") this component's incoming
-                                                      // payload is expected to be assignable to, e.g. Default List Splitter expects "java.util.List".
+    private String expectedInputTypes;              // Optional: one, or several comma-separated, fully-qualified types (or simple names
+                                                      // e.g. "List") this component's incoming payload is expected to be assignable to - e.g.
+                                                      // Default List Splitter expects "java.util.List"; Basic AMQ JMS Producer expects one of
+                                                      // "java.lang.String, byte[], java.util.Map, java.io.Serializable" (Spring's JmsTemplate
+                                                      // default MessageConverter's actual accepted set). A single value with no comma behaves
+                                                      // exactly as before - this field only grew a "one of several" meaning, not a new field,
+                                                      // deliberately: functionality here is driven by metadata shape, not new schema growth.
                                                       // Used for components with no user-configurable input type of their own - see
                                                       // expectedInputTypeProperty below for components that do. Drives a best-effort canvas warning
                                                       // (see FlowElement#getUpstreamTypeMismatchWarning) when the nearest upstream component's
-                                                      // declared 'toType' clearly doesn't match - absent (both this and expectedInputTypeProperty
-                                                      // apply their own fallbacks) means no check is attempted for this component.
+                                                      // declared 'toType' clearly doesn't match any candidate - absent (both this and
+                                                      // expectedInputTypeProperty apply their own fallbacks) means no check is attempted for this
+                                                      // component.
     private String expectedInputTypeProperty;        // Optional: names which of THIS component's own properties declares its expected input
                                                       // type, for components (Converter, Broker, Splitter, Filter, Router, Producer, ...) whose
                                                       // expected input type is user-configurable rather than fixed. Defaults to 'fromType' when
@@ -270,11 +276,8 @@ public class ComponentMeta implements IkasanMeta {
     }
 
     public String getHelpText() {
-        if (helpText == null || helpText.isEmpty()) {
-            return componentTypeMeta.getHelpText();
-        } else {
-            return helpText;
-        }
+        String categoryHelp = componentTypeMeta == null ? null : componentTypeMeta.getHelpText();
+        return HelpTextFormatter.categoryThenComponent(categoryHelp, helpText);
     }
 
     /**
@@ -306,8 +309,8 @@ public class ComponentMeta implements IkasanMeta {
         if (isConsumer()) {
             return null;
         }
-        if (expectedInputType != null && !expectedInputType.isBlank()) {
-            return expectedInputType;
+        if (expectedInputTypes != null && !expectedInputTypes.isBlank()) {
+            return expectedInputTypes;
         }
         // A component with no "fromType"/custom expectedInputTypeProperty at all (e.g. any Producer wrapping
         // an implementingClass directly, like Basic AMQ Spring JMS Producer) genuinely has nothing to state

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
@@ -154,27 +155,71 @@ public class FlowElement extends BasicElement {
     // output - and compared against as a simple (unqualified) type name.
     private static final String FLOW_EVENT_SIMPLE_NAME = "FlowEvent";
     private static final String OBJECT_SIMPLE_NAME = "Object";
+    // A marker interface, not a concrete type - substring name-matching (see the per-candidate loop below) is
+    // structurally the wrong tool for it, since an implementing class has no reason to have "Serializable"
+    // anywhere in its own name (e.g. Ikasan's real org.ikasan.filetransfer.component.DefaultPayload implements
+    // Payload, not Serializable, and neither name suggests the other). Real resolution needs PSI, which this
+    // class must never depend on - see the Function<String, Boolean> overload below.
+    private static final String SERIALIZABLE_TYPE = "java.io.Serializable";
 
     /**
      * Best-effort design-time check: if this component has an effective expected input type (see
-     * {@link #getEffectiveInputTypeDescription()}) and the nearest upstream element whose declared 'toType' represents
-     * the actual incoming payload (see {@link Flow#findPayloadSourceElement}) has a type that clearly doesn't
-     * match, returns a warning message suitable for display. Returns null whenever there isn't enough
+     * {@link #getEffectiveInputTypeDescription()} - one type, or several comma-separated candidates, e.g. Basic
+     * AMQ JMS Producer's "java.lang.String, byte[], java.util.Map, java.io.Serializable", Spring JmsTemplate's
+     * actual accepted set) and the nearest upstream element whose declared 'toType' represents the actual
+     * incoming payload (see {@link Flow#findPayloadSourceElement}) has a type that clearly satisfies none of
+     * them, returns a warning message suitable for display. Returns null whenever there isn't enough
      * information to check - including the very common case of an upstream Consumer, which never declares an
-     * output type in Studio's metadata - since staying silent is safer than a false alarm; this is a textual
-     * heuristic, not real type resolution, so a genuine mismatch can still slip through unflagged.
+     * output type in Studio's metadata - since staying silent is safer than a false alarm; every candidate but
+     * one is a textual heuristic, not real type resolution, so a genuine mismatch can still slip through
+     * unflagged.
+     * -
+     * The one exception is the literal candidate "java.io.Serializable" - a marker interface, where name
+     * matching is structurally the wrong tool (see {@link #SERIALIZABLE_TYPE}'s own comment). This no-arg
+     * overload can never confirm or deny it (this class must never depend on PSI - see
+     * {@link #getUpstreamTypeMismatchWarning(Function)} for the real check, wired up by a UI-layer caller that
+     * does have PSI access), so a Serializable candidate here only ever suppresses a warning it can't rule out,
+     * never causes one on its own.
      * @return a human-readable warning, or null if nothing is wrong (or nothing could be checked)
      */
     public String getUpstreamTypeMismatchWarning() {
+        return getUpstreamTypeMismatchWarning(upstreamType -> null);
+    }
+
+    /**
+     * The real, PSI-backed variant of {@link #getUpstreamTypeMismatchWarning()} - see there for the full rules.
+     * This class lives in the framework-independent core layer (see LayerBoundaryTest/ArchitectureBoundaryTest,
+     * which forbid it depending on com.intellij.* or UI packages directly), so it cannot resolve "does this class
+     * implement Serializable" itself; instead the caller (a UI-layer class with real PSI access) supplies that
+     * one answer as a function.
+     * @param serializableChecker given the upstream's declared output type, returns TRUE if it's confirmed to
+     * implement java.io.Serializable, FALSE if confirmed not to, or null if that can't be determined (unresolvable
+     * class, or no real PSI available - the no-arg overload always supplies null here)
+     * @return a human-readable warning, or null if nothing is wrong (or nothing could be checked)
+     */
+    public String getUpstreamTypeMismatchWarning(Function<String, Boolean> serializableChecker) {
         if (getComponentMeta() == null || containingFlow == null) {
             return null;
         }
-        String expectedInputType = getEffectiveInputTypeDescription();
-        if (expectedInputType == null || expectedInputType.isBlank()) {
+        String expectedInputTypes = getEffectiveInputTypeDescription();
+        if (expectedInputTypes == null || expectedInputTypes.isBlank()) {
             return null;
         }
-        String expectedSimpleName = expectedInputType.substring(expectedInputType.lastIndexOf('.') + 1);
-        if (OBJECT_SIMPLE_NAME.equals(expectedSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(expectedSimpleName)) {
+        List<String> candidates = new ArrayList<>();
+        for (String rawCandidate : expectedInputTypes.split(",")) {
+            String candidate = rawCandidate.trim();
+            if (candidate.isEmpty()) {
+                continue;
+            }
+            String candidateSimpleName = candidate.substring(candidate.lastIndexOf('.') + 1);
+            if (OBJECT_SIMPLE_NAME.equals(candidateSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(candidateSimpleName)) {
+                // This component declares it accepts anything - nothing to check, regardless of how many other
+                // candidates are also listed alongside it.
+                return null;
+            }
+            candidates.add(candidate);
+        }
+        if (candidates.isEmpty()) {
             return null;
         }
         FlowElement upstream = containingFlow.findPayloadSourceElement(this);
@@ -189,19 +234,41 @@ public class FlowElement extends BasicElement {
         if (OBJECT_SIMPLE_NAME.equals(upstreamSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(upstreamSimpleName)) {
             return null;
         }
-        if (upstreamOutputType.toLowerCase().contains(expectedSimpleName.toLowerCase())) {
+
+        boolean serializableUnresolved = false;
+        for (String candidate : candidates) {
+            if (SERIALIZABLE_TYPE.equals(candidate)) {
+                Boolean isSerializable = serializableChecker.apply(upstreamOutputType);
+                if (Boolean.TRUE.equals(isSerializable)) {
+                    return null;
+                }
+                if (isSerializable == null) {
+                    serializableUnresolved = true;
+                }
+                continue;
+            }
+            String candidateSimpleName = candidate.substring(candidate.lastIndexOf('.') + 1);
+            if (upstreamOutputType.toLowerCase().contains(candidateSimpleName.toLowerCase())) {
+                return null;
+            }
+        }
+        if (serializableUnresolved) {
+            // Every other candidate definitively failed, but Serializable itself couldn't be confirmed or
+            // denied - staying silent here (rather than warning) is the same "silence over false alarm"
+            // philosophy this method already applies everywhere else it lacks enough information.
             return null;
         }
+        String expectedDescription = candidates.size() == 1 ? candidates.get(0) : "one of: " + String.join(", ", candidates);
         return "Possible type mismatch: the nearest upstream component, '" + upstream.getComponentName()
-                + "', declares its output type as '" + upstreamOutputType + "', which does not look like a "
-                + expectedSimpleName + ". " + getComponentMeta().getName() + " expects its incoming payload to be a "
-                + expectedInputType + " - if it isn't, the flow may fail at runtime.";
+                + "', declares its output type as '" + upstreamOutputType + "', which does not look like it satisfies "
+                + expectedDescription + ". " + getComponentMeta().getName() + " expects its incoming payload to be "
+                + expectedDescription + " - if it isn't, the flow may fail at runtime.";
     }
 
     /**
      * The type this component itself expects its incoming payload to be, or null if it doesn't declare one:
      * a fixed metadata constant when the component has no user-configurable input type of its own (e.g.
-     * Default List Splitter, JMS Object Message To Object Converter - see {@link ComponentMeta#getExpectedInputType()}),
+     * Default List Splitter, JMS Object Message To Object Converter - see {@link ComponentMeta#getExpectedInputTypes()}),
      * otherwise the current value of whichever of this component's own properties represents that (see
      * {@link ComponentMeta#getEffectiveInputTypePropertyName()}) if that property is currently set. Consumers
      * always return null here - they start the flow, nothing flows into them.

@@ -1,5 +1,6 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -22,8 +23,16 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Implements Disposable (default no-op dispose()) purely so every subclass has a panel-scoped lifecycle to hang
+ * background work off - see ComponentPropertiesPanel#isConfirmedSerializable's own comment for why a narrower
+ * Disposable than the whole Project matters here (JetBrains' own "Choosing a Disposable Parent" guidance warns
+ * against using Project itself for exactly this kind of panel-scoped async task). PropertiesPopupDialogue
+ * registers whichever panel it wraps against its own getDisposable() (see there); DesignerUI's persistent
+ * canvas-sidebar instance is registered the same way CanvasPanel already is (Disposer.register(this, ...)).
+ */
 @SuppressWarnings("rawtypes")
-public abstract class PropertiesPanel extends JBPanel {
+public abstract class PropertiesPanel extends JBPanel implements Disposable {
     private static final String UPDATE_CODE_BUTTON_TEXT = StudioBundle.message("button.UpdateCode");
     protected transient IkasanObject selectedComponent;
     protected final Project project;
@@ -255,5 +264,14 @@ public abstract class PropertiesPanel extends JBPanel {
 
     public void setPropertiesDialogue(PropertiesPopupDialogue propertiesPopupDialogue) {
         this.propertiesPopupDialogue = propertiesPopupDialogue;
+    }
+
+    /**
+     * No-op by default - this class exists purely to give subclasses a real Disposable to hang panel-scoped
+     * background work off (see the class-level comment above). Override where a subclass actually owns
+     * something that needs explicit cleanup - see CanvasPanel#dispose() for the established style.
+     */
+    @Override
+    public void dispose() {
     }
 }
