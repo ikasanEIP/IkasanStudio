@@ -14,8 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * calls {@link #flag} / {@link #clear} (on each REST poll tick); the canvas only ever reads.
  */
 public final class FlowErrorStates {
-    /** @param summary a short human-readable description of the error (from the moduleControl REST error log), or null if unavailable. */
-    public record ErrorInfo(String summary, long detectedAtMillis) {}
+    /** Holds both the concise hover summary and the full selectable/copyable diagnostic report. */
+    public record ErrorInfo(String summary, String details, long detectedAtMillis) {
+        public ErrorInfo(String summary, long detectedAtMillis) {
+            this(summary, null, detectedAtMillis);
+        }
+    }
 
     private final Map<String, ErrorInfo> flaggedFlows = new ConcurrentHashMap<>();
 

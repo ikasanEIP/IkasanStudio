@@ -55,6 +55,35 @@ class ModuleControlClientTest {
     }
 
     @Test
+    void buildsACopyableReportIncludingMetadataAndFullStackTrace() throws Exception {
+        String json = "{\"pagedResults\":[{"
+                + "\"moduleName\":\"orders-module\","
+                + "\"flowName\":\"processOrders\","
+                + "\"flowElementName\":\"validateOrder\","
+                + "\"errorMessage\":\"Customer identifier is missing\","
+                + "\"exceptionClass\":\"org.example.ValidationException\","
+                + "\"errorDetail\":\"org.example.ValidationException: Customer identifier is missing\\n\\tat org.example.ValidateOrder.convert(ValidateOrder.java:42)\","
+                + "\"uri\":\"error-123\","
+                + "\"eventLifeIdentifier\":\"event-456\","
+                + "\"timestamp\":1700000000000}]}";
+
+        ModuleControlClient.ErrorDetails details = ModuleControlClient.parseLatestErrorDetails(json);
+
+        assertThat(details).isNotNull();
+        assertThat(details.summary()).isEqualTo(
+                "ValidationException: Customer identifier is missing at validateOrder");
+        assertThat(details.report()).contains(
+                "Module: orders-module",
+                "Flow: processOrders",
+                "Component: validateOrder",
+                "Exception: org.example.ValidationException",
+                "Error URI: error-123",
+                "Event identifier: event-456",
+                "Stack trace:\norg.example.ValidationException: Customer identifier is missing",
+                "at org.example.ValidateOrder.convert(ValidateOrder.java:42)");
+    }
+
+    @Test
     void returnsNullWhenNoErrorOccurrencesAreLoggedYet() throws Exception {
         String json = "{\"pagedResults\":[]}";
 

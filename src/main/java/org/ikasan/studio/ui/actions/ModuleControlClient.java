@@ -12,6 +12,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,16 +69,27 @@ public final class ModuleControlClient {
     }
 
     static final class ErrorOccurrenceEntry {
+        public String moduleName;
         public String flowName;
         public String flowElementName;
         public String errorMessage;
         public String exceptionClass;
+        public String errorDetail;
+        public String uri;
+        public String eventLifeIdentifier;
+        public String eventRelatedIdentifier;
+        public String action;
         public long timestamp;
     }
 
     static final class PagedErrorResponse {
         public List<ErrorOccurrenceEntry> pagedResults;
     }
+
+    public record ErrorDetails(String summary, String report) {}
+
+    private static final DateTimeFormatter ERROR_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
     /** @return every flow's current state (e.g. "running", "stopped", "stoppedInError"), keyed by flow name. */
     public static Map<String, String> fetchFlowStates(Module module) throws Exception {
@@ -103,20 +117,25 @@ public final class ModuleControlClient {
      * Best-effort only - a null return (network failure, unexpected response shape, nothing logged yet against
      * this flow) still leaves the flow correctly flagged by the caller, just without a human-readable detail.
      */
-    public static String fetchLatestErrorSummary(Module module, String flowName) {
+    public static ErrorDetails fetchLatestErrorDetails(Module module, String flowName) {
         try {
             String query = "pageNumber=0&pageSize=1&orderBy=timestamp&orderAscending=false&flow=" + flowName;
             HttpResponse<String> response = get(module, "/rest/error/", query);
             if (response.statusCode() != 200) {
                 return null;
             }
-            return parseLatestErrorSummary(response.body());
+            return parseLatestErrorDetails(response.body());
         } catch (Exception e) {
             return null;
         }
     }
 
-    public static String parseLatestErrorSummary(String json) throws Exception {
+    public static String fetchLatestErrorSummary(Module module, String flowName) {
+        ErrorDetails details = fetchLatestErrorDetails(module, flowName);
+        return details != null ? details.summary() : null;
+    }
+
+    public static ErrorDetails parseLatestErrorDetails(String json) throws Exception {
         PagedErrorResponse result = OBJECT_MAPPER.readValue(json, PagedErrorResponse.class);
         if (result.pagedResults == null || result.pagedResults.isEmpty()) {
             return null;
@@ -130,7 +149,37 @@ public final class ModuleControlClient {
         if (entry.flowElementName != null && !entry.flowElementName.isBlank()) {
             summary.append(" at ").append(entry.flowElementName);
         }
-        return summary.toString();
+        return new ErrorDetails(summary.toString(), formatErrorReport(entry));
+    }
+
+    public static String parseLatestErrorSummary(String json) throws Exception {
+        ErrorDetails details = parseLatestErrorDetails(json);
+        return details != null ? details.summary() : null;
+    }
+
+    private static String formatErrorReport(ErrorOccurrenceEntry entry) {
+        StringBuilder report = new StringBuilder();
+        appendReportField(report, "Timestamp", entry.timestamp > 0
+                ? ERROR_TIMESTAMP_FORMAT.format(Instant.ofEpochMilli(entry.timestamp).atZone(ZoneId.systemDefault())) : null);
+        appendReportField(report, "Module", entry.moduleName);
+        appendReportField(report, "Flow", entry.flowName);
+        appendReportField(report, "Component", entry.flowElementName);
+        appendReportField(report, "Exception", entry.exceptionClass);
+        appendReportField(report, "Message", entry.errorMessage);
+        appendReportField(report, "Error URI", entry.uri);
+        appendReportField(report, "Event identifier", entry.eventLifeIdentifier);
+        appendReportField(report, "Related event identifier", entry.eventRelatedIdentifier);
+        appendReportField(report, "Action", entry.action);
+        if (entry.errorDetail != null && !entry.errorDetail.isBlank()) {
+            report.append("\nStack trace:\n").append(entry.errorDetail.strip()).append("\n");
+        }
+        return report.toString().stripTrailing();
+    }
+
+    private static void appendReportField(StringBuilder report, String label, String value) {
+        if (value != null && !value.isBlank()) {
+            report.append(label).append(": ").append(value).append("\n");
+        }
     }
 
     private static String shortClassName(String fullyQualifiedName) {

@@ -5,11 +5,14 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextArea;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.Pair;
@@ -44,9 +47,12 @@ import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.Timer;
@@ -55,6 +61,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.datatransfer.StringSelection;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
@@ -308,6 +315,19 @@ public class DesignerCanvas extends JPanel {
                 }
                 return;
             }
+            Flow errorStatusOwner = getFlowStatusLabelOwnerAtXY(x, y);
+            if (errorStatusOwner != null) {
+                FlowErrorStates.ErrorInfo error = project.getService(FlowErrorMonitorService.class)
+                        .getErrorStates().getError(errorStatusOwner.getIdentity());
+                if (error != null) {
+                    String report = error.details() != null && !error.details().isBlank()
+                            ? error.details() : error.summary();
+                    if (report != null && !report.isBlank()) {
+                        new ErrorDetailsDialog(project, errorStatusOwner.getIdentity(), report).show();
+                    }
+                    return;
+                }
+            }
         }
         FlowElement sendTestMessageOwner = getOwnerForSendTestMessageAtXY(x, y);
         IkasanComponent selectedComponent = getComponentAtXY(x, y);
@@ -417,7 +437,8 @@ public class DesignerCanvas extends JPanel {
         if (statusLabelOwner != null) {
             FlowErrorStates.ErrorInfo error = project.getService(FlowErrorMonitorService.class)
                     .getErrorStates().getError(statusLabelOwner.getIdentity());
-            this.setToolTipText(error != null && error.summary() != null ? error.summary() : "");
+            this.setToolTipText(error != null && error.summary() != null
+                    ? error.summary() + " — " + StudioBundle.message("tooltip.ClickForFullErrorDetails") : "");
             return;
         }
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
@@ -2252,6 +2273,44 @@ public class DesignerCanvas extends JPanel {
         } catch (IOException ioe) {
             StudioUIUtils.displayErrorMessage(project, StudioBundle.message("message.CouldNotSaveImageToFile", file.getAbsolutePath()));
             LOG.warn("STUDIO: Error saving image to file " + file.getAbsolutePath(), ioe);
+        }
+    }
+
+    private static final class ErrorDetailsDialog extends DialogWrapper {
+        private final String report;
+        private final JBTextArea detailsArea;
+        private final Action copyAllAction = new AbstractAction(StudioBundle.message("button.CopyAll")) {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                CopyPasteManager.getInstance().setContents(new StringSelection(report));
+            }
+        };
+
+        private ErrorDetailsDialog(Project project, String flowName, String report) {
+            super(project, false);
+            this.report = report;
+            this.detailsArea = new JBTextArea(report, 28, 100);
+            setModal(false);
+            setTitle(StudioBundle.message("dialog.FlowErrorDetails", flowName));
+            setOKButtonText(StudioBundle.message("button.Close"));
+            init();
+        }
+
+        @Override
+        protected JComponent createCenterPanel() {
+            detailsArea.setEditable(false);
+            detailsArea.setLineWrap(false);
+            detailsArea.setCaretPosition(0);
+            detailsArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, StudioUIUtils.getMainFont().getSize()));
+            detailsArea.getAccessibleContext().setAccessibleName(StudioBundle.message("label.FlowErrorDetails"));
+            JBScrollPane scrollPane = new JBScrollPane(detailsArea);
+            scrollPane.setPreferredSize(JBUI.size(850, 500));
+            return scrollPane;
+        }
+
+        @Override
+        protected Action[] createActions() {
+            return new Action[]{copyAllAction, getOKAction()};
         }
     }
 

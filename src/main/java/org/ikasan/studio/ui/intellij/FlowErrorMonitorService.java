@@ -117,11 +117,18 @@ public final class FlowErrorMonitorService implements Disposable {
             }
             boolean nowInError = STOPPED_IN_ERROR_STATE.equals(entry.getValue());
             if (nowInError) {
-                if (!errorStates.isFlagged(flowName)) {
-                    String summary = ModuleControlClient.fetchLatestErrorSummary(ikasanModule, flowName);
-                    errorStates.flag(flowName, new FlowErrorStates.ErrorInfo(summary, System.currentTimeMillis()));
+                FlowErrorStates.ErrorInfo existingError = errorStates.getError(flowName);
+                if (existingError == null || existingError.details() == null || existingError.details().isBlank()) {
+                    ModuleControlClient.ErrorDetails details = ModuleControlClient.fetchLatestErrorDetails(ikasanModule, flowName);
+                    String summary = details != null ? details.summary()
+                            : existingError != null ? existingError.summary() : null;
+                    errorStates.flag(flowName, new FlowErrorStates.ErrorInfo(
+                            summary, details != null ? details.report() : null,
+                            existingError != null ? existingError.detectedAtMillis() : System.currentTimeMillis()));
                     changed = true;
-                    notifyNewError(flowName, summary);
+                    if (existingError == null) {
+                        notifyNewError(flowName, summary);
+                    }
                 }
             } else if (errorStates.clear(flowName)) {
                 changed = true;
