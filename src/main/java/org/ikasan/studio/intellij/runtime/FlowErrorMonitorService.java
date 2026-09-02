@@ -47,6 +47,7 @@ public final class FlowErrorMonitorService implements Disposable {
     private final Alarm alarm;
     private final FlowErrorStates errorStates = new FlowErrorStates();
     private final FlowRuntimeStatuses flowStatuses = new FlowRuntimeStatuses();
+    private volatile boolean moduleProcessRunning;
 
     public FlowErrorMonitorService(Project project) {
         this.project = project;
@@ -74,6 +75,17 @@ public final class FlowErrorMonitorService implements Disposable {
         pollAndUpdateState();
     }
 
+    /** Called by the execution lifecycle when this project's first Studio module process starts. */
+    public void moduleProcessStarted() {
+        moduleProcessRunning = true;
+    }
+
+    /** Called by the execution lifecycle when this project's final Studio module process terminates. */
+    public void moduleProcessStopped() {
+        moduleProcessRunning = false;
+        clearRuntimeStatuses();
+    }
+
     /**
      * Drops states obtained from the module process that has just terminated. Without this reset the canvas
      * continues to paint the per-flow controls and the final status returned by that no-longer-live process.
@@ -91,10 +103,14 @@ public final class FlowErrorMonitorService implements Disposable {
     }
 
     private void pollAndReschedule() {
-        if (IkasanStudioSettings.isFlowErrorMonitoringEnabled()) {
+        if (shouldPoll(IkasanStudioSettings.isFlowErrorMonitoringEnabled(), moduleProcessRunning)) {
             pollAndUpdateState();
         }
         scheduleNextPoll();
+    }
+
+    static boolean shouldPoll(boolean monitoringEnabled, boolean moduleProcessRunning) {
+        return monitoringEnabled && moduleProcessRunning;
     }
 
     private void pollAndUpdateState() {

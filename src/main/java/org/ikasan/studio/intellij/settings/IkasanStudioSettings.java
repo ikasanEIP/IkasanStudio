@@ -55,14 +55,15 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         public boolean testMailServerLivePollingEnabled = true;
 
         /**
-         * Periodically poll (every few seconds, in the background) the running module's own Ikasan REST
+         * While a Studio module process is running, periodically poll (every few seconds, in the background)
+         * the module's own Ikasan REST
          * interface for each flow's state, so a flow that has stopped in error (as opposed to a clean stop)
          * flashes red on the canvas without needing to watch the console - see
          * {@code DesignerCanvas#paintFlowErrorFlashes} and {@code FlowErrorMonitorService}. On by default; the
          * check is a single lightweight local HTTP call per tick (no different in kind from the "Send Test
-         * Message" or debug-injection calls Studio already makes), and fails silently (no flash, no flagged
-         * flows) whenever the module simply isn't running. Switch off if this ever proves unwanted background
-         * noise - e.g. running many module instances at once.
+         * Message" or debug-injection calls Studio already makes). No REST calls are made between Studio
+         * run/debug sessions. Switch off if this ever proves unwanted background noise - e.g. running many
+         * module instances at once.
          */
         public boolean flowErrorMonitoringEnabled = true;
     }

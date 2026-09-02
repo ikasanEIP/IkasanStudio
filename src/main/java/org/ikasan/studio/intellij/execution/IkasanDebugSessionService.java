@@ -173,6 +173,7 @@ public final class IkasanDebugSessionService implements Disposable {
         // no processStarted event will ever fire for it, so the reachability probe needs starting here too,
         // otherwise the Send Test Message badge would simply never appear for the rest of that debug session.
         if (debugAlreadyRunning) {
+            project.getService(FlowErrorMonitorService.class).moduleProcessStarted();
             scheduleReachabilityProbe();
         }
     }
@@ -180,6 +181,7 @@ public final class IkasanDebugSessionService implements Disposable {
     private void updateProcess(ProcessHandler handler, boolean running, boolean debug) {
         boolean visibilityChanged;
         boolean moduleStopped;
+        boolean moduleStarted;
         boolean debugStarted;
         boolean debugStopped;
         synchronized (this) {
@@ -197,6 +199,7 @@ public final class IkasanDebugSessionService implements Disposable {
             boolean isDebugRunningNow = !debugProcesses.isEmpty();
             boolean isModuleRunningNow = !moduleProcesses.isEmpty();
             moduleStopped = wasModuleRunning && !isModuleRunningNow;
+            moduleStarted = !wasModuleRunning && isModuleRunningNow;
             visibilityChanged = wasModuleRunning != isModuleRunningNow || wasDebugRunning != isDebugRunningNow;
             debugStarted = !wasDebugRunning && isDebugRunningNow;
             debugStopped = wasDebugRunning && !isDebugRunningNow;
@@ -209,8 +212,10 @@ public final class IkasanDebugSessionService implements Disposable {
         } else if (debugStarted) {
             scheduleReachabilityProbe();
         }
-        if (moduleStopped) {
-            project.getService(FlowErrorMonitorService.class).clearRuntimeStatuses();
+        if (moduleStarted) {
+            project.getService(FlowErrorMonitorService.class).moduleProcessStarted();
+        } else if (moduleStopped) {
+            project.getService(FlowErrorMonitorService.class).moduleProcessStopped();
         }
         if (visibilityChanged) {
             repaintCanvas();
