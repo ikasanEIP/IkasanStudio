@@ -312,6 +312,13 @@ public class DesignerCanvas extends JPanel {
     private void mouseClickAction(MouseEvent me, int x, int y) {
         clickStartMouseX = x;
         clickStartMouseY = y;
+        if (me.getButton() == MouseEvent.BUTTON3) {
+            FlowElement testMailServerNodeOwner = getOwnerForTestMailServerNodeAtXY(x, y);
+            if (testMailServerNodeOwner != null) {
+                DesignCanvasContextMenu.showStopTestMailServerMenu(project, this, me, testMailServerNodeOwner);
+                return;
+            }
+        }
         if (me.getButton() == MouseEvent.BUTTON1) {
             MutablePair<Flow, FlowTransportAction> transportClick = getFlowTransportButtonAtXY(x, y);
             if (transportClick != null) {
@@ -676,6 +683,46 @@ public class DesignerCanvas extends JPanel {
                 if (owner != null) {
                     return owner;
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Given x,y coords, check whether the click landed on the shared "Test Mail Server" node (see
+     * {@link #paintTestMailServerNode}) - only ever present while that address is actually listening, using the
+     * exact same bounds the paint method draws the icon at. Returns the anchor producer FlowElement (any
+     * producer sharing the link resolves to the same address, per {@link TestMailServerLinks#findLinks}), so the
+     * existing Start/Stop actions - which only need *a* FlowElement that supportsTestMailServer(), not a
+     * specific one - work unchanged.
+     * Returns null if no Test Mail Server node was hit.
+     */
+    private FlowElement getOwnerForTestMailServerNodeAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
+        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+            return null;
+        }
+        List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
+        if (links.isEmpty()) {
+            return null;
+        }
+        TestMailServerSessionService sessionService = project.getService(TestMailServerSessionService.class);
+        for (TestMailServerLinks.Link link : links) {
+            if (!sessionService.isListening(link.host(), link.port())) {
+                continue;
+            }
+            FlowElement anchorProducer = firstByModuleOrder(ikasanModule, link.producers());
+            IkasanFlowViewHandler anchorFlowHandler = flowHandlerFor(anchorProducer);
+            IkasanFlowComponentViewHandler anchorEndpointHandler = anchorFlowHandler != null ? anchorFlowHandler.getEndpointViewHandlerFor(anchorProducer) : null;
+            if (anchorEndpointHandler == null) {
+                continue;
+            }
+            Point anchorRight = anchorEndpointHandler.getRightConnectorPoint();
+            int nodeLeftX = anchorRight.x + TEST_MAIL_SERVER_NODE_GAP;
+            int nodeTopY = anchorRight.y - (TEST_MAIL_SERVER_NODE_HEIGHT / 2);
+            Rectangle nodeBounds = new Rectangle(nodeLeftX, nodeTopY, TEST_MAIL_SERVER_NODE_WIDTH, TEST_MAIL_SERVER_NODE_HEIGHT);
+            if (nodeBounds.contains(xpos, ypos)) {
+                return anchorProducer;
             }
         }
         return null;

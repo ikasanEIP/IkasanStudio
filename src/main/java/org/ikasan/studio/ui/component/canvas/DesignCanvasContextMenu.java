@@ -82,6 +82,20 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
+    /**
+     * Minimal popup for a right-click directly on the shared "Test Mail Server" canvas node (see
+     * {@code DesignerCanvas#paintTestMailServerNode}) - deliberately just the one Stop item, not the full
+     * producer menu {@link #showPopupAndNavigateMenu} would show for {@code ikasanBasicElement} itself (Delete
+     * Component, Edit Component, etc. would act on the underlying Email Producer, which isn't what's visually
+     * being pointed at here). No Start item either: this node is only ever painted while its address is
+     * actually listening, so Stop is the only action that ever makes sense from it.
+     */
+    public static void showStopTestMailServerMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createStopTestMailServerMenuItem(project, ikasanBasicElement));
+        menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
+    }
+
     private static JMenuItem createDeleteComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.DeleteComponent"));
         item.addActionListener(new DeleteComponentAction(project, ikasanBasicElement));
