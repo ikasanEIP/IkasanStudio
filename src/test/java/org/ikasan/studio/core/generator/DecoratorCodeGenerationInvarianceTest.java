@@ -10,16 +10,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Wiretap/LogWiretap decorators are persisted in model.json but, as of writing, are not read by
  * FlowTemplate, FlowsComponentFactoryTemplate or PropertiesTemplate - this is why
  * {@code DecoratorComponentAction} can use {@code GenerationRequest.modelOnly()} and skip regenerating
- * source entirely when a decorator is added/removed (see IkasanFlowRouteViewHandler/PIPSIIkasanModel
+ * source entirely when a decorator is added/removed (see IkasanFlowRouteViewHandler/GeneratedProjectSynchronizer
  * performance work). If a template is ever changed to render decorator state into generated code, that
  * shortcut becomes wrong (stale generated code, not just a stale cache) and these tests will fail,
  * flagging that DecoratorComponentAction needs to move off modelOnly.

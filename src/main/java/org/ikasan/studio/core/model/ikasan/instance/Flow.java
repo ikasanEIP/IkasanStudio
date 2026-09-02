@@ -1,12 +1,12 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.model.command.FlowElementRemoval;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowSerializer;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,6 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@JsonSerialize(using = FlowSerializer.class)
 public class Flow extends BasicElement {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
     // The fields of a Flow will need to be known for serialisation
@@ -33,12 +32,12 @@ public class Flow extends BasicElement {
      * Used primarily during deserialization.
      */
     public Flow() throws StudioBuildException {
-        super (IkasanComponentLibrary.getFLowComponentMeta(IkasanComponentLibrary.DEFAULT_IKASAN_PACK), null);
+        super (ComponentLibrary.getFLowComponentMeta(ComponentLibrary.DEFAULT_IKASAN_PACK), null);
         LOG.error("STUDIO: Parameterless version of flow called");
     }
 
     public Flow(String metapackVersion) throws StudioBuildException {
-        super (IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
+        super (ComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         flowRoute = FlowRoute.flowRouteBuilder().flow(this).build();
     }
 
@@ -54,7 +53,7 @@ public class Flow extends BasicElement {
                 ExceptionResolver exceptionResolver,
                 String name,
                 String description) throws StudioBuildException {
-        super(IkasanComponentLibrary.getFLowComponentMeta(metapackVersion), null);
+        super(ComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         if (consumer != null) {
             if (!consumer.getComponentMeta().isConsumer()) {
                 LOG.error("STUDIO: ERROR : Tried to set consumer on " + this + " with a flowElement that is not a consumer " + consumer + ", this will be ignored");

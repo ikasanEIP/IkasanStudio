@@ -2,26 +2,23 @@ package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.BasicElementSerializer;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 
 /**
  * Parent of all Ikasan Components e.g. flows, module, flowComponent
  * To make the instance model flexible and driven by Ikasan Meta Pack, most attributes are contained within the properties map.
  */
-@JsonSerialize(using = BasicElementSerializer.class)
 @Getter
 @Setter
 public  class BasicElement extends IkasanObject {
@@ -160,7 +157,7 @@ public  class BasicElement extends IkasanObject {
             Object value = componentProperty.getValue();
 
             if (value instanceof List) {
-                returnValue = Arrays.toString(((List)value).toArray());
+                returnValue = Arrays.toString(((List<?>) value).toArray());
             } else {
                 returnValue = value.toString();
             }
@@ -168,13 +165,21 @@ public  class BasicElement extends IkasanObject {
         return returnValue;
     }
 
+    /**
+     * Used by FreeMarker, ignore any IntelliJ warnings about unused methods - it is used in the FreeMarker
+     * templates.
+     * Get all the component's properties (excluding any marked as ignored in their metadata) as a flat list -
+     * the list form templates iterate over, as opposed to {@link #getComponentProperties()}'s map form.
+     * @return the list of properties for this component, or an empty list if it has none.
+     */
+    @SuppressWarnings("unused")
     public List<ComponentProperty> getComponentPropertyList() {
         if (componentProperties != null && !componentProperties.isEmpty()) {
             return componentProperties.values().stream()
                 .filter(x-> !x.getMeta().isIgnoreProperty())
                 .collect(Collectors.toList());
         } else {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 

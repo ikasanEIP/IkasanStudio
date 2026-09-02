@@ -6,7 +6,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,7 +25,7 @@ public class ModelRebuildAction implements ActionListener {
 
       if (module != null) {
          StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.RebuildingSourceCodeFromMemoryModel"));
-         StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project);
+         StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project);
       } else {
          StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.RebuildingCantBeLaunchedUnlessAModuleIsDefined"));
       }

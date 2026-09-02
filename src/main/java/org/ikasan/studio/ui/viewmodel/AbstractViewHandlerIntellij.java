@@ -5,9 +5,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.ikasan.studio.core.model.ikasan.instance.AbstractViewHandler;
+import lombok.Getter;
+import lombok.Setter;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -22,9 +21,9 @@ import java.util.Arrays;
  * the gap between the core model and the UI representation of that model.
  * Provides methods for painting components, managing dimensions, and handling navigation.
  */
-@Data
-@EqualsAndHashCode(callSuper=true)
-public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
+@Getter
+@Setter
+public abstract class AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#AbstractViewHandlerIntellij");
     PsiClass classToNavigateTo;
     PsiFile psiFile;
@@ -39,7 +38,6 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     private int height;
     private int trailingGap;
     private int leadingGap;
-    private int minimumGap;
     boolean isAlreadySelected;  // Determines if a component is already selected e.g. to prevent a reclick from resetting edit changes.
 
     /**
@@ -57,9 +55,6 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     }
     public Point getRightConnectorPoint() {
         return new Point(getRightX(), getTopY() + (getHeight()/2));
-    }
-    public Point getTopConnectorPoint() {
-        return new Point(getLeftX() + (getWidth()/2), getTopY());
     }
     public Point getBottomConnectorPoint() {
         return new Point(getLeftX() + (getWidth()/2), getTopY() + getHeight());
@@ -231,7 +226,7 @@ public abstract class AbstractViewHandlerIntellij extends AbstractViewHandler {
     }
 
     protected AbstractViewHandlerIntellij verifyHandler(AbstractViewHandlerIntellij viewHandler) {
-        if (viewHandler.equals(this)) {
+        if (viewHandler == this) {
             Thread thread = Thread.currentThread();
             LOG.warn("STUDIO: SERIOUS: call for a view handler returned this view handler, this must be a mistake, ignoring" + Arrays.toString(thread.getStackTrace()));
             viewHandler = null;

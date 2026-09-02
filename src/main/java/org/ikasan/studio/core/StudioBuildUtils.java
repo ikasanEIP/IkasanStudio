@@ -1,32 +1,25 @@
 package org.ikasan.studio.core;
 
+import org.ikasan.studio.core.generation.JavaSourceNames;
+import org.ikasan.studio.core.metapack.loading.ClasspathDirectoryScanner;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 
 /**
  * Studio Utils
  */
 public class StudioBuildUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(StudioBuildUtils.class);
-
     // Enforce as a utility only class
     private StudioBuildUtils() {}
 
@@ -89,12 +82,7 @@ public class StudioBuildUtils {
      * @return the input string in the form of a java classname
      */
     public static String toJavaClassName(final String input) {
-        String identifer = toJavaIdentifier(input);
-        if (!identifer.isEmpty()) {
-            char first = Character.toUpperCase(identifer.charAt(0));
-            identifer = first + identifer.substring(1);
-        }
-        return identifer;
+        return JavaSourceNames.toClassName(input);
     }
 
     /**
@@ -122,14 +110,7 @@ public class StudioBuildUtils {
      * @return the input string in the form of a java package
      */
     public static String toJavaPackageName(String input) {
-        if (input != null && !input.isEmpty()) {
-            if (Character.isDigit(input.charAt(0))) {
-                input = "_" + input;
-            }
-            return  input.replaceAll("[^a-zA-Z0-9_]+", "").toLowerCase();
-        } else {
-            return input;
-        }
+        return JavaSourceNames.toPackageName(input);
     }
 
     /**
@@ -156,45 +137,7 @@ public class StudioBuildUtils {
      * @return a string that could be used as a java identifier
      */
     public static String toJavaIdentifier(final String input) {
-        if (input != null && !input.isEmpty()) {
-            int inputStringLength = input.length();
-            char[] inputString = input.toCharArray();
-            int outputStringLength = 0;
-
-            boolean toUpper = false;
-            for (int inputStringIndex = 0; inputStringIndex < inputStringLength; inputStringIndex++)
-            {
-                if (inputString[inputStringIndex] == ' ' || inputString[inputStringIndex] == '.') {
-                    toUpper = true;
-                }
-                else {
-                    char current;
-                    if (outputStringLength == 0) {
-                        current = Character.toLowerCase(inputString[inputStringIndex]);
-                        if (! (Character.isJavaIdentifierStart(current))) {
-                            continue;
-                        }
-                    } else {
-                        if (toUpper) {
-                            current = Character.toUpperCase(inputString[inputStringIndex]);
-                            if (!Character.isJavaIdentifierPart(current)) {
-                                continue;
-                            }
-                            toUpper = false;
-                        } else {
-                            current = inputString[inputStringIndex];
-                            if (!Character.isJavaIdentifierPart(current)) {
-                                continue;
-                            }
-                        }
-                    }
-                    inputString[outputStringLength++] = current;
-                }
-            }
-            return String.valueOf(inputString, 0, outputStringLength);
-        } else {
-            return "";
-        }
+        return JavaSourceNames.toIdentifier(input);
     }
 
     /**
@@ -208,46 +151,8 @@ public class StudioBuildUtils {
      * @throws URISyntaxException if there were issues
      * @throws IOException if there were issues
      */
-    @SuppressWarnings("resource")
     public static String[] getDirectories(final String dir) throws URISyntaxException, IOException {
-        String[] directoriesNames = new String[0];
-
-        URL url = StudioBuildUtils.class.getClassLoader().getResource(dir);
-        if (url == null) {
-            LOG.warn("STUDIO: WARNING: Could not find any directory " + dir);
-        } else {
-            final URI uri = url.toURI();
-            Path myPath;
-            directoriesNames = new String[0];
-            if (uri.getScheme().equals("jar")) {
-
-                FileSystem fileSystem = null;
-                try {
-                    fileSystem = FileSystems.getFileSystem(uri);
-                } catch (FileSystemNotFoundException fsnf) {
-                    LOG.info("STUDIO: " + dir + " is not currently open, attempting to create newFileSystem for it");
-                }
-                if (fileSystem == null) {
-                    // The fileSystem must remain open for Intellij, i.e. we can't close() it.
-                    fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
-                }
-                myPath = fileSystem.getPath(dir);
-                // The walk must remain open for Intellij
-                Set<String> directories = Files.walk(myPath, 1)
-                    .filter(Files::isDirectory)
-                    .map(Path::toString)
-                    .filter(string -> !string.endsWith(dir))
-                    .collect(Collectors.toSet());
-                directoriesNames = directories.toArray(String[]::new);
-            } else {
-                File file = new File(uri);
-                String[] fileList = file.list((current, name) -> new File(current, name).isDirectory());
-                if (fileList != null) {
-                    directoriesNames = Arrays.stream(fileList).map(theFile -> dir + "/" + theFile).toArray(String[]::new);
-                }
-            }
-        }
-        return directoriesNames;
+        return ClasspathDirectoryScanner.getDirectories(dir);
     }
 
     /**
@@ -499,10 +404,6 @@ public class StudioBuildUtils {
         }
 
         return labels;
-    }
-
-    public static void changeMetaPack(Module module) {
-        module.getComponentPropertyList();
     }
 
 //    /**

@@ -2,17 +2,17 @@ package org.ikasan.studio.ui;
 
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.Options;
+import org.ikasan.studio.ui.state.StudioSessionOptions;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
-import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
+import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
@@ -61,7 +61,7 @@ public final class UiContext {
     public UiContext(Project project) {
         this.project = project;
         // Initialize options cache as these are essential
-        this.cache.putIfAbsent(OPTIONS, new Options());
+        this.cache.putIfAbsent(OPTIONS, new StudioSessionOptions());
     }
 
     /**
@@ -81,14 +81,14 @@ public final class UiContext {
         cache.put(key, value);
     }
 
-    public Options getOptions() {
-        return (Options) getFromCache(OPTIONS);
+    public StudioSessionOptions getOptions() {
+        return (StudioSessionOptions) getFromCache(OPTIONS);
     }
 
     public IkasanPomModel getIkasanPomModel() {
         IkasanPomModel ikasanPomModel = (IkasanPomModel) getFromCache(IKASAN_POM_MODEL);
         if (ikasanPomModel == null) {
-            ikasanPomModel = StudioPsiUtils.pomLoadFromVirtualDisk(project);
+            ikasanPomModel = StudioProjectFiles.pomLoadFromVirtualDisk(project);
             if (ikasanPomModel != null) {
                 setIkasanPomModel(ikasanPomModel);
             }
@@ -125,7 +125,7 @@ public final class UiContext {
     public Map<String, String> getApplicationProperties() {
         Map<String, String> applicationProperties = (Map<String, String>) getFromCache(APPLICATION_PROPERTIES);
         if (applicationProperties == null) {
-            applicationProperties = StudioPsiUtils.getApplicationPropertiesMapFromVirtualDisk(project);
+            applicationProperties = StudioProjectFiles.getApplicationPropertiesMapFromVirtualDisk(project);
             if (applicationProperties != null) {
                 setApplicationProperties(applicationProperties);
             }
@@ -196,7 +196,10 @@ public final class UiContext {
         cache.remove(PALETTE_PANEL);
         cache.remove(RIGHT_TABBED_PANE);
         cache.remove(CANVAS_TEXT_AREA);
-        cache.remove(VIEW_HANDLER_FACTORY);
+        ViewHandlerCache viewHandlerCache = (ViewHandlerCache) cache.remove(VIEW_HANDLER_FACTORY);
+        if (viewHandlerCache != null) {
+            viewHandlerCache.clear();
+        }
     }
 
     public void setPropertiesPanel(ComponentPropertiesPanel componentPropertiesPanel) {
@@ -240,12 +243,12 @@ public final class UiContext {
     }
 
 
-    public void setPipsiIkasanModel(PIPSIIkasanModel ikasanModule) {
+    public void setPipsiIkasanModel(GeneratedProjectSynchronizer ikasanModule) {
         putInCache(PIPSI_IKASAN_MODEL, ikasanModule);
     }
 
-    public PIPSIIkasanModel getPipsiIkasanModel() {
-        return (PIPSIIkasanModel) getFromCache(PIPSI_IKASAN_MODEL);
+    public GeneratedProjectSynchronizer getPipsiIkasanModel() {
+        return (GeneratedProjectSynchronizer) getFromCache(PIPSI_IKASAN_MODEL);
     }
 
     /**

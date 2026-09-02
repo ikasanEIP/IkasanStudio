@@ -1,16 +1,16 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.Pair;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
-import java.util.List;
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+import org.ikasan.studio.ui.model.MutablePair;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 /**
  * Abstracts away UI details and provides access to appropriate presentation state from the domain model
@@ -89,7 +89,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         if (getFlowElement().hasDecorators()) {
             result = ((getLeftX() - getLeadingGap() <= x && x <= getLeftX()) ||
                       (getRightX()                  <= x && x <= getRightX() + getTrailingGap()) ) &&
-                    getTopY() <= y && y <= getTopY() + IkasanComponentLibrary.getDecoratorHeight();
+                    getTopY() <= y && y <= getTopY() + ComponentIconProvider.getDecoratorHeight();
             if (result) {
             LOG.info("Decorator found for " + flowElement.getIdentity());
             }
@@ -101,7 +101,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         int leftX = getLeftX();
         int rightX = getLeftX() + flowchartSymbolWidth;
         if (flowElement.hasWiretap()) {
-            Icon wiretapIcon = IkasanComponentLibrary.getWiretapIcon();
+            Icon wiretapIcon = ComponentIconProvider.getWiretapIcon();
             List<Decorator> wiretaps = flowElement.getWiretaps();
 
             if (!wiretaps.isEmpty() && wiretaps.stream().anyMatch(Decorator::isBefore)) {
@@ -115,7 +115,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
             }
         }
         if (flowElement.hasLogWiretap()) {
-            Icon logWiretapIcon = IkasanComponentLibrary.getLogWiretapIcon();
+            Icon logWiretapIcon = ComponentIconProvider.getLogWiretapIcon();
             List<Decorator> logWiretaps = flowElement.getLogWiretaps();
             if (!logWiretaps.isEmpty() && logWiretaps.stream().anyMatch(Decorator::isBefore)) {
                 leftX -= (WIRETAP_HORIZONTAL_SPACE + logWiretapIcon.getIconWidth());
@@ -164,14 +164,14 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
             // getLeadingGap()/getTrailingGap() (floor-clamped to getMinimumGap()) in the layout accumulation -
             // adding getMinimumGap() again here double-counted it, pushing the decorator an extra gap-width
             // away from the preceding component instead of sitting at the normal spacing.
-            int beforeWidth = numberOfBeforeDecorators * (IkasanComponentLibrary.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
+            int beforeWidth = numberOfBeforeDecorators * (ComponentIconProvider.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
             setLeadingGap(beforeWidth);
             setLeftX(getLeftX() + beforeWidth);
         } else {
             setLeadingGap(0);
         }
         if (numberOfAfterDecorators > 0) {
-            int afterWidth = numberOfAfterDecorators * (IkasanComponentLibrary.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
+            int afterWidth = numberOfAfterDecorators * (ComponentIconProvider.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
             setTrailingGap(afterWidth);
         } else {
             setTrailingGap(0);
@@ -197,12 +197,12 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      * How close (TestV1,y) does a dragged component need to be to the centre of this component so that we consider it attachable.
      * @return the TestV1,y coords
      */
-    public static Pair<Integer, Integer> getProximityDetect() {
-        return new Pair<>(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
+    public static MutablePair<Integer, Integer> getProximityDetect() {
+        return new MutablePair<>(((FLOWCHART_SYMBOL_DEFAULT_WIDTH) + 5), ((FLOWCHART_SYMBOL_DEFAULT_HEIGHT) + 5));
     }
 
     public Icon getCanvasIcon() {
-        return flowElement.getComponentMeta().getCanvasIcon();
+        return ComponentIconProvider.getCanvasIcon(flowElement.getComponentMeta());
     }
 
     @Override
@@ -213,11 +213,6 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
     @Override
     public Point getRightConnectorPoint() {
         return new Point(getRightX(), getTopY() + (flowchartSymbolHeight/2));
-    }
-
-    @Override
-    public Point getTopConnectorPoint() {
-        return new Point(getLeftX() + (flowchartSymbolWidth/2), getTopY());
     }
 
     @Override

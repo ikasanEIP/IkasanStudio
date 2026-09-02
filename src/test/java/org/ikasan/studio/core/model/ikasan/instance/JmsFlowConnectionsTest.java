@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.junit.jupiter.api.BeforeAll;

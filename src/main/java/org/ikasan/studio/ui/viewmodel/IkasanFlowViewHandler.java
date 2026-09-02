@@ -6,10 +6,10 @@ import com.intellij.ui.JBColor;
 import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
 import org.ikasan.studio.ui.PaintMode;
-import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.Styling;
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
@@ -143,7 +143,7 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         paintFlowBorder(g, getLeftX(), getTopY(), getWidth(), getHeight());
         paintFlowTitle(g, PaintMode.PAINT);
         if (isRecording(flow)) {
-            IkasanComponentLibrary.getReplayServiceIcon().paintIcon(canvas, g,
+            ComponentIconProvider.getReplayServiceIcon().paintIcon(canvas, g,
                     getLeftX() + FLOW_CONTAINER_BORDER,
                     getTopY() + FLOW_CONTAINER_BORDER);
         }

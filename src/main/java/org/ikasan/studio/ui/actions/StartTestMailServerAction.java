@@ -15,10 +15,10 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.TestMailServerLinks;
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
+import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
 

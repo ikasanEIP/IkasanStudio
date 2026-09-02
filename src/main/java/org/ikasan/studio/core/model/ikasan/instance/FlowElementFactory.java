@@ -1,7 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 public class FlowElementFactory {
     /**
@@ -10,7 +10,7 @@ public class FlowElementFactory {
      * @param containinfFlow flow that contains this element
      */
     public static FlowElement createFlowElement(String metapackVersion, ComponentMeta type, Flow containinfFlow, FlowRoute containingFlowRoute, String componentName) throws StudioBuildException {
-        FlowElement flowElement = null;
+        FlowElement flowElement ;
         if (type.isGeneratesUserImplementedClass()) {
             flowElement = FlowUserImplementedElement.flowUserImplementedElementBuilder()
                     .componentMeta(type)

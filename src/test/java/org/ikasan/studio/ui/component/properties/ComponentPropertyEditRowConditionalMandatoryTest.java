@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +29,7 @@ public class ComponentPropertyEditRowConditionalMandatoryTest {
 
     @BeforeAll
     public static void loadSftpConsumerMeta() throws Exception {
-        sftpConsumerMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "SFTP Consumer");
+        sftpConsumerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "SFTP Consumer");
     }
 
     private static FlowElement newSftpConsumer() {

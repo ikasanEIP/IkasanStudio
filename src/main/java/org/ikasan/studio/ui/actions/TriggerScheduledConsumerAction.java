@@ -15,7 +15,7 @@ import org.ikasan.studio.integration.ikasan.StudioInjectClient;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

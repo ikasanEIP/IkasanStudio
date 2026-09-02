@@ -1,6 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

@@ -1,7 +1,9 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+
 import com.intellij.openapi.diagnostic.Logger;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
@@ -58,7 +60,7 @@ public class IkasanPaletteElementViewHandler extends AbstractViewHandlerIntellij
     }
 
     public Icon getDisplayIcon() {
-        return componentMeta.getSmallIcon();
+        return ComponentIconProvider.getSmallIcon(componentMeta);
     }
 
     public ComponentMeta getComponentMeta() {

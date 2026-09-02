@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Shared HTTP client for GETting a running module's own Ikasan REST interface - {@code /rest/moduleControl/...}
  * for each flow's current state (running/stopped/stoppedInError/...) and {@code /rest/error/...} for the detail
- * behind a "stoppedInError" flow - used by {@code org.ikasan.studio.ui.intellij.FlowErrorMonitorService} to flag
+ * behind a "stoppedInError" flow - used by {@code org.ikasan.studio.intellij.runtime.FlowErrorMonitorService} to flag
  * flows on the canvas that have stopped in error (see {@code DesignerCanvas#paintFlowErrorFlashes}). Public,
  * like {@code TestMailServerSupport}, since its caller lives in the ui.intellij package.
  * -
@@ -130,10 +130,10 @@ public final class ModuleControlClient {
         }
     }
 
-    public static String fetchLatestErrorSummary(Module module, String flowName) {
-        ErrorDetails details = fetchLatestErrorDetails(module, flowName);
-        return details != null ? details.summary() : null;
-    }
+//    public static String fetchLatestErrorSummary(Module module, String flowName) {
+//        ErrorDetails details = fetchLatestErrorDetails(module, flowName);
+//        return details != null ? details.summary() : null;
+//    }
 
     public static ErrorDetails parseLatestErrorDetails(String json) throws Exception {
         PagedErrorResponse result = OBJECT_MAPPER.readValue(json, PagedErrorResponse.class);

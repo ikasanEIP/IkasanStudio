@@ -3,7 +3,7 @@ package org.ikasan.studio.core.generator;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 import java.util.Map;
 

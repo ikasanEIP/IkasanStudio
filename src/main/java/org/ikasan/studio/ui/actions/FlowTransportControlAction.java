@@ -12,7 +12,7 @@ import org.ikasan.studio.integration.ikasan.ModuleControlClient;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.intellij.FlowErrorMonitorService;
+import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
 
 import java.net.ConnectException;
 

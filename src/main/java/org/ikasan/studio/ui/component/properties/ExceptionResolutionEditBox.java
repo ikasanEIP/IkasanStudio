@@ -5,9 +5,9 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ExceptionActionMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
@@ -23,10 +23,10 @@ public class ExceptionResolutionEditBox {
     ExceptionResolverMeta exceptionResolverMeta;
     private final ExceptionResolutionPanel resolutionPanel;
     private final JLabel exceptionTitleField;
-    private final ComboBox exceptionJComboBox;
+    private final ComboBox<String> exceptionJComboBox;
     private final JLabel actionTitleField;
     private String currentAction = null;
-    private final ComboBox actionJComboBox;
+    private final ComboBox<String> actionJComboBox;
     private final JLabel paramsTitleField;
     private List<ComponentPropertyEditRow> componentPropertyEditRowList = new ArrayList<>();
     private final boolean componentInitialisation;
@@ -43,13 +43,13 @@ public class ExceptionResolutionEditBox {
         this.paramsTitleField = new JLabel(StudioBundle.message("label.Params"));
 
         List<String> currentExceptions = exceptionResolverMeta.getExceptionsCaught();
-        Object[] exceptions = currentExceptions.toArray();
-        Object[] actions = exceptionResolverMeta.getActionList().stream()
+        String[] exceptions = currentExceptions.toArray(new String[0]);
+        String[] actions = exceptionResolverMeta.getActionList().stream()
                 .map(ExceptionActionMeta::getActionName)
-                .toArray();
+                .toArray(String[]::new);
 
-        this.actionJComboBox = new ComboBox(actions);
-        this.exceptionJComboBox = new ComboBox(exceptions);
+        this.actionJComboBox = new ComboBox<>(actions);
+        this.exceptionJComboBox = new ComboBox<>(exceptions);
 
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel(StudioBundle.message("label.Exception"));

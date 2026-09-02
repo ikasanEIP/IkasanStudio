@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
@@ -67,7 +69,7 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             }
 
             IkasanFlowUIComponentTransferable newTransferable = new IkasanFlowUIComponentTransferable(ikasanComponent);
-            Image dragImage = iconToImage(sourceComponent, item.getIkasanPaletteElementViewHandler().getComponentMeta().getSmallIcon());
+            Image dragImage = iconToImage(sourceComponent, ComponentIconProvider.getSmallIcon(item.getIkasanPaletteElementViewHandler().getComponentMeta()));
             if (dragImage != null) {
                 setDragImage(dragImage);
             }

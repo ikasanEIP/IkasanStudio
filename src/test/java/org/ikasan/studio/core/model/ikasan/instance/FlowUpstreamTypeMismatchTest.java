@@ -12,8 +12,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.FROM_TYPE;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.TO_TYPE;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

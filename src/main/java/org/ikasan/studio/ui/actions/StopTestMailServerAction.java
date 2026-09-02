@@ -11,10 +11,10 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.TestMailServerLinks;
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
+import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
 
 import java.awt.event.ActionEvent;

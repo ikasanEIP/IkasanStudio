@@ -4,13 +4,13 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ComponentIODeserializeTest {
@@ -41,7 +41,7 @@ class ComponentIODeserializeTest {
         );
 
         assertTrue(thrown.getMessage().contains(
-            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_name_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
+            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_name_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.metapack.model.ComponentMeta$ComponentMetaBuilderImpl`, problem: name is marked non-null but is null"),
                 "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 
@@ -53,7 +53,7 @@ class ComponentIODeserializeTest {
         );
 
         assertTrue(thrown.getMessage().contains(
-            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.model.ikasan.meta.ComponentMeta$ComponentMetaBuilderImpl`, problem: implementingClass is marked non-null but is null"),
+            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.metapack.model.ComponentMeta$ComponentMetaBuilderImpl`, problem: implementingClass is marked non-null but is null"),
                 "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 

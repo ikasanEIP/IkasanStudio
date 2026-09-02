@@ -7,11 +7,11 @@ import java.time.Duration;
 
 /**
  * Shared constants/probing between {@link StartTestMailServerAction}, {@link StopTestMailServerAction} and
- * {@code org.ikasan.studio.ui.intellij.TestMailServerSessionService} (a different UI subpackage, hence public
- * rather than package-private) - mirrors {@link StudioInjectClient}'s role as a shared helper between
+ * {@code org.ikasan.studio.intellij.runtime.TestMailServerSessionService} (a different UI subpackage, hence public
+ * rather than package-private) - mirrors {@link org.ikasan.studio.integration.ikasan.StudioInjectClient}'s role as a shared helper between
  * SendTestMessageAction/TriggerScheduledConsumerAction. Address resolution (mailSmtpHost/mailSmtpPort, with
  * defaults) lives in the framework-independent
- * {@code org.ikasan.studio.core.model.ikasan.instance.TestMailServerLinks} instead, since the canvas's
+ * {@code org.ikasan.studio.core.model.analysis.TestMailServerLinks} instead, since the canvas's
  * shared-node grouping logic needs it too and that class has no UI dependency to inherit.
  */
 public final class TestMailServerSupport {

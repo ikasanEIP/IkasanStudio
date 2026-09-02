@@ -1,7 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,10 +8,9 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.FlowElementSerializer;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +20,6 @@ import java.util.List;
 /**
  * The component that resides in a flow e.g. broker, splitter, consumer, producer
  */
-@JsonSerialize(using = FlowElementSerializer.class)
 @Getter
 @Setter
 public class FlowElement extends BasicElement {
@@ -140,7 +137,7 @@ public class FlowElement extends BasicElement {
             LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
             return null;
         }
-        ComponentMeta newComponentMeta = IkasanComponentLibrary.getIkasanComponentByKey(metapackVersion, this.getComponentMeta().getName());
+        ComponentMeta newComponentMeta = ComponentLibrary.getIkasanComponentByKey(metapackVersion, this.getComponentMeta().getName());
         if (newComponentMeta == null) {
             throw new StudioBuildException("Component [" + this.getComponentMeta().getName() + "] not found in metapack version [" + metapackVersion + "]");
         }

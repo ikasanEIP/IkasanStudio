@@ -1,13 +1,11 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.ExceptionResolverSerializer;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +15,6 @@ import java.util.*;
  * The Exception Resolver owns the view handler andd has a list of exception resolutions
  */
 
-@JsonSerialize(using = ExceptionResolverSerializer.class)
 @Getter
 @Setter
 @ToString
@@ -25,13 +22,13 @@ public class ExceptionResolver extends FlowElement {
     private static final Logger LOG = LoggerFactory.getLogger(FlowElement.class);
     private Map<String, ExceptionResolution> ikasanExceptionResolutionMap ;
     public ExceptionResolver(String metapackVersion, Flow containingFlow) throws StudioBuildException {
-        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
-        ikasanExceptionResolutionMap = Collections.EMPTY_MAP;
+        super(ComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
+        ikasanExceptionResolutionMap = Collections.emptyMap();
     }
 
     @Builder(builderMethodName = "exceptionResolverBuilder")
     public ExceptionResolver(String metapackVersion, Flow containingFlow, Map<String, ExceptionResolution> ikasanExceptionResolutionMap) throws StudioBuildException {
-        super(IkasanComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
+        super(ComponentLibrary.getExceptionResolverMetaMandatory(metapackVersion), containingFlow, null, null, null);
         this.ikasanExceptionResolutionMap = ikasanExceptionResolutionMap;
     }
 
@@ -65,7 +62,7 @@ public class ExceptionResolver extends FlowElement {
 
     /**
      * The intent is to clone the existing ExceptionResolver but to a different meta-pack metapackVersion.
-     * @param metapackVersion
+     * @param metapackVersion for the clone
      * @return the cloned module with the new meta pack version
      * @throws StudioBuildException when cloning is not possible.
      */

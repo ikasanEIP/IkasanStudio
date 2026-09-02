@@ -4,9 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.intellij.openapi.diagnostic.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,10 +13,8 @@ import lombok.ToString;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ModelUtils;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer;
-import org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleSerializer;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 
 import java.util.*;
 
@@ -31,10 +28,8 @@ import java.util.*;
 @Setter
 @ToString
 //@AllArgsConstructor
-@JsonSerialize(using = ModuleSerializer.class)
-@JsonDeserialize(using = ModuleDeserializer.class)
 public class Module extends BasicElement {
-    public static final Logger LOG = Logger.getInstance("Module");
+    public static final Logger LOG = LoggerFactory.getLogger(Module.class);
     public static final String DUMB_MODULE_VERSION = "DUMB_MODULE";     // Allows creation of emergency model to cope with crash scenarios
     public static final String WIRETAP_MANAGEMENT_ENABLED_JSON_TAG = "wiretapManagementEnabled";
 
@@ -50,7 +45,7 @@ public class Module extends BasicElement {
      * @throws StudioBuildException if the component could not be created
      */
     public Module(String metaPackVersion) throws StudioBuildException {
-        super (IkasanComponentLibrary.getModuleComponentMetaMandatory(metaPackVersion), null);
+        super (ComponentLibrary.getModuleComponentMetaMandatory(metaPackVersion), null);
         this.setVersion(metaPackVersion);
         flows = new ArrayList<>();
     }
@@ -69,7 +64,7 @@ public class Module extends BasicElement {
             String port,
             String version,
             List<Flow> flows) throws StudioBuildException {
-        super (IkasanComponentLibrary.getModuleComponentMetaMandatory(version), description);
+        super (ComponentLibrary.getModuleComponentMetaMandatory(version), description);
 
         setVersion(version);
         setName(name);
@@ -184,6 +179,7 @@ public class Module extends BasicElement {
      * component-scan or Java @Configuration.
      * @return a sorted set of classpath resource strings for the module
      */
+    @SuppressWarnings("unused")
     public Set<String> getAllUniqueSortedImportResources() {
         Set<String> allImportResources = new TreeSet<>();
         if (this.getComponentMeta().getImportResources() != null) {
@@ -208,6 +204,7 @@ public class Module extends BasicElement {
      * equivalent of {@link #getAllUniqueSortedImportResources()}, used by newer Ikasan versions.
      * @return a sorted set of fully-qualified configuration class names for the module
      */
+    @SuppressWarnings("unused")
     public Set<String> getAllUniqueSortedImportConfigurationClasses() {
         Set<String> allImportConfigurationClasses = new TreeSet<>();
         if (this.getComponentMeta().getImportConfigurationClasses() != null) {

@@ -13,7 +13,7 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
-import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;

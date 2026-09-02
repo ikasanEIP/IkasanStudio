@@ -6,7 +6,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 
 import javax.swing.*;
 import java.awt.*;

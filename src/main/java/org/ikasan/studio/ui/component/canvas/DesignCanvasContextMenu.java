@@ -11,7 +11,7 @@ import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
-import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowRouteViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;

@@ -2,7 +2,7 @@ package org.ikasan.studio.ui.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 
 @Getter

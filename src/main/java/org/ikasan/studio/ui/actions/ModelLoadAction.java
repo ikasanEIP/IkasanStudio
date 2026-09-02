@@ -4,7 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,7 +20,7 @@ public class ModelLoadAction implements ActionListener {
     public void actionPerformed(ActionEvent actionEvent) {
         StudioUIUtils.displayIdeaInfoMessage(project, "Load json model from file.");
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            StudioPsiUtils.synchGenerateModelInstanceFromJSON(project);
+            StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);
             // All UI operations must run on EDT
             ApplicationManager.getApplication().invokeLater(() -> {
                 UiContext uiContext = project.getService(UiContext.class);

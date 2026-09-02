@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

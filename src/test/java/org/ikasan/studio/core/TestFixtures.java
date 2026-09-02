@@ -1,15 +1,17 @@
 package org.ikasan.studio.core;
 
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.model.ikasan.meta.*;
+import org.ikasan.studio.core.metapack.model.*;
 
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 /**
  * Some of these text fixtures will be exported to the Meta Pack project
  * Ideally the Ikasan Packs should be loosely coupled with the IDE so that most
@@ -64,7 +66,7 @@ public class TestFixtures {
 
     // -------------------------- Broker -------------------------
     public static FlowElement getBroker(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Broker");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Broker");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Broker")
@@ -78,7 +80,7 @@ public class TestFixtures {
 
     // -------------------------- Consumers -------------------------
     public static FlowElement getEventGeneratingConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer");
         return FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Event Generating Consumer")
@@ -86,7 +88,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getGenericConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Consumer");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Generic Consumer")
@@ -97,7 +99,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getFtpConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "FTP Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "FTP Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My FTP Consumer")
@@ -155,7 +157,7 @@ public class TestFixtures {
         return flowElement;
     }
     public static FlowElement getSftpConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "SFTP Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "SFTP Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My SFTP Consumer")
@@ -209,11 +211,11 @@ public class TestFixtures {
 
     public static FlowElement getEndpointForLocalFileConsumer(String metaPackVersion) throws StudioBuildException {
         FlowElement localFileConsumer = getLocalFileConsumer(metaPackVersion);
-        return IkasanComponentLibrary.getEndpointForGivenComponent(metaPackVersion, localFileConsumer);
+        return ComponentLibrary.getEndpointForGivenComponent(metaPackVersion, localFileConsumer);
     }
 
     public static FlowElement getLocalFileConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Local File Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Local File Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Local File Consumer")
@@ -244,7 +246,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getLocalFileConsumerMandatoryOnly(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Local File Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Local File Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Local File Consumer")
@@ -256,7 +258,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getSpringJmsConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Spring JMS Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Spring JMS Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My JSpring JMS Consumer")
@@ -306,7 +308,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getBasicAmqSpringJmsConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Basic AMQ Spring JMS Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Basic AMQ Spring JMS Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Basic AMQ JSpring JMS Consumer")
@@ -331,7 +333,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getScheduledConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Scheduled Consumer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Scheduled Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Scheduled Consumer")
@@ -355,7 +357,7 @@ public class TestFixtures {
     // ------------------------- Converters -------------------------
 
     public static FlowElement getCustomConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Converter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Custom Converter")
@@ -368,7 +370,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getEmailConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Converter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Email Converter")
@@ -380,7 +382,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getObjectMessageToObjectConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Object Message To Object Converter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Object Message To Object Converter");
         return FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Object Message To Object Converter")
@@ -388,7 +390,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getObjectMessageToXmlStringtConverter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Object To XML String Converter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Object To XML String Converter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Object Message To XML String Converter")
@@ -414,7 +416,7 @@ public class TestFixtures {
 
     // ------------------------- Translators -------------------------
     public static FlowElement getCustomTranslator(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Translator");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Translator");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My Custom Translator")
@@ -428,7 +430,7 @@ public class TestFixtures {
     // ------------------------- Debug -------------------------
 
     public static FlowElement getDebugTransition(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Debug Transition");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Debug Transition");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .build();
@@ -477,7 +479,7 @@ public class TestFixtures {
     // ------------------------- Filters -------------------------
 
     public static FlowElement getMessageFilter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Message Filter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Message Filter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Message Filter")
@@ -493,7 +495,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getDefaultMessageFilter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Default Message Filter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Default Message Filter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Message Filter")
@@ -510,7 +512,7 @@ public class TestFixtures {
 
     // ------------------------- Producers ---------------------------
     public static FlowElement getDevNullProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");
         return FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My DevNull Producer")
@@ -518,7 +520,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getGenericProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Generic Producer");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Generic Producer")
@@ -529,7 +531,7 @@ public class TestFixtures {
         return flowElement;
     }
     public static FlowElement getDevNullProducerWithWiretaps(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");
         return FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My DevNull Producer")
@@ -571,7 +573,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getDevNullProducerWithFaultyWiretaps(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer");
         List<Decorator> decoratorList = getGoodWiretaps();
         Decorator badDecorator1 = Decorator.decoratorBuilder()
             .type("XWiretap")
@@ -605,7 +607,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getEmailProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Email Producer")
@@ -645,7 +647,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getFtpProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "FTP Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "FTP Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My FTP Producer")
@@ -683,7 +685,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getJmsProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My JMS Producer")
@@ -731,7 +733,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getBasicAmqJmsProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My JMS Producer")
@@ -755,7 +757,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getSftpProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "SFTP Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "SFTP Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My SFTP Producer")
@@ -786,7 +788,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getLoggingProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Logging Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Logging Producer");
 
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
@@ -803,7 +805,7 @@ public class TestFixtures {
     // ------------------------- Router -------------------------
 
     public static FlowElement getMultiRecipientRouter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Multi Recipient Router");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Multi Recipient Router");
         List<String> routes = Arrays.asList("route1", "route2");
 
         FlowElement flowElement =  FlowElement.flowElementBuilder()
@@ -821,7 +823,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getSingleRecipientRouter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Single Recipient Router");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Single Recipient Router");
         List<String> routes = Arrays.asList("route1", "route2");
 
         FlowElement flowElement =  FlowElement.flowElementBuilder()
@@ -840,7 +842,7 @@ public class TestFixtures {
 
     // ------------------------- Splitter -------------------------
     public static FlowElement getCustomSplitter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Splitter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Splitter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Custom Splitter")
@@ -853,7 +855,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getDefaultListSplitter(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Default List Splitter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Default List Splitter");
         FlowElement flowElement =  FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Default List Splitter")
@@ -873,7 +875,7 @@ public class TestFixtures {
     }
 
     private static Map<String, ComponentProperty> getRetryProperties(String metaPackVersion) throws StudioBuildException {
-        ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Exception Resolver");
+        ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Exception Resolver");
         Map<String, ComponentPropertyMeta> retryPropertiesMeta = exceptionResolverMeta.getExceptionActionWithName("retry").getActionProperties();
 
         Map<String, ComponentProperty>  componentPropertyHashMap = new HashMap<>();
@@ -1176,7 +1178,7 @@ public class TestFixtures {
     public static final String SIMPLE_STRING_PROPERTY = "simpleStringProperty";
     public static FlowElement getXProducerComponent(String metaPackVersion) throws StudioBuildException {
         FlowElement newXProducerComponent =  FlowElement.flowElementBuilder()
-                .componentMeta(IkasanComponentLibrary.getIkasanComponentByKey(metaPackVersion, "X Producer"))
+                .componentMeta(ComponentLibrary.getIkasanComponentByKey(metaPackVersion, "X Producer"))
 //                .componentMeta(getXProducerComponentMeta(metaPackVersion))
                 .decorators(new ArrayList<>())
                 .build();

@@ -15,8 +15,8 @@ import org.ikasan.studio.ui.component.StudioInitialisationPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
-import org.ikasan.studio.ui.intellij.StudioProjectInitialisationService;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
@@ -65,7 +65,7 @@ public class DesignerUI implements Disposable {
         UiContext uiContext = project.getService(UiContext.class);
         uiContext.setRightTabbedPane(paletteAndProperties);
         if (uiContext.getPipsiIkasanModel() == null) {
-            uiContext.setPipsiIkasanModel(new PIPSIIkasanModel(this.project));
+            uiContext.setPipsiIkasanModel(new GeneratedProjectSynchronizer(this.project));
         }
 
         ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(project, false);

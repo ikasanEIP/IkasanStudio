@@ -9,36 +9,26 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.GeneratorUtils;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.GenerationRequest;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.VERSION;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
 
 /**
@@ -189,12 +179,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // successful save, rather than comparing forever against the pre-edit values.
             populatePropertiesEditorPanel();
             redrawPanel();
-            if (metaPackChanged) {
-                Module module = uiContext.getIkasanModule();
-                // If the version has changed, we need to update the component meta
-                // Can't update the metapack until all changes are inthe current model.
-                StudioBuildUtils.changeMetaPack(module);
-            }
             // This will force a regeneration of the component
             if (getSelectedComponent() instanceof FlowUserImplementedElement) {
                 ((FlowUserImplementedElement)getSelectedComponent()).setOverwriteEnabled(true);
@@ -212,7 +196,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             } else {
                 generationRequest = GenerationRequest.full();
             }
-            StudioPsiUtils.refreshCodeFromModel(project, generationRequest);
+            StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
             // Intellij startup is multi-threaded so caution is required.
             if (metaPackChanged && uiContext.getPalettePanel() != null) {
                 uiContext.getPalettePanel().resetPallette();
@@ -249,7 +233,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
         flowUserImplementedElement.setOverwriteEnabled(true);
-        StudioPsiUtils.refreshCodeFromModel(project, GenerationRequest.flow(flowUserImplementedElement.getContainingFlow()));
+        StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flowUserImplementedElement.getContainingFlow()));
     }
 
     /**
@@ -364,7 +348,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         boolean confirmed = result == Messages.YES;
         if (confirmed && backupTicked[0]) {
             for (AffectedUserImplementedClass affectedClass : affected) {
-                StudioPsiUtils.backupFile(project, affectedClass.file());
+                StudioProjectFiles.backupFile(project, affectedClass.file());
             }
         }
         return confirmed;
@@ -457,7 +441,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         String description = flow.getIdentity() + ": " + className + ".java";
         VirtualFile file = module != null
-                ? StudioPsiUtils.getUserImplementedClassFile(project, GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
+                ? StudioProjectFiles.getUserImplementedClassFile(project, GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
                 : null;
         return new AffectedUserImplementedClass(flow, className, description, file);
     }
@@ -525,7 +509,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             int optionalTabley = 0;
             if (getSelectedComponent().getComponentMeta().isModule()) {
                 // Always refresh the list of choosable metapacks
-                List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
+                List<String> installedMetapacks = ComponentLibrary.getMetapackList();
                 if (installedMetapacks != null && ! installedMetapacks.isEmpty()) {
                     getSelectedComponent().getComponentMeta().getAllowableProperties().get(VERSION).setChoices(installedMetapacks);
                 }

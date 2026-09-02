@@ -1,12 +1,12 @@
 package org.ikasan.studio.core.io;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentTypeMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanMeta;
+import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
+import org.ikasan.studio.core.metapack.model.IkasanMeta;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +18,9 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class ComponentIO {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = StudioJson.newObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(ComponentIO.class);
 
-    static {
-        MAPPER
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    }
 
     /*
      * Deserialize the ComponentTypeMeta at the given path.

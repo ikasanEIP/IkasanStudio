@@ -1,12 +1,14 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.model.command.FlowElementRemoval;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.ROUTE_NAMES;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.ROUTE_NAMES;
 
 /**
  * Most of the time, a flow contains a single flow route. The flow route itself
@@ -29,13 +31,6 @@ public class FlowRoute  implements IkasanComponent {
 
     Flow flow;  // A convenience link to get back to the containing flow
     String routeName;
-
-    /**
-     * Used primarily during deserialization.
-     */
-    private FlowRoute() throws StudioBuildException {
-        LOG.warn("STUDIO: SERIOUS: Parameterless version of flowRoute called");
-    }
 
     @Builder(builderMethodName = "flowRouteBuilder")
     public FlowRoute(
@@ -94,7 +89,7 @@ public class FlowRoute  implements IkasanComponent {
 
     /**
      * Ensure this route has a child FlowRoute (with its Router Endpoint marker already in place, matching what
-     * {@link org.ikasan.studio.core.model.ikasan.instance.serialization.ModuleDeserializer#addNewRoutesForRouter}
+     * {@code ModuleDeserializer#addNewRoutesForRouter} (private, and in a different package, so not linkable here)
      * builds on a full model.json reload) for every name currently in the given router's routeNames property.
      * Live add/edit of a router never keeps childRoutes in sync with routeNames on its own - only a full reload
      * does that - so without this, a freshly added or just-edited router has no branches to actually drop
@@ -115,11 +110,11 @@ public class FlowRoute  implements IkasanComponent {
             return;
         }
         for (Object routeNameObj : routeNames) {
-            if (routeNameObj instanceof String routeName && !routeName.isBlank() && findRouteOfName(routeName) == null) {
-                FlowRoute newChild = FlowRoute.flowRouteBuilder().flow(flow).routeName(routeName).build();
+            if (routeNameObj instanceof String childRouteName && !childRouteName.isBlank() && findRouteOfName(childRouteName) == null) {
+                FlowRoute newChild = FlowRoute.flowRouteBuilder().flow(flow).routeName(childRouteName).build();
                 childRoutes.add(newChild);
-                ComponentMeta endpointMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
-                FlowElement endpoint = FlowElementFactory.createFlowElement(metapackVersion, endpointMeta, flow, newChild, routeName);
+                ComponentMeta endpointMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
+                FlowElement endpoint = FlowElementFactory.createFlowElement(metapackVersion, endpointMeta, flow, newChild, childRouteName);
                 endpoint.setContainingFlowRoute(newChild);
                 newChild.getFlowElements().add(endpoint);
             }

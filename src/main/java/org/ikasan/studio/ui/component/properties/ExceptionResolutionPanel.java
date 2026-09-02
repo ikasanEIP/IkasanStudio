@@ -8,13 +8,13 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.meta.ExceptionResolverMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.GenerationRequest;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.core.generation.GenerationRequest;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -70,11 +70,11 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
                             .contains(selectedResolution))
                     .findFirst()
                     .orElse(null);
-            StudioPsiUtils.refreshCodeFromModel(project,
+            StudioProjectFiles.refreshCodeFromModel(project,
                     affectedFlow != null
                             ? GenerationRequest.flow(affectedFlow)
                             : GenerationRequest.full());
-            StudioPsiUtils.causeRedraw(project);
+            StudioProjectFiles.causeRedraw(project);
         } else {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasNotChangedInExceptionResolution"));
         }
@@ -141,7 +141,7 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
         ExceptionResolverMeta exceptionResolverMeta = null;
         UiContext uiContext = project.getService(UiContext.class);
         try {
-            exceptionResolverMeta = IkasanComponentLibrary.getExceptionResolverMetaMandatory(uiContext.getIkasanModule().getMetaVersion());
+            exceptionResolverMeta = ComponentLibrary.getExceptionResolverMetaMandatory(uiContext.getIkasanModule().getMetaVersion());
         } catch (StudioBuildException se) {
             StudioUIUtils.displayIdeaWarnMessage(project, "A problem occurred trying to get the meta pack information (" + se.getMessage() + "), please review the logs.");
         }

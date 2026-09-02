@@ -12,7 +12,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class LaunchH2Action implements ActionListener {
          connectionString = StudioBundle.message("message.SeeDatasourceUrlInApplicationProperties");
       }
 
-      VirtualFile virtualProjectRoot = StudioPsiUtils.getProjectBaseDir(project);
+      VirtualFile virtualProjectRoot = StudioProjectFiles.getProjectBaseDir(project);
       if (virtualProjectRoot == null) {
          LOG.warn("STUDIO: WARN: Could not get virtual project root for project [" + project + "], consider resaving");
       } else {

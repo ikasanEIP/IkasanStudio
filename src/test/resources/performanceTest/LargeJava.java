@@ -28,11 +28,11 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel;
+import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.psi.PIPSIIkasanModel;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,14 +44,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_SOURCE;
-import static org.ikasan.studio.core.model.ikasan.instance.IkasanPomModel.MAVEN_COMPILER_TARGET;
+import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_SOURCE;
+import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_TARGET;
 import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
-import static org.ikasan.studio.ui.model.psi.PIPSIIkasanModel.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+import static org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
 
 public class LargeJava {
-    private static final Logger LOG = Logger.getInstance("#StudioPsiUtils");
+    private static final Logger LOG = Logger.getInstance("#StudioProjectFiles");
     public static final String TEMP_CONTENT_ROOT = "temp://";
     public static final String GENERATED_CONTENT_ROOT = "/generated";
     public static final String USER_CONTENT_ROOT = "/user";
@@ -69,7 +69,7 @@ public class LargeJava {
     public static final String APPLICATION_PROPERTIES_FULL_PATH = SRC_MAIN_RESOURCES + "/" + MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
     // Enforce utility nature upon class
-    private StudioPsiUtils() {}
+    private StudioProjectFiles() {}
 
     /**
      * Load the content of the major pom
@@ -123,7 +123,7 @@ public class LargeJava {
      */
     public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(Project project) {
         Map<String, String> applicationProperties = null;
-        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(project, StudioPsiUtils.GENERATED_CONTENT_ROOT);
+        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(project, StudioProjectFiles.GENERATED_CONTENT_ROOT);
         if (selectedContentRoot != null) {
             PsiFile applicationPropertiesVF = getPsiFileFromPath(project, selectedContentRoot, APPLICATION_PROPERTIES_FULL_PATH);
             if (applicationPropertiesVF == null) {
@@ -145,15 +145,15 @@ public class LargeJava {
      * @param project is the Intellij project instance
      */
     public static void synchGenerateModelInstanceFromJSON(Project project) {
-        PsiFile jsonModelPsiFile = StudioPsiUtils.getModelJsonPsiFile(project);
+        PsiFile jsonModelPsiFile = StudioProjectFiles.getModelJsonPsiFile(project);
         if (jsonModelPsiFile != null) {
             String json = ApplicationManager.getApplication().runReadAction((Computable<String>) jsonModelPsiFile::getText);
             Module newModule = null;
             try {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             } catch (StudioBuildException se) {
-                LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(project, "Error: Please fix " + StudioPsiUtils.JSON_MODEL_FULL_PATH + " then use the Load Button");
+                LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioProjectFiles.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
+                StudioUIUtils.displayIdeaErrorMessage(project, "Error: Please fix " + StudioProjectFiles.JSON_MODEL_FULL_PATH + " then use the Load Button");
                 // The dumb module should contain just enough to prevent the plugin from crashing
                 UiContext.setIkasanModule(project, Module.getDumbModuleVersion());
             }
@@ -525,7 +525,7 @@ public class LargeJava {
     }
 
     public static void refreshCodeFromModel(Project project) {
-        PIPSIIkasanModel pipsiIkasanModel = UiContext.getPipsiIkasanModel(project);
+        GeneratedProjectSynchronizer pipsiIkasanModel = UiContext.getPipsiIkasanModel(project);
         pipsiIkasanModel.saveModelJsonToDisk();
         pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk();
     }
@@ -747,7 +747,7 @@ public class LargeJava {
                         // File does not exist; create it
 
                         System.out.println("XX Writing new file '" + fileName + "' to '" + relativePath + "'" + (System.currentTimeMillis() - now) + "ms");
-                        file = targetDir.createChildData(StudioPsiUtils.class, fileName);
+                        file = targetDir.createChildData(StudioProjectFiles.class, fileName);
                         writeContentAndFormat(project, file, fileContent);
                     } else {
                         System.out.println("XX Writing existing file '" + fileName + "' to '" + relativePath + "'" + (System.currentTimeMillis() - now) + "ms");
@@ -797,7 +797,7 @@ public class LargeJava {
         for (String part : parts) {
             VirtualFile child = currentDir.findChild(part);
             if (child == null) {
-                child = currentDir.createChildDirectory(StudioPsiUtils.class, part);
+                child = currentDir.createChildDirectory(StudioProjectFiles.class, part);
             }
             currentDir = child;
         }
@@ -1139,7 +1139,7 @@ public class LargeJava {
         if (baseDir == null) {
             LOG.warn("Studio: WARN: Could not get project root for directory for project [" + project + "]");
         } else {
-            final VirtualFile sourceRoot = StudioPsiUtils.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioPsiUtils.SRC_MAIN_JAVA_CODE);
+            final VirtualFile sourceRoot = StudioProjectFiles.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioProjectFiles.SRC_MAIN_JAVA_CODE);
             final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(UiContext.getProject(project)).createDirectory(sourceRoot);
 
             CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() ->

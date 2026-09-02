@@ -1,9 +1,11 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +83,7 @@ class TestMailServerLinksTest {
     }
 
     private static FlowElement emailProducerWithNoSmtpConfig(String componentName) throws StudioBuildException {
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName(componentName)

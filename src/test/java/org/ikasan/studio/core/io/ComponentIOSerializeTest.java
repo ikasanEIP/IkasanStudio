@@ -5,8 +5,8 @@ import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.TestUtils;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ class ComponentIOSerializeTest {
 
     @BeforeAll
     public static void classSetup() throws StudioBuildException {
-        IkasanComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
+        ComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
     }
 
     @Test

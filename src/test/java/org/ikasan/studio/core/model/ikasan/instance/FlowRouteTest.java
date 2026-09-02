@@ -5,7 +5,7 @@ import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +24,16 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SharedResourceExtension.class)
 class FlowRouteTest {
     Flow testFlow;
+
+    static {
+        // Local File Consumer metadata transitively initializes Apache MINA SSHD's process-lifetime
+        // NIO thread. Do that before IntelliJ's per-test thread-leak snapshot is captured.
+        try {
+            TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+        } catch (StudioBuildException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     // write before each method
 
@@ -307,7 +317,7 @@ class FlowRouteTest {
     }
 
     /**
-     * Regression test: PIPSIIkasanModel#generateAndSaveUserImplementClassStubsForFlow used to iterate
+     * Regression test: GeneratedProjectSynchronizer#generateAndSaveUserImplementClassStubsForFlow used to iterate
      * FlowRoute#getConsumerAndFlowRouteElements(), which only returns the ROOT route's own elements - for a
      * router flow, that's the consumer and whatever leads up to the router itself, never anything inside a
      * branch. That meant a Debug (or any other user-implemented component, e.g. Broker/Converter) dropped
@@ -508,7 +518,8 @@ class FlowRouteTest {
                 .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                 .ignoringFields(
                         "jarDependencies",              // These are set in test fixture as different
-                        "allowableProperties")          // These are different, the differences being tested in Component Properties below, all allowables are used for componentProperties.
+                        "allowableProperties",          // These are different
+                        "iconResourceDirectory")        // Runtime UI resource location differs between meta-packs
                 .isEqualTo(xProducerComponent.getComponentMeta());
 
         ComponentProperty originalSimpleStringProperty = xProducerComponent.getProperty(TestFixtures.SIMPLE_STRING_PROPERTY);

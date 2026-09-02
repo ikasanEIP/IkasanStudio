@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
@@ -78,7 +80,7 @@ public class IkasanFlowExceptionResolverViewHandler extends AbstractViewHandlerI
     }
 
     public Icon getCanvasIcon() {
-        return flowElement.getComponentMeta().getCanvasIcon();
+        return ComponentIconProvider.getCanvasIcon(flowElement.getComponentMeta());
     }
 
     @Override

@@ -1,6 +1,6 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import org.ikasan.studio.Pair;
+import org.ikasan.studio.ui.model.MutablePair;
 
 import java.awt.*;
 
@@ -17,7 +17,7 @@ public enum Proximity {
      * @param proximityDetection how far to look
      * @return the proximity of A relative to B i.e. is B to the LEFT of A or to the RIGHT of A
      */
-    public static Proximity getRelativeProximity(Point a, Point b, Pair<Integer, Integer> proximityDetection) {
+    public static Proximity getRelativeProximity(Point a, Point b, MutablePair<Integer, Integer> proximityDetection) {
         Proximity returnProximity = Proximity.NONE;
         int deltaX = a.x - b.x ;
         int deltaY = a.y - b.y ;
@@ -26,8 +26,9 @@ public enum Proximity {
                 returnProximity = Proximity.LEFT;
             } else if (deltaX < 0) {
                 returnProximity = Proximity.RIGHT;
-            } else if (deltaX == 0)
+            } else {
                 returnProximity = Proximity.CENTER;
+            }
         }
         return returnProximity;
     }

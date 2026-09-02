@@ -11,8 +11,8 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
-import org.ikasan.studio.ui.intellij.IkasanRunConfigurationService;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
+import org.ikasan.studio.intellij.execution.IkasanRunConfigurationService;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class LaunchApplicationAction implements ActionListener {
          return;
       }
       String applicationRelativePath = "generated/src/main/java/org/ikasan/studio/boot/Application.java";
-      VirtualFile applicationFile = StudioPsiUtils.getVirtualFile(project, applicationRelativePath);
+      VirtualFile applicationFile = StudioProjectFiles.getVirtualFile(project, applicationRelativePath);
       if (applicationFile == null) {
          StudioUIUtils.displayIdeaWarnMessage(project,
                  StudioBundle.message("message.ApplicationJavaIsNotAvailableYetRegenerateTheModule"));

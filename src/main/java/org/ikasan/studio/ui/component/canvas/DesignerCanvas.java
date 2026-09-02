@@ -1,5 +1,11 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+import org.ikasan.studio.core.model.command.FlowElementMove;
+
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
@@ -15,14 +21,16 @@ import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.Pair;
+import org.ikasan.studio.ui.model.MutablePair;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.runtime.state.FlowErrorStates;
+import org.ikasan.studio.runtime.state.FlowRuntimeStatuses;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -36,13 +44,13 @@ import org.ikasan.studio.ui.actions.FlowTransportControlAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.GenerationRequest;
-import org.ikasan.studio.ui.model.psi.UserImplementedClassRelocator;
-import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
-import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
-import org.ikasan.studio.ui.intellij.FlowErrorMonitorService;
-import org.ikasan.studio.ui.intellij.TestMailServerSessionService;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.intellij.psi.UserImplementedClassRelocator;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
+import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
@@ -73,7 +81,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
 
 /**
  * The main painting / design panel
@@ -165,7 +173,7 @@ public class DesignerCanvas extends JPanel {
         }
         setTransferHandler(new CanvasImportTransferHandler( this));
 
-        List<String> installedMetapacks = IkasanComponentLibrary.getMetapackList();
+        List<String> installedMetapacks = ComponentLibrary.getMetapackList();
         installedMetapacks.sort(String::compareToIgnoreCase);
         metaDataVersionComboBox = new ComboBox<>(installedMetapacks.toArray(String[]::new));
         metaDataVersionComboBox.getAccessibleContext().setAccessibleName(StudioBundle.message("label.IkasanVersion"));
@@ -180,9 +188,9 @@ public class DesignerCanvas extends JPanel {
                     StudioUIUtils.displayIdeaInfoMessage(this.project,
                             StudioBundle.message("message.ChooseAnIkasanVersionBeforeConfiguringTheModule"));
                 } else {
-                    if (IkasanComponentLibrary.versionNotContained(metapackVersion)) {
+                    if (ComponentLibrary.versionNotContained(metapackVersion)) {
                         try {
-                            IkasanComponentLibrary.refreshComponentLibrary(metapackVersion);
+                            ComponentLibrary.refreshComponentLibrary(metapackVersion);
                         } catch (StudioBuildException ex) {
                             LOG.warn("STUDIO: Could not load component library " + metapackVersion, ex);
                             StudioUIUtils.displayIdeaInfoMessage(this.project,
@@ -215,7 +223,7 @@ public class DesignerCanvas extends JPanel {
                             uiContext.getPalettePanel().resetPallette();
                         }
                         StudioUIUtils.displayIdeaInfoMessage(this.project, StudioBundle.message("message.PleaseWaitForIntellijToInitialise"));
-                        StudioPsiUtils.refreshCodeFromModel(this.project);
+                        StudioProjectFiles.refreshCodeFromModel(this.project);
                         disableModuleInitialiseProcess();
                     }
                 }
@@ -305,7 +313,7 @@ public class DesignerCanvas extends JPanel {
         clickStartMouseX = x;
         clickStartMouseY = y;
         if (me.getButton() == MouseEvent.BUTTON1) {
-            Pair<Flow, FlowTransportAction> transportClick = getFlowTransportButtonAtXY(x, y);
+            MutablePair<Flow, FlowTransportAction> transportClick = getFlowTransportButtonAtXY(x, y);
             if (transportClick != null) {
                 Flow flow = transportClick.getLeft();
                 FlowTransportAction action = transportClick.getRight();
@@ -392,7 +400,7 @@ public class DesignerCanvas extends JPanel {
                     exceptionResolverPanel,
                     false);
             if (propertiesPopupDialogue.showAndGet()) {
-                StudioPsiUtils.refreshCodeFromModel(project,
+                StudioProjectFiles.refreshCodeFromModel(project,
                         resolver.getContainingFlow() != null
                                 ? GenerationRequest.flow(resolver.getContainingFlow())
                                 : GenerationRequest.full());
@@ -428,7 +436,7 @@ public class DesignerCanvas extends JPanel {
      * @param mouseY of the current pointer
      */
     private void mouseMoveAction(int mouseX, int mouseY) {
-        Pair<Flow, FlowTransportAction> transportButton = getFlowTransportButtonAtXY(mouseX, mouseY);
+        MutablePair<Flow, FlowTransportAction> transportButton = getFlowTransportButtonAtXY(mouseX, mouseY);
         if (transportButton != null) {
             this.setToolTipText(transportButton.getRight().getTooltip());
             return;
@@ -529,7 +537,7 @@ public class DesignerCanvas extends JPanel {
                     ? GenerationRequest.flow(targetFlow) : GenerationRequest.full();
             UndoManager.getInstance(project).undoableActionPerformed(new DeleteComponentUndoableAction(
                     project, () -> result.undo(movingElement), () -> result.redo(movingElement), request));
-            StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, request);
+            StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project, request);
             initialiseAllDimensions = true;
         }, StudioBundle.message("menu.MoveComponent"), null);
     }
@@ -836,11 +844,11 @@ public class DesignerCanvas extends JPanel {
      * @param ypos of element
      * @return ikasan elements to the left or right (or both) within reasonable bounds
      */
-    public Pair<FlowElement, FlowElement> getSurroundingComponents(int xpos, int ypos) {
+    public MutablePair<FlowElement, FlowElement> getSurroundingComponents(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
-        Pair<FlowElement, FlowElement> surroundingComponents = new Pair<>();
+        MutablePair<FlowElement, FlowElement> surroundingComponents = new MutablePair<>();
         Point dragged = new Point(xpos, ypos);
-        Pair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
+        MutablePair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
 
         if (ikasanModule != null) {
             for (Flow flow : ikasanModule.getFlows()) {
@@ -941,7 +949,7 @@ public class DesignerCanvas extends JPanel {
             GenerationRequest generationRequest = newComponent instanceof Flow addedFlow
                     ? GenerationRequest.moduleStructure(addedFlow)
                     : GenerationRequest.flow(((FlowElement) newComponent).getContainingFlow());
-            StudioPsiUtils.refreshCodeFromModel(project, generationRequest);
+            StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
             uiContext.getCanvasPanel().disableH2Button(uiContext.getIkasanModule().getUseEmbeddedH2());
 
             initialiseAllDimensions = true;
@@ -1008,7 +1016,7 @@ public class DesignerCanvas extends JPanel {
             // java.lang.Object by design) - nothing sensible to suggest either way.
             return;
         }
-        Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
+        MutablePair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
         FlowElement upstream = containingFlow.skipNonPayloadBearingElements(surroundingComponents.getLeft());
         if (upstream == null) {
             return;
@@ -1087,7 +1095,7 @@ public class DesignerCanvas extends JPanel {
             containingFlow.setConsumer(ikasanFlowComponent);
         } else {
             // insert new component between surrounding pair
-            Pair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
+            MutablePair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
             // No routes currently exist
             if (containingFlowRoute == null && !containingFlow.anyFlowRouteHasComponents(containingFlow.getFlowRoute())) {
                 List<FlowElement> components = containingFlow.getFlowRoute().getFlowElements() ;
@@ -1254,7 +1262,7 @@ public class DesignerCanvas extends JPanel {
 
         ComponentMeta debugMeta;
         try {
-            debugMeta = IkasanComponentLibrary.getIkasanComponents(getIkasanModule().getMetaVersion()).values().stream()
+            debugMeta = ComponentLibrary.getIkasanComponents(getIkasanModule().getMetaVersion()).values().stream()
                     .filter(ComponentMeta::isDebug)
                     .findFirst()
                     .orElse(null);
@@ -1290,7 +1298,7 @@ public class DesignerCanvas extends JPanel {
             components.add(targetIndex + 1, debugComponent);
         }
 
-        StudioPsiUtils.refreshCodeFromModel(project, GenerationRequest.flow(containingFlow));
+        StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(containingFlow));
         initialiseAllDimensions = true;
         repaint();
         return debugComponent;
@@ -1652,7 +1660,7 @@ public class DesignerCanvas extends JPanel {
     }
 
     private void paintTestMailServerIcon(Graphics graphics, int nodeLeftX, int nodeTopY) {
-        Icon icon = IkasanComponentLibrary.getMailServerIcon();
+        Icon icon = ComponentIconProvider.getMailServerIcon();
         icon.paintIcon(this, graphics, nodeLeftX, nodeTopY);
         StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_MAIL_SERVER_LABEL,
                 nodeLeftX + (TEST_MAIL_SERVER_NODE_WIDTH / 2), nodeTopY + TEST_MAIL_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
@@ -1738,7 +1746,7 @@ public class DesignerCanvas extends JPanel {
      */
     private void paintFlowTransportControls(Graphics graphics, Module ikasanModule) {
         if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)
-                || !project.getService(IkasanDebugSessionService.class).isModuleRunning()) {
+                || project.getService(IkasanDebugSessionService.class).isModuleStopped()) {
             return;
         }
         FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
@@ -1894,10 +1902,10 @@ public class DesignerCanvas extends JPanel {
      * enabled, so a disabled (dimmed) button still shows its own tooltip in {@link #mouseMoveAction}.
      * {@link #mouseClickAction} additionally checks {@link FlowTransportAction#isEnabledFor} before firing one.
      */
-    private Pair<Flow, FlowTransportAction> getFlowTransportButtonAtXY(int xpos, int ypos) {
+    private MutablePair<Flow, FlowTransportAction> getFlowTransportButtonAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
         if (ikasanModule == null || ikasanModule.getFlows() == null
-                || !project.getService(IkasanDebugSessionService.class).isModuleRunning()) {
+                || project.getService(IkasanDebugSessionService.class).isModuleStopped()) {
             return null;
         }
         FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
@@ -1916,7 +1924,7 @@ public class DesignerCanvas extends JPanel {
             for (int i = 0; i < TRANSPORT_BUTTON_ORDER.length; i++) {
                 int buttonTopY = buttonsTopY + i * (TRANSPORT_BUTTON_SIZE + TRANSPORT_BUTTON_GAP);
                 if (ypos >= buttonTopY && ypos <= buttonTopY + TRANSPORT_BUTTON_SIZE) {
-                    return new Pair<>(flow, TRANSPORT_BUTTON_ORDER[i]);
+                    return new MutablePair<>(flow, TRANSPORT_BUTTON_ORDER[i]);
                 }
             }
         }
@@ -1931,7 +1939,7 @@ public class DesignerCanvas extends JPanel {
     private Flow getFlowStatusLabelOwnerAtXY(int xpos, int ypos) {
         Module ikasanModule = getIkasanModule();
         if (ikasanModule == null || ikasanModule.getFlows() == null
-                || !project.getService(IkasanDebugSessionService.class).isModuleRunning()) {
+                || project.getService(IkasanDebugSessionService.class).isModuleStopped()) {
             return null;
         }
         FlowRuntimeStatuses flowStatuses = project.getService(FlowErrorMonitorService.class).getFlowStatuses();
@@ -1964,7 +1972,7 @@ public class DesignerCanvas extends JPanel {
         GettingStartedHint hint = getGettingStartedHint(module);
         boolean validModule = hint == GettingStartedHint.READY_TO_RUN || hint == GettingStartedHint.OPEN_CONSOLE;
         boolean runnable = validModule
-                && !project.getService(IkasanDebugSessionService.class).isModuleRunning();
+                && project.getService(IkasanDebugSessionService.class).isModuleStopped();
         CanvasPanel canvasPanel = project.getService(UiContext.class).getCanvasPanel();
         if (canvasPanel != null) {
             canvasPanel.setRunModuleEnabled(runnable);
@@ -2308,6 +2316,10 @@ public class DesignerCanvas extends JPanel {
             return scrollPane;
         }
 
+        // Deliberately not @NotNull-annotated - see CLAUDE.md: this project avoids @NotNull since the IntelliJ
+        // Gradle plugin instruments it with a runtime assertion that would surface as an uncaught plugin
+        // exception rather than failing gracefully. DialogWrapper#createActions() itself is @NotNull.
+        @SuppressWarnings("NullableProblems")
         @Override
         protected Action[] createActions() {
             return new Action[]{copyAllAction, getOKAction()};

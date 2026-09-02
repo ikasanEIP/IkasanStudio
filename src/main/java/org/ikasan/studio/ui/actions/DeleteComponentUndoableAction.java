@@ -5,8 +5,8 @@ import com.intellij.openapi.command.undo.DocumentReference;
 import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.GenerationRequest;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.core.generation.GenerationRequest;
 
 /**
  * Reverses (or re-applies) the in-memory model change made by a single "delete component"/"delete flow"
@@ -69,10 +69,10 @@ public class DeleteComponentUndoableAction implements UndoableAction {
     private void applyModelChange(Runnable modelChange) {
         try {
             modelChange.run();
-            StudioPsiUtils.causeRedraw(project);
+            StudioProjectFiles.causeRedraw(project);
             ApplicationManager.getApplication().invokeLater(() -> {
                 try {
-                    StudioPsiUtils.refreshCodeFromModel(project, generationRequest);
+                    StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
                 } catch (Exception e) {
                     LOG.warn("STUDIO: Failed to resync generated code after an undo/redo of a delete.", e);
                 }

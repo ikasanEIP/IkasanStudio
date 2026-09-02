@@ -4,7 +4,7 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +25,7 @@ class ModuleTest {
     static void warmUpComponentLibrary() throws StudioBuildException {
         // Loading the meta-pack lazily starts process-lifetime IntelliJ/NIO daemon threads.
         // Start them before the per-test ThreadLeakTracker captures its thread baseline.
-        IkasanComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
+        ComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
     }
 
     /**
@@ -49,7 +49,7 @@ class ModuleTest {
                 // componentMeta
                 () -> assertThat(newModule.getComponentMeta())
                         .usingRecursiveComparison()
-                        .ignoringFields("jarDependencies")
+                        .ignoringFields("jarDependencies", "iconResourceDirectory")
                         .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                         .isEqualTo(oldModule.getComponentMeta()),
                 () -> assertEquals(jarDependenciesOld, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),

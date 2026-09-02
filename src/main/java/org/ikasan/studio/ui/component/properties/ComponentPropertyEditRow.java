@@ -12,7 +12,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -24,7 +24,7 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.*;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 
 /**
  * Encapsulates the UI component functionality e.g. Label and appropriate editor box for a property,

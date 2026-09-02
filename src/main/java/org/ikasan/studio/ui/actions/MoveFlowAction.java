@@ -7,8 +7,8 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.GenerationRequest;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.core.generation.GenerationRequest;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -57,7 +57,7 @@ public class MoveFlowAction implements ActionListener {
             // Kept inside this command so the JSON model save nests into (and is undone/redone as part of)
             // the same undo step as the model mutation above, matching DeleteComponentAction's own whole-flow
             // edit pattern.
-            StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.moduleStructure(null));
+            StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.moduleStructure(null));
         }, StudioBundle.message(moveUp ? "menu.MoveFlowUp" : "menu.MoveFlowDown"), null);
     }
 }

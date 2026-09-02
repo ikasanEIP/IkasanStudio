@@ -8,8 +8,8 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -165,7 +165,7 @@ public class PaletteTabPanel extends JBPanel {
             Collection<ComponentMeta> componentMetaList = null;
             if (!DUMB_MODULE_VERSION.equals(uiContext.getIkasanModule().getMetaVersion())) {
                 try {
-                    componentMetaList = IkasanComponentLibrary.getPaletteComponentList(uiContext.getIkasanModule().getMetaVersion());
+                    componentMetaList = ComponentLibrary.getPaletteComponentList(uiContext.getIkasanModule().getMetaVersion());
                 } catch (StudioBuildException e) {
                     StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.AProblemOccurredTryingToGetTheMetaPackInformation", e.getMessage()));
                 }

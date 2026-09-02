@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.Navigator;
+import org.ikasan.studio.intellij.navigation.StudioNavigator;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -28,9 +28,9 @@ public class NavigateToCodeAction implements ActionListener {
       if (viewHandler != null) {
          if (viewHandler.getOffsetInclassToNavigateTo() != 0 && jumpToLine) {
             StudioUIUtils.displayMessage(project, StudioBundle.message("message.JumpToOffset", viewHandler.getOffsetInclassToNavigateTo()));
-            Navigator.navigateToSource(project, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
+            StudioNavigator.navigateToSource(project, viewHandler.getClassToNavigateTo(), viewHandler.getOffsetInclassToNavigateTo());
          } else {
-            Navigator.navigateToSource(project, viewHandler.getClassToNavigateTo());
+            StudioNavigator.navigateToSource(project, viewHandler.getClassToNavigateTo());
          }
       }
    }

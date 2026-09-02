@@ -6,20 +6,17 @@ import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.intellij.IkasanDebugSessionService;
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
-import static org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary.getEndpointForGivenComponent;
+import static org.ikasan.studio.core.metapack.ComponentLibrary.getEndpointForGivenComponent;
 
 /**
  * A flow route and a flow are similar for non Router flows i.e. the flow contains 1 flow route
@@ -33,7 +30,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     // Gap between the top of the Send Test Message badge and the top of the EndPoint icon it sits above.
     private static final int SEND_TEST_MESSAGE_VERTICAL_GAP = 4;
     /**
-     * True for a time-event consumer (see {@link org.ikasan.studio.core.model.ikasan.meta.ComponentMeta#isTimeEventConsumer()})
+     * True for a time-event consumer (see {@link org.ikasan.studio.core.metapack.model.ComponentMeta#isTimeEventConsumer()})
      * with no file/message semantics of its own - i.e. not one flagged isFileBasedConsumer in its metadata
      * (see Consumer/components/*&#47;component-meta_en_GB.json), which still get the file badge and a real text
      * payload to simulate. These have no meaningful payload to inject, so they get the Trigger badge instead,
@@ -307,11 +304,11 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private void paintSendTestMessageBadge(JPanel canvas, Graphics g, FlowElement owner, IkasanFlowComponentViewHandler anchorViewHandler) {
         Icon sendTestMessageIcon;
         if (usesTriggerBadge(owner)) {
-            sendTestMessageIcon = IkasanComponentLibrary.getTriggerIcon();
+            sendTestMessageIcon = ComponentIconProvider.getTriggerIcon();
         } else if (owner.getComponentMeta().isFileBasedConsumer()) {
-            sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageFileIcon();
+            sendTestMessageIcon = ComponentIconProvider.getSendTestMessageFileIcon();
         } else {
-            sendTestMessageIcon = IkasanComponentLibrary.getSendTestMessageIcon();
+            sendTestMessageIcon = ComponentIconProvider.getSendTestMessageIcon();
         }
         int anchorIconWidth = anchorViewHandler.getCanvasIcon().getIconWidth();
         int badgeLeftX = anchorViewHandler.getLeftX() + ((anchorIconWidth - sendTestMessageIcon.getIconWidth()) / 2);

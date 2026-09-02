@@ -101,7 +101,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     public void testCreateFlowWith_emailConverterComponent_stripsAnAutoConvertedAnnotationFromFromType(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getEmailConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
         assertNotNull(templateString);
         assertTrue(templateString.contains("Converter<java.lang.Object, EmailPayload>"));

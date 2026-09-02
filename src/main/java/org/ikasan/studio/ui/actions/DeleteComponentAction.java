@@ -13,16 +13,16 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElementRemoval;
+import org.ikasan.studio.core.model.command.FlowElementRemoval;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.intellij.IkasanStudioSettings;
-import org.ikasan.studio.ui.model.StudioPsiUtils;
-import org.ikasan.studio.ui.model.psi.GenerationRequest;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.core.generation.GenerationRequest;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -80,7 +80,7 @@ public class DeleteComponentAction implements ActionListener {
                // Kept inside this command so the JSON model save nests into (and is undone/redone as part
                // of) the same undo step as the model mutation above, rather than becoming a separate,
                // invisible-on-canvas undo entry (see DeleteComponentUndoableAction).
-               StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.flow(parentFlow));
+               StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.flow(parentFlow));
             }, StudioBundle.message("menu.DeleteComponent"), null);
          } else {
             LOG.warn("STUDIO: Attempt to remove flow element " + ikasanBasicElement + " failed because its containing flow could not be found.");
@@ -105,7 +105,7 @@ public class DeleteComponentAction implements ActionListener {
                           GenerationRequest.moduleStructure(ikasanFlowToRemove)));
                   // Kept inside this command so the JSON model save nests into (and is undone/redone as
                   // part of) the same undo step as the model mutation above.
-                  StudioPsiUtils.refreshCodeFromModelAndCauseRedraw(project,
+                  StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project,
                           GenerationRequest.moduleStructure(null));
                }, StudioBundle.message("menu.DeleteComponent"), null);
             }
@@ -117,7 +117,7 @@ public class DeleteComponentAction implements ActionListener {
 
    /**
     * Components such as Debug or Converter generate their own hand-editable class under the project's user
-    * source tree (see {@code PIPSIIkasanModel.generateAndSaveUserImplementClassStubsForFlow}). When such a
+    * source tree (see {@code GeneratedProjectSynchronizer.generateAndSaveUserImplementClassStubsForFlow}). When such a
     * component is removed from the canvas (directly, or as a side effect of deleting a router or a whole flow),
     * that generated class is no longer referenced by anything, so offer to delete it too.
     * @param ikasanModule containing the removed elements, used to resolve the user class package name
@@ -143,7 +143,7 @@ public class DeleteComponentAction implements ActionListener {
                      ? preflightChoice == UserCodeDeletionChoice.DELETE_COMPONENT_AND_CLASS
                      : confirmAdditionalUserCodeDeletion(userClassFile.getPath()));
          if (deleteFile) {
-            StudioPsiUtils.deleteFile(project, userClassFile);
+            StudioProjectFiles.deleteFile(project, userClassFile);
          }
       }
    }
@@ -164,7 +164,7 @@ public class DeleteComponentAction implements ActionListener {
       String className = classNameProperty != null ? (String) classNameProperty.getValue() : null;
       if (className == null) return null;
       String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
-      return StudioPsiUtils.getUserImplementedClassFile(project, packageName, className);
+      return StudioProjectFiles.getUserImplementedClassFile(project, packageName, className);
    }
 
    /**

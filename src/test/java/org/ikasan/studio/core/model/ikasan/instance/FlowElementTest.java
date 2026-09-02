@@ -7,7 +7,7 @@ import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +59,7 @@ class FlowElementTest {
         // same except for the above
         assertThat(clonedXProducerComponent.getComponentMeta())
                 .usingRecursiveComparison()
-                .ignoringFields("jarDependencies", "allowableProperties")
+                .ignoringFields("jarDependencies", "allowableProperties", "iconResourceDirectory")
                 .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                 .isEqualTo(xProducerComponent.getComponentMeta());
 
@@ -127,8 +127,8 @@ class FlowElementTest {
     @Test
     void test_cloneWhereNewMetaDoesNotExistThrowsException() throws StudioBuildException {
         FlowElement xProducerComponent = TestFixtures.getXProducerComponent("TestV2");
-        try (MockedStatic<IkasanComponentLibrary> mockedStatic = mockStatic(IkasanComponentLibrary.class)) {
-            mockedStatic.when(() -> IkasanComponentLibrary
+        try (MockedStatic<ComponentLibrary> mockedStatic = mockStatic(ComponentLibrary.class)) {
+            mockedStatic.when(() -> ComponentLibrary
                             .getIkasanComponentByKey("TestV1", "X Producer"))
                     .thenReturn(null);
 
@@ -162,7 +162,8 @@ class FlowElementTest {
                 .usingRecursiveComparison()
                 .ignoringFields(
                         "jarDependencies",              // These are set in test fixture as different
-                        "allowableProperties")          // These are different, the differences being tested in Component Properties below, all allowables are used for componentProperties.
+                        "allowableProperties",          // These are different
+                        "iconResourceDirectory")        // Runtime UI resource location differs between meta-packs
                 .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                 .isEqualTo(xProducerComponent.getComponentMeta());
 

@@ -4,9 +4,9 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -304,7 +304,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
     public void testCreateFlowWith_emailProducerComponentWithNoRecipients(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Email Producer")
@@ -328,7 +328,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
     public void testCreateFlowWith_emailProducerComponentDefaultsEmailFormat(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Email Producer")
@@ -350,7 +350,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
     public void testCreateFlowWith_emailProducerComponentWithStaleEmptyListLiteral(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        ComponentMeta meta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Email Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My Email Producer")

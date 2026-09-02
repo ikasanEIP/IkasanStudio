@@ -15,24 +15,24 @@
     <resource-bundle>messages.studioBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="org.ikasan.studio.ui.intellij.toolWindow.DesignerToolWindowFactory"
+        <toolWindow factoryClass="org.ikasan.studio.intellij.toolwindow.DesignerToolWindowFactory"
                     id="Ikasan Studio"
                     anchor="right"
 		    icon="/studio/icons/squid13x13.svg"
         />
 
         <backgroundPostStartupActivity
-            implementation="org.ikasan.studio.ui.intellij.onboarding.IkasanStudioOnboardingActivity"/>
+            implementation="org.ikasan.studio.intellij.onboarding.IkasanStudioOnboardingActivity"/>
 
         <applicationService
-            serviceImplementation="org.ikasan.studio.ui.intellij.IkasanStudioSettings"/>
+            serviceImplementation="org.ikasan.studio.intellij.settings.IkasanStudioSettings"/>
 
         <fileEditorProvider
-            implementation="org.ikasan.studio.ui.intellij.editor.IkasanStudioFileEditorProvider"/>
+            implementation="org.ikasan.studio.intellij.editor.IkasanStudioFileEditorProvider"/>
 
         <applicationConfigurable
             parentId="tools"
-            instance="org.ikasan.studio.ui.intellij.IkasanStudioSettingsConfigurable"
+            instance="org.ikasan.studio.intellij.settings.IkasanStudioSettingsConfigurable"
             id="ikasan.studio.settings"
             key="ikasan.studio.settings.displayName"
             bundle="messages.studioBundle"/>
@@ -43,7 +43,7 @@
     </extensions>
     <actions>
         <action id="IkasanStudio.OpenEditor"
-                class="org.ikasan.studio.ui.intellij.editor.OpenIkasanStudioEditorAction"
+                class="org.ikasan.studio.intellij.editor.OpenIkasanStudioEditorAction"
                 icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>

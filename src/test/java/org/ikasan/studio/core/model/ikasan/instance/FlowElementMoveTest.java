@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.model.command.FlowElementMove;
+
 import org.ikasan.studio.core.StudioBuildException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;

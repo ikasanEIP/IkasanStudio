@@ -2,8 +2,8 @@ package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +28,7 @@ public class ComponentPropertyEditRowStringListTest {
 
     @BeforeAll
     public static void loadEmailProducerMeta() throws Exception {
-        emailProducerMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer");
+        emailProducerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer");
     }
 
     private static ComponentPropertyEditRow rowFor(FlowElement flowElement, String propertyName) {

@@ -2,9 +2,9 @@ package org.ikasan.studio.ui.component.properties;
 
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.meta.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.meta.IkasanComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,8 +29,8 @@ public class ComponentPropertyEditRowChoicesEditableTest {
 
     @BeforeAll
     public static void loadMeta() throws Exception {
-        emailProducerMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer");
-        moduleMeta = IkasanComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Module");
+        emailProducerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer");
+        moduleMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Module");
     }
 
     private static ComponentPropertyEditRow rowFor(FlowElement flowElement, String propertyName) {
