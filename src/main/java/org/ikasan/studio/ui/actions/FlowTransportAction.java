@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.ui.JBColor;
+import org.ikasan.studio.integration.ikasan.FlowControlOperation;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import java.awt.Color;
@@ -13,23 +14,17 @@ import java.awt.Color;
  * to control or check on a single flow.
  */
 public enum FlowTransportAction {
-    START("start", "Start flow"),
-    STOP("stop", "Stop flow"),
-    PAUSE("pause", "Pause flow"),
-    START_PAUSE("startPause", "Start flow, paused");
+    START("Start flow"),
+    STOP("Stop flow"),
+    PAUSE("Pause flow"),
+    START_PAUSE("Start flow, paused");
 
-    private final String wireValue;
     private final String tooltip;
 
-    FlowTransportAction(String wireValue, String tooltip) {
-        this.wireValue = wireValue;
+    FlowTransportAction(String tooltip) {
         this.tooltip = tooltip;
     }
 
-    /** @return the exact string Ikasan's ChangeFlowStateDto#action expects - see ikasan-rest-module's ModuleControlApplication. */
-    public String getWireValue() {
-        return wireValue;
-    }
 
     /**
      * The actual wire action to send for this button given the flow's current raw state. Only START is
@@ -40,11 +35,16 @@ public enum FlowTransportAction {
      * from "paused" alongside STOP - see {@link #isEnabledFor}) sends "resume" in that one case, since visually
      * it's the same "make it go" action the user expects the play-triangle icon to perform.
      */
-    public String resolveWireValue(String rawState) {
+    public FlowControlOperation resolveOperation(String rawState) {
         if (this == START && "paused".equals(rawState)) {
-            return "resume";
+            return FlowControlOperation.RESUME;
         }
-        return wireValue;
+        return switch (this) {
+            case START -> FlowControlOperation.START;
+            case STOP -> FlowControlOperation.STOP;
+            case PAUSE -> FlowControlOperation.PAUSE;
+            case START_PAUSE -> FlowControlOperation.START_PAUSE;
+        };
     }
 
     public String getTooltip() {

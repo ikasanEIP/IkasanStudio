@@ -11,7 +11,7 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowRuntimeStatuses;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.actions.ModuleControlClient;
+import org.ikasan.studio.integration.ikasan.ModuleControlClient;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import java.util.Map;

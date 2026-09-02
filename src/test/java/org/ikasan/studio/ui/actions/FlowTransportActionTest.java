@@ -1,8 +1,10 @@
 package org.ikasan.studio.ui.actions;
 
+import org.ikasan.studio.integration.ikasan.FlowControlOperation;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.ikasan.studio.ui.actions.FlowTransportAction.*;
 
 class FlowTransportActionTest {
@@ -39,6 +41,10 @@ class FlowTransportActionTest {
         assertThat(isEnabledFor(PAUSE, "stoppedInError")).isFalse();
     }
 
+    // isEnabledFor(action, null) being "always false" is exactly what this test verifies - isEnabledFor's own
+    // leading null-check makes that statically provable, hence the IDE flagging it, but the assertion itself is
+    // the point of the test, not dead code.
+    @SuppressWarnings("ConstantValue")
     @Test
     void everyActionIsDisabledForATransitionalOrUnknownState() {
         for (FlowTransportAction action : values()) {
@@ -49,17 +55,17 @@ class FlowTransportActionTest {
 
     @Test
     void startResolvesToResumeOnlyWhenTheFlowIsCurrentlyPaused() {
-        assertThat(START.resolveWireValue("paused")).isEqualTo("resume");
-        assertThat(START.resolveWireValue("stopped")).isEqualTo("start");
-        assertThat(START.resolveWireValue("stoppedInError")).isEqualTo("start");
-        assertThat(START.resolveWireValue(null)).isEqualTo("start");
+        assertThat(START.resolveOperation("paused")).isEqualTo(FlowControlOperation.RESUME);
+        assertThat(START.resolveOperation("stopped")).isEqualTo(FlowControlOperation.START);
+        assertThat(START.resolveOperation("stoppedInError")).isEqualTo(FlowControlOperation.START);
+        assertThat(START.resolveOperation(null)).isEqualTo(FlowControlOperation.START);
     }
 
     @Test
     void onlyStartIsEverContextSensitive() {
         for (FlowTransportAction action : values()) {
             if (action != START) {
-                assertThat(action.resolveWireValue("paused")).isEqualTo(action.getWireValue());
+                assertThat(action.resolveOperation("paused").name()).isEqualTo(action.name());
             }
         }
     }

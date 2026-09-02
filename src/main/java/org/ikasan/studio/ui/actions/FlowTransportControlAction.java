@@ -7,6 +7,8 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.ikasan.FlowControlOperation;
+import org.ikasan.studio.integration.ikasan.ModuleControlClient;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -36,13 +38,14 @@ public final class FlowTransportControlAction {
         if (module == null || module.getIdentity() == null) {
             return;
         }
+        FlowControlOperation operation = action.resolveOperation(rawState);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.ChangingFlowState", flowName)) {
             // Deliberately not @NotNull-annotated - see TriggerScheduledConsumerAction's identical comment.
             @SuppressWarnings("NullableProblems")
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    ModuleControlClient.changeFlowState(module, flowName, action, rawState);
+                    ModuleControlClient.changeFlowState(module, flowName, operation);
                 } catch (ConnectException e) {
                     LOG.warn("STUDIO: Could not change flow state for " + flowName + " - module not yet accepting connections", e);
                     ApplicationManager.getApplication().invokeLater(() ->
@@ -51,7 +54,7 @@ public final class FlowTransportControlAction {
                 } catch (Exception e) {
                     // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
                     // user, and this is already surfaced via the popup below - see CLAUDE.md.
-                    LOG.warn("STUDIO: Could not change flow state for " + flowName + " to " + action.resolveWireValue(rawState), e);
+                    LOG.warn("STUDIO: Could not change flow state for " + flowName + " to " + operation.getWireValue(), e);
                     String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                     ApplicationManager.getApplication().invokeLater(() ->
                             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotChangeFlowState", flowName, errorDetail)));

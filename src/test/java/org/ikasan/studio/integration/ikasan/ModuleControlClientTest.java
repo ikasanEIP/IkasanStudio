@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.actions;
+package org.ikasan.studio.integration.ikasan;
 
 import org.junit.jupiter.api.Test;
 
@@ -94,21 +94,21 @@ class ModuleControlClientTest {
 
     @Test
     void buildsAChangeFlowStateRequestBodyMatchingIkasansChangeFlowStateDto() throws Exception {
-        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowTransportAction.START_PAUSE, "stopped");
+        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowControlOperation.START_PAUSE);
 
         assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"startPause\"}");
     }
 
     @Test
-    void sendsResumeRatherThanStartWhenTheStartButtonIsClickedOnAPausedFlow() throws Exception {
-        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowTransportAction.START, "paused");
+    void serialisesTheResumeOperation() throws Exception {
+        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowControlOperation.RESUME);
 
         assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"resume\"}");
     }
 
     @Test
-    void sendsStartAsIsWhenTheFlowIsNotCurrentlyPaused() throws Exception {
-        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowTransportAction.START, "stopped");
+    void serialisesTheStartOperation() throws Exception {
+        String body = ModuleControlClient.buildChangeFlowStateRequestBody("untitled104", "f4", FlowControlOperation.START);
 
         assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"start\"}");
     }

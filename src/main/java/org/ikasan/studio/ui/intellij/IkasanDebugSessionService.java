@@ -18,7 +18,7 @@ import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.actions.ModuleControlClient;
+import org.ikasan.studio.integration.ikasan.ModuleControlClient;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import java.util.Collections;
@@ -177,8 +177,8 @@ public final class IkasanDebugSessionService implements Disposable {
     private void updateProcess(ProcessHandler handler, boolean running, boolean debug) {
         boolean visibilityChanged;
         boolean moduleStopped;
-        boolean debugStarted = false;
-        boolean debugStopped = false;
+        boolean debugStarted;
+        boolean debugStopped;
         synchronized (this) {
             boolean wasModuleRunning = !moduleProcesses.isEmpty();
             boolean wasDebugRunning = !debugProcesses.isEmpty();

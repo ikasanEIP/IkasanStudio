@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.actions;
+package org.ikasan.studio.integration.ikasan;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -21,7 +21,7 @@ import java.util.Map;
  * construction (module name -> context path, port defaulting, percent-encoding of the flow name) and default
  * credentials are easy to let drift out of sync between the two callers.
  */
-final class StudioInjectClient {
+public final class StudioInjectClient {
     // How long to wait to establish the TCP connection itself - localhost, so this can stay short; if the
     // module isn't listening yet at all, callers want to fail fast into the "not yet accepting connections"
     // ConnectException path rather than hang. 5s is already generous for a loopback handshake - a real delay
@@ -55,9 +55,9 @@ final class StudioInjectClient {
     /**
      * @param payloadClassName fully-qualified name of a project class to deserialize {@code payload} (as JSON)
      *                         into before injection, or null for the default plain-text/string payload - see
-     *                         SendTestMessagePayloadDialog.
+     *                         the send-test-message payload dialog.
      */
-    static HttpResponse<String> postPayload(Module module, String flowName, String payload, String payloadClassName) throws Exception {
+    public static HttpResponse<String> postPayload(Module module, String flowName, String payload, String payloadClassName) throws Exception {
         String port = module.getPort() != null ? module.getPort() : "8080";
         // The generated app sets server.servlet.context-path to the module's name (see propertiesTemplate_en.ftl),
         // so every endpoint lives under /<module-name>/... - the same transform (StudioBuildUtils.toUrlString)

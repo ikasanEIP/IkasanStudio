@@ -1,4 +1,4 @@
-package org.ikasan.studio.ui.actions;
+package org.ikasan.studio.integration.ikasan;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -191,15 +191,14 @@ public final class ModuleControlClient {
      * Starts/stops/pauses/start-pauses/resumes a single flow via {@code PUT /rest/moduleControl} - the
      * non-deprecated form of the endpoint (ChangeFlowStateDto{moduleName,flowName,action}), confirmed identical
      * between the V3.3.8 and V4.0.x Ikasan cores (org.ikasan.rest.module.ModuleControlApplication#changeFlowState
-     * in both). Throws on anything other than HTTP 200 - callers (FlowTransportControlAction) surface the
+     * in both). Throws on anything other than HTTP 200 - callers (the UI action) surfaces the
      * failure, they don't need the response body parsed since there's no state to read back from a successful
      * change.
      *
-     * @param rawState the flow's current raw state (as last polled), so {@link FlowTransportAction#resolveWireValue}
-     *                  can send "resume" rather than "start" for a paused flow - see its own javadoc.
+     * @param operation the exact UI-independent state transition to send to the module.
      */
-    public static void changeFlowState(Module module, String flowName, FlowTransportAction action, String rawState) throws Exception {
-        String requestBody = buildChangeFlowStateRequestBody(module.getIdentity(), flowName, action, rawState);
+    public static void changeFlowState(Module module, String flowName, FlowControlOperation operation) throws Exception {
+        String requestBody = buildChangeFlowStateRequestBody(module.getIdentity(), flowName, operation);
         HttpResponse<String> response = put(module, "/rest/moduleControl", requestBody);
         if (response.statusCode() != 200) {
             throw new IOException("moduleControl PUT responded with HTTP " + response.statusCode()
@@ -208,11 +207,11 @@ public final class ModuleControlClient {
     }
 
     /** Split out from {@link #changeFlowState} purely so the request-body shape (ChangeFlowStateDto's field names) can be unit tested without a live server. */
-    static String buildChangeFlowStateRequestBody(String moduleName, String flowName, FlowTransportAction action, String rawState) throws Exception {
+    static String buildChangeFlowStateRequestBody(String moduleName, String flowName, FlowControlOperation operation) throws Exception {
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("moduleName", moduleName);
         requestBody.put("flowName", flowName);
-        requestBody.put("action", action.resolveWireValue(rawState));
+        requestBody.put("action", operation.getWireValue());
         return OBJECT_MAPPER.writeValueAsString(requestBody);
     }
 
