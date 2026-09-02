@@ -13,6 +13,7 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
@@ -45,7 +46,6 @@ public final class UiContext {
     private static final String RIGHT_TABBED_PANE = "rightTabbedPane";
     public static final String PROPERTIES_TAB_TITLE = "Properties";
     public static final String PALETTE_TAB_TITLE = "Palette";
-    public static final int MINIMUM_COMPONENT_X_SPACING = 15;
     public static final int PROPERTIES_TAB_INDEX = 0;
     public static final int PALETTE_TAB_INDEX = 1;
     private static final String DESIGNER_UI = "designerUI";
@@ -64,13 +64,22 @@ public final class UiContext {
         this.cache.putIfAbsent(OPTIONS, new StudioSessionOptions());
     }
 
-    /**
-     * The spacing between flowchart components on the diagram.
-     * TODO: populate from UI config
-     * @return the minimum spacing between flowchart components on the diagram.
-     */
+    /** @return half the configured component distance, used for endpoint and decorator clearance. */
     public static int getMinimumComponentXSpacing() {
-        return MINIMUM_COMPONENT_X_SPACING;
+        return IkasanStudioSettings.getComponentDistance() / 2;
+    }
+
+    /**
+     * Preserves room occupied by trailing decorators while making the ordinary icon-to-icon distance equal
+     * to the value shown in Settings. With the default 30 px this is identical to the former 15 + 15 layout.
+     */
+    public static int getComponentSpacingAfterTrailingDecoration(int rawTrailingGap) {
+        return componentSpacingAfterTrailingDecoration(
+                IkasanStudioSettings.getComponentDistance(), rawTrailingGap);
+    }
+
+    static int componentSpacingAfterTrailingDecoration(int componentDistance, int rawTrailingGap) {
+        return Math.max(componentDistance, rawTrailingGap + (componentDistance / 2));
     }
 
     private synchronized Object getFromCache(String key) {

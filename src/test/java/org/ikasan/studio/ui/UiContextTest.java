@@ -7,6 +7,7 @@ import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JPanel;
@@ -66,5 +67,13 @@ class UiContextTest {
         assertThat(tabs.getSelectedIndex()).isEqualTo(UiContext.PALETTE_TAB_INDEX);
         verify(canvas).setSelectedComponent(module);
         verify(propertiesTab).updateTargetComponent(module);
+    }
+
+    @Test
+    void componentDistancePreservesExistingDecoratorClearanceGeometry() {
+        int existingDistance = IkasanStudioSettings.DEFAULT_COMPONENT_DISTANCE;
+        assertThat(UiContext.componentSpacingAfterTrailingDecoration(existingDistance, 0)).isEqualTo(30);
+        assertThat(UiContext.componentSpacingAfterTrailingDecoration(existingDistance, 10)).isEqualTo(30);
+        assertThat(UiContext.componentSpacingAfterTrailingDecoration(existingDistance, 40)).isEqualTo(55);
     }
 }

@@ -13,7 +13,6 @@ import java.awt.*;
 
 public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
-    public static final int FLOW_VERTICAL_SPACING = 20;
     // Wide enough to fit DesignerCanvas's per-flow transport-control buttons and status label (up to
     // "Stopped in Error") to the left of every flow, clear of the endpoint's own icon - was 150, too tight once
     // those were added, so the status label was overlapping/clipping the flow's leftmost endpoint.
@@ -59,21 +58,22 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
 
     /**
      * The vertical gap to leave below the given (previous) flow before the next one starts - normally the
-     * fixed FLOW_VERTICAL_SPACING, but widened to also fit that flow's own getting-started hint block when
+     * configured flow distance, but widened to also fit that flow's own getting-started hint block when
      * it's incomplete and hints are enabled (see DesignerCanvas#paintGettingStartedHint, which positions each
      * flow's own hint starting right at that flow's getBottomY(), independently of this gap). Without this, a
      * flow needing "Add a Producer"/"Add a Consumer" would have its hint text drawn straight over the top of
      * whatever flow is stacked immediately below it.
      */
     private int gapAfterFlow(Flow previousFlow, Graphics graphics) {
+        int flowDistance = IkasanStudioSettings.getFlowDistance();
         if (previousFlow != null && IkasanStudioSettings.areGettingStartedHintsEnabled()) {
             DesignerCanvas.GettingStartedHint flowHint = DesignerCanvas.getFlowHint(previousFlow);
             if (flowHint != null) {
-                return Math.max(FLOW_VERTICAL_SPACING,
+                return Math.max(flowDistance,
                         DesignerCanvas.measureHintBlockHeight(graphics, graphics.getFont(), flowHint, true));
             }
         }
-        return FLOW_VERTICAL_SPACING;
+        return flowDistance;
     }
 
     // Might revert to centralised model but that will require double initialise.

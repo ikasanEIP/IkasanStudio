@@ -15,6 +15,10 @@ import org.jetbrains.annotations.NotNull;
     storages = @Storage("ikasan-studio.xml")
 )
 public class IkasanStudioSettings implements PersistentStateComponent<IkasanStudioSettings.State> {
+    public static final int DEFAULT_COMPONENT_DISTANCE = 30;
+    public static final int DEFAULT_FLOW_DISTANCE = 20;
+    public static final int MINIMUM_CANVAS_DISTANCE = 0;
+    public static final int MAXIMUM_CANVAS_DISTANCE = 250;
 
     public static class State {
         /** Show contextual instructions while a module or flow is empty. */
@@ -66,12 +70,20 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          * module instances at once.
          */
         public boolean flowErrorMonitoringEnabled = true;
+
+        /** Horizontal distance, in canvas pixels, between ordinary adjacent components. */
+        public int componentDistance = DEFAULT_COMPONENT_DISTANCE;
+
+        /** Vertical distance, in canvas pixels, between adjacent flows. */
+        public int flowDistance = DEFAULT_FLOW_DISTANCE;
     }
 
     private State state = new State();
 
     public static IkasanStudioSettings getInstance() {
-        return ApplicationManager.getApplication().getService(IkasanStudioSettings.class);
+        return ApplicationManager.getApplication() != null
+                ? ApplicationManager.getApplication().getService(IkasanStudioSettings.class)
+                : null;
     }
 
     @Override
@@ -89,6 +101,24 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         if (instance == null) return true;
         State s = instance.getState();
         return s == null || s.gettingStartedHintsEnabled;
+    }
+
+    public static int getComponentDistance() {
+        IkasanStudioSettings instance = getInstance();
+        State state = instance != null ? instance.getState() : null;
+        return normaliseCanvasDistance(state != null ? state.componentDistance : DEFAULT_COMPONENT_DISTANCE,
+                DEFAULT_COMPONENT_DISTANCE);
+    }
+
+    public static int getFlowDistance() {
+        IkasanStudioSettings instance = getInstance();
+        State state = instance != null ? instance.getState() : null;
+        return normaliseCanvasDistance(state != null ? state.flowDistance : DEFAULT_FLOW_DISTANCE,
+                DEFAULT_FLOW_DISTANCE);
+    }
+
+    static int normaliseCanvasDistance(int value, int defaultValue) {
+        return value < MINIMUM_CANVAS_DISTANCE || value > MAXIMUM_CANVAS_DISTANCE ? defaultValue : value;
     }
 
     public static boolean isPromptBeforeDeletingUserCode() {

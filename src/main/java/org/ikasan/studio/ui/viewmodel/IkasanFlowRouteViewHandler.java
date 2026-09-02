@@ -373,7 +373,9 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                     // A leading decorator (e.g. Wiretap) already shifted the component's real leftX rightward
                     // inside initialiseDimensions above; re-adding getLeadingGap() here (the same shift) on
                     // top of that double-counted it, shrinking the gap to the *next* component.
-                    currentX = flowComponentViewHandler.getRightX() + flowComponentViewHandler.getTrailingGap() + UiContext.getMinimumComponentXSpacing();
+                    currentX = flowComponentViewHandler.getRightX()
+                            + UiContext.getComponentSpacingAfterTrailingDecoration(
+                                    flowComponentViewHandler.getRawTrailingGap());
                 }
             }
         }
