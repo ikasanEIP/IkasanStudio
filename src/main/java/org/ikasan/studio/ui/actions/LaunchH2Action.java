@@ -95,24 +95,31 @@ public class LaunchH2Action implements ActionListener {
       ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID);
       if (window == null) return;
 
-      ContentManager contentManager = window.getContentManager();
-      Content h2ContentTab = contentManager.findContent(title);
-      TerminalWidget terminalWidget;
+      // window.show(Runnable), not a direct getContentManager()/createShellWidget() call - see the identical,
+      // confirmed-via-real-repro fix and comment in StartTestMailServerAction#launchInTerminal: on the
+      // Terminal tool window's first touch in an IDE session, calling getContentManager() straight away can
+      // create the terminal content before the tool window's own Swing hierarchy is realized, so the tab
+      // silently never appears. show(Runnable) defers this block until the tool window has genuinely been shown.
+      window.show(() -> {
+         ContentManager contentManager = window.getContentManager();
+         Content h2ContentTab = contentManager.findContent(title);
+         TerminalWidget terminalWidget;
 
-      // Check if the content already exists and reuse its terminal widget
-      if (h2ContentTab != null) {
-         terminalWidget = TerminalToolWindowManager.findWidgetByContent(h2ContentTab);
-         contentManager.setSelectedContent(h2ContentTab);
-      } else {
-         terminalWidget = createTerminalWidget(project, path, title);
-      }
+         // Check if the content already exists and reuse its terminal widget
+         if (h2ContentTab != null) {
+            terminalWidget = TerminalToolWindowManager.findWidgetByContent(h2ContentTab);
+            contentManager.setSelectedContent(h2ContentTab);
+         } else {
+            terminalWidget = createTerminalWidget(project, path, title);
+         }
 
-      // Execute the command if we have a valid terminal widget
-      if (terminalWidget != null) {
-         terminalWidget.sendCommandToExecute(command);
-      } else {
-         LOG.warn("STUDIO: WARN: Could not create or find terminal widget for H2 command execution");
-      }
+         // Execute the command if we have a valid terminal widget
+         if (terminalWidget != null) {
+            terminalWidget.sendCommandToExecute(command);
+         } else {
+            LOG.warn("STUDIO: WARN: Could not create or find terminal widget for H2 command execution");
+         }
+      });
    }
 
    /**

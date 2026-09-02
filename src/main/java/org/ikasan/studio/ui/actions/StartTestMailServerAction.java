@@ -170,29 +170,42 @@ public class StartTestMailServerAction implements ActionListener {
             LOG.warn("STUDIO: WARN: Could not find the Terminal tool window to launch the test mail server in");
             return;
         }
-        ContentManager contentManager = window.getContentManager();
-        Content existingTab = contentManager.findContent(TestMailServerSupport.TERMINAL_TAB_TITLE);
-        TerminalWidget terminalWidget;
-        if (existingTab != null) {
-            // A tab from an earlier click - isAlreadyListening() above already ruled out a live instance, so
-            // this is a stale/closed-process tab; reuse it rather than accumulating a new one per click.
-            terminalWidget = TerminalToolWindowManager.findWidgetByContent(existingTab);
-            contentManager.setSelectedContent(existingTab);
-        } else {
-            terminalWidget = createTerminalWidget();
-        }
-        if (terminalWidget == null) {
-            LOG.warn("STUDIO: WARN: Could not create or find terminal widget for the test mail server");
-            return;
-        }
-        String quotedBinaryPath = "\"" + binary.toAbsolutePath() + "\"";
-        String uiAddress = TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT;
-        // -api-bind-addr set explicitly alongside -ui-bind-addr (both to the same address) even though MailHog
-        // defaults it to the same port anyway - matches the exact invocation this feature was validated
-        // against manually before being wired into the plugin, so there's no ambiguity if that default ever changes.
-        String command = quotedBinaryPath + " -smtp-bind-addr " + smtpHost + ":" + smtpPort
-                + " -api-bind-addr " + uiAddress + " -ui-bind-addr " + uiAddress;
-        terminalWidget.sendCommandToExecute(command);
+        // window.show(Runnable), not a direct getContentManager()/createShellWidget() call - confirmed via a
+        // real repro (idea.log's "'ToolwindowTitle' toolbar manual update is ignored" warning, with no tab
+        // ever actually appearing and no further exception logged) that when this is the Terminal tool
+        // window's first touch in the whole IDE session, its content hasn't been realized yet - calling
+        // getContentManager() straight away triggers IntelliJ's own lazy createToolWindowContent() as a side
+        // effect mid-call, before the tool window's Swing hierarchy has had addNotify() called on it. The
+        // resulting terminal widget/tab then silently never gets registered into the visible UI at all.
+        // show(Runnable) defers the callback until the tool window has genuinely been shown, which is exactly
+        // the missing precondition - see the identical fix in LaunchH2Action, which had the same unguarded
+        // pattern but happened not to have surfaced the bug yet.
+        window.show(() -> {
+            ContentManager contentManager = window.getContentManager();
+            Content existingTab = contentManager.findContent(TestMailServerSupport.TERMINAL_TAB_TITLE);
+            TerminalWidget terminalWidget;
+            if (existingTab != null) {
+                // A tab from an earlier click - isAlreadyListening() above already ruled out a live instance, so
+                // this is a stale/closed-process tab; reuse it rather than accumulating a new one per click.
+                terminalWidget = TerminalToolWindowManager.findWidgetByContent(existingTab);
+                contentManager.setSelectedContent(existingTab);
+            } else {
+                terminalWidget = createTerminalWidget();
+            }
+            if (terminalWidget == null) {
+                LOG.warn("STUDIO: WARN: Could not create or find terminal widget for the test mail server");
+                return;
+            }
+            String quotedBinaryPath = "\"" + binary.toAbsolutePath() + "\"";
+            String uiAddress = TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT;
+            // -api-bind-addr set explicitly alongside -ui-bind-addr (both to the same address) even though
+            // MailHog defaults it to the same port anyway - matches the exact invocation this feature was
+            // validated against manually before being wired into the plugin, so there's no ambiguity if that
+            // default ever changes.
+            String command = quotedBinaryPath + " -smtp-bind-addr " + smtpHost + ":" + smtpPort
+                    + " -api-bind-addr " + uiAddress + " -ui-bind-addr " + uiAddress;
+            terminalWidget.sendCommandToExecute(command);
+        });
     }
 
     private TerminalWidget createTerminalWidget() {
