@@ -7,7 +7,7 @@
   "endpointKey": "File Endpoint",
   "endpointTextKey": "filenames",
   "flowBuilderMethod": "consumer",
-  "helpText": "<p>Looks for a file on this host, in the directory where the module is executing, the frequency is configured in the cron expression.</p><p>You can set optional property 'logMatchedFilenames' so that you can see in the log, the full path of the file being searched for. You will need to move or remove the file(s) otherwise the same file will be repeatedly processed.</p>",
+  "helpText": "<p>Looks for files on this host in the configured directory. The cron expression controls how often it checks.</p><p>Set the optional <code>logMatchedFilenames</code> property to log the full path of each matched file. Move or remove processed files; otherwise, the same files will be processed repeatedly.</p>",
   "ikasanComponentFactoryMethod": "fileConsumer",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "usesBuilderInFactory": true,
@@ -47,7 +47,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 150,
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"
@@ -57,7 +57,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 160,
       "defaultValue": false,
-      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -116,7 +116,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 20,
       "defaultValue": true,
-      "helpText": "Default(True). Ignore cases where the file has been renamed between scanning and retrieval, rather than failing the scan.",
+      "helpText": "Default: true. Ignore cases where the file has been renamed between scanning and retrieval, rather than failing the scan.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -124,7 +124,7 @@
       "propertyName": "ignoreMisfire",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 110,
-      "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
+      "helpText": "Default: true. When true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "defaultValue": true,
       "propertyDataType": "java.lang.Boolean"
@@ -134,7 +134,7 @@
       "propertyGroup": "File Content",
       "propertyDisplayOrder": 80,
       "defaultValue": false,
-      "helpText": "Default(False). Assume first line of the file is a header and include it as a header within the message payload.",
+      "helpText": "Default: false. Assume first line of the file is a header and include it as a header within the message payload.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -143,7 +143,7 @@
       "propertyGroup": "File Content",
       "propertyDisplayOrder": 90,
       "defaultValue": false,
-      "helpText": "Default(False). Assume last line of the file is a trailer and include it as a trailer within the message payload.",
+      "helpText": "Default: false. Assume last line of the file is a trailer and include it as a trailer within the message payload.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -152,7 +152,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 130,
       "defaultValue": false,
-      "helpText": "Default(False). Write any matching filenames found to the log files as additional information.",
+      "helpText": "Default: false. Write any matching filenames found to the log files as additional information.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -206,7 +206,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 40,
       "defaultValue": true,
-      "helpText": "Default(True). Sort the list in ascending order (true) or descending order (false) when a sort method is used.",
+      "helpText": "Default: true. Sort the list in ascending order (true) or descending order (false) when a sort method is used.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -215,7 +215,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 30,
       "defaultValue": false,
-      "helpText": "Default(False). Sort the received file list by last modified date time, instead of filename.",
+      "helpText": "Default: false. Sort the received file list by last modified date time, instead of filename.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },

@@ -2,7 +2,7 @@
   "name": "SFTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
   "isFileBasedConsumer": "true",
-  "helpText": "<p>This consumer is variation of Scheduled Consumer which is a \"time event\" based consumer configured to be either an absolute or relative time schedule, backed by (S)FTP Message provider.</p>\n",
+  "helpText": "<p>This is a variation of the Scheduled Consumer, backed by an SFTP message provider and configured with either an absolute or relative schedule.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
@@ -35,7 +35,7 @@
       "propertyDisplayOrder": 150,
       "displayLabel": "Age Of Files (days)",
       "defaultValue": -1,
-      "helpText": "How many days to keep meta data relating to files already processedn (used to prevent processing the same file twice), the default is -1 means for ever.",
+      "helpText": "The number of days to retain metadata about processed files for duplicate detection. The default, -1, retains it indefinitely.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -44,7 +44,7 @@
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 190,
       "defaultValue": false,
-      "helpText": "Default(False). Flag indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.",
+      "helpText": "Default: false. Indicates indicating whether to verify integrity of retrieved file by comparing with a checksum supplied by the remote system.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -53,7 +53,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 60,
       "defaultValue": true,
-      "helpText": "Default(True) for SFTP (unlike FTP, which defaults to False). If true, when multiple files are available, process the oldest first; if false, order of processing is non-deterministic.",
+      "helpText": "Default: true. for SFTP (unlike FTP, which defaults to False). If true, when multiple files are available, process the oldest first; if false, order of processing is non-deterministic.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -72,7 +72,7 @@
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 170,
       "defaultValue": false,
-      "helpText": "Default(False). If true, file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration.",
+      "helpText": "Default: false. If true, file download should be performed in smaller distinguished data chunks of size defined by chunkSize configuration.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -81,14 +81,14 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
       "defaultValue": true,
-      "helpText": "Default(True). Only set to false when debugging. When true, the journal information is deleted when the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
+      "helpText": "Default: true. Only set to false when debugging. When true, the journal information is deleted when the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "clientID": {
       "propertyName": "clientID",
       "defaultValue": "__flow",
-      "helpText": "ClientID is used in the persisted meta data to identify this component uniquely in the context of the module. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
+      "helpText": "ClientID is used in the persisted metadata to identify this component uniquely in the context of the module. Since a flow can have only one consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.clientID",
       "setterProperty": true
@@ -111,7 +111,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 370,
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"
@@ -131,7 +131,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
-      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -150,7 +150,7 @@
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 50,
       "defaultValue": false,
-      "helpText": "Default(False). Delete file after successful consumption.",
+      "helpText": "Default: false. Deletes the file after successful consumption.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -190,7 +190,7 @@
       "propertyName": "ignoreMisfire",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 330,
-      "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
+      "helpText": "Default: true. When true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "defaultValue": true,
       "propertyDataType": "java.lang.Boolean"
@@ -200,7 +200,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 70,
       "defaultValue": false,
-      "helpText": "Default(False) Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
+      "helpText": "Default: false. Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -253,7 +253,7 @@
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 160,
       "defaultValue": -1,
-      "helpText": "When housekeeping the meta data, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. Default (-1) means unlimited.",
+      "helpText": "When housekeeping the metadata, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. The default, -1, means unlimited.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -343,7 +343,7 @@
       "propertyName": "renameOnSuccess",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 30,
-      "helpText": "Default(False) Flag indicating whether to rename the processed file after successful consumption.",
+      "helpText": "Default: false. Indicates indicating whether to rename the processed file after successful consumption.",
       "setterProperty": true,
       "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
@@ -352,7 +352,7 @@
       "propertyName": "renameOnSuccessExtension",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 40,
-      "helpText": "Required renameOnSuccess set to true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
+      "helpText": "Requires renameOnSuccess to be true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "propertyDataType": "java.lang.String"

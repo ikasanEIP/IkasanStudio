@@ -1,7 +1,7 @@
 {
   "name": "Multi Recipient Router",
   "componentType": "org.ikasan.spec.component.routing.MultiRecipientRouter",
-  "helpText": "<p>The router will allow the payload to be sent conditionally to one or many routes e.g. the logic could send the payload to routeA AND routeB.</p><p>Unlike the Single Recipient Router there is no \"default\" fallback - the router must always return at least one route name, it can never return zero.</p><p>Each matched route runs to completion, in order, before the next one starts. By default the payload is cloned before being sent down each route (except the last) so routes cannot affect each other by mutating a shared payload.</p>",
+  "helpText": "<p>Use this router to send a payload to one or more routes, such as both routeA and routeB.</p><p>Unlike the Single Recipient Router there is no \"default\" fallback - the router must always return at least one route name, it can never return zero.</p><p>Each matched route runs to completion, in order, before the next one starts. By default, the payload is cloned before being sent down each route (except the last) so routes cannot affect each other by mutating a shared payload.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "org.ikasan.component.router.multirecipient.RecipientListRouter",
   "flowBuilderMethod": "multiRecipientRouter",
@@ -40,14 +40,14 @@
       "propertyName": "configuredResource",
       "affectsUserImplementedClass": "true",
       "defaultValue": false,
-      "helpText": "Default(False). Allow the Configuration to be exposed in the Ikasan console.",
+      "helpText": "Default: false. Allows the configuration to be exposed in the Ikasan console.",
       "propertyDataType": "java.lang.Boolean",
       "usageDataType": "java.lang.Boolean"
     },
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"

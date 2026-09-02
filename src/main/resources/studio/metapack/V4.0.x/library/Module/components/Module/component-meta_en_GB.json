@@ -1,6 +1,6 @@
 {
   "name": "Module",
-  "helpText": "The module is the container for all flows",
+  "helpText": "",
   "componentType": "org.ikasan.spec.module.Module",
   "generatesUserImplementedClass": true,
   "implementingClass": "",

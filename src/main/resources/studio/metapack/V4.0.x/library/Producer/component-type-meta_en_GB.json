@@ -2,12 +2,12 @@
   "componentType": "org.ikasan.spec.component.endpoint.Producer",
   "paletteDisplayOrder": 11,
   "componentShortType": "Producer",
-  "helpText": "<p>Producers are always at the end of flows, they send the payload onto its final destination.</p>",
+  "helpText": "<p>Producers end flows or routes by sending the payload to its final destination.</p>",
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "configurationId": {
       "propertyName": "configurationId",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType":"java.lang.String"

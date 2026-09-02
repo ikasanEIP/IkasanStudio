@@ -2,7 +2,7 @@
   "name": "FTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
   "isFileBasedConsumer": "true",
-  "helpText": "<p>This is a 'time event' based consumer configured to be either an absolute or relative time schedule, backed by FTP MessageProvider.</p>",
+  "helpText": "<p>This scheduled consumer uses an FTP message provider and supports absolute or relative schedules.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
@@ -47,7 +47,7 @@
       "propertyDisplayOrder": 150,
       "displayLabel": "Age Of Files (days)",
       "defaultValue": -1,
-      "helpText": "How many days to keep meta data relating to files already processed (used to prevent processing the same file twice), the default is -1 means for ever.",
+      "helpText": "The number of days to retain metadata about processed files for duplicate detection. The default, -1, retains it indefinitely.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Integer"
     },
@@ -66,7 +66,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 60,
       "displayLabel": "Oldest file first",
-      "helpText": "Default(True). If true (the default), when multiple files are available, process the oldest first; if false, order of processing is non-deterministic.",
+      "helpText": "Default: true. If true (the default), when multiple files are available, process the oldest first; if false, order of processing is non-deterministic.",
       "defaultValue": true,
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -95,7 +95,7 @@
       "propertyName": "cleanupJournalOnComplete",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
-      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
+      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted when the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "defaultValue": true,
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
@@ -103,7 +103,7 @@
     "clientID": {
       "propertyName": "clientID",
       "defaultValue": "__flow",
-      "helpText": "ClientID is used in the persisted meta data to identify this component uniquely in the context of the module. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
+      "helpText": "ClientID is used in the persisted metadata to identify this component uniquely in the context of the module. Since a flow can have only one consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.clientID",
       "setterProperty": true
@@ -126,7 +126,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 370,
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"
@@ -146,7 +146,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
-      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -176,7 +176,7 @@
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 50,
       "displayLabel": "Delete file after consumption",
-      "helpText": "Delete file after successful consumption. Default is false.",
+      "helpText": "Deletes the file after successful consumption. Default is false.",
       "setterProperty": true,
       "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
@@ -217,7 +217,7 @@
       "propertyName": "filterDuplicates",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 120,
-      "helpText": "When true (the default), duplicates files are ignored (based on previously persisted meta information e.g. date-timestamp).",
+      "helpText": "When true (the default), duplicate files are ignored based on previously persisted metadata, such as the processing timestamp.",
       "setterProperty": true,
       "defaultValue": true,
       "propertyDataType": "java.lang.Boolean"
@@ -258,7 +258,7 @@
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 290,
       "displayLabel": "Support legacy ftps",
-      "helpText": "Requires ftps to be true. If set to false (the default), explicit FTPS (aka FTPES, RFC 4217-standard approach) is used, the client connects on the normal FTP port (defaults to 21) in plaintext, then explicitly sends an AUTH TLS/AUTH SSL command to upgrade the connection before authenticating. If true the older/deprecated connection stlye is supported i.e. the client opens a TLS/SSL handshake immediately on connect, before any FTP commands are exchanged. The port defaults to 990.",
+      "helpText": "Requires FTPS. When false (the default), the client uses explicit FTPS (FTPES, defined by RFC 4217): it connects to the standard FTP port (21 by default), then upgrades the connection with AUTH TLS or AUTH SSL before authentication. When true, it uses deprecated implicit FTPS, starting the TLS/SSL handshake immediately on connection; the default port is 990.",
       "defaultValue": false,
       "setterProperty": true,
       "trueLabel": "Legacy",
@@ -307,7 +307,7 @@
       "propertyName": "ignoreMisfire",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 330,
-      "helpText": "Default(True). If true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
+      "helpText": "Default: true. When true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
       "setterProperty": true,
       "defaultValue": true,
       "propertyDataType": "java.lang.Boolean"
@@ -317,7 +317,7 @@
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 70,
       "defaultValue": false,
-      "helpText": "Default(False) Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
+      "helpText": "Default: false. Works together with sourceDirectory and filenamePattern: if true, recurse into subdirectories of sourceDirectory (unlimited depth), and filenamePattern is applied to files found there too, not just files directly in sourceDirectory. Useful when consuming from a top-level directory without knowing its full subdirectory structure.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -357,7 +357,7 @@
       "propertyName": "maxRows",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 160,
-      "helpText": "When housekeeping the meta data, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. Default (-1) means unlimited.",
+      "helpText": "When housekeeping the metadata, i.e. ageOfFiles has been exceeded, this will set the batch size for deletion. The default, -1, means unlimited.",
       "setterProperty": true,
       "defaultValue": -1,
       "propertyDataType": "java.lang.Integer"
@@ -388,7 +388,7 @@
       "propertyName": "moveOnSuccess",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 10,
-      "helpText": "Default(False) Flag indicating whether to move the processed file after successful consumption to different location defined by moveOnSuccessNewPath configuration.",
+      "helpText": "Default: false. Indicates indicating whether to move the processed file after successful consumption to different location defined by moveOnSuccessNewPath configuration.",
       "setterProperty": true,
       "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
@@ -443,7 +443,7 @@
       "propertyName": "renameOnSuccess",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 30,
-      "helpText": "Default(False) Flag indicating whether to rename the processed file after successful consumption.",
+      "helpText": "Default: false. Indicates indicating whether to rename the processed file after successful consumption.",
       "setterProperty": true,
       "defaultValue": false,
       "propertyDataType": "java.lang.Boolean"
@@ -452,7 +452,7 @@
       "propertyName": "renameOnSuccessExtension",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 40,
-      "helpText": "Required renameOnSuccess set to true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
+      "helpText": "Requires renameOnSuccess to be true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
       "setterProperty": true,
       "usageDataType": "java.lang.String",
       "propertyDataType": "java.lang.String"

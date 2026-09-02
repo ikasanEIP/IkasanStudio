@@ -1,5 +1,6 @@
 {
   "componentType": "Endpoint",
   "paletteDisplayOrder": -2,
-  "componentShortType": "End Point"
+  "componentShortType": "End Point",
+  "helpText": "<p>Endpoints are visual anchors representing where data enters or leaves a flow or route.</p>"
 }

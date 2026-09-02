@@ -294,7 +294,7 @@ class ComponentLibraryTest {
         assertAll(
             "Check the module contains the expected values",
             () -> assertEquals(ComponentMeta.MODULE_TYPE, module.getName()),
-            () -> assertEquals("<p>The module is the container for all flows</p>", module.getHelpText()),
+            () -> assertEquals("<p>Modules contain the flows that make up an Ikasan integration application.</p>", module.getHelpText()),
             () -> assertEquals("org.ikasan.spec.module.Module", module.getComponentType()),
             () -> assertEquals("Readme.md", module.getWebHelpURL()),
             () -> assertFalse(ComponentIconProvider.getSmallIcon(module) instanceof ImageIcon),
@@ -308,7 +308,7 @@ class ComponentLibraryTest {
                 "Check the Exception Resolver contains the expected values",
                 () -> assertEquals(ComponentMeta.EXCEPTION_RESOLVER_TYPE, exceptionResolver.getName()),
                 () -> assertEquals("org.ikasan.exceptionResolver.ExceptionResolver", exceptionResolver.getComponentType()),
-                () -> assertEquals("<p>Exception Resolvers determine what action to take when an error occurs e.g. retry, exclude and continue, halt the flow.</p>", exceptionResolver.getHelpText()),
+                () -> assertEquals("<p>Exception resolvers determine what action to take when an error occurs, such as retrying, excluding the event and continuing, or stopping the flow.</p>", exceptionResolver.getHelpText()),
                 () -> assertEquals(0, exceptionResolver.getAllowableProperties().size()),
                 () -> assertEquals(5, exceptionResolver.getActionList().size())
         );

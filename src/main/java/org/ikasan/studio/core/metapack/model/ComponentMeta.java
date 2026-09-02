@@ -280,6 +280,12 @@ public class ComponentMeta implements IkasanMeta {
         return HelpTextFormatter.categoryThenComponent(categoryHelp, helpText);
     }
 
+    /** @return help belonging only to this concrete component, before category help is composed around it. */
+    @JsonIgnore
+    public String getSpecificHelpText() {
+        return helpText;
+    }
+
     /**
      * Which of this component's own properties declares its expected input type - expectedInputTypeProperty
      * when set (e.g. Object To XML String Converter's 'objectClass'), otherwise the 'fromType' convention used

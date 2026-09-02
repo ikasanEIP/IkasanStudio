@@ -1,6 +1,6 @@
 {
   "name": "SFTP Producer",
-  "helpText": "<p>Ending component of the flow, or a route in the flow. This producer allows delivery of a file to remote (S)FTP server. The producer is under pined with persistent store which saves meta information about the deliver files.</p>",
+  "helpText": "<p>Delivers files to a remote FTP or SFTP server. A persistent store records metadata about delivered files.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
@@ -52,14 +52,14 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
       "defaultValue": true,
-      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted whe the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
+      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted when the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
     "clientID": {
       "propertyName": "clientID",
       "defaultValue": "__flow",
-      "helpText": "ClientID is used in the persisted meta data to identify this component uniquely in the context of the module. Since a flow can only have 1 consumer, the flow name makes for a good, default, client ID.",
+      "helpText": "ClientID is used in the persisted metadata to identify this component uniquely in the context of the module. Since a flow can have only one consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.producer.clientID",
       "setterProperty": true
@@ -101,7 +101,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
-      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },

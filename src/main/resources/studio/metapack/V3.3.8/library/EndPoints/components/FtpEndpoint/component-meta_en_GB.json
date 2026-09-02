@@ -1,13 +1,13 @@
 {
   "name": "FTP Endpoint",
   "implementingClass": "FTPEndpoint",
-  "helpText": "The endpoint appears either before the start of a flow or after the end of a flow.",
+  "helpText": "",
   "isEndpoint": true,
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
       "propertyName": "componentName",
-      "helpText": "For an endpoint, this will be used to display information about the endpoint e.g. the host, DB name, Filename etc. Typically this is decided by the Flow Element that the enpoint belongs to, see 'endpointTextKey'",
+      "helpText": "Text displayed for the endpoint, such as a host, database name or filename. The owning flow element normally supplies it through <code>endpointTextKey</code>.",
       "mandatory": true
     }
   }

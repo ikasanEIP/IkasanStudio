@@ -17,6 +17,12 @@ class ComponentHelpCompositionTest {
             if (categoryHelp == null || categoryHelp.isBlank()) {
                 continue;
             }
+            String componentHelp = component.getSpecificHelpText();
+            if (componentHelp != null && !componentHelp.isBlank()) {
+                assertThat(componentHelp.strip())
+                        .as("component help should not duplicate category help for %s in %s", component.getName(), version)
+                        .isNotEqualTo(categoryHelp.strip());
+            }
             assertThat(component.getHelpText())
                     .as("category help should be first for %s in %s", component.getName(), version)
                     .startsWith(categoryHelp.strip());
@@ -29,8 +35,8 @@ class ComponentHelpCompositionTest {
         ComponentMeta translator = ComponentLibrary.getIkasanComponentByKeyMandatory(version, "Translator");
         String help = translator.getHelpText();
 
-        assertThat(help.indexOf("The main responsibility of a translator"))
-                .isLessThan(help.indexOf("Use a Translator"));
+        assertThat(help.indexOf("A <b>Translator</b> modifies"))
+                .isLessThan(help.indexOf("Implement the required in-place transformation"));
         assertThat(help).contains("</p><p>");
     }
 }

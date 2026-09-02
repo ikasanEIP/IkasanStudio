@@ -1,7 +1,7 @@
 {
   "name": "Router Endpoint",
   "implementingClass": "RouterEndpoint",
-  "helpText": "The router endpoint appear at the start of each route. It acts as a UI anchor point for new components",
+  "helpText": "This endpoint appears at the start of each route and anchors components added to that route.",
   "isEndpoint": true,
   "isInternalEndpoint": true,
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

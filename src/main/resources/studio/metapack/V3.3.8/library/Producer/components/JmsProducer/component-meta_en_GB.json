@@ -4,7 +4,7 @@
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
   "flowBuilderMethod": "producer",
-  "helpText": "<p>Ending component of the flow, or a route in the flow. The JMS producer is based on Spring template and is used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p>",
+  "helpText": "<p>This Spring-based JMS producer connects to vendor-specific brokers such as ActiveMQ, HornetQ and IBM MQ. Add the libraries required by the selected broker to the integration module.</p>",
   "ikasanComponentFactoryMethod": "jmsProducer",
   "implementingClass": "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
   "jarDependencies": [
@@ -152,7 +152,7 @@
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 300,
       "defaultValue": false,
-      "helpText": "Default(False). Set to true to indicate that destination is a topic, otherwise destination is a queue.",
+      "helpText": "Default: false. Set to true to indicate that destination is a topic, otherwise destination is a queue.",
       "setterProperty": true,
       "trueLabel": "Topic",
       "falseLabel": "Queue",
@@ -350,7 +350,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 710,
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "usageDataType": "java.lang.String"
     },

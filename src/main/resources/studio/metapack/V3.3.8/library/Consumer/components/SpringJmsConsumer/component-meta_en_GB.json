@@ -5,7 +5,7 @@
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",
   "flowBuilderMethod": "consumer",
-  "helpText": "<p>The JMS consumer is Event Driven Consumer, used to connect to any Vendor specific JMS Broker(ActiveMQ, HornetQ, IBM MQ etc). However one need to include the related vendor specific libraries in the IM.</p>\n",
+  "helpText": "<p>This event-driven JMS consumer connects to vendor-specific brokers such as ActiveMQ, HornetQ and IBM MQ. Add the libraries required by the selected broker to the integration module.</p>",
   "ikasanComponentFactoryMethod": "jmsConsumer",
   "implementingClass": "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
   "jarDependencies": [
@@ -49,7 +49,7 @@
       "propertyGroup": "Popular",
       "propertyDisplayOrder": -50,
       "defaultValue": false,
-      "helpText": "Default(False). Extract the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.",
+      "helpText": "Default: false. Extracts the content of the JMS message and present this to the next component (true); or leave as a JMS message payload (false). This option can save extracting the JMS message body in subsequent components if it is only the JMS content that is of interest. For instance, you are not interested in the JMS headers.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -167,7 +167,7 @@
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 300,
       "defaultValue": false,
-      "helpText": "Default(False). Set to true to indicate that destination is a topic, otherwise destination is a queue.",
+      "helpText": "Default: false. Set to true to indicate that destination is a topic, otherwise destination is a queue.",
       "setterProperty": true,
       "trueLabel": "Topic",
       "falseLabel": "Queue",
@@ -178,7 +178,7 @@
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 310,
       "defaultValue": false,
-      "helpText": "Default(False). Create a durable subscription (true) on the destination which will ensure messages aren't missed when the flow is stopped or paused. If not durable (false) messages on the destination will be missed when the flow is stopped or paused. This is only applicable to topics.",
+      "helpText": "Default: false. Create a durable subscription (true) on the destination which will ensure messages aren't missed when the flow is stopped or paused. If not durable (false) messages on the destination will be missed when the flow is stopped or paused. This is only applicable to topics.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -251,7 +251,7 @@
       "propertyGroup": "Session",
       "propertyDisplayOrder": 400,
       "defaultValue": false,
-      "helpText": "Default(False). Sets whether the session should be part of a local JMS transaction - when true, the broker holds the message until the session commits/rolls back; when false, acknowledgement is governed by sessionAcknowledgeMode instead.",
+      "helpText": "Default: false. Sets whether the session should be part of a local JMS transaction - when true, the broker holds the message until the session commits/rolls back; when false, acknowledgement is governed by sessionAcknowledgeMode instead.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -278,7 +278,7 @@
       "propertyGroup": "Batching",
       "propertyDisplayOrder": 500,
       "defaultValue": false,
-      "helpText": "Default(False). Use message batching.",
+      "helpText": "Default: false. Use message batching.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -295,7 +295,7 @@
       "propertyGroup": "Batching",
       "propertyDisplayOrder": 520,
       "defaultValue": true,
-      "helpText": "Default(True). Only applicable when batchMode is true. When true (the default), automatically split the batch of messages into individual messages to fire downstream; when false, pass them as a single list of messages downstream instead.",
+      "helpText": "Default: true. Only applicable when batchMode is true. When true (the default), automatically split the batch of messages into individual messages to fire downstream; when false, pass them as a single list of messages downstream instead.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
@@ -344,7 +344,7 @@
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 710,
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"

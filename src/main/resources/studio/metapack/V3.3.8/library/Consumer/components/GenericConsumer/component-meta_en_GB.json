@@ -2,7 +2,7 @@
   "name": "Generic Consumer",
   "isFileBasedConsumer": "true",
   "generatesUserImplementedClass": "true",
-  "helpText": "<p>The 'Generic' variants merely work off the interface and expect the user to supply the concrete class that implements the interface e.g. where the Ikasan components have been subclassed or extended into reusable frameworks.</p><p>The payload type it hands downstream depends entirely on your own implementing class - Studio has no fixed answer to give here.</p>",
+  "helpText": "<p>This generic variant uses the component interface and requires you to supply its concrete implementation, for example a subclassed Ikasan component or a reusable framework component.</p><p>The downstream payload type depends entirely on your implementing class; Studio cannot infer it.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
@@ -31,7 +31,7 @@
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"

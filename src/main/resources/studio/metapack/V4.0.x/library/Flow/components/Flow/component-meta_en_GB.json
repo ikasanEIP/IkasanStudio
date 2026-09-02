@@ -1,6 +1,6 @@
 {
   "name": "Flow",
-  "helpText": "<p>The flow is the container for components and generally represents an atomic action.</p>",
+  "helpText": "",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
@@ -16,7 +16,7 @@
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "ignoreProperty": true,
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",

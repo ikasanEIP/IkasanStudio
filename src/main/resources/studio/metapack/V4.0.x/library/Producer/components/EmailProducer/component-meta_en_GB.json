@@ -2,7 +2,7 @@
   "name": "Email Producer",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "flowBuilderMethod": "producer",
-  "helpText": "<p>Ending component of the flow, or a route in the flow. This type of producer sends an email. This requires an incoming EmailPayload event instance - the upstream component feeding this one should be an <strong>Email Converter</strong>, which builds the EmailPayload from whatever payload precedes it in the flow.</p>",
+  "helpText": "<p>Sends an email from an incoming EmailPayload. Place an <strong>Email Converter</strong> upstream to build that EmailPayload from the preceding payload.</p>",
   "implementingClass": "org.ikasan.component.endpoint.email.producer.EmailProducer",
   "expectedInputTypes": "org.ikasan.component.endpoint.email.producer.EmailPayload",
   "usesBuilderInFactory": true,
@@ -36,7 +36,7 @@
     },
     "toRecipients": {
       "propertyName": "toRecipients",
-      "helpText": "The list of To recipients, enter a comma seperated list of (unquoted) strings.",
+      "helpText": "The list of To recipients, enter a comma-separated list of (unquoted) strings.",
       "propertyConfigFileLabel": "__flow.email.producer.toRecipients",
       "propertyDisplayOrder": -95,
       "setterProperty": true,
@@ -94,7 +94,7 @@
     },
     "ccRecipients": {
       "propertyName": "ccRecipients",
-      "helpText": "The list of CC recipient, enter a comma seperated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
+      "helpText": "The list of CC recipient, enter a comma-separated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.email.producer.ccRecipients",
       "propertyDisplayOrder": -85,
       "setterProperty": true,
@@ -115,7 +115,7 @@
     },
     "bccRecipients": {
       "propertyName": "bccRecipients",
-      "helpText": "The list of BCC recipient, enter a comma seperated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
+      "helpText": "The list of BCC recipient, enter a comma-separated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.email.producer.bccRecipients",
       "propertyDisplayOrder": -75,
       "mandatorySectionHeading": "At least one of...",
@@ -126,7 +126,7 @@
     "hasAttachments": {
       "propertyName": "hasAttachments",
       "defaultValue": false,
-      "helpText": "Default(False). Set to true if the email includes attachments. This only opens the gate to send them - the attachment bytes themselves must be added to the EmailPayload by the upstream <strong>Email Converter</strong> (via addAttachment), this flag does not attach anything by itself.",
+      "helpText": "Default: false. Set to true if the email includes attachments. This only opens the gate to send them - the attachment bytes themselves must be added to the EmailPayload by the upstream <strong>Email Converter</strong> (via addAttachment), this flag does not attach anything by itself.",
       "propertyGroup": "Attachments",
       "propertyDisplayOrder": 200,
       "setterProperty": true,
@@ -244,7 +244,7 @@
     "mailDebug": {
       "propertyName": "mailDebug",
       "defaultValue": false,
-      "helpText": "Default(False). Enable JavaMail session debug logging, useful when troubleshooting mail delivery issues.",
+      "helpText": "Default: false. Enable JavaMail session debug logging, useful when troubleshooting mail delivery issues.",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 700,
       "setterProperty": true,
@@ -253,7 +253,7 @@
     "mailMimeAddressStrict": {
       "propertyName": "mailMimeAddressStrict",
       "defaultValue": true,
-      "helpText": "Default(True). The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method.",
+      "helpText": "Default: true. The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method.",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 710,
       "setterProperty": true,
@@ -292,7 +292,7 @@
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
       "defaultValue": false,
-      "helpText": "Default(False). Identify this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 750,
       "setterProperty": true,

@@ -1,7 +1,7 @@
 {
   "name": "Single Recipient Router",
   "componentType": "org.ikasan.spec.component.routing.SingleRecipientRouter",
-  "helpText": "<p>The router will allow the payload to be sent conditionally to zero or one routes e.g. the logic could send the payload to routeA OR routeB but not both.</p><p>Requires at least two route names to be configured below (Route Names) - with only one, there would be nothing to actually choose between.</p>",
+  "helpText": "<p>Use this router to select at most one route, such as routeA or routeB, but not both.</p><p>Configure at least two route names; with only one, there is no choice to make.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
   "implementingClass": "org.ikasan.spec.component.routing.SingleRecipientRouter",
   "flowBuilderMethod": "singleRecipientRouter",
@@ -39,14 +39,14 @@
       "propertyName": "configuredResource",
       "affectsUserImplementedClass": "true",
       "defaultValue": false,
-      "helpText": "Default(False). Allow the Configuration to be exposed in the Ikasan console.",
+      "helpText": "Default: false. Allows the configuration to be exposed in the Ikasan console.",
       "propertyDataType": "java.lang.Boolean",
       "usageDataType": "java.lang.Boolean"
     },
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"

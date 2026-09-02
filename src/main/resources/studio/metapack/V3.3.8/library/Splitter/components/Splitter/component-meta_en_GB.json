@@ -2,7 +2,7 @@
   "name": "Splitter",
   "generatesUserImplementedClass": "true",
   "flowBuilderMethod": "splitter",
-  "helpText": "<p>This splitter will take in a payload of 'fromType' and send multiple payloads of 'toType' to the downstream consumer.</p><p>The splitter must always return at least one payload - a null or empty list is not valid and will cause the flow to fail at runtime.</p>",
+  "helpText": "<p>Implement the split operation from <code>fromType</code> to multiple <code>toType</code> payloads.</p><p>The splitter must return at least one payload. A null or empty list causes the flow to fail at runtime.</p>",
   "_implementingClass": "In this case is just used an a key to indicate for uniqueness",
   "implementingClass": "org.ikasan.component.splitter.Custom",
   "_useImplementingClassInFactory": true,
@@ -70,7 +70,7 @@
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"

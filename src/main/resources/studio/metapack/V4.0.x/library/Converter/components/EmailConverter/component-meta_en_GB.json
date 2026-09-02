@@ -2,7 +2,7 @@
   "name": "Email Converter",
   "flowBuilderMethod": "converter",
   "generatesUserImplementedClass": "true",
-  "helpText": "<p>Builds the org.ikasan.component.endpoint.email.producer.EmailPayload required by the <strong>Email Producer</strong>. The downstream component fed by this one should be an <strong>Email Producer</strong>, which sends the EmailPayload (email body plus any attachments) this converter builds.</p>",
+  "helpText": "<p>Builds the <code>org.ikasan.component.endpoint.email.producer.EmailPayload</code> required by an <strong>Email Producer</strong>, including the email body and any attachments. Place an Email Producer immediately downstream.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "additionalKey": "EmailConverter",
   "producedOutputType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
@@ -66,7 +66,7 @@
     "configurationId": {
       "propertyName": "configurationId",
       "defaultValue": "__module-__flow-__component",
-      "helpText": "By default, the configuration ID = modulename + flowname + componentName + componentType. There are times when you may wish to override this i.e. if you want multiple flows to share the same configration or you have changed a flow name but don't want to update properties that may have already been stored in the override properties database.",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
       "setterProperty": true,
       "setterMethod": "setConfiguredResourceId",
       "usageDataType": "java.lang.String"
