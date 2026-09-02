@@ -13,6 +13,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class IkasanStudioSettingsConfigurableTest {
     @Test
+    void explanatoryNotesUseIntellijResponsiveWrapping() {
+        IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
+        JComponent settings = configurable.createComponent();
+        assertThat(settings).isNotNull();
+
+        // Settings uses this width for its horizontal viewport. An unwrapped label
+        // therefore creates a scrollbar even when its minimum width is small.
+        assertThat(settings.getPreferredSize().width).isLessThan(800);
+        configurable.disposeUIResources();
+    }
+
+    @Test
     void resetButtonRestoresBothCurrentCanvasLayoutDefaults() {
         IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
         JComponent settings = configurable.createComponent();

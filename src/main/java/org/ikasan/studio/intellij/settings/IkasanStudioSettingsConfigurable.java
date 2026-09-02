@@ -3,6 +3,7 @@ package org.ikasan.studio.intellij.settings;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.panel.ComponentPanelBuilder;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.Nls;
@@ -46,8 +47,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         hintsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.Onboarding")));
         hintsPanel.add(gettingStartedHintsCheckBox, BorderLayout.NORTH);
 
-        JLabel hintsNote = new JLabel(StudioBundle.message("label.HintsNote"));
-        hintsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel hintsNote = wrappingNote("label.HintsNote");
         hintsPanel.add(hintsNote, BorderLayout.CENTER);
 
         promptBeforeDeletingUserCodeCheckBox = new JCheckBox(StudioBundle.message("checkbox.PromptBeforeDeletingUserCode"));
@@ -56,8 +56,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         userCodePanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.UserCodeDeletion")));
         userCodePanel.add(promptBeforeDeletingUserCodeCheckBox, BorderLayout.NORTH);
 
-        JLabel userCodeNote = new JLabel(StudioBundle.message("label.UserCodeDeletionNote"));
-        userCodeNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel userCodeNote = wrappingNote("label.UserCodeDeletionNote");
         userCodePanel.add(userCodeNote, BorderLayout.CENTER);
 
         showAdvancedControlsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowAdvancedControls"));
@@ -66,8 +65,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         advancedControlsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.AdvancedControls")));
         advancedControlsPanel.add(showAdvancedControlsCheckBox, BorderLayout.NORTH);
 
-        JLabel advancedControlsNote = new JLabel(StudioBundle.message("label.AdvancedControlsNote"));
-        advancedControlsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel advancedControlsNote = wrappingNote("label.AdvancedControlsNote");
         advancedControlsPanel.add(advancedControlsNote, BorderLayout.CENTER);
 
         showJmsConnectorsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowJmsConnectors"));
@@ -76,8 +74,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         jmsConnectorsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.JmsConnectors")));
         jmsConnectorsPanel.add(showJmsConnectorsCheckBox, BorderLayout.NORTH);
 
-        JLabel jmsConnectorsNote = new JLabel(StudioBundle.message("label.JmsConnectorsNote"));
-        jmsConnectorsNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel jmsConnectorsNote = wrappingNote("label.JmsConnectorsNote");
         jmsConnectorsPanel.add(jmsConnectorsNote, BorderLayout.CENTER);
 
         testMailServerLivePollingCheckBox = new JCheckBox(StudioBundle.message("checkbox.TestMailServerLivePolling"));
@@ -86,8 +83,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         testMailServerPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.TestMailServerLivePolling")));
         testMailServerPanel.add(testMailServerLivePollingCheckBox, BorderLayout.NORTH);
 
-        JLabel testMailServerNote = new JLabel(StudioBundle.message("label.TestMailServerLivePollingNote"));
-        testMailServerNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel testMailServerNote = wrappingNote("label.TestMailServerLivePollingNote");
         testMailServerPanel.add(testMailServerNote, BorderLayout.CENTER);
 
         flowErrorMonitoringCheckBox = new JCheckBox(StudioBundle.message("checkbox.FlowErrorMonitoring"));
@@ -96,8 +92,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         flowErrorMonitoringPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.FlowErrorMonitoring")));
         flowErrorMonitoringPanel.add(flowErrorMonitoringCheckBox, BorderLayout.NORTH);
 
-        JLabel flowErrorMonitoringNote = new JLabel(StudioBundle.message("label.FlowErrorMonitoringNote"));
-        flowErrorMonitoringNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel flowErrorMonitoringNote = wrappingNote("label.FlowErrorMonitoringNote");
         flowErrorMonitoringPanel.add(flowErrorMonitoringNote, BorderLayout.CENTER);
 
         componentDistanceSpinner = canvasDistanceSpinner(IkasanStudioSettings.DEFAULT_COMPONENT_DISTANCE);
@@ -119,8 +114,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         canvasLayoutPanel.setBorder(BorderFactory.createTitledBorder(
                 StudioBundle.message("label.CanvasLayout")));
         canvasLayoutPanel.add(canvasLayoutFields, BorderLayout.NORTH);
-        JLabel canvasLayoutNote = new JLabel(StudioBundle.message("label.CanvasLayoutNote"));
-        canvasLayoutNote.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        JLabel canvasLayoutNote = wrappingNote("label.CanvasLayoutNote");
         canvasLayoutPanel.add(canvasLayoutNote, BorderLayout.CENTER);
 
         JPanel northPanel = new JPanel();
@@ -219,6 +213,19 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     private static int spinnerValue(JSpinner spinner) {
         return ((Number) spinner.getValue()).intValue();
+    }
+
+    // ComponentPanelBuilder is deprecated at the class level (bare @Deprecated, no forRemoval=true - confirmed
+    // from the platform jar's bytecode, not assumed) in favour of JetBrains' newer Kotlin UI DSL
+    // (com.intellij.ui.dsl.builder). This whole settings panel is plain Java Swing, not built on that DSL, and
+    // it's not scheduled for imminent removal - rewriting the entire panel to adopt the DSL is a disproportionate
+    // fix for one static-analysis nag, so this narrowly suppresses it at the one call site instead.
+    @SuppressWarnings("deprecation")
+    private static JLabel wrappingNote(String messageKey) {
+        JLabel note = ComponentPanelBuilder.createCommentComponent(
+                StudioBundle.message(messageKey), true);
+        note.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        return note;
     }
 
     void resetCanvasDistancesToDefaults() {
