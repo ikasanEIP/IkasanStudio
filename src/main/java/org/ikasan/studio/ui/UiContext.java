@@ -159,9 +159,27 @@ public final class UiContext {
      */
     public void setRightTabbedPaneFocus(int tabIndex) {
         JTabbedPane rightTabbedPane = getRightTabbedPane();
-        if (rightTabbedPane != null) {
+        if (rightTabbedPane != null && tabIndex >= 0 && tabIndex < rightTabbedPane.getTabCount()) {
             rightTabbedPane.setSelectedIndex(tabIndex);
         }
+    }
+
+    /**
+     * Removes all UI references to a component that has just been deleted. The module becomes the harmless
+     * fallback target for Properties, while Palette is brought forward for the user's likely next action.
+     */
+    public void resetSelectionAfterDeletion() {
+        Module module = getIkasanModule();
+        setSelectedComponent(module);
+        DesignerCanvas canvas = getDesignerCanvas();
+        if (canvas != null && module != null) {
+            canvas.setSelectedComponent(module);
+        }
+        ComponentPropertiesTabPanel propertiesTabPanel = getPropertiesTabPanel();
+        if (propertiesTabPanel != null && module != null && module.isInitialised()) {
+            propertiesTabPanel.updateTargetComponent(module);
+        }
+        setRightTabbedPaneFocus(PALETTE_TAB_INDEX);
     }
 
     public void setRightTabbedPane(JTabbedPane rightTabbedPane) {

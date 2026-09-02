@@ -64,6 +64,7 @@ public class DeleteComponentAction implements ActionListener {
                return;
             }
             CommandProcessor.getInstance().executeCommand(project, () -> {
+               UiContext uiContext = project.getService(UiContext.class);
                List<FlowElement> elementsBeforeRemoval = parentFlow.getFlowElementsNoExternalEndPoints();
                FlowElementRemoval removal = parentFlow.removeFlowElement(ikasanFlowComponentToRemove);
                List<FlowElement> elementsAfterRemoval = parentFlow.getFlowElementsNoExternalEndPoints();
@@ -74,13 +75,19 @@ public class DeleteComponentAction implements ActionListener {
                        ikasanFlowComponentToRemove, userCodeDeletionChoice);
                if (removal != null) {
                   UndoManager.getInstance(project).undoableActionPerformed(
-                          new DeleteComponentUndoableAction(project, removal::undo, removal::redo,
+                          new DeleteComponentUndoableAction(project, removal::undo, () -> {
+                             removal.redo();
+                             uiContext.resetSelectionAfterDeletion();
+                          },
                                   GenerationRequest.flow(parentFlow)));
                }
                // Kept inside this command so the JSON model save nests into (and is undone/redone as part
                // of) the same undo step as the model mutation above, rather than becoming a separate,
                // invisible-on-canvas undo entry (see DeleteComponentUndoableAction).
                StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.flow(parentFlow));
+               if (removal != null) {
+                  uiContext.resetSelectionAfterDeletion();
+               }
             }, StudioBundle.message("menu.DeleteComponent"), null);
          } else {
             LOG.warn("STUDIO: Attempt to remove flow element " + ikasanBasicElement + " failed because its containing flow could not be found.");
@@ -101,12 +108,16 @@ public class DeleteComponentAction implements ActionListener {
                   deleteAssociatedUserCodeFiles(ikasanModule, ikasanFlowToRemove, removedElements, null, null);
                   UndoManager.getInstance(project).undoableActionPerformed(new DeleteComponentUndoableAction(project,
                           () -> flows.add(Math.min(Math.max(flowIndex, 0), flows.size()), ikasanFlowToRemove),
-                          () -> flows.remove(ikasanFlowToRemove),
+                          () -> {
+                             flows.remove(ikasanFlowToRemove);
+                             uiContext.resetSelectionAfterDeletion();
+                          },
                           GenerationRequest.moduleStructure(ikasanFlowToRemove)));
                   // Kept inside this command so the JSON model save nests into (and is undone/redone as
                   // part of) the same undo step as the model mutation above.
                   StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project,
                           GenerationRequest.moduleStructure(null));
+                  uiContext.resetSelectionAfterDeletion();
                }, StudioBundle.message("menu.DeleteComponent"), null);
             }
          }
