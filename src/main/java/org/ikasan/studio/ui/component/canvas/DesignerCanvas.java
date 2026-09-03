@@ -404,6 +404,11 @@ public class DesignerCanvas extends JPanel {
      */
     public void editComponent(BasicElement basicElement) {
         UiContext uiContext = project.getService(UiContext.class);
+        ComponentPropertiesPanel currentProperties = uiContext.getPropertiesPanel();
+        if (currentProperties != null
+                && !currentProperties.confirmSelectionChangeWithPendingEdits()) {
+            return;
+        }
         setSelectedComponent(basicElement);
         uiContext.setSelectedComponent(basicElement);
         if (basicElement instanceof ExceptionResolver resolver) {
@@ -422,7 +427,6 @@ public class DesignerCanvas extends JPanel {
             }
         } else {
             uiContext.getPropertiesTabPanel().updateTargetComponent(basicElement);
-            uiContext.getPropertiesPanel().updateTargetComponent(basicElement);
         }
     }
 

@@ -359,10 +359,10 @@ public class StudioProjectFiles {
         refreshCodeFromModel(project, GenerationRequest.full());
     }
 
-    public static void refreshCodeFromModel(Project project, GenerationRequest generationRequest) {
+    public static CompletableFuture<Void> refreshCodeFromModel(Project project, GenerationRequest generationRequest) {
         GeneratedProjectSynchronizer pipsiIkasanModel = project.getService(UiContext.class).getPipsiIkasanModel();
         pipsiIkasanModel.saveModelJsonToDisk();
-        pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(generationRequest);
+        return pipsiIkasanModel.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(generationRequest);
     }
 
     public static void refreshCodeFromModelAndCauseRedraw(Project project, GenerationRequest generationRequest) {

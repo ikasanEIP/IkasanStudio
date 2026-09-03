@@ -21,6 +21,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -670,9 +671,33 @@ public class ComponentPropertyEditRow {
             // The formatter would be null if this was a standard text field.
             returnValue = propertyValueField.getText();
         } else {
-            returnValue = propertyValueField.getValue();
+            returnValue = getLiveNumericValue();
         }
         return returnValue;
+    }
+
+    /** JFormattedTextField does not update getValue() until focus is committed; parse its document instead. */
+    private Object getLiveNumericValue() {
+        String text = propertyValueField.getText();
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        Object committedValue = propertyValueField.getValue();
+        if (committedValue != null && text.equals(committedValue.toString())) {
+            return committedValue;
+        }
+        try {
+            Object parsed = propertyValueField.getFormatter().stringToValue(text);
+            if (parsed instanceof Number number) {
+                if (meta.getPropertyDataType() == java.lang.Integer.class) {
+                    return number.intValue();
+                }
+                return number.longValue();
+            }
+            return parsed;
+        } catch (ParseException e) {
+            return text;
+        }
     }
 
     /**
@@ -741,6 +766,11 @@ public class ComponentPropertyEditRow {
     protected java.util.List<ValidationInfo> doValidateAll() {
         //@todo setup once in class and clear down
         List<ValidationInfo> result = new ArrayList<>();
+        if ((meta.getPropertyDataType() == java.lang.Integer.class
+                || meta.getPropertyDataType() == java.lang.Long.class)
+                && getValue() instanceof String) {
+            result.add(new ValidationInfo(meta.getPropertyName() + " must be a valid number", getOverridingInputField()));
+        }
         // 1. force population of mandatory properties - either unconditionally, or conditionally where none of
         // this property's mandatoryUnlessAnyOf siblings has been genuinely set (e.g. an SFTP consumer's password
         // is only required if privateKeyFilename hasn't been supplied instead, and vice versa).

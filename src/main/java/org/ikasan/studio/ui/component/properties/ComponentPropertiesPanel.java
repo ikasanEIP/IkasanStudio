@@ -35,6 +35,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
@@ -62,6 +63,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton regenerateClassButton;
     private final SimpleChangeListener listenerForAnyEditChanges;
     private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
+    private CompletableFuture<Void> latestGeneration = CompletableFuture.completedFuture(null);
 
     /**
      * Group display order: for everything else, the order groups were first encountered while walking properties
@@ -204,7 +206,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             } else {
                 generationRequest = GenerationRequest.full();
             }
-            StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
+            latestGeneration = StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
             // Intellij startup is multi-threaded so caution is required.
             if (metaPackChanged && uiContext.getPalettePanel() != null) {
                 uiContext.getPalettePanel().resetPallette();
@@ -221,6 +223,80 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         } else {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DataHasntChangedIgnoringOKAction"));
         }
+    }
+
+    /**
+     * Resolves pending edits before the reusable sidebar is pointed at another model element. Without this
+     * hand-off, updateTargetComponent rebuilds every editor row from the newly selected component and
+     * silently discards text still held by the old rows. The developer explicitly chooses to apply or discard
+     * the edits, or cancels the selection change.
+     *
+     * @return true when selection may change; false when validation failed or the user declined a required
+     * generated-class overwrite confirmation.
+     */
+    public boolean confirmSelectionChangeWithPendingEdits() {
+        if (!dataHasChangedAndOKToProcess()) {
+            return true;
+        }
+        int choice = Messages.showDialog(project,
+                StudioBundle.message("message.UnsavedPropertyChangesBeforeSelectionChange"),
+                StudioBundle.message("dialog.UnsavedPropertyChanges"),
+                new String[]{
+                        StudioBundle.message("button.ApplyChanges"),
+                        StudioBundle.message("button.DiscardChanges"),
+                        Messages.getCancelButton()
+                },
+                0,
+                Messages.getWarningIcon());
+        if (choice == 1) {
+            return true;
+        }
+        if (choice != 0) {
+            return false;
+        }
+        List<ValidationInfo> validationIssues = doValidateAll();
+        if (!validationIssues.isEmpty()) {
+            ValidationInfo firstIssue = validationIssues.get(0);
+            if (firstIssue.component != null && firstIssue.component.isVisible()) {
+                firstIssue.component.requestFocusInWindow();
+            }
+            Messages.showErrorDialog(project,
+                    StudioUIUtils.joinValidationMessages(validationIssues),
+                    StudioBundle.message("dialog.ValidationError"));
+            return false;
+        }
+
+        doOKAction();
+        // Declining a generated-class confirmation intentionally leaves the editor dirty. Keep the current
+        // selection in that case so those edits remain available rather than being discarded.
+        return !dataHasChangedAndOKToProcess();
+    }
+
+    /** Resolves unsaved edits for Run/Debug and returns generation completion; null means cancel. */
+    public CompletableFuture<Void> preparePendingChangesForLaunch() {
+        if (!dataHasChangedAndOKToProcess()) {
+            return latestGeneration;
+        }
+        int choice = Messages.showDialog(project,
+                StudioBundle.message("message.UnsavedPropertyChangesBeforeLaunch"),
+                StudioBundle.message("dialog.UnsavedPropertyChanges"),
+                new String[]{StudioBundle.message("button.ApplyChanges"),
+                        StudioBundle.message("button.DiscardChanges"), Messages.getCancelButton()},
+                0, Messages.getWarningIcon());
+        if (choice == 1) {
+            return CompletableFuture.completedFuture(null);
+        }
+        if (choice != 0) {
+            return null;
+        }
+        List<ValidationInfo> validationIssues = doValidateAll();
+        if (!validationIssues.isEmpty()) {
+            Messages.showErrorDialog(project, StudioUIUtils.joinValidationMessages(validationIssues),
+                    StudioBundle.message("dialog.ValidationError"));
+            return null;
+        }
+        doOKAction();
+        return dataHasChangedAndOKToProcess() ? null : latestGeneration;
     }
 
     /**

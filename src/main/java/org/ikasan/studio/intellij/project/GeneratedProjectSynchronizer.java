@@ -25,6 +25,7 @@ import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
@@ -54,20 +55,19 @@ public class GeneratedProjectSynchronizer {
     /**
      * An update has been made to the diagram, so we need to reflect this into the code.
      */
-    public void asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk() {
-        asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest.full());
-    }
-
-    public void asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest request) {
+    public CompletableFuture<Void> asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest request) {
+        CompletableFuture<Void> completion = new CompletableFuture<>();
         if (request.scope() == GenerationRequest.Scope.MODEL_ONLY) {
-            return;
+            completion.complete(null);
+            return completion;
         }
         AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
         Module module = uiContext.getIkasanModule();
 
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            // 1. Determine if the pom needs to be updated
+            try {
+                // 1. Determine if the pom needs to be updated
             IkasanPomModel ikasanPomModel = uiContext.getIkasanPomModel();        // Not on EDT
             if (ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())) {
                 pomDependenciesHaveChanged.set(true);
@@ -84,7 +84,8 @@ public class GeneratedProjectSynchronizer {
             // skip unchanged content before it enters PSI or code formatting.
             // Switch to UI thread for write action and undo block
             ApplicationManager.getApplication().invokeLater(() -> {
-                // Using the command  processor adds support for undo
+                try {
+                    // Using the command  processor adds support for undo
                 CommandProcessor.getInstance().executeCommand(
                     project,
                     () -> {
@@ -134,8 +135,16 @@ public class GeneratedProjectSynchronizer {
                     },
                     StudioBundle.message("action.GenerateSourceFromFlowDiagram"),
                     "Undo group ID");
+                completion.complete(null);
+                } catch (Exception failure) {
+                    completion.completeExceptionally(failure);
+                }
             });
+            } catch (Exception failure) {
+                completion.completeExceptionally(failure);
+            }
         });
+        return completion;
     }
 
 

@@ -115,6 +115,17 @@ public class ComponentPropertyEditRowDefaultPreviewTest {
     }
 
     @Test
+    public void numericTypingIsDetectedBeforeTheFieldLosesFocus() {
+        ComponentPropertyEditRow row = rowFor(newUnpopulatedFtpConsumer(), "minAge");
+        row.resetDataEntryComponentsWithNewValues();
+
+        row.getOverridingInputField().setText("60");
+
+        assertEquals(60L, row.getValue());
+        assertTrue(row.propertyValueHasChanged());
+    }
+
+    @Test
     public void setDefaultsSkipsSubstitutionPlaceholders() {
         ComponentPropertyEditRow row = rowFor(newUnpopulatedFtpConsumer(), "configurationId");
         row.resetDataEntryComponentsWithNewValues();
