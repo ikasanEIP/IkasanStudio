@@ -93,10 +93,12 @@ public class DesignCanvasContextMenu {
      * producer menu {@link #showPopupAndNavigateMenu} would show for {@code ikasanBasicElement} itself (Delete
      * Component, Edit Component, etc. would act on the underlying Email Producer, which isn't what's visually
      * being pointed at here). No Start item either: this node is only ever painted while its address is
-     * actually listening, so Stop is the only action that ever makes sense from it.
+     * actually listening. The popup exposes its connection details and the applicable Stop action.
      */
     public static void showStopTestMailServerMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
+        menu.add(createShowTestMailServerDetailsMenuItem(project, ikasanBasicElement));
+        menu.addSeparator();
         menu.add(createStopTestMailServerMenuItem(project, ikasanBasicElement));
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
@@ -132,6 +134,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createStartTestMailServerMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.StartTestMailServer"));
         item.addActionListener(new StartTestMailServerAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createShowTestMailServerDetailsMenuItem(Project project, BasicElement element) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ShowTestMailServerDetails"));
+        item.addActionListener(new ShowTestMailServerDetailsAction(project, element));
         return item;
     }
 
