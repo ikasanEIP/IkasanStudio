@@ -2,14 +2,13 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-import org.ikasan.studio.intellij.runtime.TestFtpServerService;
-import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 import javax.swing.*;
 import java.awt.*;
@@ -85,16 +84,18 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         return FLOW_X_START_POINT + (hasVisibleTestFtpServer() ? TEST_FTP_SERVER_LEFT_RESERVE : 0);
     }
 
+    /**
+     * True only when a Test FTP Server node will actually be drawn to the LEFT of the flows, i.e. when a running
+     * test server is feeding at least one FTP Consumer - that is the only case needing room reserved on the left.
+     * A test server used purely by FTP Producers is drawn on the RIGHT instead (see
+     * {@code DesignerCanvas#paintTestFtpServerNode}) and must not shift every flow rightwards.
+     */
     private boolean hasVisibleTestFtpServer() {
         TestFtpServerService service = project.getService(TestFtpServerService.class);
         if (!service.isRunning()) return false;
-        for (Flow flow : module.getFlows()) {
-            for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
-                if (element.getComponentMeta() != null
-                        && element.getComponentMeta().supportsTestFtpServer()
-                        && service.isRunningAt(TestFtpServerConfiguration.from(element))) {
-                    return true;
-                }
+        for (TestFtpServerLinks.Link link : TestFtpServerLinks.findLinks(module)) {
+            if (!link.consumers().isEmpty() && service.isRunningAt(link.configuration())) {
+                return true;
             }
         }
         return false;

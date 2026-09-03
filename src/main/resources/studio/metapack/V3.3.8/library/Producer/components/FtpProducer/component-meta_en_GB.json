@@ -17,6 +17,7 @@
   ],
   "additionalKey": "FTP Producer",
   "usesBuilderInFactory": true,
+  "supportsTestFtpServer": true,
   "flowBuilderMethod": "producer",
   "ikasanComponentFactoryMethod": "ftpProducer",
   "endpointKey": "FTP Endpoint",

@@ -18,6 +18,7 @@
   ],
   "additionalKey": "FTP Consumer",
   "usesBuilderInFactory": true,
+  "supportsTestFtpServer": true,
   "flowBuilderMethod": "consumer",
   "ikasanComponentFactoryMethod": "ftpConsumer",
   "endpointKey": "FTP Endpoint",

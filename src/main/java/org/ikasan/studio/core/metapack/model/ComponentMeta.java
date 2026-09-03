@@ -62,7 +62,6 @@ public class ComponentMeta implements IkasanMeta {
     public static final String EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer";
     // See supportsTestMailServer().
     public static final String EMAIL_PRODUCER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.email.producer.EmailProducer";
-    public static final String FTP_CONSUMER_ADDITIONAL_KEY = "FTP Consumer";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -154,6 +153,14 @@ public class ComponentMeta implements IkasanMeta {
                                                       // classes over the older Spring XML resources (see importResources above).
     private boolean usesBuilderInFactory;           // used by ftl to generate the correct builder code
     private boolean useImplementingClassInFactory;  // When true, 'implementingClass' is used in the factory method to create a new instance of the component.
+    @Getter(AccessLevel.NONE)                       // read via supportsTestFtpServer() below, which reads better at call sites
+    private boolean supportsTestFtpServer;          // True if this component talks to a plain FTP server over remoteHost/remotePort/username/password
+                                                      // and so can be pointed at Studio's own embedded test FTP server - set on both the FTP Consumer
+                                                      // (which reads files from it) and the FTP Producer (which delivers files to it). Deliberately a
+                                                      // metadata flag rather than a hard-coded implementingClass/additionalKey check in Java, so
+                                                      // supporting another FTP-speaking component never needs a plugin code change - see
+                                                      // supportsTestFtpServer(). Which SIDE of the flow the node is drawn on is derived from the
+                                                      // component's own isConsumer()/isProducer(), so that needs no metadata of its own either.
     @JsonSetter(nulls = Nulls.SKIP)   // If the supplied value is null, ignore it.
     @Builder.Default
     private String webHelpURL = DEFAULT_README;
@@ -229,9 +236,15 @@ public class ComponentMeta implements IkasanMeta {
         return EMAIL_PRODUCER_IMPLEMENTING_CLASS.equals(implementingClass);
     }
 
-    /** True for the FTP Consumer, which can use Studio's embedded local test FTP server. */
+    /**
+     * True for components that can be pointed at Studio's embedded local test FTP server - the FTP Consumer
+     * (reads files from it) and the FTP Producer (delivers files to it). Driven purely by the metapack's own
+     * {@code supportsTestFtpServer} flag rather than by a hard-coded class/key check here, so a new FTP-speaking
+     * component only needs its metadata updating. The component must expose the standard
+     * remoteHost/remotePort/username/password properties that {@code TestFtpServerConfiguration} reads.
+     */
     public boolean supportsTestFtpServer() {
-        return FTP_CONSUMER_ADDITIONAL_KEY.equals(additionalKey);
+        return supportsTestFtpServer;
     }
     public boolean isDebug() {
         return DEBUG_KEY.equals(additionalKey);

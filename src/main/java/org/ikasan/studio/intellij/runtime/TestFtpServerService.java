@@ -31,7 +31,9 @@ public final class TestFtpServerService implements Disposable {
     public synchronized Path start(TestFtpServerConfiguration requested) throws Exception {
         if (!isLocalHost(requested.host())) throw new IllegalArgumentException("remoteHost must be local");
         if (isRunning()) {
-            if (requested.equals(configuration)) return rootDirectory;
+            // Address match, not record equality - a Producer configured for "localhost" asking to start the
+            // server a Consumer already started at "127.0.0.1" is asking for the server it already has.
+            if (requested.sameAddressAs(configuration)) return rootDirectory;
             throw new IllegalStateException("A Studio test FTP server is already running at " + configuration.address());
         }
         rootDirectory = testRoot(project);
@@ -59,7 +61,14 @@ public final class TestFtpServerService implements Disposable {
     }
 
     public synchronized boolean isRunning() { return server != null && !server.isStopped() && !server.isSuspended(); }
-    public synchronized boolean isRunningAt(TestFtpServerConfiguration requested) { return isRunning() && requested.equals(configuration); }
+    /**
+     * True if the running test server is the one this component addresses. Compares host/port only (loopback
+     * spellings treated as equal - see {@link TestFtpServerConfiguration#sameAddressAs}), so an FTP Producer
+     * written as "localhost" still recognises the server an FTP Consumer started as "127.0.0.1".
+     */
+    public synchronized boolean isRunningAt(TestFtpServerConfiguration requested) {
+        return isRunning() && requested != null && requested.sameAddressAs(configuration);
+    }
     public synchronized Path getRootDirectory() { return rootDirectory; }
     public synchronized Path getOrCreateTestFile() throws java.io.IOException {
         if (!isRunning() || rootDirectory == null) return null;

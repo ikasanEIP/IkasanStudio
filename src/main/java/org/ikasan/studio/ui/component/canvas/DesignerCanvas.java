@@ -1,7 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
-import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
 import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
 import org.ikasan.studio.core.model.command.FlowElementMove;
 
@@ -1138,10 +1138,10 @@ public class DesignerCanvas extends JPanel {
             choices[i] = matches.get(i).getDisplayName();
         }
         choices[matches.size()] = "Blank custom converter";
-        int selected = Messages.showChooseDialog(project,
+        int selected = Messages.showDialog(project,
                 "Studio found an implementation recipe for " + sourceType + " to " + targetType
                         + ". Choose a starting point for the generated converter.",
-                "Configure Conversion", null, choices, choices[0]);
+                "Configure Conversion", choices, 0, null);
         if (selected >= 0 && selected < matches.size()) {
             newComponent.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID, matches.get(selected).getId());
         }
@@ -1675,55 +1675,161 @@ public class DesignerCanvas extends JPanel {
     private static final int TEST_FTP_SERVER_NODE_WIDTH = 90;
     private static final int TEST_FTP_SERVER_NODE_HEIGHT = 60;
     private static final int TEST_FTP_SERVER_NODE_GAP = JMS_CONNECTOR_GUTTER_MARGIN;
+    private static final String TEST_FTP_SERVER_LABEL = "Test FTP Server";
 
+    /**
+     * Which side of a flow a Test FTP Server node belongs on. A consumer takes its files FROM the server, so the
+     * server sits to the LEFT of the flow feeding in; a producer delivers TO it, so the server sits to the RIGHT
+     * being fed. Keeping the two sides as separate nodes is what stops a connector line ever having to run
+     * backwards (right-to-left) across the canvas from a right-hand node to a left-hand component.
+     */
+    private enum TestFtpServerSide { LEFT, RIGHT }
+
+    /**
+     * Returns the (topmost, in module order) component the Test FTP Server node at these coordinates was drawn
+     * for, on either side of the canvas, or null if no node was hit. The returned element is what the node's
+     * context menu acts on - any component sharing that address resolves to the same running server, so the
+     * anchor is as good as any (see {@link TestFtpServerLinks}).
+     */
     private FlowElement getOwnerForTestFtpServerNodeAtXY(int x, int y) {
         Module module = getIkasanModule();
-        if (module == null || module.getFlows() == null) return null;
+        if (module == null || module.getFlows() == null) {
+            return null;
+        }
         TestFtpServerService service = project.getService(TestFtpServerService.class);
-        for (Flow flow : module.getFlows()) {
-            for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
-                if (element.getComponentMeta() == null || !element.getComponentMeta().supportsTestFtpServer()
-                        || !service.isRunningAt(TestFtpServerConfiguration.from(element))) continue;
-                IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
-                IkasanFlowComponentViewHandler endpoint = flowHandler == null ? null : flowHandler.getEndpointViewHandlerFor(element);
-                if (endpoint == null) continue;
-                Point target = endpoint.getLeftConnectorPoint();
-                Rectangle bounds = new Rectangle(target.x - TEST_FTP_SERVER_NODE_GAP - TEST_FTP_SERVER_NODE_WIDTH,
-                        target.y - TEST_FTP_SERVER_NODE_HEIGHT / 2, TEST_FTP_SERVER_NODE_WIDTH, TEST_FTP_SERVER_NODE_HEIGHT);
-                if (bounds.contains(x, y)) return element;
+        for (TestFtpServerLinks.Link link : TestFtpServerLinks.findLinks(module)) {
+            if (!service.isRunningAt(link.configuration())) {
+                continue;
+            }
+            for (TestFtpServerSide side : TestFtpServerSide.values()) {
+                FlowElement anchor = firstByModuleOrder(module, membersOn(link, side));
+                Point anchorConnector = endpointConnectorPoint(anchor, side);
+                if (anchorConnector == null) {
+                    continue;
+                }
+                if (testFtpServerNodeBounds(anchorConnector, side).contains(x, y)) {
+                    return anchor;
+                }
             }
         }
         return null;
     }
 
+    /**
+     * Draws the shared "Test FTP Server" node(s) for every address Studio's own embedded test FTP server is
+     * currently running on - the direct counterpart of {@link #paintTestMailServerNode}, but drawn on whichever
+     * side(s) of the flow the address is actually used from: once on the LEFT anchored to the first FTP Consumer
+     * reading from it, and/or once on the RIGHT anchored to the first FTP Producer delivering to it. A module
+     * with both therefore gets two nodes, one per side, rather than one node with a line reaching backwards
+     * across the canvas.
+     * -
+     * Only drawn while the server is genuinely running (see {@code TestFtpServerService#isRunningAt}), so the
+     * nodes and their lines simply vanish when the user stops it - the same "no separate state to go stale"
+     * approach as the mail server node.
+     * -
+     * Module-level, like {@link #paintJmsDestinationConnectors}, since the components sharing one address can be
+     * spread across several different flows.
+     */
     private void paintTestFtpServerNode(Graphics graphics, Module module) {
-        if (module == null || module.getFlows() == null || !(graphics instanceof Graphics2D)) return;
+        if (module == null || module.getFlows() == null || !(graphics instanceof Graphics2D)) {
+            return;
+        }
+        List<TestFtpServerLinks.Link> links = TestFtpServerLinks.findLinks(module);
+        if (links.isEmpty()) {
+            return;
+        }
         TestFtpServerService service = project.getService(TestFtpServerService.class);
         Graphics2D g2d = (Graphics2D) graphics.create();
         try {
             g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            for (Flow flow : module.getFlows()) {
-                for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
-                    if (element.getComponentMeta() == null || !element.getComponentMeta().supportsTestFtpServer()
-                            || !service.isRunningAt(TestFtpServerConfiguration.from(element))) continue;
-                    IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
-                    IkasanFlowComponentViewHandler endpoint = flowHandler == null ? null : flowHandler.getEndpointViewHandlerFor(element);
-                    if (endpoint == null) continue;
-                    Point target = endpoint.getLeftConnectorPoint();
-                    int left = target.x - TEST_FTP_SERVER_NODE_GAP - TEST_FTP_SERVER_NODE_WIDTH;
-                    int top = target.y - TEST_FTP_SERVER_NODE_HEIGHT / 2;
-                    int right = left + TEST_FTP_SERVER_NODE_WIDTH;
-                    g2d.drawLine(right, target.y, target.x, target.y);
-                    paintArrowhead(g2d, target);
-                    ComponentIconProvider.getFtpServerIcon().paintIcon(this, graphics, left, top);
-                    StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, "Test FTP Server",
-                            left + TEST_FTP_SERVER_NODE_WIDTH / 2, top + TEST_FTP_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
-                            TEST_FTP_SERVER_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
+            for (TestFtpServerLinks.Link link : links) {
+                if (!service.isRunningAt(link.configuration())) {
+                    continue;
+                }
+                for (TestFtpServerSide side : TestFtpServerSide.values()) {
+                    paintTestFtpServerSide(graphics, g2d, module, membersOn(link, side), side);
                 }
             }
         } finally {
             g2d.dispose();
         }
+    }
+
+    private List<FlowElement> membersOn(TestFtpServerLinks.Link link, TestFtpServerSide side) {
+        return side == TestFtpServerSide.LEFT ? link.consumers() : link.producers();
+    }
+
+    /**
+     * Draws one side's node plus its connector lines: a direct line between the anchor's own endpoint pill and
+     * the node, then - for every other component on this same side, which being later in module order always
+     * sits lower on the canvas - a branch into one shared vertical trunk hanging from the midpoint of that line.
+     * Same shape as the mail server's own trunk (see {@link #paintTestMailServerLink}), so several flows sharing
+     * one test server read as a single visible spine rather than a tangle of individual lines.
+     */
+    private void paintTestFtpServerSide(Graphics graphics, Graphics2D g2d, Module module,
+                                        List<FlowElement> members, TestFtpServerSide side) {
+        FlowElement anchor = firstByModuleOrder(module, members);
+        Point anchorConnector = endpointConnectorPoint(anchor, side);
+        if (anchorConnector == null) {
+            return;
+        }
+        Rectangle nodeBounds = testFtpServerNodeBounds(anchorConnector, side);
+        // The arrow always shows the direction the files travel: into the flow's consumer for a left-hand
+        // server, into the server itself for a right-hand one. Neither line ever runs backwards, because each
+        // node is drawn on the side its own components live on.
+        Point nodeConnector = side == TestFtpServerSide.LEFT
+                ? new Point(nodeBounds.x + nodeBounds.width, anchorConnector.y)
+                : new Point(nodeBounds.x, anchorConnector.y);
+        Point arrowTip = side == TestFtpServerSide.LEFT ? anchorConnector : nodeConnector;
+        g2d.drawLine(nodeConnector.x, nodeConnector.y, anchorConnector.x, anchorConnector.y);
+        paintArrowhead(g2d, arrowTip);
+
+        int trunkX = (nodeConnector.x + anchorConnector.x) / 2;
+        for (FlowElement member : members) {
+            if (member == anchor) {
+                continue;
+            }
+            Point memberConnector = endpointConnectorPoint(member, side);
+            if (memberConnector == null) {
+                continue;
+            }
+            Path2D path = new Path2D.Double();
+            path.moveTo(trunkX, anchorConnector.y);
+            path.lineTo(trunkX, memberConnector.y);
+            path.lineTo(memberConnector.x, memberConnector.y);
+            g2d.draw(path);
+        }
+
+        ComponentIconProvider.getFtpServerIcon().paintIcon(this, graphics, nodeBounds.x, nodeBounds.y);
+        StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_FTP_SERVER_LABEL,
+                nodeBounds.x + (TEST_FTP_SERVER_NODE_WIDTH / 2),
+                nodeBounds.y + TEST_FTP_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
+                TEST_FTP_SERVER_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
+    }
+
+    /**
+     * The node's on-canvas bounds for a component's own endpoint connector point, positioned exactly like that
+     * component's own endpoint pill would be, one gap further out on {@code side}. Takes the already-resolved
+     * connector point (rather than resolving it itself from a FlowElement) purely so callers that also need the
+     * point for other purposes - drawing the connector line, computing the arrow tip - resolve it once and reuse
+     * it, instead of two independent lookups the compiler can't see always agree.
+     */
+    private Rectangle testFtpServerNodeBounds(Point connector, TestFtpServerSide side) {
+        int left = side == TestFtpServerSide.LEFT
+                ? connector.x - TEST_FTP_SERVER_NODE_GAP - TEST_FTP_SERVER_NODE_WIDTH
+                : connector.x + TEST_FTP_SERVER_NODE_GAP;
+        return new Rectangle(left, connector.y - (TEST_FTP_SERVER_NODE_HEIGHT / 2),
+                TEST_FTP_SERVER_NODE_WIDTH, TEST_FTP_SERVER_NODE_HEIGHT);
+    }
+
+    /** The point on {@code element}'s external endpoint pill that faces {@code side}, or null if not laid out. */
+    private Point endpointConnectorPoint(FlowElement element, TestFtpServerSide side) {
+        IkasanFlowViewHandler flowHandler = flowHandlerFor(element);
+        IkasanFlowComponentViewHandler endpoint = flowHandler == null ? null : flowHandler.getEndpointViewHandlerFor(element);
+        if (endpoint == null) {
+            return null;
+        }
+        return side == TestFtpServerSide.LEFT ? endpoint.getLeftConnectorPoint() : endpoint.getRightConnectorPoint();
     }
 
     // Gap between the anchor's own real Email Endpoint pill and this node, matching the rhythm of
