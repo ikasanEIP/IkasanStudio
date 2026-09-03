@@ -21,6 +21,22 @@
       "targetType": "org.ikasan.filetransfer.Payload",
       "template": "objectToFileTransferPayloadConverterTemplate.ftl",
       "helpText": "Wraps the body already extracted by the JMS consumer in an Ikasan DefaultPayload and supplies the filename required by FTP and SFTP producers."
+    },
+    {
+      "id": "jms-message-to-email-payload",
+      "displayName": "JMS Message to Email Payload",
+      "sourceType": "javax.jms.Message",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "jmsMessageToEmailPayloadConverterTemplate.ftl",
+      "helpText": "Extracts the body of common JMS message types and uses it as the body of an Ikasan EmailPayload."
+    },
+    {
+      "id": "auto-converted-jms-content-to-email-payload",
+      "displayName": "Auto-converted JMS content to Email Payload",
+      "sourceType": "java.lang.Object (auto-converted)",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "emailConverterTemplate_en.ftl",
+      "helpText": "Uses the body already extracted by the JMS consumer as the body of an Ikasan EmailPayload."
     }
   ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

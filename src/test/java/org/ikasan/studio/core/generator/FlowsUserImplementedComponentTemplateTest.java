@@ -113,6 +113,44 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertTrue(templateString.contains("new DefaultPayload"));
     }
 
+
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testJmsToEmailRecipeSelectsItsMetapackTemplate(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "javax.jms.Message");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE,
+                "org.ikasan.component.endpoint.email.producer.EmailPayload");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+                "jms-message-to-email-payload");
+
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+
+        assertTrue(templateString.contains("implements Converter<Message, EmailPayload>"));
+        assertTrue(templateString.contains("emailPayload.setEmailBody(extractBody(message))"));
+        assertTrue(templateString.contains("message instanceof TextMessage"));
+        assertTrue(templateString.contains("message instanceof BytesMessage"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testAutoConvertedJmsContentToEmailRecipeUsesEmailTemplate(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE,
+                "java.lang.Object (auto-converted)");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE,
+                "org.ikasan.component.endpoint.email.producer.EmailPayload");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+                "auto-converted-jms-content-to-email-payload");
+
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+
+        assertTrue(templateString.contains("implements Converter<java.lang.Object, EmailPayload>"));
+        assertTrue(templateString.contains("emailPayload.setEmailBody(payload.toString())"));
+    }
+
     //  ------------------------------- CONVERTER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyEmailConverter.java

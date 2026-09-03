@@ -40,6 +40,14 @@ class FlowElementTest {
         mockFlowRoute2 = mock(FlowRoute.class);
     }
 
+    @Test
+    void propertyValueAsStringReturnsEmptyStringWhenPropertyValueIsNull() throws StudioBuildException {
+        FlowElement element = TestFixtures.getXProducerComponent("TestV1");
+        element.setPropertyValue(TestFixtures.SIMPLE_STRING_PROPERTY, null);
+
+        assertEquals("", element.getPropertyValueAsString(TestFixtures.SIMPLE_STRING_PROPERTY));
+    }
+
     /**
      * Test the cloning of the fictitious flow element named "X Producer" to a new version
      * @throws StudioBuildException if issues creating objects

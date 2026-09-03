@@ -156,7 +156,9 @@ public  class BasicElement extends IkasanObject {
         if (componentProperty != null) {
             Object value = componentProperty.getValue();
 
-            if (value instanceof List) {
+            if (value == null) {
+                returnValue = "";
+            } else if (value instanceof List) {
                 returnValue = Arrays.toString(((List<?>) value).toArray());
             } else {
                 returnValue = value.toString();

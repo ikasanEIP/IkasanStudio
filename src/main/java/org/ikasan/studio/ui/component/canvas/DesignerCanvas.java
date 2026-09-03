@@ -909,15 +909,22 @@ public class DesignerCanvas extends JPanel {
         MutablePair<FlowElement, FlowElement> surroundingComponents = new MutablePair<>();
         Point dragged = new Point(xpos, ypos);
         MutablePair<Integer, Integer> proximityDetect = IkasanFlowComponentViewHandler.getProximityDetect();
+        int nearestLeftDistance = Integer.MAX_VALUE;
+        int nearestRightDistance = Integer.MAX_VALUE;
 
         if (ikasanModule != null) {
             for (Flow flow : ikasanModule.getFlows()) {
                 for (FlowElement ikasanFlowComponent : flow.getFlowElementsNoExternalEndPoints()) {
-                    Proximity draggedToComponent = Proximity.getRelativeProximity(dragged, ViewHandlerCache.getAbstractViewHandler(project, ikasanFlowComponent).getCentrePoint(), proximityDetect);
-                    if (draggedToComponent == Proximity.LEFT) {
+                    Point componentCentre = ViewHandlerCache.getAbstractViewHandler(project, ikasanFlowComponent).getCentrePoint();
+                    Proximity draggedToComponent = Proximity.getRelativeProximity(dragged, componentCentre, proximityDetect);
+                    int horizontalDistance = Math.abs(dragged.x - componentCentre.x);
+                    if (draggedToComponent == Proximity.LEFT && horizontalDistance < nearestLeftDistance) {
                         surroundingComponents.setLeft(ikasanFlowComponent);
-                    } else if (draggedToComponent == Proximity.RIGHT || draggedToComponent == Proximity.CENTER) {
+                        nearestLeftDistance = horizontalDistance;
+                    } else if ((draggedToComponent == Proximity.RIGHT || draggedToComponent == Proximity.CENTER)
+                            && horizontalDistance < nearestRightDistance) {
                         surroundingComponents.setRight(ikasanFlowComponent);
+                        nearestRightDistance = horizontalDistance;
                     }
                 }
             }
@@ -1040,7 +1047,7 @@ public class DesignerCanvas extends JPanel {
             return newComponent;
         }
         applySuggestedInputTypeFromUpstream(newComponent, containingFlow, x, y);
-        applySuggestedOutputTypeFromDownstream(newComponent, x, y);
+        applySuggestedOutputTypeFromDownstream(newComponent, containingFlow, x, y);
         applySuggestedConversionRecipe(newComponent);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver((ExceptionResolver)newComponent);
@@ -1080,9 +1087,17 @@ public class DesignerCanvas extends JPanel {
         }
         MutablePair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
         FlowElement downstream = surroundingComponents.getRight();
-        FlowElement upstream = downstream != null && downstream.getContainingFlow() == containingFlow
-                ? containingFlow.findPayloadSourceElement(downstream)
-                : containingFlow.skipNonPayloadBearingElements(surroundingComponents.getLeft());
+        FlowElement left = surroundingComponents.getLeft();
+        FlowElement upstream;
+        if (isConsumer(downstream)) {
+            upstream = downstream;
+        } else if (isConsumer(left)) {
+            upstream = left;
+        } else {
+            upstream = downstream != null && downstream.getContainingFlow() == containingFlow
+                    ? containingFlow.findPayloadSourceElement(downstream)
+                    : containingFlow.skipNonPayloadBearingElements(left);
+        }
         if (upstream == null) {
             return;
         }
@@ -1097,7 +1112,7 @@ public class DesignerCanvas extends JPanel {
      * unambiguous input type. This complements applySuggestedInputTypeFromUpstream, and is particularly useful
      * when inserting a Converter to resolve a type mismatch between two existing components.
      */
-    private void applySuggestedOutputTypeFromDownstream(FlowElement newComponent, int x, int y) {
+    private void applySuggestedOutputTypeFromDownstream(FlowElement newComponent, Flow containingFlow, int x, int y) {
         if (newComponent == null || newComponent.getComponentMeta() == null) {
             return;
         }
@@ -1105,7 +1120,8 @@ public class DesignerCanvas extends JPanel {
         if (toTypeMeta == null || toTypeMeta.isHiddenProperty()) {
             return;
         }
-        FlowElement downstream = getSurroundingComponents(x, y).getRight();
+        MutablePair<FlowElement, FlowElement> surrounding = getSurroundingComponents(x, y);
+        FlowElement downstream = suggestedDownstreamTypeConstraint(containingFlow, surrounding);
         if (downstream == null) {
             return;
         }
@@ -1118,6 +1134,62 @@ public class DesignerCanvas extends JPanel {
             return;
         }
         newComponent.setPropertyValue(ComponentPropertyMeta.TO_TYPE, downstreamInputType);
+    }
+
+    private FlowElement suggestedDownstreamTypeConstraint(Flow flow,
+                                                          MutablePair<FlowElement, FlowElement> surrounding) {
+        FlowElement candidate = surrounding.getRight();
+        if (isConsumer(candidate)) {
+            candidate = nextFlowElement(flow, candidate);
+        } else if (candidate == null && isConsumer(surrounding.getLeft())) {
+            candidate = nextFlowElement(flow, surrounding.getLeft());
+        }
+
+        java.util.Set<FlowElement> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        while (candidate != null && visited.add(candidate)) {
+            String inputType = candidate.getEffectiveInputTypeDescription();
+            String simpleName = inputType == null ? "" : inputType.substring(inputType.lastIndexOf('.') + 1);
+            boolean passThrough = candidate.getComponentMeta() != null
+                    && (candidate.getComponentMeta().isDebug()
+                        || candidate.getComponentMeta().isFilter()
+                        || candidate.getComponentMeta().isRouter()
+                        || candidate.getComponentMeta().isInternalEndpoint());
+            if (!passThrough && !inputTypeIsUnconstrained(simpleName)) {
+                return candidate;
+            }
+            candidate = nextFlowElement(flow, candidate);
+        }
+        return null;
+    }
+
+    private FlowElement nextFlowElement(Flow flow, FlowElement element) {
+        if (flow == null || element == null || flow.getFlowRoute() == null) {
+            return null;
+        }
+        FlowRoute route;
+        if (isConsumer(element)) {
+            route = flow.getFlowRoute();
+        } else {
+            route = flow.getFlowRouteContaining(flow.getFlowRoute(), element);
+        }
+        if (route == null || route.getFlowElements() == null) {
+            return null;
+        }
+        if (isConsumer(element)) {
+            return route.getFlowElements().isEmpty() ? null : route.getFlowElements().get(0);
+        }
+        int index = route.getFlowElements().indexOf(element);
+        return index >= 0 && index + 1 < route.getFlowElements().size()
+                ? route.getFlowElements().get(index + 1) : null;
+    }
+
+    private static boolean isConsumer(FlowElement element) {
+        return element != null && element.getComponentMeta() != null && element.getComponentMeta().isConsumer();
+    }
+
+    private static boolean inputTypeIsUnconstrained(String simpleName) {
+        return simpleName == null || simpleName.isBlank()
+                || "Object".equals(simpleName) || "FlowEvent".equals(simpleName);
     }
 
     /** Selects a meta-pack recipe matching the inferred source and target types. */
