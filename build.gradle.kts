@@ -54,7 +54,7 @@ dependencies {
         }
     }
 
-    testImplementation("ch.qos.logback:logback-classic:1.6.1")
+    testImplementation("ch.qos.logback:logback-classic:1.6.3")
 
     compileOnly ("org.projectlombok:lombok:1.18.46")
     annotationProcessor("org.projectlombok:lombok:1.18.46")
