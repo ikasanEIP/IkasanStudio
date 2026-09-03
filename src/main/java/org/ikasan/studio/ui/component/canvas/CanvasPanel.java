@@ -31,6 +31,8 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
+    JButton harnessesButton = new JButton(StudioBundle.message("button.Harnesses"), AllIcons.Actions.Execute);
+    private final Timer harnessRefreshTimer;
     // Studio already loads the module automatically on project open - this button is only for manually
     // reloading model.json from disk after an external change, which most users never need day to day. Gated
     // behind the "Show advanced controls" setting (see IkasanStudioSettings) rather than removed outright,
@@ -60,6 +62,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(canvasHeaderButtonPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+        ToggleTestHarnessesAction harnessesAction = new ToggleTestHarnessesAction(project, harnessesButton);
+        addButtonsToPanel(canvasHeaderButtonPanel, harnessesButton, harnessesAction, StudioBundle.message("tooltip.StartHarnesses"));
+        harnessesAction.refreshPresentation();
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console"), CONSOLE_ICON), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         refreshAdvancedControlsVisibility();
@@ -84,6 +89,10 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
         add(canvasScrollPane, BorderLayout.CENTER);
 
+        harnessRefreshTimer = new Timer(1000, event -> harnessesAction.refreshPresentation());
+        harnessRefreshTimer.setRepeats(true);
+        harnessRefreshTimer.start();
+
         ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(
                 ApplicationActivationListener.TOPIC,
                 new ApplicationActivationListener() {
@@ -107,6 +116,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
     @Override
     public void dispose() {
+        harnessRefreshTimer.stop();
         if (canvasTextArea.getCaret() instanceof DefaultCaret caret) {
             caret.setBlinkRate(0);
         }

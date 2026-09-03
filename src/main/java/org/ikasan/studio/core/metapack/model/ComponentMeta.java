@@ -153,7 +153,9 @@ public class ComponentMeta implements IkasanMeta {
                                                       // classes over the older Spring XML resources (see importResources above).
     private boolean usesBuilderInFactory;           // used by ftl to generate the correct builder code
     private boolean useImplementingClassInFactory;  // When true, 'implementingClass' is used in the factory method to create a new instance of the component.
-    @Getter(AccessLevel.NONE)                       // read via supportsTestFtpServer() below, which reads better at call sites
+    @Getter(AccessLevel.NONE)
+    private boolean supportsTestMailServer;         // Meta-pack capability flag for endpoints served by Studio's mail harness.
+    @Getter(AccessLevel.NONE)
     private boolean supportsTestFtpServer;          // True if this component talks to a plain FTP server over remoteHost/remotePort/username/password
                                                       // and so can be pointed at Studio's own embedded test FTP server - set on both the FTP Consumer
                                                       // (which reads files from it) and the FTP Producer (which delivers files to it). Deliberately a
@@ -233,7 +235,7 @@ public class ComponentMeta implements IkasanMeta {
      * this one predicate covers both right-click targets the user expects it from.
      */
     public boolean supportsTestMailServer() {
-        return EMAIL_PRODUCER_IMPLEMENTING_CLASS.equals(implementingClass);
+        return supportsTestMailServer || EMAIL_PRODUCER_IMPLEMENTING_CLASS.equals(implementingClass);
     }
 
     /**

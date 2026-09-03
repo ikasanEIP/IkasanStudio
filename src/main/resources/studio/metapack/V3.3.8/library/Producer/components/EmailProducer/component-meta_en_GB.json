@@ -1,5 +1,6 @@
 {
   "name": "Email Producer",
+  "supportsTestMailServer": true,
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "flowBuilderMethod": "producer",
   "helpText": "<p>Sends an email from an incoming EmailPayload. Place an <strong>Email Converter</strong> upstream to build that EmailPayload from the preceding payload.</p>",
