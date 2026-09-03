@@ -7,6 +7,9 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +20,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     // "Stopped in Error") to the left of every flow, clear of the endpoint's own icon - was 150, too tight once
     // those were added, so the status label was overlapping/clipping the flow's leftmost endpoint.
     public static final int FLOW_X_START_POINT = 260;
+    private static final int TEST_FTP_SERVER_LEFT_RESERVE = 110;
     public static final int FLOW_X_RIGHT_BUFFER = 150;
     public static final int FLOW_Y_START_POINT = 100;
     public static final int FLOW_Y_BOTTTOM_BUFFER = 100;
@@ -78,7 +82,22 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
 
     // Might revert to centralised model but that will require double initialise.
     private int getFlowXStartPoint() {
-        return FLOW_X_START_POINT;
+        return FLOW_X_START_POINT + (hasVisibleTestFtpServer() ? TEST_FTP_SERVER_LEFT_RESERVE : 0);
+    }
+
+    private boolean hasVisibleTestFtpServer() {
+        TestFtpServerService service = project.getService(TestFtpServerService.class);
+        if (!service.isRunning()) return false;
+        for (Flow flow : module.getFlows()) {
+            for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
+                if (element.getComponentMeta() != null
+                        && element.getComponentMeta().supportsTestFtpServer()
+                        && service.isRunningAt(TestFtpServerConfiguration.from(element))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

@@ -57,6 +57,11 @@ public class DesignCanvasContextMenu {
                 menu.add(createStartTestMailServerMenuItem(project, ikasanBasicElement));
                 menu.add(createStopTestMailServerMenuItem(project, ikasanBasicElement));
             }
+            if (flowElement.getComponentMeta().supportsTestFtpServer()) {
+                menu.addSeparator();
+                menu.add(createStartTestFtpServerMenuItem(project, ikasanBasicElement));
+                menu.add(createStopTestFtpServerMenuItem(project, ikasanBasicElement));
+            }
             menu.addSeparator();
             addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
                     DECORATOR_POSITION.BEFORE, "menu.AddWiretapBefore", "menu.DeleteWiretapBefore");
@@ -96,6 +101,16 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
+    public static void showStopTestFtpServerMenu(Project project, DesignerCanvas canvas, MouseEvent event, BasicElement element) {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createShowTestFtpServerDetailsMenuItem(project, element));
+        menu.add(createOpenTestFtpFileMenuItem(project, element));
+        menu.add(createShowTestFtpDirectoryMenuItem(project, element));
+        menu.addSeparator();
+        menu.add(createStopTestFtpServerMenuItem(project, element));
+        menu.show(canvas, event.getX(), event.getY());
+    }
+
     private static JMenuItem createDeleteComponentMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.DeleteComponent"));
         item.addActionListener(new DeleteComponentAction(project, ikasanBasicElement));
@@ -123,6 +138,36 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createStopTestMailServerMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.StopTestMailServer"));
         item.addActionListener(new StopTestMailServerAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createStartTestFtpServerMenuItem(Project project, BasicElement element) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.StartTestFtpServer"));
+        item.addActionListener(new StartTestFtpServerAction(project, element));
+        return item;
+    }
+
+    private static JMenuItem createOpenTestFtpFileMenuItem(Project project, BasicElement element) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.OpenTestFtpFile"));
+        item.addActionListener(new OpenTestFtpFileAction(project, element));
+        return item;
+    }
+
+    private static JMenuItem createShowTestFtpDirectoryMenuItem(Project project, BasicElement element) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ShowTestFtpDirectory"));
+        item.addActionListener(new ShowTestFtpDirectoryAction(project, element));
+        return item;
+    }
+
+    private static JMenuItem createShowTestFtpServerDetailsMenuItem(Project project, BasicElement element) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ShowTestFtpServerDetails"));
+        item.addActionListener(new ShowTestFtpServerDetailsAction(project, element));
+        return item;
+    }
+
+    private static JMenuItem createStopTestFtpServerMenuItem(Project project, BasicElement element) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.StopTestFtpServer"));
+        item.addActionListener(new StopTestFtpServerAction(project, element));
         return item;
     }
 

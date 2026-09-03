@@ -25,6 +25,7 @@ public final class ComponentIconProvider {
     private static final Icon TRIGGER_ICON = general("trigger.png", "Trigger Now");
     private static final Icon REPLAY_SERVICE_ICON = general("replay-service.png", "Flow recording enabled");
     private static final Icon MAIL_SERVER_ICON = general("mailserver.png", "Test Mail Server");
+    private static final Icon FTP_SERVER_ICON = general("testftpserver.png", "Test FTP Server");
 
     private ComponentIconProvider() {
     }
@@ -44,6 +45,7 @@ public final class ComponentIconProvider {
     public static Icon getTriggerIcon() { return TRIGGER_ICON; }
     public static Icon getReplayServiceIcon() { return REPLAY_SERVICE_ICON; }
     public static Icon getMailServerIcon() { return MAIL_SERVER_ICON; }
+    public static Icon getFtpServerIcon() { return FTP_SERVER_ICON; }
 
     public static int getDecoratorHeight() {
         return Math.max(WIRETAP_ICON.getIconHeight(), LOG_WIRETAP_ICON.getIconHeight());

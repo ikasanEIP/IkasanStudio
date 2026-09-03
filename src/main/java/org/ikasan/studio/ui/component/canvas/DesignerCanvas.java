@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
 import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
 import org.ikasan.studio.core.model.command.FlowElementMove;
 
@@ -51,6 +52,7 @@ import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
@@ -313,6 +315,11 @@ public class DesignerCanvas extends JPanel {
         clickStartMouseX = x;
         clickStartMouseY = y;
         if (me.getButton() == MouseEvent.BUTTON3) {
+            FlowElement testFtpServerOwner = getOwnerForTestFtpServerNodeAtXY(x, y);
+            if (testFtpServerOwner != null) {
+                DesignCanvasContextMenu.showStopTestFtpServerMenu(project, this, me, testFtpServerOwner);
+                return;
+            }
             FlowElement testMailServerNodeOwner = getOwnerForTestMailServerNodeAtXY(x, y);
             if (testMailServerNodeOwner != null) {
                 DesignCanvasContextMenu.showStopTestMailServerMenu(project, this, me, testMailServerNodeOwner);
@@ -1458,6 +1465,7 @@ public class DesignerCanvas extends JPanel {
                 paintDraggedComponentGhost(g);
                 paintJmsDestinationConnectors(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
+                paintTestFtpServerNode(g, ikasanModule);
                 updateFlowErrorFlashState(ikasanModule);
                 paintFlowTransportControls(g, ikasanModule);
             }
@@ -1596,6 +1604,60 @@ public class DesignerCanvas extends JPanel {
         arrow.addPoint(tip.x - JMS_CONNECTOR_ARROW_SIZE, tip.y - (JMS_CONNECTOR_ARROW_SIZE / 2));
         arrow.addPoint(tip.x - JMS_CONNECTOR_ARROW_SIZE, tip.y + (JMS_CONNECTOR_ARROW_SIZE / 2));
         g2d.fill(arrow);
+    }
+
+    private static final int TEST_FTP_SERVER_NODE_WIDTH = 90;
+    private static final int TEST_FTP_SERVER_NODE_HEIGHT = 60;
+    private static final int TEST_FTP_SERVER_NODE_GAP = JMS_CONNECTOR_GUTTER_MARGIN;
+
+    private FlowElement getOwnerForTestFtpServerNodeAtXY(int x, int y) {
+        Module module = getIkasanModule();
+        if (module == null || module.getFlows() == null) return null;
+        TestFtpServerService service = project.getService(TestFtpServerService.class);
+        for (Flow flow : module.getFlows()) {
+            for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
+                if (element.getComponentMeta() == null || !element.getComponentMeta().supportsTestFtpServer()
+                        || !service.isRunningAt(TestFtpServerConfiguration.from(element))) continue;
+                IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                IkasanFlowComponentViewHandler endpoint = flowHandler == null ? null : flowHandler.getEndpointViewHandlerFor(element);
+                if (endpoint == null) continue;
+                Point target = endpoint.getLeftConnectorPoint();
+                Rectangle bounds = new Rectangle(target.x - TEST_FTP_SERVER_NODE_GAP - TEST_FTP_SERVER_NODE_WIDTH,
+                        target.y - TEST_FTP_SERVER_NODE_HEIGHT / 2, TEST_FTP_SERVER_NODE_WIDTH, TEST_FTP_SERVER_NODE_HEIGHT);
+                if (bounds.contains(x, y)) return element;
+            }
+        }
+        return null;
+    }
+
+    private void paintTestFtpServerNode(Graphics graphics, Module module) {
+        if (module == null || module.getFlows() == null || !(graphics instanceof Graphics2D)) return;
+        TestFtpServerService service = project.getService(TestFtpServerService.class);
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            for (Flow flow : module.getFlows()) {
+                for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
+                    if (element.getComponentMeta() == null || !element.getComponentMeta().supportsTestFtpServer()
+                            || !service.isRunningAt(TestFtpServerConfiguration.from(element))) continue;
+                    IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                    IkasanFlowComponentViewHandler endpoint = flowHandler == null ? null : flowHandler.getEndpointViewHandlerFor(element);
+                    if (endpoint == null) continue;
+                    Point target = endpoint.getLeftConnectorPoint();
+                    int left = target.x - TEST_FTP_SERVER_NODE_GAP - TEST_FTP_SERVER_NODE_WIDTH;
+                    int top = target.y - TEST_FTP_SERVER_NODE_HEIGHT / 2;
+                    int right = left + TEST_FTP_SERVER_NODE_WIDTH;
+                    g2d.drawLine(right, target.y, target.x, target.y);
+                    paintArrowhead(g2d, target);
+                    ComponentIconProvider.getFtpServerIcon().paintIcon(this, graphics, left, top);
+                    StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, "Test FTP Server",
+                            left + TEST_FTP_SERVER_NODE_WIDTH / 2, top + TEST_FTP_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
+                            TEST_FTP_SERVER_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
+                }
+            }
+        } finally {
+            g2d.dispose();
+        }
     }
 
     // Gap between the anchor's own real Email Endpoint pill and this node, matching the rhythm of
@@ -2001,6 +2063,9 @@ public class DesignerCanvas extends JPanel {
             int labelLeftX = TRANSPORT_BUTTONS_LEFT_X + TRANSPORT_BUTTON_SIZE + TRANSPORT_STATUS_LABEL_GAP;
             int buttonsTopY = transportButtonsTopY(flowHandler);
             int labelBottomY = buttonsTopY + TRANSPORT_BUTTON_STACK_HEIGHT;
+            // Same value as buttonsTopY, kept as its own variable so the bounds check below reads as
+            // "labelLeftX/labelTopY/labelBottomY", not one term suddenly named after buttons.
+            @SuppressWarnings("UnnecessaryLocalVariable")
             int labelTopY = buttonsTopY;
             // Generous, un-measured horizontal band to the right of the button column - the label's actual
             // width varies per status text and isn't worth recomputing here just to shrink a hover target.

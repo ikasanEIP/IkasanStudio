@@ -42,11 +42,20 @@ dependencies {
     testImplementation("org.freemarker:freemarker:2.3.34")
     testImplementation("org.mockito:mockito-core:5.23.0")
     implementation("org.mockito:mockito-inline:5.2.0")
-    implementation("net.sourceforge.fmpp:fmpp:0.9.16")
+    implementation("org.apache.ftpserver:ftpserver-core:1.2.1") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
+    // ftpserver-core 1.2.1 pulls mina-core 2.2.4, vulnerable to CVE-2026-41635/CVE-2026-41409 (deserialization
+    // RCE in AbstractIoBuffer.resolveClass() - allowlist applied too late/skippable). Fixed upstream in 2.2.6;
+    // pin it here rather than waiting on a ftpserver-core release, since ftpserver's own project is inactive.
+    constraints {
+        implementation("org.apache.mina:mina-core:2.2.6") {
+            because("CVE-2026-41635 / CVE-2026-41409 - fixes deserialization RCE in mina-core < 2.2.6")
+        }
+    }
 
     testImplementation("ch.qos.logback:logback-classic:1.6.1")
 
-    testImplementation("org.ikasan:ikasan-test:4.1.6")
     compileOnly ("org.projectlombok:lombok:1.18.46")
     annotationProcessor("org.projectlombok:lombok:1.18.46")
     testCompileOnly("org.projectlombok:lombok:1.18.46")

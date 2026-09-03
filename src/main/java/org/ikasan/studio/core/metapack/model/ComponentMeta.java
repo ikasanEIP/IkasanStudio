@@ -61,6 +61,7 @@ public class ComponentMeta implements IkasanMeta {
     public static final String EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer";
     // See supportsTestMailServer().
     public static final String EMAIL_PRODUCER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.email.producer.EmailProducer";
+    public static final String FTP_CONSUMER_ADDITIONAL_KEY = "FTP Consumer";
 
     private static final String DEFAULT_README = "Readme.md";
 
@@ -223,6 +224,11 @@ public class ComponentMeta implements IkasanMeta {
      */
     public boolean supportsTestMailServer() {
         return EMAIL_PRODUCER_IMPLEMENTING_CLASS.equals(implementingClass);
+    }
+
+    /** True for the FTP Consumer, which can use Studio's embedded local test FTP server. */
+    public boolean supportsTestFtpServer() {
+        return FTP_CONSUMER_ADDITIONAL_KEY.equals(additionalKey);
     }
     public boolean isDebug() {
         return DEBUG_KEY.equals(additionalKey);
