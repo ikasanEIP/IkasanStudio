@@ -37,7 +37,8 @@ public class ComponentPropertyMeta {
     public static final String TO_TYPE = "toType";                                          // Special meta for converter, the type of the outbound payload
     public static final String ROUTE_NAMES = "routeNames";                                  // Special meta for converter, the type of the outbound payload
     public static final String TYPE = "type";                                               // Special meta for translator, the type of the outbound payload
-    public static final String AUTO_CONTENT_CONVERSION = "autoContentConversion";           // Special meta for JMS consumers - when true, the raw javax/jakarta.jms.Message is unwrapped before reaching the flow
+    public static final String AUTO_CONTENT_CONVERSION = "autoContentConversion";
+    public static final String CONVERSION_RECIPE_ID = "conversionRecipeId";            // Hidden instance selection of a meta-pack conversion recipe.
 
     public static final String APPLICATION_PORT_NUMBER_NAME = "port";
     public static final String APPLICATION_PORT_NUMBER_KEY = "server.port";

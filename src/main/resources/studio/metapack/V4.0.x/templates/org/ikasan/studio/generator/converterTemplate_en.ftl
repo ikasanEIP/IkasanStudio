@@ -23,6 +23,7 @@ public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userI
 {
 public ${toType} convert(${fromType} payload) throws TransformationException
 {
-return new ${toType}(payload);
+// TODO Implement the conversion. The target may be an interface or have no compatible constructor.
+throw new UnsupportedOperationException("Conversion has not been implemented");
 }
 }

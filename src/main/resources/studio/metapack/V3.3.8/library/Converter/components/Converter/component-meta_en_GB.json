@@ -5,8 +5,31 @@
   "helpText": "<p>Implement the required transformation in the generated converter class. Configure its source and target Java types through the component properties.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
+  "conversionRecipes": [
+    {
+      "id": "jms-message-to-file-transfer-payload",
+      "displayName": "JMS Message to FTP/SFTP Payload",
+      "sourceType": "javax.jms.Message",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "jmsMessageToFileTransferPayloadConverterTemplate.ftl",
+      "helpText": "Extracts common JMS message bodies into an Ikasan DefaultPayload and supplies the filename required by FTP and SFTP producers."
+    },
+    {
+      "id": "auto-converted-jms-content-to-file-transfer-payload",
+      "displayName": "Auto-converted JMS content to FTP/SFTP Payload",
+      "sourceType": "java.lang.Object (auto-converted)",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "objectToFileTransferPayloadConverterTemplate.ftl",
+      "helpText": "Wraps the body already extracted by the JMS consumer in an Ikasan DefaultPayload and supplies the filename required by FTP and SFTP producers."
+    }
+  ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
+    "conversionRecipeId": {
+      "propertyName": "conversionRecipeId",
+      "hiddenProperty": true,
+      "affectsUserImplementedClass": true
+    },
     "componentName": {
       "propertyName": "componentName",
       "mandatory": true,

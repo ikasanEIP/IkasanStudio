@@ -759,7 +759,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     flowElement.getEffectiveInputTypeDescription(), flowElement.getEffectiveOutputTypeDescription(), false));
             String warning = flowElement.getUpstreamTypeMismatchWarning(this::isConfirmedSerializable);
             if (warning != null) {
-                prefix.append("<p><b><font color=\"red\">Warning: ").append(StudioUIUtils.escapeHtml(warning)).append("</font></b></p>");
+                String[] warningParagraphs = warning.split("\\R");
+                for (int i = 0; i < warningParagraphs.length; i++) {
+                    prefix.append("<p><b><font color=\"red\">");
+                    if (i == 0) {
+                        prefix.append("Warning: ");
+                    }
+                    prefix.append(StudioUIUtils.escapeHtml(warningParagraphs[i])).append("</font></b></p>");
+                }
             }
             helpText = prefix + helpText;
         }

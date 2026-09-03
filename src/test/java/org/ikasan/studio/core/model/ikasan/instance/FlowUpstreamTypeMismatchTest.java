@@ -292,6 +292,8 @@ class FlowUpstreamTypeMismatchTest {
         String warning = objectMessageConverter.getUpstreamTypeMismatchWarning();
 
         assertTrue(warning != null && warning.contains("ObjectMessage"), "Expected a warning naming the expected ObjectMessage type, got: " + warning);
+        assertTrue(warning.contains("\nSuggested Fix: add a Converter"),
+                "Expected the warning to recommend the transformation that can change payload type, got: " + warning);
     }
 
     @Test

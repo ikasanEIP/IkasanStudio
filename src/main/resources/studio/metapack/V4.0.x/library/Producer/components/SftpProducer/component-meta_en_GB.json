@@ -130,9 +130,9 @@
     },
     "outputDirectory": {
       "propertyName": "outputDirectory",
-      "propertyGroup": "Delivery",
       "propertyDisplayOrder": 10,
       "defaultValue": ".",
+      "mandatory": true,
       "helpText": "Remote directory where to deliver the file.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.sftp.producer.outputDirectory"

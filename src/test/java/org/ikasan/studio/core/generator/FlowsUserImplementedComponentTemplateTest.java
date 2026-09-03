@@ -76,6 +76,43 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyConverter.java"), templateString);
     }
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testJmsToFileTransferRecipeSelectsItsMetapackTemplate(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "javax.jms.Message");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+                "jms-message-to-file-transfer-payload");
+
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+
+        assertTrue(templateString.contains("implements Converter<Message, Payload>"));
+        assertTrue(templateString.contains("new DefaultPayload(id, content)"));
+        assertTrue(templateString.contains("FilePayloadAttributeNames.FILE_NAME"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testAutoConvertedJmsContentRecipeSelectsPayloadWrapperTemplate(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+                "auto-converted-jms-content-to-file-transfer-payload");
+
+        String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
+
+        assertTrue(templateString.contains("implements Converter<Object, Payload>"));
+        // V3.3.8 targets JDK 11 (no pattern-matching instanceof) so it renders "instanceof byte[])" with a
+        // separate cast, while V4.0.x (JDK 17) renders "instanceof byte[] bytes" - assert on the shared prefix
+        // rather than a version-specific form.
+        assertTrue(templateString.contains("source instanceof byte["));
+        assertTrue(templateString.contains("new DefaultPayload"));
+    }
+
     //  ------------------------------- CONVERTER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyEmailConverter.java

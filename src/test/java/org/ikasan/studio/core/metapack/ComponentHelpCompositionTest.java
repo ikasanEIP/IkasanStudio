@@ -37,6 +37,7 @@ class ComponentHelpCompositionTest {
 
         assertThat(help.indexOf("A <b>Translator</b> modifies"))
                 .isLessThan(help.indexOf("Implement the required in-place transformation"));
+        assertThat(help).contains("does not replace it, so its Java type remains the same");
         assertThat(help).contains("</p><p>");
     }
 }

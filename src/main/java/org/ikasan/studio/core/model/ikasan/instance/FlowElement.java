@@ -262,7 +262,9 @@ public class FlowElement extends BasicElement {
         return "Possible type mismatch: the nearest upstream component, '" + upstream.getComponentName()
                 + "', declares its output type as '" + upstreamOutputType + "', which does not look like it satisfies "
                 + expectedDescription + ". " + getComponentMeta().getName() + " expects its incoming payload to be "
-                + expectedDescription + " - if it isn't, the flow may fail at runtime.";
+                + expectedDescription + " - if it isn't, the flow may fail at runtime.\n"
+                + "Suggested Fix: add a Converter before '" + getComponentMeta().getName() + "' to convert '"
+                + upstreamOutputType + "' to " + expectedDescription + ".";
     }
 
     /**

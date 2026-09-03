@@ -20,6 +20,7 @@ public class MyConverter implements Converter<java.lang.String, java.lang.Intege
 {
 public java.lang.Integer convert(java.lang.String payload) throws TransformationException
 {
-return new java.lang.Integer(payload);
+// TODO Implement the conversion. The target may be an interface or have no compatible constructor.
+throw new UnsupportedOperationException("Conversion has not been implemented");
 }
 }

@@ -12,6 +12,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
@@ -29,6 +30,7 @@ import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.runtime.state.FlowErrorStates;
 import org.ikasan.studio.runtime.state.FlowRuntimeStatuses;
@@ -1038,6 +1040,8 @@ public class DesignerCanvas extends JPanel {
             return newComponent;
         }
         applySuggestedInputTypeFromUpstream(newComponent, containingFlow, x, y);
+        applySuggestedOutputTypeFromDownstream(newComponent, x, y);
+        applySuggestedConversionRecipe(newComponent);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver((ExceptionResolver)newComponent);
         } else {
@@ -1075,13 +1079,71 @@ public class DesignerCanvas extends JPanel {
             return;
         }
         MutablePair<FlowElement, FlowElement> surroundingComponents = getSurroundingComponents(x, y);
-        FlowElement upstream = containingFlow.skipNonPayloadBearingElements(surroundingComponents.getLeft());
+        FlowElement downstream = surroundingComponents.getRight();
+        FlowElement upstream = downstream != null && downstream.getContainingFlow() == containingFlow
+                ? containingFlow.findPayloadSourceElement(downstream)
+                : containingFlow.skipNonPayloadBearingElements(surroundingComponents.getLeft());
         if (upstream == null) {
             return;
         }
         String upstreamOutputType = upstream.getEffectiveOutputTypeDescription();
         if (upstreamOutputType != null && !upstreamOutputType.isBlank()) {
             newComponent.setPropertyValue(propertyName, upstreamOutputType);
+        }
+    }
+
+    /**
+     * Pre-fills a newly dropped component's { toType} when its immediate downstream neighbour declares one
+     * unambiguous input type. This complements applySuggestedInputTypeFromUpstream, and is particularly useful
+     * when inserting a Converter to resolve a type mismatch between two existing components.
+     */
+    private void applySuggestedOutputTypeFromDownstream(FlowElement newComponent, int x, int y) {
+        if (newComponent == null || newComponent.getComponentMeta() == null) {
+            return;
+        }
+        ComponentPropertyMeta toTypeMeta = newComponent.getComponentMeta().getMetadata(ComponentPropertyMeta.TO_TYPE);
+        if (toTypeMeta == null || toTypeMeta.isHiddenProperty()) {
+            return;
+        }
+        FlowElement downstream = getSurroundingComponents(x, y).getRight();
+        if (downstream == null) {
+            return;
+        }
+        String downstreamInputType = downstream.getEffectiveInputTypeDescription();
+        if (downstreamInputType == null || downstreamInputType.isBlank() || downstreamInputType.contains(",")) {
+            return;
+        }
+        String simpleName = downstreamInputType.substring(downstreamInputType.lastIndexOf('.') + 1);
+        if ("Object".equals(simpleName) || "FlowEvent".equals(simpleName)) {
+            return;
+        }
+        newComponent.setPropertyValue(ComponentPropertyMeta.TO_TYPE, downstreamInputType);
+    }
+
+    /** Selects a meta-pack recipe matching the inferred source and target types. */
+    private void applySuggestedConversionRecipe(FlowElement newComponent) {
+        if (newComponent.getComponentMeta().getConversionRecipes() == null) {
+            return;
+        }
+        String sourceType = newComponent.getPropertyValueAsString(ComponentPropertyMeta.FROM_TYPE);
+        String targetType = newComponent.getPropertyValueAsString(ComponentPropertyMeta.TO_TYPE);
+        java.util.List<ConversionRecipeMeta> matches = newComponent.getComponentMeta().getConversionRecipes().stream()
+                .filter(recipe -> recipe.matches(sourceType, targetType))
+                .toList();
+        if (matches.isEmpty()) {
+            return;
+        }
+        String[] choices = new String[matches.size() + 1];
+        for (int i = 0; i < matches.size(); i++) {
+            choices[i] = matches.get(i).getDisplayName();
+        }
+        choices[matches.size()] = "Blank custom converter";
+        int selected = Messages.showChooseDialog(project,
+                "Studio found an implementation recipe for " + sourceType + " to " + targetType
+                        + ". Choose a starting point for the generated converter.",
+                "Configure Conversion", null, choices, choices[0]);
+        if (selected >= 0 && selected < matches.size()) {
+            newComponent.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID, matches.get(selected).getId());
         }
     }
 

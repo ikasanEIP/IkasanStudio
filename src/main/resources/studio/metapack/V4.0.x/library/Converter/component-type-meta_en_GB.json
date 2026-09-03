@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.transformation.Converter",
   "paletteDisplayOrder": 5,
   "componentShortType": "Converter",
-  "helpText": "<p>A <b>Converter</b> returns a new payload and may change its Java type or structure, for example from JSON to XML. A <b>Translator</b>, by contrast, modifies the existing payload in place and keeps its Java type unchanged.</p>",
+  "helpText": "<p>A <b>Converter</b> accepts a source payload and returns a conversion result. Its source and target types may differ, so use it when the Java type or structure must change. A <b>Translator</b>, by contrast, modifies the supplied payload in place and does not replace it.</p>",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",

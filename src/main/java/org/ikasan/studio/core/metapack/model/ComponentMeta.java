@@ -10,6 +10,7 @@ import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -128,6 +129,8 @@ public class ComponentMeta implements IkasanMeta {
                                                       // output genuinely isn't captured anywhere in Studio's metadata (e.g. Default List
                                                       // Splitter's output is whichever type was inside the incoming list). See
                                                       // FlowElement#getEffectiveOutputTypeDescription.
+    @Builder.Default
+    private List<ConversionRecipeMeta> conversionRecipes = List.of();
     private boolean routesToMultipleTargets;         // Router only: true if route() may return more than one target in a single
                                                       // invocation and so needs a List<String> return type (e.g. Multi Recipient Router) -
                                                       // false (the default) for routers whose route() returns a single String (e.g. Single

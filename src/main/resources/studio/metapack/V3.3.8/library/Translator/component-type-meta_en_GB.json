@@ -2,7 +2,7 @@
   "componentType": "org.ikasan.spec.component.transformation.Translator",
   "paletteDisplayOrder": 6,
   "componentShortType": "Translator",
-  "helpText": "<p>A <b>Translator</b> modifies the state or values of an existing mutable payload while keeping its Java type unchanged. A <b>Converter</b>, by contrast, returns a new payload and may change its type or structure.</p>",
+  "helpText": "<p>A <b>Translator</b> modifies the supplied payload in place and does not replace it, so its Java type remains the same. A <b>Converter</b>, by contrast, returns a conversion result and may change the Java type or structure.</p>",
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "description": {
