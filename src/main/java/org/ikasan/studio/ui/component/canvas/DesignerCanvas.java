@@ -1560,7 +1560,11 @@ public class DesignerCanvas extends JPanel {
     // custom accent colour with a neutral one (see StudioUIUtils#ATTENTION_PULSE_COLOR's own comment for the
     // same reasoning).
     private static final JBColor JMS_CONNECTOR_COLOR = new JBColor(new Color(70, 130, 180), new Color(120, 170, 220));
-    private static final float[] JMS_CONNECTOR_DASH = {6f, 4f};
+    private static final float[][] JMS_CONNECTOR_PATTERNS = {
+            {7f, 5f},
+            {1.5f, 4f},
+            {8f, 4f, 2f, 4f}
+    };
     private static final int JMS_CONNECTOR_GUTTER_MARGIN = 30;
     private static final int JMS_CONNECTOR_STANDOFF = 20;
     private static final int JMS_CONNECTOR_GAP_CLEARANCE = 10;
@@ -1586,7 +1590,6 @@ public class DesignerCanvas extends JPanel {
         Graphics2D g2d = (Graphics2D) graphics.create();
         try {
             g2d.setColor(JMS_CONNECTOR_COLOR);
-            g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, JMS_CONNECTOR_DASH, 0));
             int index = 0;
             for (JmsFlowConnections.JmsLink link : links) {
                 IkasanFlowViewHandler producerFlowHandler = flowHandlerFor(link.producer());
@@ -1596,8 +1599,12 @@ public class DesignerCanvas extends JPanel {
                 if (producerFlowHandler == null || consumerFlowHandler == null || producerHandler == null || consumerHandler == null) {
                     continue;
                 }
-                paintElbowConnector(g2d, producerHandler.getRightConnectorPoint(), consumerHandler.getLeftConnectorPoint(),
-                        producerFlowHandler, consumerFlowHandler, index);
+                g2d.setStroke(jmsConnectorStroke(index));
+                boolean consumerIsNextFlow = areAdjacentDownstreamFlows(ikasanModule,
+                        link.producer().getContainingFlow(), link.consumer().getContainingFlow());
+                paintElbowConnector(g2d, producerHandler.getRightConnectorPoint(),
+                        consumerHandler.getLeftConnectorPoint(), producerFlowHandler, consumerFlowHandler,
+                        consumerIsNextFlow, index);
                 index++;
             }
         } finally {
@@ -1613,51 +1620,113 @@ public class DesignerCanvas extends JPanel {
      * both to resolve the pill ({@link IkasanFlowViewHandler#getEndpointViewHandlerFor}) and to route around
      * that flow's own content (see {@link #paintElbowConnector}).
      */
+    private static BasicStroke jmsConnectorStroke(int index) {
+        float[] pattern = JMS_CONNECTOR_PATTERNS[index % JMS_CONNECTOR_PATTERNS.length];
+        return new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, pattern, 0);
+    }
+
+    private static boolean areAdjacentDownstreamFlows(Module module, Flow producer, Flow consumer) {
+        if (module == null || module.getFlows() == null) {
+            return false;
+        }
+        int producerIndex = module.getFlows().indexOf(producer);
+        return producerIndex >= 0 && producerIndex + 1 < module.getFlows().size()
+                && module.getFlows().get(producerIndex + 1) == consumer;
+    }
+
     private IkasanFlowViewHandler flowHandlerFor(FlowElement owner) {
         Flow containingFlow = owner != null ? owner.getContainingFlow() : null;
         return containingFlow != null ? ViewHandlerCache.getFlowViewHandler(project, containingFlow) : null;
     }
 
     /**
-     * Routes through the empty gap between the two flows' rows, never through either flow's own components:
-     * down from the producer's pill into that gap, left along the gap to a corridor left of every flow's
-     * shared left edge (flows are always left-aligned to the same X, see {@code IkasanModuleViewHandler}), down
-     * that corridor to the consumer's own row, then right into its pill - matching the "down, left, down,
-     * right" shape a straight point-to-point or single-side-gutter line can't achieve without cutting across
-     * whichever flow it passes over. Each additional link (index &gt; 0) is staggered slightly so parallel
-     * links don't draw directly on top of one another.
-     * -
-     * The horizontal corridor hugs the BOTTOM of the gap (just above the lower flow's own top edge), not the
-     * midpoint: an incomplete upper flow's own "getting started" hint text (see {@code paintGettingStartedHint})
-     * is drawn with no background fill, growing downward starting right at that flow's own bottom edge - it's
-     * exactly why {@code gapAfterFlow} widens the gap to fit it in the first place - so a line sitting in the
-     * gap's own upper portion would visibly run through the hint's bare glyphs. Hints only ever grow downward
-     * from the upper flow, never upward from the lower one, so hugging the bottom clears them reliably.
-     * -
-     * Known limitation: if another flow's row lies between the producer's and the consumer's (not adjacent),
-     * the horizontal corridor may still cross that intervening row - out of scope for this pass.
+     * Bounding box of every flow and external endpoint, expanded for harness nodes and flow guidance. Cross-flow
+     * connectors route around this perimeter rather than attempting to thread through gaps between flow rows.
      */
-    private void paintElbowConnector(Graphics2D g2d, Point start, Point end,
-                                     IkasanFlowViewHandler producerFlowHandler, IkasanFlowViewHandler consumerFlowHandler, int index) {
-        IkasanFlowViewHandler upperFlow = producerFlowHandler.getTopY() <= consumerFlowHandler.getTopY() ? producerFlowHandler : consumerFlowHandler;
-        IkasanFlowViewHandler lowerFlow = upperFlow == producerFlowHandler ? consumerFlowHandler : producerFlowHandler;
-        int corridorY = Math.max(upperFlow.getBottomY() + JMS_CONNECTOR_GAP_CLEARANCE,
-                lowerFlow.getTopY() - JMS_CONNECTOR_GAP_CLEARANCE - (index * JMS_CONNECTOR_STAGGER));
-        // Derived from the pill's own entry point (end.x), not consumerFlowHandler.getLeftX() - the pill is
-        // drawn OUTSIDE its flow's own left border (see displayExternalEndpointIfExists), so the flow box's
-        // edge alone sits well short of clearing the pill itself.
-        int approachX = end.x - JMS_CONNECTOR_GUTTER_MARGIN - (index * JMS_CONNECTOR_STAGGER);
-        // A small clear-of-the-pill stand-off right after exiting, before turning down into the gap - turning
-        // immediately at start.x draws the corner right on the pill's own edge.
-        int standoffX = start.x + JMS_CONNECTOR_STANDOFF;
+    private Rectangle externalJmsRoutingBounds() {
+        Module module = getIkasanModule();
+        Rectangle bounds = null;
+        if (module != null) {
+            for (Flow flow : module.getFlows()) {
+                IkasanFlowViewHandler flowHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
+                if (flowHandler == null) {
+                    continue;
+                }
+                Rectangle flowBounds = new Rectangle(flowHandler.getLeftX(), flowHandler.getTopY(),
+                        flowHandler.getWidth(), flowHandler.getHeight());
+                bounds = bounds == null ? flowBounds : bounds.union(flowBounds);
+                for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
+                    AbstractViewHandlerIntellij endpoint = flowHandler.getEndpointViewHandlerFor(element);
+                    if (endpoint != null) {
+                        Rectangle endpointBounds = new Rectangle(endpoint.getLeftX(), endpoint.getTopY(),
+                                endpoint.getWidth(), endpoint.getHeight());
+                        bounds = bounds.union(endpointBounds);
+                    }
+                }
+            }
+        }
+        if (bounds == null) {
+            return new Rectangle(0, 0, getWidth(), getHeight());
+        }
 
+        TestFtpServerService ftpService = project.getService(TestFtpServerService.class);
+        TestMailServerSessionService mailService = project.getService(TestMailServerSessionService.class);
+        // module is provably non-null here: bounds is only ever assigned inside the "if (module != null)" block
+        // above, so the "bounds == null" early return already ruled out module being null by this point.
+        List<TestFtpServerLinks.Link> ftpLinks = TestFtpServerLinks.findLinks(module);
+        boolean hasLeftHarness = ftpLinks.stream()
+                .anyMatch(link -> ftpService.isRunningAt(link.configuration()) && !link.consumers().isEmpty());
+        boolean hasRightFtpHarness = ftpLinks.stream()
+                .anyMatch(link -> ftpService.isRunningAt(link.configuration()) && !link.producers().isEmpty());
+        boolean hasRightMailHarness = TestMailServerLinks.findLinks(module).stream()
+                .anyMatch(link -> mailService.isListening(link.host(), link.port()));
+        boolean hasRightHarness = hasRightFtpHarness || hasRightMailHarness;
+        int leftReserve = hasLeftHarness ? TEST_FTP_SERVER_NODE_WIDTH + TEST_FTP_SERVER_NODE_GAP : 0;
+        int rightReserve = hasRightHarness ? TEST_FTP_SERVER_NODE_WIDTH + TEST_FTP_SERVER_NODE_GAP : 0;
+        int bottomReserve = 70; // clears the lowest flow's getting-started guidance as well as its border
+        return new Rectangle(bounds.x - leftReserve, bounds.y,
+                bounds.width + leftReserve + rightReserve, bounds.height + bottomReserve);
+    }
+
+    static java.util.List<Point> jmsPerimeterRoute(Rectangle bounds, Point start, Point end, int index) {
+        int laneOffset = index * JMS_CONNECTOR_STAGGER;
+        int corridorY = bounds.y + bounds.height + JMS_CONNECTOR_GAP_CLEARANCE + laneOffset;
+        int approachX = bounds.x - JMS_CONNECTOR_GUTTER_MARGIN - laneOffset;
+        int standoffX = Math.max(start.x + JMS_CONNECTOR_STANDOFF,
+                bounds.x + bounds.width + JMS_CONNECTOR_GUTTER_MARGIN + laneOffset);
+        return java.util.List.of(new Point(start), new Point(standoffX, start.y),
+                new Point(standoffX, corridorY), new Point(approachX, corridorY),
+                new Point(approachX, end.y), new Point(end));
+    }
+
+    static java.util.List<Point> jmsAdjacentFlowRoute(Rectangle producerFlow, Rectangle consumerFlow,
+                                                      Point start, Point end) {
+        int corridorY = (producerFlow.y + producerFlow.height + consumerFlow.y) / 2;
+        int standoffX = start.x + JMS_CONNECTOR_STANDOFF;
+        int approachX = end.x - JMS_CONNECTOR_STANDOFF;
+        return java.util.List.of(new Point(start), new Point(standoffX, start.y),
+                new Point(standoffX, corridorY), new Point(approachX, corridorY),
+                new Point(approachX, end.y), new Point(end));
+    }
+
+    private void paintElbowConnector(Graphics2D g2d, Point start, Point end,
+                                     IkasanFlowViewHandler producerFlow, IkasanFlowViewHandler consumerFlow,
+                                     boolean consumerIsNextFlow, int index) {
+        java.util.List<Point> route;
+        if (consumerIsNextFlow) {
+            Rectangle producerBounds = new Rectangle(producerFlow.getLeftX(), producerFlow.getTopY(),
+                    producerFlow.getWidth(), producerFlow.getHeight());
+            Rectangle consumerBounds = new Rectangle(consumerFlow.getLeftX(), consumerFlow.getTopY(),
+                    consumerFlow.getWidth(), consumerFlow.getHeight());
+            route = jmsAdjacentFlowRoute(producerBounds, consumerBounds, start, end);
+        } else {
+            route = jmsPerimeterRoute(externalJmsRoutingBounds(), start, end, index);
+        }
         Path2D path = new Path2D.Double();
-        path.moveTo(start.x, start.y);
-        path.lineTo(standoffX, start.y);
-        path.lineTo(standoffX, corridorY);
-        path.lineTo(approachX, corridorY);
-        path.lineTo(approachX, end.y);
-        path.lineTo(end.x, end.y);
+        path.moveTo(route.get(0).x, route.get(0).y);
+        for (int i = 1; i < route.size(); i++) {
+            path.lineTo(route.get(i).x, route.get(i).y);
+        }
         g2d.draw(path);
         paintArrowhead(g2d, end);
     }

@@ -20,9 +20,9 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     // those were added, so the status label was overlapping/clipping the flow's leftmost endpoint.
     public static final int FLOW_X_START_POINT = 260;
     private static final int TEST_FTP_SERVER_LEFT_RESERVE = 110;
-    public static final int FLOW_X_RIGHT_BUFFER = 150;
+    public static final int FLOW_X_RIGHT_BUFFER = 260;
     public static final int FLOW_Y_START_POINT = 100;
-    public static final int FLOW_Y_BOTTTOM_BUFFER = 100;
+    public static final int FLOW_Y_BOTTTOM_BUFFER = 180;
     public static final int SCROLL_BAR_HEIGHT = 10;
     private final Module module;
     private final Project project;
