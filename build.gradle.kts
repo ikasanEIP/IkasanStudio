@@ -37,9 +37,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:4.0.0-M1")
-    implementation("org.freemarker:freemarker:2.3.34")
+    implementation("org.freemarker:freemarker:2.3.35")
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
-    testImplementation("org.freemarker:freemarker:2.3.34")
+    testImplementation("org.freemarker:freemarker:2.3.35")
     testImplementation("org.mockito:mockito-core:5.23.0")
     implementation("org.mockito:mockito-inline:5.2.0")
     implementation("org.apache.ftpserver:ftpserver-core:1.2.1") {
