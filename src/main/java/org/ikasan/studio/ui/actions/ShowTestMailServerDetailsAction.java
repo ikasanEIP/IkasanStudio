@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -39,7 +40,9 @@ public final class ShowTestMailServerDetailsAction implements ActionListener {
         }
 
         String webInbox = "http://" + TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT;
-        StudioUIUtils.displayIdeaInfoMessage(project,
-                StudioBundle.message("message.TestMailServerDetails", smtpHost, smtpPort, webInbox));
+        Messages.showInfoMessage(project,
+                "<html>" + StudioBundle.message("message.TestMailServerDetails", smtpHost, smtpPort, webInbox)
+                        + "</html>",
+                StudioBundle.message("dialog.TestMailServerDetails"));
     }
 }

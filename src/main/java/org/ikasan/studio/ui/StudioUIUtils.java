@@ -454,6 +454,11 @@ public class StudioUIUtils {
     // for dark themes, since the same fixed orange reads as muddier against a dark background.
     private static final JBColor ATTENTION_PULSE_COLOR = new JBColor(new Color(241, 90, 35), new Color(255, 140, 70));
 
+    /** Theme-aware Ikasan orange for controls that need deliberate visual emphasis. */
+    public static Color getAttentionColor() {
+        return ATTENTION_PULSE_COLOR;
+    }
+
     /**
      * Starts (or stops) a pulsating coloured border on the given button - used to draw the developer's eye to a
      * button that's gone disabled specifically because of a validation failure (as opposed to merely "nothing

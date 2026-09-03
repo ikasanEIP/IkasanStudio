@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -38,8 +39,12 @@ public final class ShowTestFtpServerDetailsAction implements ActionListener {
                     StudioBundle.message("message.TestFtpServerNotRunning"));
             return;
         }
-        StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestFtpServerDetails",
+        String details = StudioBundle.message("message.TestFtpServerDetails",
                 configuration.host(), configuration.port(), configuration.username(), configuration.password(),
-                rootDirectory));
+                rootDirectory);
+        Messages.showInfoMessage(project,
+                "<html>" + details + "<br><br>"
+                        + StudioBundle.message("message.TestFtpServerOverwriteLimitation") + "</html>",
+                StudioBundle.message("dialog.TestFtpServerDetails"));
     }
 }

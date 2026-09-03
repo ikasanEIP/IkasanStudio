@@ -37,10 +37,11 @@ public final class StartTestFtpServerAction implements ActionListener {
                     TestFtpServerService service = project.getService(TestFtpServerService.class);
                     boolean alreadyRunning = service.isRunningAt(configuration);
                     Path root = service.start(configuration);
+                    String statusMessage = alreadyRunning
+                            ? StudioBundle.message("message.TestFtpServerAlreadyRunning", configuration.address(), root)
+                            : StudioBundle.message("message.StartingTestFtpServer", configuration.address(), configuration.username(), root);
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaInfoMessage(project,
-                            alreadyRunning
-                                    ? StudioBundle.message("message.TestFtpServerAlreadyRunning", configuration.address(), root)
-                                    : StudioBundle.message("message.StartingTestFtpServer", configuration.address(), configuration.username(), root)));
+                            statusMessage + "<br><br>" + StudioBundle.message("message.TestFtpServerOverwriteLimitation")));
                 } catch (IllegalArgumentException e) {
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
                             StudioBundle.message("message.TestFtpServerRequiresLocalHost")));

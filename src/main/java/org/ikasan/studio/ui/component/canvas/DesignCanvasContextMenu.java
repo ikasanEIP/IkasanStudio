@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -9,6 +10,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
@@ -61,6 +63,7 @@ public class DesignCanvasContextMenu {
                 menu.addSeparator();
                 menu.add(createStartTestFtpServerMenuItem(project, ikasanBasicElement));
                 menu.add(createStopTestFtpServerMenuItem(project, ikasanBasicElement));
+                menu.add(createShowTestFtpOverwriteLimitationMenuItem(project));
             }
             menu.addSeparator();
             addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
@@ -106,6 +109,7 @@ public class DesignCanvasContextMenu {
     public static void showStopTestFtpServerMenu(Project project, DesignerCanvas canvas, MouseEvent event, BasicElement element) {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createShowTestFtpServerDetailsMenuItem(project, element));
+        menu.add(createShowTestFtpOverwriteLimitationMenuItem(project));
         menu.add(createOpenTestFtpFileMenuItem(project, element));
         menu.add(createShowTestFtpDirectoryMenuItem(project, element));
         menu.addSeparator();
@@ -164,6 +168,15 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createShowTestFtpDirectoryMenuItem(Project project, BasicElement element) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.ShowTestFtpDirectory"));
         item.addActionListener(new ShowTestFtpDirectoryAction(project, element));
+        return item;
+    }
+
+    private static JMenuItem createShowTestFtpOverwriteLimitationMenuItem(Project project) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ShowTestFtpOverwriteLimitation"));
+        item.setForeground(StudioUIUtils.getAttentionColor());
+        item.addActionListener(event -> Messages.showWarningDialog(project,
+                "<html>" + StudioBundle.message("message.TestFtpServerOverwriteLimitation") + "</html>",
+                StudioBundle.message("menu.ShowTestFtpOverwriteLimitation").replace("...", "")));
         return item;
     }
 
