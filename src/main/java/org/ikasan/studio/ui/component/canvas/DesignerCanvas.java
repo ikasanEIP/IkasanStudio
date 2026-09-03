@@ -2062,7 +2062,7 @@ public class DesignerCanvas extends JPanel {
     // each flow's own left edge (the original approach): that left the buttons crowding the flow's leftmost
     // endpoint icon instead of reading as a distinct control column. Pinning it here, flush near the canvas's own
     // left edge, keeps the whole column visually separate from the flows regardless of how far right
-    // IkasanModuleViewHandler.FLOW_X_START_POINT positions them.
+    // IkasanStudioSettings.getFlowXStartPoint() (user-configurable, see IkasanModuleViewHandler) positions them.
     private static final int TRANSPORT_BUTTONS_LEFT_X = 24;
     private static final int TRANSPORT_STATUS_LABEL_GAP = 6;
     // Deliberately just these 4 - the same set (and order) exposed by IntelliJ's own Run/Debug console for a
@@ -2189,6 +2189,10 @@ public class DesignerCanvas extends JPanel {
         }
     }
 
+    // SameParameterValue: y1/y2/y3 happen to be 2.5/8/13.5 at both current call sites, but keeping them as
+    // parameters (rather than inlining those values into this method) documents what each coordinate means and
+    // keeps the method reusable for a differently-shaped triangle, not just today's two icon glyphs.
+    @SuppressWarnings("SameParameterValue")
     private static Path2D.Double triangle(double x1, double y1, double x2, double y2, double x3, double y3) {
         Path2D.Double path = new Path2D.Double();
         path.moveTo(x1, y1);

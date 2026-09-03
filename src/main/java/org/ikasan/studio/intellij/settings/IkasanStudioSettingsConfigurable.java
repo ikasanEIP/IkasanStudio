@@ -4,6 +4,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.panel.ComponentPanelBuilder;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.Nls;
@@ -19,7 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
 /** Provides the Ikasan Studio settings page under Settings → Tools → Ikasan Studio. */
 public class IkasanStudioSettingsConfigurable implements Configurable {
@@ -32,6 +34,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox flowErrorMonitoringCheckBox;
     private JSpinner componentDistanceSpinner;
     private JSpinner flowDistanceSpinner;
+    private JSpinner flowXStartPointSpinner;
+    private JSpinner flowYStartPointSpinner;
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
@@ -97,18 +101,43 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
         componentDistanceSpinner = canvasDistanceSpinner(IkasanStudioSettings.DEFAULT_COMPONENT_DISTANCE);
         flowDistanceSpinner = canvasDistanceSpinner(IkasanStudioSettings.DEFAULT_FLOW_DISTANCE);
-        JPanel canvasLayoutFields = new JPanel();
-        canvasLayoutFields.setLayout(new BoxLayout(canvasLayoutFields, BoxLayout.Y_AXIS));
-        canvasLayoutFields.add(canvasDistanceRow(
-                StudioBundle.message("label.ComponentDistance"), componentDistanceSpinner));
-        canvasLayoutFields.add(canvasDistanceRow(
-                StudioBundle.message("label.FlowDistance"), flowDistanceSpinner));
+        flowXStartPointSpinner = flowStartPointSpinner(IkasanStudioSettings.DEFAULT_FLOW_X_START_POINT);
+        flowYStartPointSpinner = flowStartPointSpinner(IkasanStudioSettings.DEFAULT_FLOW_Y_START_POINT);
+
+        // GridBagLayout (not the individually-packed FlowLayout rows this used to be) so every field starts at
+        // the same x regardless of its own label's length - the label column is sized to its widest member and
+        // every row's field then lines up against it, matching the aligned look of IntelliJ's own settings pages
+        // (e.g. Settings > Tools > Tasks). Neither column stretches (no weightx), so this stays a compact form
+        // rather than spreading the spinners across the panel's full width.
+        JPanel canvasLayoutFields = new JPanel(new GridBagLayout());
+        GridBagConstraints labelConstraints = new GridBagConstraints();
+        labelConstraints.gridx = 0;
+        labelConstraints.anchor = GridBagConstraints.WEST;
+        labelConstraints.insets = JBUI.insets(2, 0, 2, 8);
+        GridBagConstraints fieldConstraints = new GridBagConstraints();
+        fieldConstraints.gridx = 1;
+        fieldConstraints.anchor = GridBagConstraints.WEST;
+        fieldConstraints.insets = JBUI.insets(2, 0);
+
+        addCanvasLayoutFieldRow(canvasLayoutFields, labelConstraints, fieldConstraints, 0,
+                StudioBundle.message("label.ComponentDistance"), componentDistanceSpinner);
+        addCanvasLayoutFieldRow(canvasLayoutFields, labelConstraints, fieldConstraints, 1,
+                StudioBundle.message("label.FlowDistance"), flowDistanceSpinner);
+        addCanvasLayoutFieldRow(canvasLayoutFields, labelConstraints, fieldConstraints, 2,
+                StudioBundle.message("label.FlowXStartPoint"), flowXStartPointSpinner);
+        addCanvasLayoutFieldRow(canvasLayoutFields, labelConstraints, fieldConstraints, 3,
+                StudioBundle.message("label.FlowYStartPoint"), flowYStartPointSpinner);
+
         JButton resetCanvasDistancesButton = new JButton(
                 StudioBundle.message("button.ResetCanvasLayoutDefaults"));
         resetCanvasDistancesButton.addActionListener(event -> resetCanvasDistancesToDefaults());
-        JPanel resetCanvasDistancesRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        resetCanvasDistancesRow.add(resetCanvasDistancesButton);
-        canvasLayoutFields.add(resetCanvasDistancesRow);
+        GridBagConstraints resetButtonConstraints = new GridBagConstraints();
+        resetButtonConstraints.gridx = 0;
+        resetButtonConstraints.gridy = 4;
+        resetButtonConstraints.gridwidth = 2;
+        resetButtonConstraints.anchor = GridBagConstraints.WEST;
+        resetButtonConstraints.insets = JBUI.insetsTop(4);
+        canvasLayoutFields.add(resetCanvasDistancesButton, resetButtonConstraints);
 
         JPanel canvasLayoutPanel = new JPanel(new BorderLayout(0, 4));
         canvasLayoutPanel.setBorder(BorderFactory.createTitledBorder(
@@ -143,6 +172,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                 || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled()
                 || spinnerValue(componentDistanceSpinner) != IkasanStudioSettings.getComponentDistance()
                 || spinnerValue(flowDistanceSpinner) != IkasanStudioSettings.getFlowDistance()
+                || spinnerValue(flowXStartPointSpinner) != IkasanStudioSettings.getFlowXStartPoint()
+                || spinnerValue(flowYStartPointSpinner) != IkasanStudioSettings.getFlowYStartPoint()
                 || testMailServerLivePollingCheckBox.isSelected() != IkasanStudioSettings.isTestMailServerLivePollingEnabled()
                 || flowErrorMonitoringCheckBox.isSelected() != IkasanStudioSettings.isFlowErrorMonitoringEnabled();
     }
@@ -158,6 +189,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.jmsConnectorsEnabled = showJmsConnectorsCheckBox.isSelected();
             state.componentDistance = spinnerValue(componentDistanceSpinner);
             state.flowDistance = spinnerValue(flowDistanceSpinner);
+            state.flowXStartPoint = spinnerValue(flowXStartPointSpinner);
+            state.flowYStartPoint = spinnerValue(flowYStartPointSpinner);
             state.testMailServerLivePollingEnabled = testMailServerLivePollingCheckBox.isSelected();
             state.flowErrorMonitoringEnabled = flowErrorMonitoringCheckBox.isSelected();
         }
@@ -172,6 +205,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         showJmsConnectorsCheckBox.setSelected(IkasanStudioSettings.areJmsConnectorsEnabled());
         componentDistanceSpinner.setValue(IkasanStudioSettings.getComponentDistance());
         flowDistanceSpinner.setValue(IkasanStudioSettings.getFlowDistance());
+        flowXStartPointSpinner.setValue(IkasanStudioSettings.getFlowXStartPoint());
+        flowYStartPointSpinner.setValue(IkasanStudioSettings.getFlowYStartPoint());
         testMailServerLivePollingCheckBox.setSelected(IkasanStudioSettings.isTestMailServerLivePollingEnabled());
         flowErrorMonitoringCheckBox.setSelected(IkasanStudioSettings.isFlowErrorMonitoringEnabled());
     }
@@ -195,20 +230,35 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     }
 
     private static JSpinner canvasDistanceSpinner(int defaultValue) {
-        JSpinner spinner = new JSpinner(new SpinnerNumberModel(defaultValue,
-                IkasanStudioSettings.MINIMUM_CANVAS_DISTANCE,
-                IkasanStudioSettings.MAXIMUM_CANVAS_DISTANCE, 1));
+        return pixelSpinner(defaultValue, IkasanStudioSettings.MINIMUM_CANVAS_DISTANCE,
+                IkasanStudioSettings.MAXIMUM_CANVAS_DISTANCE);
+    }
+
+    private static JSpinner flowStartPointSpinner(int defaultValue) {
+        return pixelSpinner(defaultValue, IkasanStudioSettings.MINIMUM_FLOW_START_POINT,
+                IkasanStudioSettings.MAXIMUM_FLOW_START_POINT);
+    }
+
+    private static JSpinner pixelSpinner(int defaultValue, int minimum, int maximum) {
+        JSpinner spinner = new JSpinner(new SpinnerNumberModel(defaultValue, minimum, maximum, 1));
         spinner.setEditor(new JSpinner.NumberEditor(spinner, "0 px"));
         return spinner;
     }
 
-    private static JPanel canvasDistanceRow(String label, JSpinner spinner) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+    /**
+     * Adds one label+spinner row at {@code rowIndex} to {@code target}, reusing the same two GridBagConstraints
+     * instances across every row (GridBagLayout copies each one when a component is added, so mutating gridy
+     * between calls is the normal way to lay out a grid this way without a fresh constraints object per cell).
+     */
+    private static void addCanvasLayoutFieldRow(JPanel target, GridBagConstraints labelConstraints,
+                                                GridBagConstraints fieldConstraints, int rowIndex,
+                                                String label, JSpinner spinner) {
+        labelConstraints.gridy = rowIndex;
+        fieldConstraints.gridy = rowIndex;
         JLabel fieldLabel = new JLabel(label);
         fieldLabel.setLabelFor(spinner);
-        row.add(fieldLabel);
-        row.add(spinner);
-        return row;
+        target.add(fieldLabel, labelConstraints);
+        target.add(spinner, fieldConstraints);
     }
 
     private static int spinnerValue(JSpinner spinner) {
@@ -231,5 +281,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     void resetCanvasDistancesToDefaults() {
         componentDistanceSpinner.setValue(IkasanStudioSettings.DEFAULT_COMPONENT_DISTANCE);
         flowDistanceSpinner.setValue(IkasanStudioSettings.DEFAULT_FLOW_DISTANCE);
+        flowXStartPointSpinner.setValue(IkasanStudioSettings.DEFAULT_FLOW_X_START_POINT);
+        flowYStartPointSpinner.setValue(IkasanStudioSettings.DEFAULT_FLOW_Y_START_POINT);
     }
 }

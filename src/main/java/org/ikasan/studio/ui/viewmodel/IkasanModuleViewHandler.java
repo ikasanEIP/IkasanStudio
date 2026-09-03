@@ -15,13 +15,8 @@ import java.awt.*;
 
 public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
-    // Wide enough to fit DesignerCanvas's per-flow transport-control buttons and status label (up to
-    // "Stopped in Error") to the left of every flow, clear of the endpoint's own icon - was 150, too tight once
-    // those were added, so the status label was overlapping/clipping the flow's leftmost endpoint.
-    public static final int FLOW_X_START_POINT = 260;
     private static final int TEST_FTP_SERVER_LEFT_RESERVE = 110;
     public static final int FLOW_X_RIGHT_BUFFER = 260;
-    public static final int FLOW_Y_START_POINT = 100;
     public static final int FLOW_Y_BOTTTOM_BUFFER = 180;
     public static final int SCROLL_BAR_HEIGHT = 10;
     private final Module module;
@@ -81,7 +76,18 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
 
     // Might revert to centralised model but that will require double initialise.
     private int getFlowXStartPoint() {
-        return FLOW_X_START_POINT + (hasVisibleTestFtpServer() ? TEST_FTP_SERVER_LEFT_RESERVE : 0);
+        return flowXStartPoint() + (hasVisibleTestFtpServer() ? TEST_FTP_SERVER_LEFT_RESERVE : 0);
+    }
+
+    /**
+     * User-configurable (see IkasanStudioSettingsConfigurable's Canvas Layout section) - defaults to wide enough
+     * to fit DesignerCanvas's per-flow transport-control buttons and status label (up to "Stopped in Error") to
+     * the left of every flow, clear of the endpoint's own icon. The default was 150 before those controls were
+     * added, too tight once they were, so the status label overlapped/clipped the flow's leftmost endpoint - a
+     * user dialling this setting down too far can reintroduce that same clipping.
+     */
+    private static int flowXStartPoint() {
+        return IkasanStudioSettings.getFlowXStartPoint();
     }
 
     /**
@@ -117,7 +123,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         setHeight(height);
         // Module title
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(graphics, module.getIdentity(),10,10, StudioUIUtils.getBoldFont());
-        int minimumTopY = FLOW_Y_START_POINT;
+        int minimumTopY = IkasanStudioSettings.getFlowYStartPoint();
         int maxWidth = 0;
         int maxHeight;
         int lastFlowHeight = topy;

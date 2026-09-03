@@ -20,6 +20,13 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     public static final int MINIMUM_CANVAS_DISTANCE = 0;
     public static final int MAXIMUM_CANVAS_DISTANCE = 250;
 
+    // Matches IkasanModuleViewHandler's own former hard-coded constants of the same names/values - see
+    // getFlowXStartPoint()/getFlowYStartPoint() below for why these earned a settings home.
+    public static final int DEFAULT_FLOW_X_START_POINT = 260;
+    public static final int DEFAULT_FLOW_Y_START_POINT = 100;
+    public static final int MINIMUM_FLOW_START_POINT = 0;
+    public static final int MAXIMUM_FLOW_START_POINT = 800;
+
     public static class State {
         /** Show contextual instructions while a module or flow is empty. */
         public boolean gettingStartedHintsEnabled = true;
@@ -76,6 +83,17 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
 
         /** Vertical distance, in canvas pixels, between adjacent flows. */
         public int flowDistance = DEFAULT_FLOW_DISTANCE;
+
+        /**
+         * Horizontal canvas pixel offset of the leftmost flow from the panel edge - same "visual density"
+         * category as componentDistance/flowDistance above, so exposed alongside them, unlike the canvas's
+         * other layout constants (e.g. scrollbar height, harness-node reserves), which are structural rather
+         * than a matter of taste and stay fixed.
+         */
+        public int flowXStartPoint = DEFAULT_FLOW_X_START_POINT;
+
+        /** Vertical canvas pixel offset of the topmost flow from the panel edge - see flowXStartPoint. */
+        public int flowYStartPoint = DEFAULT_FLOW_Y_START_POINT;
     }
 
     private State state = new State();
@@ -119,6 +137,26 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
 
     static int normaliseCanvasDistance(int value, int defaultValue) {
         return value < MINIMUM_CANVAS_DISTANCE || value > MAXIMUM_CANVAS_DISTANCE ? defaultValue : value;
+    }
+
+    /** The canvas x-offset every flow is laid out from - read by {@code IkasanModuleViewHandler}. */
+    public static int getFlowXStartPoint() {
+        IkasanStudioSettings instance = getInstance();
+        State state = instance != null ? instance.getState() : null;
+        return normaliseFlowStartPoint(state != null ? state.flowXStartPoint : DEFAULT_FLOW_X_START_POINT,
+                DEFAULT_FLOW_X_START_POINT);
+    }
+
+    /** The canvas y-offset every flow is laid out from - see {@link #getFlowXStartPoint()}. */
+    public static int getFlowYStartPoint() {
+        IkasanStudioSettings instance = getInstance();
+        State state = instance != null ? instance.getState() : null;
+        return normaliseFlowStartPoint(state != null ? state.flowYStartPoint : DEFAULT_FLOW_Y_START_POINT,
+                DEFAULT_FLOW_Y_START_POINT);
+    }
+
+    static int normaliseFlowStartPoint(int value, int defaultValue) {
+        return value < MINIMUM_FLOW_START_POINT || value > MAXIMUM_FLOW_START_POINT ? defaultValue : value;
     }
 
     public static boolean isPromptBeforeDeletingUserCode() {
