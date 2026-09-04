@@ -2,6 +2,8 @@ package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -10,6 +12,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.util.messages.Topic;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import lombok.Getter;
 import org.ikasan.studio.ui.UiContext;
 
@@ -47,6 +50,7 @@ public final class StudioProjectInitialisationService implements Disposable {
     private volatile String detail;
 
     private volatile List<Integer> validModelBackupIndexes = List.of();
+    private volatile boolean disposed;
 
     public List<Integer> getValidModelBackupIndexes() {
         return validModelBackupIndexes;
@@ -67,16 +71,22 @@ public final class StudioProjectInitialisationService implements Disposable {
     }
 
     public void start() {
-        if (project.isDisposed() || state == State.READY || !inProgress.compareAndSet(false, true)) {
+        if (disposed || project.isDisposed() || state == State.READY || !inProgress.compareAndSet(false, true)) {
             return;
         }
-        if (!StudioProjectFiles.hasGeneratedContentRoot(project)) {
-            waitForProjectImport();
-            return;
-        }
-
-        transition(State.WAITING_FOR_INDEXES, null);
-        DumbService.getInstance(project).runWhenSmart(this::loadProjectWhenSmart);
+        ReadAction.nonBlocking(() -> StudioProjectFiles.hasGeneratedContentRoot(project))
+                .expireWith(this)
+                .finishOnUiThread(ModalityState.defaultModalityState(), imported -> {
+                    if (disposed || project.isDisposed()) {
+                        inProgress.set(false);
+                    } else if (!imported) {
+                        waitForProjectImport();
+                    } else {
+                        transition(State.WAITING_FOR_INDEXES, null);
+                        DumbService.getInstance(project).runWhenSmart(this::loadProjectWhenSmart);
+                    }
+                })
+                .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     public void markReady() {
@@ -93,18 +103,18 @@ public final class StudioProjectInitialisationService implements Disposable {
     }
 
     private void loadProjectWhenSmart() {
-        if (project.isDisposed()) {
+        if (disposed || project.isDisposed()) {
             inProgress.set(false);
             return;
         }
-        if (!StudioProjectFiles.hasGeneratedContentRoot(project)) {
-            waitForProjectImport();
-            return;
-        }
-
         transition(State.READING_PROJECT, null);
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
+                if (disposed || project.isDisposed()) return;
+                if (!ReadAction.compute(() -> StudioProjectFiles.hasGeneratedContentRoot(project))) {
+                    waitForProjectImport();
+                    return;
+                }
                 UiContext uiContext = project.getService(UiContext.class);
                 validModelBackupIndexes = List.of();
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);
@@ -163,6 +173,7 @@ public final class StudioProjectInitialisationService implements Disposable {
     }
 
     private void transition(State newState, String newDetail) {
+        if (disposed) return;
         state = newState;
         detail = newDetail;
         if (!project.isDisposed()) {
@@ -172,7 +183,7 @@ public final class StudioProjectInitialisationService implements Disposable {
 
     @Override
     public void dispose() {
-        // Disposed automatically by the platform when the project closes; nothing to release here
-        // beyond the message-bus connection expiring via connect(this).
+        disposed = true;
+        inProgress.set(false);
     }
 }

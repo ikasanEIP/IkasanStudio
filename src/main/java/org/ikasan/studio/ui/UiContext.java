@@ -1,7 +1,6 @@
 package org.ikasan.studio.ui;
 
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.project.Project;
 import org.ikasan.studio.ui.state.StudioSessionOptions;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.maven.IkasanPomModel;
@@ -11,7 +10,6 @@ import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
@@ -55,13 +53,11 @@ public final class UiContext {
     private static final String IKASAN_POM_MODEL = "ikasanPomModel";
     private static final String SELECTED_COMPONENT = "selectedComponent";
 
-    private final Project project;
     private final Map<String, Object> cache = new TreeMap<>();
     private volatile boolean modelPersistenceAllowed = true;
     private volatile String modelPersistenceBlockReason;
 
-    public UiContext(Project project) {
-        this.project = project;
+    public UiContext() {
         // Initialize options cache as these are essential
         this.cache.putIfAbsent(OPTIONS, new StudioSessionOptions());
     }
@@ -97,14 +93,9 @@ public final class UiContext {
     }
 
     public IkasanPomModel getIkasanPomModel() {
-        IkasanPomModel ikasanPomModel = (IkasanPomModel) getFromCache(IKASAN_POM_MODEL);
-        if (ikasanPomModel == null) {
-            ikasanPomModel = StudioProjectFiles.pomLoadFromVirtualDisk(project);
-            if (ikasanPomModel != null) {
-                setIkasanPomModel(ikasanPomModel);
-            }
-        }
-        return ikasanPomModel;
+        // Never hide disk/PSI work behind a context getter: callers commonly run on the EDT.
+        // Background project initialization is responsible for populating this cache.
+        return (IkasanPomModel) getFromCache(IKASAN_POM_MODEL);
     }
 
     public void setIkasanPomModel(IkasanPomModel pom) {
@@ -134,14 +125,8 @@ public final class UiContext {
 
     @SuppressWarnings("unchecked")
     public Map<String, String> getApplicationProperties() {
-        Map<String, String> applicationProperties = (Map<String, String>) getFromCache(APPLICATION_PROPERTIES);
-        if (applicationProperties == null) {
-            applicationProperties = StudioProjectFiles.getApplicationPropertiesMapFromVirtualDisk(project);
-            if (applicationProperties != null) {
-                setApplicationProperties(applicationProperties);
-            }
-        }
-        return applicationProperties;
+        // Populated by generation/loading off the EDT; deliberately cache-only for UI callers.
+        return (Map<String, String>) getFromCache(APPLICATION_PROPERTIES);
     }
 
     public void setApplicationProperties(Map<String, String> applicationProperties) {

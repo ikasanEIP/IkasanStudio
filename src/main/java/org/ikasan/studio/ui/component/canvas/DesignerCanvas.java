@@ -121,6 +121,7 @@ public class DesignerCanvas extends JPanel {
     // repaint() on the EDT at a fixed visual cadence - it has no work of its own to do off-EDT.
     private Timer flowErrorFlashTimer;
     private boolean flowErrorFlashOn = false;
+    private boolean disposed;
     // The OS-level click that brings the whole IDE window back into focus (e.g. after switching to
     // another desktop app) is also delivered to whichever component is underneath it as a genuine
     // MOUSE_PRESSED event. If that happens to land on empty canvas, it would otherwise be treated as a
@@ -2111,6 +2112,9 @@ public class DesignerCanvas extends JPanel {
     }
 
     private void updateFlowErrorFlashTimer(boolean anyFlagged) {
+        if (disposed) {
+            return;
+        }
         if (anyFlagged) {
             if (flowErrorFlashTimer == null) {
                 flowErrorFlashTimer = new Timer(FLOW_ERROR_FLASH_INTERVAL_MS, e -> {
@@ -2124,6 +2128,20 @@ public class DesignerCanvas extends JPanel {
             flowErrorFlashTimer = null;
             flowErrorFlashOn = false;
         }
+    }
+
+    /** Releases canvas-owned Swing activity before the editor hierarchy is discarded. */
+    public void disposeCanvas() {
+        disposed = true;
+        if (flowErrorFlashTimer != null) {
+            flowErrorFlashTimer.stop();
+            flowErrorFlashTimer = null;
+        }
+        setTransferHandler(null);
+    }
+
+    public boolean isDisposed() {
+        return disposed;
     }
 
     private static final int TRANSPORT_BUTTON_SIZE = 14;

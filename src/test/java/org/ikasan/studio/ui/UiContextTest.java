@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui;
 
-import com.intellij.openapi.project.Project;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
@@ -22,7 +21,7 @@ class UiContextTest {
 
     @Test
     void closingOwningDesignerClearsUiReferencesButRetainsModelState() {
-        UiContext context = new UiContext(mock(Project.class));
+        UiContext context = new UiContext();
         DesignerUI owningDesigner = mock(DesignerUI.class);
         DesignerUI staleDesigner = mock(DesignerUI.class);
         DesignerCanvas canvas = mock(DesignerCanvas.class);
@@ -48,7 +47,7 @@ class UiContextTest {
 
     @Test
     void deletionResetsPropertiesToModuleAndSelectsPalette() {
-        UiContext context = new UiContext(mock(Project.class));
+        UiContext context = new UiContext();
         Module module = mock(Module.class);
         DesignerCanvas canvas = mock(DesignerCanvas.class);
         ComponentPropertiesTabPanel propertiesTab = mock(ComponentPropertiesTabPanel.class);

@@ -46,6 +46,7 @@ public class DesignerUI implements Disposable {
     // which the listener would then immediately re-persist, silently corrupting the user's saved width
     // on every single restart.
     private boolean restoringDividerLocation = false;
+    private volatile boolean disposed;
 
     /**
      * Create the main Designer window, this contains ALL the Ikasan Studio elements except source code.
@@ -161,7 +162,7 @@ public class DesignerUI implements Disposable {
      * the panel grows to fit that content instead of staying at its empty-state width.
      */
     public void resizeRightPanelToContent() {
-        if (project.isDisposed()) {
+        if (disposed || project.isDisposed()) {
             return;
         }
         UiContext uiContext = project.getService(UiContext.class);
@@ -183,6 +184,9 @@ public class DesignerUI implements Disposable {
      * the divider-location listener, corrupting the user's saved width. Only ever runs on the EDT.
      */
     private void applyRightPanelWidth(UiContext uiContext, PaletteTabPanel finalPaletteTabPanel, int attempt) {
+        if (disposed || project.isDisposed()) {
+            return;
+        }
         int persistedWidth = PropertiesComponent.getInstance(project)
                 .getInt(RIGHT_PANEL_WIDTH_PROPERTY, NO_PERSISTED_WIDTH);
         // Only the Palette tab is actually visible right now (it's the one just force-selected in
@@ -217,7 +221,7 @@ public class DesignerUI implements Disposable {
     }
 
     private void completeInitialisation(UiContext uiContext) {
-        if (project.isDisposed()) {
+        if (disposed || project.isDisposed()) {
             return;
         }
         try {
@@ -266,7 +270,7 @@ public class DesignerUI implements Disposable {
 
     private void initialisationStateChanged(StudioProjectInitialisationService.State state, String detail) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            if (project.isDisposed()) {
+            if (disposed || project.isDisposed()) {
                 return;
             }
             contentLayout.show(contentPanel, state == StudioProjectInitialisationService.State.READY
@@ -287,6 +291,7 @@ public class DesignerUI implements Disposable {
 
     @Override
     public void dispose() {
+        disposed = true;
         // The message-bus connection is disposed with this UI instance.
         if (!project.isDisposed()) {
             project.getService(UiContext.class).clearDesignerUI(this);

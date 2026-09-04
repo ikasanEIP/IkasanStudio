@@ -33,6 +33,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
     JButton harnessesButton = new JButton(StudioBundle.message("button.Harnesses"), AllIcons.Actions.Execute);
     private final Timer harnessRefreshTimer;
+    private final DesignerCanvas designerCanvas;
     // These are the less commonly needed controls, gated behind the "Show advanced controls" setting (see
     // IkasanStudioSettings) rather than removed outright, since each is still a legitimate escape hatch:
     // H2 console and Blue console are secondary debugging aids, and Load is only for manually reloading
@@ -42,7 +43,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
-        DesignerCanvas designerCanvas = new DesignerCanvas(project);
+        designerCanvas = new DesignerCanvas(project);
         UiContext uiContext = project.getService(UiContext.class);
         uiContext.setDesignerCanvas(designerCanvas);
 
@@ -118,6 +119,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     @Override
     public void dispose() {
         harnessRefreshTimer.stop();
+        designerCanvas.disposeCanvas();
         if (canvasTextArea.getCaret() instanceof DefaultCaret caret) {
             caret.setBlinkRate(0);
         }

@@ -233,6 +233,13 @@ tasks {
 
 intellijPlatformTesting {
     runIde {
+        register("runIdeInternal") {
+            task {
+                jvmArgumentProviders += CommandLineArgumentProvider {
+                    listOf("-Didea.is.internal=true")
+                }
+            }
+        }
         register("runIdeForUiTests") {
             task {
                 jvmArgumentProviders += CommandLineArgumentProvider {

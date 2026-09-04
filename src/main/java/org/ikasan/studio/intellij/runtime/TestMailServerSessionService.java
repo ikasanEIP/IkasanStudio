@@ -45,6 +45,7 @@ public final class TestMailServerSessionService implements Disposable {
     private final Project project;
     private final Alarm alarm;
     private volatile Set<String> listeningAddresses = Set.of();
+    private volatile boolean disposed;
 
     public TestMailServerSessionService(Project project) {
         this.project = project;
@@ -65,7 +66,7 @@ public final class TestMailServerSessionService implements Disposable {
      * setting promises, not something it should also suppress.
      */
     public void pollNow() {
-        if (!alarm.isDisposed()) {
+        if (!disposed && !alarm.isDisposed()) {
             alarm.cancelAllRequests();
             alarm.addRequest(() -> {
                 probeAndUpdateState();
@@ -75,7 +76,7 @@ public final class TestMailServerSessionService implements Disposable {
     }
 
     private void scheduleNextPoll() {
-        if (!alarm.isDisposed()) {
+        if (!disposed && !alarm.isDisposed()) {
             alarm.addRequest(this::pollAndReschedule, POLL_INTERVAL_MS);
         }
     }
@@ -98,7 +99,7 @@ public final class TestMailServerSessionService implements Disposable {
 
     private void probeAndUpdateState() {
         Set<String> nowListening = new HashSet<>();
-        Module ikasanModule = project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
+        Module ikasanModule = disposed || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
         if (ikasanModule != null) {
             List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
             for (TestMailServerLinks.Link link : links) {
@@ -116,9 +117,9 @@ public final class TestMailServerSessionService implements Disposable {
 
     private void repaintCanvas() {
         Runnable repaint = () -> {
-            if (!project.isDisposed()) {
+            if (!disposed && !project.isDisposed()) {
                 DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
-                if (canvas != null) {
+                if (canvas != null && !canvas.isDisposed()) {
                     canvas.repaint();
                 }
             }
@@ -132,6 +133,8 @@ public final class TestMailServerSessionService implements Disposable {
 
     @Override
     public void dispose() {
+        disposed = true;
+        alarm.cancelAllRequests();
         listeningAddresses = Set.of();
     }
 }

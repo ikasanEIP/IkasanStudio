@@ -25,14 +25,12 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.IncorrectOperationException;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
@@ -54,7 +52,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
 
 import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_SOURCE;
 import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_TARGET;
@@ -78,7 +75,6 @@ public class StudioProjectFiles {
     public static final String MODEL_JSON = "model.json";
     public static final String POM_XML = "pom.xml";
     public static final String JSON_MODEL_FULL_PATH = SRC_MAIN_MODEL + "/" + MODEL_JSON;
-    public static final String APPLICATION_PROPERTIES_FULL_PATH = SRC_MAIN_RESOURCES + "/" + MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
     // Enforce utility nature upon class
     private StudioProjectFiles() {}
@@ -127,25 +123,6 @@ public class StudioProjectFiles {
             }
         }
         return jsonModel.get();
-    }
-
-    /**
-     * Load the content of the application properties file
-     * @param project is the Intellij project instance
-     * @return a map of the Ikasan application properties, typically located in application.properties
-     */
-    public static Map<String, String> getApplicationPropertiesMapFromVirtualDisk(Project project) {
-        Map<String, String> applicationProperties = null;
-        VirtualFile selectedContentRoot = getSpecificContentRootFromCache(project);
-        if (selectedContentRoot != null) {
-            PsiFile applicationPropertiesVF = getPsiFileFromPath(project, selectedContentRoot, APPLICATION_PROPERTIES_FULL_PATH);
-            if (applicationPropertiesVF == null) {
-                LOG.warn("STUDIO: Could not get application properties file from path " + APPLICATION_PROPERTIES_FULL_PATH);
-            } else {
-                applicationProperties = StudioBuildUtils.convertStringToMap(applicationPropertiesVF.getText());
-            }
-        }
-        return applicationProperties;
     }
 
     /**
@@ -452,9 +429,18 @@ public class StudioProjectFiles {
     }
 
     public static void causeRedraw(Project project) {
-        UiContext uiContext = project.getService(UiContext.class);
-        uiContext.getDesignerCanvas().setInitialiseAllDimensions(true);
-        uiContext.getDesignerCanvas().repaint();
+        Runnable redraw = () -> {
+            if (project.isDisposed()) return;
+            var canvas = project.getService(UiContext.class).getDesignerCanvas();
+            if (canvas == null || canvas.isDisposed()) return;
+            canvas.setInitialiseAllDimensions(true);
+            canvas.repaint();
+        };
+        if (ApplicationManager.getApplication().isDispatchThread()) {
+            redraw.run();
+        } else {
+            ApplicationManager.getApplication().invokeLater(redraw);
+        }
     }
 
 
@@ -837,47 +823,6 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
             }
         }
         return null;
-    }
-
-    public static PsiFile getPsiFileFromPath(final Project project, VirtualFile root, String filePath) {
-        PsiFile returnFile = null;
-
-        if (root != null && filePath != null && filePath.length() > 1) {
-            String fileName = FilenameUtils.getName(filePath);
-            String directoryPath = FilenameUtils.getFullPathNoEndSeparator(filePath);
-            PsiDirectory psiDirectory = getPsiDirectoryLeafFromPath(project, root, directoryPath);
-            if (psiDirectory != null) {
-                returnFile = psiDirectory.findFile(fileName);
-            }
-        }
-        return returnFile;
-    }
-
-    public static PsiDirectory getPsiDirectoryLeafFromPath(final Project project, VirtualFile root, String target) {
-        if (root.isDirectory()) {
-            return getPsiDirectoryLeafFromPath(PsiDirectoryFactory.getInstance(project).createDirectory(root), target);
-        }
-        return null;
-    }
-
-    /**
-     * Attempt to access the leaf of 'target' by traversing each directory downwards from root.
-     * @param root One of the project roots e.f. ~/ws/proj
-     * @param target A dir or subdir off that root e.g. 'src' or 'src/main/model'
-     * @return The PsiDirectory that reflects the last directory in target or nulll if not found
-     */
-    public static PsiDirectory getPsiDirectoryLeafFromPath(PsiDirectory root, String target) {
-        PsiDirectory returnDirectory = root;
-        if (root != null && target != null && !target.isEmpty()) {
-            String[] subDirs = target.split(Pattern.quote("/"));
-            for(String dir : subDirs) {
-                returnDirectory = returnDirectory.findSubdirectory(dir);
-                if (returnDirectory == null) {
-                    break;
-                }
-            }
-        }
-        return returnDirectory;
     }
 
     /**

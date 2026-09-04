@@ -2,6 +2,7 @@ package org.ikasan.studio.intellij.onboarding;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.startup.ProjectActivity;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
@@ -23,18 +24,23 @@ public final class IkasanStudioOnboardingActivity implements ProjectActivity {
     @SuppressWarnings("NullableProblems")
     @Override
     public Object execute(Project project, Continuation<? super Unit> continuation) {
-        if (project.isDisposed() || !isIkasanStudioProject(project)) {
+        if (project.isDisposed()) {
             return Unit.INSTANCE;
         }
-
-        IkasanStudioEditorService editorService = project.getService(IkasanStudioEditorService.class);
-        if (!hasCompletedOnboarding(project)) {
-            editorService.open();
-            PropertiesComponent.getInstance(project)
-                    .setValue(ONBOARDING_VERSION_PROPERTY, CURRENT_ONBOARDING_VERSION, 0);
-        } else if (editorService.shouldRestore()) {
-            editorService.open();
-        }
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            boolean studioProject = !project.isDisposed() && isIkasanStudioProject(project);
+            ApplicationManager.getApplication().invokeLater(() -> {
+                if (!studioProject || project.isDisposed()) return;
+                IkasanStudioEditorService editorService = project.getService(IkasanStudioEditorService.class);
+                if (!hasCompletedOnboarding(project)) {
+                    editorService.open();
+                    PropertiesComponent.getInstance(project)
+                            .setValue(ONBOARDING_VERSION_PROPERTY, CURRENT_ONBOARDING_VERSION, 0);
+                } else if (editorService.shouldRestore()) {
+                    editorService.open();
+                }
+            });
+        });
         return Unit.INSTANCE;
     }
 

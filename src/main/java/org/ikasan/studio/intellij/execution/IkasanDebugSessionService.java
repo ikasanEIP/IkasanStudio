@@ -46,6 +46,7 @@ public final class IkasanDebugSessionService implements Disposable {
             Collections.newSetFromMap(new IdentityHashMap<>());
     private final Alarm reachabilityAlarm;
     private boolean moduleReachable = false;
+    private volatile boolean disposed;
 
     public IkasanDebugSessionService(Project project) {
         this.project = project;
@@ -223,7 +224,7 @@ public final class IkasanDebugSessionService implements Disposable {
     }
 
     private void scheduleReachabilityProbe() {
-        if (!reachabilityAlarm.isDisposed()) {
+        if (!disposed && !reachabilityAlarm.isDisposed()) {
             reachabilityAlarm.addRequest(this::probeModuleReachability, REACHABILITY_PROBE_INTERVAL_MS);
         }
     }
@@ -236,7 +237,7 @@ public final class IkasanDebugSessionService implements Disposable {
      * already in flight when that cancellation happened).
      */
     private void probeModuleReachability() {
-        if (!isDebugModuleRunning() || project.isDisposed()) {
+        if (disposed || !isDebugModuleRunning() || project.isDisposed()) {
             return;
         }
         Module module = project.getService(UiContext.class).getIkasanModule();
@@ -261,9 +262,9 @@ public final class IkasanDebugSessionService implements Disposable {
 
     private void repaintCanvas() {
         Runnable repaint = () -> {
-            if (!project.isDisposed()) {
+            if (!disposed && !project.isDisposed()) {
                 DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
-                if (canvas != null) {
+                if (canvas != null && !canvas.isDisposed()) {
                     canvas.repaint();
                 }
             }
@@ -277,6 +278,8 @@ public final class IkasanDebugSessionService implements Disposable {
 
     @Override
     public synchronized void dispose() {
+        disposed = true;
+        reachabilityAlarm.cancelAllRequests();
         moduleProcesses.clear();
         debugProcesses.clear();
     }

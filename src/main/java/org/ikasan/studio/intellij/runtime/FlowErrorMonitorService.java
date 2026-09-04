@@ -48,6 +48,7 @@ public final class FlowErrorMonitorService implements Disposable {
     private final FlowErrorStates errorStates = new FlowErrorStates();
     private final FlowRuntimeStatuses flowStatuses = new FlowRuntimeStatuses();
     private volatile boolean moduleProcessRunning;
+    private volatile boolean disposed;
 
     public FlowErrorMonitorService(Project project) {
         this.project = project;
@@ -72,7 +73,9 @@ public final class FlowErrorMonitorService implements Disposable {
      * monitoring switched off, not at all). Safe to call from any thread.
      */
     public void pollNow() {
-        pollAndUpdateState();
+        if (!disposed && !alarm.isDisposed()) {
+            alarm.addRequest(this::pollAndUpdateState, 0);
+        }
     }
 
     /** Called by the execution lifecycle when this project's first Studio module process starts. */
@@ -97,7 +100,7 @@ public final class FlowErrorMonitorService implements Disposable {
     }
 
     private void scheduleNextPoll() {
-        if (!alarm.isDisposed()) {
+        if (!disposed && !alarm.isDisposed()) {
             alarm.addRequest(this::pollAndReschedule, POLL_INTERVAL_MS);
         }
     }
@@ -114,7 +117,7 @@ public final class FlowErrorMonitorService implements Disposable {
     }
 
     private void pollAndUpdateState() {
-        Module ikasanModule = project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
+        Module ikasanModule = disposed || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
         if (ikasanModule == null || ikasanModule.getIdentity() == null || ikasanModule.getPort() == null) {
             return;
         }
@@ -160,7 +163,7 @@ public final class FlowErrorMonitorService implements Disposable {
     private void notifyNewError(String flowName, String summary) {
         String message = "Flow '" + flowName + "' has stopped in error" + (summary != null ? ": " + summary : ".");
         Runnable show = () -> {
-            if (!project.isDisposed()) {
+            if (!disposed && !project.isDisposed()) {
                 StudioUIUtils.displayIdeaErrorMessage(project, message);
             }
         };
@@ -169,9 +172,9 @@ public final class FlowErrorMonitorService implements Disposable {
 
     private void repaintCanvas() {
         Runnable repaint = () -> {
-            if (!project.isDisposed()) {
+            if (!disposed && !project.isDisposed()) {
                 DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
-                if (canvas != null) {
+                if (canvas != null && !canvas.isDisposed()) {
                     canvas.repaint();
                 }
             }
@@ -189,5 +192,8 @@ public final class FlowErrorMonitorService implements Disposable {
 
     @Override
     public void dispose() {
+        disposed = true;
+        moduleProcessRunning = false;
+        alarm.cancelAllRequests();
     }
 }

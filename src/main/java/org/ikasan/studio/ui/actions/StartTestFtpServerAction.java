@@ -47,11 +47,34 @@ public final class StartTestFtpServerAction implements ActionListener {
                             StudioBundle.message("message.TestFtpServerRequiresLocalHost")));
                 } catch (Exception e) {
                     LOG.warn("STUDIO: Could not start test FTP server", e);
+                    if (isPortConflict(e)) {
+                        ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
+                                StudioBundle.message("message.TestFtpServerPortConflict", configuration.address())));
+                        return;
+                    }
                     String detail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
                             StudioBundle.message("message.CouldNotStartTestFtpServer", detail)));
                 }
             }
         });
+    }
+
+    /**
+     * Apache MINA's FtpServer wraps the real java.net.BindException ("Address already in use") in its own
+     * generic FtpException with a "Failed to bind..." message - walking the cause chain for the actual
+     * BindException is more robust than matching that wording, which could change between library versions.
+     * Since {@link TestFtpServerService} is project-scoped (each project runs its own embedded server, with
+     * no awareness of any other project's), while the actual TCP port is real OS-level state shared across
+     * every project on the machine, this is far more often "a different project's test FTP server already
+     * owns this exact host/port" than any other startup failure - worth a specific, actionable message.
+     */
+    private static boolean isPortConflict(Throwable error) {
+        for (Throwable t = error; t != null; t = t.getCause()) {
+            if (t instanceof java.net.BindException) {
+                return true;
+            }
+        }
+        return false;
     }
 }

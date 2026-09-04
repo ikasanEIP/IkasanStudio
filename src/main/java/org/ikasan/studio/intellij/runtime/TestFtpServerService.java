@@ -1,6 +1,7 @@
 package org.ikasan.studio.intellij.runtime;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
@@ -25,10 +26,12 @@ public final class TestFtpServerService implements Disposable {
     private FtpServer server;
     private TestFtpServerConfiguration configuration;
     private Path rootDirectory;
+    private volatile boolean disposed;
 
     public TestFtpServerService(Project project) { this.project = project; }
 
     public synchronized Path start(TestFtpServerConfiguration requested) throws Exception {
+        if (disposed || project.isDisposed()) throw new IllegalStateException("Project is disposed");
         if (!isLocalHost(requested.host())) throw new IllegalArgumentException("remoteHost must be local");
         if (isRunning()) {
             // Address match, not record equality - a Producer configured for "localhost" asking to start the
@@ -84,10 +87,16 @@ public final class TestFtpServerService implements Disposable {
         repaintCanvas();
     }
     private void repaintCanvas() {
-        if (!project.isDisposed() && project.getService(UiContext.class).getDesignerCanvas() != null) {
-            project.getService(UiContext.class).getDesignerCanvas().setInitialiseAllDimensions(true);
-            project.getService(UiContext.class).getDesignerCanvas().repaint();
-        }
+        var application = ApplicationManager.getApplication();
+        // Plain unit tests intentionally exercise the embedded server without booting an IDE application.
+        if (application == null) return;
+        application.invokeLater(() -> {
+            if (disposed || project.isDisposed()) return;
+            var canvas = project.getService(UiContext.class).getDesignerCanvas();
+            if (canvas == null || canvas.isDisposed()) return;
+            canvas.setInitialiseAllDimensions(true);
+            canvas.repaint();
+        });
     }
     static boolean isLocalHost(String host) throws Exception {
         for (InetAddress address : InetAddress.getAllByName(host)) if (address.isLoopbackAddress()) return true;
@@ -101,5 +110,21 @@ public final class TestFtpServerService implements Disposable {
         String projectName = project.getName().replaceAll("[^A-Za-z0-9._-]", "_");
         return Path.of(PathManager.getSystemPath(), "ikasan-studio", "ftp", projectName, "root");
     }
-    @Override public void dispose() { stop(); }
+    @Override public void dispose() {
+        disposed = true;
+        FtpServer running;
+        synchronized (this) {
+            running = server;
+            server = null;
+            configuration = null;
+        }
+        if (running != null) {
+            var application = ApplicationManager.getApplication();
+            if (application == null) {
+                running.stop();
+            } else {
+                application.executeOnPooledThread(running::stop);
+            }
+        }
+    }
 }
