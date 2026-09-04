@@ -371,8 +371,15 @@ public class StudioProjectFiles {
         }
 
         try {
+            // allowEmptyBootstrap=true: this validator also gates the *existing* on-disk file (and backups -
+            // see getValidModelBackupIndexes/restoreModelBackup below) before ProtectedModelFileWriter is
+            // willing to touch it, not just the new candidate. A freshly scaffolded project (e.g. from an
+            // archetype) can legitimately still be in the not-yet-configured bootstrap shape the first time a
+            // save happens here - that's not corruption, so it must not block the save. The candidate itself
+            // stays effectively strict regardless: ModelTemplate.create()/toValidatedModuleJson() already
+            // validates it with allowEmptyBootstrap=false before it ever reaches this method.
             ProtectedModelFileWriter.write(target, content,
-                    json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), false));
+                    json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), true));
             LocalFileSystem.getInstance().refreshAndFindFileByNioFile(target);
             LOG.info("STUDIO: Safely saved Json Model with rotating backups, project [" + project +
                     "] content size " + content.length() + " bytes");
@@ -384,8 +391,10 @@ public class StudioProjectFiles {
     public static List<Integer> getValidModelBackupIndexes(Project project) {
         Path target = getModelJsonPath(project);
         if (target == null) return List.of();
+        // allowEmptyBootstrap=true, consistent with replaceJsonModelFileSafely above: a rotated backup can
+        // legitimately be a not-yet-configured bootstrap snapshot rather than corrupted data.
         return ProtectedModelFileWriter.validBackupIndexes(target,
-                json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), false));
+                json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), true));
     }
 
     public static Path restoreModelBackup(Project project, int index) {
@@ -402,7 +411,7 @@ public class StudioProjectFiles {
         }
         try {
             Path rejected = ProtectedModelFileWriter.restoreBackup(target, index,
-                    json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), false));
+                    json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), true));
             LocalFileSystem.getInstance().refreshAndFindFileByNioFile(target);
             if (openDocument != null) {
                 ApplicationManager.getApplication().invokeAndWait(() ->

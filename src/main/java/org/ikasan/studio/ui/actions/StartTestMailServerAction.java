@@ -88,6 +88,19 @@ public class StartTestMailServerAction implements ActionListener {
                     });
                     return;
                 }
+                // MailHog's web inbox always binds the same fixed UI_HOST:UI_PORT regardless of which
+                // component/project started it (unlike the SMTP address, which is per-component). If a
+                // different instance already owns it, this one would fail to bind that port too - visible only
+                // as a bind-address-in-use error printed in its own Terminal tab, with nothing in Studio's own
+                // messaging to explain it (the SMTP probe above genuinely reports "not running" since the
+                // process never got that far). Catching it here up front gives a precise, immediate reason
+                // instead of a silent "Starting..." that never actually starts.
+                if (TestMailServerSupport.isAlreadyListening(TestMailServerSupport.UI_HOST, TestMailServerSupport.UI_PORT)) {
+                    ApplicationManager.getApplication().invokeLater(() ->
+                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message(
+                                    "message.AnotherTestMailServerAlreadyRunning", smtpAddress, TestMailServerSupport.UI_PORT)));
+                    return;
+                }
                 try {
                     Path binary = ensureBinaryDownloaded();
                     ApplicationManager.getApplication().invokeLater(() -> {
@@ -99,6 +112,7 @@ public class StartTestMailServerAction implements ActionListener {
                     // milliseconds of the command being sent, but if it hasn't quite yet, the node simply
                     // appears on the session service's own next scheduled poll a few seconds later instead.
                     project.getService(TestMailServerSessionService.class).pollNow();
+                    warnIfNotActuallyListening(smtpHost, smtpPort, smtpAddress);
                 } catch (UnsupportedPlatformException e) {
                     LOG.warn("STUDIO: No test mail server build available for this platform", e);
                     ApplicationManager.getApplication().invokeLater(() ->
@@ -114,6 +128,29 @@ public class StartTestMailServerAction implements ActionListener {
                 }
             }
         });
+    }
+
+    /**
+     * MailHog is launched fire-and-forget into a Terminal tab (see launchInTerminal) - Studio's own messaging
+     * above already declared it "Starting..." optimistically, before knowing whether it actually bound its
+     * ports. If it fails (the most common cause being a different test mail server instance already holding
+     * the shared web inbox port - see the pre-flight check in actionPerformed, which only catches that
+     * happening *before* this launch, not a same-instant race), the only sign is an error printed in that
+     * terminal - easy to miss since nothing in Studio's own UI otherwise indicates a problem. A short re-probe
+     * of the actual SMTP address once MailHog would normally have started catches that and surfaces it
+     * explicitly. Only ever called from the Task.Backgroundable thread in actionPerformed, never the EDT.
+     */
+    private void warnIfNotActuallyListening(String smtpHost, int smtpPort, String smtpAddress) {
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        if (!TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
+            ApplicationManager.getApplication().invokeLater(() ->
+                    StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerFailedToStart", smtpAddress)));
+        }
     }
 
     private Path cacheDirectory() {
@@ -202,7 +239,7 @@ public class StartTestMailServerAction implements ActionListener {
             // MailHog defaults it to the same port anyway - matches the exact invocation this feature was
             // validated against manually before being wired into the plugin, so there's no ambiguity if that
             // default ever changes.
-            String command = quotedBinaryPath + " -smtp-bind-addr " + smtpHost + ":" + smtpPort
+            String command = quotedBinaryPath + " " + TestMailServerSupport.smtpBindAddrArgument(smtpHost + ":" + smtpPort)
                     + " -api-bind-addr " + uiAddress + " -ui-bind-addr " + uiAddress;
             terminalWidget.sendCommandToExecute(command);
         });

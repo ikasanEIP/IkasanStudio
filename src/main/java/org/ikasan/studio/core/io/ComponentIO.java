@@ -143,6 +143,14 @@ public class ComponentIO {
         }
         Module module = deserializeModuleInstanceString(json, source);
         if (!module.isInitialised()) {
+            // ModuleDeserializer itself already substitutes a dumb module whenever the persisted JSON has no
+            // "version" field at all - the signature of a freshly scaffolded project (e.g. from an archetype)
+            // that can have a few top-level fields already filled in (name, applicationPackageName) but hasn't
+            // been configured in Studio yet. Same "nothing to load yet" state as a literally empty {} above,
+            // not a corrupted model - unlike any other kind of partial/incomplete data, which still fails below.
+            if (allowEmptyBootstrap && Module.DUMB_MODULE_VERSION.equals(module.getVersion())) {
+                return module;
+            }
             throw new StudioBuildException("The serialised data in [" + source + "] is missing required configured-module fields");
         }
         return module;

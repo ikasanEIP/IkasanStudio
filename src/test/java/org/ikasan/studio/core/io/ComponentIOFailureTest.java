@@ -14,8 +14,8 @@ import java.util.Collections;
 import java.util.HashMap;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ComponentIOFailureTest {
     @BeforeAll
@@ -47,8 +47,19 @@ class ComponentIOFailureTest {
     @Test
     void onlyTheExplicitEmptyArchetypeBootstrapMayBeIncomplete() throws Exception {
         Module bootstrap = ComponentIO.validatePersistedModuleJson("{}", "new project", true);
-        assertTrue(!bootstrap.isInitialised());
+        assertFalse(bootstrap.isInitialised());
         assertThrows(StudioBuildException.class,
                 () -> ComponentIO.validatePersistedModuleJson("{}", "save candidate", false));
+    }
+
+    @Test
+    void unversionedArchetypeScaffoldingIsAlsoAcceptedAsBootstrap() throws Exception {
+        // Real-world shape written by a project archetype before Studio has configured it: some top-level
+        // fields already filled in, but no "version" - not a corrupted/partially-saved module.
+        String scaffolded = "{\"name\":\"jmsToFtp\",\"applicationPackageName\":\"org.example.jtf\"}";
+        Module bootstrap = ComponentIO.validatePersistedModuleJson(scaffolded, "new project", true);
+        assertFalse(bootstrap.isInitialised());
+        assertThrows(StudioBuildException.class,
+                () -> ComponentIO.validatePersistedModuleJson(scaffolded, "save candidate", false));
     }
 }

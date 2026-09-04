@@ -123,6 +123,14 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     public void showWaitingForProjectImport() {
         showProgress(StudioBundle.message("label.ImportingTheMavenProject"),
                 StudioBundle.message("message.IkasanStudioWillContinueAutomaticallyWhenIntellijHasImported"));
+        // Unlike the other progress states, this one waits on an external event (IntelliJ's own Maven import
+        // firing ModuleRootListener.rootsChanged) that Studio has no control over and can't time out on its
+        // own - if that import itself ever hangs, Studio would otherwise wait here forever with no way out.
+        // Retry re-runs the same check the listener would have triggered, so the user has a manual escape
+        // hatch once they've nudged the import along themselves (e.g. via the Maven tool window).
+        retryLink.setVisible(true);
+        revalidate();
+        repaint();
     }
 
     public void showReadingProject() {
