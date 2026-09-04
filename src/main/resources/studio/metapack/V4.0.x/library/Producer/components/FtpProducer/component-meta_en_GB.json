@@ -71,6 +71,7 @@
     },
     "clientID": {
       "propertyName": "clientID",
+      "propertyDisplayOrder": 20,
       "defaultValue": "__flow",
       "helpText": "ClientID is used in the persisted metadata to identify this component uniquely in the context of the module. Since a flow can have only one consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,

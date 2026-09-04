@@ -112,14 +112,28 @@ public class ComponentPropertyEditRowConditionalMandatoryTest {
         assertTrue(passwordRow.doValidateAll().isEmpty(), "typing a private key path live should immediately unblock password's validation");
     }
 
+    /**
+     * password/privateKeyFilename/knownHostFilename are grouped under two mandatorySectionHeadings ("Provide
+     * password or" / "Provide key and hosts" - see ComponentPropertiesPanel#flushMandatoryHeadingGroup) rather
+     * than each carrying the plain pairwise "(or ...)" label cue: with three fields across two alternatives
+     * (password alone, or privateKeyFilename together with knownHostFilename), a per-row "(or a / b)" suffix
+     * would suggest all three are interchangeable, which they aren't - knownHostFilename is only ever useful
+     * alongside privateKeyFilename, not as a substitute for it.
+     */
     @Test
-    public void labelCarriesTheEitherOrCueDerivedFromMandatoryUnlessAnyOf() {
+    public void labelHasNoEitherOrCueOnceGroupedUnderAMandatorySectionHeading() {
         FlowElement flowElement = newSftpConsumer();
         ComponentPropertyEditRow passwordRow = rowFor(flowElement, "password", new HashMap<>());
         ComponentPropertyEditRow privateKeyRow = rowFor(flowElement, "privateKeyFilename", new HashMap<>());
+        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostFilename", new HashMap<>());
 
-        assertEquals("Password (or privateKeyFilename)", passwordRow.getPropertyTitleField().getText());
-        assertEquals("Private Key Filename (or password)", privateKeyRow.getPropertyTitleField().getText());
+        assertEquals("Password", passwordRow.getPropertyTitleField().getText());
+        assertEquals("Private Key Filename", privateKeyRow.getPropertyTitleField().getText());
+        assertEquals("Known Hosts Filename", knownHostRow.getPropertyTitleField().getText());
+
+        assertEquals("Provide password or", passwordRow.getComponentProperty().getMeta().getMandatorySectionHeading());
+        assertEquals("Provide key and hosts", privateKeyRow.getComponentProperty().getMeta().getMandatorySectionHeading());
+        assertEquals("Provide key and hosts", knownHostRow.getComponentProperty().getMeta().getMandatorySectionHeading());
     }
 
     @Test

@@ -599,11 +599,22 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 }
             }
 
+            // Label-column alignment (see alignPropertyLabelColumnWidths) is applied per section, not across the
+            // whole panel: the two sections are independently bordered blocks, and Optional Properties starts
+            // collapsed, so letting a long optional label (e.g. SFTP's preferredKeyExchangeAlgorithm) dictate the
+            // width of every mandatory label would strand the always-visible fields far to the right to line up
+            // with something the user cannot even see.
+            List<ComponentPropertyEditRow> flatMandatoryRows = new ArrayList<>();
+            List<LabelAlignmentGroup> mandatorySectionGroups = new ArrayList<>();
+            mandatorySectionGroups.add(new LabelAlignmentGroup(flatMandatoryRows, 0));
+            List<LabelAlignmentGroup> optionalSectionGroups = new ArrayList<>();
+
             // Component identity should be the first property if it exists
             if (getSelectedComponent().getIdentityPropertyMetaKey() != null) {
-                componentPropertyEditRowList.add(
-                    addNameValueToPropertiesEditPanel(
-                        mandatoryPropertiesEditorPanel, getSelectedComponent().getProperty(getSelectedComponent().getIdentityPropertyMetaKey()), gc, mandatoryTabley++));
+                ComponentPropertyEditRow identityRow = addNameValueToPropertiesEditPanel(
+                        mandatoryPropertiesEditorPanel, getSelectedComponent().getProperty(getSelectedComponent().getIdentityPropertyMetaKey()), gc, mandatoryTabley++);
+                componentPropertyEditRowList.add(identityRow);
+                flatMandatoryRows.add(identityRow);
             }
 
             if (!getSelectedComponent().getComponentMeta().getAllowableProperties().isEmpty()) {
@@ -615,8 +626,17 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 Map<String, List<ComponentProperty>> groupedOptionalProperties = new LinkedHashMap<>();
                 GridBagConstraints mandatoryHeadingGc = new GridBagConstraints();
                 mandatoryHeadingGc.fill = GridBagConstraints.HORIZONTAL;
-                mandatoryHeadingGc.insets = JBUI.insets(3, 4);
+                // No horizontal inset of its own (unlike a flat row's 4px): the sub-panel's titled border already
+                // supplies that much padding before its contents start, so adding 4px on top would indent its
+                // rows twice over and leave its box stopping short of the section's right edge.
+                mandatoryHeadingGc.insets = JBUI.insets(3, 0);
                 mandatoryHeadingGc.gridx = 0;
+                // REMAINDER, not the default gridwidth of 1: a heading sub-panel is a whole row, so it has to
+                // span the same label/aux/field columns a flat row occupies. Left at 1 it sits inside the label
+                // column alone, which both stops it ever reaching the panel's right edge AND (because of the
+                // weightx below) inflates that label column to the sub-panel's own width, stranding every flat
+                // row's label in a needlessly wide column with its field pushed far to the right.
+                mandatoryHeadingGc.gridwidth = GridBagConstraints.REMAINDER;
                 mandatoryHeadingGc.weightx = 1;
                 // Consecutive mandatory-section properties sharing the same mandatorySectionHeading (e.g. Email
                 // Producer's six recipient fields, all "At least one of...") are clustered into one titled
@@ -641,7 +661,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             // gets the warning icon (getAffectsUserImplementedClassIndicator) and the save-time
                             // confirmation dialog - no separate "regenerating" section needed any more.
                             if (openMandatoryHeading != null) {
-                                mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc, mandatorySectionGroups);
                                 openMandatoryHeading = null;
                                 openMandatoryHeadingProperties = new ArrayList<>();
                             }
@@ -658,24 +678,25 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                             if (property.getMeta().hasMandatorySectionHeading()) {
                                 String heading = property.getMeta().getMandatorySectionHeading();
                                 if (openMandatoryHeading != null && !openMandatoryHeading.equals(heading)) {
-                                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc, mandatorySectionGroups);
                                     openMandatoryHeadingProperties = new ArrayList<>();
                                 }
                                 openMandatoryHeading = heading;
                                 openMandatoryHeadingProperties.add(property);
                             } else {
                                 if (openMandatoryHeading != null) {
-                                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc, mandatorySectionGroups);
                                     openMandatoryHeading = null;
                                     openMandatoryHeadingProperties = new ArrayList<>();
                                 }
-                                componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
-                                        mandatoryPropertiesEditorPanel,
-                                        property, gc, mandatoryTabley++));
+                                ComponentPropertyEditRow flatMandatoryRow = addNameValueToPropertiesEditPanel(
+                                        mandatoryPropertiesEditorPanel, property, gc, mandatoryTabley++);
+                                componentPropertyEditRowList.add(flatMandatoryRow);
+                                flatMandatoryRows.add(flatMandatoryRow);
                             }
                         } else {
                             if (openMandatoryHeading != null) {
-                                mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                                mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc, mandatorySectionGroups);
                                 openMandatoryHeading = null;
                                 openMandatoryHeadingProperties = new ArrayList<>();
                             }
@@ -684,7 +705,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     }
                 }
                 if (openMandatoryHeading != null) {
-                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc);
+                    mandatoryTabley = flushMandatoryHeadingGroup(mandatoryPropertiesEditorPanel, mandatoryHeadingGc, mandatoryTabley, openMandatoryHeading, openMandatoryHeadingProperties, gc, mandatorySectionGroups);
                 }
 
                 GridBagConstraints groupGc = new GridBagConstraints();
@@ -697,14 +718,21 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                     JBPanel groupPanel = new JBPanel(new GridBagLayout());
                     groupPanel.setBorder(null);
                     int groupTabley = 0;
+                    List<ComponentPropertyEditRow> optionalGroupRows = new ArrayList<>();
                     for (ComponentProperty property : groupedOptionalProperties.get(groupName)) {
-                        componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(
-                                groupPanel, property, gc, groupTabley++));
+                        ComponentPropertyEditRow optionalRow = addNameValueToPropertiesEditPanel(
+                                groupPanel, property, gc, groupTabley++);
+                        componentPropertyEditRowList.add(optionalRow);
+                        optionalGroupRows.add(optionalRow);
                         optionalTabley++;
                     }
                     setSubPanel(optionalPropertiesEditorPanel, groupPanel, groupDisplayLabel(groupName), getThemeAwareBorderColor(), groupGc);
+                    optionalSectionGroups.add(new LabelAlignmentGroup(optionalGroupRows, subPanelContentIndent(groupPanel, groupGc)));
                 }
             }
+
+            alignPropertyLabelColumnWidths(mandatorySectionGroups);
+            alignPropertyLabelColumnWidths(optionalSectionGroups);
 
             GridBagConstraints gc1 = new GridBagConstraints();
             gc1.fill = GridBagConstraints.HORIZONTAL;
@@ -973,6 +1001,67 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     /**
+     * Makes every property label in the panel - flat rows and rows tucked inside a titled sub-panel alike -
+     * start its input field at the same x. Each titled sub-panel (a mandatorySectionHeading cluster like SFTP
+     * Producer's "Provide password or"/"Provide key and hosts", or an Optional Properties group like
+     * "Connection") is its own independent JBPanel with its own GridBagLayout, so left to itself GridBagLayout
+     * sizes each one's label column only to the widest label inside THAT sub-panel - "Password" alone ends up in
+     * a narrower column than "Private Key Filename"/"Known Hosts Filename" next to it, so their fields visibly
+     * don't line up with each other or with the flat rows above/below (componentName, remoteHost, ...), even
+     * though every row uses the same gc.gridx=0/1 convention.
+     * -
+     * Fixed by giving every label across the whole panel the same explicit preferredSize width - the widest
+     * natural label width found anywhere in {@link #componentPropertyEditRowList} - once all rows (mandatory
+     * flat, mandatory sub-panels, and every Optional Properties group) have already been added. Each
+     * GridBagLayout then sizes its own label column to that shared width instead of its own local maximum,
+     * which lines every field up at the same x regardless of which sub-panel its row actually lives in.
+     * -
+     * A sub-panel also sits {@code indent} pixels further right than a flat row (its own titled border's left
+     * inset), so simply giving every label the same width would still leave its field that far off. Each group's
+     * labels are therefore made {@code indent} narrower, exactly cancelling the container's own offset, so every
+     * field lands on the same x whatever it is nested inside.
+     * -
+     * Package-private (not private) and takes the groups explicitly, rather than reading
+     * {@link #componentPropertyEditRowList} itself, purely so this can be exercised directly from a same-package
+     * test against real {@link ComponentPropertyEditRow}s wired into standalone panels, without needing a full
+     * ComponentPropertiesPanel/Project to construct.
+     */
+    static void alignPropertyLabelColumnWidths(List<LabelAlignmentGroup> groups) {
+        int widestLabelColumn = 0;
+        for (LabelAlignmentGroup group : groups) {
+            for (ComponentPropertyEditRow row : group.rows()) {
+                JLabel label = row.getPropertyTitleField();
+                if (label != null) {
+                    widestLabelColumn = Math.max(widestLabelColumn, label.getPreferredSize().width + group.indent());
+                }
+            }
+        }
+        if (widestLabelColumn <= 0) {
+            return;
+        }
+        for (LabelAlignmentGroup group : groups) {
+            for (ComponentPropertyEditRow row : group.rows()) {
+                JLabel label = row.getPropertyTitleField();
+                if (label != null) {
+                    label.setPreferredSize(new Dimension(widestLabelColumn - group.indent(), label.getPreferredSize().height));
+                }
+            }
+        }
+    }
+
+    /** Convenience for a single, un-indented run of rows - see {@link #alignPropertyLabelColumnWidths(List)}. */
+    static void alignPropertyLabelColumnWidths(List<ComponentPropertyEditRow> rows, int indent) {
+        alignPropertyLabelColumnWidths(List.of(new LabelAlignmentGroup(rows, indent)));
+    }
+
+    /**
+     * One run of property rows that share a container, and how far that container's own border/insets push their
+     * content right of the section's left edge (0 for rows added straight into the section panel).
+     */
+    record LabelAlignmentGroup(List<ComponentPropertyEditRow> rows, int indent) {
+    }
+
+    /**
      * Builds a titled sub-panel for one run of mandatory-section properties that share a
      * {@code mandatorySectionHeading} (e.g. Email Producer's six recipient fields under "At least one of..."),
      * adds it into {@code mandatoryPropertiesEditorPanel} at the given row, and returns the next free row -
@@ -986,19 +1075,38 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @param heading the shared mandatorySectionHeading text, used as this sub-panel's titled border
      * @param properties every buffered property sharing this heading, in display order
      * @param rowGc layout constraints reused for each property's own row inside the sub-panel
+     * @param mandatorySectionGroups collects this sub-panel's rows (with the indent its own border/insets impose)
+     *                               alongside the panel's own master list, so {@link #alignPropertyLabelColumnWidths}
+     *                               can line its fields up with the Mandatory section's flat rows and other sub-panels
      * @return the next free row in mandatoryPropertiesEditorPanel, for the caller to resume flat-row placement at
      */
     private int flushMandatoryHeadingGroup(JBPanel mandatoryPropertiesEditorPanel, GridBagConstraints headingGc, int mandatoryTabley,
-                                            String heading, List<ComponentProperty> properties, GridBagConstraints rowGc) {
+                                            String heading, List<ComponentProperty> properties, GridBagConstraints rowGc,
+                                            List<LabelAlignmentGroup> mandatorySectionGroups) {
         JBPanel headingPanel = new JBPanel(new GridBagLayout());
         headingPanel.setBorder(null);
         int innerTabley = 0;
+        List<ComponentPropertyEditRow> headingRows = new ArrayList<>();
         for (ComponentProperty property : properties) {
-            componentPropertyEditRowList.add(addNameValueToPropertiesEditPanel(headingPanel, property, rowGc, innerTabley++));
+            ComponentPropertyEditRow row = addNameValueToPropertiesEditPanel(headingPanel, property, rowGc, innerTabley++);
+            componentPropertyEditRowList.add(row);
+            headingRows.add(row);
         }
         headingGc.gridy = mandatoryTabley;
         setSubPanel(mandatoryPropertiesEditorPanel, headingPanel, heading, getThemeAwareBorderColor(), headingGc);
+        mandatorySectionGroups.add(new LabelAlignmentGroup(headingRows, subPanelContentIndent(headingPanel, headingGc)));
         return headingGc.gridy;
+    }
+
+    /**
+     * How far a titled sub-panel pushes its own contents right of the section panel's left edge: its
+     * GridBagConstraints' left inset plus its titled border's left inset. {@link #alignPropertyLabelColumnWidths}
+     * subtracts this from the sub-panel's label width so its fields still land on the section's shared field x.
+     * Must be called after the border has been set (i.e. after setSubPanel), since that is what supplies most of it.
+     */
+    private static int subPanelContentIndent(JBPanel subPanel, GridBagConstraints subPanelGc) {
+        int borderLeftInset = subPanel.getBorder() != null ? subPanel.getBorder().getBorderInsets(subPanel).left : 0;
+        return (subPanelGc.insets != null ? subPanelGc.insets.left : 0) + borderLeftInset;
     }
 
     /**

@@ -58,6 +58,7 @@
     },
     "clientID": {
       "propertyName": "clientID",
+      "propertyDisplayOrder": 20,
       "defaultValue": "__flow",
       "helpText": "ClientID is used in the persisted metadata to identify this component uniquely in the context of the module. Since a flow can have only one consumer, the flow name makes for a good, default, client ID.",
       "mandatory": true,
@@ -112,6 +113,7 @@
       "mandatoryUnlessAnyOf": [
         "password"
       ],
+      "mandatorySectionHeading": "Provide key and hosts",
       "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 <host> >> <this file>\" once beforehand, or connect manually first and accept the host key.",
       "propertyConfigFileLabel": "__flow.sftp.producer.known-hosts-filename",
       "setterMethod": "setKnownHostsFilename",
@@ -137,6 +139,15 @@
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.sftp.producer.outputDirectory"
     },
+    "overwrite": {
+      "propertyName": "overwrite",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 30,
+      "defaultValue": false,
+      "helpText": "Default: false. When enabled, an existing remote file with the same name may be replaced. The remote SFTP server must permit deletion or replacement of the destination.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
     "password": {
       "propertyName": "password",
       "propertyDisplayOrder": -35,
@@ -144,6 +155,7 @@
       "mandatoryUnlessAnyOf": [
         "privateKeyFilename"
       ],
+      "mandatorySectionHeading": "Provide password or",
       "helpText": "Password to login to the SFTP server. Optional if privateKeyFilename is set instead for key-based authentication - provide one or the other. If both are supplied, password takes precedence and the private key is ignored. username is always required regardless of which method is used.",
       "propertyConfigFileLabel": "__flow.sftp.producer.password",
       "setterProperty": true,
@@ -164,6 +176,7 @@
       "mandatoryUnlessAnyOf": [
         "password"
       ],
+      "mandatorySectionHeading": "Provide key and hosts",
       "helpText": "Filename of the private key used for public-key authentication to the SFTP server. Optional — only needed if authenticating via key rather than password.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.sftp.producer.private-key-filename"

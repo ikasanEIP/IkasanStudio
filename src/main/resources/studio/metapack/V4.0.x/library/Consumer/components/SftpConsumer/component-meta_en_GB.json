@@ -211,6 +211,7 @@
       "mandatoryUnlessAnyOf": [
         "password"
       ],
+      "mandatorySectionHeading": "Provide key and hosts",
       "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 <host> >> <this file>\" once beforehand, or connect manually first and accept the host key.",
       "propertyConfigFileLabel": "__flow.sftp.consumer.known-hosts-filename",
       "setterMethod": "setKnownHostsFilename",
@@ -294,6 +295,7 @@
       "mandatoryUnlessAnyOf": [
         "privateKeyFilename"
       ],
+      "mandatorySectionHeading": "Provide password or",
       "helpText": "Password to login to the SFTP server. Optional if privateKeyFilename is set instead for key-based authentication - provide one or the other. If both are supplied, password takes precedence and the private key is ignored. username is always required regardless of which method is used.",
       "propertyConfigFileLabel": "__flow.sftp.consumer.password",
       "setterProperty": true,
@@ -314,6 +316,7 @@
       "mandatoryUnlessAnyOf": [
         "password"
       ],
+      "mandatorySectionHeading": "Provide key and hosts",
       "helpText": "Filename of the private key used for public-key authentication to the SFTP server. Optional — only needed if authenticating via key rather than password.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.private-key-filename"

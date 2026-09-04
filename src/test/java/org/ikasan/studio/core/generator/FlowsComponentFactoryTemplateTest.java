@@ -422,6 +422,19 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedSftpProducerComponent.java"), templateString);
     }
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testSftpProducerCanGenerateOverwriteSetting(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getSftpProducer(metaPackVersion);
+        flowElement.setPropertyValue("overwrite", true);
+
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+
+        assertTrue(templateString.contains(".setOverwrite(true)"));
+    }
+
+
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedLoggingProducerComponent.java
      * @throws IOException if the template cant be generated
