@@ -309,6 +309,48 @@ class FlowUpstreamTypeMismatchTest {
         assertTrue(warning != null && warning.contains("java.lang.Integer"), "Expected a warning naming the mismatched upstream type, got: " + warning);
     }
 
+    @Test
+    public void scheduled_consumer_warns_when_default_quartz_context_reaches_a_string_producer() throws StudioBuildException {
+        ComponentMeta scheduledMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Scheduled Consumer");
+        FlowElement scheduledConsumer = FlowElement.flowElementBuilder()
+                .componentMeta(scheduledMeta)
+                .componentName("My Scheduled Consumer")
+                .build();
+        FlowElement genericProducer = TestFixtures.getGenericProducer(BASE_META_PACK);
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).consumer(scheduledConsumer).build();
+        FlowRoute route = FlowRoute.flowRouteBuilder()
+                .flow(flow)
+                .flowElements(new ArrayList<>(List.of(genericProducer)))
+                .build();
+        flow.setFlowRoute(route);
+        wireContainingFlowRoute(route);
+
+        String warning = genericProducer.getUpstreamTypeMismatchWarning();
+
+        assertTrue(warning != null && warning.contains("org.quartz.JobExecutionContext"),
+                "Expected a warning naming the Scheduled Consumer output type, got: " + warning);
+    }
+
+    @Test
+    public void scheduled_consumer_does_not_guess_the_output_of_a_custom_message_provider() throws StudioBuildException {
+        ComponentMeta scheduledMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Scheduled Consumer");
+        FlowElement scheduledConsumer = FlowElement.flowElementBuilder()
+                .componentMeta(scheduledMeta)
+                .componentName("My Scheduled Consumer")
+                .build();
+        scheduledConsumer.setPropertyValue("messageProvider", "MyMessageProvider");
+        FlowElement genericProducer = TestFixtures.getGenericProducer(BASE_META_PACK);
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).consumer(scheduledConsumer).build();
+        FlowRoute route = FlowRoute.flowRouteBuilder()
+                .flow(flow)
+                .flowElements(new ArrayList<>(List.of(genericProducer)))
+                .build();
+        flow.setFlowRoute(route);
+        wireContainingFlowRoute(route);
+
+        assertNull(genericProducer.getUpstreamTypeMismatchWarning());
+    }
+
     /**
      * Builds a flow with an Event Generating Consumer followed by the given elements, in order, in the flow's
      * single top-level route - wiring each element's containingFlowRoute the way real canvas/deserialization

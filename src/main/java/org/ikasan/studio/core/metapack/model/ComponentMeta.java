@@ -128,6 +128,13 @@ public class ComponentMeta implements IkasanMeta {
                                                       // output genuinely isn't captured anywhere in Studio's metadata (e.g. Default List
                                                       // Splitter's output is whichever type was inside the incoming list). See
                                                       // FlowElement#getEffectiveOutputTypeDescription.
+    @JsonSetter(nulls = Nulls.SKIP)
+    @Builder.Default
+    private List<String> outputTypeInvalidatedByProperties = List.of();
+                                                      // Optional names of configuration properties which, when set, mean producedOutputType
+                                                      // is no longer authoritative. For example, Scheduled Consumer normally emits Quartz's
+                                                      // JobExecutionContext, but a custom messageProvider determines a different output type.
+                                                      // Keeping this declarative avoids component-specific checks in the type-warning engine.
     @Builder.Default
     private List<ConversionRecipeMeta> conversionRecipes = List.of();
     private boolean routesToMultipleTargets;         // Router only: true if route() may return more than one target in a single
@@ -368,6 +375,11 @@ public class ComponentMeta implements IkasanMeta {
         String toType = propertyValueResolver.apply(ComponentPropertyMeta.TO_TYPE);
         if (toType != null && !toType.isBlank()) {
             return toType;
+        }
+        if (outputTypeInvalidatedByProperties.stream()
+                .map(propertyValueResolver)
+                .anyMatch(value -> value != null && !value.isBlank())) {
+            return null;
         }
         // A JMS consumer's declared producedOutputType (javax/jakarta.jms.Message) is only what's actually
         // delivered downstream while Auto Content Conversion is off - once it's on, JmsMessageConverter

@@ -4,6 +4,8 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "producedOutputType": "org.quartz.JobExecutionContext",
+  "outputTypeInvalidatedByProperties": ["messageProvider"],
   "usesBuilderInFactory": true,
   "flowBuilderMethod": "consumer",
   "endpointKey": "Scheduler Endpoint",

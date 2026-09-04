@@ -46,6 +46,23 @@ class ComponentMetaTest {
     }
 
     @Test
+    public void scheduled_consumer_default_output_is_the_quartz_job_context() throws StudioBuildException {
+        ComponentMeta scheduledConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Scheduled Consumer");
+
+        assertEquals("org.quartz.JobExecutionContext", scheduledConsumer.getEffectiveOutputTypeDescriptionPreview());
+    }
+
+    @Test
+    public void scheduled_consumer_output_becomes_unknown_when_a_custom_message_provider_is_set() throws StudioBuildException {
+        ComponentMeta scheduledConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Scheduled Consumer");
+
+        String output = scheduledConsumer.getEffectiveOutputTypeDescription(
+                propertyName -> "messageProvider".equals(propertyName) ? "MyMessageProvider" : null);
+
+        assertNull(output);
+    }
+
+    @Test
     public void output_is_the_raw_jms_message_type_when_auto_content_conversion_is_off() throws StudioBuildException {
         ComponentMeta basicAmqSpringJmsConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ Spring JMS Consumer");
 
