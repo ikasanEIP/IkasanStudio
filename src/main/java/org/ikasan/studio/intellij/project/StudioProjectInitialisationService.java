@@ -100,6 +100,11 @@ public final class StudioProjectInitialisationService implements Disposable {
             try {
                 UiContext uiContext = project.getService(UiContext.class);
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);
+                if (uiContext.isModelPersistenceBlocked()) {
+                    fail("Studio opened in recovery mode because model.json could not be loaded safely. " +
+                            "The original file is preserved; restore or correct it and use Reload from Disk.", null);
+                    return;
+                }
                 if (uiContext.getIkasanModule() == null) {
                     fail("The Ikasan project model is not available yet. Check that Maven import completed, then try again.", null);
                     return;

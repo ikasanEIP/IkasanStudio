@@ -57,6 +57,8 @@ public final class UiContext {
 
     private final Project project;
     private final Map<String, Object> cache = new TreeMap<>();
+    private volatile boolean modelPersistenceAllowed = true;
+    private volatile String modelPersistenceBlockReason;
 
     public UiContext(Project project) {
         this.project = project;
@@ -267,6 +269,24 @@ public final class UiContext {
 
     public Module getIkasanModule() {
         return (Module) getFromCache(IKASAN_MODULE);
+    }
+
+    public boolean isModelPersistenceBlocked() {
+        return !modelPersistenceAllowed;
+    }
+
+    public String getModelPersistenceBlockReason() {
+        return modelPersistenceBlockReason;
+    }
+
+    public void allowModelPersistence() {
+        modelPersistenceAllowed = true;
+        modelPersistenceBlockReason = null;
+    }
+
+    public void blockModelPersistence(String reason) {
+        modelPersistenceAllowed = false;
+        modelPersistenceBlockReason = reason;
     }
 
 

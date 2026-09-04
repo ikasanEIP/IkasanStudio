@@ -631,19 +631,28 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if(jsonNode.isObject() && !jsonNode.isEmpty()) {
             String exceptionCaught = jsonNode.get(ComponentMeta.EXCEPTIONS_CAUGHT_KEY) != null ? jsonNode.get(ComponentMeta.EXCEPTIONS_CAUGHT_KEY).asText() : null;
             String action = jsonNode.get(ComponentMeta.ACTION_KEY) != null ? jsonNode.get(ComponentMeta.ACTION_KEY).asText() : null;
+            if ("scheduledCronEntry".equals(action)) {
+                LOG.warn("STUDIO: Migrating legacy exception action [scheduledCronEntry] to [scheduledCronRetry]");
+                action = "scheduledCronRetry";
+            }
+            if ("ignore".equals(action)) {
+                LOG.warn("STUDIO: Migrating legacy exception action [ignore] to [ignoreException]");
+                action = "ignoreException";
+            }
             if (action == null || exceptionCaught == null) {
-                LOG.error("STUDIO: DATA CORRUPTION : Attempting to create an Exception Resolution but mandatory aproperty was not set action=[" + action + "] excepptionCaught [" + exceptionCaught + "] skipping");
+                throw new StudioBuildException("Exception resolution is missing its action or exception type. No model data was loaded or discarded.");
             } else {
                 exceptionResolutionBuilder.exceptionsCaught(exceptionCaught);
                 exceptionResolutionBuilder.theAction(action);
 
+                ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta) ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, "Exception Resolver");
+                ExceptionActionMeta exceptionActionMeta = exceptionResolverMeta.getExceptionActionWithName(action);
+                if (exceptionActionMeta == null) {
+                    throw new StudioBuildException("Exception resolution action [" + action + "] is not supported by meta-pack [" +
+                            metapackVersion + "]. No model data was loaded or discarded.");
+                }
                 JsonNode actionProperties = jsonNode.get(ComponentMeta.ACTION_PROPERTIES_KEY);
                 if (actionProperties != null) {
-                    ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta) ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, "Exception Resolver");
-                    ExceptionActionMeta exceptionActionMeta = exceptionResolverMeta.getExceptionActionWithName(action);
-                    if (exceptionActionMeta == null) {
-                        LOG.error("STUDIO: DATA CORRUPTION : Attempting to set properties for an unknown action=[" + action + "], skipping");
-                    } else {
                         exceptionResolutionBuilder.componentProperties((new TreeMap<>()));
                         exceptionResolution = exceptionResolutionBuilder.build();
 
@@ -659,7 +668,6 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                                 exceptionResolution.setPropertyValue(componentPropertyMeta, fieldName, value);
                             }
                         }
-                    }
                 } else {
                     exceptionResolution = exceptionResolutionBuilder.build();
                 }

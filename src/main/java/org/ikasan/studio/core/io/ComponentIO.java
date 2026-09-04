@@ -2,7 +2,9 @@ package org.ikasan.studio.core.io;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
 import org.ikasan.studio.core.metapack.model.IkasanMeta;
@@ -75,6 +77,8 @@ public class ComponentIO {
             moduleInstance = MAPPER.readValue(jsonString, Module.class);
         } catch (JsonProcessingException e) {
             throw new StudioBuildException("The serialised data in [" + source + "] could not be read due to " + e.getMessage() + " trace: " + Arrays.toString(e.getStackTrace()));
+        } catch (StudioBuildRuntimeException e) {
+            throw new StudioBuildException("The serialised data in [" + source + "] is not safe to load: " + e.getMessage(), e);
         }
         return moduleInstance;
     }
@@ -95,14 +99,27 @@ public class ComponentIO {
      * @return the Object in JSON format.
      */
     public static String toJson(Object value) {
-        String jsonString = "CouldNotConvert";
-
         try {
-            jsonString = MAPPER.writeValueAsString(value);
+            return MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {
-            value = "";
-            LOG.warn("STUDIO: Could not generate JSON from [" + value + "] message " + e.getMessage() + " trace: " + Arrays.toString(e.getStackTrace()));
+            LOG.warn("STUDIO: Could not generate JSON for type [" +
+                    (value == null ? "null" : value.getClass().getName()) + "]", e);
+            throw new StudioRuntimeException(
+                    "The Studio model could not be converted to JSON. The existing model.json has not been changed.", e);
         }
-        return jsonString;
+    }
+
+    /** Serializes a module and proves that the result can be read back before it is eligible for persistence. */
+    public static String toValidatedModuleJson(Module module) {
+        if (module == null) {
+            throw new StudioRuntimeException("The Studio model is not available. The existing model.json has not been changed.");
+        }
+        String json = toJson(module);
+        try {
+            deserializeModuleInstanceString(json, "in-memory model validation");
+            return json;
+        } catch (StudioBuildException e) {
+            throw new StudioRuntimeException("The generated JSON failed validation. The existing model.json has not been changed.", e);
+        }
     }
 }

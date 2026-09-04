@@ -35,6 +35,7 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
 import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -47,6 +48,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -160,19 +162,21 @@ public class StudioProjectFiles {
         if (jsonModelPsiFile != null) {
             UiContext uiContext = project.getService(UiContext.class);
             String json = ApplicationManager.getApplication().runReadAction((Computable<String>) jsonModelPsiFile::getText);
-            Module newModule = null;
+            Module newModule;
             try {
                 newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
             } catch (StudioBuildException se) {
-                LOG.warn("STUDIO: SERIOUS: during resetModelFromDisk, reported when reading " + StudioProjectFiles.JSON_MODEL_FULL_PATH + " message: " + se.getMessage() + " trace: " + Arrays.asList(se.getStackTrace()));
-                StudioUIUtils.displayIdeaErrorMessage(project, "Error: Please fix model.json then click 'Load', error was [" + se.getMessage() + "]");
-                // The dumb module should contain just enough to prevent the plugin from crashing
-                uiContext.setIkasanModule(Module.getDumbModuleVersion());
+                String reason = "model.json could not be loaded safely: " + se.getMessage();
+                LOG.warn("STUDIO: SERIOUS: " + reason, se);
+                uiContext.blockModelPersistence(reason);
+                StudioUIUtils.displayIdeaErrorMessage(project, reason +
+                        " The file has been preserved and all model saves are disabled. Correct or restore it, then click Reload from Disk.");
+                if (uiContext.getIkasanModule() == null) {
+                    uiContext.setIkasanModule(Module.getDumbModuleVersion());
+                }
+                return;
             }
-            if (newModule == null) {
-                Thread thread = Thread.currentThread();
-                LOG.warn("STUDIO: SERIOUS: Attempt to set model resulted in a null model" + Arrays.toString(thread.getStackTrace()));
-            }
+            uiContext.allowModelPersistence();
 
             // When the project is initialised, capture the package option and set in cache for later use in module initilisation.
             String applicationPackageName = StudioProjectFiles.getJsonAttribute(json, APPLICATION_PACKAGE_NAME);
@@ -347,6 +351,34 @@ public class StudioProjectFiles {
         createFileWithDirectories(project,
                 GENERATED_CONTENT_ROOT + "/" + SRC_MAIN + "/" + JSON_MODEL_SUB_DIR + "/" + MODEL_JSON,
                 content, null);
+    }
+
+    /** Persists the source-of-truth model through validation, rotating backups and atomic replacement. */
+    public static void replaceJsonModelFileSafely(final Project project, final String content) {
+        VirtualFile baseDir = getProjectBaseDir(project);
+        if (baseDir == null) {
+            throw new StudioRuntimeException("Project base directory is unavailable. The existing model.json has not been changed.");
+        }
+
+        Path target = baseDir.toNioPath().resolve(GENERATED_CONTENT_ROOT.substring(1))
+                .resolve(SRC_MAIN).resolve(JSON_MODEL_SUB_DIR).resolve(MODEL_JSON);
+        VirtualFile existing = LocalFileSystem.getInstance().findFileByNioFile(target);
+        if (existing != null) {
+            Document document = FileDocumentManager.getInstance().getDocument(existing);
+            if (document != null) {
+                FileDocumentManager.getInstance().saveDocument(document);
+            }
+        }
+
+        try {
+            ProtectedModelFileWriter.write(target, content,
+                    json -> ComponentIO.deserializeModuleInstanceString(json, target.toString()));
+            LocalFileSystem.getInstance().refreshAndFindFileByNioFile(target);
+            LOG.info("STUDIO: Safely saved Json Model with rotating backups, project [" + project +
+                    "] content size " + content.length() + " bytes");
+        } catch (IOException e) {
+            throw new StudioRuntimeException(e.getMessage() + ". The existing model.json has not been changed.", e);
+        }
     }
 
     public static void refreshCodeFromModelAndCauseRedraw(Project project) {

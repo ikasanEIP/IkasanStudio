@@ -39,6 +39,9 @@ public class ExceptionResolverSerializer extends StdSerializer<ExceptionResolver
         Map<String, ExceptionResolution> ikasanExceptionResolutionMap = exceptionResolver.getIkasanExceptionResolutionMap();
         if (ikasanExceptionResolutionMap != null && !exceptionResolver.getIkasanExceptionResolutionMap().isEmpty()) {
             for (ExceptionResolution exceptionResolution : ikasanExceptionResolutionMap.values()) {
+                if (exceptionResolution == null) {
+                    throw new IOException("Cannot serialize an exception resolver containing a null resolution");
+                }
                 jsonGenerator.writeFieldName(exceptionResolution.getExceptionsCaught());
                 jsonGenerator.writeStartObject();
                     jsonGenerator.writeStringField(EXCEPTIONS_CAUGHT_KEY, exceptionResolution.getExceptionsCaught());

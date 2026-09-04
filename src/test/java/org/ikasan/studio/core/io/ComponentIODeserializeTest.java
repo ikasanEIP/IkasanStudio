@@ -96,11 +96,11 @@ class ComponentIODeserializeTest {
             () -> assertEquals(2, exceptionResolver.getIkasanExceptionResolutionMap().size()),
 
             () -> assertEquals("javax.resource.ResourceException.class", resourceExceptionResolution.getExceptionsCaught()),
-            () -> assertEquals("ignore", resourceExceptionResolution.getTheAction()),
+            () -> assertEquals("ignoreException", resourceExceptionResolution.getTheAction()),
             () -> Assertions.assertNull(resourceExceptionResolution.getComponentProperties()),
 
             () -> assertEquals("javax.jms.JMSException.class", jmsExceptionResolution.getExceptionsCaught()),
-            () -> assertEquals("ignore", resourceExceptionResolution.getTheAction()),
+            () -> assertEquals("ignoreException", resourceExceptionResolution.getTheAction()),
             () -> assertEquals(2, jmsExceptionResolution.getComponentProperties().size()),
             () -> assertEquals("1", jmsExceptionResolution.getComponentProperties().get("delay").getValue().toString()),
             () -> assertEquals("2", jmsExceptionResolution.getComponentProperties().get("interval").getValue().toString()),

@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
-import static org.ikasan.studio.intellij.project.StudioProjectFiles.createJsonModelFile;
+import static org.ikasan.studio.intellij.project.StudioProjectFiles.replaceJsonModelFileSafely;
 import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
 
 /**
@@ -153,20 +153,30 @@ public class GeneratedProjectSynchronizer {
      */
     public void saveModelJsonToDisk() {
         UiContext uiContext = project.getService(UiContext.class);
-        String templateString = ModelTemplate.create(uiContext.getIkasanModule());
-        // Using the command processor add support for undo
-        CommandProcessor.getInstance().executeCommand(
-            project,
-            () -> ApplicationManager.getApplication().runWriteAction(
-                    () -> {
-                        LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - json from model");
+        if (uiContext.isModelPersistenceBlocked()) {
+            String reason = uiContext.getModelPersistenceBlockReason();
+            throw new IllegalStateException("Model saving is disabled because the model was not loaded safely" +
+                    (reason == null ? "" : ": " + reason));
+        }
 
-                        createJsonModelFile(project, templateString);
-                        LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - json from model");
-                        LOG.debug("STUDIO: model now" + uiContext.getIkasanModule());
-                    }),
-            StudioBundle.message("action.GenerateJSONFromFlowDiagram"),
-            "Undo group ID");
+        try {
+            String templateString = ModelTemplate.create(uiContext.getIkasanModule());
+            CommandProcessor.getInstance().executeCommand(
+                project,
+                () -> ApplicationManager.getApplication().runWriteAction(
+                        () -> {
+                            LOG.info("STUDIO: Start protected model.json write");
+                            replaceJsonModelFileSafely(project, templateString);
+                            LOG.info("STUDIO: End protected model.json write");
+                        }),
+                StudioBundle.message("action.GenerateJSONFromFlowDiagram"),
+                "Undo group ID");
+        } catch (RuntimeException failure) {
+            LOG.warn("STUDIO: model.json save was refused; the existing file was preserved", failure);
+            displayIdeaWarnMessage(project, "Ikasan Studio could not safely save model.json. " +
+                    failure.getMessage() + " Source generation was cancelled.");
+            throw failure;
+        }
     }
 
 //    public static long timeLog(long startTime, String message) {
