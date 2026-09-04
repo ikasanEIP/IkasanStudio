@@ -13,6 +13,7 @@ import com.intellij.util.messages.Topic;
 import lombok.Getter;
 import org.ikasan.studio.ui.UiContext;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -44,6 +45,12 @@ public final class StudioProjectInitialisationService implements Disposable {
     private volatile State state = State.NOT_STARTED;
     @Getter
     private volatile String detail;
+
+    private volatile List<Integer> validModelBackupIndexes = List.of();
+
+    public List<Integer> getValidModelBackupIndexes() {
+        return validModelBackupIndexes;
+    }
 
     public StudioProjectInitialisationService(Project project) {
         this.project = project;
@@ -99,10 +106,15 @@ public final class StudioProjectInitialisationService implements Disposable {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 UiContext uiContext = project.getService(UiContext.class);
+                validModelBackupIndexes = List.of();
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);
                 if (uiContext.isModelPersistenceBlocked()) {
+                    validModelBackupIndexes = StudioProjectFiles.getValidModelBackupIndexes(project);
+                    String recoveryGuidance = validModelBackupIndexes.isEmpty()
+                            ? "No valid automatic backup was found; correct the preserved file, then use Reload from Disk."
+                            : "Choose a validated backup below, or correct the preserved file and use Reload from Disk.";
                     fail("Studio opened in recovery mode because model.json could not be loaded safely. " +
-                            "The original file is preserved; restore or correct it and use Reload from Disk.", null);
+                            "The original file is preserved. " + recoveryGuidance, null);
                     return;
                 }
                 if (uiContext.getIkasanModule() == null) {
@@ -120,6 +132,27 @@ public final class StudioProjectInitialisationService implements Disposable {
                 throw e;
             } catch (Exception e) {
                 fail("The project model could not be loaded. Check that Maven import completed, then try again.", e);
+            }
+        });
+    }
+
+    public void restoreModelBackup(int index) {
+        if (project.isDisposed() || !validModelBackupIndexes.contains(index) || !inProgress.compareAndSet(false, true)) {
+            return;
+        }
+        transition(State.READING_PROJECT, "Restoring and validating model.json.bak." + index);
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            try {
+                java.nio.file.Path rejected = StudioProjectFiles.restoreModelBackup(project, index);
+                org.ikasan.studio.ui.StudioUIUtils.displayIdeaInfoMessage(project,
+                        "Restored model.json.bak." + index + ". The rejected model was preserved as " +
+                                (rejected == null ? "a diagnostic copy." : rejected.getFileName() + "."));
+                validModelBackupIndexes = List.of();
+                inProgress.set(false);
+                state = State.NOT_STARTED;
+                start();
+            } catch (Exception e) {
+                fail("The selected model backup could not be restored. The current model and backup were preserved.", e);
             }
         });
     }

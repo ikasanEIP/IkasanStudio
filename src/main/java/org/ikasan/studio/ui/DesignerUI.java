@@ -54,7 +54,7 @@ public class DesignerUI implements Disposable {
     public DesignerUI(Project project) {
         this.project = project;
         this.initialisationService = project.getService(StudioProjectInitialisationService.class);
-        this.initialisationPanel = new StudioInitialisationPanel(initialisationService::start);
+        this.initialisationPanel = new StudioInitialisationPanel(initialisationService::start, initialisationService::restoreModelBackup);
         project.getMessageBus().connect(this).<StudioProjectInitialisationService.Listener>subscribe(
                 StudioProjectInitialisationService.Listener.TOPIC,
                 this::initialisationStateChanged);
@@ -279,7 +279,7 @@ public class DesignerUI implements Disposable {
                     initialisationPanel.showLoadingComponents();
                     completeInitialisation(project.getService(UiContext.class));
                 }
-                case FAILED -> initialisationPanel.showFailure(detail);
+                case FAILED -> initialisationPanel.showFailure(detail, initialisationService.getValidModelBackupIndexes());
                 default -> { }
             }
         });

@@ -1,6 +1,7 @@
 package org.ikasan.studio.core.io;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
@@ -116,10 +117,34 @@ public class ComponentIO {
         }
         String json = toJson(module);
         try {
-            deserializeModuleInstanceString(json, "in-memory model validation");
+            validatePersistedModuleJson(json, "in-memory model validation", false);
             return json;
         } catch (StudioBuildException e) {
             throw new StudioRuntimeException("The generated JSON failed validation. The existing model.json has not been changed.", e);
         }
+    }
+    /** Validates JSON shape and the minimum identity required for a configured Studio module. */
+    public static Module validatePersistedModuleJson(String json, String source, boolean allowEmptyBootstrap)
+            throws StudioBuildException {
+        final JsonNode root;
+        try {
+            root = MAPPER.readTree(json);
+        } catch (JsonProcessingException e) {
+            throw new StudioBuildException("The serialised data in [" + source + "] is not valid JSON: " + e.getMessage(), e);
+        }
+        if (root == null || !root.isObject()) {
+            throw new StudioBuildException("The serialised data in [" + source + "] must be a JSON object");
+        }
+        if (root.isEmpty()) {
+            if (allowEmptyBootstrap) {
+                return Module.getDumbModuleVersion();
+            }
+            throw new StudioBuildException("The serialised data in [" + source + "] is an empty bootstrap model, not a configured module");
+        }
+        Module module = deserializeModuleInstanceString(json, source);
+        if (!module.isInitialised()) {
+            throw new StudioBuildException("The serialised data in [" + source + "] is missing required configured-module fields");
+        }
+        return module;
     }
 }

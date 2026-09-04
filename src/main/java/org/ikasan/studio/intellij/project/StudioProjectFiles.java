@@ -164,7 +164,7 @@ public class StudioProjectFiles {
             String json = ApplicationManager.getApplication().runReadAction((Computable<String>) jsonModelPsiFile::getText);
             Module newModule;
             try {
-                newModule = ComponentIO.deserializeModuleInstanceString(json, JSON_MODEL_FULL_PATH);
+                newModule = ComponentIO.validatePersistedModuleJson(json, JSON_MODEL_FULL_PATH, true);
             } catch (StudioBuildException se) {
                 String reason = "model.json could not be loaded safely: " + se.getMessage();
                 LOG.warn("STUDIO: SERIOUS: " + reason, se);
@@ -372,13 +372,53 @@ public class StudioProjectFiles {
 
         try {
             ProtectedModelFileWriter.write(target, content,
-                    json -> ComponentIO.deserializeModuleInstanceString(json, target.toString()));
+                    json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), false));
             LocalFileSystem.getInstance().refreshAndFindFileByNioFile(target);
             LOG.info("STUDIO: Safely saved Json Model with rotating backups, project [" + project +
                     "] content size " + content.length() + " bytes");
         } catch (IOException e) {
             throw new StudioRuntimeException(e.getMessage() + ". The existing model.json has not been changed.", e);
         }
+    }
+
+    public static List<Integer> getValidModelBackupIndexes(Project project) {
+        Path target = getModelJsonPath(project);
+        if (target == null) return List.of();
+        return ProtectedModelFileWriter.validBackupIndexes(target,
+                json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), false));
+    }
+
+    public static Path restoreModelBackup(Project project, int index) {
+        Path target = getModelJsonPath(project);
+        if (target == null) {
+            throw new StudioRuntimeException("Project base directory is unavailable; no recovery file was changed.");
+        }
+        VirtualFile existing = LocalFileSystem.getInstance().findFileByNioFile(target);
+        Document openDocument = existing == null ? null : FileDocumentManager.getInstance().getDocument(existing);
+        if (openDocument != null) {
+            ApplicationManager.getApplication().invokeAndWait(() ->
+                    ApplicationManager.getApplication().runWriteAction(() ->
+                            FileDocumentManager.getInstance().saveDocument(openDocument)));
+        }
+        try {
+            Path rejected = ProtectedModelFileWriter.restoreBackup(target, index,
+                    json -> ComponentIO.validatePersistedModuleJson(json, target.toString(), false));
+            LocalFileSystem.getInstance().refreshAndFindFileByNioFile(target);
+            if (openDocument != null) {
+                ApplicationManager.getApplication().invokeAndWait(() ->
+                        ApplicationManager.getApplication().runWriteAction(() ->
+                                FileDocumentManager.getInstance().reloadFromDisk(openDocument)));
+            }
+            return rejected;
+        } catch (IOException e) {
+            throw new StudioRuntimeException("The backup could not be restored: " + e.getMessage(), e);
+        }
+    }
+
+    private static Path getModelJsonPath(Project project) {
+        VirtualFile baseDir = getProjectBaseDir(project);
+        return baseDir == null ? null : baseDir.toNioPath().resolve(GENERATED_CONTENT_ROOT.substring(1))
+                .resolve(SRC_MAIN).resolve(JSON_MODEL_SUB_DIR).resolve(MODEL_JSON);
     }
 
     public static void refreshCodeFromModelAndCauseRedraw(Project project) {

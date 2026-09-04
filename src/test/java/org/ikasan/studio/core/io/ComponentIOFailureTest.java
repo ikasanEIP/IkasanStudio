@@ -15,6 +15,7 @@ import java.util.HashMap;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ComponentIOFailureTest {
     @BeforeAll
@@ -33,5 +34,21 @@ class ComponentIOFailureTest {
 
         assertThrows(StudioRuntimeException.class, () -> ComponentIO.toJson(module));
         assertThrows(StudioRuntimeException.class, () -> ComponentIO.toValidatedModuleJson(module));
+    }
+
+    @Test
+    void persistedModelValidationRejectsScalarAndIncompleteConfiguredModels() {
+        assertThrows(StudioBuildException.class,
+                () -> ComponentIO.validatePersistedModuleJson("\"CouldNotConvert\"", "scalar", true));
+        assertThrows(StudioBuildException.class,
+                () -> ComponentIO.validatePersistedModuleJson("{\"version\":\"" + BASE_META_PACK + "\"}", "partial", true));
+    }
+
+    @Test
+    void onlyTheExplicitEmptyArchetypeBootstrapMayBeIncomplete() throws Exception {
+        Module bootstrap = ComponentIO.validatePersistedModuleJson("{}", "new project", true);
+        assertTrue(!bootstrap.isInitialised());
+        assertThrows(StudioBuildException.class,
+                () -> ComponentIO.validatePersistedModuleJson("{}", "save candidate", false));
     }
 }

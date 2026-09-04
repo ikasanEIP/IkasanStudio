@@ -10,6 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Replaces model.json only after validation, while retaining three last-known-good revisions.
@@ -27,8 +31,17 @@ public final class ProtectedModelFileWriter {
         void validate(String json) throws Exception;
     }
 
+    @FunctionalInterface
+    interface WriteFailureInjector {
+        void beforeCandidateWrite() throws IOException;
+    }
+
     public static void write(Path target, String candidate, Validator validator) throws IOException {
-        if (target == null || candidate == null || validator == null) {
+        write(target, candidate, validator, () -> { });
+    }
+
+    static void write(Path target, String candidate, Validator validator, WriteFailureInjector failureInjector) throws IOException {
+        if (target == null || candidate == null || validator == null || failureInjector == null) {
             throw new IllegalArgumentException("target, candidate and validator are required");
         }
 
@@ -44,12 +57,51 @@ public final class ProtectedModelFileWriter {
 
         Path temporary = temporarySibling(target);
         try {
+            failureInjector.beforeCandidateWrite();
             writeAndFlush(temporary, candidate);
             validate(Files.readString(temporary, StandardCharsets.UTF_8), validator, "temporary model");
             atomicReplace(temporary, target);
         } finally {
             Files.deleteIfExists(temporary);
         }
+    }
+
+    public static List<Integer> validBackupIndexes(Path target, Validator validator) {
+        List<Integer> result = new ArrayList<>();
+        for (int index = 1; index <= BACKUP_COUNT; index++) {
+            Path candidate = backup(target, index);
+            if (!Files.isRegularFile(candidate)) {
+                continue;
+            }
+            try {
+                validate(Files.readString(candidate, StandardCharsets.UTF_8), validator, candidate.getFileName().toString());
+                result.add(index);
+            } catch (IOException ignored) {
+                // Damaged backups are deliberately omitted from the recovery choices.
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    /** Restores a validated backup atomically and retains the rejected primary for diagnosis. */
+    public static Path restoreBackup(Path target, int index, Validator validator) throws IOException {
+        if (index < 1 || index > BACKUP_COUNT) {
+            throw new IllegalArgumentException("backup index must be between 1 and " + BACKUP_COUNT);
+        }
+        Path source = backup(target, index);
+        if (!Files.isRegularFile(source)) {
+            throw new IOException("Recovery backup " + source.getFileName() + " does not exist");
+        }
+        String recovered = Files.readString(source, StandardCharsets.UTF_8);
+        validate(recovered, validator, source.getFileName().toString());
+        Path rejected = null;
+        if (Files.exists(target)) {
+            rejected = target.resolveSibling(target.getFileName() + ".rejected." +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + "." + UUID.randomUUID());
+            writeAtomically(rejected, Files.readString(target, StandardCharsets.UTF_8));
+        }
+        writeAtomically(target, recovered);
+        return rejected;
     }
 
     private static void rotateBackups(Path target) throws IOException {

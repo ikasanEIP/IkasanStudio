@@ -12,6 +12,8 @@ import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.function.IntConsumer;
 
 /**
  * Empty-state content shown while Ikasan Studio prepares the current project.
@@ -21,8 +23,9 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     private final JBLabel statusLabel = new JBLabel();
     private final JBTextArea detailText = new JBTextArea();
     private final LinkLabel<Object> retryLink = new LinkLabel<>(StudioBundle.message("label.Retry"), null);
+    private final JPanel recoveryLinks = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
 
-    public StudioInitialisationPanel(Runnable retryAction) {
+    public StudioInitialisationPanel(Runnable retryAction, IntConsumer restoreBackupAction) {
         super(new GridBagLayout());
         setBorder(JBUI.Borders.empty(24));
 
@@ -42,6 +45,15 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
 
         retryLink.setListener((source, data) -> retryAction.run(), null);
         retryLink.setVisible(false);
+        recoveryLinks.setOpaque(false);
+        recoveryLinks.setVisible(false);
+        for (int index = 1; index <= 3; index++) {
+            int backupIndex = index;
+            LinkLabel<Object> link = new LinkLabel<>(StudioBundle.message("label.RestoreModelBackup", index), null);
+            link.setName("restoreModelBackup" + index);
+            link.setListener((source, data) -> restoreBackupAction.accept(backupIndex), null);
+            recoveryLinks.add(link);
+        }
 
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = 0;
@@ -83,6 +95,10 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         add(retryLink, constraints);
 
         constraints.gridy++;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        add(recoveryLinks, constraints);
+
+        constraints.gridy++;
         constraints.weighty = 1;
         add(Box.createVerticalGlue(), constraints);
 
@@ -119,11 +135,16 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
                 StudioBundle.message("message.PreparingTheComponentLibraryAndDesignerPalette"));
     }
 
-    public void showFailure(String detail) {
+    public void showFailure(String detail, List<Integer> backupIndexes) {
         statusIcon.setIcon(AllIcons.General.Warning);
         statusLabel.setText(StudioBundle.message("message.IkasanStudioCouldNotPrepareThisProject"));
         detailText.setText(detail);
         retryLink.setVisible(true);
+        for (Component component : recoveryLinks.getComponents()) {
+            int index = Integer.parseInt(component.getName().replace("restoreModelBackup", ""));
+            component.setVisible(backupIndexes.contains(index));
+        }
+        recoveryLinks.setVisible(!backupIndexes.isEmpty());
         revalidate();
         repaint();
     }
@@ -133,6 +154,7 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         statusLabel.setText(status);
         detailText.setText(detail);
         retryLink.setVisible(false);
+        recoveryLinks.setVisible(false);
         revalidate();
         repaint();
     }
