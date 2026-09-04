@@ -598,14 +598,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
             int mandatoryTabley = 0;
             int optionalTabley = 0;
-            if (getSelectedComponent().getComponentMeta().isModule()) {
-                // Always refresh the list of choosable metapacks
-                List<String> installedMetapacks = ComponentLibrary.getMetapackList();
-                if (installedMetapacks != null && ! installedMetapacks.isEmpty()) {
-                    getSelectedComponent().getComponentMeta().getAllowableProperties().get(VERSION).setChoices(installedMetapacks);
-                }
-            }
-
             // Label-column alignment (see alignPropertyLabelColumnWidths) is applied per section, not across the
             // whole panel: the two sections are independently bordered blocks, and Optional Properties starts
             // collapsed, so letting a long optional label (e.g. SFTP's preferredKeyExchangeAlgorithm) dictate the
@@ -1141,9 +1133,25 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return a populated 'row' i.e. a container that supports the edit of the supplied name / value pair.
      */
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
+        componentProperty = withUiOwnedVersionChoices(componentProperty);
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getChooseClassButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
         return componentPropertyEditRow;
+    }
+
+    /** The installed-pack list is UI/session state and must never be written into shared metapack metadata. */
+    private ComponentProperty withUiOwnedVersionChoices(ComponentProperty property) {
+        if (!(getSelectedComponent() instanceof Module)
+                || property == null || property.getMeta() == null
+                || !VERSION.equals(property.getMeta().getPropertyName())) {
+            return property;
+        }
+        ComponentPropertyMeta uiMeta = property.getMeta().toBuilder()
+                .choices(List.copyOf(ComponentLibrary.getMetapackList()))
+                .build();
+        ComponentProperty uiProperty = new ComponentProperty(uiMeta, property.getValue());
+        uiProperty.setOverwriteEnabled(property.isOverwriteEnabled());
+        return uiProperty;
     }
 
     private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JButton chooseClassButton, JCheckBox overwriteCheckBox, JLabel affectsUserImplementedClassIndicator, ComponentInput componentInput, ComponentPropertyMeta meta) {

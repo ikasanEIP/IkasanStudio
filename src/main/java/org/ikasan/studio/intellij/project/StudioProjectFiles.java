@@ -631,7 +631,6 @@ public class StudioProjectFiles {
         return currentDir;
     }
 
-private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
     /**
      * Get the source root that contains the supplied string, possible to get java source, resources or test
      * @param project the intellij project
@@ -644,20 +643,20 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
         " relativeRootDir = " + relativeRootDir + " targetDirectory = " + targetDirectory);
         String targetDirectoryKey = project.getName() + "-" + targetDirectory;
 
-        VirtualFile sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
-        if (sourceCodeRoot == null) {
-            // ProjectRoots are more likely to provide an exact match
-            ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
-            fileIndex.iterateContent(file -> {
-                if (fileIndex.isInSource(file)) {
-                    if (file.isValid() && file.isDirectory()) {
-                        virtualRoots.put(project.getName() + "-" + file.getPath(), file);
-                    }
+        Map<String, VirtualFile> virtualRoots = new HashMap<>();
+        VirtualFile sourceCodeRoot = null;
+        // ProjectRoots are more likely to provide an exact match. The map is invocation-scoped: retaining
+        // VirtualFiles statically leaked projects and stale roots across Maven re-imports.
+        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
+        fileIndex.iterateContent(file -> {
+            if (fileIndex.isInSource(file)) {
+                if (file.isValid() && file.isDirectory()) {
+                    virtualRoots.put(project.getName() + "-" + file.getPath(), file);
                 }
-                return true; // Continue iterating
-            });
-        }
-        sourceCodeRoot = checkVirtualRoots(targetDirectoryKey);
+            }
+            return true; // Continue iterating
+        });
+        sourceCodeRoot = checkVirtualRoots(virtualRoots, targetDirectoryKey);
         if (sourceCodeRoot == null) {
             Thread thread = Thread.currentThread();
             LOG.warn("STUDIO: WARNING: Could not find any existing source roots for project [" + project + "] and contentRoot [" + contentRoot + "] and relativeRoot [" + relativeRootDir + "] trace:[" + Arrays.toString(thread.getStackTrace())+"]");
@@ -670,7 +669,7 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
      * @param targetDirectoryKey to search
      * @return the VirtualFileRoot corresponding to the key.
      */
-    private static VirtualFile checkVirtualRoots(String targetDirectoryKey) {
+    private static VirtualFile checkVirtualRoots(Map<String, VirtualFile> virtualRoots, String targetDirectoryKey) {
         VirtualFile sourceCodeRoot = virtualRoots.get(targetDirectoryKey);
         if (sourceCodeRoot != null && !sourceCodeRoot.isValid() && !sourceCodeRoot.isDirectory()) {
             virtualRoots.remove(targetDirectoryKey);

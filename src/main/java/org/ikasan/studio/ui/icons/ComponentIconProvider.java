@@ -8,15 +8,12 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import java.net.URL;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** Resolves Swing/IntelliJ icons from the resource identifiers held by core component metadata. */
 public final class ComponentIconProvider {
     private static final Logger LOG = Logger.getInstance(ComponentIconProvider.class);
     private static final String GENERAL_ICONS_DIR = "studio/icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
-    private static final Map<String, Icon> ICON_CACHE = new ConcurrentHashMap<>();
 
     private static final Icon WIRETAP_ICON = general("wiretap.png", "Wiretap");
     private static final Icon LOG_WIRETAP_ICON = general("log-wiretap.png", "Log Wiretap");
@@ -66,7 +63,9 @@ public final class ComponentIconProvider {
     }
 
     private static Icon load(String pngPath, String fallbackPngPath, String description) {
-        return ICON_CACHE.computeIfAbsent(pngPath, ignored -> loadUncached(pngPath, fallbackPngPath, description));
+        // IconLoader owns IDE-aware caching and theme/scale invalidation. A second plugin-level cache would
+        // retain icons across look-and-feel changes and plugin reloads.
+        return loadUncached(pngPath, fallbackPngPath, description);
     }
 
     private static Icon loadUncached(String pngPath, String fallbackPngPath, String description) {

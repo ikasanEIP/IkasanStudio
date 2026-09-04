@@ -12,7 +12,6 @@ import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,10 +25,13 @@ public final class ComponentLibrary {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComponentLibrary.class);
     private static final ComponentLibraryLoader LOADER = new ComponentLibraryLoader();
-    // IkasanVersionPack -> Ikasan Component Name -> Ikasan Component Meta
-    private static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndKey = new ConcurrentHashMap<>();
-    private static final Map<String, Map<String, ComponentMeta>> libraryByVersionAndDeserialisationKey = new ConcurrentHashMap<>();
-    private static final Set<String> mandatoryComponents = new HashSet<>(Arrays.asList(ComponentMeta.MODULE_TYPE, ComponentMeta.FLOW_TYPE, ComponentMeta.EXCEPTION_RESOLVER_TYPE));
+    private static final Set<String> mandatoryComponents = Set.of(
+            ComponentMeta.MODULE_TYPE, ComponentMeta.FLOW_TYPE, ComponentMeta.EXCEPTION_RESOLVER_TYPE);
+    /** Immutable packaged-resource index. There is no active/global selected version and no runtime cache mutation. */
+    private static final Map<String, LibrarySnapshot> PACKAGED_LIBRARIES = loadPackagedLibraries();
+
+    private record LibrarySnapshot(Map<String, ComponentMeta> byKey,
+                                   Map<String, ComponentMeta> byDeserialisationKey) { }
 
     /**
      * Refresh the component library.
@@ -38,28 +40,44 @@ public final class ComponentLibrary {
      *
      * @param ikasanMetaDataPackVersion to search for components
      */
-    public static synchronized void refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+    public static void refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         if (ikasanMetaDataPackVersion == null) {
             LOG.error("STUDIO: ikasanMetaDataPackVersion was set to null which is not allowed");
         }
 
-        if (versionNotContained(ikasanMetaDataPackVersion)) {
-            Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey = new HashMap<>();
-            loadMetapack(ikasanMetaDataPackVersion, returnedIkasanComponentMetaMapByKey);
-            Map<String, ComponentMeta> ikasanComponentMetaMapByClass = generateDeserialisationKeyedMeta(returnedIkasanComponentMetaMapByKey);
-            if (ikasanComponentMetaMapByClass.size() != returnedIkasanComponentMetaMapByKey.size()) {
-                LOG.warn("STUDIO: WARNING: ikasanComponentMetaMapByClass & returnedIkasanComponentMetaMapByKey are different sizes. " +
-                        "Keys for returnedIkasanComponentMetaMapByKey [" + returnedIkasanComponentMetaMapByKey.keySet() + "]" +
-                        "Keys for ikasanComponentMetaMapByClass [" + ikasanComponentMetaMapByClass.keySet() + "]");
-            }
-
-            libraryByVersionAndKey.put(ikasanMetaDataPackVersion, Collections.unmodifiableMap(returnedIkasanComponentMetaMapByKey));
-            libraryByVersionAndDeserialisationKey.put(ikasanMetaDataPackVersion, Collections.unmodifiableMap(ikasanComponentMetaMapByClass));
-        }
+        snapshot(ikasanMetaDataPackVersion);
     }
 
     public static boolean versionNotContained(String ikasanMetaDataPackVersion) {
-        return !libraryByVersionAndKey.containsKey(ikasanMetaDataPackVersion);
+        return !PACKAGED_LIBRARIES.containsKey(ikasanMetaDataPackVersion);
+    }
+
+    private static Map<String, LibrarySnapshot> loadPackagedLibraries() {
+        Map<String, LibrarySnapshot> libraries = new LinkedHashMap<>();
+        String[] directories = LOADER.subdirectories(ComponentLibraryLoader.METAPACK_BASE_DIRECTORY);
+        for (String directory : directories) {
+            String version = FilenameUtils.getName(directory);
+            LibrarySnapshot snapshot = loadSnapshot(version);
+            if (!snapshot.byKey().isEmpty()) libraries.put(version, snapshot);
+        }
+        return Collections.unmodifiableMap(libraries);
+    }
+
+    private static LibrarySnapshot snapshot(String version) throws StudioBuildException {
+        LibrarySnapshot packaged = PACKAGED_LIBRARIES.get(version);
+        LibrarySnapshot selected = packaged != null ? packaged : loadSnapshot(version);
+        if (selected.byKey().isEmpty()) {
+            throw new StudioBuildException("STUDIO: Attempt to get a metamap for key " + version + " resulted in an empty map");
+        }
+        return selected;
+    }
+
+    private static LibrarySnapshot loadSnapshot(String version) {
+        Map<String, ComponentMeta> byKey = new LinkedHashMap<>();
+        loadMetapack(version, byKey);
+        Map<String, ComponentMeta> byDeserialisationKey = generateDeserialisationKeyedMeta(byKey);
+        return new LibrarySnapshot(Collections.unmodifiableMap(byKey),
+                Collections.unmodifiableMap(byDeserialisationKey));
     }
 
     /**
@@ -183,17 +201,8 @@ public final class ComponentLibrary {
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    private synchronized static Map<String, ComponentMeta> getIkasanComponentMetaMapByKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        if (metaMapNotLoaded(ikasanMetaDataPackVersion)) {
-            refreshComponentLibrary(ikasanMetaDataPackVersion);
-        }
-        Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
-        if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
-            String message = "STUDIO: Attempt to get a metamap for key " + ikasanMetaDataPackVersion + " resulted in an empty map";
-            LOG.warn(message);
-            throw new StudioBuildException(message);
-        }
-        return libraryByVersionAndKey.get(ikasanMetaDataPackVersion);
+    private static Map<String, ComponentMeta> getIkasanComponentMetaMapByKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+        return snapshot(ikasanMetaDataPackVersion).byKey();
     }
 
     /**
@@ -202,21 +211,8 @@ public final class ComponentLibrary {
      * been updated. This must be the working assumption.
      * @return the reference to the current component library
      */
-    private synchronized static Map<String, ComponentMeta> geIkasanComponentMetaMapByDeserialisationKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
-        if (metaMapNotLoaded(ikasanMetaDataPackVersion)) {
-            refreshComponentLibrary(ikasanMetaDataPackVersion);
-        }
-        Map<String, ComponentMeta> ikasanComponentMetaMap = libraryByVersionAndDeserialisationKey.get(ikasanMetaDataPackVersion);
-        if (ikasanComponentMetaMap == null || ikasanComponentMetaMap.isEmpty()) {
-            String message = "STUDIO: Attempt to get a metamap for deserialisation key " + ikasanMetaDataPackVersion + " resulted in an empty map";
-            LOG.warn(message);
-            throw new StudioBuildException(message);
-        }
-        return ikasanComponentMetaMap;
-    }
-
-    private static boolean metaMapNotLoaded(String ikasanMetaDataPackVersion) {
-        return !libraryByVersionAndDeserialisationKey.containsKey(ikasanMetaDataPackVersion);
+    private static Map<String, ComponentMeta> geIkasanComponentMetaMapByDeserialisationKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
+        return snapshot(ikasanMetaDataPackVersion).byDeserialisationKey();
     }
 
     public static ComponentMeta getIkasanComponentByKey(String ikasanMetaDataPackVersion, String key) throws StudioBuildException {
