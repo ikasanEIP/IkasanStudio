@@ -881,9 +881,15 @@ private static final Map<String, VirtualFile> virtualRoots = new HashMap<>();
                 try {
                     return ReadAction.compute(() -> {
                         final VirtualFile sourceRoot = StudioProjectFiles.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioProjectFiles.SRC_MAIN_JAVA_CODE);
+                        if (sourceRoot == null) {
+                            // Nothing generated to this content root yet (e.g. a brand new project) - nothing to prune,
+                            // not an error. getExistingSourceDirectoryForContentRoot already logged the lookup miss.
+                            return new PsiDirectory[0];
+                        }
                         final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
                         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
-                        return leafPackageDirectory.getSubdirectories(); // ✅ this is now returned
+                        // basePackage may not exist on disk yet (e.g. no flows generated under it yet) - nothing to prune.
+                        return leafPackageDirectory == null ? new PsiDirectory[0] : leafPackageDirectory.getSubdirectories();
                     });
                 } catch (Exception ee) {
                     LOG.warn("STUDIO: SERIOUS: The read action of deleteSubPackagesNotIn for params " +

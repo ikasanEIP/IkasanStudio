@@ -33,11 +33,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
     JButton harnessesButton = new JButton(StudioBundle.message("button.Harnesses"), AllIcons.Actions.Execute);
     private final Timer harnessRefreshTimer;
-    // Studio already loads the module automatically on project open - this button is only for manually
-    // reloading model.json from disk after an external change, which most users never need day to day. Gated
-    // behind the "Show advanced controls" setting (see IkasanStudioSettings) rather than removed outright,
-    // since it's still a legitimate escape hatch for that rare case.
+    // These are the less commonly needed controls, gated behind the "Show advanced controls" setting (see
+    // IkasanStudioSettings) rather than removed outright, since each is still a legitimate escape hatch:
+    // H2 console and Blue console are secondary debugging aids, and Load is only for manually reloading
+    // model.json from disk after an external change, which most users never need day to day.
     JButton loadModuleButton = new JButton(StudioBundle.message("label.Load"), LOAD_ICON);
+    JButton consoleButton = new JButton(StudioBundle.message("label.Console"), CONSOLE_ICON);
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
@@ -59,13 +60,13 @@ public class CanvasPanel extends JBPanel implements Disposable {
         debugModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.DebugModule"));
         stopModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.StopModule"));
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
-        addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(canvasHeaderButtonPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
         ToggleTestHarnessesAction harnessesAction = new ToggleTestHarnessesAction(project, harnessesButton);
         addButtonsToPanel(canvasHeaderButtonPanel, harnessesButton, harnessesAction, StudioBundle.message("tooltip.StartHarnesses"));
         harnessesAction.refreshPresentation();
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("label.Console"), CONSOLE_ICON), new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
+        addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(canvasHeaderButtonPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+        addButtonsToPanel(canvasHeaderButtonPanel, consoleButton, new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         refreshAdvancedControlsVisibility();
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.RegenerateCode"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
@@ -151,11 +152,14 @@ public class CanvasPanel extends JBPanel implements Disposable {
     }
 
     /**
-     * Re-applies the "Show advanced controls" setting to whichever controls it currently gates (just the
-     * Load button for now). Called once at construction and again from IkasanStudioSettingsConfigurable when
+     * Re-applies the "Show advanced controls" setting to whichever controls it currently gates (H2 start,
+     * Console and Load). Called once at construction and again from IkasanStudioSettingsConfigurable when
      * the user changes the setting on an already-open canvas.
      */
     public void refreshAdvancedControlsVisibility() {
-        loadModuleButton.setVisible(IkasanStudioSettings.isShowAdvancedControlsEnabled());
+        boolean showAdvancedControls = IkasanStudioSettings.isShowAdvancedControlsEnabled();
+        h2Button.setVisible(showAdvancedControls);
+        consoleButton.setVisible(showAdvancedControls);
+        loadModuleButton.setVisible(showAdvancedControls);
     }
 }

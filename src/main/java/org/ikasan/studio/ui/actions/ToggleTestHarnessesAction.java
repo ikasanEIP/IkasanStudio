@@ -43,11 +43,17 @@ public final class ToggleTestHarnessesAction implements ActionListener {
         Module module = currentModule();
         boolean available = hasHarnesses(module);
         boolean running = available && isAnyHarnessRunning(module);
+        boolean wasVisible = button.isVisible();
+        button.setVisible(available);
         button.setEnabled(available);
         button.setIcon(running ? com.intellij.icons.AllIcons.Actions.Suspend : com.intellij.icons.AllIcons.Actions.Execute);
         button.setText(StudioBundle.message("button.Harnesses"));
         button.setToolTipText(running ? StudioBundle.message("tooltip.StopHarnesses") : StudioBundle.message("tooltip.StartHarnesses"));
         button.getAccessibleContext().setAccessibleName(running ? StudioBundle.message("accessible.StopHarnesses") : StudioBundle.message("accessible.StartHarnesses"));
+        if (wasVisible != available && button.getParent() != null) {
+            button.getParent().revalidate();
+            button.getParent().repaint();
+        }
     }
 
     static boolean hasHarnesses(Module module) {
