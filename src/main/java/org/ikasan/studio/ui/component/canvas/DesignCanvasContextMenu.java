@@ -99,14 +99,24 @@ public class DesignCanvasContextMenu {
      * actually listening. The popup exposes its connection details and the applicable Stop action.
      */
     public static void showStopTestMailServerMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
-        JPopupMenu menu = new JPopupMenu();
-        menu.add(createShowTestMailServerDetailsMenuItem(project, ikasanBasicElement));
-        menu.addSeparator();
-        menu.add(createStopTestMailServerMenuItem(project, ikasanBasicElement));
+        JPopupMenu menu = createTestMailServerMenu(project, ikasanBasicElement);
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
     public static void showStopTestFtpServerMenu(Project project, DesignerCanvas canvas, MouseEvent event, BasicElement element) {
+        JPopupMenu menu = createTestFtpServerMenu(project, element);
+        menu.show(canvas, event.getX(), event.getY());
+    }
+
+    static JPopupMenu createTestMailServerMenu(Project project, BasicElement element) {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createShowTestMailServerDetailsMenuItem(project, element));
+        menu.addSeparator();
+        menu.add(createStopTestMailServerMenuItem(project, element));
+        return menu;
+    }
+
+    static JPopupMenu createTestFtpServerMenu(Project project, BasicElement element) {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createShowTestFtpServerDetailsMenuItem(project, element));
         menu.add(createShowTestFtpOverwriteLimitationMenuItem(project));
@@ -114,7 +124,7 @@ public class DesignCanvasContextMenu {
         menu.add(createShowTestFtpDirectoryMenuItem(project, element));
         menu.addSeparator();
         menu.add(createStopTestFtpServerMenuItem(project, element));
-        menu.show(canvas, event.getX(), event.getY());
+        return menu;
     }
 
     private static JMenuItem createDeleteComponentMenuItem(Project project, BasicElement ikasanBasicElement) {

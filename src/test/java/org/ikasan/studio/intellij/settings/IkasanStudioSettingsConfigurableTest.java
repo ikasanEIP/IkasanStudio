@@ -69,6 +69,34 @@ class IkasanStudioSettingsConfigurableTest {
         configurable.disposeUIResources();
     }
 
+
+    @Test
+    void settingsNotesStayWithinTheirContainersAtNarrowAndWideEditorWidths() {
+        for (int width : List.of(420, 1100)) {
+            IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
+            JComponent settings = configurable.createComponent();
+            settings.setSize(width, settings.getPreferredSize().height);
+            layoutUsingAssignedSizes(settings);
+
+            List<javax.swing.JLabel> wrappingNotes = descendantsOfType(settings, javax.swing.JLabel.class).stream()
+                    .filter(label -> label.getText() != null && label.getText().startsWith("<html>"))
+                    .toList();
+            assertThat(wrappingNotes).hasSizeGreaterThanOrEqualTo(7);
+            assertThat(wrappingNotes).allSatisfy(label ->
+                    assertThat(label.getWidth()).isLessThanOrEqualTo(label.getParent().getWidth()));
+            configurable.disposeUIResources();
+        }
+    }
+
+    private static void layoutUsingAssignedSizes(Container container) {
+        container.doLayout();
+        for (Component child : container.getComponents()) {
+            if (child instanceof Container childContainer) {
+                layoutUsingAssignedSizes(childContainer);
+            }
+        }
+    }
+
     private static void layoutRecursively(Container container) {
         container.setSize(container.getPreferredSize());
         container.doLayout();

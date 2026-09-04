@@ -73,7 +73,7 @@ public final class IkasanRunConfigurationService implements Disposable {
     /**
      * Run and Debug are kept as separate, independently-cached configurations (rather than one shared
      * configuration launched with different executors) because Debug needs the "studio-debug" Spring profile
-     * active - see {@link #STUDIO_DEBUG_PROGRAM_PARAMETERS} - so the generated app's /studio/inject endpoint
+     * active - see {@link #STUDIO_DEBUG_PROGRAM_PARAMETERS} - so the generated app's /rest/studio/inject endpoint
      * is only reachable when launched via the Debug button, never via a plain Run or a real deployment.
      */
     RunnerAndConfigurationSettings findOrCreateConfiguration(Module module, boolean debug) {

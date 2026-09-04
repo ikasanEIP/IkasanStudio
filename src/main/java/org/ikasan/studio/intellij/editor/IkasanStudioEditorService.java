@@ -41,14 +41,14 @@ public final class IkasanStudioEditorService
                     @Override
                     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
                         if (file.equals(studioFile)) {
-                            state.open = true;
+                            recordEditorOpened();
                         }
                     }
 
                     @Override
                     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-                        if (file.equals(studioFile) && !projectClosing) {
-                            state.open = false;
+                        if (file.equals(studioFile)) {
+                            recordEditorClosed();
                         }
                     }
                 });
@@ -58,17 +58,29 @@ public final class IkasanStudioEditorService
                     @Override
                     public void projectClosingBeforeSave(@NotNull Project closingProject) {
                         if (closingProject == project) {
-                            projectClosing = true;
+                            recordProjectClosing();
                         }
                     }
 
                     @Override
                     public void projectClosing(@NotNull Project closingProject) {
                         if (closingProject == project) {
-                            projectClosing = true;
+                            recordProjectClosing();
                         }
                     }
                 });
+    }
+
+    void recordEditorOpened() {
+        state.open = true;
+    }
+
+    void recordEditorClosed() {
+        if (!projectClosing) state.open = false;
+    }
+
+    void recordProjectClosing() {
+        projectClosing = true;
     }
 
     public void open() {

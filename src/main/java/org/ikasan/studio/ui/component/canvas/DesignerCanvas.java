@@ -91,6 +91,20 @@ import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_I
  * The main painting / design panel
  */
 public class DesignerCanvas extends JPanel {
+    record DropContext(Flow flow, FlowRoute route) { }
+
+    static DropContext resolveDropContext(IkasanComponent target) {
+        if (target instanceof Flow flow) {
+            return new DropContext(flow, flow.getFlowRoute());
+        }
+        if (target instanceof FlowRoute route) {
+            return new DropContext(route.getFlow(), route);
+        }
+        if (target instanceof FlowElement element) {
+            return new DropContext(element.getContainingFlow(), element.getContainingFlowRoute());
+        }
+        return null;
+    }
     private static final Logger LOG = Logger.getInstance("#DesignerCanvas");
     private static final String MODULE_LAUNCHED_PROPERTY = "ikasan.studio.onboarding.moduleLaunched";
     private static final String CONSOLE_OPENED_PROPERTY = "ikasan.studio.onboarding.consoleOpened";
@@ -818,17 +832,10 @@ public class DesignerCanvas extends JPanel {
         if (ikasanBasicElement != null) {
             final IkasanComponent targetElement = getComponentAtXY(mouseX, mouseY);
 
-            Flow targetFlow = null;
-            FlowRoute targetFlowRoute = null;
-            if (targetElement instanceof Flow) {
-                targetFlow = (Flow)targetElement;
-            } else if (targetElement instanceof FlowRoute) {
-                targetFlowRoute = (FlowRoute)targetElement;
-                targetFlow = targetFlowRoute.getFlow();
-            } else if (targetElement instanceof FlowElement) {
-                targetFlow = ((FlowElement)targetElement).getContainingFlow();
-                targetFlowRoute = ((FlowElement)targetElement).getContainingFlowRoute();
-            } else if (targetElement instanceof Module) {
+            DropContext dropContext = resolveDropContext(targetElement);
+            Flow targetFlow = dropContext == null ? null : dropContext.flow();
+            FlowRoute targetFlowRoute = dropContext == null ? null : dropContext.route();
+            if (targetElement instanceof Module) {
                 if (ikasanBasicElement instanceof Flow) {
                     okToAdd = true;
                 }
@@ -946,18 +953,9 @@ public class DesignerCanvas extends JPanel {
             IkasanComponent targetElement = getComponentAtXY(x,y);
             IkasanObject newComponent;
             if (targetElement instanceof FlowElement || targetElement instanceof Flow || targetElement instanceof FlowRoute) {
-                Flow containingFlow;
-                FlowRoute containingFlowRoute;
-                if (targetElement instanceof Flow) {
-                    containingFlow = (Flow)targetElement;
-                    containingFlowRoute = containingFlow.getFlowRoute();
-                } else if (targetElement instanceof FlowRoute) {
-                    containingFlowRoute = (FlowRoute)targetElement;
-                    containingFlow = containingFlowRoute.getFlow();
-                } else {
-                    containingFlow = ((FlowElement)targetElement).getContainingFlow();
-                    containingFlowRoute = ((FlowElement)targetElement).getContainingFlowRoute();
-                }
+                DropContext dropContext = resolveDropContext(targetElement);
+                Flow containingFlow = dropContext == null ? null : dropContext.flow();
+                FlowRoute containingFlowRoute = dropContext == null ? null : dropContext.route();
 
                 // Defensive
                 if (containingFlow == null || containingFlowRoute == null || containingFlow.getFlowRoute() == null) {

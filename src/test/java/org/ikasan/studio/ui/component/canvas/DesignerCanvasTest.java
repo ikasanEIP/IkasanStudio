@@ -1,11 +1,17 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.awt.Font;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import com.intellij.openapi.project.Project;
+import org.ikasan.studio.ui.StudioBundle;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -127,5 +133,57 @@ class DesignerCanvasTest {
         } finally {
             g.dispose();
         }
+    }
+
+    @Test
+    void runningFtpHarnessContextMenuExposesDetailsFilesDirectoryWarningAndStop() throws Exception {
+        Project project = mock(Project.class);
+        FlowElement ftp = TestFixtures.getFtpProducer(BASE_META_PACK);
+
+        JPopupMenu menu = DesignCanvasContextMenu.createTestFtpServerMenu(project, ftp);
+
+        assertThat(((JMenuItem) menu.getComponent(0)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestFtpServerDetails"));
+        assertThat(((JMenuItem) menu.getComponent(1)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestFtpOverwriteLimitation"));
+        assertThat(((JMenuItem) menu.getComponent(1)).getForeground()).isNotNull();
+        assertThat(((JMenuItem) menu.getComponent(2)).getText()).isEqualTo(StudioBundle.message("menu.OpenTestFtpFile"));
+        assertThat(((JMenuItem) menu.getComponent(3)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestFtpDirectory"));
+        assertThat(((JMenuItem) menu.getComponent(5)).getText()).isEqualTo(StudioBundle.message("menu.StopTestFtpServer"));
+    }
+
+
+    @Test
+    void runningMailHarnessContextMenuExposesDetailsAndStop() throws Exception {
+        Project project = mock(Project.class);
+        FlowElement mail = FlowElement.flowElementBuilder()
+                .componentMeta(org.ikasan.studio.core.metapack.ComponentLibrary
+                        .getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer"))
+                .componentName("mail")
+                .build();
+
+        JPopupMenu menu = DesignCanvasContextMenu.createTestMailServerMenu(project, mail);
+
+        assertThat(((JMenuItem) menu.getComponent(0)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestMailServerDetails"));
+        assertThat(((JMenuItem) menu.getComponent(2)).getText()).isEqualTo(StudioBundle.message("menu.StopTestMailServer"));
+    }
+
+
+    @Test
+    void everyValidFlowDropSurfaceResolvesToTheSameOwningRoute() throws Exception {
+        Flow flow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(BASE_META_PACK);
+        FlowElement component = TestFixtures.getMessageFilter(BASE_META_PACK);
+        flow.setConsumer(consumer);
+        flow.getFlowRoute().getFlowElements().add(component);
+        consumer.setContainingFlow(flow);
+        consumer.setContainingFlowRoute(flow.getFlowRoute());
+        component.setContainingFlow(flow);
+        component.setContainingFlowRoute(flow.getFlowRoute());
+
+        DesignerCanvas.DropContext expected = new DesignerCanvas.DropContext(flow, flow.getFlowRoute());
+        assertThat(DesignerCanvas.resolveDropContext(flow)).isEqualTo(expected);
+        assertThat(DesignerCanvas.resolveDropContext(flow.getFlowRoute())).isEqualTo(expected);
+        assertThat(DesignerCanvas.resolveDropContext(consumer)).isEqualTo(expected);
+        assertThat(DesignerCanvas.resolveDropContext(component)).isEqualTo(expected);
+        assertThat(DesignerCanvas.resolveDropContext(Module.getDumbModuleVersion())).isNull();
     }
 }

@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class LaunchApplicationAction implements ActionListener {
    private static final Logger LOG = LoggerFactory.getLogger(LaunchApplicationAction.class);
@@ -43,18 +45,24 @@ public class LaunchApplicationAction implements ActionListener {
       if (generation == null) {
          return;
       }
-      generation.whenComplete((ignored, failure) -> ApplicationManager.getApplication().invokeLater(() -> {
-         if (project.isDisposed()) {
-            return;
-         }
+      continueAfterGeneration(generation, project::isDisposed, this::launch, failure -> {
+         LOG.warn("STUDIO: Could not generate code before launching the module", failure);
+         String detail = failure.getMessage() != null ? failure.getMessage() : failure.getClass().getSimpleName();
+         StudioUIUtils.displayIdeaWarnMessage(project,
+                 StudioBundle.message("message.CouldNotGenerateCodeBeforeLaunch", detail));
+      }, runnable -> ApplicationManager.getApplication().invokeLater(runnable));
+   }
+
+   static void continueAfterGeneration(CompletableFuture<Void> generation, BooleanSupplier disposed,
+                                       Runnable launch, Consumer<Throwable> failureHandler,
+                                       Consumer<Runnable> uiScheduler) {
+      generation.whenComplete((ignored, failure) -> uiScheduler.accept(() -> {
+         if (disposed.getAsBoolean()) return;
          if (failure != null) {
-            LOG.warn("STUDIO: Could not generate code before launching the module", failure);
-            String detail = failure.getMessage() != null ? failure.getMessage() : failure.getClass().getSimpleName();
-            StudioUIUtils.displayIdeaWarnMessage(project,
-                    StudioBundle.message("message.CouldNotGenerateCodeBeforeLaunch", detail));
-            return;
+            failureHandler.accept(failure);
+         } else {
+            launch.run();
          }
-         launch();
       }));
    }
 

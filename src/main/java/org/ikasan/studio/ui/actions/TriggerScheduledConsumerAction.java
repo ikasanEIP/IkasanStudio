@@ -23,7 +23,7 @@ import java.net.ConnectException;
 import java.net.http.HttpResponse;
 
 /**
- * Fires a time-event (Quartz-scheduled) Consumer's flow immediately, via the same /studio/inject/{flowName}
+ * Fires a time-event (Quartz-scheduled) Consumer's flow immediately, via the same /rest/studio/inject/{flowName}
  * endpoint SendTestMessageAction uses, but without prompting for a payload. Unlike a file/message-based
  * Consumer, a plain Scheduled Consumer's real MessageProvider hands back a Quartz JobExecutionContext, not
  * text - there's no meaningful "payload" to simulate, so this just triggers the flow now rather than waiting

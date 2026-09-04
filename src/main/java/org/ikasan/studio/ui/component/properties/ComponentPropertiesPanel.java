@@ -45,6 +45,13 @@ import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
  */
 @SuppressWarnings("rawtypes")
 public class ComponentPropertiesPanel extends PropertiesPanel {
+    enum PendingEditChoice { APPLY, DISCARD, CANCEL }
+
+    static PendingEditChoice pendingEditChoice(int dialogChoice) {
+        if (dialogChoice == 0) return PendingEditChoice.APPLY;
+        if (dialogChoice == 1) return PendingEditChoice.DISCARD;
+        return PendingEditChoice.CANCEL;
+    }
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditRow> componentPropertyEditRowList;
     private HtmlScrollingDisplayPanel htmlScrollingDisplayPanel;
@@ -248,12 +255,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 },
                 0,
                 Messages.getWarningIcon());
-        if (choice == 1) {
-            return true;
-        }
-        if (choice != 0) {
-            return false;
-        }
+        return resolveSelectionChange(pendingEditChoice(choice));
+    }
+
+    boolean resolveSelectionChange(PendingEditChoice choice) {
+        if (choice == PendingEditChoice.DISCARD) return true;
+        if (choice == PendingEditChoice.CANCEL) return false;
         List<ValidationInfo> validationIssues = doValidateAll();
         if (!validationIssues.isEmpty()) {
             ValidationInfo firstIssue = validationIssues.get(0);
@@ -283,12 +290,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 new String[]{StudioBundle.message("button.ApplyChanges"),
                         StudioBundle.message("button.DiscardChanges"), Messages.getCancelButton()},
                 0, Messages.getWarningIcon());
-        if (choice == 1) {
-            return CompletableFuture.completedFuture(null);
-        }
-        if (choice != 0) {
-            return null;
-        }
+        return resolveLaunch(pendingEditChoice(choice));
+    }
+
+    CompletableFuture<Void> resolveLaunch(PendingEditChoice choice) {
+        if (choice == PendingEditChoice.DISCARD) return CompletableFuture.completedFuture(null);
+        if (choice == PendingEditChoice.CANCEL) return null;
         List<ValidationInfo> validationIssues = doValidateAll();
         if (!validationIssues.isEmpty()) {
             Messages.showErrorDialog(project, StudioUIUtils.joinValidationMessages(validationIssues),
@@ -1047,11 +1054,6 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 }
             }
         }
-    }
-
-    /** Convenience for a single, un-indented run of rows - see {@link #alignPropertyLabelColumnWidths(List)}. */
-    static void alignPropertyLabelColumnWidths(List<ComponentPropertyEditRow> rows, int indent) {
-        alignPropertyLabelColumnWidths(List.of(new LabelAlignmentGroup(rows, indent)));
     }
 
     /**

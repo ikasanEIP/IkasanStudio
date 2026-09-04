@@ -8,8 +8,8 @@
   "usesBuilderInFactory" : true,
   "flowBuilderMethod": "withExceptionResolver",
   "exceptionsCaught" : [
-    "javax.jms.JMSException.class",
-    "javax.resource.ResourceException.class",
+    "jakarta.jms.JMSException.class",
+    "jakarta.resource.ResourceException.class",
     "org.ikasan.spec.component.endpoint.EndpointException.class",
     "org.ikasan.spec.component.filter.FilterException.class",
     "org.ikasan.spec.component.routing.RouterException.class",

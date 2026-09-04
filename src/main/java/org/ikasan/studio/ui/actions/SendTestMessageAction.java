@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Prompts for a payload and POSTs it to the running module's /studio/inject/{flowName} endpoint (generated
+ * Prompts for a payload and POSTs it to the running module's /rest/studio/inject/{flowName} endpoint (generated
  * by StudioInjectControllerTemplate), which is only reachable when the module was launched via "Debug module"
  * (the studio-debug Spring profile). Bypasses the real broker entirely.
  */

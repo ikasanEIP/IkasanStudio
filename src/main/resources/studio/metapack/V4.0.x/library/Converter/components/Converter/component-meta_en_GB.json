@@ -9,7 +9,7 @@
     {
       "id": "jms-message-to-file-transfer-payload",
       "displayName": "JMS Message to FTP/SFTP Payload",
-      "sourceType": "javax.jms.Message",
+      "sourceType": "jakarta.jms.Message",
       "targetType": "org.ikasan.filetransfer.Payload",
       "template": "jmsMessageToFileTransferPayloadConverterTemplate.ftl",
       "helpText": "Extracts common JMS message bodies into an Ikasan DefaultPayload and supplies the filename required by FTP and SFTP producers."
@@ -25,7 +25,7 @@
     {
       "id": "jms-message-to-email-payload",
       "displayName": "JMS Message to Email Payload",
-      "sourceType": "javax.jms.Message",
+      "sourceType": "jakarta.jms.Message",
       "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
       "template": "jmsMessageToEmailPayloadConverterTemplate.ftl",
       "helpText": "Extracts the body of common JMS message types and uses it as the body of an Ikasan EmailPayload."

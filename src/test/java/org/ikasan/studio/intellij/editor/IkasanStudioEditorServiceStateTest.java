@@ -15,6 +15,24 @@ public class IkasanStudioEditorServiceStateTest extends BasePlatformTestCase {
         assertSame(state, service.getState());
     }
 
+    public void testDeliberateCloseDisablesRestoreAndReopenEnablesItAgain() {
+        IkasanStudioEditorService service = getProject().getService(IkasanStudioEditorService.class);
+        service.recordEditorOpened();
+        assertTrue(service.shouldRestore());
+        service.recordEditorClosed();
+        assertFalse(service.shouldRestore());
+        service.recordEditorOpened();
+        assertTrue(service.shouldRestore());
+    }
+
+    public void testProjectShutdownDoesNotLookLikeADeliberateEditorClose() {
+        IkasanStudioEditorService service = getProject().getService(IkasanStudioEditorService.class);
+        service.recordEditorOpened();
+        service.recordProjectClosing();
+        service.recordEditorClosed();
+        assertTrue(service.shouldRestore());
+    }
+
     public void testVirtualFileUsesTheStudioSquidIcon() {
         IkasanStudioVirtualFile file = new IkasanStudioVirtualFile();
 

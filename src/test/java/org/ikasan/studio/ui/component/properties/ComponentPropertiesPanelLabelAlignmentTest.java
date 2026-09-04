@@ -132,6 +132,19 @@ class ComponentPropertiesPanelLabelAlignmentTest {
         }
     }
 
+
+    @Test
+    void selectionRunAndDebugShareTheSameApplyDiscardCancelMeaning() {
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(0))
+                .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.APPLY);
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(1))
+                .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.DISCARD);
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(2))
+                .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.CANCEL);
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(-1))
+                .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.CANCEL);
+    }
+
     private static ComponentPropertyEditRow rowFor(FlowElement flowElement, String propertyName,
                                                      Map<String, ComponentPropertyEditRow> sharedRowMap) {
         ComponentProperty existing = flowElement.getProperty(propertyName);

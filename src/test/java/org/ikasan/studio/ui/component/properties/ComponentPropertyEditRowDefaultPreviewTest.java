@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A never-set property whose meta declares a defaultValue is always previewed in the UI (booleans as a
@@ -122,6 +123,20 @@ public class ComponentPropertyEditRowDefaultPreviewTest {
         row.getOverridingInputField().setText("60");
 
         assertEquals(60L, row.getValue());
+        assertTrue(row.propertyValueHasChanged());
+    }
+
+    @Test
+    public void firstTypedCharacterMarksAStringPropertyDirtyWithoutFocusLoss() {
+        FlowElement consumer = newUnpopulatedFtpConsumer();
+        AtomicInteger changes = new AtomicInteger();
+        ComponentPropertyEditRow row = new ComponentPropertyEditRow(
+                null, consumer.getProperty("remoteHost"), false, changes::incrementAndGet, null);
+        row.resetDataEntryComponentsWithNewValues();
+
+        row.getOverridingInputField().setText("x" + row.getOverridingInputField().getText());
+
+        assertTrue(changes.get() > 0);
         assertTrue(row.propertyValueHasChanged());
     }
 
