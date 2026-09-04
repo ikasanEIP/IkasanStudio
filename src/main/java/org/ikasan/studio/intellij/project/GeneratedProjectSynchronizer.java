@@ -1,6 +1,7 @@
 package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
@@ -8,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.*;
@@ -643,7 +645,21 @@ public class GeneratedProjectSynchronizer {
         if (templateString != null) {
 //            StudioProjectFiles.createFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
             StudioProjectFiles.createPropertiesFile(project, templateString);
-            setPropertiesFileNavigationTargets(module, resolveApplicationPropertiesPsiFile(StudioProjectFiles.getProjectBaseDir(project)));
+            // Unlike initialisePsiFileHandles() (which calls resolveApplicationPropertiesPsiFile() from a
+            // background pooled thread), this method runs inside CommandProcessor.executeCommand on the EDT
+            // (see asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk) - PsiManager.findFile() inside
+            // resolveApplicationPropertiesPsiFile() hits the workspace file index, which the platform refuses
+            // to do synchronously on the EDT ("Slow operations are prohibited on EDT"). ReadAction.nonBlocking
+            // runs the lookup on a pooled thread and hops back for the (already read-action-safe) nav-target
+            // update, the same pattern used in SendTestMessagePayloadDialog.
+            VirtualFile projectBaseDir = StudioProjectFiles.getProjectBaseDir(project);
+            ReadAction.nonBlocking(() -> resolveApplicationPropertiesPsiFile(projectBaseDir))
+                    .finishOnUiThread(ModalityState.defaultModalityState(), propertiesPsiFile -> {
+                        if (!project.isDisposed()) {
+                            setPropertiesFileNavigationTargets(module, propertiesPsiFile);
+                        }
+                    })
+                    .submit(AppExecutorUtil.getAppExecutorService());
         }
     }
 
