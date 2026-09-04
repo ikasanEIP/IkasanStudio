@@ -457,6 +457,32 @@ public class TestFixtures {
                 .build();
     }
 
+    /**
+     * Regression fixture: the metapack's scheduledCronRetry action used to be named scheduledCronEntry (which
+     * org.ikasan.builder.OnException has never actually had, on any Ikasan version - confirmed against ik3/ik4/ik5
+     * core) and its cronExpression property had no usageDataType, so ComponentProperty#getTemplateRepresentationOfValue
+     * rendered it as a bare, unquoted cron string - see FlowTemplateTest#testCreateFlowWith_scheduledCronRetryExceptionAction.
+     */
+    public static ExceptionResolution getTestSplitterScheduledCronRetryExceptionResolution(String metaPackVersion) throws StudioBuildException {
+        return ExceptionResolution.exceptionResolutionBuilder()
+                .metapackVersion(metaPackVersion)
+                .exceptionsCaught("org.ikasan.spec.component.splitting.SplitterException.class")
+                .theAction("scheduledCronRetry")
+                .componentProperties(getCronRetryProperties(metaPackVersion))
+                .build();
+    }
+
+    private static Map<String, ComponentProperty> getCronRetryProperties(String metaPackVersion) throws StudioBuildException {
+        ExceptionResolverMeta exceptionResolverMeta = (ExceptionResolverMeta)ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Exception Resolver");
+        Map<String, ComponentPropertyMeta> cronRetryPropertiesMeta = exceptionResolverMeta.getExceptionActionWithName("scheduledCronRetry").getActionProperties();
+
+        Map<String, ComponentProperty> componentPropertyHashMap = new HashMap<>();
+        componentPropertyHashMap.put("cronExpression", new ComponentProperty(cronRetryPropertiesMeta.get("cronExpression"), "0 * * * * ? *"));
+        componentPropertyHashMap.put("maxRetries", new ComponentProperty(cronRetryPropertiesMeta.get("maxRetries"), 1));
+
+        return componentPropertyHashMap;
+    }
+
 
     public static Map<String, ExceptionResolution> getExceptionResolutionMap(String metaPackVersion) throws StudioBuildException {
         ExceptionResolution jmsExceptionResolution = getTestJMSExceptionResolution(metaPackVersion);
@@ -473,6 +499,17 @@ public class TestFixtures {
         return ExceptionResolver.exceptionResolverBuilder()
             .metapackVersion(metaPackVersion)
             .ikasanExceptionResolutionMap(getExceptionResolutionMap(metaPackVersion))
+            .build();
+    }
+
+    /** See getTestSplitterScheduledCronRetryExceptionResolution's own javadoc for what regression this covers. */
+    public static ExceptionResolver getExceptionResolverWithScheduledCronRetry(String metaPackVersion) throws StudioBuildException {
+        ExceptionResolution cronRetryExceptionResolution = getTestSplitterScheduledCronRetryExceptionResolution(metaPackVersion);
+        Map<String, ExceptionResolution> exceptionResolutionMap = new HashMap<>();
+        exceptionResolutionMap.put(cronRetryExceptionResolution.getExceptionsCaught(), cronRetryExceptionResolution);
+        return ExceptionResolver.exceptionResolverBuilder()
+            .metapackVersion(metaPackVersion)
+            .ikasanExceptionResolutionMap(exceptionResolutionMap)
             .build();
     }
 

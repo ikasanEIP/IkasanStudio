@@ -14,6 +14,14 @@ public class StudioInjectController {
 @javax.annotation.Resource
 org.ikasan.spec.module.Module myModule;
 
+// Optional rather than a hard dependency: a module whose flows hold no transactional resources injects
+// perfectly well without one, and a generated file must never be the reason the module fails to start.
+// Qualified by name because Spring Boot can publish more than one PlatformTransactionManager - "transactionManager"
+// is the JTA one Ikasan's own IkasanTransactionConfiguration declares, which is the one the endpoints enlist into.
+@org.springframework.beans.factory.annotation.Autowired(required = false)
+@org.springframework.beans.factory.annotation.Qualifier("transactionManager")
+org.springframework.transaction.PlatformTransactionManager studioTransactionManager;
+
 @org.springframework.web.bind.annotation.GetMapping("/flows")
 public java.util.List<String> listFlows() {
     java.util.List<String> names = new java.util.ArrayList<>();
@@ -65,13 +73,58 @@ public org.springframework.http.ResponseEntity<?> inject(
                 ? newSyntheticJmsMessage(rawPayload, flow.getClass().getClassLoader())
                 : rawPayload;
         Object event = eventFactory.newEvent(identifier, payload);
-        ((org.ikasan.spec.event.EventListener) flow).invoke(event);
+        invokeInTransaction(flow, event);
         java.util.Map<String, String> responseBody = new java.util.HashMap<>();
         responseBody.put("status", "invoked");
         responseBody.put("identifier", identifier);
         return org.springframework.http.ResponseEntity.ok(responseBody);
     } catch (Exception e) {
         return org.springframework.http.ResponseEntity.status(500).body("Failed to inject event: " + e.getMessage());
+    }
+}
+
+/**
+* Drives the flow inside a real JTA transaction, the way a live Consumer's own container does.
+* Transactional endpoints (SFTP/FTP/JMS producers) enlist an XAResource via
+* TransactionManager.getTransaction().enlistResource(..) and fail outright with a NullPointerException when no
+* transaction is bound to the calling thread - which is exactly the case here, since this REST endpoint invokes
+* the flow straight from its Tomcat request thread rather than from a transactional consumer. The commit is also
+* where those endpoints do the real work (an FTP/SFTP producer defers its .tmp-to-final rename to commit time),
+* so the transaction has to wrap the invoke rather than merely precede it.
+*/
+private void invokeInTransaction(org.ikasan.spec.flow.Flow flow, Object event) {
+    if (studioTransactionManager == null) {
+        ((org.ikasan.spec.event.EventListener) flow).invoke(event);
+        return;
+    }
+    org.springframework.transaction.support.DefaultTransactionDefinition transactionDefinition =
+            new org.springframework.transaction.support.DefaultTransactionDefinition(
+                    org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED);
+    transactionDefinition.setName("studio-inject");
+    org.springframework.transaction.TransactionStatus transaction =
+            studioTransactionManager.getTransaction(transactionDefinition);
+    try {
+        ((org.ikasan.spec.event.EventListener) flow).invoke(event);
+    } catch (RuntimeException | Error invocationFailure) {
+        rollbackQuietly(transaction);
+        throw invocationFailure;
+    }
+    // Deliberately outside the try: a commit failure has already unwound the transaction itself, so it must not
+    // be handed to rollbackQuietly as well - it just propagates to inject()'s own catch and becomes the 500.
+    studioTransactionManager.commit(transaction);
+}
+
+/**
+* Rolls back without letting a rollback failure mask the original one - this is only ever called while already
+* unwinding from the failure that actually matters to the developer.
+*/
+private void rollbackQuietly(org.springframework.transaction.TransactionStatus transaction) {
+    try {
+        if (!transaction.isCompleted()) {
+            studioTransactionManager.rollback(transaction);
+        }
+    } catch (RuntimeException | Error rollbackFailure) {
+        // Intentionally ignored - see javadoc.
     }
 }
 

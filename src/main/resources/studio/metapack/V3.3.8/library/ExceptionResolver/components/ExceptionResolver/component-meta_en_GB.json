@@ -50,13 +50,14 @@
         }
       }
     },{
-      "actionName" : "scheduledCronEntry",
+      "actionName" : "scheduledCronRetry",
       "actionProperties":{
         "cronExpression": {
           "propertyName": "cronExpression",
           "dataValidationType" : "cronExpression",
           "defaultValue": "0 * * * * ? *",
-          "mandatory": true
+          "mandatory": true,
+          "usageDataType": "java.lang.String"
         },
         "maxRetries": {
           "propertyName": "maxRetries",

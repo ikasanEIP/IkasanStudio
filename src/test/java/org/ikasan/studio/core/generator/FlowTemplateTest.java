@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_FLOW_NAME = "MyFlow1";
@@ -227,6 +228,26 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
         ExceptionResolver exceptionResolver = TestFixtures.getExceptionResolver(metaPackVersion);
         String templateString = generateFlowWithExceptionResolverTemplateString(metaPackVersion, module, exceptionResolver);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, exceptionResolver, TEST_FLOW_NAME + "FullyPopulatedExceptionResolverComponent.java"), templateString);
+    }
+
+    /**
+     * Regression test: the scheduledCronRetry exception action's cronExpression used to generate as a bare,
+     * unquoted cron string (e.g. ".scheduledCronRetry(0 * * * * ? *, 1)") because its property metadata had no
+     * usageDataType, and the action was misnamed scheduledCronEntry (org.ikasan.builder.OnException has never
+     * actually had a method by that name, on any Ikasan version) - both would fail the generated project's own
+     * compile. See TestFixtures#getTestSplitterScheduledCronRetryExceptionResolution.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
+    public void testCreateFlowWith_scheduledCronRetryExceptionAction(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        ExceptionResolver exceptionResolver = TestFixtures.getExceptionResolverWithScheduledCronRetry(metaPackVersion);
+        String templateString = generateFlowWithExceptionResolverTemplateString(metaPackVersion, module, exceptionResolver);
+
+        assertTrue(templateString.contains("org.ikasan.builder.OnException.scheduledCronRetry("),
+                "the real Ikasan builder method is scheduledCronRetry, not scheduledCronEntry");
+        assertTrue(templateString.contains("\"0 * * * * ? *\""),
+                "the cron expression must be a quoted Java String literal, not a bare, uncompilable token");
     }
 
     // ------------------------------------- FILTER -------------------------------------

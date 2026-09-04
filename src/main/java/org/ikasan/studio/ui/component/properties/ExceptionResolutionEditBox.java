@@ -11,6 +11,8 @@ import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 import org.ikasan.studio.ui.StudioBundle;
 
 import javax.swing.*;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +52,13 @@ public class ExceptionResolutionEditBox {
 
         this.actionJComboBox = new ComboBox<>(actions);
         this.exceptionJComboBox = new ComboBox<>(exceptions);
+        // Unlike a plain Swing JComboBox, IntelliJ's ComboBox does not size itself to its widest item (e.g.
+        // "org.ikasan.spec.component.transformation.TransformationException.class") - it defaults to a modest
+        // fixed width regardless of content, which is why this dropdown's own longer entries used to render
+        // truncated until the containing PropertiesPopupDialogue was dragged wider by hand. Sizing it explicitly
+        // here means DialogWrapper's own pack() (which sizes the dialog from its content's preferred size) gets
+        // it right the first time, with no user resizing needed.
+        widenToFitContents(exceptionJComboBox, exceptions);
 
         this.exceptionJComboBox.setEditable(true);
         this.exceptionTitleField = new JLabel(StudioBundle.message("label.Exception"));
@@ -242,5 +251,30 @@ public class ExceptionResolutionEditBox {
 
     public JLabel getParamsTitleField() {
         return paramsTitleField;
+    }
+
+    /**
+     * Widens {@code comboBox}'s own preferred size to fit its widest item, so the box itself (and, once
+     * DialogWrapper packs the containing dialog, the dialog too) is wide enough to show every configured value
+     * without truncation - unlike a plain Swing JComboBox, IntelliJ's ComboBox does not do this on its own.
+     * Package-private (not private) so a same-package test can verify the computed width directly, without
+     * needing a full ExceptionResolutionEditBox/Project to construct.
+     */
+    static void widenToFitContents(JComboBox<String> comboBox, String[] items) {
+        FontMetrics metrics = comboBox.getFontMetrics(comboBox.getFont());
+        int widestItem = 0;
+        for (String item : items) {
+            if (item != null) {
+                widestItem = Math.max(widestItem, metrics.stringWidth(item));
+            }
+        }
+        if (widestItem <= 0) {
+            return;
+        }
+        Dimension currentPreferred = comboBox.getPreferredSize();
+        // Padding for the dropdown arrow button, borders, and the editor's own insets - just widening to the
+        // exact text width still clips the last character or two once those are accounted for.
+        int padding = 48;
+        comboBox.setPreferredSize(new Dimension(Math.max(currentPreferred.width, widestItem + padding), currentPreferred.height));
     }
 }
