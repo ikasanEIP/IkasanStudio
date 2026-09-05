@@ -107,7 +107,7 @@ public class StartTestMailServerAction implements ActionListener {
                 // instead of a silent "Starting..." that never actually starts.
                 if (TestMailServerSupport.isAlreadyListening(TestMailServerSupport.UI_HOST, TestMailServerSupport.UI_PORT)) {
                     ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message(
+                            StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message(
                                     "message.AnotherTestMailServerAlreadyRunning", smtpAddress, TestMailServerSupport.UI_PORT)));
                     return;
                 }
@@ -128,7 +128,7 @@ public class StartTestMailServerAction implements ActionListener {
                 } catch (UnsupportedPlatformException e) {
                     LOG.warn("STUDIO: No test mail server build available for this platform", e);
                     ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.UnsupportedPlatformForTestMailServer",
+                            StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message("message.UnsupportedPlatformForTestMailServer",
                                     System.getProperty("os.name"), System.getProperty("os.arch"))));
                 } catch (Exception e) {
                     // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
@@ -136,7 +136,7 @@ public class StartTestMailServerAction implements ActionListener {
                     String errorDetail = StopTestMailServerAction.redact(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
                     LOG.warn("STUDIO: Could not download/start the test mail server: " + errorDetail);
                     ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotDownloadTestMailServer", errorDetail)));
+                            StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message("message.CouldNotDownloadTestMailServer", errorDetail)));
                 }
             }
         });
@@ -162,7 +162,7 @@ public class StartTestMailServerAction implements ActionListener {
         if (!TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
             project.getService(TestMailServerSessionService.class).forgetOwned(smtpHost, smtpPort);
             ApplicationManager.getApplication().invokeLater(() ->
-                    StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerFailedToStart", smtpAddress)));
+                    StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message("message.TestMailServerFailedToStart", smtpAddress)));
         }
     }
 

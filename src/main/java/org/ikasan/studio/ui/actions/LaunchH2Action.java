@@ -71,7 +71,12 @@ public class LaunchH2Action implements ActionListener {
                     (start ? StudioBundle.message("message.StartingH2ServerConsoleShouldAppear", connectionString)
                             : StudioBundle.message("message.StoppingH2ServerReviewH2TerminalTabs")));
          } catch (RuntimeException e) {
-            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.AttemptToRunCommandFailed", e.getMessage()));
+            String message = StudioBundle.message("message.AttemptToRunCommandFailed", e.getMessage());
+            if (start) {
+               StudioUIUtils.displayIdeaErrorMessage(project, message);
+            } else {
+               StudioUIUtils.displayIdeaWarnMessage(project, message);
+            }
          }
       }
 
