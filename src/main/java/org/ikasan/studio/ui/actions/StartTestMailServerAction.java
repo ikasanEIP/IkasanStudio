@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -31,6 +32,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 
 /**
@@ -81,10 +84,17 @@ public class StartTestMailServerAction implements ActionListener {
             @Override
             public void run(ProgressIndicator indicator) {
                 if (TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
-                    project.getService(TestMailServerSessionService.class).pollNow();
+                    TestMailServerSessionService service = project.getService(TestMailServerSessionService.class);
+                    boolean owned = service.isOwned(smtpHost, smtpPort);
+                    boolean webUiListening = TestMailServerSupport.isAlreadyListening(
+                            TestMailServerSupport.UI_HOST, TestMailServerSupport.UI_PORT);
+                    service.pollNow();
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestMailServerAlreadyRunning", smtpAddress, uiUrl));
-                        BrowserUtil.browse(uiUrl);
+                        String key = owned ? "message.TestMailServerAlreadyRunning"
+                                : webUiListening ? "message.TestMailServerExternallyOwned"
+                                : "message.TestMailServerExternalSmtpWithoutUi";
+                        StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message(key, smtpAddress, uiUrl));
+                        if (owned || webUiListening) BrowserUtil.browse(uiUrl);
                     });
                     return;
                 }
@@ -102,7 +112,7 @@ public class StartTestMailServerAction implements ActionListener {
                     return;
                 }
                 try {
-                    Path binary = ensureBinaryDownloaded();
+                    Path binary = ensureBinaryDownloaded(indicator);
                     ApplicationManager.getApplication().invokeLater(() -> {
                         launchInTerminal(binary, smtpHost, smtpPort);
                         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.StartingTestMailServer", smtpAddress, uiUrl));
@@ -113,6 +123,8 @@ public class StartTestMailServerAction implements ActionListener {
                     // appears on the session service's own next scheduled poll a few seconds later instead.
                     project.getService(TestMailServerSessionService.class).pollNow();
                     warnIfNotActuallyListening(smtpHost, smtpPort, smtpAddress);
+                } catch (ProcessCanceledException e) {
+                    throw e;
                 } catch (UnsupportedPlatformException e) {
                     LOG.warn("STUDIO: No test mail server build available for this platform", e);
                     ApplicationManager.getApplication().invokeLater(() ->
@@ -121,8 +133,8 @@ public class StartTestMailServerAction implements ActionListener {
                 } catch (Exception e) {
                     // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
                     // user, and this is already surfaced via the popup below - see CLAUDE.md.
-                    LOG.warn("STUDIO: Could not download/start the test mail server", e);
-                    String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                    String errorDetail = StopTestMailServerAction.redact(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                    LOG.warn("STUDIO: Could not download/start the test mail server: " + errorDetail);
                     ApplicationManager.getApplication().invokeLater(() ->
                             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotDownloadTestMailServer", errorDetail)));
                 }
@@ -148,6 +160,7 @@ public class StartTestMailServerAction implements ActionListener {
             return;
         }
         if (!TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
+            project.getService(TestMailServerSessionService.class).forgetOwned(smtpHost, smtpPort);
             ApplicationManager.getApplication().invokeLater(() ->
                     StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerFailedToStart", smtpAddress)));
         }
@@ -157,7 +170,8 @@ public class StartTestMailServerAction implements ActionListener {
         return Path.of(PathManager.getSystemPath(), "ikasan-studio", "mailhog");
     }
 
-    private Path ensureBinaryDownloaded() throws IOException, InterruptedException, UnsupportedPlatformException {
+    private Path ensureBinaryDownloaded(ProgressIndicator indicator) throws IOException, InterruptedException, UnsupportedPlatformException {
+        indicator.checkCanceled();
         String assetName = mailHogAssetNameForCurrentPlatform();
         Path cacheDir = cacheDirectory();
         Files.createDirectories(cacheDir);
@@ -170,10 +184,22 @@ public class StartTestMailServerAction implements ActionListener {
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
         HttpRequest request = HttpRequest.newBuilder(URI.create(MAILHOG_RELEASE_BASE_URL + assetName)).GET().build();
-        HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(binary));
-        if (response.statusCode() != 200) {
-            Files.deleteIfExists(binary);
-            throw new IOException("Download failed with HTTP " + response.statusCode());
+        Path partial = cacheDir.resolve(assetName + ".part");
+        Files.deleteIfExists(partial);
+        HttpResponse<Path> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofFile(partial));
+            indicator.checkCanceled();
+            if (response.statusCode() != 200) {
+                throw new IOException("Download failed with HTTP " + response.statusCode());
+            }
+            try {
+                Files.move(partial, binary, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(partial, binary, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(partial);
         }
         // No effect on Windows (no executable bit to set); required on Linux/macOS before the terminal can run it.
         //noinspection ResultOfMethodCallIgnored
@@ -182,8 +208,12 @@ public class StartTestMailServerAction implements ActionListener {
     }
 
     private String mailHogAssetNameForCurrentPlatform() throws UnsupportedPlatformException {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        String arch = System.getProperty("os.arch", "").toLowerCase();
+        return mailHogAssetName(System.getProperty("os.name", ""), System.getProperty("os.arch", ""));
+    }
+
+    static String mailHogAssetName(String osName, String archName) throws UnsupportedPlatformException {
+        String os = osName.toLowerCase();
+        String arch = archName.toLowerCase();
         boolean is64Bit = arch.contains("64");
         if (os.contains("win")) {
             return is64Bit ? "MailHog_windows_amd64.exe" : "MailHog_windows_386.exe";
@@ -242,6 +272,17 @@ public class StartTestMailServerAction implements ActionListener {
             String command = quotedBinaryPath + " " + TestMailServerSupport.smtpBindAddrArgument(smtpHost + ":" + smtpPort)
                     + " -api-bind-addr " + uiAddress + " -ui-bind-addr " + uiAddress;
             terminalWidget.sendCommandToExecute(command);
+            Content ownedTab = contentManager.findContent(TestMailServerSupport.TERMINAL_TAB_TITLE);
+            if (ownedTab != null) {
+                project.getService(TestMailServerSessionService.class).registerOwned(smtpHost, smtpPort, () -> {
+                    for (Content content : contentManager.getContents()) {
+                        if (content == ownedTab) {
+                            contentManager.removeContent(ownedTab, true);
+                            break;
+                        }
+                    }
+                });
+            }
         });
     }
 
@@ -249,12 +290,13 @@ public class StartTestMailServerAction implements ActionListener {
         try {
             return TerminalToolWindowManager.getInstance(project).createShellWidget(cacheDirectory().toString(), TestMailServerSupport.TERMINAL_TAB_TITLE, true, true);
         } catch (Exception e) {
-            LOG.warn("STUDIO: WARN: Failed to create terminal widget for the test mail server: " + e.getMessage(), e);
+            LOG.warn("STUDIO: WARN: Failed to create terminal widget for the test mail server: "
+                    + StopTestMailServerAction.redact(e.getMessage()));
             return null;
         }
     }
 
-    private static class UnsupportedPlatformException extends Exception {
+    static class UnsupportedPlatformException extends Exception {
         UnsupportedPlatformException(String platform) {
             super("Unsupported platform: " + platform);
         }

@@ -46,15 +46,15 @@ public final class StartTestFtpServerAction implements ActionListener {
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
                             StudioBundle.message("message.TestFtpServerRequiresLocalHost")));
                 } catch (Exception e) {
-                    LOG.warn("STUDIO: Could not start test FTP server", e);
+                    String safeDetail = StopTestMailServerAction.redact(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                    LOG.warn("STUDIO: Could not start test FTP server: " + safeDetail);
                     if (isPortConflict(e)) {
                         ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
                                 StudioBundle.message("message.TestFtpServerPortConflict", configuration.address())));
                         return;
                     }
-                    String detail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
-                            StudioBundle.message("message.CouldNotStartTestFtpServer", detail)));
+                            StudioBundle.message("message.CouldNotStartTestFtpServer", safeDetail)));
                 }
             }
         });

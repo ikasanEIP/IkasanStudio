@@ -71,7 +71,16 @@ public class GeneratedProjectSynchronizer {
             try {
                 // 1. Determine if the pom needs to be updated
             IkasanPomModel ikasanPomModel = uiContext.getIkasanPomModel();        // Not on EDT
-            if (ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())) {
+            if (ikasanPomModel == null) {
+                // Cache never warmed for this project (e.g. this is its first regeneration this session) -
+                // UiContext.getIkasanPomModel() is deliberately cache-only (EDT callers must never hit disk),
+                // but this whole block already runs on a pooled thread, so loading it here is safe and also
+                // populates the cache for next time. Without this, every regeneration attempt for a
+                // never-warmed project NPEs right here, silently (the outer catch below has no logging),
+                // aborting before a single file is written - indistinguishable from "nothing happened".
+                ikasanPomModel = StudioProjectFiles.pomLoadFromVirtualDisk(project);
+            }
+            if (ikasanPomModel != null && ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())) {
                 pomDependenciesHaveChanged.set(true);
             } else {
                 pomDependenciesHaveChanged.set(false);
@@ -139,10 +148,19 @@ public class GeneratedProjectSynchronizer {
                     "Undo group ID");
                 completion.complete(null);
                 } catch (Exception failure) {
+                    // Completing the future exceptionally isn't enough on its own - none of this method's
+                    // callers actually inspect it for a failure (see refreshCodeFromModel and its own
+                    // callers), so without a log line here, a failure this late in generation is otherwise
+                    // completely silent: no exception surfaces anywhere, no file gets written, and it looks
+                    // to the user exactly like nothing happened.
+                    LOG.warn("STUDIO: Source generation failed while applying model changes to disk", failure);
                     completion.completeExceptionally(failure);
                 }
             });
             } catch (Exception failure) {
+                // See the sibling catch above - this future's exceptional completion is not observed by any
+                // caller, so this is the only place this failure is ever recorded.
+                LOG.warn("STUDIO: Source generation failed before reaching the write action", failure);
                 completion.completeExceptionally(failure);
             }
         });

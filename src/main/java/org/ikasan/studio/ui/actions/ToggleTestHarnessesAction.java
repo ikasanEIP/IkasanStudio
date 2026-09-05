@@ -66,7 +66,7 @@ public final class ToggleTestHarnessesAction implements ActionListener {
             return true;
         }
         TestMailServerSessionService mailService = project.getService(TestMailServerSessionService.class);
-        return TestMailServerLinks.findLinks(module).stream()
+        return mailService.hasAnyOwned() || TestMailServerLinks.findLinks(module).stream()
                 .anyMatch(link -> mailService.isListening(link.host(), link.port()));
     }
 
@@ -93,7 +93,12 @@ public final class ToggleTestHarnessesAction implements ActionListener {
             }
         }
         TestMailServerSessionService mailService = project.getService(TestMailServerSessionService.class);
-        for (TestMailServerLinks.Link link : TestMailServerLinks.findLinks(module)) {
+        List<TestMailServerLinks.Link> mailLinks = TestMailServerLinks.findLinks(module);
+        if (mailService.hasAnyOwned() && !mailLinks.isEmpty() && !mailLinks.get(0).producers().isEmpty()) {
+            new StopTestMailServerAction(project, mailLinks.get(0).producers().get(0)).actionPerformed(event);
+            return;
+        }
+        for (TestMailServerLinks.Link link : mailLinks) {
             if (mailService.isListening(link.host(), link.port()) && !link.producers().isEmpty()) {
                 new StopTestMailServerAction(project, link.producers().get(0)).actionPerformed(event);
                 break;

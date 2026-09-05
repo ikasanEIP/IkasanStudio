@@ -15,7 +15,9 @@ import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Tracks which (mailSmtpHost, mailSmtpPort) addresses a locally-launched test mail server is actually
@@ -41,10 +43,12 @@ public final class TestMailServerSessionService implements Disposable {
     // feedback right after clicking, so this interval only matters for external changes (e.g. the user closing
     // the terminal tab by hand) that Start/Stop can't know about.
     private static final int POLL_INTERVAL_MS = 4000;
+    private static final long STARTUP_GRACE_MS = 5000;
 
     private final Project project;
     private final Alarm alarm;
     private volatile Set<String> listeningAddresses = Set.of();
+    private final Map<String, OwnedHarness> ownedHarnesses = new ConcurrentHashMap<>();
     private volatile boolean disposed;
 
     public TestMailServerSessionService(Project project) {
@@ -56,6 +60,32 @@ public final class TestMailServerSessionService implements Disposable {
     /** @return true if a test mail server is currently confirmed listening on this exact address. */
     public boolean isListening(String host, int port) {
         return listeningAddresses.contains(host + ":" + port);
+    }
+
+    public boolean isOwned(String host, int port) {
+        return ownedHarnesses.containsKey(host + ":" + port);
+    }
+
+    /** Registers only a process/tab this project actually launched. Never infer ownership from an open port. */
+    public void registerOwned(String host, int port, Runnable stopAction) {
+        if (!disposed) ownedHarnesses.put(host + ":" + port,
+                new OwnedHarness(stopAction, System.currentTimeMillis(), host, port));
+    }
+
+    public void forgetOwned(String host, int port) {
+        ownedHarnesses.remove(host + ":" + port);
+    }
+
+    public boolean hasAnyOwned() {
+        return !ownedHarnesses.isEmpty();
+    }
+
+    /** Stops this project.s one owned MailHog instance even if the component address changed after launch. */
+    public boolean stopAnyOwned() {
+        var entry = ownedHarnesses.entrySet().stream().findFirst().orElse(null);
+        if (entry == null || !ownedHarnesses.remove(entry.getKey(), entry.getValue())) return false;
+        entry.getValue().stopAction().run();
+        return true;
     }
 
     /**
@@ -108,8 +138,19 @@ public final class TestMailServerSessionService implements Disposable {
                 }
             }
         }
+        for (var entry : ownedHarnesses.entrySet()) {
+            OwnedHarness owned = entry.getValue();
+            if (TestMailServerSupport.isAlreadyListening(owned.host(), owned.port())) {
+                nowListening.add(entry.getKey());
+            }
+        }
         boolean changed = !nowListening.equals(listeningAddresses);
         listeningAddresses = nowListening;
+        // A registered harness that no longer listens exited unexpectedly (or its terminal was closed).
+        // Forget it so a later external listener on the same port is never mistaken for Studio-owned.
+        long now = System.currentTimeMillis();
+        ownedHarnesses.entrySet().removeIf(entry -> !nowListening.contains(entry.getKey())
+                && now - entry.getValue().registeredAtMillis() >= STARTUP_GRACE_MS);
         if (changed) {
             repaintCanvas();
         }
@@ -136,5 +177,15 @@ public final class TestMailServerSessionService implements Disposable {
         disposed = true;
         alarm.cancelAllRequests();
         listeningAddresses = Set.of();
+        var owned = List.copyOf(ownedHarnesses.values());
+        ownedHarnesses.clear();
+        Runnable stopOwned = () -> owned.forEach(harness -> {
+            try { harness.stopAction().run(); } catch (RuntimeException ignored) { }
+        });
+        var application = ApplicationManager.getApplication();
+        if (application == null || application.isDispatchThread()) stopOwned.run();
+        else application.invokeLater(stopOwned);
     }
+
+    private record OwnedHarness(Runnable stopAction, long registeredAtMillis, String host, int port) { }
 }

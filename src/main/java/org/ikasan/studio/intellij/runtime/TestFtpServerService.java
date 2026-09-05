@@ -14,6 +14,8 @@ import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
 import org.ikasan.studio.ui.UiContext;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +41,7 @@ public final class TestFtpServerService implements Disposable {
             if (requested.sameAddressAs(configuration)) return rootDirectory;
             throw new IllegalStateException("A Studio test FTP server is already running at " + configuration.address());
         }
+        assertPortAvailable(requested);
         rootDirectory = testRoot(project);
         Files.createDirectories(rootDirectory);
         Path welcomeFile = rootDirectory.resolve("test-file.txt");
@@ -56,7 +59,12 @@ public final class TestFtpServerService implements Disposable {
         user.setAuthorities(List.of(new WritePermission()));
         factory.getUserManager().save(user);
         FtpServer candidate = factory.createServer();
-        candidate.start();
+        try {
+            candidate.start();
+        } catch (Exception failure) {
+            try { candidate.stop(); } catch (RuntimeException ignored) { }
+            throw failure;
+        }
         server = candidate;
         configuration = requested;
         repaintCanvas();
@@ -98,6 +106,13 @@ public final class TestFtpServerService implements Disposable {
             canvas.repaint();
         });
     }
+    private static void assertPortAvailable(TestFtpServerConfiguration requested) throws Exception {
+        try (ServerSocket probe = new ServerSocket()) {
+            probe.setReuseAddress(false);
+            probe.bind(new InetSocketAddress(InetAddress.getByName(requested.host()), requested.port()));
+        }
+    }
+
     static boolean isLocalHost(String host) throws Exception {
         for (InetAddress address : InetAddress.getAllByName(host)) if (address.isLoopbackAddress()) return true;
         return false;

@@ -39,6 +39,7 @@ class TestFtpServerServiceTest {
             Path root = service.start(configuration);
             assertThat(root).isEqualTo(projectDirectory.resolve("test-data/ftp"));
             assertThat(service.isRunningAt(configuration)).isTrue();
+            assertThat(service.start(configuration)).isEqualTo(root);
             assertThat(Files.readString(root.resolve("test-file.txt"))).contains("Ikasan Studio");
             Files.delete(root.resolve("test-file.txt"));
             assertThat(service.getOrCreateTestFile()).exists();
@@ -60,6 +61,36 @@ class TestFtpServerServiceTest {
             service.stop();
         }
         assertThat(service.isRunning()).isFalse();
+        service.stop();
+        assertThat(service.isRunning()).isFalse();
+    }
+
+    @Test
+    void rejectsAnExternallyOwnedPortWithoutClosingIt(@TempDir Path projectDirectory) throws Exception {
+        Project project = mock(Project.class);
+        when(project.getBasePath()).thenReturn(projectDirectory.toString());
+        try (ServerSocket external = new ServerSocket(0)) {
+            TestFtpServerService service = new TestFtpServerService(project);
+            TestFtpServerConfiguration configuration = new TestFtpServerConfiguration(
+                    "127.0.0.1", external.getLocalPort(), "ikasan", "secret");
+
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.start(configuration))
+                    .isInstanceOf(java.net.BindException.class);
+            assertThat(external.isClosed()).isFalse();
+            service.stop();
+            assertThat(external.isClosed()).isFalse();
+        }
+    }
+
+    @Test
+    void derivesItsDataDirectoryFromTheCurrentProjectLocation(@TempDir Path parent) {
+        Project first = mock(Project.class);
+        Project relocated = mock(Project.class);
+        when(first.getBasePath()).thenReturn(parent.resolve("before").toString());
+        when(relocated.getBasePath()).thenReturn(parent.resolve("after").toString());
+
+        assertThat(TestFtpServerService.testRoot(first)).isEqualTo(parent.resolve("before/test-data/ftp"));
+        assertThat(TestFtpServerService.testRoot(relocated)).isEqualTo(parent.resolve("after/test-data/ftp"));
     }
 
     private static void command(BufferedWriter writer, String command) throws Exception {

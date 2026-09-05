@@ -40,8 +40,8 @@ public final class StopTestFtpServerAction implements ActionListener {
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaInfoMessage(project,
                             StudioBundle.message("message.TestFtpServerStopped")));
                 } catch (Exception e) {
-                    LOG.warn("STUDIO: Could not stop test FTP server", e);
-                    String detail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                    String detail = StopTestMailServerAction.redact(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                    LOG.warn("STUDIO: Could not stop test FTP server: " + detail);
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
                             StudioBundle.message("message.CouldNotStopTestFtpServer", detail)));
                 }

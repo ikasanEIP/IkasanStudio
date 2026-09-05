@@ -14,6 +14,7 @@ import org.ikasan.studio.ui.UiContext;
 import javax.swing.JButton;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
@@ -69,6 +70,45 @@ class ToggleTestHarnessesActionTest {
         action.refreshPresentation();
         assertThat(button.getIcon()).isSameAs(com.intellij.icons.AllIcons.Actions.Suspend);
         assertThat(button.getAccessibleContext().getAccessibleName()).contains("Stop");
+
+        when(ftpService.isRunning()).thenReturn(false);
+        when(mailService.hasAnyOwned()).thenReturn(true);
+        action.refreshPresentation();
+        assertThat(button.getIcon()).isSameAs(com.intellij.icons.AllIcons.Actions.Suspend);
+    }
+
+    @Test
+    void selectsMailHarnessBinariesForSupportedDesktopPlatforms() throws Exception {
+        assertThat(StartTestMailServerAction.mailHogAssetName("Windows 11", "amd64"))
+                .isEqualTo("MailHog_windows_amd64.exe");
+        assertThat(StartTestMailServerAction.mailHogAssetName("Mac OS X", "aarch64"))
+                .isEqualTo("MailHog_darwin_amd64");
+        assertThat(StartTestMailServerAction.mailHogAssetName("Linux", "amd64"))
+                .isEqualTo("MailHog_linux_amd64");
+        assertThat(StartTestMailServerAction.mailHogAssetName("Linux", "arm"))
+                .isEqualTo("MailHog_linux_arm");
+    }
+
+    @Test
+    void mailHarnessOwnershipIsProjectScopedIdempotentAndNotRestoredAfterRestart() {
+        Project project = mock(Project.class);
+        AtomicInteger stops = new AtomicInteger();
+        TestMailServerSessionService firstSession = new TestMailServerSessionService(project);
+        TestMailServerSessionService restartedSession = new TestMailServerSessionService(project);
+        try {
+            firstSession.registerOwned("127.0.0.1", 1025, stops::incrementAndGet);
+
+            assertThat(firstSession.hasAnyOwned()).isTrue();
+            assertThat(restartedSession.hasAnyOwned()).isFalse();
+            assertThat(restartedSession.stopAnyOwned()).isFalse();
+            assertThat(stops).hasValue(0);
+            assertThat(firstSession.stopAnyOwned()).isTrue();
+            assertThat(firstSession.stopAnyOwned()).isFalse();
+            assertThat(stops).hasValue(1);
+        } finally {
+            firstSession.dispose();
+            restartedSession.dispose();
+        }
     }
 
     private static Module moduleWith(FlowElement element) throws StudioBuildException {
