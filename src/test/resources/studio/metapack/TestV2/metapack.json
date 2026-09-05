@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "TestV2",
+  "ikasanVersion": "3.1.0",
+  "javaVersion": "11",
+  "dependencyManagement": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone-bom",
+      "version": "3.1.0"
+    }
+  ],
+  "compatibilityOverrides": [
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-annotations",
+      "version": "3.2.0",
+      "reason": "Synthetic version used by the cross-meta-pack migration test."
+    }
+  ]
+}

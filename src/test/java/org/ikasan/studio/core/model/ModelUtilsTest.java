@@ -11,18 +11,23 @@ import static org.junit.jupiter.api.Assertions.*;
 class ModelUtilsTest {
 
     @Test
-    public void test_getAllUniqueSortedDependenciesSet_theNewerVersionOnlyIsRetained() {
+    public void conflictingExplicitVersionsAreRejected() {
         Dependency d1 = createDependency("org", "bob", "1.1.1");
         Dependency d2 = createDependency("org", "bob", "1.1.0");
-        Dependency d3 = createDependency("org", "bob", "1.1.1");
 
-        Set<Dependency> actual = ModelUtils.getAllUniqueSortedDependenciesSet(Arrays.asList(d1, d2, d3));
-        Object[] actualArray = actual.toArray();
-        assertAll(
-                "Check set is unique",
-                () -> assertEquals(1, actual.size()),
-                () -> assertEquals("1.1.1", ((Dependency)actualArray[0]).getVersion())
-        );
+        assertThrows(org.ikasan.studio.core.StudioBuildRuntimeException.class,
+                () -> ModelUtils.getAllUniqueSortedDependenciesSet(Arrays.asList(d1, d2)));
+    }
+
+    @Test
+    void bomManagedDependencyWinsOverAnExplicitVersion() {
+        Dependency explicit = createDependency("org", "bob", "1.1.1");
+        Dependency managed = createDependency("org", "bob", null);
+
+        Set<Dependency> actual = ModelUtils.getAllUniqueSortedDependenciesSet(Arrays.asList(explicit, managed));
+
+        assertEquals(1, actual.size());
+        assertNull(actual.iterator().next().getVersion());
     }
     @Test
     public void testVersionNumber() {

@@ -9,18 +9,15 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-eip-standalone",
-      "version": "3.3.9"
+      "artifactId": "ikasan-eip-standalone"
     },
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-h2-standalone-persistence",
-      "version": "3.3.9"
+      "artifactId": "ikasan-h2-standalone-persistence"
     },
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-test-endpoint",
-      "version": "3.3.9"
+      "artifactId": "ikasan-test-endpoint"
     }
   ],
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
@@ -80,7 +77,7 @@
     },
     "version": {
       "propertyName": "version",
-      "choices": [ "V1.3.x" ],
+      "choices": [ "V3.3.8" ],
       "affectsUserImplementedClass": true,
       "helpText": "The ikasan version of the meta-pack used to build this module.",
       "mandatory": true

@@ -12,13 +12,11 @@
   "jarDependencies": [
     {
       "groupId": "javax.xml.bind",
-      "artifactId": "jaxb-api",
-      "version": "2.3.1"
+      "artifactId": "jaxb-api"
     },
     {
       "groupId": "com.sun.xml.bind",
-      "artifactId": "jaxb-impl",
-      "version": "2.3.1"
+      "artifactId": "jaxb-impl"
     }
   ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

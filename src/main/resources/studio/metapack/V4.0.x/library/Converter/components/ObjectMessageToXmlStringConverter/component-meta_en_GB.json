@@ -12,13 +12,11 @@
   "jarDependencies": [
     {
       "groupId": "jakarta.xml.bind",
-      "artifactId": "jakarta.xml.bind-api",
-      "version": "4.0.1"
+      "artifactId": "jakarta.xml.bind-api"
     },
     {
       "groupId": "org.glassfish.jaxb",
-      "artifactId": "jaxb-runtime",
-      "version": "4.0.4"
+      "artifactId": "jaxb-runtime"
     }
   ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

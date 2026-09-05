@@ -36,10 +36,10 @@ class ModuleTest {
         Module oldModule = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
         assertNotNull(oldModule);
         Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_4_0_0);
-        final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=3.3.9, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=3.3.9, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=3.3.9, type=jar}]";
-        final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=4.1.6, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=4.1.6, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=4.1.6, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=4.1.6, type=jar}]";
+        final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=null, type=jar}]";
+        final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=null, type=jar}]";
 
-        checkUnchangedProperties(oldModule, newModule, Arrays.asList("applicationPackageName", "description", "version", "flowStartupType", "h2DbPortNumber", "h2WebPortNumber", "port", "useEmbeddedH2"));
+        checkUnchangedProperties(oldModule, newModule, Arrays.asList("applicationPackageName", "description", "flowStartupType", "h2DbPortNumber", "h2WebPortNumber", "port", "useEmbeddedH2"));
         assertAll(
                 "Check the module contains the expected values",
                 () -> assertEquals(newModule.getFlows().size(), oldModule.getFlows().size()),
@@ -49,7 +49,7 @@ class ModuleTest {
                 // componentMeta
                 () -> assertThat(newModule.getComponentMeta())
                         .usingRecursiveComparison()
-                        .ignoringFields("jarDependencies", "iconResourceDirectory")
+                        .ignoringFields("jarDependencies", "iconResourceDirectory", "allowableProperties.version.choices")
                         .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                         .isEqualTo(oldModule.getComponentMeta()),
                 () -> assertEquals(jarDependenciesOld, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),

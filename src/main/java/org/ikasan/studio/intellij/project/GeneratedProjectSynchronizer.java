@@ -380,11 +380,22 @@ public class GeneratedProjectSynchronizer {
                     }
                 }
 
-                if (    component instanceof FlowUserImplementedElement &&
-                        (((FlowUserImplementedElement)component).isOverwriteEnabled() || component.getComponentMeta().isDebug()) &&
-                        componentRequiresStub(component)) {
+                if (component instanceof FlowUserImplementedElement && componentRequiresStub(component)) {
                     String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
                     String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
+                    // overwriteEnabled is a plain in-memory flag (see FlowUserImplementedElement) that
+                    // ModuleDeserializer never sets true when rebuilding the model from model.json - every
+                    // FlowUserImplementedElement comes back from a reload with it false, "protecting" a stub
+                    // that, the very first time generation runs after that reload, was never actually written
+                    // to disk yet. Without also checking for the file's actual absence here, a component whose
+                    // stub generation failed (or was never reached) before the model was last reloaded can
+                    // never have it created - the "don't clobber hand-written code" guard permanently blocks
+                    // its own first-ever generation instead.
+                    boolean stubMissing = StudioProjectFiles.getUserImplementedClassFile(project, newPackageName, newClassName) == null;
+                    if (!(((FlowUserImplementedElement) component).isOverwriteEnabled()
+                            || component.getComponentMeta().isDebug() || stubMissing)) {
+                        continue;
+                    }
                     String templateString = null;
                     try {
                         templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, module, ikasanFlow, component);

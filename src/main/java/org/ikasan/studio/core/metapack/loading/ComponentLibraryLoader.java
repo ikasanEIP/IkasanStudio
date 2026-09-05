@@ -6,6 +6,7 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
 import org.ikasan.studio.core.metapack.model.IkasanMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,11 @@ import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VE
 public final class ComponentLibraryLoader {
     public static final String METAPACK_BASE_DIRECTORY = "studio/metapack";
     private static final Logger LOG = LoggerFactory.getLogger(ComponentLibraryLoader.class);
+
+    public MetaPackManifest loadManifest(String version) throws StudioBuildException {
+        return ComponentIO.deserializeResource(
+                METAPACK_BASE_DIRECTORY + "/" + version + "/metapack.json", MetaPackManifest.class);
+    }
 
     public Map<String, ComponentMeta> load(String version) {
         Map<String, ComponentMeta> components = new HashMap<>();

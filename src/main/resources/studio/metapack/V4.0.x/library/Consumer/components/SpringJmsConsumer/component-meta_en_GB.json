@@ -11,18 +11,15 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-jms-spring-arjuna",
-      "version": "4.1.6"
+      "artifactId": "ikasan-jms-spring-arjuna"
     },
     {
       "groupId": "org.apache.activemq",
-      "artifactId": "activemq-client",
-      "version": "6.2.1"
+      "artifactId": "activemq-client"
     },
     {
       "groupId": "org.apache.activemq",
-      "artifactId": "activemq-broker",
-      "version": "6.2.1"
+      "artifactId": "activemq-broker"
     }
   ],
   "usesBuilderInFactory": true,

@@ -1,6 +1,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import groovy.json.JsonSlurper
 
 plugins {
     id("java") // Java support
@@ -12,6 +13,16 @@ plugins {
 
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
+
+val metaPackBomCoordinates = fileTree("src/main/resources/studio/metapack") {
+    include("*/metapack.json")
+}.files.flatMap { manifestFile ->
+    @Suppress("UNCHECKED_CAST")
+    val manifest = JsonSlurper().parse(manifestFile) as Map<String, Any?>
+    @Suppress("UNCHECKED_CAST")
+    val imports = manifest["dependencyManagement"] as? List<Map<String, String>> ?: emptyList()
+    imports.map { "${it.getValue("groupId")}:${it.getValue("artifactId")}:${it.getValue("version")}@pom" }
+}.toSortedSet()
 
 // Enforce Java 17 for all Java compilation tasks, independent of IDE or PATH JVM.
 java {
@@ -162,6 +173,25 @@ changelog {
 }
 
 tasks {
+    val verifyMetaPackBoms = register("verifyMetaPackBoms") {
+        group = "verification"
+        description = "Verifies that every BOM declared by a packaged meta-pack resolves independently."
+        inputs.property("coordinates", metaPackBomCoordinates)
+        doLast {
+            metaPackBomCoordinates.forEach { coordinate ->
+                val bom = configurations.detachedConfiguration(
+                    project.dependencies.create(coordinate)
+                ).apply { isTransitive = false }
+                if (bom.resolve().isEmpty()) {
+                    throw GradleException("Meta-pack BOM did not resolve: " + coordinate)
+                }
+            }
+        }
+    }
+
+    check {
+        dependsOn(verifyMetaPackBoms)
+    }
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }

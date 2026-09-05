@@ -6,8 +6,7 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-component-converter",
-      "version": "3.3.9"
+      "artifactId": "ikasan-component-converter"
     }
     ],
   "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

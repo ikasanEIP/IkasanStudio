@@ -18,6 +18,37 @@ class ComponentLibraryLoaderTest {
     }
 
     @Test
+    void loadsTheVersionAndBomContractFromEachPackManifest() throws Exception {
+        var v3 = ComponentLibrary.getMetaPackManifest("V3.3.8");
+        var v4 = ComponentLibrary.getMetaPackManifest("V4.0.x");
+
+        assertThat(v3.ikasanVersion()).isEqualTo("3.3.8");
+        assertThat(v3.javaVersion()).isEqualTo("11");
+        assertThat(v4.ikasanVersion()).isEqualTo("4.1.6");
+        assertThat(v4.javaVersion()).isEqualTo("17");
+        assertThat(v4.dependencyManagement()).singleElement().satisfies(bom -> {
+            assertThat(bom.artifactId()).isEqualTo("ikasan-eip-standalone-bom");
+            assertThat(bom.version()).isEqualTo("4.1.6");
+        });
+    }
+
+    @Test
+    void packagedDependenciesAreBomManagedUnlessDeclaredAsOverrides() throws Exception {
+        ComponentLibraryLoader loader = new ComponentLibraryLoader();
+        for (String version : java.util.List.of("V3.3.8", "V4.0.x")) {
+            var components = loader.load(version);
+            var manifest = loader.loadManifest(version);
+            org.ikasan.studio.core.metapack.validation.MetaPackValidator.validate(version, manifest, components);
+            assertThat(components.values()).allSatisfy(component -> {
+                if (component.getJarDependencies() != null) {
+                    assertThat(component.getJarDependencies())
+                            .allMatch(dependency -> dependency.getVersion() == null);
+                }
+            });
+        }
+    }
+
+    @Test
     void simultaneousProjectsCanResolveDifferentMetapacksWithoutCrossContamination() throws Exception {
         CompletableFuture<String> v3 = CompletableFuture.supplyAsync(() -> implementingClass("V3.3.8"));
         CompletableFuture<String> v4 = CompletableFuture.supplyAsync(() -> implementingClass("V4.0.x"));

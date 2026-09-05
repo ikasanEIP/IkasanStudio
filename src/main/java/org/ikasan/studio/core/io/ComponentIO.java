@@ -62,6 +62,16 @@ public class ComponentIO {
         return ikasanMeta;
     }
 
+    /** Deserializes a strongly typed packaged metadata resource. */
+    public static <T> T deserializeResource(final String path, Class<T> type) throws StudioBuildException {
+        try {
+            return MAPPER.readValue(getJsonFromFile(path), type);
+        } catch (JsonProcessingException e) {
+            throw new StudioBuildException("The serialised data in [" + path + "] could not be read due to ["
+                    + e.getMessage() + "]", e);
+        }
+    }
+
     /*
      * Deserialize a module
      * @param path to the file containing the JSON to deserializes

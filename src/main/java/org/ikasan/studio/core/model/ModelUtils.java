@@ -1,6 +1,7 @@
 package org.ikasan.studio.core.model;
 
 import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,30 +11,32 @@ public class ModelUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ModelUtils.class);
 
     public static Set<Dependency> getAllUniqueSortedDependenciesSet(Collection<Dependency> rawDependencies) {
-        SortedSet<Dependency> allUniqueSortedJarDepedencies =  new TreeSet<>(Comparator.comparing(Dependency::getGroupId).thenComparing(Dependency::getArtifactId).thenComparing(Dependency::getVersion));
-        Map<String, Dependency> allJarDepedenciesMap =  new TreeMap<>();
+        SortedSet<Dependency> sorted = new TreeSet<>(Comparator.comparing(Dependency::getGroupId)
+                .thenComparing(Dependency::getArtifactId)
+                .thenComparing(Dependency::getVersion, Comparator.nullsFirst(String::compareTo)));
+        Map<String, Dependency> dependenciesByKey = new TreeMap<>();
 
         if (rawDependencies != null) {
-            for(Dependency dependency : rawDependencies) {
-                // Keep the newest version
-                if (!allJarDepedenciesMap.containsKey(dependency.getManagementKey())) {
-                    allJarDepedenciesMap.put(dependency.getManagementKey(), dependency);
-                } else {
-                    String inMapVersion = allJarDepedenciesMap.get(dependency.getManagementKey()).getVersion();
-                    String queryVersion = dependency.getVersion();
-                    // The version is not always a number, sometimes it's a property in which case we can just add it
-                    if (allJarDepedenciesMap.containsKey(dependency.getManagementKey()) && !inMapVersion.contains("$") && !queryVersion.contains("$")) {
-                        if (firstVersionNewer(queryVersion, inMapVersion)) {
-                            allJarDepedenciesMap.put(dependency.getManagementKey(), dependency);
-                        }
-                    } else {
-                        allJarDepedenciesMap.put(dependency.getManagementKey(), dependency);
-                    }
+            for (Dependency dependency : rawDependencies) {
+                String key = dependency.getManagementKey();
+                Dependency existing = dependenciesByKey.get(key);
+                if (existing == null) {
+                    dependenciesByKey.put(key, dependency);
+                    continue;
+                }
+                String existingVersion = existing.getVersion();
+                String candidateVersion = dependency.getVersion();
+                if (Objects.equals(existingVersion, candidateVersion)) continue;
+                if (candidateVersion == null) {
+                    dependenciesByKey.put(key, dependency);
+                } else if (existingVersion != null) {
+                    throw new StudioBuildRuntimeException("Conflicting dependency versions for " + key
+                            + ": " + existingVersion + " and " + candidateVersion);
                 }
             }
-            allUniqueSortedJarDepedencies.addAll(allJarDepedenciesMap.values());
+            sorted.addAll(dependenciesByKey.values());
         }
-        return allUniqueSortedJarDepedencies;
+        return sorted;
     }
 
     /**

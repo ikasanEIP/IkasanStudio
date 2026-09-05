@@ -33,6 +33,8 @@ import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
 import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -174,14 +176,18 @@ public class StudioProjectFiles {
      */
     public static void checkForDependencyChangesAndSaveIfChanged(Project project, Set<Dependency> newDependencies, String metaVersion) {
         IkasanPomModel ikasanPomModel;
-        if (newDependencies != null && !newDependencies.isEmpty()) {
+        if (newDependencies != null) {
             ikasanPomModel = pomLoadFromVirtualDisk(project); // Have to load each time because might have been independently updated.
 
             if (ikasanPomModel != null) {
                 for (Dependency newDependency : newDependencies) {
-                    ikasanPomModel.checkIfDependancyAlreadyExists(newDependency);
+                    Dependency generatedDependency = newDependency.clone();
+                    if ("org.ikasan".equals(generatedDependency.getGroupId())) {
+                        generatedDependency.setVersion(null);
+                    }
+                    ikasanPomModel.checkIfDependancyAlreadyExists(generatedDependency);
                 }
-                pomAddStandardProperties(ikasanPomModel, metaVersion);
+                applyMetaPackBuildContract(ikasanPomModel, metaVersion);
                 if (ikasanPomModel.isDirty()) {
                     createPomFile(project, "", "", ikasanPomModel.getModelAsString());
                     MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
@@ -198,27 +204,22 @@ public class StudioProjectFiles {
 
     /**
      * Add in the standard properties for the ikasanPomModel, based on project level config e.g. JDK
-     * @param ikasanPomModel is the root level ikasanPomModel to be updated
+     * @param pom is the root level ikasanPomModel to be updated
      * @param metaVersion of the module, used to pick the matching JDK level
      */
-    private static void pomAddStandardProperties(IkasanPomModel ikasanPomModel, String metaVersion) {
-        String javaCompilerLevel = resolveJavaCompilerLevel(metaVersion);
-        ikasanPomModel.addProperty(MAVEN_COMPILER_TARGET, javaCompilerLevel);
-        ikasanPomModel.addProperty(MAVEN_COMPILER_SOURCE, javaCompilerLevel);
-    }
-
-    /**
-     * Each Ikasan core major version has its own minimum/target JDK level (confirmed against the actual
-     * ikasaneip/pom.xml of each): V3.x core targets JDK 11, V4.x core targets JDK 17 (and already uses
-     * JDK 15+ text blocks internally). Default to 11 for anything else (e.g. VHS3.3.x, which is V3-based).
-     * @param metaVersion of the module (e.g. "V3.3.8", "V4.0.x")
-     * @return the maven.compiler.source/target value to use
-     */
-    private static String resolveJavaCompilerLevel(String metaVersion) {
-        if (metaVersion != null && metaVersion.startsWith("V4")) {
-            return "17";
+    private static void applyMetaPackBuildContract(IkasanPomModel pom, String metaVersion) {
+        try {
+            MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(metaVersion);
+            pom.addProperty("version.ikasan", manifest.ikasanVersion());
+            pom.addProperty(MAVEN_COMPILER_TARGET, manifest.javaVersion());
+            pom.addProperty(MAVEN_COMPILER_SOURCE, manifest.javaVersion());
+            for (MetaPackManifest.BomImport bom : manifest.dependencyManagement()) {
+                pom.addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
+            }
+        } catch (StudioBuildException e) {
+            throw new StudioRuntimeException("Cannot update pom.xml because meta-pack " + metaVersion
+                    + " failed its build contract", e);
         }
-        return "11";
     }
 
     /**
@@ -644,7 +645,7 @@ public class StudioProjectFiles {
         String targetDirectoryKey = project.getName() + "-" + targetDirectory;
 
         Map<String, VirtualFile> virtualRoots = new HashMap<>();
-        VirtualFile sourceCodeRoot = null;
+        VirtualFile sourceCodeRoot;
         // ProjectRoots are more likely to provide an exact match. The map is invocation-scoped: retaining
         // VirtualFiles statically leaked projects and stale roots across Maven re-imports.
         ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);

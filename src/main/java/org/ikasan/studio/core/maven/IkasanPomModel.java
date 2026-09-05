@@ -2,8 +2,8 @@ package org.ikasan.studio.core.maven;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.ikasan.studio.core.model.ModelUtils;
@@ -53,38 +53,31 @@ public class IkasanPomModel {
     }
 
     /**
-     * Add in the new dependency (and set the instance to dirty) only if the dependency is not already added, or is newer
-     * @param newDependency to add
-     * @return true if the dependency did not already exist in the pom
+     * Add a missing dependency or align an existing dependency with the exact meta-pack contract.
+     * @param newDependency dependency selected by the meta-pack
+     * @return true when the Maven model changed
      */
-    // Its only current caller (StudioProjectFiles#checkForDependencyChangesAndSaveIfChanged) discards this per-call
-    // result and checks isDirty() afterward instead, once all dependencies have been processed.
     @SuppressWarnings("UnusedReturnValue")
     public boolean checkIfDependancyAlreadyExists(Dependency newDependency) {
         String newMapKey = getMapKey(newDependency);
-        if (!dependencyMap.containsKey(newMapKey) ||
-                (dependencyMap.containsKey(newMapKey) && versionIsNewer(newDependency.getVersion(), dependencyMap.get(newMapKey)))) {
-            List<Dependency> newRawList = model.getDependencies();
-            newRawList.add(newDependency);
-            updateModeAndDependencyKeys(newRawList);
+        if (!dependencyMap.containsKey(newMapKey)) {
+            List<Dependency> dependencies = model.getDependencies();
+            dependencies.add(newDependency);
+            updateModeAndDependencyKeys(dependencies);
+            isDirty = true;
+            return true;
+        }
+        Dependency existing = model.getDependencies().stream()
+                .filter(dependency -> newMapKey.equals(getMapKey(dependency)))
+                .findFirst().orElse(null);
+        if (existing != null && !Objects.equals(existing.getVersion(), newDependency.getVersion())) {
+            existing.setVersion(newDependency.getVersion());
+            resetKeys(model.getDependencies());
             isDirty = true;
             return true;
         }
         return false;
     }
-
-    /**
-     * Return true is the Maven version of v1 is newer than v2
-     * @param v1 the potentially newer version
-     * @param v2 the potentially older version
-     * @return true if v1 is newer than v2
-     */
-    private boolean versionIsNewer(String v1, String v2) {
-        ComparableVersion cv1 = new ComparableVersion(v1);
-        ComparableVersion cv2 = new ComparableVersion(v2);
-        return cv1.compareTo(cv2) > 0;
-    }
-
 
     /**
      * Check if the supplied dependency is new its name/group is unknown or its verison differs.
@@ -94,7 +87,7 @@ public class IkasanPomModel {
     public boolean isNewDependency(Dependency newDependency) {
         return newDependency != null &&
                 (!dependencyMap.containsKey(getMapKey(newDependency)) ||
-                !newDependency.getVersion().equals(dependencyMap.get(getMapKey(newDependency))));
+                !Objects.equals(newDependency.getVersion(), dependencyMap.get(getMapKey(newDependency))));
     }
 
     /**
@@ -133,6 +126,37 @@ public class IkasanPomModel {
             return isDirty;
         }
         return false;
+    }
+
+    /** Adds or aligns a BOM import without disturbing unrelated dependency-management entries. */
+    public void addOrUpdateBomImport(String groupId, String artifactId, String version) {
+        DependencyManagement management = model.getDependencyManagement();
+        if (management == null) {
+            management = new DependencyManagement();
+            model.setDependencyManagement(management);
+        }
+        Dependency existing = management.getDependencies().stream()
+                .filter(dependency -> Objects.equals(groupId, dependency.getGroupId())
+                        && Objects.equals(artifactId, dependency.getArtifactId()))
+                .findFirst().orElse(null);
+        if (existing == null) {
+            Dependency bom = new Dependency();
+            bom.setGroupId(groupId);
+            bom.setArtifactId(artifactId);
+            bom.setVersion(version);
+            bom.setType("pom");
+            bom.setScope("import");
+            management.addDependency(bom);
+            isDirty = true;
+            return;
+        }
+        if (!Objects.equals(version, existing.getVersion())
+                || !"pom".equals(existing.getType()) || !"import".equals(existing.getScope())) {
+            existing.setVersion(version);
+            existing.setType("pom");
+            existing.setScope("import");
+            isDirty = true;
+        }
     }
 
     public String getProperty(String key) {

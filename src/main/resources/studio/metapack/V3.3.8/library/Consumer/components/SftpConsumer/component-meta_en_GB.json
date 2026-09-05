@@ -9,8 +9,7 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-sftp-endpoint",
-      "version": "3.3.9"
+      "artifactId": "ikasan-sftp-endpoint"
     }
   ],
   "importResources": [

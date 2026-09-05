@@ -8,6 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.ikasan.studio.core.metapack.loading.ComponentLibraryLoader;
+import org.ikasan.studio.core.metapack.validation.MetaPackValidator;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
@@ -31,7 +32,12 @@ public final class ComponentLibrary {
     private static final Map<String, LibrarySnapshot> PACKAGED_LIBRARIES = loadPackagedLibraries();
 
     private record LibrarySnapshot(Map<String, ComponentMeta> byKey,
-                                   Map<String, ComponentMeta> byDeserialisationKey) { }
+                                   Map<String, ComponentMeta> byDeserialisationKey,
+                                   MetaPackManifest manifest) { }
+
+    public static MetaPackManifest getMetaPackManifest(String version) throws StudioBuildException {
+        return snapshot(version).manifest();
+    }
 
     /**
      * Refresh the component library.
@@ -75,9 +81,17 @@ public final class ComponentLibrary {
     private static LibrarySnapshot loadSnapshot(String version) {
         Map<String, ComponentMeta> byKey = new LinkedHashMap<>();
         loadMetapack(version, byKey);
+        MetaPackManifest manifest;
+        try {
+            manifest = LOADER.loadManifest(version);
+            MetaPackValidator.validate(version, manifest, byKey);
+        } catch (StudioBuildException e) {
+            LOG.error("STUDIO: Meta-pack {} failed compliance validation", version, e);
+            return new LibrarySnapshot(Map.of(), Map.of(), null);
+        }
         Map<String, ComponentMeta> byDeserialisationKey = generateDeserialisationKeyedMeta(byKey);
         return new LibrarySnapshot(Collections.unmodifiableMap(byKey),
-                Collections.unmodifiableMap(byDeserialisationKey));
+                Collections.unmodifiableMap(byDeserialisationKey), manifest);
     }
 
     /**

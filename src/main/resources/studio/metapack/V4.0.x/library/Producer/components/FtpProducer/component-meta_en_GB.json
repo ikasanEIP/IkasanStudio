@@ -8,8 +8,7 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-ftp-endpoint",
-      "version": "4.1.6"
+      "artifactId": "ikasan-ftp-endpoint"
     }
   ],
   "importConfigurationClasses": [

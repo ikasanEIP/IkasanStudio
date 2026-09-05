@@ -11,8 +11,7 @@
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
-      "artifactId": "ikasan-email-endpoint",
-      "version": "3.3.9"
+      "artifactId": "ikasan-email-endpoint"
     }
   ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

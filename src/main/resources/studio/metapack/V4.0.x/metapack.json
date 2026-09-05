@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "V4.0.x",
+  "ikasanVersion": "4.1.6",
+  "javaVersion": "17",
+  "dependencyManagement": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone-bom",
+      "version": "4.1.6"
+    }
+  ],
+  "compatibilityOverrides": []
+}
