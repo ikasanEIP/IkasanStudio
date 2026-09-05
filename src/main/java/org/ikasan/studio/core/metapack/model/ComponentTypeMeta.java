@@ -25,11 +25,11 @@ import java.util.Set;
 @Jacksonized
 @AllArgsConstructor
 public class ComponentTypeMeta {
-    @lombok.NonNull
-    Integer paletteDisplayOrder;                // In the Palette, the order in which the components are displayed.
+    Integer paletteDisplayOrder;                 // In the Palette, the order in which the components are displayed - required,
+                                                  // but see MetaPackDataValidator, which reports a missing value rather than
+                                                  // relying on construction-time enforcement.
     String componentType;                       // e.g. org.ikasan.spec.component.endpoint.Producer
-    @lombok.NonNull
-    String componentShortType;                  // e.g. Producer
+    String componentShortType;                  // e.g. Producer - required, see paletteDisplayOrder comment above
     @JsonSetter(nulls = Nulls.SKIP)             // If the supplied value is null, ignore it.
     private Set<Dependency> jarDependencies;    // The jars required to use this component type, e.g. org.ikasan:ikasan-email-producer:1.0.0
     @Builder.Default

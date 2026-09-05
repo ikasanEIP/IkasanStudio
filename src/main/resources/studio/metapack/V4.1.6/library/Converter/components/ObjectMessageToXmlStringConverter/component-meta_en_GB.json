@@ -1,7 +1,7 @@
 {
   "name": "Object To XML String Converter",
   "helpText": "<p><strong>Ikasan class:</strong> ObjectToXMLStringConverter</p><p>Marshals a plain Java object into an XML string using JAXB. The object's class must be JAXB-annotated (or otherwise buildable into a JAXBContext) - any nested/referenced types it needs must be reachable from its own annotations, since only one root class is supplied here.</p><p><strong>Note:</strong> this expects the payload to already be the plain object, not a raw JMS message - if the upstream component is a JMS consumer, place a JMS Object Message To Object Converter directly before this one to unwrap the ObjectMessage first.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/ObjectToXmlStringConverter.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/converter/ObjectToXmlStringConverter.md",
   "implementingClass": "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder",
   "expectedInputTypeProperty": "objectClass",
   "producedOutputType": "java.lang.String",

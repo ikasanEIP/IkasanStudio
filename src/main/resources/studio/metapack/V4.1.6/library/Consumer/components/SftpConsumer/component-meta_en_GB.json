@@ -3,7 +3,7 @@
   "producedOutputType": "org.ikasan.filetransfer.Payload",
   "isFileBasedConsumer": "true",
   "helpText": "<p>This is a variation of the Scheduled Consumer, backed by an SFTP message provider and configured with either an absolute or relative schedule.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "jarDependencies": [
@@ -211,7 +211,7 @@
         "password"
       ],
       "mandatorySectionHeading": "Provide key and hosts",
-      "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 <host> >> <this file>\" once beforehand, or connect manually first and accept the host key.",
+      "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 &lt;host&gt; &gt;&gt; &lt;this file&gt;\" once beforehand, or connect manually first and accept the host key.",
       "propertyConfigFileLabel": "__flow.sftp.consumer.known-hosts-filename",
       "setterMethod": "setKnownHostsFilename",
       "setterProperty": true,

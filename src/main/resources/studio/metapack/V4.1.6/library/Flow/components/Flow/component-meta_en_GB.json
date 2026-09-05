@@ -1,7 +1,7 @@
 {
   "name": "Flow",
   "helpText": "",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",
   "builderFactory" : "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
   "usesBuilderInFactory" : true,

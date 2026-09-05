@@ -33,7 +33,8 @@ public final class ComponentLibrary {
 
     private record LibrarySnapshot(Map<String, ComponentMeta> byKey,
                                    Map<String, ComponentMeta> byDeserialisationKey,
-                                   MetaPackManifest manifest) { }
+                                   MetaPackManifest manifest,
+                                   String validationError) { }
 
     public static MetaPackManifest getMetaPackManifest(String version) throws StudioBuildException {
         return snapshot(version).manifest();
@@ -63,6 +64,7 @@ public final class ComponentLibrary {
         String[] directories = LOADER.subdirectories(ComponentLibraryLoader.METAPACK_BASE_DIRECTORY);
         for (String directory : directories) {
             String version = FilenameUtils.getName(directory);
+            if (!LOADER.hasManifest(version)) continue;
             LibrarySnapshot snapshot = loadSnapshot(version);
             if (!snapshot.byKey().isEmpty()) libraries.put(version, snapshot);
         }
@@ -72,26 +74,30 @@ public final class ComponentLibrary {
     private static LibrarySnapshot snapshot(String version) throws StudioBuildException {
         LibrarySnapshot packaged = PACKAGED_LIBRARIES.get(version);
         LibrarySnapshot selected = packaged != null ? packaged : loadSnapshot(version);
+        if (selected.validationError() != null) {
+            throw new StudioBuildException(selected.validationError());
+        }
         if (selected.byKey().isEmpty()) {
-            throw new StudioBuildException("STUDIO: Attempt to get a metamap for key " + version + " resulted in an empty map");
+            throw new StudioBuildException("STUDIO: Attempt to get a meta-pack for key " + version + " resulted in an empty library");
         }
         return selected;
     }
 
     private static LibrarySnapshot loadSnapshot(String version) {
         Map<String, ComponentMeta> byKey = new LinkedHashMap<>();
-        loadMetapack(version, byKey);
         MetaPackManifest manifest;
         try {
+            LOADER.validateSources(version);
+            loadMetapack(version, byKey);
             manifest = LOADER.loadManifest(version);
             MetaPackValidator.validate(version, manifest, byKey);
         } catch (StudioBuildException e) {
             LOG.error("STUDIO: Meta-pack {} failed compliance validation", version, e);
-            return new LibrarySnapshot(Map.of(), Map.of(), null);
+            return new LibrarySnapshot(Map.of(), Map.of(), null, e.getMessage());
         }
         Map<String, ComponentMeta> byDeserialisationKey = generateDeserialisationKeyedMeta(byKey);
         return new LibrarySnapshot(Collections.unmodifiableMap(byKey),
-                Collections.unmodifiableMap(byDeserialisationKey), manifest);
+                Collections.unmodifiableMap(byDeserialisationKey), manifest, null);
     }
 
     /**
@@ -120,6 +126,7 @@ public final class ComponentLibrary {
 
             return Arrays.stream(directroies)
                     .map(FilenameUtils::getName)
+                    .filter(LOADER::hasManifest)
                     .collect(Collectors.toList());
         } else {
             return Collections.emptyList();
@@ -167,7 +174,7 @@ public final class ComponentLibrary {
     public static String getDeserialisationKey(String implementingClass, String componentType, String additionalKey) {
         StringBuilder metaDataDeserialisationKey = new StringBuilder();
         implementingClass = getClassFromSpringString(implementingClass);
-        if (!implementingClass.isBlank()) {
+        if (implementingClass != null && !implementingClass.isBlank()) {
             metaDataDeserialisationKey.append(implementingClass).append("-");
         }
         if (componentType != null && !componentType.isBlank()) {

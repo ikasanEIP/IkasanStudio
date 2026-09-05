@@ -23,7 +23,7 @@
     }
   ],
   "usesBuilderInFactory": true,
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/jms-spring-arjuna/consumer.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/endpoint/jms-spring-arjuna/consumer.md",
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
   "allowableProperties": {
     "componentName": {
@@ -92,7 +92,7 @@
     },
     "connectionFactoryJndiPropertyProviderUrl": {
       "propertyName": "connectionFactoryJndiPropertyProviderUrl",
-      "propertyDisplayOrder": -60,
+      "propertyDisplayOrder": -55,
       "defaultValue": "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
       "helpText": "The configuration information for the service provider to use. The value should contain a URL string. For more information, see the Java API documentation for javax.naming.Context.PROVIDER_URL.",
       "mandatory": true,

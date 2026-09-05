@@ -3,7 +3,7 @@
   "producedOutputType": "org.ikasan.filetransfer.Payload",
   "isFileBasedConsumer": "true",
   "helpText": "<p>This scheduled consumer uses an FTP message provider and supports absolute or relative schedules.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "jarDependencies": [
@@ -200,7 +200,8 @@
     "filenamePattern": {
       "propertyName": "filenamePattern",
       "propertyDisplayOrder": -10,
-      "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex).",
+      "defaultValue": ".*\\.txt",
+      "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex). Defaults to '.*\\.txt' (any .txt file), matching the bundled test FTP server's sample content.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.filename-pattern",
       "setterProperty": true,
@@ -398,7 +399,8 @@
     "password": {
       "propertyName": "password",
       "propertyDisplayOrder": -30,
-      "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.",
+      "defaultValue": "ikasan",
+      "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename. Defaults to 'ikasan', matching the bundled test FTP server.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.password",
       "setterProperty": true,
@@ -425,8 +427,8 @@
     "remotePort": {
       "propertyName": "remotePort",
       "propertyDisplayOrder": -50,
-      "defaultValue": 21,
-      "helpText": "Default(21) port of the remote (S)FTP server where consumer needs to connect.",
+      "defaultValue": 2121,
+      "helpText": "Default(2121) port of the remote (S)FTP server where consumer needs to connect, matching the bundled test FTP server. A production (S)FTP server almost always uses 21 instead.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-port",
       "setterProperty": true,
@@ -464,7 +466,8 @@
     "sourceDirectory": {
       "propertyName": "sourceDirectory",
       "propertyDisplayOrder": -20,
-      "helpText": "Remote directory from which to discover files, e.g. /home/myuser/inbound. Whether this path resolves relative to the account's home directory or the server's real filesystem root depends entirely on the FTP server's configuration (e.g. vsftpd chroot_local_user) - confirm with the server admin, or use the full absolute path if unsure. A wrong value here causes the consumer to silently find zero files, with no error logged.",
+      "defaultValue": "/",
+      "helpText": "Remote directory from which to discover files, e.g. /home/myuser/inbound. Whether this path resolves relative to the account's home directory or the server's real filesystem root depends entirely on the FTP server's configuration (e.g. vsftpd chroot_local_user) - confirm with the server admin, or use the full absolute path if unsure. A wrong value here causes the consumer to silently find zero files, with no error logged. Defaults to '/', matching the bundled test FTP server's root.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.source-directory",
       "setterProperty": true,
@@ -515,7 +518,8 @@
     "username": {
       "propertyName": "username",
       "propertyDisplayOrder": -40,
-      "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
+      "defaultValue": "ikasan",
+      "helpText": "User name used to login to (S)FTP server where consumer needs to connect. Defaults to 'ikasan', matching the bundled test FTP server.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.username",
       "setterProperty": true,

@@ -1,7 +1,7 @@
 {
   "name": "FTP Producer",
   "helpText": "<p>Delivers files to a remote FTP or SFTP server. A persistent store records metadata about delivered files.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
   "expectedInputTypes": "org.ikasan.filetransfer.Payload",
@@ -222,7 +222,8 @@
     "password": {
       "propertyName": "password",
       "propertyDisplayOrder": -30,
-      "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename.",
+      "defaultValue": "ikasan",
+      "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename. Defaults to 'ikasan', matching the bundled test FTP server.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.password",
       "setterProperty": true,
@@ -231,8 +232,8 @@
     "remoteHost": {
       "propertyName": "remoteHost",
       "propertyDisplayOrder": -60,
-      "defaultValue": "localhost",
-      "helpText": "Default('localhost') host name of the remote (S)FTP server where producer needs to deliver the file.",
+      "defaultValue": "127.0.0.1",
+      "helpText": "Default('127.0.0.1') host name of the remote (S)FTP server where producer needs to deliver the file, matching the bundled test FTP server.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-host",
       "setterProperty": true,
@@ -241,8 +242,8 @@
     "remotePort": {
       "propertyName": "remotePort",
       "propertyDisplayOrder": -50,
-      "defaultValue": 21,
-      "helpText": "Default(21) port of the remote (S)FTP server where producer needs to deliver the file.",
+      "defaultValue": 2121,
+      "helpText": "Default(2121) port of the remote (S)FTP server where producer needs to deliver the file, matching the bundled test FTP server. A production (S)FTP server almost always uses 21 instead.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.remote-port",
       "setterProperty": true,
@@ -309,7 +310,8 @@
     "username": {
       "propertyName": "username",
       "propertyDisplayOrder": -40,
-      "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
+      "defaultValue": "ikasan",
+      "helpText": "User name used to login to (S)FTP server where consumer needs to connect. Defaults to 'ikasan', matching the bundled test FTP server.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.username",
       "setterProperty": true,

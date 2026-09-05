@@ -32,6 +32,21 @@ class MetaPackValidatorTest {
                 .hasMessageContaining("without a matching compatibilityOverrides entry");
     }
 
+    /**
+     * implementingClass is no longer @lombok.NonNull (see ComponentMeta), so a meta-pack component omitting it
+     * deserializes to null instead of failing construction with a raw, context-free Jackson/Lombok error - this
+     * validator is now what actually catches it, with a message naming the offending component and field.
+     */
+    @Test
+    void rejectsAComponentMissingImplementingClass() {
+        ComponentMeta component = new ComponentMeta();
+        component.setName("Broken");
+
+        assertThatThrownBy(() -> MetaPackValidator.validate("V4", manifest("V4"), Map.of("Broken", component)))
+                .hasMessageContaining("implementingClass")
+                .hasMessageContaining("is required");
+    }
+
     private static MetaPackManifest manifest(String id) {
         return new MetaPackManifest(1, id, "4.1.6", "17",
                 List.of(new MetaPackManifest.BomImport(

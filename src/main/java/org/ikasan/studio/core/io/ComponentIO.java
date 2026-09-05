@@ -1,5 +1,6 @@
 package org.ikasan.studio.core.io;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +22,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class ComponentIO {
-    private static final ObjectMapper MAPPER = StudioJson.newObjectMapper();
+    private static final ObjectMapper MAPPER = StudioJson.newObjectMapper()
+            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
     private static final Logger LOG = LoggerFactory.getLogger(ComponentIO.class);
 
 

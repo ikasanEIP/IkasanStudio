@@ -1,7 +1,7 @@
 {
   "name": "Scheduled Consumer",
   "helpText": "<p>This time-based consumer supports absolute or relative schedules.</p><p>By default, <code>messageProvider</code> uses QuartzMessageProvider and sends the raw Quartz JobExecutionContext downstream: a timer signal rather than business data. Local File, FTP and SFTP Consumers configure more specialised providers. Override <code>messageProvider</code> when those components do not fit; the selected provider determines the downstream payload type.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
   "producedOutputType": "org.quartz.JobExecutionContext",

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ikasan.org/studio/metapack/component.schema.json",
+  "title": "Ikasan Studio component metadata",
+  "type": "object",
+  "required": ["name", "implementingClass"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "additionalKey": { "type": "string" },
+    "componentType": { "type": "string" },
+    "implementingClass": { "type": "string" },
+    "helpText": { "type": "string" },
+    "webHelpURL": { "type": "string" },
+    "flowBuilderMethod": { "type": "string" },
+    "ikasanComponentFactoryMethod": { "type": "string" },
+    "builder": { "type": "string" },
+    "builderFactory": { "type": "string" },
+    "endpointKey": { "type": "string" },
+    "endpointTextKey": { "type": "string" },
+    "expectedInputTypes": { "type": "string" },
+    "expectedInputTypeProperty": { "type": "string" },
+    "producedOutputType": { "type": "string" },
+    "outputTypeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "conversionRecipes": { "type": "array", "items": { "$ref": "#/$defs/conversionRecipe" } },
+    "jarDependencies": { "type": "array", "items": { "$ref": "#/$defs/dependency" } },
+    "importResources": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "importConfigurationClasses": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "allowableProperties": { "type": "object", "additionalProperties": { "$ref": "#/$defs/property" } },
+    "generatesUserImplementedClass": { "type": "boolean" },
+    "routesToMultipleTargets": { "type": "boolean" },
+    "isFileBasedConsumer": { "type": "boolean" },
+    "isEndpoint": { "type": "boolean" },
+    "isInternalEndpoint": { "type": "boolean" },
+    "usesBuilderInFactory": { "type": "boolean" },
+    "useImplementingClassInFactory": { "type": "boolean" },
+    "supportsTestMailServer": { "type": "boolean" },
+    "supportsTestFtpServer": { "type": "boolean" }
+  },
+  "patternProperties": { "^[A-Za-z][A-Za-z0-9]*_comment$": { "type": "string" } },
+  "additionalProperties": false,
+  "$defs": {
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["groupId", "artifactId"],
+      "properties": {
+        "groupId": { "type": "string", "minLength": 1 },
+        "artifactId": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] },
+        "type": { "type": "string" },
+        "scope": { "type": "string" },
+        "classifier": { "type": "string" },
+        "optional": { "type": "boolean" }
+      }
+    },
+    "conversionRecipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "displayName", "sourceType", "targetType", "template", "helpText"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string", "minLength": 1 },
+        "sourceType": { "type": "string", "minLength": 1 },
+        "targetType": { "type": "string", "minLength": 1 },
+        "template": { "type": "string", "minLength": 1 },
+        "helpText": { "type": "string", "minLength": 1 }
+      }
+    },
+    "property": {
+      "type": "object",
+      "required": ["propertyName"],
+      "properties": {
+        "propertyName": { "type": "string", "minLength": 1 },
+        "displayLabel": { "type": "string" },
+        "helpText": { "type": "string" },
+        "propertyDisplayOrder": { "type": "integer" },
+        "propertyDataType": { "type": "string" },
+        "usageDataType": { "type": "string" },
+        "propertyGroup": { "type": "string" },
+        "propertyConfigFileLabel": { "type": "string" },
+        "setterMethod": { "type": "string" },
+        "validation": { "type": "string" },
+        "validationMessage": { "type": "string" },
+        "mandatoryUnlessAnyOf": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "mandatoryIfTrue": { "type": "string" },
+        "outputTypeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "userImplementClassFtlTemplate": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

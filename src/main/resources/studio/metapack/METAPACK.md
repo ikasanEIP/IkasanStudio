@@ -69,6 +69,9 @@ The main elements are:
 - `library/` — component categories, component definitions, help text and icons.
 - `templates/` — version-specific FreeMarker templates used during generation.
 
+Machine-readable schemas for these files live in [`schema/`](schema/). The schemas provide editor/tooling
+support, while Studio's semantic validator checks relationships between files and resources.
+
 The directory name is the stable identifier stored in the Studio model, such as `V3.3.9` or `V4.1.6`. The
 manifest separately records the exact tested Ikasan release, such as `4.1.6`.
 

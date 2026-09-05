@@ -12,8 +12,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
 
@@ -21,6 +25,11 @@ import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VE
 public final class ComponentLibraryLoader {
     public static final String METAPACK_BASE_DIRECTORY = "studio/metapack";
     private static final Logger LOG = LoggerFactory.getLogger(ComponentLibraryLoader.class);
+
+    public boolean hasManifest(String version) {
+        String path = METAPACK_BASE_DIRECTORY + "/" + version + "/metapack.json";
+        return ComponentLibraryLoader.class.getClassLoader().getResource(path) != null;
+    }
 
     public MetaPackManifest loadManifest(String version) throws StudioBuildException {
         return ComponentIO.deserializeResource(
@@ -67,6 +76,35 @@ public final class ComponentLibraryLoader {
             }
         }
         return components;
+    }
+
+    /** Validates that every metadata source can be read; a pack must never load partially. */
+    public void validateSources(String version) throws StudioBuildException {
+        List<String> problems = new ArrayList<>();
+        Set<String> componentNames = new HashSet<>();
+        String baseDirectory = METAPACK_BASE_DIRECTORY + "/" + version + "/library";
+        for (String typeDirectory : subdirectories(baseDirectory)) {
+            try {
+                ComponentIO.deserializeComponentTypeMeta(typeDirectory + "/component-type-meta_en_GB.json");
+            } catch (StudioBuildException e) {
+                problems.add(typeDirectory + "/component-type-meta_en_GB.json: " + e.getMessage());
+            }
+            for (String componentDirectory : subdirectories(typeDirectory + "/components")) {
+                String source = componentDirectory + "/component-meta_en_GB.json";
+                try {
+                    ComponentMeta component = (ComponentMeta) ComponentIO.deserializeMetaComponent(source);
+                    if (!componentNames.add(component.getName())) {
+                        problems.add(source + ": duplicate component name " + component.getName());
+                    }
+                } catch (StudioBuildException | RuntimeException e) {
+                    problems.add(source + ": " + e.getMessage());
+                }
+            }
+        }
+        if (!problems.isEmpty()) {
+            throw new StudioBuildException("Meta-pack " + version + " could not be loaded atomically:\n - "
+                    + String.join("\n - ", problems));
+        }
     }
 
     public String[] subdirectories(String directory) {

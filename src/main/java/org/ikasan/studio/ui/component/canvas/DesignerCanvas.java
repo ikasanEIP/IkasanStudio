@@ -1125,14 +1125,50 @@ public class DesignerCanvas extends JPanel {
             return;
         }
         String downstreamInputType = downstream.getEffectiveInputTypeDescription();
-        if (downstreamInputType == null || downstreamInputType.isBlank() || downstreamInputType.contains(",")) {
+        if (downstreamInputType == null || downstreamInputType.isBlank()) {
             return;
         }
-        String simpleName = downstreamInputType.substring(downstreamInputType.lastIndexOf('.') + 1);
-        if ("Object".equals(simpleName) || "FlowEvent".equals(simpleName)) {
+        String resolvedType = resolveSingleCandidateType(newComponent, downstreamInputType);
+        if (resolvedType == null) {
             return;
         }
-        newComponent.setPropertyValue(ComponentPropertyMeta.TO_TYPE, downstreamInputType);
+        newComponent.setPropertyValue(ComponentPropertyMeta.TO_TYPE, resolvedType);
+    }
+
+    /**
+     * downstreamInputType may name a single type, or (e.g. a Producer accepting several, such as
+     * "java.lang.String, byte[], java.util.Map, java.io.Serializable") a comma-separated list of candidates.
+     * A single type is used as-is, once the unconstrained Object/FlowEvent placeholders are filtered out. A list
+     * is only resolved when newComponent declares a conversion recipe whose targetType exactly matches exactly
+     * one candidate for the already-suggested sourceType (set moments earlier by
+     * applySuggestedInputTypeFromUpstream) - guessing among several equally-plausible types with no such recipe
+     * to arbitrate would silently commit to the wrong one.
+     */
+    private String resolveSingleCandidateType(FlowElement newComponent, String downstreamInputType) {
+        String[] candidates = downstreamInputType.split(",");
+        if (candidates.length == 1) {
+            String candidate = candidates[0].trim();
+            String simpleName = candidate.substring(candidate.lastIndexOf('.') + 1);
+            return inputTypeIsUnconstrained(simpleName) ? null : candidate;
+        }
+        java.util.List<ConversionRecipeMeta> recipes = newComponent.getComponentMeta().getConversionRecipes();
+        if (recipes == null) {
+            return null;
+        }
+        String sourceType = newComponent.getPropertyValueAsString(ComponentPropertyMeta.FROM_TYPE);
+        String resolved = null;
+        for (String candidate : candidates) {
+            String trimmed = candidate.trim();
+            boolean matchesARecipe = recipes.stream().anyMatch(recipe -> recipe.matches(sourceType, trimmed));
+            if (matchesARecipe) {
+                if (resolved != null) {
+                    // More than one candidate type has a matching recipe - ambiguous, leave toType unset.
+                    return null;
+                }
+                resolved = trimmed;
+            }
+        }
+        return resolved;
     }
 
     private FlowElement suggestedDownstreamTypeConstraint(Flow flow,

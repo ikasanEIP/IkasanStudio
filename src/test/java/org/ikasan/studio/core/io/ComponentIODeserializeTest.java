@@ -45,16 +45,18 @@ class ComponentIODeserializeTest {
                 "Incorrect exception message, was [" + thrown.getMessage() + "]");
     }
 
+    /**
+     * Unlike {@code name} above, a missing implementingClass no longer fails construction - it deserializes to
+     * null so that a meta-pack-wide load can report it as a structured validation problem (see
+     * MetaPackDataValidator/MetaPackValidatorTest) rather than this single file's deserialization throwing a raw
+     * Lombok/Jackson construction error with no context about which meta-pack or component is at fault.
+     */
     @Test
-    public void testMissingImplementingClassAttributesCausesError() {
-        StudioBuildException thrown = assertThrowsExactly(
-                StudioBuildException.class,
-            () ->  ComponentIO.deserializeMetaComponent("studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json")
-        );
+    public void testMissingImplementingClassAttributeDeserializesToNull() throws StudioBuildException {
+        ComponentMeta component = (ComponentMeta) ComponentIO.deserializeMetaComponent(
+                "studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json");
 
-        assertTrue(thrown.getMessage().contains(
-            "The serialised data in [studio/metapack/TestV1/BadComponentMeta/no_implementing_class_component-meta_en_GB.json] could not be read due to [Cannot construct instance of `org.ikasan.studio.core.metapack.model.ComponentMeta$ComponentMetaBuilderImpl`, problem: implementingClass is marked non-null but is null"),
-                "Incorrect exception message, was [" + thrown.getMessage() + "]");
+        assertNull(component.getImplementingClass());
     }
 
     @Test

@@ -4,7 +4,7 @@
   "generatesUserImplementedClass": "true",
   "helpText": "<p>Implement the required transformation in the generated converter class. Configure its source and target Java types through the component properties.</p>",
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/Readme.md",
   "conversionRecipes": [
     {
       "id": "jms-message-to-file-transfer-payload",
@@ -37,6 +37,14 @@
       "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
       "template": "emailConverterTemplate_en.ftl",
       "helpText": "Uses the body already extracted by the JMS consumer as the body of an Ikasan EmailPayload."
+    },
+    {
+      "id": "file-transfer-payload-to-bytes",
+      "displayName": "FTP/SFTP Payload to byte[]",
+      "sourceType": "org.ikasan.filetransfer.Payload",
+      "targetType": "byte[]",
+      "template": "fileTransferPayloadToBytesConverterTemplate.ftl",
+      "helpText": "Extracts the raw bytes from an FTP/SFTP Payload for producers (e.g. JMS) that accept byte[] content."
     }
   ],
   "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",

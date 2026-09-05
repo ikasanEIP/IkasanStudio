@@ -1,7 +1,7 @@
 {
   "name": "Exception Resolver",
   "helpText": "",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/hospital/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/hospital/Readme.md",
   "implementingClass" : "org.ikasan.exceptionResolver.MatchingExceptionResolver",
   "ikasanComponentBuilderClass" : "org.ikasan.builder.ExceptionResolverBuilderImpl",
   "ikasanComponentBuilderInterface" : "org.ikasan.builder.ExceptionResolverBuilder",

@@ -2,6 +2,11 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import groovy.json.JsonSlurper
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 
 plugins {
     id("java") // Java support
@@ -22,6 +27,14 @@ val metaPackBomCoordinates = fileTree("src/main/resources/studio/metapack") {
     @Suppress("UNCHECKED_CAST")
     val imports = manifest["dependencyManagement"] as? List<Map<String, String>> ?: emptyList()
     imports.map { "${it.getValue("groupId")}:${it.getValue("artifactId")}:${it.getValue("version")}@pom" }
+}.toSortedSet()
+
+val metaPackHelpUrls = fileTree("src/main/resources/studio/metapack") {
+    include("*/library/**/component-meta_en_GB.json")
+}.files.mapNotNull { metadataFile ->
+    @Suppress("UNCHECKED_CAST")
+    val metadata = JsonSlurper().parse(metadataFile) as Map<String, Any?>
+    (metadata["webHelpURL"] as? String)?.takeIf { it.startsWith("https://") }
 }.toSortedSet()
 
 // Enforce Java 17 for all Java compilation tasks, independent of IDE or PATH JVM.
@@ -189,8 +202,45 @@ tasks {
         }
     }
 
+    val verifyMetaPackHelpUrls = register("verifyMetaPackHelpUrls") {
+        group = "verification"
+        description = "Verifies that HTTPS help URLs declared by packaged meta-packs are reachable."
+        inputs.property("urls", metaPackHelpUrls)
+        doLast {
+            val client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(15))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build()
+            val failures = metaPackHelpUrls.mapNotNull { url ->
+                try {
+                    val request = HttpRequest.newBuilder(URI.create(url))
+                        .timeout(Duration.ofSeconds(20))
+                        .header("User-Agent", "Ikasan-Studio-meta-pack-validator")
+                        .GET()
+                        .build()
+                    val response = client.send(request, HttpResponse.BodyHandlers.discarding())
+                    if (response.statusCode() in 200..399) null
+                    else url + " returned HTTP " + response.statusCode()
+                } catch (exception: Exception) {
+                    url + " could not be checked: " + exception.message
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw GradleException(
+                    "Meta-pack help URL validation failed:\n - " + failures.joinToString("\n - ")
+                )
+            }
+        }
+    }
+
+    val validateMetaPacks = register("validateMetaPacks") {
+        group = "verification"
+        description = "Validates manifests, metadata, resources, conversion rules, generated output tests and BOMs."
+        dependsOn(named("test"), verifyMetaPackBoms, verifyMetaPackHelpUrls)
+    }
+
     check {
-        dependsOn(verifyMetaPackBoms)
+        dependsOn(validateMetaPacks)
     }
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()

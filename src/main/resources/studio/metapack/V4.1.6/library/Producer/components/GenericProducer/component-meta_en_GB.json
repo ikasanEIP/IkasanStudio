@@ -2,7 +2,7 @@
   "name": "Generic Producer",
   "generatesUserImplementedClass": "true",
   "helpText": "<p>This generic variant uses the component interface and requires you to supply its concrete implementation, for example a subclassed Ikasan component or a reusable framework component.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
   "additionalKey": "Generic",

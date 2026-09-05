@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ikasan.org/studio/metapack/component-type.schema.json",
+  "title": "Ikasan Studio component category metadata",
+  "type": "object",
+  "required": ["paletteDisplayOrder", "componentShortType"],
+  "properties": {
+    "paletteDisplayOrder": { "type": "integer" },
+    "componentType": { "type": "string" },
+    "componentShortType": {
+      "enum": ["Broker", "Consumer", "Converter", "Debug", "End Point", "Exception Resolver", "Filter", "Flow", "Module", "Producer", "Router", "Splitter", "Translator"]
+    },
+    "helpText": { "type": "string" },
+    "jarDependencies": { "type": "array", "items": { "$ref": "component.schema.json#/$defs/dependency" } },
+    "allowableProperties": {
+      "type": "object",
+      "additionalProperties": { "$ref": "component.schema.json#/$defs/property" }
+    }
+  },
+  "patternProperties": { "^[A-Za-z][A-Za-z0-9]*_comment$": { "type": "string" } },
+  "additionalProperties": false
+}

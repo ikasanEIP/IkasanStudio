@@ -1,7 +1,7 @@
 {
   "name": "SFTP Producer",
   "helpText": "<p>Delivers files to a remote FTP or SFTP server. A persistent store records metadata about delivered files.</p>",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
   "expectedInputTypes": "org.ikasan.filetransfer.Payload",
@@ -113,7 +113,7 @@
         "password"
       ],
       "mandatorySectionHeading": "Provide key and hosts",
-      "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 <host> >> <this file>\" once beforehand, or connect manually first and accept the host key.",
+      "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 &lt;host&gt; &gt;&gt; &lt;this file&gt;\" once beforehand, or connect manually first and accept the host key.",
       "propertyConfigFileLabel": "__flow.sftp.producer.known-hosts-filename",
       "setterMethod": "setKnownHostsFilename",
       "setterProperty": true,

@@ -6,7 +6,7 @@
   "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
   "additionalKey": "EmailConverter",
   "producedOutputType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
-  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/converter/Readme.md",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/Readme.md",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",

@@ -67,10 +67,15 @@ the required version.
 
 ## Required verification
 
+The machine-readable JSON Schemas are in [`schema/`](schema/). Studio additionally performs semantic validation
+which JSON Schema cannot express, including cross-file references, unique component identities, property
+conditions, display ordering, templates, icons, conversion recipes, Java names, version namespaces and help
+links. JSON duplicate-key detection is enabled while reading every metadata source.
+
 Before a meta-pack is released:
 
-1. Run `./gradlew verifyMetaPackBoms` to confirm every BOM coordinate resolves from repositories available to
-   ordinary generated projects.
+1. Run `./gradlew validateMetaPacks`. This runs the complete Studio test suite, generated-output tests and the
+   independent BOM resolution check and live HTTPS help-link verification.
 2. Generate a maximal fixture module exercising every component in the pack.
 3. Run Maven dependency resolution and compile/test the generated project on `javaVersion`.
 4. Run Maven Enforcer dependency convergence (or inspect an equivalent dependency tree).
@@ -81,4 +86,7 @@ Before a meta-pack is released:
 The manifest is loaded and validated before Studio exposes a packaged component library. Missing manifests,
 mixed Ikasan versions, conflicting explicit versions, blank override reasons, and mismatched BOM versions make
 the pack unavailable rather than allowing it to generate an unpredictable project.
+
+Loading is atomic. If any category or component file is unreadable or invalid, Studio rejects the entire pack
+and reports the source paths and validation failures; it never silently offers a partially loaded library.
 

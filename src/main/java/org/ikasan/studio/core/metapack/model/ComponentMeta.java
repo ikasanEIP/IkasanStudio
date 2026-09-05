@@ -95,8 +95,8 @@ public class ComponentMeta implements IkasanMeta {
     private boolean generatesUserImplementedClass;  // If true, the component will generate a user-implemented class, e.g. a custom filter or transformer.
     private String helpText;                        // The help text for this component, used in the component properties' dialog.
     private String ikasanComponentFactoryMethod;    // used by ftl to invoke the correct factory method for this component
-    @lombok.NonNull
-    private String implementingClass;               // e.g. org.ikasan.spec.component.filter.Filter.Custom
+    private String implementingClass;               // e.g. org.ikasan.spec.component.filter.Filter.Custom - required, but see
+                                                      // MetaPackDataValidator: use an empty string when intentionally absent, not null
     private String expectedInputTypes;              // Optional: one, or several comma-separated, fully-qualified types (or simple names
                                                       // e.g. "List") this component's incoming payload is expected to be assignable to - e.g.
                                                       // Default List Splitter expects "java.util.List"; Basic AMQ JMS Producer expects one of
@@ -296,7 +296,7 @@ public class ComponentMeta implements IkasanMeta {
 
     public String getComponentType() {
         if (componentType == null || componentType.isEmpty()) {
-            return componentTypeMeta.getComponentType();
+            return componentTypeMeta == null ? null : componentTypeMeta.getComponentType();
         } else {
             return componentType;
         }

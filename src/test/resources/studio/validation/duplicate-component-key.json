@@ -1,0 +1,6 @@
+{
+  "name": "Duplicate Key",
+  "name": "Silently Replaced Before",
+  "componentType": "org.ikasan.spec.component.endpoint.Producer",
+  "implementingClass": "example.Producer"
+}

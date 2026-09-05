@@ -281,7 +281,7 @@ class ComponentLibraryTest {
             () -> assertEquals(ComponentMeta.FLOW_TYPE, flow.getName()),
             () -> assertEquals("<p>The flow is the container for components and generally represents an atomic action.</p>", flow.getHelpText()),
             () -> assertEquals("org.ikasan.spec.flow.Flow", flow.getComponentType()),
-            () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/3.1.x/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
+            () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
             () -> assertFalse(ComponentIconProvider.getSmallIcon(flow) instanceof ImageIcon),
             () -> assertFalse(ComponentIconProvider.getCanvasIcon(flow) instanceof ImageIcon),
             () -> assertEquals(7, flow.getAllowableProperties().size()),
