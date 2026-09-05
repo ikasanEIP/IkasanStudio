@@ -7,6 +7,7 @@
   "helpText": "<p>This Spring-based JMS producer connects to vendor-specific brokers such as ActiveMQ, HornetQ and IBM MQ. Add the libraries required by the selected broker to the integration module.</p>",
   "ikasanComponentFactoryMethod": "jmsProducer",
   "implementingClass": "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+  "expectedInputTypes": "java.lang.String, byte[], java.util.Map, java.io.Serializable",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
