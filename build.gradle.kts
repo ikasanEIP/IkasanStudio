@@ -60,8 +60,8 @@ dependencies {
     // RCE in AbstractIoBuffer.resolveClass() - allowlist applied too late/skippable). Fixed upstream in 2.2.6;
     // pin it here rather than waiting on a ftpserver-core release, since ftpserver's own project is inactive.
     constraints {
-        implementation("org.apache.mina:mina-core:2.2.6") {
-            because("CVE-2026-41635 / CVE-2026-41409 - fixes deserialization RCE in mina-core < 2.2.6")
+        implementation("org.apache.mina:mina-core:2.2.9") {
+            because("CVE-2026-41635 / CVE-2026-41409 - fixes deserialization RCE in mina-core < 2.2.9")
         }
     }
 
