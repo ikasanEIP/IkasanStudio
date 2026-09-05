@@ -58,6 +58,11 @@ public final class StudioInjectClient {
      *                         the send-test-message payload dialog.
      */
     public static HttpResponse<String> postPayload(Module module, String flowName, String payload, String payloadClassName) throws Exception {
+        return postPayload(module, flowName, payload, payloadClassName, null, null);
+    }
+
+    public static HttpResponse<String> postPayload(Module module, String flowName, String payload, String payloadClassName,
+                                                    String payloadAdapter, String payloadFilename) throws Exception {
         String port = module.getPort() != null ? module.getPort() : "8080";
         // The generated app sets server.servlet.context-path to the module's name (see propertiesTemplate_en.ftl),
         // so every endpoint lives under /<module-name>/... - the same transform (StudioBuildUtils.toUrlString)
@@ -75,6 +80,12 @@ public final class StudioInjectClient {
         requestBodyMap.put("payload", payload);
         if (payloadClassName != null && !payloadClassName.isBlank()) {
             requestBodyMap.put("payloadClassName", payloadClassName);
+        }
+        if (payloadAdapter != null && !payloadAdapter.isBlank()) {
+            requestBodyMap.put("payloadAdapter", payloadAdapter);
+        }
+        if (payloadFilename != null && !payloadFilename.isBlank()) {
+            requestBodyMap.put("payloadFilename", payloadFilename);
         }
         String requestBody = objectMapper.writeValueAsString(requestBodyMap);
 

@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.ConnectException;
 import java.net.http.HttpResponse;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,9 +64,15 @@ public class SendTestMessageAction implements ActionListener {
         // different flows that happen to reuse the same component name.
         String componentKey = module.getIdentity() + "/" + flowName + "/" + flowElement.getIdentity();
 
-        String payload;
-        String payloadClassName;
-        if (flowElement.getComponentMeta().producesFileListPayload()) {
+        PreparedPayload preparedPayload;
+        String testPayloadAdapter = flowElement.getComponentMeta().getTestPayloadAdapter();
+        if (org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(testPayloadAdapter)) {
+            VirtualFile file = chooseTestPayloadFile();
+            if (file == null) {
+                return;
+            }
+            preparedPayload = new PreparedPayload(null, null, testPayloadAdapter, file.getName(), file);
+        } else if (flowElement.getComponentMeta().producesFileListPayload()) {
             // A real file picker instead of the generic text/JSON dialog - see ComponentMeta#producesFileListPayload
             // for why this is only offered when the declared payload really is java.util.List<java.io.File>.
             List<String> filePaths = chooseTestFilePaths();
@@ -73,23 +80,20 @@ public class SendTestMessageAction implements ActionListener {
                 return;
             }
             try {
-                payload = new ObjectMapper().writeValueAsString(filePaths);
+                String payload = new ObjectMapper().writeValueAsString(filePaths);
+                preparedPayload = new PreparedPayload(payload, flowElement.getEffectiveOutputTypeDescription(), null, null, null);
             } catch (Exception e) {
                 LOG.warn("STUDIO: Could not build JSON payload from chosen test files", e);
                 StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", e.getMessage()));
                 return;
             }
-            // Matches ComponentMeta#FILE_LIST_TYPE - resolved on the generated controller side via Jackson's
-            // TypeFactory#constructFromCanonical (see studioInjectControllerTemplate_en.ftl), which already
-            // knows how to deserialize each JSON string element into a real java.io.File.
-            payloadClassName = flowElement.getEffectiveOutputTypeDescription();
+            // The generated controller deserializes this canonical List<File> type.
         } else {
             SendTestMessagePayloadDialog payloadDialog = new SendTestMessagePayloadDialog(project, componentKey);
             if (!payloadDialog.showAndGet()) {
                 return;
             }
-            payload = payloadDialog.getPayload();
-            payloadClassName = payloadDialog.getPayloadClassName();
+            preparedPayload = new PreparedPayload(payloadDialog.getPayload(), payloadDialog.getPayloadClassName(), null, null, null);
         }
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.SendingTestMessage")) {
@@ -100,7 +104,9 @@ public class SendTestMessageAction implements ActionListener {
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, payload, payloadClassName);
+                    String payload = preparedPayload.materializePayload();
+                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, payload,
+                            preparedPayload.payloadClassName(), preparedPayload.payloadAdapter(), preparedPayload.payloadFilename());
 
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());
@@ -134,6 +140,23 @@ public class SendTestMessageAction implements ActionListener {
                 }
             }
         });
+    }
+
+    private VirtualFile chooseTestPayloadFile() {
+        FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+                .withTitle(StudioBundle.message("dialog.ChooseFileTransferTestPayload"))
+                .withDescription(StudioBundle.message("message.ChooseFileTransferTestPayloadDescription"));
+        return FileChooser.chooseFile(descriptor, project, null);
+    }
+
+    private record PreparedPayload(String payload, String payloadClassName, String payloadAdapter,
+                                   String payloadFilename, VirtualFile payloadFile) {
+        private String materializePayload() throws java.io.IOException {
+            if (payloadFile == null) {
+                return payload;
+            }
+            return Base64.getEncoder().encodeToString(payloadFile.contentsToByteArray());
+        }
     }
 
     /**

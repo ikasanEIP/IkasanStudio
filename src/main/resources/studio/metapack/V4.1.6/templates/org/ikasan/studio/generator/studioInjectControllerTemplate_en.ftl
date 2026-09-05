@@ -68,14 +68,7 @@ public org.springframework.http.ResponseEntity<?> inject(
         // dialog offers every field of the chosen class as a JSON key, including plain package-private ones
         // with no accessors, so deserialization needs to accept exactly those same fields or it rejects its own
         // generated payload (Jackson's default visibility only auto-detects public fields/accessors).
-        Object rawPayload = (request.getPayloadClassName() != null && !request.getPayloadClassName().isBlank())
-                ? new com.fasterxml.jackson.databind.ObjectMapper()
-                        .setVisibility(com.fasterxml.jackson.annotation.PropertyAccessor.FIELD, com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)
-                        .readValue(request.getPayload(),
-                        com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance()
-                                .withClassLoader(flow.getClass().getClassLoader())
-                                .constructFromCanonical(request.getPayloadClassName()))
-                : request.getPayload();
+        Object rawPayload = newTestPayload(request, identifier, flow.getClass().getClassLoader());
         // JMS-backed consumers are also a Converter<Message,Object> that unconditionally runs before the flow
         // proper, expecting a real jakarta.jms.Message rather than the raw payload - synthesize a minimal one.
         Object payload = (consumer instanceof jakarta.jms.MessageListener)
@@ -90,6 +83,28 @@ public org.springframework.http.ResponseEntity<?> inject(
     } catch (Exception e) {
         return org.springframework.http.ResponseEntity.status(500).body("Failed to inject event: " + e.getMessage());
     }
+}
+
+/** Creates the payload shape advertised by the consumer metadata before bypassing the real consumer. */
+private static Object newTestPayload(InjectRequest request, String identifier, ClassLoader ikasanClassLoader) throws Exception {
+    if ("ikasan-file-transfer-payload".equals(request.getPayloadAdapter())) {
+        byte[] content = java.util.Base64.getDecoder().decode(request.getPayload());
+        String filename = request.getPayloadFilename() != null && !request.getPayloadFilename().isBlank()
+                ? request.getPayloadFilename() : identifier;
+        Class<?> payloadClass = Class.forName("org.ikasan.filetransfer.component.DefaultPayload", true, ikasanClassLoader);
+        Object payload = payloadClass.getConstructor(String.class, byte[].class).newInstance(filename, content);
+        payloadClass.getMethod("setAttribute", String.class, String.class).invoke(payload, "fileName", filename);
+        return payload;
+    }
+    if (request.getPayloadClassName() != null && !request.getPayloadClassName().isBlank()) {
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+                .setVisibility(com.fasterxml.jackson.annotation.PropertyAccessor.FIELD, com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY)
+                .readValue(request.getPayload(),
+                        com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance()
+                                .withClassLoader(ikasanClassLoader)
+                                .constructFromCanonical(request.getPayloadClassName()));
+    }
+    return request.getPayload();
 }
 
 /**
@@ -213,11 +228,17 @@ public static class InjectRequest {
     // Fully-qualified name of a project class to deserialize payload (as JSON) into before injection - see
     // SendTestMessagePayloadDialog. Null means the default plain-text/string payload.
     private String payloadClassName;
+    private String payloadAdapter;
+    private String payloadFilename;
     public String getIdentifier() { return identifier; }
     public void setIdentifier(String identifier) { this.identifier = identifier; }
     public String getPayload() { return payload; }
     public void setPayload(String payload) { this.payload = payload; }
     public String getPayloadClassName() { return payloadClassName; }
     public void setPayloadClassName(String payloadClassName) { this.payloadClassName = payloadClassName; }
+    public String getPayloadAdapter() { return payloadAdapter; }
+    public void setPayloadAdapter(String payloadAdapter) { this.payloadAdapter = payloadAdapter; }
+    public String getPayloadFilename() { return payloadFilename; }
+    public void setPayloadFilename(String payloadFilename) { this.payloadFilename = payloadFilename; }
 }
 }

@@ -1,6 +1,7 @@
 {
   "name": "SFTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
+  "testPayloadAdapter": "ikasan-file-transfer-payload",
   "isFileBasedConsumer": "true",
   "helpText": "<p>This is a variation of the Scheduled Consumer, backed by an SFTP message provider and configured with either an absolute or relative schedule.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",

@@ -58,6 +58,7 @@ public class ComponentMeta implements IkasanMeta {
     public static final String SCHEDULED_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer";
     // See producesFileListPayload().
     public static final String FILE_LIST_TYPE = "java.util.List<java.io.File>";
+    public static final String FILE_TRANSFER_TEST_PAYLOAD_ADAPTER = "ikasan-file-transfer-payload";
     // See isSelfGeneratingConsumer().
     public static final String EVENT_GENERATING_CONSUMER_IMPLEMENTING_CLASS = "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer";
     // See supportsTestMailServer().
@@ -141,6 +142,7 @@ public class ComponentMeta implements IkasanMeta {
                                                       // invocation and so needs a List<String> return type (e.g. Multi Recipient Router) -
                                                       // false (the default) for routers whose route() returns a single String (e.g. Single
                                                       // Recipient Router). Drives routerTemplate_en.ftl's generated method shape - see there.
+    private String testPayloadAdapter;               // Optional metadata-driven adapter used by Send Test Message to construct an interface-based payload.
     private boolean isFileBasedConsumer;             // Consumer only: true if the payload it deals in is file content/a file path rather
                                                       // than a message (e.g. FTP/SFTP/Local File/Generic Consumer) - drives the canvas's
                                                       // file-flavoured Send Test Message badge, see IkasanFlowRouteViewHandler.

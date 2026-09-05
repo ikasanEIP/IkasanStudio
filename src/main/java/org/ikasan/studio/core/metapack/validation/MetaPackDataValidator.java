@@ -66,6 +66,13 @@ final class MetaPackDataValidator {
             namespace(problems, pack, path + ".implementingClass", component.getImplementingClass());
             namespace(problems, pack, path + ".expectedInputTypes", component.getExpectedInputTypes());
             namespace(problems, pack, path + ".producedOutputType", component.getProducedOutputType());
+            if (component.getTestPayloadAdapter() != null && !component.getTestPayloadAdapter().isBlank()) {
+                if (!ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(component.getTestPayloadAdapter())) {
+                    add(problems, path + ".testPayloadAdapter", "has an unsupported adapter: " + component.getTestPayloadAdapter());
+                } else if (!"org.ikasan.filetransfer.Payload".equals(component.getProducedOutputType())) {
+                    add(problems, path + ".testPayloadAdapter", "requires producedOutputType org.ikasan.filetransfer.Payload");
+                }
+            }
             if (component.getEndpointKey() != null && !component.getEndpointKey().isBlank() && !components.containsKey(component.getEndpointKey())) {
                 add(problems, path + ".endpointKey", "references unknown component " + component.getEndpointKey());
             }

@@ -1,6 +1,7 @@
 {
   "name": "FTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
+  "testPayloadAdapter": "ikasan-file-transfer-payload",
   "isFileBasedConsumer": "true",
   "helpText": "<p>This scheduled consumer uses an FTP message provider and supports absolute or relative schedules.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/endpoint/filetransfer/ftp/consumer.md",

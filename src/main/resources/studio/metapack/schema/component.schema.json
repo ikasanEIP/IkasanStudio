@@ -20,6 +20,7 @@
     "expectedInputTypes": { "type": "string" },
     "expectedInputTypeProperty": { "type": "string" },
     "producedOutputType": { "type": "string" },
+    "testPayloadAdapter": { "type": "string", "enum": ["ikasan-file-transfer-payload"] },
     "outputTypeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "conversionRecipes": { "type": "array", "items": { "$ref": "#/$defs/conversionRecipe" } },
     "jarDependencies": { "type": "array", "items": { "$ref": "#/$defs/dependency" } },
