@@ -10,13 +10,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiArrayType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.components.JBLabel;
@@ -299,20 +293,23 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
         };
     }
 
+    /**
+     * The synchronous FileChooser.chooseFile restores its last-selected file via a blocking VFS lookup, which
+     * IntelliJ 2024.3+ flags as a slow operation when run directly on the EDT (as this is, from a button click)
+     * - the async overload used here defers that work off the EDT and invokes the callback (on the EDT) once a
+     * choice is made, never on cancel.
+     */
     private void loadFromFile() {
-        VirtualFile file = FileChooser.chooseFile(
-                FileChooserDescriptorFactory.createSingleFileDescriptor(), project, null);
-        if (file == null) {
-            return;
-        }
-        try {
-            // Read via the VirtualFile's own API (not java.nio.file) so this also works when the file
-            // lives on a remote/WSL/Docker dev environment (IntelliJ's Eel abstraction), not just locally.
-            payloadTextArea.setText(new String(file.contentsToByteArray(), StandardCharsets.UTF_8));
-        } catch (IOException ex) {
-            StudioUIUtils.displayIdeaWarnMessage(project,
-                    StudioBundle.message("message.CouldNotReadPayloadFile", ex.getMessage()));
-        }
+        FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFileDescriptor(), project, null, file -> {
+            try {
+                // Read via the VirtualFile's own API (not java.nio.file) so this also works when the file
+                // lives on a remote/WSL/Docker dev environment (IntelliJ's Eel abstraction), not just locally.
+                payloadTextArea.setText(new String(file.contentsToByteArray(), StandardCharsets.UTF_8));
+            } catch (IOException ex) {
+                StudioUIUtils.displayIdeaWarnMessage(project,
+                        StudioBundle.message("message.CouldNotReadPayloadFile", ex.getMessage()));
+            }
+        });
     }
 
     public String getPayload() {
