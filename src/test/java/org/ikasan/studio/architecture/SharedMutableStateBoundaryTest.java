@@ -17,9 +17,9 @@ class SharedMutableStateBoundaryTest {
     @Test
     void twoSelectionsResolveDifferentIkasanVersionsConcurrently() throws Exception {
         ComponentMeta v3 = ComponentLibrary.getIkasanComponentByKeyMandatory(
-                "V3.3.8", "Basic AMQ Spring JMS Consumer");
+                "V3.3.9", "Basic AMQ Spring JMS Consumer");
         ComponentMeta v4 = ComponentLibrary.getIkasanComponentByKeyMandatory(
-                "V4.0.x", "Basic AMQ Spring JMS Consumer");
+                "V4.1.6", "Basic AMQ Spring JMS Consumer");
 
         assertThat(v3).isNotSameAs(v4);
         assertThat(v3.getProducedOutputType()).isEqualTo("javax.jms.Message");

@@ -24,7 +24,7 @@ public class StudioBuildUtils {
     private StudioBuildUtils() {}
 
     /**
-     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * Called only from componentFactory_en.ftl (both V3.3.9 and V4.1.6) via the {@code statics} binding, which
      * static-usage analysis can't see - despite the "unused" warning, this is load-bearing there.
      * Given a string delimited by tokens e.g. this.is.my.class.bob then get the last string, bob in this case
      * @param delimiter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
@@ -44,7 +44,7 @@ public class StudioBuildUtils {
     }
 
     /**
-     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * Called only from componentFactory_en.ftl (both V3.3.9 and V4.1.6) via the {@code statics} binding, which
      * static-usage analysis can't see - despite the "unused" warning, this is load-bearing there.
      * Given a string delimited by tokens e.g. this.is.my.class.bob then get all but the last string, this.is.my.class in this case
      * @param delimiter to use within the string, NOTE that regex is used to split the string, so special characters like '.' will need to be escaped e.g. "\\."
@@ -230,7 +230,7 @@ public class StudioBuildUtils {
     }
 
     /**
-     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * Called only from componentFactory_en.ftl (both V3.3.9 and V4.1.6) via the {@code statics} binding, which
      * static-usage analysis can't see - despite the "unused" warning, this is load-bearing there.
      * The supplied string template e.g. __flow.ftp.consumer.cron-expression, replacing meta tags so that the final
      * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
@@ -261,7 +261,7 @@ public class StudioBuildUtils {
     }
 
     /**
-     * Called only from componentFactory_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding, which
+     * Called only from componentFactory_en.ftl (both V3.3.9 and V4.1.6) via the {@code statics} binding, which
      * static-usage analysis can't see - despite the "unused" warning, this is load-bearing wherever a Long or
      * CLASS_LITERAL property value is emitted as a Java literal.
      * Java does not auto-box a bare int literal into a Long parameter (e.g. ".setMinAge(120)" fails to compile with
@@ -350,7 +350,7 @@ public class StudioBuildUtils {
 
     /**
      * Escape a flow name used inside Spring Boot's map-style application.properties key.
-     * Called only from propertiesTemplate_en.ftl (both V3.3.8 and V4.0.x) via the {@code statics} binding,
+     * Called only from propertiesTemplate_en.ftl (both V3.3.9 and V4.1.6) via the {@code statics} binding,
      * which static-usage analysis can't see - despite the "unused" warning, this is load-bearing for any
      * flow whose name contains a space.
      */
@@ -361,7 +361,7 @@ public class StudioBuildUtils {
 
     /**
      * Escape a component property's value before writing it as the right-hand side of a line in
-     * application.properties. Called only from propertiesTemplate_en.ftl (both V3.3.8 and V4.0.x) via the
+     * application.properties. Called only from propertiesTemplate_en.ftl (both V3.3.9 and V4.1.6) via the
      * {@code statics} binding, which static-usage analysis can't see - despite the "unused" warning, this is
      * load-bearing for any property value containing a backslash (e.g. a filenamePattern regex like ".*\.tmp",
      * or a Windows-style file path). Without it, java.util.Properties' own loader treats an unescaped backslash

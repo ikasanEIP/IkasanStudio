@@ -77,7 +77,7 @@
     },
     "version": {
       "propertyName": "version",
-      "choices": [ "V3.3.8" ],
+      "choices": [ "V3.3.9" ],
       "affectsUserImplementedClass": true,
       "helpText": "The ikasan version of the meta-pack used to build this module.",
       "mandatory": true

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class GenerationRequestTest {
     @BeforeAll
     static void warmUpComponentLibrary() throws StudioBuildException {
-        ComponentLibrary.refreshComponentLibrary("V3.3.8");
+        ComponentLibrary.refreshComponentLibrary("V3.3.9");
     }
 
     @Test
@@ -24,7 +24,7 @@ class GenerationRequestTest {
 
     @Test
     void flowScopeRetainsTheAffectedFlow() throws StudioBuildException {
-        Flow flow = Flow.flowBuilder().metapackVersion("V3.3.8").build();
+        Flow flow = Flow.flowBuilder().metapackVersion("V3.3.9").build();
 
         GenerationRequest request = GenerationRequest.flow(flow);
 

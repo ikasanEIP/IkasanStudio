@@ -35,7 +35,7 @@ class ModuleTest {
     void cloneVersionOlderToNewer() throws StudioBuildException {
         Module oldModule = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>());
         assertNotNull(oldModule);
-        Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_4_0_0);
+        Module newModule = oldModule.cloneToVersion(META_IKASAN_PACK_4_1_6);
         final String jarDependenciesOld = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=null, type=jar}]";
         final String jarDependenciesNew = "[Dependency {groupId=org.ikasan, artifactId=ikasan-eip-standalone, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-h2-standalone-persistence, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test, version=null, type=jar}, Dependency {groupId=org.ikasan, artifactId=ikasan-test-endpoint, version=null, type=jar}]";
 
@@ -44,7 +44,7 @@ class ModuleTest {
                 "Check the module contains the expected values",
                 () -> assertEquals(newModule.getFlows().size(), oldModule.getFlows().size()),
                 () -> assertEquals(BASE_META_PACK, oldModule.getVersion()),
-                () -> assertEquals(META_IKASAN_PACK_4_0_0, newModule.getVersion()),
+                () -> assertEquals(META_IKASAN_PACK_4_1_6, newModule.getVersion()),
 
                 // componentMeta
                 () -> assertThat(newModule.getComponentMeta())

@@ -22,7 +22,7 @@ import static org.ikasan.studio.core.metapack.model.ComponentMeta.GENERIC_KEY;
  * This class aggregates all the defined Ikasan components
  */
 public final class ComponentLibrary {
-    public static final String DEFAULT_IKASAN_PACK = "V3.3.8";  // Short term convenience, long term this must be pak driven
+    public static final String DEFAULT_IKASAN_PACK = "V3.3.9";  // Short term convenience, long term this must be pak driven
 
     private static final Logger LOG = LoggerFactory.getLogger(ComponentLibrary.class);
     private static final ComponentLibraryLoader LOADER = new ComponentLibraryLoader();

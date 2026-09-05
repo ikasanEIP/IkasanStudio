@@ -51,7 +51,7 @@ Every packaged meta-pack is an immediate child of `studio/metapack/`:
 studio/metapack/
 ├── METAPACK.md
 ├── METAPACK_COMPLIANCE.md
-└── V4.0.x/
+└── V4.1.6/
     ├── metapack.json
     ├── library/
     │   ├── Consumer/
@@ -69,7 +69,7 @@ The main elements are:
 - `library/` — component categories, component definitions, help text and icons.
 - `templates/` — version-specific FreeMarker templates used during generation.
 
-The directory name is the stable identifier stored in the Studio model, such as `V3.3.8` or `V4.0.x`. The
+The directory name is the stable identifier stored in the Studio model, such as `V3.3.9` or `V4.1.6`. The
 manifest separately records the exact tested Ikasan release, such as `4.1.6`.
 
 ## Manifest and dependency management
@@ -79,7 +79,7 @@ The manifest declares the pack's exact build platform:
 ```json
 {
   "schemaVersion": 1,
-  "id": "V4.0.x",
+  "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
   "dependencyManagement": [

@@ -266,7 +266,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     public void testCreateFlowWith_customConverter(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(3, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
@@ -274,7 +274,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
@@ -290,7 +290,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     public void testCreateFlowWith_objectMessageToObjectConverter(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter(metaPackVersion);
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(3, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
@@ -298,7 +298,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToObjectConverterComponent.properties"), templateString);
         // The Converter requires a new jar dependency
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(4, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(9, module.getAllUniqueSortedJarDependencies().size());
@@ -315,7 +315,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter(metaPackVersion);
 
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(3, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
@@ -325,7 +325,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         // The Converter type contributes ikasan-component-converter, and this specific component also contributes
         // its own JAXB API + runtime impl (ikasan-component-converter itself compiles against JAXB but does not
         // declare it as a dependency - see the component's jarDependencies_comment) - 3 new deps in total.
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(6, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(11, module.getAllUniqueSortedJarDependencies().size());
@@ -343,7 +343,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomTranslator(metaPackVersion);
 
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(3, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(8, module.getAllUniqueSortedJarDependencies().size());
@@ -352,7 +352,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomTranslatorComponent.properties"), templateString);
         // The Translator requires a new jar dependency
-        if (TestFixtures.META_IKASAN_PACK_3_3_8.equals(metaPackVersion)) {
+        if (TestFixtures.META_IKASAN_PACK_3_3_9.equals(metaPackVersion)) {
             assertEquals(3, module.getAllUniqueSortedJarDependencies().size());
         } else {
             assertEquals(9, module.getAllUniqueSortedJarDependencies().size());

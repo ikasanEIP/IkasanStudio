@@ -190,7 +190,7 @@ public final class ModuleControlClient {
     /**
      * Starts/stops/pauses/start-pauses/resumes a single flow via {@code PUT /rest/moduleControl} - the
      * non-deprecated form of the endpoint (ChangeFlowStateDto{moduleName,flowName,action}), confirmed identical
-     * between the V3.3.8 and V4.0.x Ikasan cores (org.ikasan.rest.module.ModuleControlApplication#changeFlowState
+     * between the V3.3.9 and V4.1.6 Ikasan cores (org.ikasan.rest.module.ModuleControlApplication#changeFlowState
      * in both). Throws on anything other than HTTP 200 - callers (the UI action) surfaces the
      * failure, they don't need the response body parsed since there's no state to read back from a successful
      * change.

@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ComponentHelpCompositionTest {
     @ParameterizedTest
-    @ValueSource(strings = {"V3.3.8", "V4.0.x"})
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void categoryHelpPrecedesSpecificHelpForEveryComponentType(String version) throws Exception {
         ComponentLibrary.refreshComponentLibrary(version);
 
@@ -30,7 +30,7 @@ class ComponentHelpCompositionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"V3.3.8", "V4.0.x"})
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void translatorShowsCategoryThenSpecificGuidance(String version) throws Exception {
         ComponentMeta translator = ComponentLibrary.getIkasanComponentByKeyMandatory(version, "Translator");
         String help = translator.getHelpText();

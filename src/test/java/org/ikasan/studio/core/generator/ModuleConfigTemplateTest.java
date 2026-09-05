@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/ModuleConfigEmptyIkasanModel.java
+     * @see resources/studio/templates/org/ikasan/studio/generator/ModuleConfigEmptyIkasanModel.java
      * @throws IOException if the template cant be generated
      */
     @ParameterizedTest
@@ -35,7 +35,7 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/ModuleConfigOneFlow.java
+     * @see resources/studio/templates/org/ikasan/studio/generator/ModuleConfigOneFlow.java
      * @throws IOException if the template cant be generated
      */
     @ParameterizedTest
@@ -51,8 +51,8 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
      * FTP/SFTP components need Spring beans (e.g. BaseFileTransferDao) that aren't discoverable via
-     * component-scan - the generated ModuleConfig must pull them in via @ImportResource (V3.3.8, XML-based)
-     * or @Import (V4.0.x, Java @Configuration-class-based). See ComponentMeta#importResources /
+     * component-scan - the generated ModuleConfig must pull them in via @ImportResource (V3.3.9, XML-based)
+     * or @Import (V4.1.6, Java @Configuration-class-based). See ComponentMeta#importResources /
      * #importConfigurationClasses and Module#getAllUniqueSortedImportResources /
      * #getAllUniqueSortedImportConfigurationClasses.
      */
@@ -68,7 +68,7 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
 
     @Test
     public void testCreateModuleWith_ftpConsumer_v3_3_8_addsImportResource() throws StudioBuildException, StudioGeneratorException {
-        Module module = buildModuleWithFtpConsumer(TestFixtures.META_IKASAN_PACK_3_3_8);
+        Module module = buildModuleWithFtpConsumer(TestFixtures.META_IKASAN_PACK_3_3_9);
 
         String templateString = ModuleConfigTemplate.generateContents(module);
         assertNotNull(templateString);
@@ -78,7 +78,7 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
 
     @Test
     public void testCreateModuleWith_ftpConsumer_v4_0_x_addsImportConfigurationClass() throws StudioBuildException, StudioGeneratorException {
-        Module module = buildModuleWithFtpConsumer(TestFixtures.META_IKASAN_PACK_4_0_0);
+        Module module = buildModuleWithFtpConsumer(TestFixtures.META_IKASAN_PACK_4_1_6);
 
         String templateString = ModuleConfigTemplate.generateContents(module);
         assertNotNull(templateString);

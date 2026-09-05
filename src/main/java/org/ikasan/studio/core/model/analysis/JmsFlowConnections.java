@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 public final class JmsFlowConnections {
     // Every JMS component (JmsProducer, BasicAmqJmsProducer, SpringJmsConsumer, BasicAmqSpringJmsConsumer, in
-    // both V3.3.8 and V4.0.x) carries this endpointKey, and nothing else does - the cleanest generic "is this
+    // both V3.3.9 and V4.1.6) carries this endpointKey, and nothing else does - the cleanest generic "is this
     // component JMS" discriminator, cheaper and more future-proof than an implementingClass allow-list.
     private static final String JMS_ENDPOINT_KEY = "Channel Endpoint";
 

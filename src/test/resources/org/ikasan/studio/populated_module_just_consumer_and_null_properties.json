@@ -5,7 +5,7 @@
   "h2WebPortNumber": "2",
   "name": "A to B convert",
   "port": "3",
-  "version": "V3.3.8",
+  "version": "V3.3.9",
   "flows": [
     {
       "description": "MyFlowDescription",

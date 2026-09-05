@@ -73,7 +73,7 @@ public class ComponentProperty {
     }
 
     /**
-     * Called only from flowTemplate_en.ftl (both V3.3.8 and V4.0.x) via FreeMarker's bean-property syntax
+     * Called only from flowTemplate_en.ftl (both V3.3.9 and V4.1.6) via FreeMarker's bean-property syntax
      * (${param.templateRepresentationOfValue}), which static-usage analysis can't see - despite the "unused"
      * warning, this is load-bearing there.
      * Get the value and present it in such a way as to be appropriate for display in the template language

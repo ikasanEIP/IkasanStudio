@@ -106,8 +106,8 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
         assertTrue(templateString.contains("implements Converter<Object, Payload>"));
-        // V3.3.8 targets JDK 11 (no pattern-matching instanceof) so it renders "instanceof byte[])" with a
-        // separate cast, while V4.0.x (JDK 17) renders "instanceof byte[] bytes" - assert on the shared prefix
+        // V3.3.9 targets JDK 11 (no pattern-matching instanceof) so it renders "instanceof byte[])" with a
+        // separate cast, while V4.1.6 (JDK 17) renders "instanceof byte[] bytes" - assert on the shared prefix
         // rather than a version-specific form.
         assertTrue(templateString.contains("source instanceof byte["));
         assertTrue(templateString.contains("new DefaultPayload"));

@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ComponentLibraryLoaderTest {
     @Test
     void loadsMetadataWithResourceIdentifiersAndNoUiObjects() {
-        var components = new ComponentLibraryLoader().load("V3.3.8");
+        var components = new ComponentLibraryLoader().load("V3.3.9");
 
         assertThat(components).isNotEmpty();
         assertThat(components.values())
@@ -19,10 +19,10 @@ class ComponentLibraryLoaderTest {
 
     @Test
     void loadsTheVersionAndBomContractFromEachPackManifest() throws Exception {
-        var v3 = ComponentLibrary.getMetaPackManifest("V3.3.8");
-        var v4 = ComponentLibrary.getMetaPackManifest("V4.0.x");
+        var v3 = ComponentLibrary.getMetaPackManifest("V3.3.9");
+        var v4 = ComponentLibrary.getMetaPackManifest("V4.1.6");
 
-        assertThat(v3.ikasanVersion()).isEqualTo("3.3.8");
+        assertThat(v3.ikasanVersion()).isEqualTo("3.3.9");
         assertThat(v3.javaVersion()).isEqualTo("11");
         assertThat(v4.ikasanVersion()).isEqualTo("4.1.6");
         assertThat(v4.javaVersion()).isEqualTo("17");
@@ -35,7 +35,7 @@ class ComponentLibraryLoaderTest {
     @Test
     void packagedDependenciesAreBomManagedUnlessDeclaredAsOverrides() throws Exception {
         ComponentLibraryLoader loader = new ComponentLibraryLoader();
-        for (String version : java.util.List.of("V3.3.8", "V4.0.x")) {
+        for (String version : java.util.List.of("V3.3.9", "V4.1.6")) {
             var components = loader.load(version);
             var manifest = loader.loadManifest(version);
             org.ikasan.studio.core.metapack.validation.MetaPackValidator.validate(version, manifest, components);
@@ -50,14 +50,14 @@ class ComponentLibraryLoaderTest {
 
     @Test
     void simultaneousProjectsCanResolveDifferentMetapacksWithoutCrossContamination() throws Exception {
-        CompletableFuture<String> v3 = CompletableFuture.supplyAsync(() -> implementingClass("V3.3.8"));
-        CompletableFuture<String> v4 = CompletableFuture.supplyAsync(() -> implementingClass("V4.0.x"));
+        CompletableFuture<String> v3 = CompletableFuture.supplyAsync(() -> implementingClass("V3.3.9"));
+        CompletableFuture<String> v4 = CompletableFuture.supplyAsync(() -> implementingClass("V4.1.6"));
 
         assertThat(v3.get()).contains("javax.jms");
         assertThat(v4.get()).contains("jakarta.jms");
-        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V3.3.8", "Basic AMQ Spring JMS Consumer")
+        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V3.3.9", "Basic AMQ Spring JMS Consumer")
                 .getProducedOutputType()).isEqualTo("javax.jms.Message");
-        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V4.0.x", "Basic AMQ Spring JMS Consumer")
+        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V4.1.6", "Basic AMQ Spring JMS Consumer")
                 .getProducedOutputType()).isEqualTo("jakarta.jms.Message");
     }
 

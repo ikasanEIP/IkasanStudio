@@ -172,7 +172,7 @@ public class StudioProjectFiles {
      * Add the new dependencies IF they are not already in the pom
      * @param project is the Intellij project instance
      * @param newDependencies to be added, a map of Dependency.getManagementKey() -> Dependency
-     * @param metaVersion of the module (e.g. "V3.3.8", "V4.0.x"), used to pick the matching JDK level
+     * @param metaVersion of the module (e.g. "V3.3.9", "V4.1.6"), used to pick the matching JDK level
      */
     public static void checkForDependencyChangesAndSaveIfChanged(Project project, Set<Dependency> newDependencies, String metaVersion) {
         IkasanPomModel ikasanPomModel;

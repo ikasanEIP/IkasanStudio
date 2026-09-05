@@ -11,7 +11,7 @@ Every immediate child of `studio/metapack/` must contain `metapack.json` alongsi
 ```json
 {
   "schemaVersion": 1,
-  "id": "V4.0.x",
+  "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
   "dependencyManagement": [

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "id": "V3.3.8",
-  "ikasanVersion": "3.3.8",
+  "id": "V3.3.9",
+  "ikasanVersion": "3.3.9",
   "javaVersion": "11",
   "dependencyManagement": [
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-eip-standalone-bom",
-      "version": "3.3.8"
+      "version": "3.3.9"
     }
   ],
   "compatibilityOverrides": []

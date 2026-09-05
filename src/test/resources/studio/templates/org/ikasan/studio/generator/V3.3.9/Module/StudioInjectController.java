@@ -39,7 +39,7 @@ public java.util.List<String> listFlows() {
 public org.springframework.http.ResponseEntity<?> inject(
         // Explicit "flowName" name rather than relying on reflection/debug-symbol parameter name discovery
         // (which needs the -parameters compiler flag or debug info this project's build doesn't guarantee) -
-        // see the V4.0.x metapack's identical fix for the "-parameters flag" failure this avoids there.
+        // see the V4.1.6 metapack's identical fix for the "-parameters flag" failure this avoids there.
         @org.springframework.web.bind.annotation.PathVariable("flowName") String flowName,
         @org.springframework.web.bind.annotation.RequestBody InjectRequest request) {
     Object rawFlow = myModule.getFlow(flowName);

@@ -19,14 +19,14 @@ import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String META_IKASAN_PACK_3_3_8 = "V3.3.8";
-    public static final String META_IKASAN_PACK_4_0_0 = "V4.0.x";
+    public static final String META_IKASAN_PACK_3_3_9 = "V3.3.9";
+    public static final String META_IKASAN_PACK_4_1_6 = "V4.1.6";
 
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
-    public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_8;
+    public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_9;
     public static Stream<String> metaPacksToTest() {
-        return Stream.of(META_IKASAN_PACK_3_3_8);
+        return Stream.of(META_IKASAN_PACK_3_3_9);
     }
 
     public static final String TEST_FLOW_NAME = "MyFlow1";
