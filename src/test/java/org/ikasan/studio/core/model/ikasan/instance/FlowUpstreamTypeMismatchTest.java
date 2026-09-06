@@ -41,6 +41,25 @@ class FlowUpstreamTypeMismatchTest {
         assertEquals("java.util.List<java.io.File>", localFileConsumer.getEffectiveOutputTypeDescription());
     }
 
+    /**
+     * A freshly dropped Scheduled Consumer has no messageProvider property value at all (it isn't mandatory,
+     * so BasicElement never creates a ComponentProperty entry for it) rather than one holding an empty string -
+     * regression test for the two being conflated, which would make outputTypeInvalidatedByProperties think a
+     * custom provider was set (see ComponentMeta#getEffectiveOutputTypeDescription) and wrongly suppress the
+     * suggestion for the overwhelmingly common case of a Consumer using the default QuartzMessageProvider.
+     */
+    @Test
+    public void getEffectiveOutputTypeDescription_is_the_quartz_job_context_for_a_scheduled_consumer_with_no_messageProvider_override() throws StudioBuildException {
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Scheduled Consumer");
+        FlowElement scheduledConsumer = FlowElement.flowElementBuilder()
+                .componentMeta(meta)
+                .componentName("my sched")
+                .build();
+        scheduledConsumer.setPropertyValue("cronExpression", "0 * * * * ? *");
+
+        assertEquals("org.quartz.JobExecutionContext", scheduledConsumer.getEffectiveOutputTypeDescription());
+    }
+
     @Test
     public void getEffectiveInputTypeDescription_is_always_null_for_a_consumer() throws StudioBuildException {
         FlowElement localFileConsumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);

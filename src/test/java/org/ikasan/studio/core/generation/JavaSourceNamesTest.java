@@ -12,4 +12,11 @@ class JavaSourceNamesTest {
         assertThat(JavaSourceNames.toPackageName("1 My-Flow")).isEqualTo("_1myflow");
         assertThat(JavaSourceNames.toIdentifier(null)).isEmpty();
     }
+
+    @Test
+    void retainsUnusualCharactersThatAreValidInJavaIdentifiers() {
+        assertThat(JavaSourceNames.toIdentifier("Δ")).isEqualTo("δ");
+        assertThat(JavaSourceNames.toClassName("_special flow")).isEqualTo("_specialFlow");
+        assertThat(JavaSourceNames.toPackageName("42-valid.package")).isEqualTo("_42validpackage");
+    }
 }

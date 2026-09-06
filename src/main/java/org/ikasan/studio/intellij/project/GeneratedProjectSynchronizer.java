@@ -7,9 +7,12 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.StatusBar;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.*;
@@ -100,6 +103,8 @@ public class GeneratedProjectSynchronizer {
                 CommandProcessor.getInstance().executeCommand(
                     project,
                     () -> {
+                        GenerationTransactionManager.begin();
+                        try {
                         if (pomDependenciesHaveChanged.get()) {
                             // We have checked the in-memory model, below will also verify from the on-disk model.
                             StudioProjectFiles.checkForDependencyChangesAndSaveIfChanged(project, module.getAllUniqueSortedJarDependencies(), module.getMetaVersion());
@@ -123,7 +128,6 @@ public class GeneratedProjectSynchronizer {
                                 saveFlow(project, module, request.affectedFlow());
                                 generateAndSaveJavaCodeModuleConfig(project, module);
                                 generateAndSavePropertiesConfig(project, module);
-                                deleteStaleGeneratedFlowPackages(project, module);
                             }
                             case FULL -> {
                                 saveApplication(project, module);
@@ -139,10 +143,27 @@ public class GeneratedProjectSynchronizer {
                                 // static analysis can prove is unreachable here.
                             }
                         }
+                        GenerationTransactionManager.Summary summary = GenerationTransactionManager.commit(project);
+                        String summaryMessage = "Generated project updated: " + summary.created() + " created, "
+                                + summary.updated() + " updated, " + summary.unchanged() + " unchanged";
+                        LOG.info("STUDIO: " + summaryMessage);
+                        StatusBar.Info.set(summaryMessage, project);
+                        if (pomDependenciesHaveChanged.get()) {
+                            MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
+                            if (manager != null) manager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
+                        }
+                        if (request.scope() == GenerationRequest.Scope.MODULE_STRUCTURE
+                                || request.scope() == GenerationRequest.Scope.FULL) {
+                            deleteStaleGeneratedFlowPackages(project, module);
+                        }
                         if (!transactionTimeStamp.equals(uiContext.getProjectRefreshTimestamp())) {
                             displayIdeaWarnMessage(project, StudioBundle.message("message.IntellijHasChangedTheProjectPartWayThroughTheSave"));
                         }
                         LOG.info("STUDIO: End ApplicationManager.getApplication().runWriteAction - source from model");
+                        } catch (RuntimeException failure) {
+                            GenerationTransactionManager.abort();
+                            throw failure;
+                        }
                     },
                     StudioBundle.message("action.GenerateSourceFromFlowDiagram"),
                     "Undo group ID");
@@ -154,6 +175,8 @@ public class GeneratedProjectSynchronizer {
                     // completely silent: no exception surfaces anywhere, no file gets written, and it looks
                     // to the user exactly like nothing happened.
                     LOG.warn("STUDIO: Source generation failed while applying model changes to disk", failure);
+                    displayIdeaWarnMessage(project, "Generation failed. No further project files will be changed. "
+                            + failure.getMessage());
                     completion.completeExceptionally(failure);
                 }
             });
@@ -221,11 +244,11 @@ public class GeneratedProjectSynchronizer {
     private void saveApplication(Project project, Module module) {
         // The H2 Launcher
         // @TODO this only needs to be done once.
-        String h2StartStopPomString  = null;
+        String h2StartStopPomString;
         try {
             h2StartStopPomString = H2StartStopTemplate.create(module.getMetaVersion());
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, "An error has occurred generating the h2StartStopPomString, attempting to continue. Error was " + e.getMessage());
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
 
         if (h2StartStopPomString != null) {
@@ -233,11 +256,11 @@ public class GeneratedProjectSynchronizer {
         }
 
         // The SpringBoot startup
-        String applicationTemplateString  = null;
+        String applicationTemplateString;
         try {
             applicationTemplateString = ApplicationTemplate.create(module);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredGeneratingTheApplicationTemplate", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (applicationTemplateString != null) {
             StudioProjectFiles.createJavaSourceFile(project,
@@ -254,11 +277,11 @@ public class GeneratedProjectSynchronizer {
      * @param module for this code
      */
     private void saveStudioInjectController(Project project, Module module) {
-        String studioInjectControllerTemplateString = null;
+        String studioInjectControllerTemplateString;
         try {
             studioInjectControllerTemplateString = StudioInjectControllerTemplate.create(module);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (studioInjectControllerTemplateString != null) {
             StudioProjectFiles.createJavaSourceFile(project,
@@ -282,6 +305,8 @@ public class GeneratedProjectSynchronizer {
     private void saveDebugSupportClasses(Project project, Module module) {
         try {
             String debugTransitionComponentTemplateString = DebugTransitionComponentTemplate.create(module);
+            StudioProjectFiles.authoriseUserJavaReplacement(DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
+                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME);
             StudioProjectFiles.createJavaSourceFile(project,
                     StudioProjectFiles.USER_CONTENT_ROOT,
                     StudioProjectFiles.SRC_MAIN_JAVA_CODE,
@@ -289,13 +314,15 @@ public class GeneratedProjectSynchronizer {
                     DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME, debugTransitionComponentTemplateString, null);
 
             String deepCopyUtilTemplateString = DeepCopyUtilTemplate.create(module);
+            StudioProjectFiles.authoriseUserJavaReplacement(DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
+                    DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME);
             StudioProjectFiles.createJavaSourceFile(project,
                     StudioProjectFiles.USER_CONTENT_ROOT,
                     StudioProjectFiles.SRC_MAIN_JAVA_CODE,
                     DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
                     DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME, deepCopyUtilTemplateString, null);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
     }
 
@@ -303,7 +330,6 @@ public class GeneratedProjectSynchronizer {
         for (Flow ikasanFlow : module.getFlows()) {
             saveFlow(project, module, ikasanFlow);
         }
-        deleteStaleGeneratedFlowPackages(project, module);
     }
 
     private void deleteStaleGeneratedFlowPackages(Project project, Module module) {
@@ -363,18 +389,21 @@ public class GeneratedProjectSynchronizer {
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                         String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
                         String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
-                        String templateString = null;
+                        String templateString;
                         try {
                             templateString = FlowsUserImplementedClassPropertyTemplate.create(module.getMetaVersion(), property, newPackageName, clazzName, prefix);
                         } catch (StudioGeneratorException e) {
-                            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+                            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
                         }
                         if (templateString != null) {
                             String contentRoot = protectFromOverwrite ? StudioProjectFiles.USER_CONTENT_ROOT : StudioProjectFiles.GENERATED_CONTENT_ROOT;
+                            if (protectFromOverwrite && property.isOverwriteEnabled()) {
+                                StudioProjectFiles.authoriseUserJavaReplacement(newPackageName, clazzName);
+                            }
                             StudioProjectFiles.createJavaSourceFile(project, contentRoot, StudioProjectFiles.SRC_MAIN_JAVA_CODE,
                                     newPackageName, clazzName, templateString, componentViewHandler);
                             if (protectFromOverwrite) {
-                                property.setOverwriteEnabled(false);
+                                StudioProjectFiles.afterGenerationCommit(() -> property.setOverwriteEnabled(false));
                             }
                         }
                     }
@@ -393,19 +422,22 @@ public class GeneratedProjectSynchronizer {
                     // its own first-ever generation instead.
                     boolean stubMissing = StudioProjectFiles.getUserImplementedClassFile(project, newPackageName, newClassName) == null;
                     if (!(((FlowUserImplementedElement) component).isOverwriteEnabled()
-                            || component.getComponentMeta().isDebug() || stubMissing)) {
+                            || stubMissing)) {
                         continue;
                     }
-                    String templateString = null;
+                    String templateString;
                     try {
                         templateString = FlowsUserImplementedComponentTemplate.create(newPackageName, module, ikasanFlow, component);
                     } catch (StudioGeneratorException e) {
-                        displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+                        throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
                     }
                     if (templateString != null) {
+                        if (((FlowUserImplementedElement) component).isOverwriteEnabled()) {
+                            StudioProjectFiles.authoriseUserJavaReplacement(newPackageName, newClassName);
+                        }
                         StudioProjectFiles.createJavaSourceFile(project, StudioProjectFiles.USER_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_JAVA_CODE,
                                 newPackageName, newClassName, templateString, componentViewHandler);
-                        ((FlowUserImplementedElement)component).setOverwriteEnabled(false);
+                        StudioProjectFiles.afterGenerationCommit(() -> ((FlowUserImplementedElement) component).setOverwriteEnabled(false));
                     }
                 }
             }
@@ -426,11 +458,11 @@ public class GeneratedProjectSynchronizer {
     }
 
     private void generateAndSaveJavaCodeIkasanComponentFactory(Project project, Module module, String flowPackageName, Flow ikasanFlow) {
-        String componentFactoryTemplateString = null;
+        String componentFactoryTemplateString;
         try {
             componentFactoryTemplateString = FlowsComponentFactoryTemplate.create(flowPackageName, module, ikasanFlow);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (componentFactoryTemplateString != null) {
             StudioProjectFiles.createJavaSourceFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_JAVA_CODE, flowPackageName,
@@ -440,11 +472,11 @@ public class GeneratedProjectSynchronizer {
 
     private void generateAndSaveJavaCodeIkasanFlow(Project project, Module module, String flowPackageName, Flow ikasanFlow) {
         IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, ikasanFlow);
-        String flowTemplateString = null;
+        String flowTemplateString;
         try {
             flowTemplateString = FlowTemplate.create(flowPackageName, module, ikasanFlow);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (flowTemplateString != null) {
             StudioProjectFiles.createJavaSourceFile(
@@ -647,11 +679,11 @@ public class GeneratedProjectSynchronizer {
     }
 
     private void generateAndSaveJavaCodeModuleConfig(Project project, Module module) {
-        String templateString = null;
+        String templateString;
         try {
             templateString = ModuleConfigTemplate.create(module);
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (templateString != null) {
             AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, module);
@@ -663,13 +695,14 @@ public class GeneratedProjectSynchronizer {
 
     public static final String MODULE_PROPERTIES_FILENAME_WITH_EXTENSION = "application.properties";
     private void generateAndSavePropertiesConfig(Project project, Module module) {
-        String templateString = null;
+        String templateString;
         try {
             templateString = PropertiesTemplate.create(module);
             Map<String, String> applicationProperties = StudioBuildUtils.convertStringToMap(templateString);
-            project.getService(UiContext.class).setApplicationProperties(applicationProperties);
+            StudioProjectFiles.afterGenerationCommit(() ->
+                    project.getService(UiContext.class).setApplicationProperties(applicationProperties));
         } catch (StudioGeneratorException e) {
-            displayIdeaWarnMessage(project, StudioBundle.message("message.AnErrorHasOccurredAttemptingToContinue", e.getMessage()));
+            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (templateString != null) {
 //            StudioProjectFiles.createFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);

@@ -190,9 +190,11 @@ public class StudioProjectFiles {
                 applyMetaPackBuildContract(ikasanPomModel, metaVersion);
                 if (ikasanPomModel.isDirty()) {
                     createPomFile(project, "", "", ikasanPomModel.getModelAsString());
-                    MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
-                    if (mavenProjectsManager != null) {
-                        mavenProjectsManager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
+                    if (!GenerationTransactionManager.isActive()) {
+                        MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
+                        if (mavenProjectsManager != null) {
+                            mavenProjectsManager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
+                        }
                     }
                 }
             } else {
@@ -273,6 +275,17 @@ public class StudioProjectFiles {
                 relativeFilePath,
                 content,
                 null);
+    }
+
+
+    public static void afterGenerationCommit(Runnable action) {
+        GenerationTransactionManager.afterCommit(action);
+    }
+
+    public static void authoriseUserJavaReplacement(String packageName, String className) {
+        String relativePath = USER_CONTENT_ROOT.substring(1) + "/" + SRC_MAIN_JAVA_CODE + "/"
+                + packageName.replace(".", "/") + "/" + className + ".java";
+        GenerationTransactionManager.authoriseUserReplacement(relativePath);
     }
 
     /**
@@ -467,6 +480,9 @@ public class StudioProjectFiles {
      */
     public static void createFileWithDirectories(final Project project, final String relativePath,
                                                  final String fileContent, final AbstractViewHandlerIntellij componentViewHandler) {
+        if (GenerationTransactionManager.stage(relativePath, fileContent, componentViewHandler)) {
+            return;
+        }
         // Separate the path and file name
         int lastSeparatorIndex = relativePath.lastIndexOf('/');
         String directoryPath = lastSeparatorIndex == -1 ? "" : relativePath.substring(0, lastSeparatorIndex);
