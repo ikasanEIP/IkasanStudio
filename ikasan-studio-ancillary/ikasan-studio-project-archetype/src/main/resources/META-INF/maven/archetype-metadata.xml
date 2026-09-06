@@ -30,6 +30,7 @@ under the License.
       <directory></directory>
       <includes>
         <include>.ikasan-studio-project</include>
+        <include>AGENTS.md</include>
       </includes>
     </fileSet>
     <fileSet filtered="true" encoding="UTF-8">
