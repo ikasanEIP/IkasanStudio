@@ -49,6 +49,7 @@ import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
@@ -559,6 +560,16 @@ public class StudioProjectFiles {
         });
     }
 
+    /** Creates a project file only when it does not already exist, preserving developer-owned guidance. */
+    public static void createFileWithDirectoriesIfMissing(final Project project, final String relativePath,
+                                                           final String fileContent) {
+        VirtualFile baseDir = getProjectBaseDir(project);
+        String normalised = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+        if (baseDir != null && baseDir.findFileByRelativePath(normalised) == null) {
+            createFileWithDirectories(project, relativePath, fileContent, null);
+        }
+    }
+
     private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent,
                                               final AbstractViewHandlerIntellij componentViewHandler) {
         try {
@@ -576,7 +587,7 @@ public class StudioProjectFiles {
                     if (componentViewHandler != null) {
                         PsiFile existingPsiFile = PsiManager.getInstance(project).findFile(file);
                         if (existingPsiFile != null) {
-                            componentViewHandler.setPsiFile(existingPsiFile);
+                            componentViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(existingPsiFile));
                         }
                     }
                     return;
@@ -625,7 +636,7 @@ public class StudioProjectFiles {
                             }
                         }
                         if (componentViewHandler != null) {
-                            componentViewHandler.setPsiFile(psiFile);
+                            componentViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(psiFile));
                         }
                     }
                 });

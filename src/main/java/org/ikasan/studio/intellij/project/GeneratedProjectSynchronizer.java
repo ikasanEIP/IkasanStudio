@@ -13,6 +13,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.ikasan.studio.StudioRuntimeException;
+import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.*;
@@ -20,6 +21,7 @@ import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
@@ -110,6 +112,7 @@ public class GeneratedProjectSynchronizer {
                             StudioProjectFiles.checkForDependencyChangesAndSaveIfChanged(project, module.getAllUniqueSortedJarDependencies(), module.getMetaVersion());
                         }
                         Long transactionTimeStamp = uiContext.getProjectRefreshTimestamp();
+                        saveAiProjectContract(project, module);
                         switch (request.scope()) {
                             case PROPERTIES -> generateAndSavePropertiesConfig(project, module);
                             case FLOW -> {
@@ -190,6 +193,18 @@ public class GeneratedProjectSynchronizer {
         return completion;
     }
 
+
+    /** Keeps the offline AI contract derived from the same model and meta-pack APIs used by Studio itself. */
+    private void saveAiProjectContract(Project project, Module module) {
+        try {
+            StudioProjectFiles.createFileWithDirectoriesIfMissing(project, "AGENTS.md", AiProjectContractGenerator.agentsGuide());
+            StudioProjectFiles.createFileWithDirectories(project, "generated/IKASAN_STUDIO.md", AiProjectContractGenerator.studioGuide(module.getMetaVersion()), null);
+            StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/model.schema.json", AiProjectContractGenerator.modelSchema(), null);
+            StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/component-catalogue.json", AiProjectContractGenerator.componentCatalogue(module.getMetaVersion()), null);
+        } catch (StudioBuildException | com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new StudioRuntimeException("Could not generate the AI project contract", e);
+        }
+    }
 
     /**
      * Take the Model from memory and persist it to disk
@@ -488,7 +503,7 @@ public class GeneratedProjectSynchronizer {
                     flowTemplateString,
                     flowViewHandler);
         }
-        setFlowComponentNavigationTargets(ikasanFlow, flowViewHandler.getPsiFile());
+        setFlowComponentNavigationTargets(ikasanFlow, flowViewHandler.getCodeNavigationTarget().psiFile());
     }
 
     /**
@@ -507,15 +522,16 @@ public class GeneratedProjectSynchronizer {
         for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
             IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
             if (flowComponentViewHandler != null) {
-                flowComponentViewHandler.setPsiFile(flowPsiFile);
+                NavigationTarget target = NavigationTarget.forFile(flowPsiFile);
                 String componentName = flowElement.getComponentName();
                 if (componentName != null) {
                     int offset = flowFileText.indexOf("\"" + componentName + "\"", searchFromOffset);
                     if (offset >= 0) {
-                        flowComponentViewHandler.setOffsetInclassToNavigateTo(offset);
+                        target = target.withOffset(offset);
                         searchFromOffset = offset + componentName.length();
                     }
                 }
+                flowComponentViewHandler.setCodeNavigationTarget(target);
             }
         }
     }
@@ -550,10 +566,9 @@ public class GeneratedProjectSynchronizer {
                 if (flowViewHandler != null) {
                     String flowConfigPrefix = "ikasan.flow.configuration[" + StudioBuildUtils.escapeSpringPropertiesMapKey(flow.getIdentity()) + "].";
                     int flowOffset = propertiesFileText.indexOf(flowConfigPrefix);
-                    flowViewHandler.setPropertiesPsiFile(flowOffset >= 0 ? propertiesPsiFile : null);
-                    if (flowOffset >= 0) {
-                        flowViewHandler.setOffsetInPropertiesFileToNavigateTo(flowOffset);
-                    }
+                    flowViewHandler.setPropertiesNavigationTarget(flowOffset >= 0
+                            ? NavigationTarget.forFile(propertiesPsiFile).withOffset(flowOffset)
+                            : NavigationTarget.none());
                 }
 
                 for (FlowElement flowElement : flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()) {
@@ -563,9 +578,10 @@ public class GeneratedProjectSynchronizer {
                     }
                     String key = firstApplicationPropertiesKeyFor(module, flow, flowElement);
                     int offset = key != null ? propertiesFileText.indexOf(key + "=", searchFromOffset) : -1;
-                    flowComponentViewHandler.setPropertiesPsiFile(offset >= 0 ? propertiesPsiFile : null);
+                    flowComponentViewHandler.setPropertiesNavigationTarget(offset >= 0
+                            ? NavigationTarget.forFile(propertiesPsiFile).withOffset(offset)
+                            : NavigationTarget.none());
                     if (offset >= 0) {
-                        flowComponentViewHandler.setOffsetInPropertiesFileToNavigateTo(offset);
                         searchFromOffset = offset + key.length();
                     }
                 }
@@ -627,7 +643,7 @@ public class GeneratedProjectSynchronizer {
             }
             PsiFile userClassPsiFile = PsiManager.getInstance(project).findFile(vFile);
             if (userClassPsiFile != null) {
-                componentViewHandler.setPsiFile(userClassPsiFile);
+                componentViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(userClassPsiFile));
             }
         }
     }
@@ -670,7 +686,7 @@ public class GeneratedProjectSynchronizer {
                 }
                 IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, ikasanFlow);
                 if (flowViewHandler != null) {
-                    flowViewHandler.setPsiFile(flowPsiFile);
+                    flowViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(flowPsiFile));
                 }
                 setFlowComponentNavigationTargets(ikasanFlow, flowPsiFile);
                 setUserImplementedClassNavigationTargets(module, ikasanFlow, projectBaseDir);

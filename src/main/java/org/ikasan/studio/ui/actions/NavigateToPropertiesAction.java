@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.intellij.navigation.StudioNavigator;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.ui.StudioBundle;
@@ -29,8 +30,9 @@ public class NavigateToPropertiesAction implements ActionListener {
     public void actionPerformed(ActionEvent actionEvent) {
         AbstractViewHandlerIntellij viewHandler = ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement);
         if (viewHandler != null && viewHandler.hasPropertiesNavigationTarget()) {
-            StudioUIUtils.displayMessage(project, StudioBundle.message("message.JumpToOffset", viewHandler.getOffsetInPropertiesFileToNavigateTo()));
-            StudioNavigator.navigateToSource(project, viewHandler.getPropertiesPsiFile(), viewHandler.getOffsetInPropertiesFileToNavigateTo());
+            NavigationTarget target = viewHandler.getPropertiesNavigationTarget();
+            StudioUIUtils.displayMessage(project, StudioBundle.message("message.JumpToOffset", target.offset()));
+            StudioNavigator.navigateToSource(project, target, true);
         }
     }
 }

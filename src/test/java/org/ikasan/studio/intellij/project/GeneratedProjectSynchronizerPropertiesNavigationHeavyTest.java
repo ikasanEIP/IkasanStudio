@@ -91,15 +91,15 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         assertThat(consumerViewHandler.hasPropertiesNavigationTarget(), is(true));
         // Read back from the resolved PsiFile itself, not the pre-write local string - IntelliJ may reformat
         // the written file (e.g. line-ending/whitespace normalisation), which would shift offsets.
-        String writtenText = consumerViewHandler.getPropertiesPsiFile().getText();
-        int consumerOffset = consumerViewHandler.getOffsetInPropertiesFileToNavigateTo();
+        String writtenText = consumerViewHandler.getPropertiesNavigationTarget().psiFile().getText();
+        int consumerOffset = consumerViewHandler.getPropertiesNavigationTarget().offset();
         String expectedConsumerKey = "myflow1.ftp.consumer.clientID=";
         assertThat(writtenText.substring(consumerOffset, consumerOffset + expectedConsumerKey.length()), is(expectedConsumerKey));
 
         // Flow target: the bespoke ikasan.flow.configuration[...] block, keyed by flow identity.
         IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(myProject, flowWithTargets);
         assertThat(flowViewHandler.hasPropertiesNavigationTarget(), is(true));
-        int flowOffset = flowViewHandler.getOffsetInPropertiesFileToNavigateTo();
+        int flowOffset = flowViewHandler.getPropertiesNavigationTarget().offset();
         String expectedFlowPrefix = "ikasan.flow.configuration[MyFlow1].";
         assertThat(writtenText.substring(flowOffset, flowOffset + expectedFlowPrefix.length()), is(expectedFlowPrefix));
 

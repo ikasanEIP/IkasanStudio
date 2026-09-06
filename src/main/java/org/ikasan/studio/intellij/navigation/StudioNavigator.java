@@ -105,6 +105,26 @@ public final class StudioNavigator {
         }
     }
 
+    /**
+     * Navigates to a {@link NavigationTarget} resolved by a view handler - lets callers outside the
+     * {@code intellij} package (e.g. NavigateToCodeAction/NavigateToPropertiesAction) trigger navigation without
+     * themselves depending on {@code com.intellij.psi.*} (see
+     * ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters).
+     * @param target to navigate to; a no-op if null or {@link NavigationTarget#isPresent()} is false
+     * @param preferOffset true to navigate to {@link NavigationTarget#offset()} when the target has a non-zero
+     *                     one, false to always navigate to the top of the resolved element
+     */
+    public static void navigateToSource(Project project, NavigationTarget target, boolean preferOffset) {
+        if (target == null || !target.isPresent()) {
+            return;
+        }
+        if (preferOffset && target.offset() != 0) {
+            navigateToSource(project, target.elementToNavigateTo(), target.offset());
+        } else {
+            navigateToSource(project, target.elementToNavigateTo());
+        }
+    }
+
        /**
      * Navigates to source of given class at specified offset.
      * @param classToNavigateTo navigate to source of this class

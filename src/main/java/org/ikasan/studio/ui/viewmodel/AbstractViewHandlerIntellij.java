@@ -2,13 +2,11 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
 import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 
@@ -25,13 +23,10 @@ import java.util.Arrays;
 @Setter
 public abstract class AbstractViewHandlerIntellij {
     private static final Logger LOG = Logger.getInstance("#AbstractViewHandlerIntellij");
-    PsiClass classToNavigateTo;
-    PsiFile psiFile;
-    int offsetInclassToNavigateTo;
-    // "Jump to Properties" target - a separate file/offset pair from the "Jump to Code" ones above, since a
-    // component's properties (when externalized) live in application.properties, not the generated Flow.java.
-    PsiFile propertiesPsiFile;
-    int offsetInPropertiesFileToNavigateTo;
+    NavigationTarget codeNavigationTarget = NavigationTarget.none();
+    // "Jump to Properties" target - separate from the "Jump to Code" one above, since a component's properties
+    // (when externalized) live in application.properties, not the generated Flow.java.
+    NavigationTarget propertiesNavigationTarget = NavigationTarget.none();
     private int topY;
     private int leftX;
     private int width;
@@ -163,20 +158,7 @@ public abstract class AbstractViewHandlerIntellij {
      * application.properties. Used to decide whether the menu item should even be shown.
      */
     public boolean hasPropertiesNavigationTarget() {
-        return propertiesPsiFile != null;
-    }
-
-    public void setPsiFile(PsiFile psiFile) {
-        this.psiFile = psiFile;
-        // Any previously computed offset was relative to the old file's text, and is meaningless against this one.
-        this.offsetInclassToNavigateTo = 0;
-        if (psiFile instanceof PsiJavaFile) {
-            PsiClass[] allClasses = ((PsiJavaFile)psiFile).getClasses();
-            if (allClasses.length > 0) {
-                // for now, assume the main class is the first in the array
-                classToNavigateTo = allClasses[0];
-            }
-        }
+        return propertiesNavigationTarget.isPresent();
     }
 
     public int getLeadingGap() {

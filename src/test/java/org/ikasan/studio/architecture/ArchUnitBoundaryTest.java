@@ -52,13 +52,11 @@ class ArchUnitBoundaryTest {
                 .because("integration clients must be independently testable")
                 .check(productionClasses);
     }
-    // XXX
     @Test
     void platformHeavyApisRemainBehindKnownAdapters() {
         // Finite migration list: new PSI/VFS/execution dependencies must go in intellij; remove entries as
         // these existing UI classes acquire focused adapters.
-        Set<String> transitionalUiAdapters = Set.of(
-                "org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij");
+        Set<String> transitionalUiAdapters = Set.of();
 
         classes().should(keepPlatformHeavyApisBehindAdapters(transitionalUiAdapters))
                 .because("PSI, VFS and execution are IntelliJ adapter responsibilities")
