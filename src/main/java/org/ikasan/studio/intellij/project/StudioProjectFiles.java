@@ -7,6 +7,11 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -15,8 +20,10 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -24,6 +31,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
+import com.intellij.util.Consumer;
 import com.intellij.util.IncorrectOperationException;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -44,6 +52,7 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -473,6 +482,34 @@ public class StudioProjectFiles {
     }
 
     /**
+     * The project root's on-disk path, or null if the VFS cannot currently resolve it (e.g. a project that
+     * needs resaving) - lets a caller check/use the project root without depending on {@code VirtualFile}
+     * itself (see ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters).
+     * @param project is the Intellij project instance
+     */
+    public static String getProjectBasePath(Project project) {
+        VirtualFile baseDir = getProjectBaseDir(project);
+        return baseDir != null ? baseDir.getPath() : null;
+    }
+
+    /**
+     * Shows IntelliJ's native "Save As" file dialog and returns the chosen destination as a plain {@code File},
+     * never exposing {@code VirtualFileWrapper} to the caller (see
+     * ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters).
+     * @param title of the save dialog
+     * @param description shown in the save dialog
+     * @param extensions offered/enforced by the dialog, e.g. {"png", "jpg"}
+     * @param suggestedFileName pre-filled into the dialog
+     * @return the chosen file, or null if the user cancelled
+     */
+    public static File chooseSaveFile(String title, String description, String[] extensions, String suggestedFileName) {
+        FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor(title, description, extensions);
+        FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
+        VirtualFileWrapper virtualFileWrapper = dialog.save(suggestedFileName);
+        return virtualFileWrapper != null ? virtualFileWrapper.getFile() : null;
+    }
+
+    /**
      * Creates a file and all necessary directories in the IntelliJ VFS.
      *
      * @param project is the Intellij project instance
@@ -846,6 +883,84 @@ public class StudioProjectFiles {
             return;
         }
         deleteFile(project, getUserImplementedClassFile(project, reference.packageName(), reference.className()));
+    }
+
+    /**
+     * Backs up the on-disk file for a generated user-implemented class identified by a platform-neutral
+     * {@link UserClassReference} (e.g. before it's about to be regenerated/overwritten). A no-op if
+     * {@code reference} is null or no such file exists yet.
+     * @param project is the Intellij project instance
+     * @param reference identifying the user-implemented class to back up, or null
+     */
+    public static void backupUserImplementedClassFile(Project project, UserClassReference reference) {
+        if (reference == null) {
+            return;
+        }
+        backupFile(project, getUserImplementedClassFile(project, reference.packageName(), reference.className()));
+    }
+
+    /** A file chosen via {@link #chooseFileAndEncodeBase64}, reduced to plain values - no {@code VirtualFile}. */
+    public record ChosenFileContent(String name, String base64Content) {}
+
+    /**
+     * Shows an async file-choose dialog (see FileChooser's own Consumer-callback overload - never invoked on
+     * cancel) and hands back the chosen file's name and content, base64-encoded, without exposing
+     * {@code VirtualFile} to the caller (see ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters).
+     * If the chosen file's content can't be read, the callback is simply never invoked for that choice (logged
+     * here) - reading it right after the user just picked it failing at all would be exceedingly unusual.
+     * @param descriptor configuring the dialog (title, description, filters)
+     * @param callback receives the chosen file's name/content, never called on cancel
+     */
+    public static void chooseFileAndEncodeBase64(Project project, FileChooserDescriptor descriptor, Consumer<ChosenFileContent> callback) {
+        FileChooser.chooseFile(descriptor, project, null, virtualFile -> {
+            try {
+                String base64Content = Base64.getEncoder().encodeToString(virtualFile.contentsToByteArray());
+                callback.consume(new ChosenFileContent(virtualFile.getName(), base64Content));
+            } catch (IOException ee) {
+                LOG.warn("STUDIO: WARN: Unable to read chosen file " + virtualFile.getPath() + " exception was " + ee.getMessage());
+            }
+        });
+    }
+
+    /** Result of {@link #chooseFileAndReadText} - exactly one of the two fields is non-null. */
+    public record TextFileReadResult(String content, String errorMessage) {}
+
+    /**
+     * Shows an async file-choose dialog and hands back the chosen file's text content (decoded as UTF-8 via
+     * the VirtualFile's own API rather than java.nio.file, so this also works when the file lives on a
+     * remote/WSL/Docker dev environment - IntelliJ's Eel abstraction), without exposing {@code VirtualFile} to
+     * the caller.
+     * @param descriptor configuring the dialog (title, description, filters)
+     * @param callback receives the file's content, or a read-failure detail message; never called on cancel
+     */
+    public static void chooseFileAndReadText(Project project, FileChooserDescriptor descriptor, Consumer<TextFileReadResult> callback) {
+        FileChooser.chooseFile(descriptor, project, null, virtualFile -> {
+            try {
+                callback.consume(new TextFileReadResult(new String(virtualFile.contentsToByteArray(), StandardCharsets.UTF_8), null));
+            } catch (IOException ee) {
+                callback.consume(new TextFileReadResult(null, ee.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Shows an async multi-file-choose dialog and hands back the chosen files' absolute paths, without
+     * exposing {@code VirtualFile} to the caller.
+     * @param descriptor configuring the dialog (title, description, filters)
+     * @param callback receives the chosen paths, or null if nothing was chosen; never called on cancel
+     */
+    public static void chooseFilePaths(Project project, FileChooserDescriptor descriptor, Consumer<List<String>> callback) {
+        FileChooser.chooseFiles(descriptor, project, null, files -> {
+            if (files.isEmpty()) {
+                callback.consume(null);
+                return;
+            }
+            List<String> paths = new ArrayList<>();
+            for (VirtualFile file : files) {
+                paths.add(VfsUtilCore.virtualToIoFile(file).getAbsolutePath());
+            }
+            callback.consume(paths);
+        });
     }
 
     /**

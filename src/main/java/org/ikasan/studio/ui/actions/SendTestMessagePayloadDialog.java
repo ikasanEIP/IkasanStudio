@@ -1,31 +1,23 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -172,12 +164,9 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
     private void chooseClass() {
         // Project scope only (not libraries) - see class javadoc: this is for the user's own simple POJOs,
         // not arbitrary library/JDK classes.
-        TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
-                .createProjectScopeChooser(StudioBundle.message("dialog.ChoosePayloadClass"));
-        chooser.showDialog();
-        PsiClass selected = chooser.getSelected();
+        String selected = StudioPsiUtils.chooseProjectClassQualifiedName(project, StudioBundle.message("dialog.ChoosePayloadClass"));
         if (selected != null) {
-            setPayloadClassName(selected.getQualifiedName());
+            setPayloadClassName(selected);
             warnIfNotSerializable(selected);
         }
     }
@@ -188,19 +177,18 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
      * JMS-backed consumer's downstream code actually calls getObject() (e.g. Object Message To Object
      * Converter) - this is a genuine JMS constraint, not a Studio limitation (a real broker enforces the same
      * rule when an ObjectMessage is created), so it's flagged as a warning rather than silently worked around.
-     * Runs the inheritance check via ReadAction.nonBlocking for the same "no PSI/index access on the EDT"
-     * reason as generateSampleJson.
+     * Runs the inheritance check off the EDT (via StudioPsiUtils) for the same "no PSI/index access on the
+     * EDT" reason as generateSampleJson. A null result (couldn't re-resolve the class just chosen) is treated
+     * the same as "not serializable" - safer to warn on an inconclusive check than to stay silent.
      */
-    private void warnIfNotSerializable(PsiClass psiClass) {
-        ReadAction.nonBlocking(() -> InheritanceUtil.isInheritor(psiClass, "java.io.Serializable"))
-                .expireWith(getDisposable())
-                .finishOnUiThread(ModalityState.stateForComponent(payloadClassField), isSerializable -> {
-                    if (!isSerializable) {
+    private void warnIfNotSerializable(String qualifiedClassName) {
+        StudioPsiUtils.isClassSerializable(project, getDisposable(), ModalityState.stateForComponent(payloadClassField),
+                qualifiedClassName, false, isSerializable -> {
+                    if (!Boolean.TRUE.equals(isSerializable)) {
                         StudioUIUtils.displayIdeaWarnMessage(project,
                                 StudioBundle.message("message.PayloadClassNotSerializable", payloadClassName));
                     }
-                })
-                .submit(AppExecutorUtil.getAppExecutorService());
+                });
     }
 
     private void setPayloadClassName(String payloadClassName) {
@@ -239,28 +227,20 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
         if (payloadClassName == null) {
             return;
         }
-        ReadAction.nonBlocking(() -> {
-                    PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(payloadClassName, GlobalSearchScope.projectScope(project));
-                    return psiClass != null ? buildSampleJson(psiClass) : null;
-                })
-                .expireWith(getDisposable())
-                .finishOnUiThread(ModalityState.stateForComponent(payloadTextArea), json -> {
-                    if (json == null) {
+        StudioPsiUtils.resolveClassFields(project, getDisposable(), ModalityState.stateForComponent(payloadTextArea),
+                payloadClassName, fields -> {
+                    if (fields == null) {
                         StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotFindClassForJson", payloadClassName));
                     } else {
-                        payloadTextArea.setText(json);
+                        payloadTextArea.setText(buildSampleJson(fields));
                     }
-                })
-                .submit(AppExecutorUtil.getAppExecutorService());
+                });
     }
 
-    private String buildSampleJson(PsiClass psiClass) {
+    private String buildSampleJson(List<StudioPsiUtils.FieldSample> fields) {
         List<String> entries = new ArrayList<>();
-        for (PsiField field : psiClass.getAllFields()) {
-            if (field.hasModifierProperty(PsiModifier.STATIC) || field.hasModifierProperty(PsiModifier.TRANSIENT)) {
-                continue;
-            }
-            entries.add("  \"" + field.getName() + "\": " + samplePsiJsonValue(field.getType()));
+        for (StudioPsiUtils.FieldSample field : fields) {
+            entries.add("  \"" + field.name() + "\": " + samplePsiJsonValue(field.canonicalTypeText()));
         }
         return entries.isEmpty() ? "{\n}" : "{\n" + String.join(",\n", entries) + "\n}";
     }
@@ -271,8 +251,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
      * always a flat starting point the user fills in themselves rather than a risk of infinite recursion on
      * self-referential types.
      */
-    private String samplePsiJsonValue(PsiType type) {
-        String typeText = type.getCanonicalText();
+    private String samplePsiJsonValue(String typeText) {
         return switch (typeText) {
             case "java.lang.String", "char", "java.lang.Character" -> "\"\"";
             case "int", "java.lang.Integer", "long", "java.lang.Long",
@@ -280,7 +259,9 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
             case "double", "java.lang.Double", "float", "java.lang.Float" -> "0.0";
             case "boolean", "java.lang.Boolean" -> "false";
             default -> {
-                if (type instanceof PsiArrayType
+                // A PSI array type's canonical text always ends in "[]" (e.g. "int[]", "java.lang.String[]") -
+                // this string check replaces what used to be a direct "instanceof PsiArrayType".
+                if (typeText.endsWith("[]")
                         || typeText.startsWith("java.util.List") || typeText.startsWith("java.util.Set")
                         || typeText.startsWith("java.util.Collection")) {
                     yield "[]";
@@ -300,14 +281,12 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
      * choice is made, never on cancel.
      */
     private void loadFromFile() {
-        FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFileDescriptor(), project, null, file -> {
-            try {
-                // Read via the VirtualFile's own API (not java.nio.file) so this also works when the file
-                // lives on a remote/WSL/Docker dev environment (IntelliJ's Eel abstraction), not just locally.
-                payloadTextArea.setText(new String(file.contentsToByteArray(), StandardCharsets.UTF_8));
-            } catch (IOException ex) {
+        StudioProjectFiles.chooseFileAndReadText(project, FileChooserDescriptorFactory.createSingleFileDescriptor(), result -> {
+            if (result.errorMessage() != null) {
                 StudioUIUtils.displayIdeaWarnMessage(project,
-                        StudioBundle.message("message.CouldNotReadPayloadFile", ex.getMessage()));
+                        StudioBundle.message("message.CouldNotReadPayloadFile", result.errorMessage()));
+            } else {
+                payloadTextArea.setText(result.content());
             }
         });
     }

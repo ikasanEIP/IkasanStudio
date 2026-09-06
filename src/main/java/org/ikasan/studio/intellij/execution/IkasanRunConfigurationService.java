@@ -8,6 +8,7 @@ import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
@@ -19,6 +20,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -37,6 +39,33 @@ public final class IkasanRunConfigurationService implements Disposable {
 
     public IkasanRunConfigurationService(Project project) {
         this.project = project;
+    }
+
+    /** Outcome of {@link #selectAndRun(String, boolean, Consumer)}, distinguishing why a launch didn't happen. */
+    public enum LaunchOutcome {
+        LAUNCHED, APPLICATION_FILE_NOT_FOUND, COULD_NOT_CREATE_RUN_CONFIGURATION
+    }
+
+    /**
+     * Resolves the generated application file and picks the Run/Debug executor internally, so the caller never
+     * needs to depend on {@code VirtualFile}/{@code Executor} itself (see
+     * ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters).
+     * @param applicationRelativePath of the generated Application.java, relative to the project root
+     * @param debug true to launch via the Debug executor (activating the studio-debug Spring profile), false for a plain Run
+     * @param completion told which of {@link LaunchOutcome} resulted
+     */
+    public void selectAndRun(String applicationRelativePath, boolean debug, Consumer<LaunchOutcome> completion) {
+        VirtualFile applicationFile = StudioProjectFiles.getVirtualFile(project, applicationRelativePath);
+        if (applicationFile == null) {
+            LOG.warn("STUDIO: Could not find " + applicationRelativePath + " in " + project);
+            completion.accept(LaunchOutcome.APPLICATION_FILE_NOT_FOUND);
+            return;
+        }
+        Executor executor = debug
+                ? DefaultDebugExecutor.getDebugExecutorInstance()
+                : DefaultRunExecutor.getRunExecutorInstance();
+        selectAndRun(applicationFile, executor, launched ->
+                completion.accept(launched ? LaunchOutcome.LAUNCHED : LaunchOutcome.COULD_NOT_CREATE_RUN_CONFIGURATION));
     }
 
     /**

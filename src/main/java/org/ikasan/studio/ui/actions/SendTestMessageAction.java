@@ -4,20 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.integration.ikasan.StudioInjectClient;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -27,8 +25,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.ConnectException;
 import java.net.http.HttpResponse;
-import java.util.Base64;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,11 +63,12 @@ public class SendTestMessageAction implements ActionListener {
 
         String testPayloadAdapter = flowElement.getComponentMeta().getTestPayloadAdapter();
         if (org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(testPayloadAdapter)) {
-            chooseTestPayloadFile(file -> {
-                if (file == null) {
+            chooseTestPayloadFile(chosenFile -> {
+                if (chosenFile == null) {
                     return;
                 }
-                sendPayload(module, flowName, new PreparedPayload(null, null, testPayloadAdapter, file.getName(), file));
+                sendPayload(module, flowName, new PreparedPayload(
+                        chosenFile.base64Content(), null, testPayloadAdapter, chosenFile.name()));
             });
             return;
         }
@@ -85,7 +82,7 @@ public class SendTestMessageAction implements ActionListener {
                 try {
                     String payload = new ObjectMapper().writeValueAsString(filePaths);
                     // The generated controller deserializes this canonical List<File> type.
-                    sendPayload(module, flowName, new PreparedPayload(payload, flowElement.getEffectiveOutputTypeDescription(), null, null, null));
+                    sendPayload(module, flowName, new PreparedPayload(payload, flowElement.getEffectiveOutputTypeDescription(), null, null));
                 } catch (Exception e) {
                     LOG.warn("STUDIO: Could not build JSON payload from chosen test files", e);
                     StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", e.getMessage()));
@@ -97,7 +94,7 @@ public class SendTestMessageAction implements ActionListener {
         if (!payloadDialog.showAndGet()) {
             return;
         }
-        sendPayload(module, flowName, new PreparedPayload(payloadDialog.getPayload(), payloadDialog.getPayloadClassName(), null, null, null));
+        sendPayload(module, flowName, new PreparedPayload(payloadDialog.getPayload(), payloadDialog.getPayloadClassName(), null, null));
     }
 
     private void sendPayload(Module module, String flowName, PreparedPayload preparedPayload) {
@@ -109,8 +106,7 @@ public class SendTestMessageAction implements ActionListener {
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    String payload = preparedPayload.materializePayload();
-                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, payload,
+                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, preparedPayload.payload(),
                             preparedPayload.payloadClassName(), preparedPayload.payloadAdapter(), preparedPayload.payloadFilename());
 
                     if (response.statusCode() == 200) {
@@ -150,25 +146,17 @@ public class SendTestMessageAction implements ActionListener {
     /**
      * The synchronous FileChooser.chooseFile restores its last-selected file via a blocking VFS lookup, which
      * IntelliJ 2024.3+ flags as a slow operation when run directly on the EDT (as this is, from a canvas mouse
-     * click) - the async overload used here defers that work off the EDT and invokes callback once a choice is
-     * made, never on cancel.
+     * click) - the async overload behind StudioProjectFiles.chooseFileAndEncodeBase64 defers that work off the
+     * EDT and invokes callback once a choice is made, never on cancel.
      */
-    private void chooseTestPayloadFile(Consumer<VirtualFile> callback) {
+    private void chooseTestPayloadFile(Consumer<StudioProjectFiles.ChosenFileContent> callback) {
         FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
                 .withTitle(StudioBundle.message("dialog.ChooseFileTransferTestPayload"))
                 .withDescription(StudioBundle.message("message.ChooseFileTransferTestPayloadDescription"));
-        FileChooser.chooseFile(descriptor, project, null, callback);
+        StudioProjectFiles.chooseFileAndEncodeBase64(project, descriptor, callback);
     }
 
-    private record PreparedPayload(String payload, String payloadClassName, String payloadAdapter,
-                                   String payloadFilename, VirtualFile payloadFile) {
-        private String materializePayload() throws java.io.IOException {
-            if (payloadFile == null) {
-                return payload;
-            }
-            return Base64.getEncoder().encodeToString(payloadFile.contentsToByteArray());
-        }
-    }
+    private record PreparedPayload(String payload, String payloadClassName, String payloadAdapter, String payloadFilename) {}
 
     /**
      * Lets the user pick one or more real files from disk, in place of typing/pasting a payload - only offered
@@ -180,16 +168,6 @@ public class SendTestMessageAction implements ActionListener {
         FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createMultipleFilesNoJarsDescriptor()
                 .withTitle(StudioBundle.message("dialog.ChooseTestFiles"))
                 .withDescription(StudioBundle.message("message.ChooseTestFilesDescription"));
-        FileChooser.chooseFiles(descriptor, project, null, files -> {
-            if (files.isEmpty()) {
-                callback.consume(null);
-                return;
-            }
-            List<String> paths = new ArrayList<>();
-            for (VirtualFile file : files) {
-                paths.add(VfsUtilCore.virtualToIoFile(file).getAbsolutePath());
-            }
-            callback.consume(paths);
-        });
+        StudioProjectFiles.chooseFilePaths(project, descriptor, callback);
     }
 }

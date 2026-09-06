@@ -1,18 +1,16 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.psi.PsiClass;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -418,14 +416,11 @@ public class ComponentPropertyEditRow {
      * Message To XML String Converter), not an arbitrary library/JDK class.
      */
     private void chooseClass() {
-        TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
-                .createProjectScopeChooser(StudioBundle.message("dialog.ChooseClass"));
-        chooser.showDialog();
-        PsiClass selected = chooser.getSelected();
+        String selected = StudioPsiUtils.chooseProjectClassQualifiedName(project, StudioBundle.message("dialog.ChooseClass"));
         if (selected != null) {
             // A genuine, deliberate edit - goes through the field's own DocumentListener like any typed change,
             // so showingDefaultOnly/autoDerivedValue are cleared and listenerFoAnyEditChanges fires normally.
-            propertyValueField.setText(selected.getQualifiedName());
+            propertyValueField.setText(selected);
         }
     }
 

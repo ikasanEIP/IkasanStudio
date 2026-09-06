@@ -1,7 +1,6 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.terminal.ui.TerminalWidget;
@@ -55,11 +54,10 @@ public class LaunchH2Action implements ActionListener {
          connectionString = StudioBundle.message("message.SeeDatasourceUrlInApplicationProperties");
       }
 
-      VirtualFile virtualProjectRoot = StudioProjectFiles.getProjectBaseDir(project);
-      if (virtualProjectRoot == null) {
+      String basePath = StudioProjectFiles.getProjectBasePath(project);
+      if (basePath == null) {
          LOG.warn("STUDIO: WARN: Could not get virtual project root for project [" + project + "], consider resaving");
       } else {
-         String basePath = virtualProjectRoot.getPath();
          String command =
               (start ?
                  "mvn exec:java@StartH2 -Dh2DbPortNumber=" + module.getH2PortNumber() + " -Dh2WebPortNumber=" + module.getH2WebPortNumber() :

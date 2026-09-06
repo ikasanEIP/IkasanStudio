@@ -1,13 +1,8 @@
 package org.ikasan.studio.ui.actions;
 
-import com.intellij.execution.Executor;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.ikasan.studio.intellij.execution.IkasanRunConfigurationService;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -68,23 +63,12 @@ public class LaunchApplicationAction implements ActionListener {
 
    private void launch() {
       String applicationRelativePath = "generated/src/main/java/org/ikasan/studio/boot/Application.java";
-      VirtualFile applicationFile = StudioProjectFiles.getVirtualFile(project, applicationRelativePath);
-      if (applicationFile == null) {
-         StudioUIUtils.displayIdeaWarnMessage(project,
-                 StudioBundle.message("message.ApplicationJavaIsNotAvailableYetRegenerateTheModule"));
-         LOG.warn("STUDIO: Could not find " + applicationRelativePath + " in " + project);
-         return;
-      }
-
-      Executor executor = debug
-              ? DefaultDebugExecutor.getDebugExecutorInstance()
-              : DefaultRunExecutor.getRunExecutorInstance();
-
-      project.getService(IkasanRunConfigurationService.class).selectAndRun(applicationFile, executor, launched -> {
-         if (launched) {
-            DesignerCanvas.markModuleLaunched(project);
-         } else {
-            StudioUIUtils.displayIdeaWarnMessage(project,
+      project.getService(IkasanRunConfigurationService.class).selectAndRun(applicationRelativePath, debug, outcome -> {
+         switch (outcome) {
+            case LAUNCHED -> DesignerCanvas.markModuleLaunched(project);
+            case APPLICATION_FILE_NOT_FOUND -> StudioUIUtils.displayIdeaWarnMessage(project,
+                    StudioBundle.message("message.ApplicationJavaIsNotAvailableYetRegenerateTheModule"));
+            case COULD_NOT_CREATE_RUN_CONFIGURATION -> StudioUIUtils.displayIdeaWarnMessage(project,
                     StudioBundle.message("message.TheIkasanRunConfigurationCouldNotBeCreated"));
          }
       });

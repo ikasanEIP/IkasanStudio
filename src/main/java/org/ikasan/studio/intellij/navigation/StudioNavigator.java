@@ -1,22 +1,63 @@
 package org.ikasan.studio.intellij.navigation;
 
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.NavigatableFileEditor;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 
 
 public final class StudioNavigator {
     private static final Logger LOG = Logger.getInstance("#Navigator");
     private StudioNavigator () {}
+
+    /**
+     * Resolves an arbitrary on-disk file (not necessarily inside a project content root, e.g. the embedded
+     * test FTP server's seed file) to the IntelliJ VFS and opens it in an editor tab - callers never need to
+     * depend on {@code VirtualFile}/{@code LocalFileSystem} themselves (see
+     * ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters). Safe to call off the EDT; the actual
+     * navigation is deferred via invokeLater.
+     * @param path of the file to open, may be null
+     * @return true if the file was found and an open was scheduled, false if it could not be resolved
+     */
+    public static boolean openFileByNioPath(Project project, Path path) {
+        VirtualFile virtualFile = path == null ? null : LocalFileSystem.getInstance().refreshAndFindFileByNioFile(path);
+        if (virtualFile == null) {
+            return false;
+        }
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (!project.isDisposed()) new OpenFileDescriptor(project, virtualFile).navigate(true);
+        });
+        return true;
+    }
+
+    /**
+     * Resolves an arbitrary on-disk directory (e.g. the embedded test FTP server's root) to the IntelliJ VFS
+     * and selects it in the Project view - same rationale/threading as {@link #openFileByNioPath}.
+     * @param path of the directory to select, may be null
+     * @return true if the directory was found and a selection was scheduled, false if it could not be resolved
+     */
+    public static boolean selectInProjectView(Project project, Path path) {
+        VirtualFile virtualFile = path == null ? null : LocalFileSystem.getInstance().refreshAndFindFileByNioFile(path);
+        if (virtualFile == null) {
+            return false;
+        }
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (!project.isDisposed()) ProjectView.getInstance(project).selectCB(null, virtualFile, true);
+        });
+        return true;
+    }
 
 //    public static void navigateToClass(Project project, String fullyQualifiedClassName) {
 //        // Find the class by its fully qualified name

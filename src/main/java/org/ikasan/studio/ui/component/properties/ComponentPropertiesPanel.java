@@ -1,19 +1,12 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.generation.GenerationRequest;
@@ -21,9 +14,11 @@ import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -348,7 +343,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * package (module-level relocation case), {@code description} for the confirmation dialog, {@code file}
      * (may be null if nothing has been generated yet) for the optional backup (component self-edit case).
      */
-    private record AffectedUserImplementedClass(Flow flow, String className, String description, VirtualFile file) {}
+    private record AffectedUserImplementedClass(Flow flow, String className, String description, UserClassReference userClassReference) {}
 
     /**
      * Ask the user to confirm the pending change, wording it according to what will actually happen to any
@@ -439,7 +434,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         boolean confirmed = result == Messages.YES;
         if (confirmed && backupTicked[0]) {
             for (AffectedUserImplementedClass affectedClass : affected) {
-                StudioProjectFiles.backupFile(project, affectedClass.file());
+                StudioProjectFiles.backupUserImplementedClassFile(project, affectedClass.userClassReference());
             }
         }
         return confirmed;
@@ -531,10 +526,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return null;
         }
         String description = flow.getIdentity() + ": " + className + ".java";
-        VirtualFile file = module != null
-                ? StudioProjectFiles.getUserImplementedClassFile(project, GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
+        UserClassReference userClassReference = module != null
+                ? new UserClassReference(GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
                 : null;
-        return new AffectedUserImplementedClass(flow, className, description, file);
+        return new AffectedUserImplementedClass(flow, className, description, userClassReference);
     }
 
     /**
@@ -843,21 +838,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         if (serializableResolutionInFlight.add(fullyQualifiedClassName)) {
             BasicElement requestingComponent = getSelectedComponent();
-            ReadAction.nonBlocking(() -> {
-                        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, GlobalSearchScope.allScope(project));
-                        return psiClass != null ? InheritanceUtil.isInheritor(psiClass, "java.io.Serializable") : null;
-                    })
-                    .expireWith(this)
-                    .finishOnUiThread(ModalityState.any(), resolved -> {
-                        serializableResolutionInFlight.remove(fullyQualifiedClassName);
-                        if (resolved != null) {
-                            serializableResolutionCache.put(fullyQualifiedClassName, resolved);
-                            if (htmlScrollingDisplayPanel != null && getSelectedComponent() == requestingComponent) {
-                                htmlScrollingDisplayPanel.setText(getDisplayedHelpTextForSelectedComponent());
-                            }
-                        }
-                    })
-                    .submit(AppExecutorUtil.getAppExecutorService());
+            StudioPsiUtils.isClassSerializable(project, this, ModalityState.any(), fullyQualifiedClassName, true, resolved -> {
+                serializableResolutionInFlight.remove(fullyQualifiedClassName);
+                if (resolved != null) {
+                    serializableResolutionCache.put(fullyQualifiedClassName, resolved);
+                    if (htmlScrollingDisplayPanel != null && getSelectedComponent() == requestingComponent) {
+                        htmlScrollingDisplayPanel.setText(getDisplayedHelpTextForSelectedComponent());
+                    }
+                }
+            });
         }
         return null;
     }

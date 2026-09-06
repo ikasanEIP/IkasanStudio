@@ -1,12 +1,9 @@
 package org.ikasan.studio.ui.actions;
 
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -28,36 +25,29 @@ public class SaveAction implements ActionListener {
 
       if (module != null) {
          StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.SavingImage"));
-         boolean transparentBackground = false ; // cant get this to work for now.
-//      String[] extensions = transparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
-         String[] extensions = transparentBackground ? new String[]{"png"} : new String[]{"png", "jpg",};
-         // Modern approach: FileChooserFactory automatically uses native dialogs on Mac
-         // No need to check for deprecated registry key ide.mac.native.save.dialog
-         // The platform automatically uses native file choosers when available
-         FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor(
-                 StudioBundle.message("dialog.SaveAsImage"),
-                 StudioBundle.message("message.ChooseTheDestinationToSaveTheImage"), extensions);
-         FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
-
+         // Transparent background / SVG cant get this to work for now, see commented-out block below.
+         String[] extensions = new String[]{"png", "jpg"};
          String moduleName = uiContext.getIkasanModule().getComponentName();
-         // FileChooserFactory handles platform-specific file extensions automatically
+         // FileChooserFactory (behind StudioProjectFiles.chooseSaveFile) handles platform-specific file
+         // extensions automatically, including using native dialogs on Mac.
          String imageFileName = "ModuleDiagram-" + moduleName + ".png";
-         VirtualFileWrapper vf = dialog.save(imageFileName);
+         File file = StudioProjectFiles.chooseSaveFile(
+                 StudioBundle.message("dialog.SaveAsImage"),
+                 StudioBundle.message("message.ChooseTheDestinationToSaveTheImage"), extensions, imageFileName);
 
-         if (vf == null) {
+         if (file == null) {
             return;
          }
 
-         File file = vf.getFile();
          String imageFormat = FileUtilRt.getExtension(file.getName());
          if (imageFormat.trim().isEmpty()) {
             imageFormat = "png";
          }
 // SVG has temporary compatibility problems with Intellij Verify.
 //      if ("svg".equals(imageFormat)) {
-//         uiContext.getDesignerCanvas(project).saveAsSvg(file, transparentBackground);
+//         uiContext.getDesignerCanvas(project).saveAsSvg(file, false);
 //      } else {
-         uiContext.getDesignerCanvas().saveAsImage(file, imageFormat, transparentBackground);
+         uiContext.getDesignerCanvas().saveAsImage(file, imageFormat, false);
 //      }
       } else {
          StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.SaveOfImageCantBeLaunchedUnlessAModuleIsDefined"));
