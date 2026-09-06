@@ -937,6 +937,19 @@ public class DesignerCanvas extends JPanel {
                 }
             }
         }
+        // A Producer is always a route's terminal element - "left" here means "immediately after this
+        // component", which nothing can legally be for a Producer. Proximity is purely a left/right split
+        // around each candidate's own centre point (see Proximity#getRelativeProximity), so a drop landing on
+        // the half of a Producer's box further from its preceding neighbour still resolves the Producer into
+        // "left" - re-expressing that as "right" (i.e. "we're positioned immediately before this Producer",
+        // the only legal reading) lets callers fall through to Flow#findPayloadSourceElement's real structural
+        // walk for the actual preceding element, instead of silently treating the Producer as a dead end with
+        // no upstream at all (ComponentMeta#getEffectiveOutputTypeDescription correctly returns null for a
+        // Producer, since it is one - see FlowElement#getEffectiveOutputTypeDescription's own javadoc).
+        if (surroundingComponents.getLeft() != null && surroundingComponents.getLeft().getComponentMeta().isProducer()) {
+            surroundingComponents.setRight(surroundingComponents.getLeft());
+            surroundingComponents.setLeft(null);
+        }
         return surroundingComponents;
     }
 
@@ -1370,8 +1383,10 @@ public class DesignerCanvas extends JPanel {
                     } else {
                         boolean inserted = false;
                         for (int ii = 0; ii < numberOfComponents; ii++) {
-                            if (components.get(ii).equals(surroundingComponents.getRight()) ||
-                                    ((components.get(ii).equals(surroundingComponents.getLeft())) && surroundingComponents.getLeft().getComponentMeta().isProducer())) {
+                            // getSurroundingComponents never resolves "left" to a Producer (it re-expresses
+                            // that as "right" instead, since nothing may legally follow one) - only the
+                            // getRight() match below is ever needed to insert before one.
+                            if (components.get(ii).equals(surroundingComponents.getRight())) {
                                 // A Router Endpoint (isInternalEndpoint) always anchors the very start of its
                                 // route - it's the branch's connection point back to the router, so nothing may
                                 // ever land before it here, however the left/right proximity resolved. Without

@@ -15,15 +15,6 @@ public final class ComponentIconProvider {
     private static final String GENERAL_ICONS_DIR = "studio/icons/";
     private static final String UNKNOWN_ICONS_DIR = GENERAL_ICONS_DIR + "unknown/";
 
-    private static final Icon WIRETAP_ICON = general("wiretap.png", "Wiretap");
-    private static final Icon LOG_WIRETAP_ICON = general("log-wiretap.png", "Log Wiretap");
-    private static final Icon SEND_TEST_MESSAGE_ICON = general("send-test-message.png", "Send Test Message");
-    private static final Icon SEND_TEST_MESSAGE_FILE_ICON = general("send-test-message-file.png", "Send Test Message (File)");
-    private static final Icon TRIGGER_ICON = general("trigger.png", "Trigger Now");
-    private static final Icon REPLAY_SERVICE_ICON = general("replay-service.png", "Flow recording enabled");
-    private static final Icon MAIL_SERVER_ICON = general("mailserver.png", "Test Mail Server");
-    private static final Icon FTP_SERVER_ICON = general("testftpserver.png", "Test FTP Server");
-
     private ComponentIconProvider() {
     }
 
@@ -35,17 +26,17 @@ public final class ComponentIconProvider {
         return component(meta, "normal.png", "Medium " + meta.getName() + " icon");
     }
 
-    public static Icon getWiretapIcon() { return WIRETAP_ICON; }
-    public static Icon getLogWiretapIcon() { return LOG_WIRETAP_ICON; }
-    public static Icon getSendTestMessageIcon() { return SEND_TEST_MESSAGE_ICON; }
-    public static Icon getSendTestMessageFileIcon() { return SEND_TEST_MESSAGE_FILE_ICON; }
-    public static Icon getTriggerIcon() { return TRIGGER_ICON; }
-    public static Icon getReplayServiceIcon() { return REPLAY_SERVICE_ICON; }
-    public static Icon getMailServerIcon() { return MAIL_SERVER_ICON; }
-    public static Icon getFtpServerIcon() { return FTP_SERVER_ICON; }
+    public static Icon getWiretapIcon() { return general("wiretap.png", "Wiretap"); }
+    public static Icon getLogWiretapIcon() { return general("log-wiretap.png", "Log Wiretap"); }
+    public static Icon getSendTestMessageIcon() { return general("send-test-message.png", "Send Test Message"); }
+    public static Icon getSendTestMessageFileIcon() { return general("send-test-message-file.png", "Send Test Message (File)"); }
+    public static Icon getTriggerIcon() { return general("trigger.png", "Trigger Now"); }
+    public static Icon getReplayServiceIcon() { return general("replay-service.png", "Flow recording enabled"); }
+    public static Icon getMailServerIcon() { return general("mailserver.png", "Test Mail Server"); }
+    public static Icon getFtpServerIcon() { return general("testftpserver.png", "Test FTP Server"); }
 
     public static int getDecoratorHeight() {
-        return Math.max(WIRETAP_ICON.getIconHeight(), LOG_WIRETAP_ICON.getIconHeight());
+        return Math.max(getWiretapIcon().getIconHeight(), getLogWiretapIcon().getIconHeight());
     }
 
     public static Icon getGeneralIcon(String filename, String description) {
