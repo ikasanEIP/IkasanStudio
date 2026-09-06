@@ -7,6 +7,7 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.ui.StudioBundle;
@@ -53,6 +54,12 @@ public class DesignCanvasContextMenu {
                 menu.add(IkasanFlowRouteViewHandler.usesTriggerBadge(flowElement)
                         ? createTriggerScheduledConsumerMenuItem(project, ikasanBasicElement)
                         : createSendTestMessageMenuItem(project, ikasanBasicElement));
+            }
+            if (JmsFlowConnections.isJmsProducer(flowElement)
+                    && CreateTestJmsConsumerFlowAction.supports(flowElement)
+                    && !JmsFlowConnections.hasMatchingConsumer(project.getService(UiContext.class).getIkasanModule(), flowElement)) {
+                menu.addSeparator();
+                menu.add(createTestJmsConsumerFlowMenuItem(project, flowElement));
             }
             if (flowElement.getComponentMeta().supportsTestMailServer()) {
                 menu.addSeparator();
@@ -142,6 +149,12 @@ public class DesignCanvasContextMenu {
     private static JMenuItem createTriggerScheduledConsumerMenuItem(Project project, BasicElement ikasanBasicElement) {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.TriggerScheduledConsumer"));
         item.addActionListener(new TriggerScheduledConsumerAction(project, ikasanBasicElement));
+        return item;
+    }
+
+    private static JMenuItem createTestJmsConsumerFlowMenuItem(Project project, FlowElement producer) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.CreateTestJmsConsumerFlow"));
+        item.addActionListener(new CreateTestJmsConsumerFlowAction(project, producer));
         return item;
     }
 

@@ -76,11 +76,15 @@ public final class JmsFlowConnections {
                 && JMS_ENDPOINT_KEY.equals(element.getComponentMeta().getEndpointKey());
     }
 
-    private static boolean isJmsProducer(FlowElement element) {
+    public static boolean hasMatchingConsumer(Module module, FlowElement producer) {
+        return findMatchingLinks(module).stream().anyMatch(link -> link.producer() == producer);
+    }
+
+    public static boolean isJmsProducer(FlowElement element) {
         return isJms(element) && element.getComponentMeta().isProducer();
     }
 
-    private static boolean isJmsConsumer(FlowElement element) {
+    public static boolean isJmsConsumer(FlowElement element) {
         return isJms(element) && element.getComponentMeta().isConsumer();
     }
 

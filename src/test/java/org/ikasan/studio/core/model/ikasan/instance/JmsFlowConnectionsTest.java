@@ -37,6 +37,7 @@ class JmsFlowConnectionsTest {
         assertThat(links).hasSize(1);
         assertThat(links.get(0).producer().getComponentMeta().isProducer()).isTrue();
         assertThat(links.get(0).consumer().getComponentMeta().isConsumer()).isTrue();
+        assertThat(JmsFlowConnections.hasMatchingConsumer(module, links.get(0).producer())).isTrue();
     }
 
     @Test
