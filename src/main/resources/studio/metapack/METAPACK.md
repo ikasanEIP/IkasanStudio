@@ -115,6 +115,9 @@ it can include:
 - Declared input and output types.
 - User-implemented class requirements and FreeMarker templates.
 - Metadata-driven conversion recipes.
+- An optional `testPayloadAdapter` for constructing interface-based synthetic payloads. The supported
+  `ikasan-file-transfer-payload` adapter presents a single-file chooser and reconstructs an Ikasan `Payload`
+  with the selected filename, bytes and standard `fileName` attribute inside the debug module.
 
 Keep metadata declarative wherever possible. General Studio behaviour should interpret metadata rather than
 contain special cases for individual Ikasan components.

@@ -13,9 +13,11 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -31,7 +33,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
-    JButton harnessesButton = new JButton(StudioBundle.message("button.Harnesses"), AllIcons.Actions.Execute);
+    // Independent, always-enabled Start/Stop buttons rather than one context-sensitive toggle - see
+    // HarnessControlActions javadoc for why (a toggle that infers "already running" can end up hiding the one
+    // option - Stop - the developer actually needs, if that inference is wrong).
+    JButton startHarnessButton = new JButton(AllIcons.Actions.Execute);
+    JButton stopHarnessButton = new JButton(AllIcons.Actions.Suspend);
+    private final JBPanel harnessGroupPanel;
     private final Timer harnessRefreshTimer;
     private final DesignerCanvas designerCanvas;
     // These are the less commonly needed controls, gated behind the "Show advanced controls" setting (see
@@ -61,12 +68,22 @@ public class CanvasPanel extends JBPanel implements Disposable {
         debugModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.DebugModule"));
         stopModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.StopModule"));
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
-        ToggleTestHarnessesAction harnessesAction = new ToggleTestHarnessesAction(project, harnessesButton);
-        addButtonsToPanel(canvasHeaderButtonPanel, harnessesButton, harnessesAction, StudioBundle.message("tooltip.StartHarnesses"));
-        harnessesAction.refreshPresentation();
-        addButtonsToPanel(canvasHeaderButtonPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(canvasHeaderButtonPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(canvasHeaderButtonPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+
+        JBPanel moduleGroupPanel = titledButtonGroup(StudioBundle.message("label.Module"));
+        addButtonsToPanel(moduleGroupPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(moduleGroupPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(moduleGroupPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+        canvasHeaderButtonPanel.add(moduleGroupPanel);
+
+        HarnessControlActions harnessActions = new HarnessControlActions(project);
+        harnessGroupPanel = titledButtonGroup(StudioBundle.message("label.Harness"));
+        addButtonsToPanel(harnessGroupPanel, startHarnessButton, harnessActions.startAction(), StudioBundle.message("tooltip.StartHarnesses"));
+        addButtonsToPanel(harnessGroupPanel, stopHarnessButton, harnessActions.stopAction(), StudioBundle.message("tooltip.StopHarnesses"));
+        startHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StartHarnesses"));
+        stopHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StopHarnesses"));
+        harnessGroupPanel.setVisible(harnessActions.isAvailable());
+        canvasHeaderButtonPanel.add(harnessGroupPanel);
+
         addButtonsToPanel(canvasHeaderButtonPanel, consoleButton, new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         refreshAdvancedControlsVisibility();
@@ -91,7 +108,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
         add(canvasScrollPane, BorderLayout.CENTER);
 
-        harnessRefreshTimer = new Timer(1000, event -> harnessesAction.refreshPresentation());
+        harnessRefreshTimer = new Timer(1000, event -> refreshHarnessGroupVisibility(harnessActions));
         harnessRefreshTimer.setRepeats(true);
         harnessRefreshTimer.start();
 
@@ -114,6 +131,36 @@ public class CanvasPanel extends JBPanel implements Disposable {
         newButton.addActionListener(al);
         newButton.setToolTipText(tooltip);
         canvasHeaderButtonPanel.add(newButton);
+    }
+
+    /**
+     * A small titled group box for related toolbar buttons (e.g. Module's Run/Debug/Stop, Harness's Start/Stop) -
+     * reuses the same titled-line-border styling as the property panels' subsections
+     * (see ComponentPropertiesPanel#setSubPanel) rather than introducing a new visual convention.
+     */
+    @SuppressWarnings("rawtypes")
+    private JBPanel titledButtonGroup(String title) {
+        JBPanel group = new JBPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        group.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(ThemeAwareColors.getBorderColor()),
+                title,
+                TitledBorder.LEFT,
+                TitledBorder.TOP));
+        return group;
+    }
+
+    /**
+     * The harness group's own Start/Stop buttons are deliberately always enabled (see HarnessControlActions) -
+     * only the group's overall visibility still needs polling, since whether the model even references a test
+     * harness at all can change as the user edits the canvas.
+     */
+    private void refreshHarnessGroupVisibility(HarnessControlActions harnessActions) {
+        boolean available = harnessActions.isAvailable();
+        if (harnessGroupPanel.isVisible() != available) {
+            harnessGroupPanel.setVisible(available);
+            harnessGroupPanel.getParent().revalidate();
+            harnessGroupPanel.getParent().repaint();
+        }
     }
 
     @Override

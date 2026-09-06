@@ -8,10 +8,8 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.ikasan.studio.ui.UiContext;
-import javax.swing.JButton;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,11 +19,11 @@ import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ToggleTestHarnessesActionTest {
+class HarnessControlActionsTest {
     @Test
     void availableForFtpConsumerOrProducer() throws Exception {
-        assertThat(ToggleTestHarnessesAction.hasHarnesses(moduleWith(TestFixtures.getFtpConsumer(BASE_META_PACK)))).isTrue();
-        assertThat(ToggleTestHarnessesAction.hasHarnesses(moduleWith(TestFixtures.getFtpProducer(BASE_META_PACK)))).isTrue();
+        assertThat(HarnessControlActions.hasHarnesses(moduleWith(TestFixtures.getFtpConsumer(BASE_META_PACK)))).isTrue();
+        assertThat(HarnessControlActions.hasHarnesses(moduleWith(TestFixtures.getFtpProducer(BASE_META_PACK)))).isTrue();
     }
 
     @Test
@@ -35,46 +33,45 @@ class ToggleTestHarnessesActionTest {
                 .componentName("mail")
                 .build();
 
-        assertThat(ToggleTestHarnessesAction.hasHarnesses(moduleWith(emailProducer))).isTrue();
+        assertThat(HarnessControlActions.hasHarnesses(moduleWith(emailProducer))).isTrue();
     }
 
     @Test
     void unavailableWithoutSupportedEndpoints() throws Exception {
-        assertThat(ToggleTestHarnessesAction.hasHarnesses(moduleWith(TestFixtures.getDevNullProducer(BASE_META_PACK)))).isFalse();
-        assertThat(ToggleTestHarnessesAction.hasHarnesses(null)).isFalse();
+        assertThat(HarnessControlActions.hasHarnesses(moduleWith(TestFixtures.getDevNullProducer(BASE_META_PACK)))).isFalse();
+        assertThat(HarnessControlActions.hasHarnesses(null)).isFalse();
     }
 
 
+    /**
+     * Start and Stop are independent, always-available actions now (see HarnessControlActions javadoc) - there
+     * is no "believed running" state left to track, so unlike the old single-toggle button there is nothing to
+     * assert about icon/text swapping. What matters is that isAvailable() reflects the model (already covered
+     * above via hasHarnesses) and that both actions are safe to invoke regardless of the harness's actual state
+     * - exercised here via the underlying TestFtpServerService directly (StartTestFtpServerAction/
+     * StopTestFtpServerAction already have their own dedicated tests for the full click-to-message behaviour).
+     */
     @Test
-    void toolbarPresentationTracksHarnessStoppedAndRunningTransitions() throws Exception {
+    void startAndStopActionsAreIndependentlyAvailableRegardlessOfRunningState() throws Exception {
         Project project = mock(Project.class);
         UiContext context = mock(UiContext.class);
-        TestFtpServerService ftpService = mock(TestFtpServerService.class);
-        TestMailServerSessionService mailService = mock(TestMailServerSessionService.class);
         Module module = moduleWith(TestFixtures.getFtpConsumer(BASE_META_PACK));
-        JButton button = new JButton();
         when(project.getService(UiContext.class)).thenReturn(context);
-        when(project.getService(TestFtpServerService.class)).thenReturn(ftpService);
-        when(project.getService(TestMailServerSessionService.class)).thenReturn(mailService);
         when(context.getIkasanModule()).thenReturn(module);
-        ToggleTestHarnessesAction action = new ToggleTestHarnessesAction(project, button);
+        HarnessControlActions actions = new HarnessControlActions(project);
 
-        when(ftpService.isRunning()).thenReturn(false);
-        action.refreshPresentation();
-        assertThat(button.isVisible()).isTrue();
-        assertThat(button.isEnabled()).isTrue();
-        assertThat(button.getIcon()).isSameAs(com.intellij.icons.AllIcons.Actions.Execute);
-        assertThat(button.getAccessibleContext().getAccessibleName()).contains("Start");
+        assertThat(actions.isAvailable()).isTrue();
+        assertThat(actions.startAction()).isNotNull();
+        assertThat(actions.stopAction()).isNotNull();
+    }
 
-        when(ftpService.isRunning()).thenReturn(true);
-        action.refreshPresentation();
-        assertThat(button.getIcon()).isSameAs(com.intellij.icons.AllIcons.Actions.Suspend);
-        assertThat(button.getAccessibleContext().getAccessibleName()).contains("Stop");
+    @Test
+    void unavailableWhenProjectIsDisposed() {
+        Project project = mock(Project.class);
+        when(project.isDisposed()).thenReturn(true);
+        HarnessControlActions actions = new HarnessControlActions(project);
 
-        when(ftpService.isRunning()).thenReturn(false);
-        when(mailService.hasAnyOwned()).thenReturn(true);
-        action.refreshPresentation();
-        assertThat(button.getIcon()).isSameAs(com.intellij.icons.AllIcons.Actions.Suspend);
+        assertThat(actions.isAvailable()).isFalse();
     }
 
     @Test
