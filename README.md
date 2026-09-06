@@ -361,6 +361,11 @@ This plugin provides a visual designer and integrated development environment fo
 
 <!-- Plugin description end -->
 
+Studio supports reviewed migration between Ikasan V3.3.9 and V4.1.6. Use **Migrate…** on
+the canvas or **Tools → Migrate Ikasan Version…**. See [version migration](docs/IkasanVersionMigration.md)
+for previews, compatibility checks and recovery snapshots.
+
+
 Ikasan EIP is a mature and well maintained integration platform based on industrial patterns (https://www.enterpriseintegrationpatterns.com/) to satisfy complex, disparate and demanding integration requirements of the finance sector.
 
 ## Installation

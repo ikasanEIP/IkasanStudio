@@ -48,3 +48,9 @@ in the IDE to verify the complete project-file lifecycle.
 
 A future local MCP server can expose the same contract and delegate validation or generation
 to Studio. Keep the files independently usable so that MCP does not become mandatory.
+
+## Version migration
+
+Use Studio's **Migrate…** action for version changes rather than editing only the model's version.
+It previews the model, generated files and Maven changes and saves a recovery snapshot. See
+[Ikasan version migration](IkasanVersionMigration.md).

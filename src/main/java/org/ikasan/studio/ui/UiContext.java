@@ -55,6 +55,23 @@ public final class UiContext {
 
     private final Map<String, Object> cache = new TreeMap<>();
     private volatile boolean modelPersistenceAllowed = true;
+    private boolean migrationActive;
+    private int activeGenerations;
+
+    public synchronized boolean tryBeginMigration() {
+        if (migrationActive || activeGenerations != 0) return false;
+        migrationActive = true;
+        return true;
+    }
+    public synchronized void endMigration() { migrationActive = false; }
+    public synchronized boolean isMigrationActive() { return migrationActive; }
+    public synchronized boolean tryBeginGeneration() {
+        if (migrationActive) return false;
+        activeGenerations++;
+        return true;
+    }
+    public synchronized void endGeneration() { activeGenerations--; }
+
     private volatile String modelPersistenceBlockReason;
 
     public UiContext() {

@@ -63,6 +63,9 @@ public final class AiProjectContractGenerator {
                    preserves rejected content, and maintains last-known-good backups.
                 8. Regenerate through Studio and compile the project before considering the change complete.
 
+                To change Ikasan versions, use Studio's Migrate action. It previews the model, generated
+                code and Maven changes and saves a recovery snapshot before applying the conversion.
+
                 JSON Schema checks structure, but Studio performs additional semantic checks including
                 component lookup, required properties, transitions, route integrity and meta-pack compatibility.
                 A syntactically valid JSON document is not necessarily a valid Ikasan module.

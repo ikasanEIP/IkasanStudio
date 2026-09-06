@@ -24,6 +24,16 @@ import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSIO
 public  class BasicElement extends IkasanObject {
     private static final Logger LOG = LoggerFactory.getLogger(BasicElement.class);
     protected Map<String, ComponentProperty> componentProperties;
+    /** Opaque model extensions survive reload/regeneration without entering component templates. */
+    @JsonIgnore
+    private final Map<String, com.fasterxml.jackson.databind.JsonNode> unknownJsonProperties = new LinkedHashMap<>();
+
+    public boolean retainUnknownJsonProperty(String name, com.fasterxml.jackson.databind.JsonNode value) {
+        if (getComponentMeta() != null && getComponentMeta().getMetadata(name) != null) return false;
+        unknownJsonProperties.put(name, value.deepCopy());
+        return true;
+    }
+
     public BasicElement() {}
 
     protected BasicElement(
@@ -310,6 +320,7 @@ public  class BasicElement extends IkasanObject {
 
     // Maybe this needs to be abstract
     public BasicElement cloneToVersion(BasicElement newTarget) {
+        unknownJsonProperties.forEach((key, value) -> newTarget.unknownJsonProperties.put(key, value.deepCopy()));
         for(Map.Entry<String, ComponentProperty> surceEntry : this.componentProperties.entrySet()) {
             String sourceKey = surceEntry.getKey();
 

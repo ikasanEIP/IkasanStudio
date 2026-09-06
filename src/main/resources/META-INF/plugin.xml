@@ -42,6 +42,12 @@
                            bundle="messages.studioBundle"/>
     </extensions>
     <actions>
+        <action id="IkasanStudio.MigrateVersion" class="org.ikasan.studio.intellij.migration.MigrateIkasanVersionAction">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+        <action id="IkasanStudio.RestoreMigration" class="org.ikasan.studio.intellij.migration.RestoreIkasanMigrationAction">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
         <action id="IkasanStudio.OpenEditor"
                 class="org.ikasan.studio.intellij.editor.OpenIkasanStudioEditorAction"
                 icon="/studio/icons/squid13x13.svg">

@@ -78,6 +78,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     if (key != null && key.equals(VERSION)) {
                         module.setPropertyValue(key, metapackVersion);
                     } else {
+                        if (module.retainUnknownJsonProperty(key, fieldValue)) continue;
                         Object value = getTypedValue(new AbstractMap.SimpleEntry<>(key, fieldValue));
                         module.setPropertyValue(key, value);
                     }
@@ -150,6 +151,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     case Flow.EXCEPTION_RESOLVER_JSON_TAG ->
                             flow.setExceptionResolver(getExceptionResolver(flow, field, metapackVersion));
                     default -> {
+                        if (flow.retainUnknownJsonProperty(key, field)) continue;
                         Object value = getTypedValue(new AbstractMap.SimpleEntry<>(key, field));
                         flow.setPropertyValue(key, value);
                     }
@@ -770,6 +772,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                         continue;
                     }
 
+                    if (flowElement.retainUnknownJsonProperty(fieldName, jsonNode.get(fieldName))) continue;
                     Object value = getTypedValue(new AbstractMap.SimpleEntry<>(fieldName, jsonNode.get(fieldName)));
                     // For ease, we currently store the routerList as a CSV string but convert to List<String> when using it
                     if (value != null && ! "null".equals(value.toString())) {

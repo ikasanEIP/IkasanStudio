@@ -1124,6 +1124,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         componentProperty = withUiOwnedVersionChoices(componentProperty);
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
+        if (!componentInitialisation && getSelectedComponent() instanceof Module
+                && VERSION.equals(componentProperty.getMeta().getPropertyName())) {
+            var choice = componentPropertyEditRow.getInputField().getPropertyChoiceValueField();
+            if (choice != null) {
+                choice.setEnabled(false);
+                choice.setToolTipText("Use Migrate… on the canvas or Tools → Migrate Ikasan Version… to review a version change.");
+            }
+            if (componentPropertyEditRow.getDefaultValueButton() != null) componentPropertyEditRow.getDefaultValueButton().setEnabled(false);
+        }
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getChooseClassButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
         return componentPropertyEditRow;
     }

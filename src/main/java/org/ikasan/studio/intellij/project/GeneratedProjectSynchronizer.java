@@ -70,6 +70,11 @@ public class GeneratedProjectSynchronizer {
         }
         AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
+        if (!uiContext.tryBeginGeneration()) {
+            completion.completeExceptionally(new IllegalStateException("A version migration is in progress."));
+            return completion;
+        }
+        completion.whenComplete((result, failure) -> uiContext.endGeneration());
         Module module = uiContext.getIkasanModule();
 
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -211,6 +216,7 @@ public class GeneratedProjectSynchronizer {
      */
     public void saveModelJsonToDisk() {
         UiContext uiContext = project.getService(UiContext.class);
+        if (uiContext.isMigrationActive()) throw new IllegalStateException("A version migration is in progress.");
         if (uiContext.isModelPersistenceBlocked()) {
             String reason = uiContext.getModelPersistenceBlockReason();
             throw new IllegalStateException("Model saving is disabled because the model was not loaded safely" +
