@@ -16,7 +16,7 @@ import java.util.Objects;
  * Framework-independent (no PSI/UI dependency), like {@link org.ikasan.studio.core.model.command.FlowElementMove}, so it stays plain-JUnit testable.
  */
 public final class JmsFlowConnections {
-    // Every JMS component (JmsProducer, BasicAmqJmsProducer, SpringJmsConsumer, BasicAmqSpringJmsConsumer, in
+    // Every JMS component (JmsProducer and SpringJmsConsumer, in
     // both V3.3.9 and V4.1.6) carries this endpointKey, and nothing else does - the cleanest generic "is this
     // component JMS" discriminator, cheaper and more future-proof than an implementingClass allow-list.
     private static final String JMS_ENDPOINT_KEY = "Channel Endpoint";

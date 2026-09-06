@@ -55,9 +55,9 @@ class ComponentLibraryLoaderTest {
 
         assertThat(v3.get()).contains("javax.jms");
         assertThat(v4.get()).contains("jakarta.jms");
-        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V3.3.9", "Basic AMQ Spring JMS Consumer")
+        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V3.3.9", "Spring JMS Consumer")
                 .getProducedOutputType()).isEqualTo("javax.jms.Message");
-        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V4.1.6", "Basic AMQ Spring JMS Consumer")
+        assertThat(ComponentLibrary.getIkasanComponentByKeyMandatory("V4.1.6", "Spring JMS Consumer")
                 .getProducedOutputType()).isEqualTo("jakarta.jms.Message");
     }
 

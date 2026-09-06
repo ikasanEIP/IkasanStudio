@@ -52,7 +52,7 @@ class ArchUnitBoundaryTest {
                 .because("integration clients must be independently testable")
                 .check(productionClasses);
     }
-
+    // XXX
     @Test
     void platformHeavyApisRemainBehindKnownAdapters() {
         // Finite migration list: new PSI/VFS/execution dependencies must go in intellij; remove entries as

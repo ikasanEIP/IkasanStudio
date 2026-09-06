@@ -64,9 +64,9 @@ class ComponentMetaTest {
 
     @Test
     public void output_is_the_raw_jms_message_type_when_auto_content_conversion_is_off() throws StudioBuildException {
-        ComponentMeta basicAmqSpringJmsConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ Spring JMS Consumer");
+        ComponentMeta springJmsConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Spring JMS Consumer");
 
-        String output = basicAmqSpringJmsConsumer.getEffectiveOutputTypeDescription(
+        String output = springJmsConsumer.getEffectiveOutputTypeDescription(
                 propertyName -> "autoContentConversion".equals(propertyName) ? "false" : "");
 
         assertEquals("javax.jms.Message", output);
@@ -77,9 +77,9 @@ class ComponentMetaTest {
         // With Auto Content Conversion on, JmsMessageConverter unwraps the raw message before the flow ever
         // sees it - the declared producedOutputType (javax.jms.Message) is never what's actually delivered
         // once this is true, so the description must change to reflect that, not keep claiming the raw type.
-        ComponentMeta basicAmqSpringJmsConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ Spring JMS Consumer");
+        ComponentMeta springJmsConsumer = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Spring JMS Consumer");
 
-        String output = basicAmqSpringJmsConsumer.getEffectiveOutputTypeDescription(
+        String output = springJmsConsumer.getEffectiveOutputTypeDescription(
                 propertyName -> "autoContentConversion".equals(propertyName) ? "true" : "");
 
         assertTrue(output.contains("java.lang.Object"));
@@ -105,8 +105,7 @@ class ComponentMetaTest {
     @Test
     public void input_description_is_null_not_blank_for_a_producer_with_no_fromType_property_at_all() throws StudioBuildException {
         // Dev Null Producer wraps its implementingClass directly - it declares neither fromType nor a
-        // custom expectedInputTypeProperty nor a fixed expectedInputTypes (unlike its sibling Basic AMQ JMS
-        // Producer, which now declares expectedInputTypes="java.lang.String, byte[], java.util.Map,
+        // custom expectedInputTypeProperty nor a fixed expectedInputTypes (unlike JMS Producer, which now declares expectedInputTypes="java.lang.String, byte[], java.util.Map,
         // java.io.Serializable" - Spring JmsTemplate's real accepted set - so it no longer serves as this
         // test's "genuinely nothing declared" example). The palette preview path (getDefaultValueAsString)
         // already correctly returns null for a property that doesn't exist. A live FlowElement's own resolver

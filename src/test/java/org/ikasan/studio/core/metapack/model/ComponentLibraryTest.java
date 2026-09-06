@@ -187,9 +187,9 @@ class ComponentLibraryTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(41, ComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
+            () -> assertEquals(39, ComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
             () -> assertEquals(
-                    "[Basic AMQ JMS Producer, Basic AMQ Spring JMS Consumer, Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Converter, Email Endpoint, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Object Message To Object Converter, JMS Producer, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Translator]",
+                    "[Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Converter, Email Endpoint, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Object Message To Object Converter, JMS Producer, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Translator]",
 //                new TreeSet<>(Arrays.asList("Custom Converter", ComponentMeta.EXCEPTION_RESOLVER_TYPE, "Event Generating Consumer", ComponentMeta.FLOW_TYPE, ComponentMeta.MODULE_TYPE, "Dev Null Producer")),
                 new TreeSet<>(ComponentLibrary.getIkasanComponentNames(BASE_META_PACK)).toString())
         );
@@ -201,7 +201,6 @@ class ComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Channel Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("JMS Producer"));
-        verifyComponentUsesSvg(componentMetaList.get("Basic AMQ JMS Producer"));
         verifyComponentUsesSvg(componentMetaList.get("JMS Object Message To Object Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Object To XML String Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Translator"));
@@ -212,7 +211,6 @@ class ComponentLibraryTest {
         verifyComponentUsesSvg(componentMetaList.get("Logging Producer"));
         verifyComponentUsesSvg(componentMetaList.get("SFTP Producer"));
         verifyComponentUsesSvg(componentMetaList.get("Event Generating Consumer"));
-        verifyComponentUsesSvg(componentMetaList.get("Basic AMQ Spring JMS Consumer"));
         verifyComponentUsesSvg(componentMetaList.get("Spring JMS Consumer"));
         verifyComponentUsesSvg(componentMetaList.get("Local File Consumer"));
         verifyComponentUsesSvg(componentMetaList.get("Generic Consumer"));

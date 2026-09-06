@@ -152,19 +152,6 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedSpringJmsConsumerComponent.java"), templateString);
     }
 
-   /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedBasicAmqSpringJmsConsumerComponent.java
-     * @throws IOException if the template cant be generated
-     */
-    @ParameterizedTest
-    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void testCreateFlowWith_BasicAmqSpringJmsConsumerComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer(metaPackVersion);
-        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedBasicAmqSpringJmsConsumerComponent.java"), templateString);
-    }
-
 
     // ------------------------------------- FILTERS -------------------------------------
     /**
@@ -382,19 +369,6 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedJmsProducerComponent.java"), templateString);
     }
 
-
-    /**
-     * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedBasicAmqJmsProducerComponent.java
-     * @throws IOException if the template cant be generated
-     */
-    @ParameterizedTest
-    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void testCreateFlowWith_basicAmqJmsProducerComponent(String metaPackVersion) throws IOException, StudioBuildException, StudioGeneratorException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer(metaPackVersion);
-        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedBasicAmqJmsProducerComponent.java"), templateString);
-    }
 
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedFtpProducerComponent.java

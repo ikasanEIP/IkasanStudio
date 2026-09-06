@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Covers Flow#findPayloadSourceElement (the upstream-neighbour traversal, including crossing router branch
  * boundaries) and FlowElement#getUpstreamTypeMismatchWarning (the best-effort type check built on top of it) -
  * both the fixed expectedInputTypes shape (e.g. Default List Splitter, JMS Object Message To Object Converter,
- * or Basic AMQ JMS Producer's multi-candidate "java.lang.String, byte[], java.util.Map, java.io.Serializable")
+ * or JMS Producer's multi-candidate "java.lang.String, byte[], java.util.Map, java.io.Serializable")
  * and the per-instance expectedInputTypeProperty shape (e.g. Converter/Broker/Splitter's own 'fromType',
  * Object To XML String Converter's 'objectClass') - see ComponentMeta#getExpectedInputTypes() and
  * #getExpectedInputTypeProperty().
@@ -397,14 +397,14 @@ class FlowUpstreamTypeMismatchTest {
         }
     }
 
-    // Real component - Basic AMQ JMS Producer declares expectedInputTypes="java.lang.String, byte[],
+    // Real component - JMS Producer declares expectedInputTypes="java.lang.String, byte[],
     // java.util.Map, java.io.Serializable" (Spring JmsTemplate's actual accepted set, verified from its real
     // source this session) - the motivating multi-candidate case for this whole feature.
-    private FlowElement getBasicAmqJmsProducer() throws StudioBuildException {
-        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Basic AMQ JMS Producer");
+    private FlowElement getJmsProducerForMismatch() throws StudioBuildException {
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "JMS Producer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
-                .componentName("My Basic AMQ JMS Producer")
+                .componentName("My JMS Producer")
                 .build();
     }
 
@@ -416,7 +416,7 @@ class FlowUpstreamTypeMismatchTest {
         // "java.util.Map" (the third of four comma-separated candidates) via the existing substring heuristic.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         converter.setPropertyValue(TO_TYPE, "java.util.HashMap");
-        FlowElement producer = getBasicAmqJmsProducer();
+        FlowElement producer = getJmsProducerForMismatch();
         buildFlowWithTopLevelElements(converter, producer);
 
         assertNull(producer.getUpstreamTypeMismatchWarning(candidate -> null));
@@ -430,7 +430,7 @@ class FlowUpstreamTypeMismatchTest {
         // ruled out, so the warning fires and names all four.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
-        FlowElement producer = getBasicAmqJmsProducer();
+        FlowElement producer = getJmsProducerForMismatch();
         buildFlowWithTopLevelElements(converter, producer);
 
         String warning = producer.getUpstreamTypeMismatchWarning(candidate -> Boolean.FALSE);
@@ -448,7 +448,7 @@ class FlowUpstreamTypeMismatchTest {
         // matching by name.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
-        FlowElement producer = getBasicAmqJmsProducer();
+        FlowElement producer = getJmsProducerForMismatch();
         buildFlowWithTopLevelElements(converter, producer);
 
         assertNull(producer.getUpstreamTypeMismatchWarning(candidate -> Boolean.TRUE));
@@ -460,7 +460,7 @@ class FlowUpstreamTypeMismatchTest {
         // "not enough information" case this method has always stayed silent for elsewhere, not a real mismatch.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
-        FlowElement producer = getBasicAmqJmsProducer();
+        FlowElement producer = getJmsProducerForMismatch();
         buildFlowWithTopLevelElements(converter, producer);
 
         assertNull(producer.getUpstreamTypeMismatchWarning(candidate -> null));
@@ -474,7 +474,7 @@ class FlowUpstreamTypeMismatchTest {
         // with a checker confirming Boolean.FALSE (see the test above) must stay silent here.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         converter.setPropertyValue(TO_TYPE, "org.ikasan.filetransfer.Payload");
-        FlowElement producer = getBasicAmqJmsProducer();
+        FlowElement producer = getJmsProducerForMismatch();
         buildFlowWithTopLevelElements(converter, producer);
 
         assertNull(producer.getUpstreamTypeMismatchWarning());

@@ -22,7 +22,7 @@ import java.util.Locale;
 
 /** Creates a visible, disposable JMS sink flow for exercising a producer against its real broker settings. */
 public class CreateTestJmsConsumerFlowAction implements ActionListener {
-    private static final String BASIC_JMS_CONSUMER = "Basic AMQ Spring JMS Consumer";
+    private static final String STANDARD_JMS_CONSUMER = "Spring JMS Consumer";
     private static final String DEV_NULL_PRODUCER = "Dev Null Producer";
 
     private final Project project;
@@ -59,7 +59,7 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
             Flow testFlow = new Flow(version);
             testFlow.setName(uniqueFlowName(module, "Test " + suffix));
 
-            ComponentMeta consumerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(version, BASIC_JMS_CONSUMER);
+            ComponentMeta consumerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(version, STANDARD_JMS_CONSUMER);
             FlowElement consumer = FlowElementFactory.createFlowElement(version, consumerMeta, testFlow,
                     testFlow.getFlowRoute(), "Receive " + suffix);
             copyCompatibleConfiguration(producer, consumer);

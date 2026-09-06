@@ -228,19 +228,6 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSpringJmsConsumerComponent.properties"), templateString);
     }
 
-    /**
-     * See also application_fullyPopulatedBasicAmqSpringJmsConsumerComponent.properties
-     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
-     */
-    @ParameterizedTest
-    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void testCreateFlowWith_basicAmqSpringJmsConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        FlowElement flowElement = TestFixtures.getBasicAmqSpringJmsConsumer(metaPackVersion);
-        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedBasicAmqSpringJmsConsumerComponent.properties"), templateString);
-    }
-
 
     // ------------------------------------- FILTER -------------------------------------
     /**
@@ -410,19 +397,6 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         FlowElement flowElement = TestFixtures.getJmsProducer(metaPackVersion);
         String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedJmsProducerComponent.properties"), templateString);
-    }
-
-    /**
-     * See also application_fullyPopulatedBasicAmqJmsProducerComponent.properties
-     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
-     */
-    @ParameterizedTest
-    @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
-    public void testCreateFlowWith_basicAmqJmsProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        FlowElement flowElement = TestFixtures.getBasicAmqJmsProducer(metaPackVersion);
-        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedBasicAmqJmsProducerComponent.properties"), templateString);
     }
 
     /**

@@ -307,31 +307,6 @@ public class TestFixtures {
         return flowElement;
     }
 
-    public static FlowElement getBasicAmqSpringJmsConsumer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Basic AMQ Spring JMS Consumer");
-        FlowElement flowElement = FlowElement.flowElementBuilder()
-            .componentMeta(meta)
-            .componentName("My Basic AMQ JSpring JMS Consumer")
-            .build();
-
-        flowElement.setPropertyValue("autoContentConversion", true);
-        flowElement.setPropertyValue("configuredResourceId", "__module__flow__component");
-        flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
-        flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
-        flowElement.setPropertyValue("connectionFactoryName", "ConnectionFactory");
-        flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
-        flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
-        flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
-        flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
-        flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
-        flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
-        flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
-        flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
-        flowElement.setPropertyValue("sessionTransacted", true);
-        flowElement.defaultUnsetMandatoryProperties();
-        return flowElement;
-    }
-
     public static FlowElement getScheduledConsumer(String metaPackVersion) throws StudioBuildException {
         ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Scheduled Consumer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
@@ -765,30 +740,6 @@ public class TestFixtures {
         flowElement.setPropertyValue("sessionTransacted", true);
         flowElement.setPropertyValue("timeToLive", 100L);
         flowElement.setPropertyValue("transactionManager", "myTransactionManagerClass");
-        flowElement.defaultUnsetMandatoryProperties();
-        return flowElement;
-    }
-
-    public static FlowElement getBasicAmqJmsProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Producer");
-        FlowElement flowElement = FlowElement.flowElementBuilder()
-            .componentMeta(meta)
-            .componentName("My JMS Producer")
-            .build();
-
-        flowElement.setPropertyValue("configuredResourceId", "myUniqueConfiguredResourceIdName");
-        flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
-        flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
-        flowElement.setPropertyValue("connectionFactoryName", "ConnectionFactory");
-        flowElement.setPropertyValue("connectionFactoryPassword", "myConnectionFactoryPassword");
-        flowElement.setPropertyValue("connectionFactoryUsername", "myConnectionFactoryUsername");
-        flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
-        flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
-        flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
-        flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
-        flowElement.setPropertyValue("destinationJndiPropertySecurityPrincipal", "myDestinationJndiPropertySecurityPrincipal");
-        flowElement.setPropertyValue("pubSubDomain", "myPubSubDomain");
-        flowElement.setPropertyValue("sessionTransacted", true);
         flowElement.defaultUnsetMandatoryProperties();
         return flowElement;
     }
