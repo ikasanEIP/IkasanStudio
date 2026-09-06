@@ -58,7 +58,6 @@ class ArchUnitBoundaryTest {
         // Finite migration list: new PSI/VFS/execution dependencies must go in intellij; remove entries as
         // these existing UI classes acquire focused adapters.
         Set<String> transitionalUiAdapters = Set.of(
-                "org.ikasan.studio.ui.actions.DeleteComponentAction",
                 "org.ikasan.studio.ui.actions.LaunchApplicationAction",
                 "org.ikasan.studio.ui.actions.LaunchH2Action",
                 "org.ikasan.studio.ui.actions.OpenTestFtpFileAction",

@@ -37,6 +37,7 @@ import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
 import org.ikasan.studio.core.maven.IkasanPomModel;
+import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -814,6 +815,37 @@ public class StudioProjectFiles {
                 LOG.warn("STUDIO: WARN: Unable to delete file " + fileToDelete.getPath() + " exception was " + ee.getMessage());
             }
         });
+    }
+
+    /**
+     * Resolves a platform-neutral {@link UserClassReference} to its on-disk path, without exposing a
+     * {@code VirtualFile} to the caller - lets a UI action (e.g. DeleteComponentAction) check whether a
+     * generated user-implemented class exists, and build a confirmation message naming it, while staying
+     * independent of IntelliJ's VFS API (see ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters).
+     * @param project is the Intellij project instance
+     * @param reference identifying the user-implemented class, or null
+     * @return the file's path, or null if {@code reference} is null or no such file exists
+     */
+    public static String resolveUserImplementedClassPath(Project project, UserClassReference reference) {
+        if (reference == null) {
+            return null;
+        }
+        VirtualFile file = getUserImplementedClassFile(project, reference.packageName(), reference.className());
+        return file != null ? file.getPath() : null;
+    }
+
+    /**
+     * Deletes the on-disk file for a generated user-implemented class identified by a platform-neutral
+     * {@link UserClassReference}, e.g. one no longer referenced by any component after a deletion. A no-op if
+     * {@code reference} is null or no such file exists.
+     * @param project is the Intellij project instance
+     * @param reference identifying the user-implemented class to delete, or null
+     */
+    public static void deleteUserImplementedClassFile(Project project, UserClassReference reference) {
+        if (reference == null) {
+            return;
+        }
+        deleteFile(project, getUserImplementedClassFile(project, reference.packageName(), reference.className()));
     }
 
     /**

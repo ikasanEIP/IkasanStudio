@@ -7,16 +7,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.command.FlowElementRemoval;
+import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
@@ -145,16 +142,17 @@ public class DeleteComponentAction implements ActionListener {
          if (!(removedElement instanceof FlowUserImplementedElement)) {
             continue;
          }
-         VirtualFile userClassFile = getUserClassFile(ikasanModule, ownerFlow, removedElement);
-         if (userClassFile == null) {
+         UserClassReference reference = UserClassReference.forElement(ikasanModule, ownerFlow, removedElement);
+         String userClassPath = StudioProjectFiles.resolveUserImplementedClassPath(project, reference);
+         if (userClassPath == null) {
             continue;
          }
          boolean deleteFile = removedElement.getComponentMeta().isDebug()
                  || (removedElement == preflightElement
                      ? preflightChoice == UserCodeDeletionChoice.DELETE_COMPONENT_AND_CLASS
-                     : confirmAdditionalUserCodeDeletion(userClassFile.getPath()));
+                     : confirmAdditionalUserCodeDeletion(userClassPath));
          if (deleteFile) {
-            StudioProjectFiles.deleteFile(project, userClassFile);
+            StudioProjectFiles.deleteUserImplementedClassFile(project, reference);
          }
       }
    }
@@ -163,19 +161,11 @@ public class DeleteComponentAction implements ActionListener {
       if (element.getComponentMeta().isDebug()) {
          return UserCodeDeletionChoice.DELETE_COMPONENT_AND_CLASS;
       }
-      VirtualFile userClassFile = getUserClassFile(module, flow, element);
-      return userClassFile == null
+      UserClassReference reference = UserClassReference.forElement(module, flow, element);
+      String userClassPath = StudioProjectFiles.resolveUserImplementedClassPath(project, reference);
+      return userClassPath == null
               ? UserCodeDeletionChoice.DELETE_COMPONENT_ONLY
-              : confirmUserCodeDeletion(userClassFile.getPath());
-   }
-
-   private VirtualFile getUserClassFile(Module module, Flow flow, FlowElement element) {
-      if (!(element instanceof FlowUserImplementedElement) || module == null || flow == null) return null;
-      ComponentProperty classNameProperty = element.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
-      String className = classNameProperty != null ? (String) classNameProperty.getValue() : null;
-      if (className == null) return null;
-      String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
-      return StudioProjectFiles.getUserImplementedClassFile(project, packageName, className);
+              : confirmUserCodeDeletion(userClassPath);
    }
 
    /**
