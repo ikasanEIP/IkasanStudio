@@ -3,6 +3,7 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import org.ikasan.studio.intellij.migration.MigrationController;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -87,6 +88,14 @@ public class DesignCanvasContextMenu {
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, true));
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
+            menu.addSeparator();
+        }
+        if (ikasanBasicElement instanceof Module module) {
+            JMenuItem migrate = new JMenuItem(StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
+            migrate.setToolTipText(StudioBundle.message("action.IkasanStudio.MigrateVersion.description"));
+            migrate.setEnabled(module.isInitialised());
+            migrate.addActionListener(event -> MigrationController.open(project, false));
+            menu.add(migrate);
             menu.addSeparator();
         }
         menu.add(createSaveAsMenuItem(project));

@@ -2,7 +2,8 @@
 
 Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either direction**.
 Use **Migrate…** on the canvas, or **Tools → Migrate Ikasan Version…** (also available
-through Find Action). Configured modules show their version as read-only in Properties.
+through Find Action). You can also right-click the module in the designer and choose
+**Migrate Ikasan Version…**. Configured modules show their version as read-only in Properties.
 
 ## Workflow
 
