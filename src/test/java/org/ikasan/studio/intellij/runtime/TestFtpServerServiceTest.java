@@ -69,6 +69,7 @@ class TestFtpServerServiceTest {
     void rejectsAnExternallyOwnedPortWithoutClosingIt(@TempDir Path projectDirectory) throws Exception {
         Project project = mock(Project.class);
         when(project.getBasePath()).thenReturn(projectDirectory.toString());
+        when(project.getService(UiContext.class)).thenReturn(mock(UiContext.class));
         try (ServerSocket external = new ServerSocket(0)) {
             TestFtpServerService service = new TestFtpServerService(project);
             TestFtpServerConfiguration configuration = new TestFtpServerConfiguration(

@@ -1,8 +1,9 @@
 package org.ikasan.studio.intellij.editor;
 
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
-public class IkasanStudioEditorServiceStateTest extends BasePlatformTestCase {
+// Closing is permanent project state: each test needs its own project, not the shared light fixture.
+public class IkasanStudioEditorServiceStateTest extends HeavyPlatformTestCase {
 
     public void testRestorationStateReflectsPersistedEditorState() {
         IkasanStudioEditorService service = getProject().getService(IkasanStudioEditorService.class);

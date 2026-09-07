@@ -57,6 +57,8 @@ public final class UiContext {
     private volatile boolean modelPersistenceAllowed = true;
     private boolean migrationActive;
     private int activeGenerations;
+    private long generationRevision;
+    private java.util.concurrent.CompletableFuture<Void> latestGeneration = java.util.concurrent.CompletableFuture.completedFuture(null);
 
     public synchronized boolean tryBeginMigration() {
         if (migrationActive || activeGenerations != 0) return false;
@@ -66,10 +68,17 @@ public final class UiContext {
     public synchronized void endMigration() { migrationActive = false; }
     public synchronized boolean isMigrationActive() { return migrationActive; }
     public synchronized boolean tryBeginGeneration() {
-        if (migrationActive) return false;
-        activeGenerations++;
-        return true;
+        return beginGenerationRequest(new java.util.concurrent.CompletableFuture<>()) >= 0;
     }
+    public synchronized long beginGenerationRequest(java.util.concurrent.CompletableFuture<Void> completion) {
+        if (migrationActive) return -1;
+        activeGenerations++;
+        latestGeneration = completion;
+        return ++generationRevision;
+    }
+    public synchronized boolean hasOverlappingGenerations() { return activeGenerations > 1; }
+    public synchronized boolean isLatestGeneration(long revision) { return generationRevision == revision; }
+    public synchronized java.util.concurrent.CompletableFuture<Void> getLatestGeneration() { return latestGeneration; }
     public synchronized void endGeneration() { activeGenerations--; }
 
     private volatile String modelPersistenceBlockReason;

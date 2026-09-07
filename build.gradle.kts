@@ -60,6 +60,8 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // IntelliJ Platform fixtures extend JUnit 3/4; Jupiter alone silently skips them.
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
     testImplementation("org.assertj:assertj-core:4.0.0-M1")
     testImplementation("com.tngtech.archunit:archunit:1.5.0")
     implementation("org.freemarker:freemarker:2.3.34")

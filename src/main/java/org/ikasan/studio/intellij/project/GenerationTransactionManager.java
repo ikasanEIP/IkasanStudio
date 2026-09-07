@@ -26,9 +26,7 @@ final class GenerationTransactionManager {
 
     private GenerationTransactionManager() { }
 
-    record Summary(int created, int updated, int unchanged) {
-        int total() { return created + updated + unchanged; }
-    }
+    record Summary(int created, int updated, int unchanged) { }
 
     static boolean isActive() {
         return ACTIVE.get() != null;
@@ -63,7 +61,14 @@ final class GenerationTransactionManager {
         batch.afterCommit(action);
     }
 
+    @FunctionalInterface
+    interface WriteFailureInjector { void beforeWrite(String path, int index) throws IOException; }
+
     static Summary commit(Project project) {
+        return commit(project, (path, index) -> { });
+    }
+
+    static Summary commit(Project project, WriteFailureInjector failureInjector) {
         GenerationBatch batch = ACTIVE.get();
         if (batch == null) throw new IllegalStateException("No generation transaction is active");
         ACTIVE.remove(); // subsequent low-level writes must now reach disk
@@ -99,6 +104,7 @@ final class GenerationTransactionManager {
                 if (oldBytes == null) created++;
                 else if (committedContent.equals(new String(oldBytes, StandardCharsets.UTF_8))) unchanged++;
                 else updated++;
+                failureInjector.beforeWrite(artifact.relativePath(), originals.size() - 1);
                 StudioProjectFiles.createFileWithDirectories(project, "/" + artifact.relativePath(),
                         committedContent, artifact.viewHandler());
             }

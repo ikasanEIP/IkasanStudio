@@ -68,17 +68,39 @@ public class GeneratedProjectSynchronizer {
             completion.complete(null);
             return completion;
         }
+        if (project.isDisposed()) return CompletableFuture.failedFuture(new java.util.concurrent.CancellationException("Project closed"));
         AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
-        if (!uiContext.tryBeginGeneration()) {
+        long revision = uiContext.beginGenerationRequest(completion);
+        if (revision < 0) {
             completion.completeExceptionally(new IllegalStateException("A version migration is in progress."));
             return completion;
         }
-        completion.whenComplete((result, failure) -> uiContext.endGeneration());
+        com.intellij.openapi.Disposable lifetime = () -> completion.completeExceptionally(
+                new java.util.concurrent.CancellationException("Project closed during generation"));
+        completion.whenComplete((result, failure) -> {
+            uiContext.endGeneration();
+            com.intellij.openapi.util.Disposer.dispose(lifetime);
+        });
+        try {
+            // Project itself is deliberately not used as the Disposer parent here - the platform's plugin
+            // guidelines flag Project/Application as parents to avoid, since they can accumulate disposables for
+            // the whole session; StudioProjectInitialisationService is this plugin's own project-scoped
+            // Disposable with the same effective lifetime (created for the project, disposed when it closes).
+            com.intellij.openapi.util.Disposer.register(
+                    project.getService(StudioProjectInitialisationService.class), lifetime);
+        } catch (RuntimeException failure) {
+            completion.completeExceptionally(failure);
+            return completion;
+        }
+        // A newer request replaces pending work, so retain changes from every earlier scope.
+        GenerationRequest effectiveRequest = uiContext.hasOverlappingGenerations() ? GenerationRequest.full() : request;
         Module module = uiContext.getIkasanModule();
 
+        try {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
+                if (stopObsoleteGeneration(uiContext, module, revision, completion)) return;
                 // 1. Determine if the pom needs to be updated
             IkasanPomModel ikasanPomModel = uiContext.getIkasanPomModel();        // Not on EDT
             if (ikasanPomModel == null) {
@@ -106,6 +128,7 @@ public class GeneratedProjectSynchronizer {
             // Switch to UI thread for write action and undo block
             ApplicationManager.getApplication().invokeLater(() -> {
                 try {
+                    if (stopObsoleteGeneration(uiContext, module, revision, completion)) return;
                     // Using the command  processor adds support for undo
                 CommandProcessor.getInstance().executeCommand(
                     project,
@@ -118,11 +141,11 @@ public class GeneratedProjectSynchronizer {
                         }
                         Long transactionTimeStamp = uiContext.getProjectRefreshTimestamp();
                         saveAiProjectContract(project, module);
-                        switch (request.scope()) {
+                        switch (effectiveRequest.scope()) {
                             case PROPERTIES -> generateAndSavePropertiesConfig(project, module);
                             case FLOW -> {
                                 saveDebugSupportClasses(project, module);
-                                saveFlow(project, module, request.affectedFlow());
+                                saveFlow(project, module, effectiveRequest.affectedFlow());
                                 // A component added to the flow (e.g. an Ftp Consumer) can require its own
                                 // @ImportResource/@Import on ModuleConfig (see ComponentMeta#importResources /
                                 // #importConfigurationClasses) - without this, adding such a component to an
@@ -133,7 +156,7 @@ public class GeneratedProjectSynchronizer {
                             }
                             case MODULE_STRUCTURE -> {
                                 saveDebugSupportClasses(project, module);
-                                saveFlow(project, module, request.affectedFlow());
+                                saveFlow(project, module, effectiveRequest.affectedFlow());
                                 generateAndSaveJavaCodeModuleConfig(project, module);
                                 generateAndSavePropertiesConfig(project, module);
                             }
@@ -160,8 +183,8 @@ public class GeneratedProjectSynchronizer {
                             MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
                             if (manager != null) manager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
                         }
-                        if (request.scope() == GenerationRequest.Scope.MODULE_STRUCTURE
-                                || request.scope() == GenerationRequest.Scope.FULL) {
+                        if (effectiveRequest.scope() == GenerationRequest.Scope.MODULE_STRUCTURE
+                                || effectiveRequest.scope() == GenerationRequest.Scope.FULL) {
                             deleteStaleGeneratedFlowPackages(project, module);
                         }
                         if (!transactionTimeStamp.equals(uiContext.getProjectRefreshTimestamp())) {
@@ -182,20 +205,46 @@ public class GeneratedProjectSynchronizer {
                     // callers), so without a log line here, a failure this late in generation is otherwise
                     // completely silent: no exception surfaces anywhere, no file gets written, and it looks
                     // to the user exactly like nothing happened.
+                    if (!project.isDisposed() && !(failure instanceof com.intellij.openapi.progress.ProcessCanceledException)) {
                     LOG.warn("STUDIO: Source generation failed while applying model changes to disk", failure);
                     displayIdeaWarnMessage(project, "Generation failed. No further project files will be changed. "
                             + failure.getMessage());
+                    }
                     completion.completeExceptionally(failure);
                 }
             });
             } catch (Exception failure) {
                 // See the sibling catch above - this future's exceptional completion is not observed by any
                 // caller, so this is the only place this failure is ever recorded.
-                LOG.warn("STUDIO: Source generation failed before reaching the write action", failure);
+                if (!project.isDisposed() && !(failure instanceof com.intellij.openapi.progress.ProcessCanceledException))
+                    LOG.warn("STUDIO: Source generation failed before reaching the write action", failure);
                 completion.completeExceptionally(failure);
             }
         });
+        } catch (RuntimeException failure) {
+            completion.completeExceptionally(failure);
+        }
         return completion;
+    }
+
+    private boolean stopObsoleteGeneration(UiContext context, Module module, long revision, CompletableFuture<Void> completion) {
+        if (completion.isDone()) return true;
+        if (project.isDisposed()) {
+            completion.completeExceptionally(new java.util.concurrent.CancellationException("Project closed"));
+            return true;
+        }
+        if (!context.isLatestGeneration(revision)) {
+            context.getLatestGeneration().whenComplete((result, failure) -> {
+                if (failure == null) completion.complete(null);
+                else completion.completeExceptionally(failure);
+            });
+            return true;
+        }
+        if (context.getIkasanModule() != module) {
+            completion.completeExceptionally(new java.util.concurrent.CancellationException("Model was reloaded during generation"));
+            return true;
+        }
+        return false;
     }
 
 
@@ -215,6 +264,7 @@ public class GeneratedProjectSynchronizer {
      * Take the Model from memory and persist it to disk
      */
     public void saveModelJsonToDisk() {
+        if (project.isDisposed()) throw new java.util.concurrent.CancellationException("Project closed");
         UiContext uiContext = project.getService(UiContext.class);
         if (uiContext.isMigrationActive()) throw new IllegalStateException("A version migration is in progress.");
         if (uiContext.isModelPersistenceBlocked()) {

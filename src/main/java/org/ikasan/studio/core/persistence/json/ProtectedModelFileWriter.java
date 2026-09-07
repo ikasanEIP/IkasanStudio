@@ -23,6 +23,14 @@ import java.util.List;
 public final class ProtectedModelFileWriter {
     public static final int BACKUP_COUNT = 3;
 
+    private static final Object[] FILE_LOCKS = new Object[64];
+    static { java.util.Arrays.setAll(FILE_LOCKS, index -> new Object()); }
+    private static Object lockFor(Path target) {
+        return FILE_LOCKS[Math.floorMod(target.toAbsolutePath().normalize().hashCode(), FILE_LOCKS.length)];
+    }
+    @FunctionalInterface
+    interface CandidateWriter { void write(Path temporary, String candidate) throws IOException; }
+
     private ProtectedModelFileWriter() {
     }
 
@@ -45,6 +53,19 @@ public final class ProtectedModelFileWriter {
             throw new IllegalArgumentException("target, candidate and validator are required");
         }
 
+        writeWithCandidateWriter(target, candidate, validator, (temporary, content) -> {
+            failureInjector.beforeCandidateWrite();
+            writeAndFlush(temporary, content);
+        });
+    }
+
+    static void writeWithCandidateWriter(Path target, String candidate, Validator validator, CandidateWriter writer) throws IOException {
+        synchronized (lockFor(target)) {
+            writeLocked(target, candidate, validator, writer);
+        }
+    }
+
+    private static void writeLocked(Path target, String candidate, Validator validator, CandidateWriter writer) throws IOException {
         validate(candidate, validator, "candidate model");
         Files.createDirectories(target.getParent());
 
@@ -57,8 +78,7 @@ public final class ProtectedModelFileWriter {
 
         Path temporary = temporarySibling(target);
         try {
-            failureInjector.beforeCandidateWrite();
-            writeAndFlush(temporary, candidate);
+            writer.write(temporary, candidate);
             validate(Files.readString(temporary, StandardCharsets.UTF_8), validator, "temporary model");
             atomicReplace(temporary, target);
         } finally {
@@ -85,6 +105,10 @@ public final class ProtectedModelFileWriter {
 
     /** Restores a validated backup atomically and retains the rejected primary for diagnosis. */
     public static Path restoreBackup(Path target, int index, Validator validator) throws IOException {
+        synchronized (lockFor(target)) { return restoreBackupLocked(target, index, validator); }
+    }
+
+    private static Path restoreBackupLocked(Path target, int index, Validator validator) throws IOException {
         if (index < 1 || index > BACKUP_COUNT) {
             throw new IllegalArgumentException("backup index must be between 1 and " + BACKUP_COUNT);
         }

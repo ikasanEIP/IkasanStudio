@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.intellij.execution.IkasanRunConfigurationService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -62,6 +63,13 @@ public class LaunchApplicationAction implements ActionListener {
    }
 
    private void launch() {
+      // This mode is already running (the button reads "Restart" in that state - see
+      // CanvasPanel#setRunModuleState/#setDebugModuleState) - stop and rerun it the same way IntelliJ's own
+      // Run/Debug toolbar button restarts an already-running configuration, rather than launching a second,
+      // competing process.
+      if (project.getService(IkasanDebugSessionService.class).restartIfRunning(debug)) {
+         return;
+      }
       String applicationRelativePath = "generated/src/main/java/org/ikasan/studio/boot/Application.java";
       project.getService(IkasanRunConfigurationService.class).selectAndRun(applicationRelativePath, debug, outcome -> {
          switch (outcome) {

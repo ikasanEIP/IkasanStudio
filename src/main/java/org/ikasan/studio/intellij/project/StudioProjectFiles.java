@@ -549,6 +549,7 @@ public class StudioProjectFiles {
                     if (file == null) {
                         // File does not exist; create it
                         file = targetDir.createChildData(StudioProjectFiles.class, fileName);
+                        file.setCharset(StandardCharsets.UTF_8);
                     }
                     writeContentAndFormat(project, file, fileContent, componentViewHandler);
                 }
@@ -575,12 +576,13 @@ public class StudioProjectFiles {
         try {
             if (fileContent != null) {
                 FileDocumentManager documentManager = FileDocumentManager.getInstance();
-                Document document = documentManager.getDocument(file);
+                Document document = documentManager.getCachedDocument(file);
                 String existingContent = document != null
                         ? document.getText()
                         : new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
 
-                if (fileContent.equals(existingContent)) {
+                String documentContent = com.intellij.openapi.util.text.StringUtil.convertLineSeparators(fileContent);
+                if ((document != null ? documentContent : fileContent).equals(existingContent)) {
                     // Avoid manufacturing PSI/document changes for artifacts whose rendered output did
                     // not change. Besides saving indexing and formatting work, this keeps generated-file
                     // noise out of IntelliJ's undo infrastructure.
@@ -595,7 +597,9 @@ public class StudioProjectFiles {
 
                 if (document != null) {
                     // File is open in the editor; update the document
-                    runGeneratedDocumentWriteCommand(project, document, () -> document.setText(fileContent));
+                    // IntelliJ documents require LF; the VFS retains the on-disk separator convention.
+                    if (fileContent.contains("\r\n")) file.setDetectedLineSeparator("\r\n");
+                    runGeneratedDocumentWriteCommand(project, document, () -> document.setText(documentContent));
 
                     // Commit the document to sync it with the PSI, otherwise format below will error
                     PsiDocumentManager.getInstance(project).commitDocument(document);
@@ -613,7 +617,7 @@ public class StudioProjectFiles {
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
                 DumbService.getInstance(project).runWhenSmart(() -> {
-                    if (psiFile != null && psiFile.isWritable()) {
+                    if (!project.isDisposed() && file.isValid() && psiFile != null && psiFile.isValid() && psiFile.isWritable()) {
                         // Only Java sources get shortenClassReferences/reformat - other generated file types
                         // (model.json, pom.xml, application.properties) are emitted by their own templates
                         // already in their final desired form (e.g. model.json's compact single-line JSON) and

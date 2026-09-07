@@ -8,6 +8,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ModuleControlClientTest {
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            "{", "null", "{}", "{\"flows\":[null]}", "{\"flows\":[{\"name\":\"f\"}]}",
+            "{\"flows\":[{\"name\":\"f\",\"state\":\"running\"},{\"name\":\"f\",\"state\":\"stopped\"}]}",
+            "{\"flows\":[]} {}", "{\"flows\":[],\"flows\":[]}"
+    })
+    void rejectsMalformedRestDataAsRecoverableIoFailure(String json) {
+        org.junit.jupiter.api.Assertions.assertThrows(java.io.IOException.class,
+                () -> ModuleControlClient.parseFlowStates(json));
+    }
+
     @Test
     void parsesEachFlowsStateFromAModuleControlResponse() throws Exception {
         String json = "{\"name\":\"untitled104\",\"flows\":["

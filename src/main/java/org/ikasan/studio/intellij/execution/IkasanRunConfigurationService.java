@@ -55,6 +55,7 @@ public final class IkasanRunConfigurationService implements Disposable {
      * @param completion told which of {@link LaunchOutcome} resulted
      */
     public void selectAndRun(String applicationRelativePath, boolean debug, Consumer<LaunchOutcome> completion) {
+        if (project.isDisposed()) return;
         VirtualFile applicationFile = StudioProjectFiles.getVirtualFile(project, applicationRelativePath);
         if (applicationFile == null) {
             LOG.warn("STUDIO: Could not find " + applicationRelativePath + " in " + project);
@@ -73,9 +74,12 @@ public final class IkasanRunConfigurationService implements Disposable {
      * configuration on the EDT as required by the execution APIs.
      */
     public void selectAndRun(VirtualFile applicationFile, Executor executor, Consumer<Boolean> completion) {
+        if (project.isDisposed()) return;
         ReadAction.nonBlocking(() -> ModuleUtilCore.findModuleForFile(applicationFile, project))
+                .inSmartMode(project)
                 .expireWith(this)
                 .finishOnUiThread(ModalityState.defaultModalityState(), module -> {
+                    if (project.isDisposed()) return;
                     if (module == null) {
                         LOG.warn("STUDIO: No IntelliJ module contains " + applicationFile.getPath());
                         completion.accept(false);

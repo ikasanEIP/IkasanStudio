@@ -66,6 +66,7 @@ public class StartTestMailServerAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
+        if (project.isDisposed()) return;
         if (!(ikasanBasicElement instanceof FlowElement flowElement) || !flowElement.getComponentMeta().supportsTestMailServer()) {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerCanOnlyBeUsedOnEmailProducer"));
             return;
@@ -83,13 +84,15 @@ public class StartTestMailServerAction implements ActionListener {
             @SuppressWarnings("NullableProblems")
             @Override
             public void run(ProgressIndicator indicator) {
+                if (project.isDisposed()) return;
+                indicator.checkCanceled();
                 if (TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
                     TestMailServerSessionService service = project.getService(TestMailServerSessionService.class);
                     boolean owned = service.isOwned(smtpHost, smtpPort);
                     boolean webUiListening = TestMailServerSupport.isAlreadyListening(
                             TestMailServerSupport.UI_HOST, TestMailServerSupport.UI_PORT);
                     service.pollNow();
-                    ApplicationManager.getApplication().invokeLater(() -> {
+                    invokeLaterIfProjectOpen(() -> {
                         String key = owned ? "message.TestMailServerAlreadyRunning"
                                 : webUiListening ? "message.TestMailServerExternallyOwned"
                                 : "message.TestMailServerExternalSmtpWithoutUi";
@@ -106,14 +109,15 @@ public class StartTestMailServerAction implements ActionListener {
                 // process never got that far). Catching it here up front gives a precise, immediate reason
                 // instead of a silent "Starting..." that never actually starts.
                 if (TestMailServerSupport.isAlreadyListening(TestMailServerSupport.UI_HOST, TestMailServerSupport.UI_PORT)) {
-                    ApplicationManager.getApplication().invokeLater(() ->
+                    invokeLaterIfProjectOpen(() ->
                             StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message(
                                     "message.AnotherTestMailServerAlreadyRunning", smtpAddress, TestMailServerSupport.UI_PORT)));
                     return;
                 }
                 try {
                     Path binary = ensureBinaryDownloaded(indicator);
-                    ApplicationManager.getApplication().invokeLater(() -> {
+                    if (project.isDisposed()) return;
+                    invokeLaterIfProjectOpen(() -> {
                         launchInTerminal(binary, smtpHost, smtpPort);
                         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.StartingTestMailServer", smtpAddress, uiUrl));
                         BrowserUtil.browse(uiUrl);
@@ -127,7 +131,7 @@ public class StartTestMailServerAction implements ActionListener {
                     throw e;
                 } catch (UnsupportedPlatformException e) {
                     LOG.warn("STUDIO: No test mail server build available for this platform", e);
-                    ApplicationManager.getApplication().invokeLater(() ->
+                    invokeLaterIfProjectOpen(() ->
                             StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message("message.UnsupportedPlatformForTestMailServer",
                                     System.getProperty("os.name"), System.getProperty("os.arch"))));
                 } catch (Exception e) {
@@ -135,7 +139,7 @@ public class StartTestMailServerAction implements ActionListener {
                     // user, and this is already surfaced via the popup below - see CLAUDE.md.
                     String errorDetail = StopTestMailServerAction.redact(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
                     LOG.warn("STUDIO: Could not download/start the test mail server: " + errorDetail);
-                    ApplicationManager.getApplication().invokeLater(() ->
+                    invokeLaterIfProjectOpen(() ->
                             StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message("message.CouldNotDownloadTestMailServer", errorDetail)));
                 }
             }
@@ -159,11 +163,18 @@ public class StartTestMailServerAction implements ActionListener {
             Thread.currentThread().interrupt();
             return;
         }
+        if (project.isDisposed()) return;
         if (!TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort)) {
             project.getService(TestMailServerSessionService.class).forgetOwned(smtpHost, smtpPort);
-            ApplicationManager.getApplication().invokeLater(() ->
+            invokeLaterIfProjectOpen(() ->
                     StudioUIUtils.displayIdeaErrorMessage(project, StudioBundle.message("message.TestMailServerFailedToStart", smtpAddress)));
         }
+    }
+
+    private void invokeLaterIfProjectOpen(Runnable action) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (!project.isDisposed()) action.run();
+        });
     }
 
     private Path cacheDirectory() {
@@ -183,7 +194,8 @@ public class StartTestMailServerAction implements ActionListener {
                 .connectTimeout(DOWNLOAD_CONNECT_TIMEOUT)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
-        HttpRequest request = HttpRequest.newBuilder(URI.create(MAILHOG_RELEASE_BASE_URL + assetName)).GET().build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create(MAILHOG_RELEASE_BASE_URL + assetName))
+                .timeout(Duration.ofSeconds(60)).GET().build();
         Path partial = cacheDir.resolve(assetName + ".part");
         Files.deleteIfExists(partial);
         HttpResponse<Path> response;

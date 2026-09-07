@@ -25,6 +25,7 @@ import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Set;
 
 /** Tracks live Studio module launches for this project, including the debug subset. */
@@ -44,6 +45,10 @@ public final class IkasanDebugSessionService implements Disposable {
             Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<ProcessHandler> debugProcesses =
             Collections.newSetFromMap(new IdentityHashMap<>());
+    // Keyed by handler so restartIfRunning() can hand IntelliJ's own restart mechanism the exact environment
+    // (executor, target, settings) the running process was launched with - not populated for a process this
+    // service only discovered via registerAlreadyRunningDebugProcesses() (no ExecutionEnvironment available then).
+    private final Map<ProcessHandler, ExecutionEnvironment> environments = new IdentityHashMap<>();
     private final Alarm reachabilityAlarm;
     private boolean moduleReachable = false;
     private volatile boolean disposed;
@@ -60,7 +65,7 @@ public final class IkasanDebugSessionService implements Disposable {
             public void processStarted(String executorId, ExecutionEnvironment environment,
                                        ProcessHandler handler) {
                 if (isStudioModuleExecution(environment)) {
-                    updateProcess(handler, true, isStudioDebugExecution(executorId, environment));
+                    updateProcess(handler, environment, true, isStudioDebugExecution(executorId, environment));
                 }
             }
 
@@ -68,7 +73,7 @@ public final class IkasanDebugSessionService implements Disposable {
             @Override
             public void processTerminated(String executorId, ExecutionEnvironment environment,
                                           ProcessHandler handler, int exitCode) {
-                updateProcess(handler, false, false);
+                updateProcess(handler, environment, false, false);
             }
         });
         registerAlreadyRunningDebugProcesses();
@@ -76,6 +81,11 @@ public final class IkasanDebugSessionService implements Disposable {
 
     public synchronized boolean isDebugModuleRunning() {
         return !debugProcesses.isEmpty();
+    }
+
+    /** True if a plain (non-debug) Studio module launch is currently active - the counterpart to {@link #isDebugModuleRunning()}. */
+    public synchronized boolean isRunModuleRunning() {
+        return activeHandlerFor(false) != null;
     }
 
     /**
@@ -113,6 +123,52 @@ public final class IkasanDebugSessionService implements Disposable {
             }
         }
         repaintCanvas();
+    }
+
+    /** @return a still-alive handler in {@code debug}'s pool (moduleProcesses minus debugProcesses for plain Run), or null. Caller must hold this instance's monitor. */
+    private ProcessHandler activeHandlerFor(boolean debug) {
+        for (ProcessHandler handler : moduleProcesses) {
+            if (debugProcesses.contains(handler) != debug) {
+                continue;
+            }
+            if (!handler.isProcessTerminated() && !handler.isProcessTerminating()) {
+                return handler;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Restarts the currently running module process for {@code debug}'s mode using IntelliJ's own "stop and
+     * rerun" mechanism ({@link ExecutionManager#restartRunProfile}) - the same code path the platform's own
+     * Run/Debug toolbar button uses once its configuration is already running (see the button it replaces on
+     * the canvas toolbar - {@code CanvasPanel#setRunModuleState}/{@code #setDebugModuleState}), so the old
+     * process is properly terminated before the new one starts rather than the two racing.
+     * @return true if a running process for that mode was found and a restart was issued, false if nothing is
+     * currently running in that mode - the caller should fall back to a fresh launch
+     */
+    public boolean restartIfRunning(boolean debug) {
+        ProcessHandler handler;
+        ExecutionEnvironment environment;
+        synchronized (this) {
+            handler = activeHandlerFor(debug);
+            environment = handler == null ? null : environments.get(handler);
+        }
+        if (handler == null) {
+            return false;
+        }
+        if (environment == null) {
+            // Recovered via registerAlreadyRunningDebugProcesses() (a prior IDE/plugin session), so there is no
+            // ExecutionEnvironment to restart via - terminate it directly and let the caller launch fresh rather
+            // than leaving it running alongside a new process.
+            if (!handler.isProcessTerminated() && !handler.isProcessTerminating()) {
+                handler.destroyProcess();
+            }
+            return false;
+        }
+        ExecutionManager.getInstance(project).restartRunProfile(project, environment.getExecutor(),
+                environment.getExecutionTarget(), environment.getRunnerAndConfigurationSettings(), handler);
+        return true;
     }
 
     static boolean isStudioModuleExecution(ExecutionEnvironment environment) {
@@ -179,7 +235,7 @@ public final class IkasanDebugSessionService implements Disposable {
         }
     }
 
-    private void updateProcess(ProcessHandler handler, boolean running, boolean debug) {
+    private void updateProcess(ProcessHandler handler, ExecutionEnvironment environment, boolean running, boolean debug) {
         boolean visibilityChanged;
         boolean moduleStopped;
         boolean moduleStarted;
@@ -190,12 +246,14 @@ public final class IkasanDebugSessionService implements Disposable {
             boolean wasDebugRunning = !debugProcesses.isEmpty();
             if (running) {
                 moduleProcesses.add(handler);
+                environments.put(handler, environment);
                 if (debug) {
                     debugProcesses.add(handler);
                 }
             } else {
                 moduleProcesses.remove(handler);
                 debugProcesses.remove(handler);
+                environments.remove(handler);
             }
             boolean isDebugRunningNow = !debugProcesses.isEmpty();
             boolean isModuleRunningNow = !moduleProcesses.isEmpty();
@@ -282,5 +340,6 @@ public final class IkasanDebugSessionService implements Disposable {
         reachabilityAlarm.cancelAllRequests();
         moduleProcesses.clear();
         debugProcesses.clear();
+        environments.clear();
     }
 }

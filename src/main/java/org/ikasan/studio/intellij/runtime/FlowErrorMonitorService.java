@@ -49,10 +49,28 @@ public final class FlowErrorMonitorService implements Disposable {
     private final FlowRuntimeStatuses flowStatuses = new FlowRuntimeStatuses();
     private volatile boolean moduleProcessRunning;
     private volatile boolean disposed;
+    private volatile long runtimeRevision;
+    private final ModuleProbe probe;
 
+    interface ModuleProbe {
+        Map<String, String> states(Module module) throws Exception;
+        ModuleControlClient.ErrorDetails details(Module module, String flow);
+    }
+
+    // Reflectively invoked by the IntelliJ platform's @Service(Level.PROJECT) container on first
+    // project.getService(FlowErrorMonitorService.class) - never called directly, hence the "unused" warning.
+    @SuppressWarnings("unused")
     public FlowErrorMonitorService(Project project) {
+        this(project, null, new ModuleProbe() {
+            public Map<String, String> states(Module module) throws Exception { return ModuleControlClient.fetchFlowStates(module); }
+            public ModuleControlClient.ErrorDetails details(Module module, String flow) { return ModuleControlClient.fetchLatestErrorDetails(module, flow); }
+        });
+    }
+
+    FlowErrorMonitorService(Project project, Alarm alarm, ModuleProbe probe) {
         this.project = project;
-        this.alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
+        this.probe = probe;
+        this.alarm = alarm == null ? new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this) : alarm;
         scheduleNextPoll();
     }
 
@@ -74,17 +92,20 @@ public final class FlowErrorMonitorService implements Disposable {
      */
     public void pollNow() {
         if (!disposed && !alarm.isDisposed()) {
-            alarm.addRequest(this::pollAndUpdateState, 0);
+            alarm.cancelAllRequests();
+            alarm.addRequest(() -> { pollAndUpdateState(); scheduleNextPoll(); }, 0);
         }
     }
 
     /** Called by the execution lifecycle when this project's first Studio module process starts. */
-    public void moduleProcessStarted() {
+    public synchronized void moduleProcessStarted() {
+        runtimeRevision++;
         moduleProcessRunning = true;
     }
 
     /** Called by the execution lifecycle when this project's final Studio module process terminates. */
-    public void moduleProcessStopped() {
+    public synchronized void moduleProcessStopped() {
+        runtimeRevision++;
         moduleProcessRunning = false;
         clearRuntimeStatuses();
     }
@@ -116,54 +137,71 @@ public final class FlowErrorMonitorService implements Disposable {
         return monitoringEnabled && moduleProcessRunning;
     }
 
-    private void pollAndUpdateState() {
+    void pollAndUpdateState() {
+        final long revision;
+        synchronized (this) { revision = runtimeRevision; }
         Module ikasanModule = disposed || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
         if (ikasanModule == null || ikasanModule.getIdentity() == null || ikasanModule.getPort() == null) {
             return;
         }
         Map<String, String> flowStates;
         try {
-            flowStates = ModuleControlClient.fetchFlowStates(ikasanModule);
+            flowStates = probe.states(ikasanModule);
         } catch (Exception e) {
             // Expected whenever the module simply isn't running (or hasn't started listening yet) - not worth
             // more than a debug-level trace, per CLAUDE.md's "never log above warn" rule for IntelliJ's logger.
             LOG.debug("STUDIO: flow error monitor could not reach moduleControl REST endpoint: " + e);
             return;
         }
-        boolean changed = false;
-        for (Map.Entry<String, String> entry : flowStates.entrySet()) {
-            String flowName = entry.getKey();
-            if (flowStatuses.update(flowName, entry.getValue())) {
-                changed = true;
-            }
-            boolean nowInError = STOPPED_IN_ERROR_STATE.equals(entry.getValue());
-            if (nowInError) {
-                FlowErrorStates.ErrorInfo existingError = errorStates.getError(flowName);
-                if (existingError == null || existingError.details() == null || existingError.details().isBlank()) {
-                    ModuleControlClient.ErrorDetails details = ModuleControlClient.fetchLatestErrorDetails(ikasanModule, flowName);
-                    String summary = details != null ? details.summary()
-                            : existingError != null ? existingError.summary() : null;
-                    errorStates.flag(flowName, new FlowErrorStates.ErrorInfo(
-                            summary, details != null ? details.report() : null,
-                            existingError != null ? existingError.detectedAtMillis() : System.currentTimeMillis()));
-                    changed = true;
-                    if (existingError == null) {
-                        notifyNewError(flowName, summary);
-                    }
+        Map<String, ModuleControlClient.ErrorDetails> fetched = new java.util.HashMap<>();
+        for (var entry : flowStates.entrySet()) {
+            if (disposed || project.isDisposed()) return;
+            if (STOPPED_IN_ERROR_STATE.equals(entry.getValue())) {
+                var existing = errorStates.getError(entry.getKey());
+                if (existing == null || existing.details() == null || existing.details().isBlank()) {
+                    fetched.put(entry.getKey(), probe.details(ikasanModule, entry.getKey()));
                 }
-            } else if (errorStates.clear(flowName)) {
-                changed = true;
             }
         }
-        if (changed) {
-            repaintCanvas();
+        synchronized (this) {
+            if (disposed || project.isDisposed() || revision != runtimeRevision
+                    || project.getService(UiContext.class).getIkasanModule() != ikasanModule) return;
+            boolean changed = false;
+            for (Map.Entry<String, String> entry : flowStates.entrySet()) {
+                String flowName = entry.getKey();
+                if (flowStatuses.update(flowName, entry.getValue())) {
+                    changed = true;
+                }
+                boolean nowInError = STOPPED_IN_ERROR_STATE.equals(entry.getValue());
+                if (nowInError) {
+                    FlowErrorStates.ErrorInfo existingError = errorStates.getError(flowName);
+                    if (existingError == null || existingError.details() == null || existingError.details().isBlank()) {
+                        ModuleControlClient.ErrorDetails details = fetched.get(flowName);
+                        String summary = details != null ? details.summary()
+                                : existingError != null ? existingError.summary() : null;
+                        errorStates.flag(flowName, new FlowErrorStates.ErrorInfo(
+                                summary, details != null ? details.report() : null,
+                                existingError != null ? existingError.detectedAtMillis() : System.currentTimeMillis()));
+                        changed = true;
+                        if (existingError == null) {
+                            notifyNewError(flowName, summary);
+                        }
+                    }
+                } else if (errorStates.clear(flowName)) {
+                    changed = true;
+                }
+            }
+            if (changed) {
+                repaintCanvas();
+            }
         }
     }
 
     private void notifyNewError(String flowName, String summary) {
+        long revision = runtimeRevision;
         String message = "Flow '" + flowName + "' has stopped in error" + (summary != null ? ": " + summary : ".");
         Runnable show = () -> {
-            if (!disposed && !project.isDisposed()) {
+            if (!disposed && !project.isDisposed() && revision == runtimeRevision) {
                 StudioUIUtils.displayIdeaErrorMessage(project, message);
             }
         };
@@ -183,6 +221,7 @@ public final class FlowErrorMonitorService implements Disposable {
     }
 
     private void runOnEdt(Runnable runnable) {
+        if (ApplicationManager.getApplication() == null) return;
         if (ApplicationManager.getApplication().isDispatchThread()) {
             runnable.run();
         } else {
@@ -191,7 +230,8 @@ public final class FlowErrorMonitorService implements Disposable {
     }
 
     @Override
-    public void dispose() {
+    public synchronized void dispose() {
+        runtimeRevision++;
         disposed = true;
         moduleProcessRunning = false;
         alarm.cancelAllRequests();

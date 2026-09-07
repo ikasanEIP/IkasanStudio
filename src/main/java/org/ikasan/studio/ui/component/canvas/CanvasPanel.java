@@ -33,6 +33,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
+    // The icon IntelliJ's own Run/Debug toolbar button swaps to once its configuration is already running -
+    // see setRunModuleState/setDebugModuleState, which replicate that same "Restart" affordance here.
+    private static final Icon RESTART_ICON = AllIcons.Actions.Restart;
     // Independent, always-enabled Start/Stop buttons rather than one context-sensitive toggle - see
     // HarnessControlActions javadoc for why (a toggle that infers "already running" can end up hiding the one
     // option - Stop - the developer actually needs, if that inference is wrong).
@@ -58,11 +61,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
         JBPanel canvasHeaderButtonPanel = new JBPanel();
         canvasHeaderButtonPanel.setBorder(null);
 
-        runModuleButton.setEnabled(false);
-        debugModuleButton.setEnabled(false);
+        setRunModuleState(false, false);
+        setDebugModuleState(false, false);
         stopModuleButton.setEnabled(false);
-        runModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(runModuleButton.getIcon()));
-        debugModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(debugModuleButton.getIcon()));
         stopModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(stopModuleButton.getIcon()));
         runModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.RunModule"));
         debugModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.DebugModule"));
@@ -184,19 +185,35 @@ public class CanvasPanel extends JBPanel implements Disposable {
     }
 
     /**
-     * The module can only be run once the canvas contains at least one complete, valid flow.
-     * @param flag, if true will enable the Run module button, otherwise disable it.
+     * The Run module button is enabled either when the canvas has a complete, valid flow and nothing is
+     * currently running, or when a plain (non-debug) run is the one currently active - in which case it swaps
+     * to the "Restart" icon/tooltip, mirroring IntelliJ's own Run toolbar button once its configuration is
+     * already running (clicking it then stops and reruns - see LaunchApplicationAction).
+     * @param enabled whether the button should be enabled at all
+     * @param running true if a plain run is the mode currently active, false for the normal "not yet started" look
      */
-    public void setRunModuleEnabled(boolean flag) {
-        runModuleButton.setEnabled(flag);
+    public void setRunModuleState(boolean enabled, boolean running) {
+        runModuleButton.setEnabled(enabled);
+        runModuleButton.setIcon(running ? RESTART_ICON : AllIcons.Actions.Execute);
+        runModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(runModuleButton.getIcon()));
+        runModuleButton.setToolTipText(running
+                ? StudioBundle.message("tooltip.RestartThisModuleUsingTheSelectedRunConfiguration")
+                : StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
     }
 
     /**
-     * The module can only be debugged once the canvas contains at least one complete, valid flow.
-     * @param flag, if true will enable the Debug module button, otherwise disable it.
+     * The Debug module button's counterpart to {@link #setRunModuleState} - swaps to "Restart" once a debug
+     * session is the mode currently active.
+     * @param enabled whether the button should be enabled at all
+     * @param running true if a debug session is the mode currently active, false for the normal "not yet started" look
      */
-    public void setDebugModuleEnabled(boolean flag) {
-        debugModuleButton.setEnabled(flag);
+    public void setDebugModuleState(boolean enabled, boolean running) {
+        debugModuleButton.setEnabled(enabled);
+        debugModuleButton.setIcon(running ? RESTART_ICON : AllIcons.Actions.StartDebugger);
+        debugModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(debugModuleButton.getIcon()));
+        debugModuleButton.setToolTipText(running
+                ? StudioBundle.message("tooltip.RestartThisModuleInDebugModeUsingTheSelectedRunConfiguration")
+                : StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
     }
 
     public void setStopModuleEnabled(boolean flag) {

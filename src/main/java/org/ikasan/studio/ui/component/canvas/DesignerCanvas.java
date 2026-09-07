@@ -2461,20 +2461,25 @@ public class DesignerCanvas extends JPanel {
     }
 
     /**
-     * The Run module button should only be enabled once the canvas contains at least one complete,
-     * valid flow (i.e. we are past the point of hinting what needs adding to the design).
+     * The Run/Debug module buttons should only be enabled once the canvas contains at least one complete,
+     * valid flow (i.e. we are past the point of hinting what needs adding to the design) - or, once one of the
+     * two modes is already running, that same button stays enabled but swaps to a "Restart" icon/tooltip so a
+     * second click stops and reruns it, mirroring IntelliJ's own Run/Debug toolbar button and letting the user
+     * see from the canvas which mode is actually active (the other mode's button stays disabled meanwhile,
+     * since only one module process runs at a time - see LaunchApplicationAction/IkasanDebugSessionService).
      */
     private void updateRunModuleButtonState(Module module) {
         GettingStartedHint hint = getGettingStartedHint(module);
         boolean validModule = hint == GettingStartedHint.READY_TO_RUN || hint == GettingStartedHint.OPEN_CONSOLE;
-        boolean runnable = validModule
-                && project.getService(IkasanDebugSessionService.class).isModuleStopped();
+        IkasanDebugSessionService sessionService = project.getService(IkasanDebugSessionService.class);
+        boolean runModuleRunning = sessionService.isRunModuleRunning();
+        boolean debugModuleRunning = sessionService.isDebugModuleRunning();
+        boolean stopped = sessionService.isModuleStopped();
         CanvasPanel canvasPanel = project.getService(UiContext.class).getCanvasPanel();
         if (canvasPanel != null) {
-            canvasPanel.setRunModuleEnabled(runnable);
-            canvasPanel.setDebugModuleEnabled(runnable);
-            canvasPanel.setStopModuleEnabled(
-                    project.getService(IkasanDebugSessionService.class).canStopModule());
+            canvasPanel.setRunModuleState((validModule && stopped) || runModuleRunning, runModuleRunning);
+            canvasPanel.setDebugModuleState((validModule && stopped) || debugModuleRunning, debugModuleRunning);
+            canvasPanel.setStopModuleEnabled(sessionService.canStopModule());
         }
     }
 

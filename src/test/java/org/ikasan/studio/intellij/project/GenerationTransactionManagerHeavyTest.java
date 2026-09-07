@@ -77,6 +77,74 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertEquals("first=new\r\nsecond=café\r\n", read(baseDir, "generated/application.properties"));
     }
 
+    public void testDiskFullMidCommitRollsBackEarlierWritesAndAllowsRetry() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/existing.txt", "original", null);
+        StudioProjectFiles.createFileWithDirectories(myProject, "user/owned.txt", "developer", null);
+        GenerationTransactionManager.begin();
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/existing.txt", "replacement", null);
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/new.txt", "new", null);
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/fails.txt", "cannot fit", null);
+        StudioRuntimeException diskFullFailure = expectGenerationFailure(() -> GenerationTransactionManager.commit(myProject, (path, index) -> {
+            if (index == 2) throw new java.nio.file.FileSystemException(path, null, "No space left on device");
+        }));
+        assertTrue(diskFullFailure.getMessage().contains("previously existing generated files were restored"));
+        assertEquals("original", read(base, "generated/existing.txt"));
+        assertEquals("developer", read(base, "user/owned.txt"));
+        assertNull(base.findFileByRelativePath("generated/new.txt"));
+        assertNull(base.findFileByRelativePath("generated/fails.txt"));
+        GenerationTransactionManager.begin();
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/existing.txt", "retry", null);
+        GenerationTransactionManager.commit(myProject);
+        assertEquals("retry", read(base, "generated/existing.txt"));
+    }
+
+    public void testReadOnlyCommitPreservesFiles() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/existing.txt", "original", null);
+        GenerationTransactionManager.begin();
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/existing.txt", "replacement", null);
+        StudioRuntimeException accessDeniedFailure = expectGenerationFailure(() -> GenerationTransactionManager.commit(myProject, (path, index) -> {
+            throw new java.nio.file.AccessDeniedException(path);
+        }));
+        assertTrue(accessDeniedFailure.getMessage().contains("previously existing generated files were restored"));
+        assertEquals("original", read(base, "generated/existing.txt"));
+    }
+
+    public void testConcurrentModelSavesAndGenerationKeepDeveloperFilesRecoverable() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        StudioProjectFiles.createFileWithDirectories(myProject, "user/owned.txt", "developer", null);
+        var model = java.nio.file.Path.of(base.getPath(), "generated", "concurrent-model.json");
+        java.nio.file.Files.createDirectories(model.getParent());
+        java.nio.file.Files.writeString(model, "{\"revision\":0}");
+        var started = new java.util.concurrent.CountDownLatch(1);
+        var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            GenerationTransactionManager.begin();
+            StudioProjectFiles.createFileWithDirectories(myProject, "generated/concurrent.txt", "generated", null);
+            var saves = pool.submit(() -> {
+                started.countDown();
+                try {
+                    var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    for (int i = 1; i <= 20; i++) {
+                        org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter.write(model,
+                                "{\"revision\":" + i + "}", mapper::readTree);
+                    }
+                } catch (Exception e) { throw new RuntimeException(e); }
+            });
+            assertTrue(started.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            GenerationTransactionManager.commit(myProject);
+            saves.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            assertEquals("{\"revision\":20}", java.nio.file.Files.readString(model));
+            assertEquals("{\"revision\":19}", java.nio.file.Files.readString(model.resolveSibling("concurrent-model.json.bak.1")));
+            assertEquals("generated", read(base, "generated/concurrent.txt"));
+            assertEquals("developer", read(base, "user/owned.txt"));
+        } finally { pool.shutdownNow(); }
+    }
+
     private static StudioRuntimeException expectGenerationFailure(Runnable action) {
         try {
             action.run();

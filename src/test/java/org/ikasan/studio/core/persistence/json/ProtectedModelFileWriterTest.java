@@ -126,6 +126,51 @@ class ProtectedModelFileWriterTest {
         assertEquals("damaged primary", Files.readString(model));
     }
 
+    @Test
+    void diskFullAfterPartialWritePreservesModelBackupAndUserFile() throws Exception {
+        Path model = model("{\"revision\":1}");
+        Path user = directory.resolve("Owned.java");
+        Files.writeString(user, "// developer implementation");
+        assertThrows(java.nio.file.FileSystemException.class, () ->
+                ProtectedModelFileWriter.writeWithCandidateWriter(model, "{\"revision\":2}", objectValidator,
+                        (temporary, candidate) -> {
+                            Files.writeString(temporary, candidate.substring(0, 5));
+                            throw new java.nio.file.FileSystemException(temporary.toString(), null, "No space left on device");
+                        }));
+        assertEquals("{\"revision\":1}", Files.readString(model));
+        assertEquals("{\"revision\":1}", Files.readString(directory.resolve("model.json.bak.1")));
+        assertEquals("// developer implementation", Files.readString(user));
+        try (var files = Files.list(directory)) {
+            assertFalse(files.anyMatch(path -> path.toString().endsWith(".tmp")));
+        }
+        ProtectedModelFileWriter.write(model, "{\"revision\":3}", objectValidator);
+        assertEquals("{\"revision\":3}", Files.readString(model));
+    }
+
+    @Test
+    void concurrentSavesKeepEveryBackupValidAndReleaseLockAfterFailure() throws Exception {
+        Path model = model("{\"revision\":0}");
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(4);
+        try {
+            var jobs = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+            for (int i = 1; i <= 20; i++) {
+                final int revision = i;
+                jobs.add(pool.submit(() -> {
+                    try { ProtectedModelFileWriter.write(model, "{\"revision\":" + revision + "}", objectValidator); }
+                    catch (IOException failure) { throw new java.io.UncheckedIOException(failure); }
+                }));
+            }
+            for (var job : jobs) job.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            var revisions = new java.util.HashSet<Integer>();
+            revisions.add(mapper.readTree(Files.readString(model)).get("revision").asInt());
+            for (int i = 1; i <= 3; i++) {
+                revisions.add(mapper.readTree(Files.readString(directory.resolve("model.json.bak." + i))).get("revision").asInt());
+            }
+            assertEquals(4, revisions.size());
+        } finally { pool.shutdownNow(); }
+    }
+
     private Path model(String content) throws IOException {
         Path model = directory.resolve("model.json");
         Files.writeString(model, content, StandardCharsets.UTF_8);

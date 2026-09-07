@@ -42,6 +42,20 @@ class ModuleDeserializerSafetyTest {
         assertEquals(2, ((Number) resolution.getPropertyValue("maxRetries")).intValue());
     }
 
+    @Test
+    void truncatedAndMalformedModelBytesRemainAvailableForRecovery(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        String valid = fixture();
+        for (String damaged : java.util.List.of(valid.substring(0, valid.length() / 2), "{\"flows\": [}", "")) {
+            var model = directory.resolve("model.json");
+            java.nio.file.Files.writeString(model, damaged);
+            assertThrows(StudioBuildException.class,
+                    () -> ComponentIO.deserializeModuleInstanceString(damaged, "failure injection"));
+            assertThrows(java.io.IOException.class, () -> ProtectedModelFileWriter.write(model, valid,
+                    json -> ComponentIO.deserializeModuleInstanceString(json, "protected write")));
+            assertEquals(damaged, java.nio.file.Files.readString(model));
+        }
+    }
+
     private String fixture() throws Exception {
         return TestUtils.getFileAsString("/org/ikasan/studio/populated_full_module_with_exception_resolver.json");
     }

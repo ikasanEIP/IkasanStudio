@@ -53,7 +53,9 @@ public final class ModuleControlClient {
     // Deserializing into DTOs shaped after the server's own FlowDto/ModuleDto/ErrorOccurrence rather than a
     // Map - tolerate any extra fields the concrete ErrorOccurrence implementation adds beyond the interface.
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 
     private ModuleControlClient() {
     }
@@ -102,12 +104,12 @@ public final class ModuleControlClient {
 
     public static Map<String, String> parseFlowStates(String json) throws Exception {
         ModuleStateResponse moduleState = OBJECT_MAPPER.readValue(json, ModuleStateResponse.class);
+        if (moduleState == null || moduleState.flows == null) throw new IOException("moduleControl response has no flow list");
         Map<String, String> states = new LinkedHashMap<>();
-        if (moduleState.flows != null) {
-            for (FlowStateEntry flow : moduleState.flows) {
-                if (flow.name != null) {
-                    states.put(flow.name, flow.state);
-                }
+        for (FlowStateEntry flow : moduleState.flows) {
+            if (flow == null || flow.name == null || flow.name.isBlank() || flow.state == null || flow.state.isBlank()
+                    || states.putIfAbsent(flow.name, flow.state) != null) {
+                throw new IOException("moduleControl response contains an invalid or duplicate flow");
             }
         }
         return states;
@@ -125,6 +127,9 @@ public final class ModuleControlClient {
                 return null;
             }
             return parseLatestErrorDetails(response.body());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
         } catch (Exception e) {
             return null;
         }
@@ -137,10 +142,12 @@ public final class ModuleControlClient {
 
     public static ErrorDetails parseLatestErrorDetails(String json) throws Exception {
         PagedErrorResponse result = OBJECT_MAPPER.readValue(json, PagedErrorResponse.class);
+        if (result == null) throw new IOException("Error response is null");
         if (result.pagedResults == null || result.pagedResults.isEmpty()) {
             return null;
         }
         ErrorOccurrenceEntry entry = result.pagedResults.get(0);
+        if (entry == null) throw new IOException("Error response contains a null entry");
         StringBuilder summary = new StringBuilder();
         if (entry.exceptionClass != null && !entry.exceptionClass.isBlank()) {
             summary.append(shortClassName(entry.exceptionClass)).append(": ");

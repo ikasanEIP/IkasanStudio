@@ -51,9 +51,19 @@ public final class TestMailServerSessionService implements Disposable {
     private final Map<String, OwnedHarness> ownedHarnesses = new ConcurrentHashMap<>();
     private volatile boolean disposed;
 
+    private final java.util.function.LongSupplier clock;
+    private final java.util.function.BiPredicate<String, Integer> listeningProbe;
+
     public TestMailServerSessionService(Project project) {
+        this(project, null, System::currentTimeMillis, TestMailServerSupport::isAlreadyListening);
+    }
+
+    TestMailServerSessionService(Project project, Alarm alarm, java.util.function.LongSupplier clock,
+                                 java.util.function.BiPredicate<String, Integer> listeningProbe) {
         this.project = project;
-        this.alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
+        this.clock = clock;
+        this.listeningProbe = listeningProbe;
+        this.alarm = alarm == null ? new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this) : alarm;
         scheduleNextPoll();
     }
 
@@ -67,9 +77,12 @@ public final class TestMailServerSessionService implements Disposable {
     }
 
     /** Registers only a process/tab this project actually launched. Never infer ownership from an open port. */
-    public void registerOwned(String host, int port, Runnable stopAction) {
-        if (!disposed) ownedHarnesses.put(host + ":" + port,
-                new OwnedHarness(stopAction, System.currentTimeMillis(), host, port));
+    public synchronized void registerOwned(String host, int port, Runnable stopAction) {
+        if (disposed || project.isDisposed()) {
+            stopAction.run();
+            return;
+        }
+        ownedHarnesses.put(host + ":" + port, new OwnedHarness(stopAction, clock.getAsLong(), host, port));
     }
 
     public void forgetOwned(String host, int port) {
@@ -127,32 +140,35 @@ public final class TestMailServerSessionService implements Disposable {
         scheduleNextPoll();
     }
 
-    private void probeAndUpdateState() {
+    void probeAndUpdateState() {
         Set<String> nowListening = new HashSet<>();
         Module ikasanModule = disposed || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
         if (ikasanModule != null) {
             List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
             for (TestMailServerLinks.Link link : links) {
-                if (TestMailServerSupport.isAlreadyListening(link.host(), link.port())) {
+                if (listeningProbe.test(link.host(), link.port())) {
                     nowListening.add(link.address());
                 }
             }
         }
         for (var entry : ownedHarnesses.entrySet()) {
             OwnedHarness owned = entry.getValue();
-            if (TestMailServerSupport.isAlreadyListening(owned.host(), owned.port())) {
+            if (listeningProbe.test(owned.host(), owned.port())) {
                 nowListening.add(entry.getKey());
             }
         }
-        boolean changed = !nowListening.equals(listeningAddresses);
-        listeningAddresses = nowListening;
-        // A registered harness that no longer listens exited unexpectedly (or its terminal was closed).
-        // Forget it so a later external listener on the same port is never mistaken for Studio-owned.
-        long now = System.currentTimeMillis();
-        ownedHarnesses.entrySet().removeIf(entry -> !nowListening.contains(entry.getKey())
-                && now - entry.getValue().registeredAtMillis() >= STARTUP_GRACE_MS);
-        if (changed) {
-            repaintCanvas();
+        synchronized (this) {
+            if (disposed || project.isDisposed()) return;
+            boolean changed = !nowListening.equals(listeningAddresses);
+            listeningAddresses = nowListening;
+            // A registered harness that no longer listens exited unexpectedly (or its terminal was closed).
+            // Forget it so a later external listener on the same port is never mistaken for Studio-owned.
+            long now = clock.getAsLong();
+            ownedHarnesses.entrySet().removeIf(entry -> !nowListening.contains(entry.getKey())
+                    && now - entry.getValue().registeredAtMillis() >= STARTUP_GRACE_MS);
+            if (changed) {
+                repaintCanvas();
+            }
         }
     }
 
@@ -165,6 +181,7 @@ public final class TestMailServerSessionService implements Disposable {
                 }
             }
         };
+        if (ApplicationManager.getApplication() == null) return;
         if (ApplicationManager.getApplication().isDispatchThread()) {
             repaint.run();
         } else {
@@ -173,7 +190,7 @@ public final class TestMailServerSessionService implements Disposable {
     }
 
     @Override
-    public void dispose() {
+    public synchronized void dispose() {
         disposed = true;
         alarm.cancelAllRequests();
         listeningAddresses = Set.of();
