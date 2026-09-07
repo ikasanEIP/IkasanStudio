@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.viewmodel;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
@@ -14,7 +13,6 @@ import javax.swing.*;
 import java.awt.*;
 
 public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
-    private static final Logger LOG = Logger.getInstance("#IkasanModuleViewHandler");
     private static final int TEST_FTP_SERVER_LEFT_RESERVE = 110;
     public static final int FLOW_X_RIGHT_BUFFER = 260;
     public static final int FLOW_Y_BOTTTOM_BUFFER = 180;
@@ -33,23 +31,13 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     @Override
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
         int currentY = 0;
-        Flow previousFlow = null;
-        LOG.debug("STUDIO: paintComponent invoked");
-        // Module name
-        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(),10,10, StudioUIUtils.getBoldFont());
-        for (Flow ikasanFlow : module.getFlows()) {
-            // remember initialise has already set TestV1,y, but we may be dealing with component move
-            IkasanFlowViewHandler flowViewViewHandler = getOrCreateFlowViewViewHandler(project, ikasanFlow);
-            if (flowViewViewHandler != null) {
-
-                if (currentY == 0) {
-                    currentY = flowViewViewHandler.getTopY();
-                } else {
-                    currentY += gapAfterFlow(previousFlow, g);
-                }
-                currentY = flowViewViewHandler.paintComponent(canvas, g, -1, currentY);
-                previousFlow = ikasanFlow;
-            }
+        StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(), 10, 10, StudioUIUtils.getBoldFont());
+        for (Flow flow : module.getFlows()) {
+            IkasanFlowViewHandler handler = getOrCreateFlowViewViewHandler(project, flow);
+            if (handler == null) continue;
+            // Painting also positions external endpoints used by cross-flow connectors.
+            handler.paintLaidOutComponent(canvas, g);
+            currentY = handler.getBottomY();
         }
         return currentY;
     }
@@ -155,9 +143,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
      * Perform any tidy up during deletion of this element
      */
     @Override
-    public void dispose() {
-
-    }
+    public void dispose() { }
 
     @Override
     public void setWidth(int width) {

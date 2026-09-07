@@ -21,6 +21,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Path2D;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
@@ -33,9 +35,54 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
-    // The icon IntelliJ's own Run/Debug toolbar button swaps to once its configuration is already running -
-    // see setRunModuleState/setDebugModuleState, which replicate that same "Restart" affordance here.
-    private static final Icon RESTART_ICON = AllIcons.Actions.Restart;
+    // The icon the Run/Debug buttons swap to once that mode is already running - see setRunModuleState/
+    // setDebugModuleState, which replicate IntelliJ's own toolbar "Restart" affordance here. Deliberately a
+    // custom-painted icon rather than AllIcons.Actions.Restart: that platform icon bakes in a grey "stop"
+    // square alongside its green arrow (see its own SVG source), which reads as mostly disabled-grey at
+    // toolbar-button size. This project already hit and fixed the same class of problem for the canvas's flow
+    // transport-control buttons - see FlowTransportAction's fixed-colour comment: a clickable control needs to
+    // read as unambiguously coloured. RestartIcon paints itself straight from the button's own enabled state,
+    // so it never depends on IconLoader's disabled-icon derivation of a baked two-tone icon.
+    private static final Icon RESTART_ICON = new RestartIcon();
+
+    /** See the RESTART_ICON field comment for why this exists instead of AllIcons.Actions.Restart. */
+    private static final class RestartIcon implements Icon {
+        private static final int SIZE = 16;
+
+        @Override
+        public void paintIcon(Component component, Graphics g, int x, int y) {
+            Graphics2D g2d = (Graphics2D) g.create();
+            try {
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.translate(x, y);
+                g2d.setColor(component.isEnabled() ? ThemeAwareColors.getSuccessColor() : ThemeAwareColors.getDisabledTextColor());
+                g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+                double cx = 8, cy = 8.5, radius = 5.2, startDeg = -50, extentDeg = 300;
+                g2d.draw(new Arc2D.Double(cx - radius, cy - radius, radius * 2, radius * 2, startDeg, extentDeg, Arc2D.OPEN));
+
+                // Arrowhead at the trailing end of the arc, pointing in the arc's direction of travel.
+                double endRad = Math.toRadians(startDeg + extentDeg);
+                double tipX = cx + radius * Math.cos(endRad);
+                double tipY = cy - radius * Math.sin(endRad);
+                double travelRad = endRad - Math.PI / 2;
+                double back = 3.6, half = 2.4;
+                double baseX = tipX - back * Math.cos(travelRad);
+                double baseY = tipY + back * Math.sin(travelRad);
+                double normal = travelRad + Math.PI / 2;
+                Path2D.Double arrow = new Path2D.Double();
+                arrow.moveTo(tipX, tipY);
+                arrow.lineTo(baseX + half * Math.cos(normal), baseY - half * Math.sin(normal));
+                arrow.lineTo(baseX - half * Math.cos(normal), baseY + half * Math.sin(normal));
+                arrow.closePath();
+                g2d.fill(arrow);
+            } finally {
+                g2d.dispose();
+            }
+        }
+
+        @Override public int getIconWidth() { return SIZE; }
+        @Override public int getIconHeight() { return SIZE; }
+    }
     // Independent, always-enabled Start/Stop buttons rather than one context-sensitive toggle - see
     // HarnessControlActions javadoc for why (a toggle that infers "already running" can end up hiding the one
     // option - Stop - the developer actually needs, if that inference is wrong).
@@ -194,8 +241,15 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     public void setRunModuleState(boolean enabled, boolean running) {
         runModuleButton.setEnabled(enabled);
-        runModuleButton.setIcon(running ? RESTART_ICON : AllIcons.Actions.Execute);
-        runModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(runModuleButton.getIcon()));
+        if (running) {
+            // RESTART_ICON paints itself from the button's own isEnabled() at paint time (see its class
+            // comment), so the same instance covers both the icon and disabledIcon slots correctly.
+            runModuleButton.setIcon(RESTART_ICON);
+            runModuleButton.setDisabledIcon(RESTART_ICON);
+        } else {
+            runModuleButton.setIcon(AllIcons.Actions.Execute);
+            runModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Execute));
+        }
         runModuleButton.setToolTipText(running
                 ? StudioBundle.message("tooltip.RestartThisModuleUsingTheSelectedRunConfiguration")
                 : StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
@@ -209,8 +263,13 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     public void setDebugModuleState(boolean enabled, boolean running) {
         debugModuleButton.setEnabled(enabled);
-        debugModuleButton.setIcon(running ? RESTART_ICON : AllIcons.Actions.StartDebugger);
-        debugModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(debugModuleButton.getIcon()));
+        if (running) {
+            debugModuleButton.setIcon(RESTART_ICON);
+            debugModuleButton.setDisabledIcon(RESTART_ICON);
+        } else {
+            debugModuleButton.setIcon(AllIcons.Actions.StartDebugger);
+            debugModuleButton.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.StartDebugger));
+        }
         debugModuleButton.setToolTipText(running
                 ? StudioBundle.message("tooltip.RestartThisModuleInDebugModeUsingTheSelectedRunConfiguration")
                 : StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));

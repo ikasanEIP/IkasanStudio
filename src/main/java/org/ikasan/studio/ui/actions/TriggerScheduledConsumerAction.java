@@ -26,8 +26,10 @@ import java.net.http.HttpResponse;
  * Fires a time-event (Quartz-scheduled) Consumer's flow immediately, via the same /rest/studio/inject/{flowName}
  * endpoint SendTestMessageAction uses, but without prompting for a payload. Unlike a file/message-based
  * Consumer, a plain Scheduled Consumer's real MessageProvider hands back a Quartz JobExecutionContext, not
- * text - there's no meaningful "payload" to simulate, so this just triggers the flow now rather than waiting
- * for the next cron fire. See ComponentMeta#isTimeEventConsumer().
+ * text - there's no meaningful "payload" to simulate. Server-side, StudioInjectController recognises any
+ * org.ikasan.scheduler.ScheduledComponent consumer and calls Scheduler.triggerJob() on its real JobDetail
+ * instead of building a synthetic event, so this genuinely fires the flow now (same production code path)
+ * rather than waiting for the next cron fire. See ComponentMeta#isTimeEventConsumer().
  */
 public class TriggerScheduledConsumerAction implements ActionListener {
     private static final Logger LOG = Logger.getInstance("#TriggerScheduledConsumerAction");

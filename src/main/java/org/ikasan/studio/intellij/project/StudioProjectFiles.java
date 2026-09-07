@@ -571,18 +571,40 @@ public class StudioProjectFiles {
         }
     }
 
+    private record GeneratedContentFingerprint(String rendered, String persisted) { }
+    private static final com.intellij.openapi.util.Key<GeneratedContentFingerprint> GENERATED_CONTENT =
+            com.intellij.openapi.util.Key.create("ikasan.studio.generatedContent");
+
+    private static String contentHash(byte[] bytes) {
+        try { return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes)); }
+        catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+    }
+
+    /** Formatting changes generated text. Compare both the last template and current disk content before reusing it. */
+    static boolean canReuseGeneratedContent(VirtualFile file, String rendered, byte[] persisted) {
+        GeneratedContentFingerprint previous = file.getUserData(GENERATED_CONTENT);
+        Document document = FileDocumentManager.getInstance().getCachedDocument(file);
+        return previous != null && (document == null || !FileDocumentManager.getInstance().isDocumentUnsaved(document))
+                && previous.rendered().equals(contentHash(rendered.getBytes(StandardCharsets.UTF_8)))
+                && previous.persisted().equals(contentHash(persisted));
+    }
+
     private static void writeContentAndFormat(Project project, VirtualFile file, String fileContent,
                                               final AbstractViewHandlerIntellij componentViewHandler) {
         try {
             if (fileContent != null) {
                 FileDocumentManager documentManager = FileDocumentManager.getInstance();
                 Document document = documentManager.getCachedDocument(file);
+                // Resolve attributes from our previous save before making this document dirty again.
+                if (document != null && !documentManager.isDocumentUnsaved(document)) file.refresh(false, false);
+                byte[] persistedContent = file.contentsToByteArray();
                 String existingContent = document != null
                         ? document.getText()
                         : new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
 
                 String documentContent = com.intellij.openapi.util.text.StringUtil.convertLineSeparators(fileContent);
-                if ((document != null ? documentContent : fileContent).equals(existingContent)) {
+                if ((document != null ? documentContent : fileContent).equals(existingContent)
+                        || canReuseGeneratedContent(file, fileContent, persistedContent)) {
                     // Avoid manufacturing PSI/document changes for artifacts whose rendered output did
                     // not change. Besides saving indexing and formatting work, this keeps generated-file
                     // noise out of IntelliJ's undo infrastructure.
@@ -614,6 +636,9 @@ public class StudioProjectFiles {
                     });
                 }
 
+                GeneratedContentFingerprint fingerprint = new GeneratedContentFingerprint(
+                        contentHash(fileContent.getBytes(StandardCharsets.UTF_8)), contentHash(file.contentsToByteArray()));
+                file.putUserData(GENERATED_CONTENT, fingerprint);
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
                 DumbService.getInstance(project).runWhenSmart(() -> {
@@ -636,7 +661,17 @@ public class StudioProjectFiles {
                             // a "File Cache Conflict" popup asking the user to reconcile changes Studio itself
                             // made to both sides.
                             if (psiDocument != null) {
+                                PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(psiDocument);
                                 documentManager.saveDocument(psiDocument);
+                            }
+                        }
+                        if (file.getUserData(GENERATED_CONTENT) == fingerprint) {
+                            try {
+                                file.putUserData(GENERATED_CONTENT, new GeneratedContentFingerprint(
+                                        fingerprint.rendered(), contentHash(file.contentsToByteArray())));
+                            } catch (IOException failure) {
+                                file.putUserData(GENERATED_CONTENT, null);
+                                throw new StudioRuntimeException("Could not verify generated file " + file.getPath(), failure);
                             }
                         }
                         if (componentViewHandler != null) {

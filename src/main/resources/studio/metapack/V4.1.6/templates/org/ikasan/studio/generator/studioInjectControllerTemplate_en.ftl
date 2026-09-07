@@ -26,6 +26,13 @@ org.ikasan.spec.module.Module myModule;
 @org.springframework.beans.factory.annotation.Qualifier("transactionManager")
 org.springframework.transaction.PlatformTransactionManager studioTransactionManager;
 
+// Optional for the same reason as studioTransactionManager above: a generated file must never be the reason
+// the module fails to start, even though Ikasan's scheduler-service-conf.xml (pulled in unconditionally via
+// IkasanBaseAutoConfiguration) normally publishes exactly one plain org.quartz.Scheduler bean regardless of
+// whether the module has any Scheduled/FTP/SFTP/Local File Consumer to trigger.
+@org.springframework.beans.factory.annotation.Autowired(required = false)
+org.quartz.Scheduler studioScheduler;
+
 @org.springframework.web.bind.annotation.GetMapping("/flows")
 public java.util.List<String> listFlows() {
     java.util.List<String> names = new java.util.ArrayList<>();
@@ -48,15 +55,43 @@ public org.springframework.http.ResponseEntity<?> inject(
     if (rawFlow == null) {
         return org.springframework.http.ResponseEntity.status(404).body("No such flow: " + flowName);
     }
-    if (request.getPayload() == null) {
-        return org.springframework.http.ResponseEntity.badRequest().body("payload is required");
-    }
     org.ikasan.spec.flow.Flow flow = (org.ikasan.spec.flow.Flow) rawFlow;
     try {
         org.ikasan.spec.flow.FlowElement consumerElement = flow.getFlowConfiguration().getConsumerFlowElement();
-        org.ikasan.spec.component.endpoint.Consumer consumer = (org.ikasan.spec.component.endpoint.Consumer) consumerElement.getFlowComponent();
-        org.ikasan.spec.event.EventFactory eventFactory = (org.ikasan.spec.event.EventFactory) consumer.getEventFactory();
+        Object rawConsumer = consumerElement.getFlowComponent();
         String identifier = request.getIdentifier() != null ? request.getIdentifier() : java.util.UUID.randomUUID().toString();
+
+        // Scheduled/FTP/SFTP/Local File Consumers are all backed by Ikasan's Quartz ScheduledConsumer - they're
+        // driven by a cron Trigger firing a real org.quartz.JobExecutionContext, not a message with a payload,
+        // so (unlike every other Consumer type below) there is no payload shape to synthesize. Fire the real
+        // Quartz job instead: this runs the actual production code path (ScheduledConsumer.execute(
+        // JobExecutionContext) -> its own EventFactory -> flow.invoke(...)) exactly as if the cron fired early,
+        // rather than fabricating a fake event that the flow's own components were never generated to accept.
+        if (rawConsumer instanceof org.ikasan.scheduler.ScheduledComponent) {
+            // Not "instanceof ScheduledComponent<?> scheduledComponent" - the V3.3.9 metapack shares this
+            // template's logic and targets JDK11, where pattern-matching instanceof isn't available, so a
+            // plain instanceof check plus an explicit cast is used instead for both metapacks.
+            if (studioScheduler == null) {
+                return org.springframework.http.ResponseEntity.status(500).body("No Quartz Scheduler bean available to trigger this consumer");
+            }
+            org.ikasan.scheduler.ScheduledComponent<?> scheduledComponent = (org.ikasan.scheduler.ScheduledComponent<?>) rawConsumer;
+            org.quartz.JobDetail jobDetail = (org.quartz.JobDetail) scheduledComponent.getJobDetail();
+            studioScheduler.triggerJob(jobDetail.getKey());
+            // Quartz fires the job asynchronously on its own worker thread, so this returns as soon as the
+            // trigger is queued, not once the flow has actually run - "identifier" here is just a correlation
+            // token for the IDE's confirmation popup, not the real event id (the flow's own EventFactory mints
+            // that only once the job actually fires).
+            java.util.Map<String, String> triggeredResponseBody = new java.util.HashMap<>();
+            triggeredResponseBody.put("status", "triggered");
+            triggeredResponseBody.put("identifier", identifier);
+            return org.springframework.http.ResponseEntity.ok(triggeredResponseBody);
+        }
+
+        if (request.getPayload() == null) {
+            return org.springframework.http.ResponseEntity.badRequest().body("payload is required");
+        }
+        org.ikasan.spec.component.endpoint.Consumer consumer = (org.ikasan.spec.component.endpoint.Consumer) rawConsumer;
+        org.ikasan.spec.event.EventFactory eventFactory = (org.ikasan.spec.event.EventFactory) consumer.getEventFactory();
         // If the user picked a payload class in the dialog (or Send Test Message built one itself, e.g. the
         // file picker for a file-list Consumer - see SendTestMessageAction), the payload text is JSON to
         // deserialize rather than the raw string. constructFromCanonical accepts both a plain class name (a

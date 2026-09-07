@@ -71,7 +71,7 @@ public class GeneratedProjectSynchronizer {
         if (project.isDisposed()) return CompletableFuture.failedFuture(new java.util.concurrent.CancellationException("Project closed"));
         AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
-        long revision = uiContext.beginGenerationRequest(completion);
+        long revision = uiContext.beginGenerationRequest(completion, request);
         if (revision < 0) {
             completion.completeExceptionally(new IllegalStateException("A version migration is in progress."));
             return completion;
@@ -94,7 +94,7 @@ public class GeneratedProjectSynchronizer {
             return completion;
         }
         // A newer request replaces pending work, so retain changes from every earlier scope.
-        GenerationRequest effectiveRequest = uiContext.hasOverlappingGenerations() ? GenerationRequest.full() : request;
+        GenerationRequest effectiveRequest = uiContext.getPendingGenerationRequest();
         Module module = uiContext.getIkasanModule();
 
         try {

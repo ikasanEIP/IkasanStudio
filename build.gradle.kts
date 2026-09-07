@@ -341,3 +341,33 @@ intellijPlatformTesting {
         }
     }
 }
+
+// Opt-in measurements, separate from correctness tests and interactive harnesses.
+val performanceSource = sourceSets.create("performance") {
+    compileClasspath += sourceSets["main"].output + sourceSets["test"].output + configurations["testCompileClasspath"]
+    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
+}
+tasks.register<Test>("performanceTest") {
+    group = "verification"
+    description = "Measures a repeatable large Studio project and writes raw timings and a reusable model."
+    testClassesDirs = performanceSource.output.classesDirs
+    val performanceOutput = objects.fileCollection().from(performanceSource.output)
+    val limitedProcessors = providers.gradleProperty("performanceProcessors").orNull
+    dependsOn("prepareTest")
+    useJUnitPlatform { includeEngines("junit-vintage") }
+    outputs.upToDateWhen { false }
+    for ((key, fallback) in mapOf("Flows" to "40", "Components" to "12", "Samples" to "7", "Warmups" to "2", "PollDelayMs" to "250")) {
+        systemProperty("studio.performance.$key", providers.gradleProperty("performance$key").getOrElse(fallback))
+    }
+    systemProperty("studio.performance.output", layout.buildDirectory.dir("reports/performance").get().asFile.absolutePath)
+    notCompatibleWithConfigurationCache("Copies the IntelliJ test runtime and sandbox arguments")
+    doFirst {
+        val benchmark = this as Test
+        val standard = project.tasks.named("test", Test::class.java).get()
+        benchmark.classpath = standard.classpath + performanceOutput
+        benchmark.setJvmArgs(standard.jvmArgs + standard.jvmArgumentProviders.flatMap { it.asArguments() })
+        if (limitedProcessors != null) benchmark.jvmArgs("-XX:ActiveProcessorCount=$limitedProcessors")
+        benchmark.systemProperties.putAll(standard.systemProperties)
+        benchmark.environment.putAll(standard.environment)
+    }
+}

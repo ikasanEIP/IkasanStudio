@@ -29,6 +29,20 @@ public record GenerationRequest(Scope scope, Flow affectedFlow) {
         }
     }
 
+    /** Union of pending work; a properties burst must not turn into a full-project rebuild. */
+    public GenerationRequest merge(GenerationRequest other) {
+        Objects.requireNonNull(other, "other");
+        if (scope == Scope.FULL || other.scope == Scope.FULL) return full();
+        if (scope == Scope.MODEL_ONLY) return other;
+        if (other.scope == Scope.MODEL_ONLY) return this;
+        if (scope == Scope.PROPERTIES) return other;
+        if (other.scope == Scope.PROPERTIES) return this;
+        if (affectedFlow != null && other.affectedFlow != null && affectedFlow != other.affectedFlow) return full();
+        Flow flow = affectedFlow != null ? affectedFlow : other.affectedFlow;
+        return scope == Scope.MODULE_STRUCTURE || other.scope == Scope.MODULE_STRUCTURE
+                ? moduleStructure(flow) : flow(flow);
+    }
+
     public static GenerationRequest modelOnly() {
         return new GenerationRequest(Scope.MODEL_ONLY, null);
     }

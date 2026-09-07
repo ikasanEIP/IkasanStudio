@@ -102,7 +102,8 @@ final class GenerationTransactionManager {
                 originals.add(new Original(artifact.relativePath(), oldBytes));
                 String committedContent = preserveLineEndings(oldBytes, artifact.content());
                 if (oldBytes == null) created++;
-                else if (committedContent.equals(new String(oldBytes, StandardCharsets.UTF_8))) unchanged++;
+                else if (committedContent.equals(new String(oldBytes, StandardCharsets.UTF_8))
+                        || StudioProjectFiles.canReuseGeneratedContent(existing, committedContent, oldBytes)) unchanged++;
                 else updated++;
                 failureInjector.beforeWrite(artifact.relativePath(), originals.size() - 1);
                 StudioProjectFiles.createFileWithDirectories(project, "/" + artifact.relativePath(),

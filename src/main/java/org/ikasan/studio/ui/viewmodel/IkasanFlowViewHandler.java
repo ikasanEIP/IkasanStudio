@@ -175,6 +175,11 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         // This will also call initialise for route(s)
         initialiseDimensions(g, newLeftX, newTopY,-1, -1);
 
+        return paintLaidOutComponent(canvas, g);
+    }
+
+    /** Module layout has already placed every flow; cached repaint must not repeat it. */
+    int paintLaidOutComponent(JPanel canvas, Graphics g) {
         // Draw flow rectangle
         paintFlowBox(canvas, g);
 

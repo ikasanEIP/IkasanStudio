@@ -1,0 +1,104 @@
+{
+  "projectDirectory" : "project-40x12-1788781903648",
+  "timestampUtc" : "2026-09-07T11:51:43.650534432Z",
+  "environment" : {
+    "arch" : "amd64",
+    "processors" : 2,
+    "os" : "Linux",
+    "vm" : "OpenJDK 64-Bit Server VM",
+    "maxHeapBytes" : 2147483648,
+    "java" : "17.0.12"
+  },
+  "fixture" : {
+    "components" : 480,
+    "samples" : 7,
+    "metaPack" : "V3.3.9",
+    "componentsPerFlow" : 12,
+    "warmups" : 2,
+    "flows" : 40
+  },
+  "modelBytes" : 251707,
+  "viewport" : {
+    "uiScale" : 1.0,
+    "height" : 900,
+    "width" : 1440
+  },
+  "polling.simulatedServerDelayMs" : 1000,
+  "memory.beforeOpen.usedHeapBytes" : 169647736,
+  "memory.open.usedHeapBytes" : 179084920,
+  "memory.afterClose" : {
+    "propertiesReachable" : false,
+    "canvasReachable" : false,
+    "editorReachable" : false,
+    "modelRetainedByDesign" : true,
+    "usedHeapBytes" : 170976456,
+    "contextCanvasCleared" : true
+  },
+  "timings" : {
+    "model.load" : {
+      "samplesMs" : [ 7.618041, 7.62821, 9.724532, 8.6941, 8.656649, 7.610567, 7.662435 ],
+      "p95Ms" : 9.724532,
+      "p50Ms" : 7.662435
+    },
+    "model.save.atomicWithBackup" : {
+      "samplesMs" : [ 22.684134, 42.449716, 27.911147, 16.055738, 18.239575, 18.271465, 14.003339 ],
+      "p95Ms" : 42.449716,
+      "p50Ms" : 18.271465
+    },
+    "generation.templates" : {
+      "samplesMs" : [ 217.112196, 180.743835, 167.854025, 164.990397, 159.619993, 162.422346, 157.171977 ],
+      "p95Ms" : 217.112196,
+      "p50Ms" : 164.990397
+    },
+    "editor.open.readyProject" : {
+      "samplesMs" : [ 26.634891, 24.39004, 22.778632, 23.205407, 20.915319, 24.987065, 17.234831 ],
+      "p95Ms" : 26.634891,
+      "p50Ms" : 23.205407
+    },
+    "canvas.layoutAndPaint" : {
+      "samplesMs" : [ 90.558479, 80.312744, 48.683257, 43.59765, 41.504233, 48.322277, 42.116157 ],
+      "p95Ms" : 90.558479,
+      "p50Ms" : 48.322277
+    },
+    "canvas.repaint.cachedLayout" : {
+      "samplesMs" : [ 39.783399, 32.521259, 34.615927, 32.300983, 42.839571, 48.326765, 35.16347 ],
+      "p95Ms" : 48.326765,
+      "p50Ms" : 35.16347
+    },
+    "properties.selectionChange" : {
+      "samplesMs" : [ 8.527516, 2.130807, 17.201508, 12.559116, 8.064193, 1.918096, 13.923178 ],
+      "p95Ms" : 17.201508,
+      "p50Ms" : 8.527516
+    },
+    "drag.hoverValidation.lastFlow" : {
+      "samplesMs" : [ 0.507086, 0.439869, 0.311197, 0.223762, 0.134333, 0.133, 0.141387 ],
+      "p95Ms" : 0.507086,
+      "p50Ms" : 0.223762
+    },
+    "drag.moveGesture" : {
+      "samplesMs" : [ 0.805088, 0.736288, 0.757448, 0.729936, 0.716991, 0.740947, 0.773118 ],
+      "p95Ms" : 0.805088,
+      "p50Ms" : 0.740947
+    },
+    "generation.firstCommit" : {
+      "samplesMs" : [ 10231.964715 ],
+      "p95Ms" : 10231.964715,
+      "p50Ms" : 10231.964715
+    },
+    "generation.regenerate.unchanged" : {
+      "samplesMs" : [ 493.660429, 340.091684, 412.186074, 511.35735, 420.565872, 444.121449, 579.99271 ],
+      "p95Ms" : 579.99271,
+      "p50Ms" : 444.121449
+    },
+    "polling.slowServer.wall" : {
+      "samplesMs" : [ 1042.774256, 1043.923031, 1044.470452, 1043.138562, 1043.030758, 1042.491, 1044.802277 ],
+      "p95Ms" : 1044.802277,
+      "p50Ms" : 1043.138562
+    },
+    "polling.edtHeartbeat" : {
+      "samplesMs" : [ 1.108029, 1.113439, 1.100685, 1.099412, 1.054137, 1.098901, 1.101566 ],
+      "p95Ms" : 1.113439,
+      "p50Ms" : 1.100685
+    }
+  }
+}

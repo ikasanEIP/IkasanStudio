@@ -1,0 +1,87 @@
+{
+  "environment" : {
+    "maxHeapBytes" : 2147483648,
+    "vm" : "OpenJDK 64-Bit Server VM",
+    "os" : "Linux",
+    "processors" : 16,
+    "arch" : "amd64",
+    "java" : "17.0.12"
+  },
+  "fixture" : {
+    "warmups" : 2,
+    "componentsPerFlow" : 12,
+    "metaPack" : "V3.3.9",
+    "samples" : 7,
+    "components" : 480,
+    "flows" : 40
+  },
+  "modelBytes" : 254467,
+  "polling.simulatedServerDelayMs" : 250,
+  "memory.beforeOpen.usedHeapBytes" : 114839104,
+  "memory.open.usedHeapBytes" : 115887680,
+  "memory.afterClose" : {
+    "contextCanvasCleared" : true,
+    "usedHeapBytes" : 113733504,
+    "modelRetainedByDesign" : true,
+    "editorReachable" : false,
+    "canvasReachable" : false,
+    "propertiesReachable" : false
+  },
+  "timings" : {
+    "model.load" : {
+      "p95Ms" : 15.223916,
+      "samplesMs" : [ 8.54372, 8.484257, 15.223916, 8.654489, 8.671111, 8.522088, 8.534162 ],
+      "p50Ms" : 8.54372
+    },
+    "model.save.atomicWithBackup" : {
+      "p95Ms" : 20.627091,
+      "samplesMs" : [ 19.258916, 20.627091, 19.211326, 16.000439, 15.973978, 15.991732, 17.043726 ],
+      "p50Ms" : 17.043726
+    },
+    "generation.templates" : {
+      "p95Ms" : 191.134409,
+      "samplesMs" : [ 191.134409, 185.390552, 162.705599, 147.252588, 136.201364, 137.824181, 131.64797 ],
+      "p50Ms" : 147.252588
+    },
+    "editor.open.readyProject" : {
+      "p95Ms" : 23.678518,
+      "samplesMs" : [ 23.678518, 20.008148, 19.878172, 18.449824, 18.937478, 16.968805, 17.07641 ],
+      "p50Ms" : 18.937478
+    },
+    "canvas.layoutAndPaint" : {
+      "p95Ms" : 80.077819,
+      "samplesMs" : [ 54.713866, 53.12887, 76.11743, 80.077819, 71.548587, 71.437638, 60.123205 ],
+      "p50Ms" : 71.437638
+    },
+    "canvas.repaint.cachedLayout" : {
+      "p95Ms" : 52.749693,
+      "samplesMs" : [ 44.0253, 42.846585, 52.749693, 42.605427, 41.438154, 40.807509, 40.878463 ],
+      "p50Ms" : 42.605427
+    },
+    "properties.selectionChange" : {
+      "p95Ms" : 15.155487,
+      "samplesMs" : [ 7.472159, 2.301434, 15.155487, 11.336867, 7.222676, 1.862271, 13.970931 ],
+      "p50Ms" : 7.472159
+    },
+    "drag.hoverValidation.lastFlow" : {
+      "p95Ms" : 0.31104,
+      "samplesMs" : [ 0.31104, 0.240376, 0.206492, 0.168098, 0.160123, 0.152469, 0.153231 ],
+      "p50Ms" : 0.168098
+    },
+    "drag.moveGesture" : {
+      "p95Ms" : 1.145342,
+      "samplesMs" : [ 1.133319, 1.145342, 1.01798, 1.032668, 1.062725, 1.02834, 0.973015 ],
+      "p50Ms" : 1.032668
+    },
+    "polling.slowServer.wall" : {
+      "p95Ms" : 294.450435,
+      "samplesMs" : [ 293.572103, 293.131998, 294.450435, 292.886221, 293.252566, 293.571223, 293.69844 ],
+      "p50Ms" : 293.571223
+    },
+    "polling.edtHeartbeat" : {
+      "p95Ms" : 1.132438,
+      "samplesMs" : [ 1.10716, 1.109444, 1.121837, 1.116517, 1.132438, 1.105095, 1.101729 ],
+      "p50Ms" : 1.109444
+    }
+  }
+}

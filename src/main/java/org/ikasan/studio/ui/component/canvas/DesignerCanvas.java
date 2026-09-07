@@ -1646,8 +1646,11 @@ public class DesignerCanvas extends JPanel {
                 }
                 int newWidth = moduleViewHandler.getWidth();
                 int newHeight = moduleViewHandler.getHeight();
-                this.setPreferredSize(JBUI.size(newWidth, newHeight));
-                revalidate();
+                Dimension preferred = JBUI.size(newWidth, newHeight);
+                if (!preferred.equals(getPreferredSize())) {
+                    setPreferredSize(preferred);
+                    revalidate();
+                }
                 super.paintComponent(g);
                 moduleViewHandler.paintComponent(this, g, -1, -1);
                 paintDraggedComponentGhost(g);

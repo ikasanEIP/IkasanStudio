@@ -145,6 +145,33 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         } finally { pool.shutdownNow(); }
     }
 
+    public void testFormattedGenerationIsReusedOnlyWhileTemplateAndDiskStillMatch() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        String path = "generated/src/main/java/example/Cached.java";
+        String source = "package example; public class Cached { public int value(){return 1;} }";
+        StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
+        VirtualFile file = base.findFileByRelativePath(path);
+        assertNotNull(file);
+        long initialStamp = file.getModificationStamp();
+        String formatted = read(base, path);
+        assertFalse("Fixture must actually be formatted", source.equals(formatted));
+        GenerationTransactionManager.begin();
+        StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
+        assertEquals(1, GenerationTransactionManager.commit(myProject).unchanged());
+        assertEquals(initialStamp, file.getModificationStamp());
+        assertEquals(formatted, read(base, path));
+
+        com.intellij.openapi.application.WriteAction.run(() -> {
+            try { file.setBinaryContent((formatted + "\n// external generated-file edit\n").getBytes(StandardCharsets.UTF_8)); }
+            catch (java.io.IOException e) { throw new RuntimeException(e); }
+        });
+        StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
+        assertFalse(read(base, path).contains("external generated-file edit"));
+        StudioProjectFiles.createFileWithDirectories(myProject, path, source.replace("return 1", "return 2"), null);
+        assertTrue(read(base, path).contains("return 2"));
+    }
+
     private static StudioRuntimeException expectGenerationFailure(Runnable action) {
         try {
             action.run();

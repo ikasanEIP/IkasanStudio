@@ -58,6 +58,7 @@ public final class UiContext {
     private boolean migrationActive;
     private int activeGenerations;
     private long generationRevision;
+    private org.ikasan.studio.core.generation.GenerationRequest pendingGenerationRequest;
     private java.util.concurrent.CompletableFuture<Void> latestGeneration = java.util.concurrent.CompletableFuture.completedFuture(null);
 
     public synchronized boolean tryBeginMigration() {
@@ -71,12 +72,17 @@ public final class UiContext {
         return beginGenerationRequest(new java.util.concurrent.CompletableFuture<>()) >= 0;
     }
     public synchronized long beginGenerationRequest(java.util.concurrent.CompletableFuture<Void> completion) {
+        return beginGenerationRequest(completion, org.ikasan.studio.core.generation.GenerationRequest.full());
+    }
+    public synchronized long beginGenerationRequest(java.util.concurrent.CompletableFuture<Void> completion,
+            org.ikasan.studio.core.generation.GenerationRequest request) {
         if (migrationActive) return -1;
+        pendingGenerationRequest = activeGenerations == 0 ? request : pendingGenerationRequest.merge(request);
         activeGenerations++;
         latestGeneration = completion;
         return ++generationRevision;
     }
-    public synchronized boolean hasOverlappingGenerations() { return activeGenerations > 1; }
+    public synchronized org.ikasan.studio.core.generation.GenerationRequest getPendingGenerationRequest() { return pendingGenerationRequest; }
     public synchronized boolean isLatestGeneration(long revision) { return generationRevision == revision; }
     public synchronized java.util.concurrent.CompletableFuture<Void> getLatestGeneration() { return latestGeneration; }
     public synchronized void endGeneration() { activeGenerations--; }
