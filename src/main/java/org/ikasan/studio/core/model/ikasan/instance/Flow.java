@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import org.ikasan.studio.core.model.command.FlowElementRemoval;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,7 +58,7 @@ public class Flow extends BasicElement {
         super(ComponentLibrary.getFLowComponentMeta(metapackVersion), null);
         if (consumer != null) {
             if (!consumer.getComponentMeta().isConsumer()) {
-                LOG.error("STUDIO: ERROR : Tried to set consumer on " + this + " with a flowElement that is not a consumer " + consumer + ", this will be ignored");
+                LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, getIdentity(), null));
             } else {
                 this.consumer = consumer;
             }
@@ -326,7 +328,7 @@ public class Flow extends BasicElement {
      */
     public Flow cloneToVersion(String metapackVersion) throws StudioBuildException {
         if (metapackVersion == null || metapackVersion.isBlank()) {
-            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return null;
         }
         Flow clonedFlow = new Flow(metapackVersion);

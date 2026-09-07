@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.generator;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -27,8 +29,8 @@ public class FreemarkerUtils {
             // Would have thought we remove \r in Freemarker but it does not look like it.
             output = writer.toString().replace("\r", "");
         } catch (IOException | TemplateException e) {
-            LOG.warn("STUDIO: SERIOUS: Problems encountered trying to generate template " + templateName + " exception message " + e.getMessage(), e);
-            throw new StudioGeneratorException("STUDIO: Serious: Problems encountered trying to generate template " + templateName + ", please check the logs");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, e, null, null, null));
+            throw new StudioGeneratorException("STUDIO: Serious: Problems encountered trying to generate template " + templateName + "; collect Studio diagnostics for error types and call sites", e);
         }
         return output;
     }

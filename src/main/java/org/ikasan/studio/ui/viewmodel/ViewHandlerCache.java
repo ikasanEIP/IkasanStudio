@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
@@ -40,7 +42,7 @@ public final class ViewHandlerCache {
         }
         AbstractViewHandlerIntellij created = create(component);
         if (created == null) {
-            LOG.error("STUDIO: View handler returned null for component " + component);
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return null;
         }
         handlers.put(component, created);

@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.project;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
@@ -121,7 +123,7 @@ public class GeneratedProjectSynchronizer {
             // ProjectManager.getInstance().reloadProject(uiContext.getProject(project))
 
             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
-            LOG.debug(uiContext.getIkasanModule().toString());
+            LOG.info(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_STARTED, null, uiContext.getIkasanModule().getIdentity(), null, null));
 
             // 2. Generate only the artifacts affected by this request. Individual writes also
             // skip unchanged content before it enters PSI or code formatting.
@@ -177,7 +179,7 @@ public class GeneratedProjectSynchronizer {
                         GenerationTransactionManager.Summary summary = GenerationTransactionManager.commit(project);
                         String summaryMessage = "Generated project updated: " + summary.created() + " created, "
                                 + summary.updated() + " updated, " + summary.unchanged() + " unchanged";
-                        LOG.info("STUDIO: " + summaryMessage);
+                        LOG.info(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_COMPLETED, null, uiContext.getIkasanModule().getIdentity(), null, null));
                         StatusBar.Info.set(summaryMessage, project);
                         if (pomDependenciesHaveChanged.get()) {
                             MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
@@ -206,7 +208,7 @@ public class GeneratedProjectSynchronizer {
                     // completely silent: no exception surfaces anywhere, no file gets written, and it looks
                     // to the user exactly like nothing happened.
                     if (!project.isDisposed() && !(failure instanceof com.intellij.openapi.progress.ProcessCanceledException)) {
-                    LOG.warn("STUDIO: Source generation failed while applying model changes to disk", failure);
+                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, uiContext.getIkasanModule() == null ? null : uiContext.getIkasanModule().getIdentity(), null, null));
                     displayIdeaWarnMessage(project, "Generation failed. No further project files will be changed. "
                             + failure.getMessage());
                     }
@@ -217,7 +219,7 @@ public class GeneratedProjectSynchronizer {
                 // See the sibling catch above - this future's exceptional completion is not observed by any
                 // caller, so this is the only place this failure is ever recorded.
                 if (!project.isDisposed() && !(failure instanceof com.intellij.openapi.progress.ProcessCanceledException))
-                    LOG.warn("STUDIO: Source generation failed before reaching the write action", failure);
+                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, null, null, null));
                 completion.completeExceptionally(failure);
             }
         });
@@ -286,7 +288,7 @@ public class GeneratedProjectSynchronizer {
                 StudioBundle.message("action.GenerateJSONFromFlowDiagram"),
                 "Undo group ID");
         } catch (RuntimeException failure) {
-            LOG.warn("STUDIO: model.json save was refused; the existing file was preserved", failure);
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.MODEL_SAVE_FAILED, failure, null, null, null));
             displayIdeaWarnMessage(project, "Ikasan Studio could not safely save model.json. " +
                     failure.getMessage() + " Source generation was cancelled.");
             throw failure;

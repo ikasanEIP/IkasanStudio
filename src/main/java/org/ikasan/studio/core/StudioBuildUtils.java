@@ -344,7 +344,6 @@ public class StudioBuildUtils {
             entry.setValue(value);
         }
 
-        System.out.println(map);
         return map;
     }
 

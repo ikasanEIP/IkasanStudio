@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.project;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
@@ -157,7 +159,7 @@ public class StudioProjectFiles {
                 newModule = ComponentIO.validatePersistedModuleJson(json, JSON_MODEL_FULL_PATH, true);
             } catch (StudioBuildException se) {
                 String reason = "model.json could not be loaded safely: " + se.getMessage();
-                LOG.warn("STUDIO: SERIOUS: " + reason, se);
+                LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, se, null, null, null));
                 uiContext.blockModelPersistence(reason);
                 StudioUIUtils.displayIdeaErrorMessage(project, reason +
                         " The file has been preserved and all model saves are disabled. Correct or restore it, then click Reload from Disk.");
@@ -275,7 +277,7 @@ public class StudioProjectFiles {
     public static void createPomFile(final Project project, final String contentRoot, final String subDir, final String content) {
         if (project == null || content == null) {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile project [" + project + "] contentRoot [" + contentRoot +
-                    "] subDir [" + subDir + "] content [" + content + "]");
+                    "] subDir [" + subDir + "]");
         }
         String relativeFilePath =
                 (!isBlank(contentRoot) ? contentRoot : "") +
@@ -313,7 +315,7 @@ public class StudioProjectFiles {
                                             final  String clazzName, final String content, AbstractViewHandlerIntellij componentViewHandler) {
         if (project == null || content == null || sourceRootDir == null || subDir == null || clazzName == null) {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile project [" + project + "] contentRoot [" + contentRoot +
-                    "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + clazzName + "] content [" + content + "]");
+                    "] sourceRootDir [" + sourceRootDir + "] subDir [" + subDir + "] clazzName [" + clazzName + "]");
         }
         String relativeFilePath =
                 (!isBlank(contentRoot) ? contentRoot : "") +
@@ -554,8 +556,7 @@ public class StudioProjectFiles {
                     writeContentAndFormat(project, file, fileContent, componentViewHandler);
                 }
             } catch (IOException e) {
-                LOG.info("STUDIO: ERROR: createFileWithDirectories " + relativePath + " " + fileContent +
-                        " message [" + e.getMessage() + "] stackTrace [" + Arrays.toString(e.getStackTrace())+ "]");
+                LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.FILE_WRITE_FAILED, e, null, null, null));
                 throw new StudioRuntimeException("Failed to create file or directories", e);
             }
         });
@@ -681,7 +682,7 @@ public class StudioProjectFiles {
                 });
             }
         } catch (IOException e) {
-            LOG.warn("STUDIO: ERROR: writeContentAndFormat " + file + " message [" + e.getMessage() + "] trace [" + Arrays.toString(e.getStackTrace())+ "]");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.FILE_WRITE_FAILED, e, null, null, null));
             throw new StudioRuntimeException("Failed to write or format the file", e);
         }
     }

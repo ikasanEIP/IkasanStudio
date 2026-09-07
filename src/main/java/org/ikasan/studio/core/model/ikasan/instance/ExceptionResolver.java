@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,7 +70,7 @@ public class ExceptionResolver extends FlowElement {
      */
     public ExceptionResolver cloneToVersion(String metapackVersion, Flow containingFlow) throws StudioBuildException {
         if (metapackVersion == null || metapackVersion.isBlank()) {
-            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return null;
         }
         ExceptionResolver clonedExceptionResolver = new ExceptionResolver(metapackVersion, containingFlow, this.ikasanExceptionResolutionMap);

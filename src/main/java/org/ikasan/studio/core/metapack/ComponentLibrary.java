@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.metapack;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import org.ikasan.studio.core.metapack.model.*;
 
 import org.slf4j.Logger;
@@ -49,7 +51,7 @@ public final class ComponentLibrary {
      */
     public static void refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         if (ikasanMetaDataPackVersion == null) {
-            LOG.error("STUDIO: ikasanMetaDataPackVersion was set to null which is not allowed");
+            LOG.warn("STUDIO: ikasanMetaDataPackVersion was set to null which is not allowed");
         }
 
         snapshot(ikasanMetaDataPackVersion);
@@ -92,7 +94,7 @@ public final class ComponentLibrary {
             manifest = LOADER.loadManifest(version);
             MetaPackValidator.validate(version, manifest, byKey);
         } catch (StudioBuildException e) {
-            LOG.error("STUDIO: Meta-pack {} failed compliance validation", version, e);
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, e, null, null, null));
             return new LibrarySnapshot(Map.of(), Map.of(), null, e.getMessage());
         }
         Map<String, ComponentMeta> byDeserialisationKey = generateDeserialisationKeyedMeta(byKey);
@@ -112,7 +114,7 @@ public final class ComponentLibrary {
         returnedIkasanComponentMetaMapByKey.putAll(LOADER.load(ikasanMetaDataPackVersion));
         if (!returnedIkasanComponentMetaMapByKey.isEmpty()
                 && !returnedIkasanComponentMetaMapByKey.keySet().containsAll(mandatoryComponents)) {
-            LOG.error("STUDIO: The Ikasan version pack {} did not contain all mandatory components {}",
+            LOG.warn("STUDIO: The Ikasan version pack {} did not contain all mandatory components {}",
                     ikasanMetaDataPackVersion, mandatoryComponents);
         }
     }
@@ -152,7 +154,7 @@ public final class ComponentLibrary {
             for (ComponentMeta componentMeta : ikasanComponentMetaMap.values()) {
                 String key = getDeserialisationKey(componentMeta);
                 if (deserialsiationMetaMap.containsKey(key)) {
-                    LOG.error("Studio: Serious: A mapping already exists for key [" + key + "] existing value [" + deserialsiationMetaMap.get(key) + "], new value [" + componentMeta + "]. Correct the metapack. This entry will be ignored");
+                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
                 } else {
                     deserialsiationMetaMap.putIfAbsent(getDeserialisationKey(componentMeta), componentMeta);
                 }
@@ -317,7 +319,7 @@ public final class ComponentLibrary {
                 endpointComponentMeta = ComponentLibrary.getIkasanComponentByKey(ikasanMetaDataPackVersion, endpointComponentName);
                 endpointFlowElement = FlowElementFactory.createFlowElement(ikasanMetaDataPackVersion, endpointComponentMeta, targetFlowElement.getContainingFlow(), targetFlowElement.getContainingFlowRoute(), endpointText);
             } catch (StudioBuildException se) {
-                LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+                LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, se, null, null, targetFlowElement.getIdentity()));
             }
             if (endpointFlowElement == null) {
                 LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getIdentity() + " the key was " + endpointComponentName + " but no endpoint was found");

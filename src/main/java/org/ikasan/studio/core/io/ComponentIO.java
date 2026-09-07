@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.io;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -115,8 +117,7 @@ public class ComponentIO {
         try {
             return MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {
-            LOG.warn("STUDIO: Could not generate JSON for type [" +
-                    (value == null ? "null" : value.getClass().getName()) + "]", e);
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, e, null, null, null));
             throw new StudioRuntimeException(
                     "The Studio model could not be converted to JSON. The existing model.json has not been changed.", e);
         }

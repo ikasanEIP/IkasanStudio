@@ -15,13 +15,15 @@ class GeneratorFailureInjectionTest {
 
     @Test
     void missingTemplateFailsExplicitly() {
-        assertThrows(StudioGeneratorException.class, () -> FreemarkerUtils.generateFromTemplate(
+        var failure = assertThrows(StudioGeneratorException.class, () -> FreemarkerUtils.generateFromTemplate(
                 "FailureInjection", "missing.ftl", new HashMap<>()));
+        assertNotNull(failure.getCause());
     }
 
     @Test
     void brokenTemplateCannotReturnPartialOutput() {
-        assertThrows(StudioGeneratorException.class, () -> FreemarkerUtils.generateFromTemplate(
+        var failure = assertThrows(StudioGeneratorException.class, () -> FreemarkerUtils.generateFromTemplate(
                 "FailureInjection", "broken.ftl", new HashMap<>()));
+        assertNotNull(failure.getCause());
     }
 }

@@ -16,6 +16,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StudioBuildUtilsTest {
     @Test
+    void configurationConversionDoesNotPrintCredentials() {
+        java.io.PrintStream original = System.out;
+        var output = new java.io.ByteArrayOutputStream();
+        try (var capture = new java.io.PrintStream(output)) {
+            System.setOut(capture);
+            Map<String, String> properties = StudioBuildUtils.convertStringToMap("password=CANARY_SECRET\ncopy=${password}");
+            assertEquals("CANARY_SECRET", properties.get("copy"));
+            assertEquals("", output.toString());
+        } finally { System.setOut(original); }
+    }
+
+    @Test
     public void test_get_directories() throws URISyntaxException, IOException {
         String[] expectedDirs = new String[]{"studio/metapack/TestV1/library/ExceptionResolver, studio/metapack/TestV1/library/Flow, studio/metapack/TestV1/library/Module, studio/metapack/TestV1/library/Producer"};
         String[] actualDirs = StudioBuildUtils.getDirectories("studio/metapack/TestV1/library");

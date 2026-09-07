@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -147,7 +149,7 @@ public class Module extends BasicElement {
     public String getMetaVersion() {
         String version = (String) getPropertyValue(ComponentPropertyMeta.VERSION);
         if (version == null) {
-            LOG.error("STUDIO: SERIOUS ERROR - to getMetaVersion but it was null");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
         }
         return version;
     }
@@ -229,7 +231,7 @@ public class Module extends BasicElement {
      */
     public Module cloneToVersion(String metapackVersion) throws StudioBuildException {
         if (metapackVersion == null || metapackVersion.isBlank()) {
-            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return null;
         }
         Module newTragetModule = new Module(metapackVersion);

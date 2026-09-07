@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
 import org.slf4j.Logger;
@@ -78,7 +80,7 @@ public class ModelUtils {
         try {
             value = Integer.parseInt(number);
         } catch (NumberFormatException nfe) {
-            LOG.warn("STUDIO: Could not convert the string [" + number + "] inter a number, trace: " + Arrays.toString(nfe.getStackTrace()));
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, nfe, null, null, null));
         }
         return value;
     }

@@ -96,7 +96,8 @@ public final class StudioProjectInitialisationService implements Disposable {
 
     public void fail(String userMessage, Exception exception) {
         if (exception != null) {
-            LOG.warn("STUDIO: Could not initialize Ikasan Studio", exception);
+            LOG.warn(org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent.format(
+                    org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, exception, null, null, null));
         }
         inProgress.set(false);
         transition(State.FAILED, userMessage);

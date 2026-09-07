@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
@@ -208,13 +210,7 @@ public  class BasicElement extends IkasanObject {
         } else { // Attempt to add the meta for this property, the framework will swallow and hide any NPE, hence the checks.
             ComponentMeta componentMeta1 = getComponentMeta();
             if (componentMeta1 == null || componentMeta1.getMetadata(key) == null || componentMeta1.getMetadata(key) == null) {
-                Thread thread = Thread.currentThread();
-                LOG.error("STUDIO: SERIOUS ERROR - There is no meta data for property [" + key + "] on Element [" + this.getIdentity() +
-                        "], class [" + this.getClass() +
-                        "], implemnting class [" + (componentMeta1==null ? "no-meta" : componentMeta1.getImplementingClass()) +
-                        "], additional key [" + (componentMeta1==null ? "no-meta" : componentMeta1.getAdditionalKey()) +
-                        "] with value [" + value + "], the known properties are [" + (componentMeta1==null ? "no-meta" : componentMeta1.getPropertyKeys()) +
-                        "] this property will be ignored." + Arrays.toString(thread.getStackTrace()));
+                LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, getIdentity()));
             } else {
                 componentProperties.put(key, new ComponentProperty(componentMeta1.getMetadata(key), value));
             }

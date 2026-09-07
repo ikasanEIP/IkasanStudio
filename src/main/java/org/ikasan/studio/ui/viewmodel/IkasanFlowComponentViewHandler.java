@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.viewmodel;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.openapi.diagnostic.Logger;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
@@ -46,7 +48,6 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
      * @return the y position of the bottom of the text
      */
     public int paintComponent(JPanel canvas, Graphics g, int minimumTopX, int minimumTopY) {
-        LOG.debug("STUDIO: paintComponent invoked for component: " + flowElement);
         // here we get the components decide TestV1,y
         paintFlowchartSymbol(canvas, g);
         return paintSymbolText(g, PaintMode.PAINT);
@@ -54,7 +55,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
 
     private void paintFlowchartSymbol(JPanel canvas, Graphics g) {
         if ( getLeftX() < -10 ) {
-            LOG.warn("STUDIO: paintFlowchartSymbol leftX " + getLeftX() + " was negative for component " + flowElement);
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, flowElement.getIdentity()));
         }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         paintDecorators(canvas, g);
@@ -183,7 +184,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         // this has the side effect of setting the correct height.
 
         if (getLeftX() < -10) {
-            LOG.warn("STUDIO: SERIOUS: initialiseDimensions leftX" + getLeftX() + " topY" + getTopY() + " for component " + flowElement + "X was negative !!");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, flowElement.getIdentity()));
         }
         paintSymbolText(graphics, PaintMode.DIMENSION_ONLY);
     }

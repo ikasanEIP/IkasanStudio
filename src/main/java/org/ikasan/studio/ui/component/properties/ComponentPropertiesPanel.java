@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -1209,7 +1211,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (componentPropertyEditRowList != null) {
             for (final ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
                 if (componentPropertyEditRow.propertyValueHasChanged()) {
-                    LOG.info("STUDIO: Component " + componentPropertyEditRow.getComponentProperty().getMeta().getPropertyName() + " new value is " + componentPropertyEditRow.getValue());
+                    LOG.debug(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.PROPERTY_CHANGED, null, null, null, getSelectedComponent() == null ? null : getSelectedComponent().getIdentity()));
                     modelUpdated = true;
                     break;
                 }

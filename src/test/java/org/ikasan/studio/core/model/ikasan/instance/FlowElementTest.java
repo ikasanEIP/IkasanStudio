@@ -101,11 +101,11 @@ class FlowElementTest {
 
     /**
      * Verifies that cloning a FlowElement with a null metapackVersion returns null
-     * and logs an error message.
+     * and logs a configuration warning without invoking the fatal-error logger.
      * @throws StudioBuildException if an error occurs during cloning
      */
     @Test
-    void test_cloneWithNullMetaPackRaisesError() throws StudioBuildException {
+    void test_cloneWithNullMetaPackLogsWarning() throws StudioBuildException {
         Logger mockLogger = Mockito.mock(Logger.class);
 
         FlowElement xProducerComponent = TestFixtures.getXProducerComponent("TestV1");
@@ -113,7 +113,8 @@ class FlowElementTest {
 
         FlowElement clonedXProducerComponent = xProducerComponent.cloneToVersion(null, mockFlow2, mockFlowRoute2);
         assertNull(clonedXProducerComponent);
-        verify(mockLogger).error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+        verify(mockLogger).warn("STUDIO-DIAG v1 event=CONFIGURATION_INVALID level=WARN module=none flow=none component=none");
+        verify(mockLogger, Mockito.never()).error(Mockito.anyString());
     }
 
     /**
@@ -121,7 +122,7 @@ class FlowElementTest {
      * @throws StudioBuildException if the component cant be found
      */
     @Test
-    void test_cloneWithEmptyMetaPackRaisesError() throws StudioBuildException {
+    void test_cloneWithEmptyMetaPackLogsWarning() throws StudioBuildException {
         Logger mockLogger = Mockito.mock(Logger.class);
 
         FlowElement xProducerComponent = TestFixtures.getXProducerComponent("TestV1");
@@ -129,7 +130,8 @@ class FlowElementTest {
 
         FlowElement clonedXProducerComponent = xProducerComponent.cloneToVersion("", mockFlow2, mockFlowRoute2);
         assertNull(clonedXProducerComponent);
-        verify(mockLogger).error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+        verify(mockLogger).warn("STUDIO-DIAG v1 event=CONFIGURATION_INVALID level=WARN module=none flow=none component=none");
+        verify(mockLogger, Mockito.never()).error(Mockito.anyString());
     }
 
     @Test

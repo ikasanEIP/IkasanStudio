@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -47,14 +49,14 @@ public final class FlowTransportControlAction {
                 try {
                     ModuleControlClient.changeFlowState(module, flowName, operation);
                 } catch (ConnectException e) {
-                    LOG.warn("STUDIO: Could not change flow state for " + flowName + " - module not yet accepting connections", e);
+                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.RUNTIME_FAILED, e, module.getIdentity(), flowName, null));
                     ApplicationManager.getApplication().invokeLater(() ->
                             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ModuleNotYetAcceptingConnections")));
                     return;
                 } catch (Exception e) {
                     // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
                     // user, and this is already surfaced via the popup below - see CLAUDE.md.
-                    LOG.warn("STUDIO: Could not change flow state for " + flowName + " to " + operation.getWireValue(), e);
+                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.RUNTIME_FAILED, e, module.getIdentity(), flowName, null));
                     String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                     ApplicationManager.getApplication().invokeLater(() ->
                             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotChangeFlowState", flowName, errorDetail)));

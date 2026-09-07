@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -383,13 +385,13 @@ public class StudioUIUtils {
                 .notify(project);
     }
     public static void displayIdeaWarnMessage(Project project, String message) {
-        LOG.warn("STUDIO: " + message);
+        LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.NOTIFICATION_WARNING, null, null, null, null));
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.WARNING)
                 .notify(project);
     }
     public static void displayIdeaErrorMessage(Project project, String message) {
-        LOG.warn("STUDIO: " + message);
+        LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.NOTIFICATION_ERROR, null, null, null, null));
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.ERROR)
                 .notify(project);

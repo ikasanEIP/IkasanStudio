@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
@@ -135,7 +137,7 @@ public class FlowElement extends BasicElement {
      */
     public FlowElement cloneToVersion(String metapackVersion, Flow containingFlow, FlowRoute containingFlowRoute) throws StudioBuildException {
         if (metapackVersion == null || metapackVersion.isBlank()) {
-            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return null;
         }
         ComponentMeta newComponentMeta = ComponentLibrary.getIkasanComponentByKey(metapackVersion, this.getComponentMeta().getName());

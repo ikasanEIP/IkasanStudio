@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+
 import org.ikasan.studio.core.model.command.FlowElementRemoval;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,8 +48,7 @@ public class FlowRoute  implements IkasanComponent {
             this.flowElements = new ArrayList<>();
             for(FlowElement flowElement : flowElements) {
                 if (flowElement.getComponentMeta().isConsumer()) {
-                    Thread thread = Thread.currentThread();
-                    LOG.warn("STUDIO: SERIOUS: Attempt made to add a consumer " + flowElement + " to a route, will try to add to flow. Trace: " + Arrays.toString(thread.getStackTrace()));
+                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
                     if (!flow.hasConsumer()) {
                         flow.setConsumer(flowElement);
                     } else {
@@ -106,7 +107,7 @@ public class FlowRoute  implements IkasanComponent {
         }
         String endpointComponentName = router.getComponentMeta().getEndpointKey();
         if (endpointComponentName == null) {
-            LOG.warn("STUDIO: SERIOUS: syncChildRoutesForRouter could not find an endpoint key for router " + router);
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return;
         }
         for (Object routeNameObj : routeNames) {
@@ -276,7 +277,7 @@ public class FlowRoute  implements IkasanComponent {
      */
     public FlowRoute cloneToVersion(String metapackVersion, Flow newContainingFlow) throws StudioBuildException {
         if (metapackVersion == null || metapackVersion.isBlank()) {
-            LOG.error("STUDIO: SERIOUS ERROR - to cloneToVersion but metapackVersion was null or blank");
+            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
             return null;
         }
         if (this.getChildRoutes() != null && !this.getChildRoutes().isEmpty()) {
