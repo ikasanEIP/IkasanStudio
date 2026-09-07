@@ -53,9 +53,13 @@ final class ConversionRecipeEditor {
                     .forEach(configurationKeys::addAll);
             for (String key : configurationKeys) {
                 var configRow = rows.get(key);
-                if (configRow != null) configRow.getInputField().setEnabled(recipe.isPresent()
-                        && recipe.get().getConfigurationProperties() != null
-                        && recipe.get().getConfigurationProperties().contains(key));
+                if (configRow != null) {
+                    boolean applicable = recipe.isPresent()
+                            && recipe.get().getConfigurationProperties() != null
+                            && recipe.get().getConfigurationProperties().contains(key);
+                    configRow.getInputField().setEnabled(applicable);
+                    configRow.setApplicable(applicable);
+                }
             }
         };
         combo.addActionListener(event -> {

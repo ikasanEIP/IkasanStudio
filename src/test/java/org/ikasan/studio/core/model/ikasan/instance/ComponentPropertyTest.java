@@ -31,6 +31,21 @@ public class ComponentPropertyTest {
         assertEquals("myFile\\.txt,anotherFile\\.txt", componentProperty.getValueString());
     }
 
+    /**
+     * Regression test for a live production bug: a STRING_LIST property's value can also arrive here as a plain
+     * String rather than a List - notably a value loaded straight from model.json, since JSON doesn't
+     * distinguish "this happens to be a String" from "this is the property's real declared type". If that
+     * String is itself a stale List#toString() literal from the same older bug covered above (e.g.
+     * "[myFile\.txt, anotherFile\.txt]", from Local File Consumer's "filenames"), it must be normalised the
+     * same way the List branch is, or it reaches the generated application.properties untouched and crashes
+     * FileMatcher's regex compile ("Unclosed character class") at Ikasan startup.
+     */
+    @Test
+    public void getValueString_forStringListPropertyHoldingAStaleBracketedStringValue_isNormalised() {
+        ComponentProperty componentProperty = new ComponentProperty(listPropertyMeta(), "[myFile\\.txt, anotherFile\\.txt]");
+        assertEquals("myFile\\.txt,anotherFile\\.txt", componentProperty.getValueString());
+    }
+
     @Test
     public void getValueString_forNullValue_isTheStringNull() {
         ComponentProperty componentProperty = new ComponentProperty(null, null);

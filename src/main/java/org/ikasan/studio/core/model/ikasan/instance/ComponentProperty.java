@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.ikasan.studio.core.model.ModelUtils;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.StudioBuildUtils;
 
 import java.util.List;
 
@@ -56,6 +57,14 @@ public class ComponentProperty {
                 // ("[myFile\.txt" and " anotherFile\.txt]") - the first of which isn't even a valid regex,
                 // crashing FileMatcher's PatternSyntaxException at startup.
                 returnValue = String.join(",", ((List<?>) value).stream().map(String::valueOf).toList());
+            } else if (value instanceof String && meta != null && ComponentPropertyMeta.STRING_LIST.equals(meta.getUsageDataType())) {
+                // A STRING_LIST property can also arrive here as a plain String rather than a List - most often
+                // a value loaded straight from model.json, since JSON doesn't distinguish "the value happens to
+                // be a String" from "the value is this property's real type". If that String is itself a stale
+                // List#toString() literal from the same older bug described above (e.g.
+                // "[myFile\.txt, anotherFile\.txt]"), it would otherwise pass straight through untouched here and
+                // crash FileMatcher's regex compile at Ikasan startup. Normalise the same way as the List branch.
+                returnValue = String.join(",", StudioBuildUtils.stringToList(value.toString()));
             } else
                 returnValue = value.toString();
         }

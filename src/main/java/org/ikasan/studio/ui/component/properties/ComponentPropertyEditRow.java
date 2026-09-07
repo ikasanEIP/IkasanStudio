@@ -857,7 +857,18 @@ public class ComponentPropertyEditRow {
      * used by the properties-search filter. GridBagLayout reclaims a row's space once every component in it
      * reports isVisible()==false, so hidden rows leave no blank gap in the parent panel.
      */
+    private boolean matchesVisibilityFilter = true;
+    private boolean applicable = true;
+
+    /** Recipe applicability and the properties search must both permit displaying a row. */
+    public void setApplicable(boolean applicable) {
+        this.applicable = applicable;
+        setRowVisible(matchesVisibilityFilter);
+    }
+
     public void setRowVisible(boolean visible) {
+        matchesVisibilityFilter = visible;
+        visible = visible && applicable;
         propertyTitleField.setVisible(visible);
         if (dataValidationHelper != null) {
             dataValidationHelper.setVisible(visible);

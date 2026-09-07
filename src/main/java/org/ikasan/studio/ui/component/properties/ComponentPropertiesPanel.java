@@ -744,6 +744,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 recipeGc.weightx = 1;
                 recipeGc.fill = GridBagConstraints.HORIZONTAL;
                 recipeGc.insets = JBUI.insets(4);
+                JLabel recipeDescriptionLabel = new JLabel(StudioBundle.message("conversion.Description"));
+                recipeDescriptionLabel.setLabelFor(recipeHelp);
+                mandatoryPropertiesEditorPanel.add(recipeDescriptionLabel, recipeGc);
+                recipeGc.gridy = mandatoryTabley++;
                 var recipeHelpScroll = new com.intellij.ui.components.JBScrollPane(recipeHelp,
                         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 recipeHelpScroll.setBorder(JBUI.Borders.empty());

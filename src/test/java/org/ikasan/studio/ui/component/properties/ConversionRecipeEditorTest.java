@@ -10,6 +10,40 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConversionRecipeEditorTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void showsOnlyApplicableSettingsAndPreservesHiddenDrafts(String pack) throws Exception {
+        var converter = TestFixtures.getCustomConverter(pack);
+        SwingUtilities.invokeAndWait(() -> {
+            Map<String, ComponentPropertyEditRow> rows = new HashMap<>();
+            for (String key : List.of("conversionRecipeId", "fromType", "toType", "recipeCharset",
+                    "recipeFilename", "recipeMediaType", "recipeEmailBody")) {
+                rows.put(key, new ComponentPropertyEditRow(null,
+                        new ComponentProperty(converter.getComponentMeta().getMetadata(key), converter.getPropertyValue(key)), false, () -> {}, rows));
+            }
+            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, new JTextArea(), null, null);
+            var choice = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
+            choice.setSelectedItem("jms-message-to-email-attachment");
+            var media = rows.get("recipeMediaType");
+            media.getInputField().getPropertyValueField().setValue("image/png");
+            assertTrue(media.getPropertyTitleField().isVisible());
+            choice.setSelectedItem("jms-message-to-file-transfer-payload");
+            assertTrue(rows.get("recipeCharset").getPropertyTitleField().isVisible());
+            assertTrue(rows.get("recipeFilename").getPropertyTitleField().isVisible());
+            assertFalse(media.getPropertyTitleField().isVisible());
+            assertFalse(media.getInputField().getFirstFocusComponent().isVisible());
+            assertFalse(rows.get("recipeEmailBody").getPropertyTitleField().isVisible());
+            media.setRowVisible(true); // Clearing a search must not reveal irrelevant fields.
+            assertFalse(media.getPropertyTitleField().isVisible());
+            media.setRowVisible(false);
+            choice.setSelectedItem("jms-message-to-email-attachment");
+            assertFalse(media.getPropertyTitleField().isVisible());
+            media.setRowVisible(true);
+            assertTrue(media.getPropertyTitleField().isVisible());
+            assertEquals("image/png", media.getValue());
+        });
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void defaultsOnlyAnUnambiguousNewDraft(String pack) throws Exception {
         var converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {

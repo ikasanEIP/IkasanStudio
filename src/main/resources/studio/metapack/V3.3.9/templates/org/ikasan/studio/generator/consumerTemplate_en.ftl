@@ -78,7 +78,10 @@ running = true;
 /**
 * Runnable default: manufactures a dummy event every tick so you can see events flow before wiring up your
 * real technology. This is where the real work happens once you're polling/listening for real:
-*   1. Obtain/assign an identifier for the message (used for tracking and audit).
+*   1. Obtain/assign an identifier for the message as a String (used for tracking and audit) - Ikasan's flow
+*      event identifier is typed as String throughout its recovery/exclusion/error-reporting machinery, so a
+*      non-String identifier compiles fine here but throws a ClassCastException later, deep inside that
+*      machinery, only once something actually goes wrong with an event - not at the point you set it.
 *   2. Wrap it into a flow event:  Object event = eventFactory.newEvent(identifier, payload);
 *   3. Dispatch it into the flow:  eventListener.invoke(event);
 * If reading from the underlying technology fails, report the failure the same way: eventListener.invoke(throwable);
@@ -88,7 +91,8 @@ private void poll()
 try
 {
 eventCount++;
-Object event = eventFactory.newEvent(eventCount, "Hello from ${flowElement.getPropertyValue("userImplementedClassName")}, event #" + eventCount);
+String identifier = "event-" + eventCount;
+Object event = eventFactory.newEvent(identifier, "Hello from ${flowElement.getPropertyValue("userImplementedClassName")}, event #" + eventCount);
 eventListener.invoke(event);
 }
 catch (Throwable throwable)
