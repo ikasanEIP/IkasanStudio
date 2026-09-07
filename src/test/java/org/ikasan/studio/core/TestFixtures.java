@@ -697,7 +697,7 @@ public class TestFixtures {
     }
 
     public static FlowElement getJmsProducer(String metaPackVersion) throws StudioBuildException {
-        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "JMS Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Spring JMS Producer");
         FlowElement flowElement = FlowElement.flowElementBuilder()
             .componentMeta(meta)
             .componentName("My JMS Producer")

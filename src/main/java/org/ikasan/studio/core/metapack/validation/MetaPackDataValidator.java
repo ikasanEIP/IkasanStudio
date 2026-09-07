@@ -163,7 +163,6 @@ final class MetaPackDataValidator {
         List<ConversionRecipeMeta> conversionRecipes = component.getConversionRecipes();
         if (conversionRecipes == null) return;
         Set<String> ids = new HashSet<>();
-        Set<String> pairs = new HashSet<>();
         for (int i = 0; i < conversionRecipes.size(); i++) {
             ConversionRecipeMeta recipe = conversionRecipes.get(i);
             String recipePath = path + ".conversionRecipes[" + i + "]";
@@ -177,9 +176,15 @@ final class MetaPackDataValidator {
             type(problems, recipePath + ".targetType", recipe.getTargetType());
             help(problems, recipePath + ".helpText", recipe.getHelpText());
             if (recipe.getId() != null && !ids.add(recipe.getId())) add(problems, recipePath + ".id", "is duplicated");
-            String pair = recipe.getSourceType() + "->" + recipe.getTargetType();
-            if (!pairs.add(pair)) add(problems, recipePath, "duplicates source/target pair " + pair);
             template(problems, pack, recipePath, recipe.getTemplate());
+            if (recipe.getExtractionTemplate() != null || recipe.getConstructionTemplate() != null) {
+                required(problems, recipePath + ".extractionTemplate", recipe.getExtractionTemplate());
+                required(problems, recipePath + ".constructionTemplate", recipe.getConstructionTemplate());
+                template(problems, pack, recipePath, recipe.getExtractionTemplate());
+                template(problems, pack, recipePath, recipe.getConstructionTemplate());
+            }
+            references(component.getAllowableProperties(), recipePath + ".configurationProperties",
+                    recipe.getConfigurationProperties(), problems);
         }
     }
 

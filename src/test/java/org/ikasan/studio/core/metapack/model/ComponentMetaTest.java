@@ -105,7 +105,7 @@ class ComponentMetaTest {
     @Test
     public void input_description_is_null_not_blank_for_a_producer_with_no_fromType_property_at_all() throws StudioBuildException {
         // Dev Null Producer wraps its implementingClass directly - it declares neither fromType nor a
-        // custom expectedInputTypeProperty nor a fixed expectedInputTypes (unlike JMS Producer, which now declares expectedInputTypes="java.lang.String, byte[], java.util.Map,
+        // custom expectedInputTypeProperty nor a fixed expectedInputTypes (unlike Spring JMS Producer, which now declares expectedInputTypes="java.lang.String, byte[], java.util.Map,
         // java.io.Serializable" - Spring JmsTemplate's real accepted set - so it no longer serves as this
         // test's "genuinely nothing declared" example). The palette preview path (getDefaultValueAsString)
         // already correctly returns null for a property that doesn't exist. A live FlowElement's own resolver

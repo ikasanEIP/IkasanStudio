@@ -25,7 +25,6 @@
     "Generic Endpoint": "Generic Endpoint",
     "Generic Producer": "Generic Producer",
     "JMS Object Message To Object Converter": "JMS Object Message To Object Converter",
-    "JMS Producer": "JMS Producer",
     "Local File Consumer": "Local File Consumer",
     "Logging Producer": "Logging Producer",
     "Message Filter": "Message Filter",
@@ -41,6 +40,7 @@
     "Single Recipient Router": "Single Recipient Router",
     "Splitter": "Splitter",
     "Spring JMS Consumer": "Spring JMS Consumer",
+    "Spring JMS Producer": "Spring JMS Producer",
     "Translator": "Translator"
   },
   "typePrefixes": {

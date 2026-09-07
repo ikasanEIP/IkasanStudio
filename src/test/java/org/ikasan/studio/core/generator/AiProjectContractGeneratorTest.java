@@ -31,7 +31,7 @@ class AiProjectContractGeneratorTest {
             assertThat(catalogue.path("metapackVersion").asText()).isEqualTo(version);
             assertThat(catalogue.path("components")).hasSize(ComponentLibrary.getNumberOfComponents(version));
             assertThat(catalogue.path("components").findValuesAsText("key"))
-                    .contains("Module", "Flow", "JMS Producer", "Spring JMS Consumer");
+                    .contains("Module", "Flow", "Spring JMS Producer", "Spring JMS Consumer");
         }
     }
 

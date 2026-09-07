@@ -154,6 +154,8 @@ public final class AiProjectContractGenerator {
         if (meta.getAdditionalKey() != null) result.put("additionalKey", meta.getAdditionalKey());
         if (meta.getExpectedInputTypes() != null) result.put("acceptedInputTypes", meta.getExpectedInputTypes());
         if (meta.getProducedOutputType() != null) result.put("producedOutputType", meta.getProducedOutputType());
+        if (meta.getConversionRecipes() != null && !meta.getConversionRecipes().isEmpty())
+            result.put("conversionRecipes", meta.getConversionRecipes());
         List<Map<String, Object>> properties = new ArrayList<>();
         meta.getAllowableProperties().forEach((name, property) -> properties.add(property(name, property)));
         result.put("properties", properties);

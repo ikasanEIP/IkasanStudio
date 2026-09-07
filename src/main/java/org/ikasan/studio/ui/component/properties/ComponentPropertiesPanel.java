@@ -588,6 +588,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 optionalPropertiesExpandPanel = getOptionalPropertiesExpandPanel();
             }
             componentPropertyEditRowList = new ArrayList<>();
+            componentPropertyEditBoxMap.clear();
 
             GridBagConstraints gc = new GridBagConstraints();
             gc.fill = GridBagConstraints.HORIZONTAL;
@@ -662,7 +663,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                                 openMandatoryHeadingProperties = new ArrayList<>();
                             }
                             groupedOptionalProperties.computeIfAbsent(property.getMeta().getPropertyGroup(), k -> new ArrayList<>()).add(property);
-                        } else if (property.getMeta().isMandatory() || property.getMeta().hasMandatoryUnlessAnyOf()) {
+                        } else if (property.getMeta().isMandatory() || property.getMeta().hasMandatoryUnlessAnyOf()
+                                || isRecipeProperty(key)) {
                             // hasMandatoryUnlessAnyOf: e.g. an SFTP consumer's password/privateKeyFilename - one
                             // of the two is genuinely required, so (as long as neither carries its own
                             // propertyGroup) both belong in the always-visible Mandatory section rather than
@@ -727,6 +729,29 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 }
             }
 
+            if (componentPropertyEditBoxMap.containsKey(ComponentPropertyMeta.CONVERSION_RECIPE_ID)) {
+                JTextArea recipeHelp = new JTextArea(3, 20);
+                recipeHelp.setEditable(false);
+                recipeHelp.setLineWrap(true);
+                recipeHelp.setWrapStyleWord(true);
+                recipeHelp.setOpaque(false);
+                recipeHelp.setFont(UIManager.getFont("Label.font"));
+                recipeHelp.getAccessibleContext().setAccessibleName(StudioBundle.message("conversion.Details"));
+                GridBagConstraints recipeGc = new GridBagConstraints();
+                recipeGc.gridx = 0;
+                recipeGc.gridy = mandatoryTabley++;
+                recipeGc.gridwidth = GridBagConstraints.REMAINDER;
+                recipeGc.weightx = 1;
+                recipeGc.fill = GridBagConstraints.HORIZONTAL;
+                recipeGc.insets = JBUI.insets(4);
+                var recipeHelpScroll = new com.intellij.ui.components.JBScrollPane(recipeHelp,
+                        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                recipeHelpScroll.setBorder(JBUI.Borders.empty());
+                mandatoryPropertiesEditorPanel.add(recipeHelpScroll, recipeGc);
+                ConversionRecipeEditor.bind(getSelectedComponent().getComponentMeta().getConversionRecipes(),
+                        componentPropertyEditBoxMap, recipeHelp, getSelectedComponent() instanceof FlowElement element
+                                ? org.ikasan.studio.core.conversion.ConversionRecipeMatcher.downstreamTypes(element) : null, listenerForAnyEditChanges, componentInitialisation);
+            }
             alignPropertyLabelColumnWidths(mandatorySectionGroups);
             alignPropertyLabelColumnWidths(optionalSectionGroups);
 
@@ -892,8 +917,17 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * mandatory (unconditionally or via mandatoryUnlessAnyOf) - everything else, including mandatoryIfTrue
      * properties like FtpConsumer's ftpsKeyStoreFilePath, lives in the Optional section, i.e. this is true for it.
      */
+    private boolean isRecipeProperty(String key) {
+        if (ComponentPropertyMeta.CONVERSION_RECIPE_ID.equals(key)) return true;
+        if (getSelectedComponent() == null || getSelectedComponent().getComponentMeta() == null) return false;
+        var recipes = getSelectedComponent().getComponentMeta().getConversionRecipes();
+        return recipes != null && recipes.stream().anyMatch(recipe -> recipe.getConfigurationProperties() != null
+                && recipe.getConfigurationProperties().contains(key));
+    }
+
     private boolean isInOptionalSection(ComponentPropertyMeta meta) {
-        return meta.isGroupedProperty() || (!meta.isMandatory() && !meta.hasMandatoryUnlessAnyOf());
+        return !isRecipeProperty(meta.getPropertyName())
+                && (meta.isGroupedProperty() || (!meta.isMandatory() && !meta.hasMandatoryUnlessAnyOf()));
     }
 
     private void toggleOptionalSection() {
@@ -1125,6 +1159,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     private ComponentPropertyEditRow addNameValueToPropertiesEditPanel(JBPanel propertiesEditorPanel, ComponentProperty componentProperty, GridBagConstraints gc, int tabley) {
         componentProperty = withUiOwnedVersionChoices(componentProperty);
+        String recipeKey = componentProperty.getMeta().getPropertyName();
+        if (Set.of("conversionRecipeId", "recipeCharset", "recipeFilename", "recipeMediaType", "recipeEmailBody").contains(recipeKey)) {
+            componentProperty = new ComponentProperty(componentProperty.getMeta().toBuilder()
+                    .displayLabel(StudioBundle.message("conversion." + recipeKey)).build(), componentProperty.getValue());
+        }
         ComponentPropertyEditRow componentPropertyEditRow = new ComponentPropertyEditRow(project, componentProperty, componentInitialisation, listenerForAnyEditChanges, componentPropertyEditBoxMap);
         if (!componentInitialisation && getSelectedComponent() instanceof Module
                 && VERSION.equals(componentProperty.getMeta().getPropertyName())) {
@@ -1278,6 +1317,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         for (final ComponentPropertyEditRow editPair: getComponentPropertyEditBoxList()) {
             result.addAll(editPair.doValidateAll());
         }
+        if (getSelectedComponent() != null) result.addAll(ConversionRecipeEditor.validate(
+                getSelectedComponent().getComponentMeta().getConversionRecipes(), componentPropertyEditBoxMap));
         result.addAll(validateComponentNameIsUniqueInFlow());
         return result;
     }

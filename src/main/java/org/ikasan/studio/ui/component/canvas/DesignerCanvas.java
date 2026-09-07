@@ -1,79 +1,63 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
-import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
-import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
-import org.ikasan.studio.core.model.command.FlowElementMove;
-
-import org.ikasan.studio.ui.icons.ComponentIconProvider;
-
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.command.undo.UndoManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.model.MutablePair;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+import org.ikasan.studio.core.model.command.FlowElementMove;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.psi.UserImplementedClassRelocator;
+import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.runtime.state.FlowErrorStates;
 import org.ikasan.studio.runtime.state.FlowRuntimeStatuses;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.actions.NavigateToCodeAction;
-import org.ikasan.studio.ui.actions.DeleteComponentUndoableAction;
-import org.ikasan.studio.ui.actions.SendTestMessageAction;
-import org.ikasan.studio.ui.actions.TriggerScheduledConsumerAction;
-import org.ikasan.studio.ui.actions.FlowTransportAction;
-import org.ikasan.studio.ui.actions.FlowTransportControlAction;
+import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
 import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.core.generation.GenerationRequest;
-import org.ikasan.studio.intellij.psi.UserImplementedClassRelocator;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
-import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
-import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
-import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+import org.ikasan.studio.ui.model.MutablePair;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.ui.viewmodel.*;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.Timer;
-import com.intellij.openapi.ui.ComboBox;
+import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.datatransfer.StringSelection;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
@@ -1063,7 +1047,6 @@ public class DesignerCanvas extends JPanel {
         }
         applySuggestedInputTypeFromUpstream(newComponent, containingFlow, x, y);
         applySuggestedOutputTypeFromDownstream(newComponent, containingFlow, x, y);
-        applySuggestedConversionRecipe(newComponent);
         if (ikasanComponentType.isExceptionResolver()) {
             return (FlowElement)createExceptionResolver((ExceptionResolver)newComponent);
         } else {
@@ -1118,7 +1101,7 @@ public class DesignerCanvas extends JPanel {
         }
         String upstreamOutputType = upstream.getEffectiveOutputTypeDescription();
         if (upstreamOutputType != null && !upstreamOutputType.isBlank()) {
-            newComponent.setPropertyValue(propertyName, upstreamOutputType);
+            newComponent.setPropertyValue(propertyName, org.ikasan.studio.core.conversion.ConversionRecipeMatcher.javaType(upstreamOutputType));
         }
     }
 
@@ -1243,32 +1226,6 @@ public class DesignerCanvas extends JPanel {
                 || "Object".equals(simpleName) || "FlowEvent".equals(simpleName);
     }
 
-    /** Selects a meta-pack recipe matching the inferred source and target types. */
-    private void applySuggestedConversionRecipe(FlowElement newComponent) {
-        if (newComponent.getComponentMeta().getConversionRecipes() == null) {
-            return;
-        }
-        String sourceType = newComponent.getPropertyValueAsString(ComponentPropertyMeta.FROM_TYPE);
-        String targetType = newComponent.getPropertyValueAsString(ComponentPropertyMeta.TO_TYPE);
-        java.util.List<ConversionRecipeMeta> matches = newComponent.getComponentMeta().getConversionRecipes().stream()
-                .filter(recipe -> recipe.matches(sourceType, targetType))
-                .toList();
-        if (matches.isEmpty()) {
-            return;
-        }
-        String[] choices = new String[matches.size() + 1];
-        for (int i = 0; i < matches.size(); i++) {
-            choices[i] = matches.get(i).getDisplayName();
-        }
-        choices[matches.size()] = StudioBundle.message("conversion.BlankCustomConverter");
-        int selected = Messages.showDialog(project,
-                StudioBundle.message("conversion.ChooseRecipe", sourceType, targetType),
-                StudioBundle.message("conversion.Configure"), choices, 0, null);
-        if (selected >= 0 && selected < matches.size()) {
-            newComponent.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID, matches.get(selected).getId());
-        }
-    }
-
     /**
      * Create the popup properties panel for a new component
      * @param newComponent to be included in panel
@@ -1285,7 +1242,9 @@ public class DesignerCanvas extends JPanel {
         }
 
 
-        if (newComponent.hasUnsetMandatoryProperties()) {
+        boolean offersRecipes = newComponent.getComponentMeta().getConversionRecipes() != null
+                && !newComponent.getComponentMeta().getConversionRecipes().isEmpty();
+        if (newComponent.hasUnsetMandatoryProperties() || offersRecipes) {
             // Add new component
             ComponentPropertiesPanel componentPropertiesPanel = new ComponentPropertiesPanel(project, true);
             componentPropertiesPanel.updateTargetComponent(newComponent);

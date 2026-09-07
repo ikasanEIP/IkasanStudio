@@ -1,11 +1,12 @@
 package org.ikasan.studio.core.metapack.model;
 
 import lombok.AllArgsConstructor;
+import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
-/** A meta-pack supplied implementation recipe for one exact source-to-target conversion. */
+/** A stable meta-pack recipe; multiple construction strategies may share a source/target pair. */
 @Data
 @Builder
 @Jacksonized
@@ -17,9 +18,13 @@ public class ConversionRecipeMeta {
     private String targetType;
     private String template;
     private String helpText;
+    private String extractionTemplate;
+    private String constructionTemplate;
+    private java.util.List<String> configurationProperties;
 
     public boolean matches(String source, String target) {
         return sourceType != null && targetType != null
-                && sourceType.equals(source) && targetType.equals(target);
+                && ConversionRecipeMatcher.javaType(sourceType).equals(ConversionRecipeMatcher.javaType(source))
+                && ConversionRecipeMatcher.javaType(targetType).equals(ConversionRecipeMatcher.javaType(target));
     }
 }

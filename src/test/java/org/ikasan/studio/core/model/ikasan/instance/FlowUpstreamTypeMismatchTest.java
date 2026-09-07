@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Covers Flow#findPayloadSourceElement (the upstream-neighbour traversal, including crossing router branch
  * boundaries) and FlowElement#getUpstreamTypeMismatchWarning (the best-effort type check built on top of it) -
  * both the fixed expectedInputTypes shape (e.g. Default List Splitter, JMS Object Message To Object Converter,
- * or JMS Producer's multi-candidate "java.lang.String, byte[], java.util.Map, java.io.Serializable")
+ * or Spring JMS Producer's multi-candidate "java.lang.String, byte[], java.util.Map, java.io.Serializable")
  * and the per-instance expectedInputTypeProperty shape (e.g. Converter/Broker/Splitter's own 'fromType',
  * Object To XML String Converter's 'objectClass') - see ComponentMeta#getExpectedInputTypes() and
  * #getExpectedInputTypeProperty().
@@ -397,11 +397,11 @@ class FlowUpstreamTypeMismatchTest {
         }
     }
 
-    // Real component - JMS Producer declares expectedInputTypes="java.lang.String, byte[],
+    // Real component - Spring JMS Producer declares expectedInputTypes="java.lang.String, byte[],
     // java.util.Map, java.io.Serializable" (Spring JmsTemplate's actual accepted set, verified from its real
     // source this session) - the motivating multi-candidate case for this whole feature.
     private FlowElement getJmsProducerForMismatch() throws StudioBuildException {
-        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "JMS Producer");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK, "Spring JMS Producer");
         return FlowElement.flowElementBuilder()
                 .componentMeta(meta)
                 .componentName("My JMS Producer")

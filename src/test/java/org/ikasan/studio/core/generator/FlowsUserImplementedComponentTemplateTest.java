@@ -71,13 +71,12 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         var matches = converter.getComponentMeta().getConversionRecipes().stream()
                 .filter(recipe -> recipe.matches(converter.getPropertyValueAsString("fromType"),
                         converter.getPropertyValueAsString("toType"))).toList();
-        org.junit.jupiter.api.Assertions.assertEquals(1, matches.size());
-        org.junit.jupiter.api.Assertions.assertEquals("file-transfer-payload-to-email-attachment", matches.get(0).getId());
-        converter.setPropertyValue("conversionRecipeId", matches.get(0).getId());
+        org.junit.jupiter.api.Assertions.assertEquals(2, matches.size());
+        converter.setPropertyValue("conversionRecipeId", matches.stream().filter(r -> r.getId().equals("file-transfer-payload-to-email-attachment")).findFirst().orElseThrow().getId());
         String generated = generateUserImplementedComponentTemplate(metaPackVersion, module, converter);
-        assertTrue(generated.contains("implements Converter<Payload, EmailPayload>"));
-        assertTrue(generated.contains("email.addAttachment(filename, \"application/octet-stream\", payload.getContent())"));
-        assertTrue(generated.contains("payload.getAttribute(\"fileName\")"));
+        assertTrue(generated.contains("implements Converter<org.ikasan.filetransfer.Payload, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
+        assertTrue(generated.contains("result.addAttachment(filename, \"application/octet-stream\", bytes(body, charset))"));
+        assertTrue(generated.contains("source.getAttribute(\"fileName\")"));
         assertTrue(generated.contains("throw new TransformationException"));
         org.junit.jupiter.api.Assertions.assertFalse(generated.contains("payload.toString()"));
     }
@@ -109,8 +108,8 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains("implements Converter<Message, Payload>"));
-        assertTrue(templateString.contains("new DefaultPayload(id, content)"));
+        assertTrue(templateString.contains("implements Converter<javax.jms.Message, org.ikasan.filetransfer.Payload>"));
+        assertTrue(templateString.contains("new org.ikasan.filetransfer.component.DefaultPayload"));
         assertTrue(templateString.contains("FilePayloadAttributeNames.FILE_NAME"));
     }
 
@@ -126,12 +125,12 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains("implements Converter<Object, Payload>"));
+        assertTrue(templateString.contains("implements Converter<java.lang.Object, org.ikasan.filetransfer.Payload>"));
         // V3.3.9 targets JDK 11 (no pattern-matching instanceof) so it renders "instanceof byte[])" with a
         // separate cast, while V4.1.6 (JDK 17) renders "instanceof byte[] bytes" - assert on the shared prefix
         // rather than a version-specific form.
-        assertTrue(templateString.contains("source instanceof byte["));
-        assertTrue(templateString.contains("new DefaultPayload"));
+        assertTrue(templateString.contains("body instanceof byte["));
+        assertTrue(templateString.contains("new org.ikasan.filetransfer.component.DefaultPayload"));
     }
 
 
@@ -148,10 +147,10 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains("implements Converter<Message, EmailPayload>"));
-        assertTrue(templateString.contains("emailPayload.setEmailBody(extractBody(message))"));
-        assertTrue(templateString.contains("message instanceof TextMessage"));
-        assertTrue(templateString.contains("message instanceof BytesMessage"));
+        assertTrue(templateString.contains("implements Converter<javax.jms.Message, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
+        assertTrue(templateString.contains("result.setEmailBody(text(body, charset))"));
+        assertTrue(templateString.contains("source instanceof javax.jms.TextMessage"));
+        assertTrue(templateString.contains("source instanceof javax.jms.BytesMessage"));
     }
 
     @ParameterizedTest
@@ -168,8 +167,9 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains("implements Converter<java.lang.Object, EmailPayload>"));
-        assertTrue(templateString.contains("emailPayload.setEmailBody(payload.toString())"));
+        assertTrue(templateString.contains("implements Converter<java.lang.Object, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
+        assertTrue(templateString.contains("result.setEmailBody(text(body, charset))"));
+        assertFalse(templateString.contains("payload.toString()"));
     }
 
     //  ------------------------------- CONVERTER ----------------------------------

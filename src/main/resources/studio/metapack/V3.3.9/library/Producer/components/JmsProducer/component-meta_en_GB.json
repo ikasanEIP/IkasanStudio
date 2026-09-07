@@ -1,5 +1,5 @@
 {
-  "name": "JMS Producer",
+  "name": "Spring JMS Producer",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "endpointKey": "Channel Endpoint",
   "endpointTextKey": "destinationJndiName",

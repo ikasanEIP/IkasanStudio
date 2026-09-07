@@ -100,7 +100,7 @@ public class ComponentMeta implements IkasanMeta {
                                                       // MetaPackDataValidator: use an empty string when intentionally absent, not null
     private String expectedInputTypes;              // Optional: one, or several comma-separated, fully-qualified types (or simple names
                                                       // e.g. "List") this component's incoming payload is expected to be assignable to - e.g.
-                                                      // Default List Splitter expects "java.util.List"; JMS Producer expects one of
+                                                      // Default List Splitter expects "java.util.List"; Spring JMS Producer expects one of
                                                       // "java.lang.String, byte[], java.util.Map, java.io.Serializable" (Spring's JmsTemplate
                                                       // default MessageConverter's actual accepted set). A single value with no comma behaves
                                                       // exactly as before - this field only grew a "one of several" meaning, not a new field,

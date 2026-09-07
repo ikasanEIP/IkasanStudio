@@ -64,7 +64,10 @@
         "sourceType": { "type": "string", "minLength": 1 },
         "targetType": { "type": "string", "minLength": 1 },
         "template": { "type": "string", "minLength": 1 },
-        "helpText": { "type": "string", "minLength": 1 }
+        "helpText": { "type": "string", "minLength": 1 },
+        "extractionTemplate": { "type": "string" },
+        "constructionTemplate": { "type": "string" },
+        "configurationProperties": { "type": "array", "items": { "type": "string" } }
       }
     },
     "property": {

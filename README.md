@@ -397,3 +397,7 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
 [docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+
+### Converter recipes
+
+Generic converters offer persistent recipe selection, downstream type suggestions, and reusable content extraction and payload construction for FTP/SFTP, email and JMS. See [Converter recipes](docs/ConversionRecipes.md) for supported inputs, configuration, code ownership and verification.
