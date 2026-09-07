@@ -564,6 +564,26 @@ public class GeneratedProjectSynchronizer {
         setFlowComponentNavigationTargets(ikasanFlow, flowViewHandler.getCodeNavigationTarget().psiFile());
     }
 
+    /** Resolve document/PSI on a pooled read action; loading either can refresh the workspace index. */
+    private void withNavigationText(PsiFile file, java.util.function.Consumer<NavigationTextReader.Snapshot> apply) {
+        withNavigationText(() -> file, apply);
+    }
+
+    private void withNavigationText(java.util.function.Supplier<PsiFile> resolve,
+                                    java.util.function.Consumer<NavigationTextReader.Snapshot> apply) {
+        UiContext context = project.getService(UiContext.class);
+        var owner = context.getViewHandlerFactory();
+        var module = context.getIkasanModule();
+        var generation = context.getLatestGeneration();
+        if (owner == null) return;
+        Runnable read = () -> NavigationTextReader.read(project, resolve, snapshot -> {
+            if (context.getViewHandlerFactory() == owner && context.getIkasanModule() == module
+                    && context.getLatestGeneration() == generation) apply.accept(snapshot);
+        });
+        if (GenerationTransactionManager.isActive()) StudioProjectFiles.afterGenerationCommit(read);
+        else read.run();
+    }
+
     /**
      * Default "jump to code" target for a flow component: the component's reference within the containing flow's
      * generated Java file (e.g. the {@code "My Consumer"} literal in {@code .consumer("My Consumer", ...)}), located
@@ -575,23 +595,29 @@ public class GeneratedProjectSynchronizer {
         if (flowPsiFile == null) {
             return;
         }
-        String flowFileText = flowPsiFile.getText();
-        int searchFromOffset = 0;
-        for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
-            IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
-            if (flowComponentViewHandler != null) {
-                NavigationTarget target = NavigationTarget.forFile(flowPsiFile);
-                String componentName = flowElement.getComponentName();
-                if (componentName != null) {
-                    int offset = flowFileText.indexOf("\"" + componentName + "\"", searchFromOffset);
-                    if (offset >= 0) {
-                        target = target.withOffset(offset);
-                        searchFromOffset = offset + componentName.length();
+        withNavigationText(flowPsiFile, snapshot -> {
+            String flowFileText = snapshot.text();
+            int searchFromOffset = 0;
+            for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
+                IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
+                if (flowComponentViewHandler != null) {
+                    // A user-class target assigned while this read was pending is more specific.
+                    if (flowElement instanceof FlowUserImplementedElement
+                            && flowComponentViewHandler.getCodeNavigationTarget().isPresent()
+                            && flowComponentViewHandler.getCodeNavigationTarget().psiFile() != flowPsiFile) continue;
+                    NavigationTarget target = snapshot.target();
+                    String componentName = flowElement.getComponentName();
+                    if (componentName != null) {
+                        int offset = flowFileText.indexOf("\"" + componentName + "\"", searchFromOffset);
+                        if (offset >= 0) {
+                            target = target.withOffset(offset);
+                            searchFromOffset = offset + componentName.length();
+                        }
                     }
+                    flowComponentViewHandler.setCodeNavigationTarget(target);
                 }
-                flowComponentViewHandler.setCodeNavigationTarget(target);
             }
-        }
+        });
     }
 
     /**
@@ -613,11 +639,8 @@ public class GeneratedProjectSynchronizer {
         if (propertiesPsiFile == null || module.getFlows() == null) {
             return;
         }
-        // PsiFile#getText() (and any other PSI access) requires a read action - initialisePsiFileHandles() runs
-        // this on a background pooled thread with no read lock held, unlike the sibling .java-file path a few
-        // lines below, which is already inside its own ReadAction.run(...).
-        ReadAction.run(() -> {
-            String propertiesFileText = propertiesPsiFile.getText();
+        withNavigationText(propertiesPsiFile, snapshot -> {
+            String propertiesFileText = snapshot.text();
             int searchFromOffset = 0;
             for (Flow flow : module.getFlows()) {
                 IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);
@@ -625,7 +648,7 @@ public class GeneratedProjectSynchronizer {
                     String flowConfigPrefix = "ikasan.flow.configuration[" + StudioBuildUtils.escapeSpringPropertiesMapKey(flow.getIdentity()) + "].";
                     int flowOffset = propertiesFileText.indexOf(flowConfigPrefix);
                     flowViewHandler.setPropertiesNavigationTarget(flowOffset >= 0
-                            ? NavigationTarget.forFile(propertiesPsiFile).withOffset(flowOffset)
+                            ? snapshot.target().withOffset(flowOffset)
                             : NavigationTarget.none());
                 }
 
@@ -637,7 +660,7 @@ public class GeneratedProjectSynchronizer {
                     String key = firstApplicationPropertiesKeyFor(module, flow, flowElement);
                     int offset = key != null ? propertiesFileText.indexOf(key + "=", searchFromOffset) : -1;
                     flowComponentViewHandler.setPropertiesNavigationTarget(offset >= 0
-                            ? NavigationTarget.forFile(propertiesPsiFile).withOffset(offset)
+                            ? snapshot.target().withOffset(offset)
                             : NavigationTarget.none());
                     if (offset >= 0) {
                         searchFromOffset = offset + key.length();
@@ -695,14 +718,10 @@ public class GeneratedProjectSynchronizer {
                     StudioProjectFiles.SRC_MAIN_JAVA_CODE + "/" +
                     packageName.replace(".", "/") + "/" +
                     className + ".java";
-            VirtualFile vFile = projectBaseDir.findFileByRelativePath(relPath);
-            if (vFile == null || !vFile.isValid()) {
-                continue;
-            }
-            PsiFile userClassPsiFile = PsiManager.getInstance(project).findFile(vFile);
-            if (userClassPsiFile != null) {
-                componentViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(userClassPsiFile));
-            }
+            withNavigationText(() -> {
+                VirtualFile vFile = projectBaseDir.findFileByRelativePath(relPath);
+                return vFile == null || !vFile.isValid() ? null : PsiManager.getInstance(project).findFile(vFile);
+            }, snapshot -> componentViewHandler.setCodeNavigationTarget(snapshot.target()));
         }
     }
 

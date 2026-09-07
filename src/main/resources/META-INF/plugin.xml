@@ -15,6 +15,8 @@
     <resource-bundle>messages.studioBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
+        <!-- User-submitted exception reports; JetBrains hosts the Marketplace backend. -->
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
         <toolWindow factoryClass="org.ikasan.studio.intellij.toolwindow.DesignerToolWindowFactory"
                     id="Ikasan Studio"
                     anchor="right"

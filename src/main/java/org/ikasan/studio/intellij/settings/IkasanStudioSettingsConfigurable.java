@@ -155,6 +155,10 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         northPanel.add(canvasLayoutPanel);
         northPanel.add(testMailServerPanel);
         northPanel.add(flowErrorMonitoringPanel);
+        JPanel reportingPanel = new JPanel(new BorderLayout());
+        reportingPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ErrorReporting")));
+        reportingPanel.add(wrappingNote("label.ErrorReportingNote"), BorderLayout.CENTER);
+        northPanel.add(reportingPanel);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(JBUI.Borders.empty(10));

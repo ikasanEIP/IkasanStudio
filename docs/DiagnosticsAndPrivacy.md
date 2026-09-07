@@ -1,5 +1,26 @@
 # Logging, diagnostics and privacy
 
+## Reporting unexpected plugin failures through JetBrains
+
+Ikasan Studio registers JetBrains' built-in `JetBrainsMarketplaceErrorReportSubmitter`. When IntelliJ attributes an unexpected error to Studio, developers can use the IDE error dialog to review and explicitly submit a report through JetBrains Marketplace. No custom upload server, automatic background reporting sink or telemetry has been added.
+
+Review the IDE's report details, selected attachments and privacy notice before sending. Reports can contain exception messages and stack traces, IDE/plugin/environment information, the user's description and attachments selected in the IDE. Studio does not attach model files, generated source, project configuration or the diagnostics ZIP. An unexpected exception message can itself contain input data; **the ZIP's strict redaction does not apply to the built-in reporter**. Do not describe Marketplace reports as guaranteed credential-free.
+
+Expected configuration, connectivity and generation failures remain recoverable notifications/warnings; they are not promoted to fatal errors just to obtain a report. The remaining explicit fatal log sites were reviewed: they contain invariant descriptions, dimensions and Java class names. The view-handler mismatch message no longer includes the component object.
+
+After publishing a plugin update with this registration, the Marketplace plugin administration page provides an **Exceptions** tab for the development team. This uses the existing plugin ID `com.github.ikasaneip.ikasanstudio`. Uploading/publishing and confirming team access remain release steps; local registration tests do not prove delivery to the Marketplace backend.
+
+Local verification: the real IDEA extension test confirms that exactly one Marketplace reporter belongs to Studio and provides a report action and privacy notice. The full suite passes (659 tests), and `buildPlugin` succeeds. The packaged descriptor includes the manual reporter and no automatic reporting sink. No reports were transmitted during verification.
+
+Release verification:
+
+1. Publish an approved test/release update containing the registration and verify the Exceptions tab and team access.
+2. In an isolated IDE, verify an unexpected Studio error offers the vendor reporting action and privacy notice. Review the payload and submit a deliberately chosen test report only as part of that release check.
+3. Confirm receipt, grouping and resolution in Marketplace. Verify cancellation leaves the report unsent and offline submission offers recoverable feedback.
+4. Confirm an invalid model or unavailable module still shows recoverable UI rather than a fatal-error reporting prompt.
+
+See [JetBrains Exception Analyzer](https://plugins.jetbrains.com/docs/marketplace/exception-analyzer.html) for the hosted workflow. The implementation exists in the project's IDEA 2024.3.7 target and has been available since IDEA 2023.3.
+
 ## Collecting diagnostics
 
 Use **Tools → Collect Ikasan Studio Diagnostics…**, or search for the same action in IntelliJ Find Action. It remains available during indexing and does not require the designer tab to be open. Choose a local `.zip` destination; collection runs in the background. Nothing is uploaded or sent to another application.

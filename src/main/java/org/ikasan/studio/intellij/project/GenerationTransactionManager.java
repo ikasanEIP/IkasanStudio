@@ -82,7 +82,7 @@ final class GenerationTransactionManager {
             if (existing != null && artifact.relativePath().startsWith("user/")
                     && !batch.isUserReplacementAuthorised(artifact.relativePath())) {
                 try {
-                    byte[] oldBytes = existing.contentsToByteArray();
+                    byte[] oldBytes = readBytes(existing);
                     String oldContent = new String(oldBytes, StandardCharsets.UTF_8);
                     if (!oldContent.equals(preserveLineEndings(oldBytes, artifact.content()))) {
                         throw new StudioRuntimeException("Refusing to replace developer-owned file without explicit confirmation: "
@@ -98,7 +98,7 @@ final class GenerationTransactionManager {
         try {
             for (GenerationBatch.Artifact artifact : artifacts) {
                 VirtualFile existing = baseDir.findFileByRelativePath(artifact.relativePath());
-                byte[] oldBytes = existing == null ? null : existing.contentsToByteArray();
+                byte[] oldBytes = existing == null ? null : readBytes(existing);
                 originals.add(new Original(artifact.relativePath(), oldBytes));
                 String committedContent = preserveLineEndings(oldBytes, artifact.content());
                 if (oldBytes == null) created++;
@@ -146,6 +146,23 @@ final class GenerationTransactionManager {
                             + artifact.relativePath() + ": " + error.getMessage(), error);
                 }
             }
+        }
+    }
+
+    /**
+     * Reads a VirtualFile's raw bytes via its input stream rather than {@link VirtualFile#contentsToByteArray()},
+     * which - for XML-like file types such as pom.xml - can trigger charset/BOM detection
+     * (LoadTextUtil.detectCharsetAndSetBOM) that needs a project lookup through the workspace file index. That
+     * lookup is disallowed synchronously on the EDT (see SlowOperations.assertSlowOperationsAreAllowed), and
+     * commit() runs inside a CommandProcessor.executeCommand block on the EDT - the read here only ever needs
+     * raw bytes for byte-level diffing/rollback, never decoded text, so getInputStream() avoids that machinery
+     * while still going through the VirtualFile API (unlike java.nio.file, this keeps working under IntelliJ's
+     * Eel abstraction for a remote/WSL/Docker project - see StudioProjectFiles#chooseFileAndReadText's own
+     * comment on the same tradeoff).
+     */
+    private static byte[] readBytes(VirtualFile file) throws IOException {
+        try (java.io.InputStream in = file.getInputStream()) {
+            return in.readAllBytes();
         }
     }
 

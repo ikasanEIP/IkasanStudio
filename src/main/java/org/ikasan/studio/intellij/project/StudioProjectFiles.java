@@ -581,6 +581,23 @@ public class StudioProjectFiles {
         catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
 
+    /**
+     * Reads a VirtualFile's raw bytes via its input stream rather than {@link VirtualFile#contentsToByteArray()},
+     * which - for XML-like file types such as pom.xml - can trigger charset/BOM detection
+     * (LoadTextUtil.detectCharsetAndSetBOM) that needs a project lookup through the workspace file index. That
+     * lookup is disallowed synchronously on the EDT (see SlowOperations.assertSlowOperationsAreAllowed), and
+     * writeContentAndFormat() runs inside a CommandProcessor.executeCommand block on the EDT - these callers
+     * only ever need raw bytes for hashing/diffing, never decoded text, so getInputStream() avoids that
+     * machinery while still going through the VirtualFile API (unlike java.nio.file, this keeps working under
+     * IntelliJ's Eel abstraction for a remote/WSL/Docker project - see chooseFileAndReadText's own comment on
+     * the same tradeoff).
+     */
+    private static byte[] readBytes(VirtualFile file) throws IOException {
+        try (InputStream in = file.getInputStream()) {
+            return in.readAllBytes();
+        }
+    }
+
     /** Formatting changes generated text. Compare both the last template and current disk content before reusing it. */
     static boolean canReuseGeneratedContent(VirtualFile file, String rendered, byte[] persisted) {
         GeneratedContentFingerprint previous = file.getUserData(GENERATED_CONTENT);
@@ -598,10 +615,10 @@ public class StudioProjectFiles {
                 Document document = documentManager.getCachedDocument(file);
                 // Resolve attributes from our previous save before making this document dirty again.
                 if (document != null && !documentManager.isDocumentUnsaved(document)) file.refresh(false, false);
-                byte[] persistedContent = file.contentsToByteArray();
+                byte[] persistedContent = readBytes(file);
                 String existingContent = document != null
                         ? document.getText()
-                        : new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
+                        : new String(persistedContent, StandardCharsets.UTF_8);
 
                 String documentContent = com.intellij.openapi.util.text.StringUtil.convertLineSeparators(fileContent);
                 if ((document != null ? documentContent : fileContent).equals(existingContent)
@@ -638,7 +655,7 @@ public class StudioProjectFiles {
                 }
 
                 GeneratedContentFingerprint fingerprint = new GeneratedContentFingerprint(
-                        contentHash(fileContent.getBytes(StandardCharsets.UTF_8)), contentHash(file.contentsToByteArray()));
+                        contentHash(fileContent.getBytes(StandardCharsets.UTF_8)), contentHash(readBytes(file)));
                 file.putUserData(GENERATED_CONTENT, fingerprint);
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
@@ -669,7 +686,7 @@ public class StudioProjectFiles {
                         if (file.getUserData(GENERATED_CONTENT) == fingerprint) {
                             try {
                                 file.putUserData(GENERATED_CONTENT, new GeneratedContentFingerprint(
-                                        fingerprint.rendered(), contentHash(file.contentsToByteArray())));
+                                        fingerprint.rendered(), contentHash(readBytes(file))));
                             } catch (IOException failure) {
                                 file.putUserData(GENERATED_CONTENT, null);
                                 throw new StudioRuntimeException("Could not verify generated file " + file.getPath(), failure);

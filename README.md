@@ -309,6 +309,12 @@ When you first create a project, you may find red highlights and basic Spring de
 
 Please work around this for now, it will be fixed shortly.
 
+## Reporting problems
+
+For an unexpected Ikasan Studio plugin error, IntelliJ's error dialog offers a report action that sends the reviewed report through JetBrains Marketplace to the Studio development team. Review the details, attachments and privacy notice before submitting. Studio does not attach model files.
+
+For other support investigations, **Tools → Collect Ikasan Studio Diagnostics…** creates a local ZIP; it does not upload it. See [Diagnostics and privacy](docs/DiagnosticsAndPrivacy.md) for report contents, privacy differences and release verification.
+
 ## Plugin Development Guidelines
 
 These guidelines are for developers working on the plugin itself.

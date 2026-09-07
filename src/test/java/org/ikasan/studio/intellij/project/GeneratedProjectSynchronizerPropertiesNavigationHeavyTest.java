@@ -85,6 +85,7 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
                 consumerViewHandlerBefore.hasPropertiesNavigationTarget(), is(false));
 
         new GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
+        com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
 
         // Component target: FtpConsumer's alphabetically-first externalized property is clientID.
         AbstractViewHandlerIntellij consumerViewHandler = ViewHandlerCache.getFlowComponentViewHandler(myProject, ftpConsumer);
