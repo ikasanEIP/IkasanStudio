@@ -50,6 +50,7 @@ public class ComponentInput {
     }
 
     public void setEnabled(boolean enabled) {
+        if (propertyChoiceValueField != null) propertyChoiceValueField.setEnabled(enabled);
         if (trueBox != null) {
             trueBox.setEnabled(enabled);
         }

@@ -71,7 +71,7 @@ public class PaletteTabPanel extends JBPanel {
 
         paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         paletteSplitPane.setBorder(JBUI.Borders.empty());
-        paletteSplitPane.setDividerSize(3);
+        paletteSplitPane.setDividerSize(JBUI.scale(3));
         paletteSplitPane.setUI(new BasicSplitPaneUI() {
             @Override
             public BasicSplitPaneDivider createDefaultDivider() {
@@ -99,6 +99,9 @@ public class PaletteTabPanel extends JBPanel {
 
     public void setPaletteList() {
         paletteList = new JBList<>(buildPaletteItems(project));
+        paletteList.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.ComponentPalette"));
+        paletteList.getAccessibleContext().setAccessibleDescription(StudioBundle.message("accessible.ComponentPaletteDescription"));
+        paletteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         paletteList.setCellRenderer(new PaletteListCellRenderer());
         paletteList.setDragEnabled(true);
         paletteList.setTransferHandler(paletteExportTransferHandler);

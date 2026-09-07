@@ -157,11 +157,14 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         northPanel.add(flowErrorMonitoringPanel);
 
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(JBUI.Borders.empty(10));
         panel.add(northPanel, BorderLayout.NORTH);
 
         reset();
-        return panel;
+        var scrollPane = new com.intellij.ui.components.JBScrollPane(panel);
+        scrollPane.setBorder(JBUI.Borders.empty());
+        scrollPane.getAccessibleContext().setAccessibleName(getDisplayName());
+        return scrollPane;
     }
 
     @Override
@@ -274,7 +277,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private static JLabel wrappingNote(String messageKey) {
         JLabel note = ComponentPanelBuilder.createCommentComponent(
                 StudioBundle.message(messageKey), true);
-        note.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
+        note.setBorder(JBUI.Borders.emptyLeft(24));
         return note;
     }
 

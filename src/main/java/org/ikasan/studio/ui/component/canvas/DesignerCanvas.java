@@ -153,6 +153,7 @@ public class DesignerCanvas extends JPanel {
         // PlatformCoreDataKeys.FILE_EDITOR) could never find this editor and stayed permanently disabled
         // while working here, regardless of what was on the undo stack.
         setFocusable(true);
+        CanvasKeyboardNavigation.install(this, project);
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -595,6 +596,8 @@ public class DesignerCanvas extends JPanel {
      * @param ikasanBasicElement currently pointed to by the mouse.
      */
     public void setSelectedComponent(BasicElement ikasanBasicElement) {
+        getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.DesignerCanvas")
+                + (ikasanBasicElement == null ? "" : ": " + ikasanBasicElement.getIdentity()));
         Module ikasanModule = getIkasanModule();
         deSelectAllComponentsAndFlows();
         // Set selected

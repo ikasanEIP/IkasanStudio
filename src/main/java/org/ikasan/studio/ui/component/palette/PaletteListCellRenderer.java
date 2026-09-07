@@ -4,13 +4,12 @@ package org.ikasan.studio.ui.component.palette;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.Styling;
 import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<Object> {
+public class PaletteListCellRenderer extends DefaultListCellRenderer {
     public static final Logger LOG = Logger.getInstance("PaletteListCellRenderer");
     // This is the only method defined by ListCellRenderer.
     // We just reconfigure the JLabel each time we're called.
@@ -21,37 +20,17 @@ public class PaletteListCellRenderer extends JLabel implements ListCellRenderer<
             boolean isSelected,      // is the cell selected
             boolean cellHasFocus)    // does the cell have focus
     {
-        // This is only sed for PaletteItems
+        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         if (value instanceof PaletteItem paletteItem) {
-            if (paletteItem.isCategory()) {
-                // Separator
-                if (index > 0) {
-                    setBorder(JBUI.Borders.empty(5, 3, 4, 3));
-                }
-
-                setText(paletteItem.getIkasanPaletteElementViewHandler().getComponentMeta().getName());
-                setFont(new Font(getFont().getFontName(), Font.BOLD, getFont().getSize()));
-                setForeground(Styling.IKASAN_ORANGE);
-
-                setIcon(null);
-                this.setFocusable(false);
-
-            } else {
-                setText(paletteItem.getIkasanPaletteElementViewHandler().getText());
-                setIcon(paletteItem.getIkasanPaletteElementViewHandler().getDisplayIcon());
-
-                if (isSelected) {
-                    setBackground(list.getSelectionBackground());
-                    setForeground(list.getSelectionForeground());
-                } else {
-                    setBackground(list.getBackground());
-                    setForeground(list.getForeground());
-                }
-                setEnabled(list.isEnabled());
-                setFont(list.getFont());
-                setOpaque(true);
-                setBorder(JBUI.Borders.emptyBottom(4));
-            }
+            var handler = paletteItem.getIkasanPaletteElementViewHandler();
+            setText(paletteItem.isCategory() ? handler.getComponentMeta().getName() : handler.getText());
+            setIcon(paletteItem.isCategory() ? null : handler.getDisplayIcon());
+            setFont(paletteItem.isCategory() ? list.getFont().deriveFont(Font.BOLD) : list.getFont());
+            // Keep the look-and-feel's selection colours and focus border, including high contrast.
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                    paletteItem.isCategory() ? JBUI.Borders.empty(5, 3, 4, 3) : JBUI.Borders.emptyBottom(4)));
+            setToolTipText(getText());
+            getAccessibleContext().setAccessibleName(getText());
         } else {
             LOG.warn("STUDIO: The PaletteListCellRenderer should contain a PaletteItem but did contain " + value);
         }

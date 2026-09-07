@@ -343,6 +343,7 @@ public class ComponentPropertyEditRow {
             // icon-per-dataValidationType scheme once a second popup type exists.
             dataValidationHelper = new JButton("...");
             dataValidationHelper.setToolTipText(StudioBundle.message("tooltip.HelpWithCronConfiguration"));
+            dataValidationHelper.getAccessibleContext().setAccessibleName(StudioBundle.message("tooltip.HelpWithCronConfiguration"));
             // A margin (not setBorder) just pads the label - setBorder(...) previously replaced the button's
             // whole default border/chrome, which is why it rendered with no visible outline at all.
             dataValidationHelper.setMargin(JBUI.insets(2, 8));
@@ -468,6 +469,25 @@ public class ComponentPropertyEditRow {
             componentInput = new ComponentInput(propertyBooleanFieldTrue, propertyBooleanFieldFalse);
         } else {
             componentInput = new ComponentInput(propertyValueField);
+        }
+        if (componentInput != null) {
+            String name = propertyTitleField.getText();
+            for (JButton button : new JButton[] {defaultValueButton, chooseClassButton}) {
+                if (button != null) button.getAccessibleContext().setAccessibleDescription(name);
+            }
+            if (rowOverwriteCheckBox != null) rowOverwriteCheckBox.getAccessibleContext().setAccessibleName(
+                    StudioBundle.message("tooltip.CheckTheBoxIfYouWishToRewriteOverwriteTheExistingCode") + ": " + name);
+            JComponent input = componentInput.getFirstFocusComponent();
+            propertyTitleField.setLabelFor(input);
+            input.getAccessibleContext().setAccessibleName(name);
+            input.getAccessibleContext().setAccessibleDescription(meta.getHelpText());
+            if (componentInput.isBooleanInput()) {
+                componentInput.getTrueBox().getAccessibleContext().setAccessibleName(name + ": "
+                        + (meta.getTrueLabel() != null ? meta.getTrueLabel() : StudioBundle.message("label.True")));
+                componentInput.getFalseBox().getAccessibleContext().setAccessibleName(name + ": "
+                        + (meta.getFalseLabel() != null ? meta.getFalseLabel() : StudioBundle.message("label.False")));
+                componentInput.getFalseBox().getAccessibleContext().setAccessibleDescription(meta.getHelpText());
+            }
         }
         if (meta.isReadOnlyProperty() && componentInput != null) {
             componentInput.setEnabled(false);

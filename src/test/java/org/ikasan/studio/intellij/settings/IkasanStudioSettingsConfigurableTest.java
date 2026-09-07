@@ -13,6 +13,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class IkasanStudioSettingsConfigurableTest {
     @Test
+    void settingsRemainScrollableAtRequestedUiScalesAndNarrowViewport() throws Exception {
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            float original = com.intellij.ui.scale.JBUIScale.scale(1f);
+            try {
+                for (float scale : new float[] {1.25f, 1.5f, 2f}) {
+                    com.intellij.ui.scale.JBUIScale.setUserScaleFactorForTest(scale);
+                    assertThat(com.intellij.ui.scale.JBUIScale.scale(1f)).isEqualTo(scale);
+                    var configurable = new IkasanStudioSettingsConfigurable();
+                    var scroll = (javax.swing.JScrollPane) configurable.createComponent();
+                    assertThat(scroll).isNotNull();
+                    scroll.setSize(320, 240);
+                    layoutUsingAssignedSizes(scroll);
+                    assertThat(scroll.getVerticalScrollBar().isVisible()).isTrue();
+                    assertThat(descendantsOfType(scroll, JSpinner.class)).hasSize(4);
+                    assertThat(configurable.getPreferredFocusedComponent()).isInstanceOf(javax.swing.JCheckBox.class);
+                    configurable.disposeUIResources();
+                }
+            } finally { com.intellij.ui.scale.JBUIScale.setUserScaleFactorForTest(original); }
+        });
+    }
+
+    @Test
     void explanatoryNotesUseIntellijResponsiveWrapping() {
         IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
         JComponent settings = configurable.createComponent();
@@ -75,6 +97,7 @@ class IkasanStudioSettingsConfigurableTest {
         for (int width : List.of(420, 1100)) {
             IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
             JComponent settings = configurable.createComponent();
+            assertThat(settings).isNotNull();
             settings.setSize(width, settings.getPreferredSize().height);
             layoutUsingAssignedSizes(settings);
 

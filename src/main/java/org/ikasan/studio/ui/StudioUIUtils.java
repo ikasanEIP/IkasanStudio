@@ -383,11 +383,13 @@ public class StudioUIUtils {
                 .notify(project);
     }
     public static void displayIdeaWarnMessage(Project project, String message) {
+        LOG.warn("STUDIO: " + message);
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.WARNING)
                 .notify(project);
     }
     public static void displayIdeaErrorMessage(Project project, String message) {
+        LOG.warn("STUDIO: " + message);
         NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.ERROR)
                 .notify(project);
