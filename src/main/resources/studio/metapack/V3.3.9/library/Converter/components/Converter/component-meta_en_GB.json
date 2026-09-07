@@ -7,6 +7,14 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/Readme.md",
   "conversionRecipes": [
     {
+      "id": "file-transfer-payload-to-email-attachment",
+      "displayName": "FTP/SFTP Payload to Email Attachment",
+      "sourceType": "org.ikasan.filetransfer.Payload",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "fileTransferPayloadToEmailAttachmentConverterTemplate.ftl",
+      "helpText": "Preserves the incoming file bytes and filename as an email attachment. Uses application/octet-stream; review the email body and media type for your integration."
+    },
+    {
       "id": "jms-message-to-file-transfer-payload",
       "displayName": "JMS Message to FTP/SFTP Payload",
       "sourceType": "javax.jms.Message",

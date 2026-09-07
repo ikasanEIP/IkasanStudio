@@ -61,6 +61,27 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, "MyGenericProducer.java"), templateString);
     }
 
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    public void testFileTransferToEmailAttachmentRecipe(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement converter = TestFixtures.getCustomConverter(metaPackVersion);
+        converter.setPropertyValue("fromType", "org.ikasan.filetransfer.Payload");
+        converter.setPropertyValue("toType", "org.ikasan.component.endpoint.email.producer.EmailPayload");
+        var matches = converter.getComponentMeta().getConversionRecipes().stream()
+                .filter(recipe -> recipe.matches(converter.getPropertyValueAsString("fromType"),
+                        converter.getPropertyValueAsString("toType"))).toList();
+        org.junit.jupiter.api.Assertions.assertEquals(1, matches.size());
+        org.junit.jupiter.api.Assertions.assertEquals("file-transfer-payload-to-email-attachment", matches.get(0).getId());
+        converter.setPropertyValue("conversionRecipeId", matches.get(0).getId());
+        String generated = generateUserImplementedComponentTemplate(metaPackVersion, module, converter);
+        assertTrue(generated.contains("implements Converter<Payload, EmailPayload>"));
+        assertTrue(generated.contains("email.addAttachment(filename, \"application/octet-stream\", payload.getContent())"));
+        assertTrue(generated.contains("payload.getAttribute(\"fileName\")"));
+        assertTrue(generated.contains("throw new TransformationException"));
+        org.junit.jupiter.api.Assertions.assertFalse(generated.contains("payload.toString()"));
+    }
+
     //  ------------------------------- CONVERTER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyConverter.java

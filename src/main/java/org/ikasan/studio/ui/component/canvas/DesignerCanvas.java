@@ -1260,11 +1260,10 @@ public class DesignerCanvas extends JPanel {
         for (int i = 0; i < matches.size(); i++) {
             choices[i] = matches.get(i).getDisplayName();
         }
-        choices[matches.size()] = "Blank custom converter";
+        choices[matches.size()] = StudioBundle.message("conversion.BlankCustomConverter");
         int selected = Messages.showDialog(project,
-                "Studio found an implementation recipe for " + sourceType + " to " + targetType
-                        + ". Choose a starting point for the generated converter.",
-                "Configure Conversion", choices, 0, null);
+                StudioBundle.message("conversion.ChooseRecipe", sourceType, targetType),
+                StudioBundle.message("conversion.Configure"), choices, 0, null);
         if (selected >= 0 && selected < matches.size()) {
             newComponent.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID, matches.get(selected).getId());
         }
