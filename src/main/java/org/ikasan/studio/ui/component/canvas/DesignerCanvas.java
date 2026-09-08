@@ -26,6 +26,7 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
 import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
 import org.ikasan.studio.core.model.command.FlowElementMove;
 import org.ikasan.studio.core.model.ikasan.instance.*;
@@ -326,6 +327,33 @@ public class DesignerCanvas extends JPanel {
             FlowElement testMailServerNodeOwner = getOwnerForTestMailServerNodeAtXY(x, y);
             if (testMailServerNodeOwner != null) {
                 DesignCanvasContextMenu.showStopTestMailServerMenu(project, this, me, testMailServerNodeOwner);
+                return;
+            }
+            TestJmsHarnessLinks.Link jmsHarnessLink = getJmsHarnessLinkAtXY(x, y);
+            if (jmsHarnessLink != null) {
+                DesignCanvasContextMenu.showRemoveJmsHarnessMenu(project, this, me, jmsHarnessLink.harnessFlow());
+                return;
+            }
+        }
+        // Left-click (any count) on the compact Test JMS harness node - not a real, normally-positioned
+        // FlowElement, so it must be handled here rather than falling through to getComponentAtXY() below
+        // (which would find nothing there and just fall through further, into the same click being treated as
+        // an empty-canvas deselect). Double-click navigates straight to the harness's own Debug component's
+        // generated code, reusing NavigateToCodeAction exactly as a direct double-click on a Debug component
+        // would (see below) - single-click is otherwise a no-op, since there's no ordinary property panel for
+        // a synthetic node like this.
+        if (me.getButton() == MouseEvent.BUTTON1) {
+            TestJmsHarnessLinks.Link jmsHarnessLink = getJmsHarnessLinkAtXY(x, y);
+            if (jmsHarnessLink != null) {
+                if (me.getClickCount() == 2 && !me.isConsumed()) {
+                    me.consume();
+                    if (jmsHarnessLink.debugComponent() != null) {
+                        new NavigateToCodeAction(project, jmsHarnessLink.debugComponent(), true)
+                                .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "navigateToCode"));
+                    } else {
+                        StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotNavigateToDebugComponentForJmsHarness"));
+                    }
+                }
                 return;
             }
         }
@@ -1615,6 +1643,7 @@ public class DesignerCanvas extends JPanel {
                 paintJmsDestinationConnectors(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
                 paintTestFtpServerNode(g, ikasanModule);
+                paintTestJmsHarnessNode(g, ikasanModule);
                 updateFlowErrorFlashState(ikasanModule);
                 paintFlowTransportControls(g, ikasanModule);
             }
@@ -2107,6 +2136,96 @@ public class DesignerCanvas extends JPanel {
         }
 
         paintTestMailServerIcon(graphics, g2d, nodeLeftX, nodeTopY);
+    }
+
+    // Same rhythm/sizing as the Mail/FTP server nodes - see their own constants' comments above.
+    private static final int TEST_JMS_HARNESS_NODE_GAP = JMS_CONNECTOR_GUTTER_MARGIN;
+    private static final int TEST_JMS_HARNESS_NODE_WIDTH = 90;
+    private static final int TEST_JMS_HARNESS_NODE_HEIGHT = 60;
+    private static final int TEST_JMS_HARNESS_LABEL_GAP = 4;
+
+    /**
+     * Draws one compact "Test JMS harness" node per {@link TestJmsHarnessLinks.Link}, immediately to the right
+     * of the Producer it inspects - the same position an Email Producer's Test Mail Server node would use, and
+     * for the same reason (a Producer only ever has downstream infrastructure to its right). Unlike the Mail/FTP
+     * server nodes there is exactly one Producer per Link (see {@link TestJmsHarnessLinks#findLinks} - each
+     * harness flow was created for one specific Producer), so there's no shared-trunk fan-in to draw: just the
+     * one connector line and the node itself. The underlying harness Flow (Consumer + Debug + Dev Null sink)
+     * still exists and still generates real code - {@link org.ikasan.studio.ui.viewmodel.IkasanModuleViewHandler}
+     * simply never gives it a box/route of its own, which is what makes this the flow's only visible
+     * representation on the canvas.
+     */
+    private void paintTestJmsHarnessNode(Graphics graphics, Module ikasanModule) {
+        if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
+            return;
+        }
+        List<TestJmsHarnessLinks.Link> links = TestJmsHarnessLinks.findLinks(ikasanModule);
+        if (links.isEmpty()) {
+            return;
+        }
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            for (TestJmsHarnessLinks.Link link : links) {
+                paintTestJmsHarnessLink(graphics, g2d, link);
+            }
+        } finally {
+            g2d.dispose();
+        }
+    }
+
+    private void paintTestJmsHarnessLink(Graphics graphics, Graphics2D g2d, TestJmsHarnessLinks.Link link) {
+        Point anchorRight = jmsHarnessAnchorConnectorPoint(link.ownerProducer());
+        if (anchorRight == null) {
+            return;
+        }
+        int nodeLeftX = anchorRight.x + TEST_JMS_HARNESS_NODE_GAP;
+        int nodeTopY = anchorRight.y - (TEST_JMS_HARNESS_NODE_HEIGHT / 2);
+        Point nodeLeft = new Point(nodeLeftX, anchorRight.y);
+
+        // Deliberately no g2d.setColor() call here - see paintTestMailServerLink's identical comment above.
+        g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2d.drawLine(anchorRight.x, anchorRight.y, nodeLeft.x, nodeLeft.y);
+        paintArrowhead(g2d, nodeLeft);
+
+        paintExternalSystemCard(g2d, new Rectangle(nodeLeftX, nodeTopY, TEST_JMS_HARNESS_NODE_WIDTH, TEST_JMS_HARNESS_NODE_HEIGHT));
+        ComponentIconProvider.getJmsHarnessIcon().paintIcon(this, graphics, nodeLeftX, nodeTopY);
+        StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, link.harnessFlow().getIdentity(),
+                nodeLeftX + (TEST_JMS_HARNESS_NODE_WIDTH / 2),
+                nodeTopY + TEST_JMS_HARNESS_NODE_HEIGHT + TEST_JMS_HARNESS_LABEL_GAP,
+                TEST_JMS_HARNESS_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
+    }
+
+    /** The owning Producer's own real Channel Endpoint pill's right connector point, or null if not resolvable. */
+    private Point jmsHarnessAnchorConnectorPoint(FlowElement producer) {
+        IkasanFlowViewHandler producerFlowHandler = flowHandlerFor(producer);
+        IkasanFlowComponentViewHandler producerEndpointHandler = producerFlowHandler != null
+                ? producerFlowHandler.getEndpointViewHandlerFor(producer) : null;
+        return producerEndpointHandler != null ? producerEndpointHandler.getRightConnectorPoint() : null;
+    }
+
+    /**
+     * Given x,y coords, check whether the click landed on a Test JMS harness node, using the same bounds
+     * {@link #paintTestJmsHarnessLink} draws the icon at. Returns the matching Link (owner Producer, harness
+     * Flow and its Debug component), or null if no harness node was hit.
+     */
+    private TestJmsHarnessLinks.Link getJmsHarnessLinkAtXY(int xpos, int ypos) {
+        Module ikasanModule = getIkasanModule();
+        if (ikasanModule == null || ikasanModule.getFlows() == null) {
+            return null;
+        }
+        for (TestJmsHarnessLinks.Link link : TestJmsHarnessLinks.findLinks(ikasanModule)) {
+            Point anchorRight = jmsHarnessAnchorConnectorPoint(link.ownerProducer());
+            if (anchorRight == null) {
+                continue;
+            }
+            int nodeLeftX = anchorRight.x + TEST_JMS_HARNESS_NODE_GAP;
+            int nodeTopY = anchorRight.y - (TEST_JMS_HARNESS_NODE_HEIGHT / 2);
+            Rectangle nodeBounds = new Rectangle(nodeLeftX, nodeTopY, TEST_JMS_HARNESS_NODE_WIDTH, TEST_JMS_HARNESS_NODE_HEIGHT);
+            if (nodeBounds.contains(xpos, ypos)) {
+                return link;
+            }
+        }
+        return null;
     }
 
     /** @return the element of {@code candidates} belonging to the flow that comes first in {@code module.getFlows()}. */

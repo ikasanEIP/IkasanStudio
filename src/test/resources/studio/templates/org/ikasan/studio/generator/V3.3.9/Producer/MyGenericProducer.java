@@ -23,8 +23,8 @@ private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(my
 @Override
 public void invoke(java.lang.String payload) throws org.ikasan.spec.component.endpoint.EndpointException
 {
-// Uncomment for diagnostics without logging message contents.
-// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
+// Enable DEBUG logging for this package to see arrivals without logging message contents.
+LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 //@TODO implement your producer logic here e.g. push the payload to your protocol endpoint
 }
 }

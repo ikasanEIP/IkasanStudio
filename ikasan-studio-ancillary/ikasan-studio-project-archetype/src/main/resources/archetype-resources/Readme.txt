@@ -33,7 +33,8 @@ Logging from your components
 ============================
 
 New custom Consumers, Converters, Brokers and Producers include an SLF4J logger and
-commented examples inside their methods. Uncomment an example to try it. SLF4J is
+examples inside their methods. The Generic Producer logs arrivals at DEBUG; other
+examples are commented out and can be uncommented to try them. SLF4J is
 a logging facade; these examples use the application's existing logging backend
 and do not require you to add another binding or select a particular backend.
 Existing developer-owned classes are preserved when Studio generates code.

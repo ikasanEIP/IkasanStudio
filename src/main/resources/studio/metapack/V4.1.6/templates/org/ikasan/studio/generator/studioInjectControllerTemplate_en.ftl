@@ -42,6 +42,63 @@ public java.util.List<String> listFlows() {
     return names;
 }
 
+/** Report the running provider configuration, including overrides applied outside Studio. */
+@org.springframework.web.bind.annotation.GetMapping("/{flowName}/scan-directories")
+public org.springframework.http.ResponseEntity<?> scanDirectories(
+        @org.springframework.web.bind.annotation.PathVariable("flowName") String flowName) {
+    Object rawFlow = myModule.getFlow(flowName);
+    if (rawFlow == null) return org.springframework.http.ResponseEntity.status(404).body("No such flow");
+    try {
+        org.ikasan.spec.flow.Flow flow = (org.ikasan.spec.flow.Flow) rawFlow;
+        org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration config =
+                localFileConfiguration(flow.getFlowConfiguration().getConsumerFlowElement().getFlowComponent());
+        if (config == null) return org.springframework.http.ResponseEntity.badRequest().body("Not a standard Local File Consumer");
+        if (config.isDynamicFileName()) return org.springframework.http.ResponseEntity.badRequest()
+                .body("Dynamic scan paths are evaluated at scan time. Inspect filePathSpelExpression in the consumer configuration.");
+        java.util.Set<String> directories = new java.util.LinkedHashSet<>();
+        String configuredPath = config.getFilePath();
+        if (configuredPath != null && !configuredPath.isEmpty()) {
+            directories.add(new java.io.File(configuredPath).getAbsoluteFile().toPath().normalize().toString());
+        } else {
+            for (String pattern : config.getFilenames()) {
+                // Matches AbstractFileMessageProvider.modifyPathForUnix and its parent/name split.
+                String value = pattern;
+                boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
+                if (!windows && !value.startsWith("/") && !value.startsWith(".")) value = "./" + value;
+                int slash = value.lastIndexOf('/');
+                if (slash < 0) throw new IllegalArgumentException("Filename has no scan directory: " + pattern);
+                directories.add(new java.io.File(value.substring(0, slash)).getAbsoluteFile().toPath().normalize().toString());
+            }
+        }
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("directories", directories);
+        result.put("patterns", config.getFilenames());
+        result.put("directoryDepth", config.getDirectoryDepth());
+        return org.springframework.http.ResponseEntity.ok(result);
+    } catch (Exception e) {
+        return org.springframework.http.ResponseEntity.badRequest().body("Could not resolve scan directories: " + e.getMessage());
+    }
+}
+
+private static org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration localFileConfiguration(Object consumer) {
+    consumer = inspectionTarget(consumer);
+    if (!(consumer instanceof org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer)) return null;
+    Object provider = inspectionTarget(((org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer) consumer).getMessageProvider());
+    if (!(provider instanceof org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider)) return null;
+    return ((org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider) provider).getConfiguration();
+}
+
+/** Inspect singleton Spring targets; retain the original proxy for every flow invocation. */
+private static Object inspectionTarget(Object component) {
+    java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Object, Boolean>());
+    while (component != null && seen.add(component)) {
+        Object target = org.springframework.aop.framework.AopProxyUtils.getSingletonTarget(component);
+        if (target == null) return component;
+        component = target;
+    }
+    return null;
+}
+
 @org.springframework.web.bind.annotation.PostMapping("/{flowName}")
 public org.springframework.http.ResponseEntity<?> inject(
         // Explicit "flowName" name, not just @PathVariable String flowName: Spring Framework 6.1 dropped the
@@ -67,7 +124,11 @@ public org.springframework.http.ResponseEntity<?> inject(
         // Quartz job instead: this runs the actual production code path (ScheduledConsumer.execute(
         // JobExecutionContext) -> its own EventFactory -> flow.invoke(...)) exactly as if the cron fired early,
         // rather than fabricating a fake event that the flow's own components were never generated to accept.
-        if (rawConsumer instanceof org.ikasan.scheduler.ScheduledComponent) {
+        boolean selectedLocalFiles = "studio-local-file-list".equals(request.getPayloadAdapter());
+        if (selectedLocalFiles && localFileConfiguration(rawConsumer) == null) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Selected files require a standard Local File Consumer");
+        }
+        if (rawConsumer instanceof org.ikasan.scheduler.ScheduledComponent && !selectedLocalFiles) {
             // Not "instanceof ScheduledComponent<?> scheduledComponent" - the V3.3.9 metapack shares this
             // template's logic and targets JDK11, where pattern-matching instanceof isn't available, so a
             // plain instanceof check plus an explicit cast is used instead for both metapacks.
@@ -122,6 +183,21 @@ public org.springframework.http.ResponseEntity<?> inject(
 
 /** Creates the payload shape advertised by the consumer metadata before bypassing the real consumer. */
 private static Object newTestPayload(InjectRequest request, String identifier, ClassLoader ikasanClassLoader) throws Exception {
+    if ("studio-local-file-list".equals(request.getPayloadAdapter())) {
+        java.util.List<String> paths = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                request.getPayload(), new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {});
+        if (paths == null || paths.isEmpty()) throw new IllegalArgumentException("Choose at least one file");
+        java.util.List<java.io.File> files = new java.util.ArrayList<>();
+        for (String path : paths) {
+            if (path == null) throw new IllegalArgumentException("File path is required");
+            java.io.File file = new java.io.File(path);
+            if (!file.isAbsolute() || !file.isFile() || !file.canRead()) {
+                throw new IllegalArgumentException("Selected file is not readable by the module: " + path);
+            }
+            files.add(file);
+        }
+        return files;
+    }
     if ("ikasan-file-transfer-payload".equals(request.getPayloadAdapter())) {
         byte[] content = java.util.Base64.getDecoder().decode(request.getPayload());
         String filename = request.getPayloadFilename() != null && !request.getPayloadFilename().isBlank()

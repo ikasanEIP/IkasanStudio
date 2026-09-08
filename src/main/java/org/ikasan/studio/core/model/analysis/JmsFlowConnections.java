@@ -48,7 +48,12 @@ public final class JmsFlowConnections {
         List<FlowElement> producers = new ArrayList<>();
         List<FlowElement> consumers = new ArrayList<>();
         for (Flow flow : module.getFlows()) {
-            if (flow == null) {
+            if (flow == null || isTestHarnessFlow(flow)) {
+                // A JMS test-consumer harness flow's own Consumer is deliberately configured against the same
+                // destination as the Producer it inspects (see CreateTestJmsConsumerFlowAction), so without this
+                // it would otherwise match here too - drawing a cross-flow connector to a flow that is never
+                // laid out on the canvas at all (see IkasanModuleViewHandler#isTestHarnessFlow), i.e. a line to
+                // stale/default coordinates. TestJmsHarnessLinks draws its own, correctly-anchored node instead.
                 continue;
             }
             if (isJmsConsumer(flow.getConsumer())) {
@@ -69,6 +74,11 @@ public final class JmsFlowConnections {
             }
         }
         return links;
+    }
+
+    private static boolean isTestHarnessFlow(Flow flow) {
+        Object owner = flow.getPropertyValue("testHarnessOwner");
+        return owner != null && !owner.toString().isBlank();
     }
 
     private static boolean isJms(FlowElement element) {

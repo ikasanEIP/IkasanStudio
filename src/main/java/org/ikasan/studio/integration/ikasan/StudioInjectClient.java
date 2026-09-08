@@ -52,6 +52,15 @@ public final class StudioInjectClient {
     private StudioInjectClient() {
     }
 
+    public static HttpResponse<String> getScanDirectories(Module module, String flowName) throws Exception {
+        String port = module.getPort() != null ? module.getPort() : "8080";
+        URI uri = new URI("http", null, "localhost", Integer.parseInt(port),
+                "/" + StudioBuildUtils.toUrlString(module.getIdentity()) + "/rest/studio/inject/" + flowName + "/scan-directories", null, null);
+        String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
+        return HTTP_CLIENT.send(HttpRequest.newBuilder(uri).timeout(RESPONSE_TIMEOUT)
+                .header("Authorization", "Basic " + credentials).GET().build(), HttpResponse.BodyHandlers.ofString());
+    }
+
     /**
      * @param payloadClassName fully-qualified name of a project class to deserialize {@code payload} (as JSON)
      *                         into before injection, or null for the default plain-text/string payload - see

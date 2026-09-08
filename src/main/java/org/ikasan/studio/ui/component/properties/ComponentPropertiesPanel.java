@@ -730,7 +730,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
 
             if (componentPropertyEditBoxMap.containsKey(ComponentPropertyMeta.CONVERSION_RECIPE_ID)) {
-                JTextArea recipeHelp = new JTextArea(3, 20);
+                // 3 rows was tall enough for the shortest recipe descriptions but clipped the common case - most
+                // helpText is a full paragraph (source/target line plus several sentences) that wraps to well
+                // more than 3 lines once the panel stretches this area to its actual width. The scrollbar below
+                // still covers anything longer than this.
+                JTextArea recipeHelp = new JTextArea(6, 20);
                 recipeHelp.setEditable(false);
                 recipeHelp.setLineWrap(true);
                 recipeHelp.setWrapStyleWord(true);
@@ -751,6 +755,17 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 var recipeHelpScroll = new com.intellij.ui.components.JBScrollPane(recipeHelp,
                         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 recipeHelpScroll.setBorder(JBUI.Borders.empty());
+                // Every row in this GridBagLayout has weighty 0 (the default), so whenever this section ends up
+                // even slightly shorter than the sum of its rows' preferred heights - a near-permanent state,
+                // since the panel's own preferred height depends on which recipe/component is selected - the
+                // layout has to take that shortfall from somewhere. A JScrollPane's own minimumSize collapses to
+                // almost nothing, so without a floor here it is always the row picked to absorb the deficit,
+                // crushed down regardless of how many rows it asked for as its preferred size (confirmed via
+                // RecipeDescriptionSizingHarnessTest: preferred height 102px, actual rendered height 5px). Fixing
+                // the true root cause (adding weighty to every mandatory row) risks unbalancing the whole
+                // section's layout; a minimum height is the targeted fix - it forces any real shortfall up to the
+                // panel's own outer JBScrollPane (see PropertiesPanel), which already scrolls correctly.
+                recipeHelpScroll.setMinimumSize(new java.awt.Dimension(0, JBUI.scale(70)));
                 mandatoryPropertiesEditorPanel.add(recipeHelpScroll, recipeGc);
                 ConversionRecipeEditor.bind(getSelectedComponent().getComponentMeta().getConversionRecipes(),
                         componentPropertyEditBoxMap, recipeHelp, getSelectedComponent() instanceof FlowElement element

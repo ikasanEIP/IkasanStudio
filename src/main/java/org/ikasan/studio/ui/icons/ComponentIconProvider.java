@@ -34,6 +34,7 @@ public final class ComponentIconProvider {
     public static Icon getReplayServiceIcon() { return general("replay-service.png", "Flow recording enabled"); }
     public static Icon getMailServerIcon() { return general("mailserver.png", "Test Mail Server"); }
     public static Icon getFtpServerIcon() { return general("testftpserver.png", "Test FTP Server"); }
+    public static Icon getJmsHarnessIcon() { return general("testjmsharness.png", "Test JMS harness"); }
 
     public static int getDecoratorHeight() {
         return Math.max(getWiretapIcon().getIconHeight(), getLogWiretapIcon().getIconHeight());

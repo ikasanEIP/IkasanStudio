@@ -13,17 +13,22 @@ import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.CronPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolutionPanel;
 import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
 /**
  * This class is used to display individual custom panels so that can be inspected and tested manually.
- * It will NOT be executed as part of the general JUnit test run.
+ * It is NOT executed as part of the general JUnit test run, nor by {@code ./gradlew runHarness} or
+ * {@code allTests}: every method here calls {@link #showInFrame}, which blocks on a human closing the popped-up
+ * JFrame, so an automated run would simply hang forever. {@code @Disabled} keeps it out of both, but doesn't
+ * stop it being run - IntelliJ still runs a {@code @Disabled} test when you right-click it directly.
  * -
- * The suite() method returns an empty TestSuite to prevent JUnit 3/Vintage (triggered by BasePlatformTestCase
- * extending TestCase) from raising "No tests found". Individual methods can still be run via right-click in the IDE.
+ * See ComponentTestHarness.suite() for why a JUnit 3/Vintage "No tests found" warning doesn't appear despite
+ * BasePlatformTestCase's JUnit 3 (TestCase) ancestry.
  */
+@Disabled("Interactive-only: methods block on a human closing the popped-up JFrame. Run individual methods directly from the IDE.")
 public class PanelHarnessTest extends ComponentTestHarness {
 
     /**

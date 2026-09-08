@@ -47,6 +47,12 @@
       "helpText": "Invokes configured flow context listeners, including timing and message-history listeners. Enabling this can add processing and persistence overhead.",
       "propertyDataType": "java.lang.Boolean",
       "defaultValue": false
+    },
+    "testHarnessOwner": {
+      "propertyName": "testHarnessOwner",
+      "hiddenProperty": true,
+      "helpText": "Studio-internal bookkeeping only, never shown to the user and never passed to the Ikasan builder. Identifies this flow as a JMS test-consumer harness (see CreateTestJmsConsumerFlowAction) and names the producer it was created for, as '<flow identity>/<component identity>'. The canvas hides any flow with this set from normal rendering and draws a compact harness node against the owning producer instead (see TestJmsHarnessLinks).",
+      "usageDataType": "java.lang.String"
     }
   }
 }

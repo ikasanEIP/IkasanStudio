@@ -56,6 +56,14 @@ public class DesignCanvasContextMenu {
                         ? createTriggerScheduledConsumerMenuItem(project, ikasanBasicElement)
                         : createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
+            if (flowElement.getComponentMeta().isLocalFileConsumer()) {
+                JMenuItem scan = new JMenuItem(StudioBundle.message("menu.TriggerLocalFileScan"));
+                scan.addActionListener(new TriggerScheduledConsumerAction(project, flowElement));
+                menu.add(scan);
+                JMenuItem directory = new JMenuItem(StudioBundle.message("menu.ShowLocalFileScanDirectory"));
+                directory.addActionListener(new ShowLocalFileScanDirectoryAction(project, flowElement));
+                menu.add(directory);
+            }
             if (JmsFlowConnections.isJmsProducer(flowElement)
                     && CreateTestJmsConsumerFlowAction.supports(flowElement)
                     && !JmsFlowConnections.hasMatchingConsumer(project.getService(UiContext.class).getIkasanModule(), flowElement)) {
@@ -124,6 +132,43 @@ public class DesignCanvasContextMenu {
         menu.show(canvas, event.getX(), event.getY());
     }
 
+    /**
+     * Minimal popup for a right-click on the compact "Test JMS harness" canvas node (see
+     * {@code DesignerCanvas#paintTestJmsHarnessNode}) - just the one Remove item, mirroring
+     * {@link #showStopTestMailServerMenu}. Removing deletes the hidden harness Flow itself (Consumer + Debug +
+     * Dev Null sink) via the normal {@link DeleteComponentAction} whole-flow path, including its generated
+     * Debug class and Undo support - the harness node is the only on-canvas handle to that flow once it's
+     * hidden from normal rendering, so it needs its own delete entry point here.
+     */
+    public static void showRemoveJmsHarnessMenu(Project project, DesignerCanvas canvas, MouseEvent event, Flow harnessFlow) {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createShowJmsHarnessConsumptionWarningMenuItem(project));
+        menu.addSeparator();
+        menu.add(createRemoveJmsHarnessMenuItem(project, harnessFlow));
+        menu.show(canvas, event.getX(), event.getY());
+    }
+
+    /**
+     * Same "attention-coloured item, click for the full warning dialog" pattern as
+     * {@link #createShowTestFtpOverwriteLimitationMenuItem} - shown every time the harness node's menu opens,
+     * not just once at creation, since this is exactly the kind of consequence a developer targeting the wrong
+     * (real, production) destination would otherwise only discover after messages had already gone missing.
+     */
+    private static JMenuItem createShowJmsHarnessConsumptionWarningMenuItem(Project project) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ShowJmsHarnessConsumptionWarning"));
+        item.setForeground(StudioUIUtils.getAttentionColor());
+        item.addActionListener(event -> Messages.showWarningDialog(project,
+                "<html>" + StudioBundle.message("message.JmsHarnessConsumptionWarning") + "</html>",
+                StudioBundle.message("menu.ShowJmsHarnessConsumptionWarning").replace("...", "")));
+        return item;
+    }
+
+    private static JMenuItem createRemoveJmsHarnessMenuItem(Project project, Flow harnessFlow) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.RemoveTestJmsHarness"));
+        item.addActionListener(new DeleteComponentAction(project, harnessFlow));
+        return item;
+    }
+
     static JPopupMenu createTestMailServerMenu(Project project, BasicElement element) {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createShowTestMailServerDetailsMenuItem(project, element));
@@ -150,7 +195,8 @@ public class DesignCanvasContextMenu {
     }
 
     private static JMenuItem createSendTestMessageMenuItem(Project project, BasicElement ikasanBasicElement) {
-        JMenuItem item = new JMenuItem(StudioBundle.message("menu.SendTestMessage"));
+        JMenuItem item = new JMenuItem(StudioBundle.message(ikasanBasicElement instanceof FlowElement element
+                && element.getComponentMeta().isLocalFileConsumer() ? "menu.TestWithSelectedFiles" : "menu.SendTestMessage"));
         item.addActionListener(new SendTestMessageAction(project, ikasanBasicElement));
         return item;
     }

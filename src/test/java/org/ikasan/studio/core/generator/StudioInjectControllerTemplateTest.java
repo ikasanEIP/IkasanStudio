@@ -22,6 +22,21 @@ public class StudioInjectControllerTemplateTest {
         StudioInjectControllerTemplate.create(module);
     }
 
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void exportLocalFileTestController(String version) throws Exception {
+        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        String generated = StudioInjectControllerTemplate.create(module);
+        org.junit.jupiter.api.Assertions.assertTrue(generated.contains("ScheduledComponent && !selectedLocalFiles"));
+        org.junit.jupiter.api.Assertions.assertTrue(generated.contains("invokeInTransaction(flow, event)"));
+        String export = System.getenv("STUDIO_INJECT_EXPORT");
+        if (export != null) {
+            var directory = java.nio.file.Path.of(export, version);
+            java.nio.file.Files.createDirectories(directory);
+            java.nio.file.Files.writeString(directory.resolve("StudioInjectController.java"), generated);
+        }
+    }
+
     /**
      * @See resources/studio/templates/org/ikasan/studio/generator/StudioInjectController.java
      * @throws IOException if the template cant be generated

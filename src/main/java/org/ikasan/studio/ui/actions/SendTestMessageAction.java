@@ -82,7 +82,7 @@ public class SendTestMessageAction implements ActionListener {
                 try {
                     String payload = new ObjectMapper().writeValueAsString(filePaths);
                     // The generated controller deserializes this canonical List<File> type.
-                    sendPayload(module, flowName, new PreparedPayload(payload, flowElement.getEffectiveOutputTypeDescription(), null, null));
+                    sendPayload(module, flowName, new PreparedPayload(payload, flowElement.getEffectiveOutputTypeDescription(), flowElement.getComponentMeta().isLocalFileConsumer() ? "studio-local-file-list" : null, null));
                 } catch (Exception e) {
                     LOG.warn("STUDIO: Could not build JSON payload from chosen test files", e);
                     StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", e.getMessage()));
@@ -111,6 +111,12 @@ public class SendTestMessageAction implements ActionListener {
 
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());
+                        if ("studio-local-file-list".equals(preparedPayload.payloadAdapter())
+                                && !"invoked".equals(responseBody.path("status").asText())) {
+                            ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
+                                    StudioBundle.message("message.LocalFileTestNeedsRegeneration")));
+                            return;
+                        }
                         String identifier = responseBody.path("identifier").asText("");
                         ApplicationManager.getApplication().invokeLater(() ->
                                 StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestMessageSent", identifier)));

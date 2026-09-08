@@ -405,6 +405,10 @@ public class ComponentMeta implements IkasanMeta {
      * a real (multi-select) file picker instead of the generic text/JSON payload dialog - see
      * SendTestMessageAction.
      */
+    public boolean isLocalFileConsumer() {
+        return isTimeEventConsumer() && "LocalFileConsumer".equals(additionalKey);
+    }
+
     public boolean producesFileListPayload() {
         return FILE_LIST_TYPE.equals(producedOutputType);
     }

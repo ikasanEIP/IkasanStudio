@@ -2,6 +2,8 @@ package org.ikasan.studio.ui.harness;
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.util.ui.UIUtil;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -21,6 +23,20 @@ import java.util.concurrent.CountDownLatch;
  */
 @Tag("harness")
 public abstract class ComponentTestHarness extends BasePlatformTestCase {
+
+    /**
+     * BasePlatformTestCase's JUnit 3 ancestry (junit.framework.TestCase) makes every subclass a candidate
+     * JUnit-3 test carrier to the Vintage engine that runHarness also runs. Since all real test methods here
+     * use JUnit 5's {@code @Test} rather than JUnit 3's {@code testXxx} naming convention, JUnit 3's own
+     * {@code TestSuite(Class)} construction would otherwise inject one synthetic failing "warning" test per
+     * harness class ("No tests found in ..."). An explicit empty suite() bypasses that scan entirely -
+     * SuiteMethodBuilder is checked before JUnit3Builder in JUnit 4/Vintage's runner resolution - so the
+     * Vintage engine simply contributes nothing for these classes, leaving JUnit 5's Jupiter engine to run
+     * the real {@code @Test} methods as normal.
+     */
+    public static Test suite() {
+        return new TestSuite();
+    }
 
     /**
      * This method bridges the JUnit 5 test runner with the JUnit 4-style setup

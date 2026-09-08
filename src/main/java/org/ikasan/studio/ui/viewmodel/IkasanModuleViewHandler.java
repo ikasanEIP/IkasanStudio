@@ -33,6 +33,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         int currentY = 0;
         StudioUIUtils.drawStringLeftAlignedFromTopLeft(g, getText(), 10, 10, StudioUIUtils.getBoldFont());
         for (Flow flow : module.getFlows()) {
+            if (isTestHarnessFlow(flow)) continue;
             IkasanFlowViewHandler handler = getOrCreateFlowViewViewHandler(project, flow);
             if (handler == null) continue;
             // Painting also positions external endpoints used by cross-flow connectors.
@@ -79,6 +80,19 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     }
 
     /**
+     * A JMS test-consumer harness flow (see {@code CreateTestJmsConsumerFlowAction}/{@code TestJmsHarnessLinks})
+     * is never given its own box/route on the canvas - it's real, and still generates real code, but visually
+     * it's replaced by a single compact node against the Producer it inspects (see
+     * {@code DesignerCanvas#paintTestJmsHarnessNode}), the same treatment already given to the Test FTP/Mail
+     * Server nodes. Skipping it here, rather than after painting/measuring it, is what keeps it from both being
+     * drawn as an ordinary flow AND reserving vertical space for one.
+     */
+    private static boolean isTestHarnessFlow(Flow flow) {
+        Object owner = flow.getPropertyValue("testHarnessOwner");
+        return owner != null && !owner.toString().isBlank();
+    }
+
+    /**
      * True only when a Test FTP Server node will actually be drawn to the LEFT of the flows, i.e. when a running
      * test server is feeding at least one FTP Consumer - that is the only case needing room reserved on the left.
      * A test server used purely by FTP Producers is drawn on the RIGHT instead (see
@@ -116,6 +130,7 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         int maxHeight;
         int lastFlowHeight = topy;
         for(Flow ikasanFlow : module.getFlows()) {
+            if (isTestHarnessFlow(ikasanFlow)) continue;
             IkasanFlowViewHandler flowViewHandler = getOrCreateFlowViewViewHandler(project, ikasanFlow);
             if (flowViewHandler != null) {
                 // initialise width/height to maximum, it will be adjusted down after reset

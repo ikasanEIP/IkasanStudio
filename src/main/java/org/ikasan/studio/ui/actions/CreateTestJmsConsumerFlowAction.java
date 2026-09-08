@@ -5,6 +5,7 @@ import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -58,6 +59,10 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
             String suffix = destination == null || destination.isBlank() ? "JMS" : destination;
             Flow testFlow = new Flow(version);
             testFlow.setName(uniqueFlowName(module, "Test " + suffix));
+            // Hidden bookkeeping only (see Flow's own component-meta_en_GB.json) - lets the canvas recognise
+            // this flow as a JMS test harness and hide it from normal rendering, drawing a compact node against
+            // "producer" instead (see TestJmsHarnessLinks/DesignerCanvas).
+            testFlow.setPropertyValue("testHarnessOwner", TestJmsHarnessLinks.ownerKeyFor(producer));
 
             ComponentMeta consumerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(version, STANDARD_JMS_CONSUMER);
             FlowElement consumer = FlowElementFactory.createFlowElement(version, consumerMeta, testFlow,
