@@ -7,6 +7,7 @@ import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.ui.PaintMode;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.icons.ComponentIconProvider;
 import org.ikasan.studio.ui.model.MutablePair;
 
@@ -59,6 +60,29 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         paintDecorators(canvas, g);
+        paintRestartPendingOutlineIfNeeded(canvas, g);
+    }
+
+    /**
+     * Debug components added while the module is running flash until it is restarted - see
+     * DesignerCanvas#isRestartPendingFor / UiContext#markRestartPending.
+     */
+    private void paintRestartPendingOutlineIfNeeded(JPanel canvas, Graphics g) {
+        if (!(canvas instanceof DesignerCanvas designerCanvas)
+                || !designerCanvas.isRestartPendingFor(flowElement)
+                || !designerCanvas.isAttentionFlashOn()) {
+            return;
+        }
+        Graphics2D g2d = (Graphics2D) g.create();
+        try {
+            int width = getCanvasIcon().getIconWidth();
+            int height = getCanvasIcon().getIconHeight();
+            g2d.setColor(StudioUIUtils.getAttentionColor());
+            g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2d.drawRoundRect(getLeftX() - 3, getTopY() - 3, width + 6, height + 6, 10, 10);
+        } finally {
+            g2d.dispose();
+        }
     }
 
     /**

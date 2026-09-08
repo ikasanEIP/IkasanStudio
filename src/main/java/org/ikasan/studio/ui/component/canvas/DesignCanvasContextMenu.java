@@ -156,6 +156,10 @@ public class DesignCanvasContextMenu {
      */
     public static void showRemoveJmsHarnessMenu(Project project, DesignerCanvas canvas, MouseEvent event, TestJmsHarnessLinks.Link link) {
         JPopupMenu menu = new JPopupMenu();
+        if (project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(link.harnessFlow()))) {
+            menu.add(createModuleRestartRequiredMenuItem(project));
+            menu.addSeparator();
+        }
         menu.add(createShowJmsHarnessConsumptionWarningMenuItem(project));
         menu.addSeparator();
         menu.add(createJumpToJmsHarnessDebugMenuItem(project, link));

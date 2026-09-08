@@ -2,6 +2,8 @@ package org.ikasan.studio.ui;
 
 import com.intellij.openapi.components.Service;
 import org.ikasan.studio.ui.state.StudioSessionOptions;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -54,6 +56,7 @@ public final class UiContext {
     private static final String SELECTED_COMPONENT = "selectedComponent";
 
     private final Map<String, Object> cache = new TreeMap<>();
+    private final java.util.Set<String> restartPendingElements = new java.util.HashSet<>();
     private volatile boolean modelPersistenceAllowed = true;
     private boolean migrationActive;
     private int activeGenerations;
@@ -327,5 +330,35 @@ public final class UiContext {
 
     public IkasanObject getSelectedComponent() {
         return (IkasanObject) getFromCache(SELECTED_COMPONENT);
+    }
+
+    /**
+     * Elements (a Test JMS harness Flow, or a Debug component) added while the module process is still running
+     * cannot exist in that running instance until it is restarted. The canvas flashes them, hover reveals the
+     * restart warning, and their context menus offer a "Restart required" warning until the module next stops.
+     * Keys are built by {@link #restartPendingKey(Flow)} / {@link #restartPendingKey(FlowElement)}.
+     */
+    public synchronized boolean isRestartPending(String elementKey) {
+        return restartPendingElements.contains(elementKey);
+    }
+    public synchronized void markRestartPending(String elementKey) {
+        restartPendingElements.add(elementKey);
+    }
+    public synchronized boolean hasRestartPendingElements() {
+        return !restartPendingElements.isEmpty();
+    }
+    /** Cleared when the module process stops: the next launch will include the additions. */
+    public synchronized void clearRestartPendingElements() {
+        restartPendingElements.clear();
+    }
+
+    public static String restartPendingKey(Flow flow) {
+        return "flow:" + flow.getIdentity();
+    }
+
+    public static String restartPendingKey(FlowElement element) {
+        Flow containingFlow = element.getContainingFlow();
+        return "component:" + (containingFlow != null ? containingFlow.getIdentity() : "?")
+                + ":" + element.getIdentity();
     }
 }

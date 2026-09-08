@@ -275,6 +275,9 @@ public final class IkasanDebugSessionService implements Disposable {
             project.getService(FlowErrorMonitorService.class).moduleProcessStarted();
         } else if (moduleStopped) {
             project.getService(FlowErrorMonitorService.class).moduleProcessStopped();
+            // Elements added while the module was running are part of the model now, so the next launch will
+            // include them - clear the canvas "restart required" flash/tooltip/menu state (see UiContext).
+            project.getService(UiContext.class).clearRestartPendingElements();
         }
         if (visibilityChanged) {
             repaintCanvas();

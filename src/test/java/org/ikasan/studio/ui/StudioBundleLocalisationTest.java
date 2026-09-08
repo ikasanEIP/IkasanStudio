@@ -54,6 +54,23 @@ class StudioBundleLocalisationTest {
         }
     }
 
+    @Test
+    void moduleRestartRequiredWarningIsLocalised() throws Exception {
+        Properties english = load(ENGLISH);
+        Properties japanese = load(JAPANESE);
+
+        assertEquals("Restart required...", english.getProperty("menu.ModuleRestartRequired"));
+        assertTrue(english.getProperty("message.ModuleRestartRequired").contains("Restart the module"));
+        assertTrue(english.getProperty("tooltip.ModuleRestartRequiredForChange").contains("Restart the module"));
+
+        for (String key : List.of(
+                "menu.ModuleRestartRequired",
+                "message.ModuleRestartRequired",
+                "tooltip.ModuleRestartRequiredForChange")) {
+            assertLocalised(japanese, key);
+        }
+    }
+
     private static void assertLocalised(Properties japanese, String key) {
         assertTrue(japanese.containsKey(key), "Japanese bundle must define " + key);
         assertFalse(japanese.getProperty(key).isBlank(), "Japanese translation must not be blank for " + key);

@@ -11,6 +11,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
@@ -78,6 +79,9 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
             sink.defaultUnsetMandatoryProperties();
             testFlow.getFlowRoute().getFlowElements().add(sink);
             module.addFlow(testFlow);
+            if (!project.getService(IkasanDebugSessionService.class).isModuleStopped()) {
+                context.markRestartPending(UiContext.restartPendingKey(testFlow));
+            }
 
             // Reuse the normal insertion path so debug identity, generated class naming and code generation
             // stay identical to a developer choosing "Add Debug" manually.
