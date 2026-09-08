@@ -37,6 +37,16 @@ protected org.ikasan.spec.event.EventListener eventListener = new SampleEventLis
 * event, then pass the result to eventListener.invoke(...) below to actually dispatch it. */
 protected org.ikasan.spec.event.EventFactory eventFactory = new SampleEventFactory();
 
+/** Optional - present only if this project has a platform/JTA transaction manager bean configured (see
+* IkasanTransactionConfiguration in ikasan-transaction-arjuna). A transactional downstream endpoint (FTP,
+* SFTP, JMS, a DB producer) requires an active transaction on the thread that invokes it. A real Quartz-driven
+* consumer gets one for free via Ikasan's built-in AOP advice on MessageListener.onMessage(...) - but that
+* advice can't apply to a plain background thread like the poller below, since it only wraps calls made
+* through a Spring-managed proxy. So the demo poller demarcates the transaction explicitly instead, with
+* Spring's TransactionTemplate, and simply skips it if no transaction manager bean is present. */
+@org.springframework.beans.factory.annotation.Autowired(required = false)
+private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
 private boolean running = false;
 
 //@TODO this poller is the runnable default described above - delete it, along with poll() below, once you
@@ -83,7 +93,7 @@ running = true;
 *      non-String identifier compiles fine here but throws a ClassCastException later, deep inside that
 *      machinery, only once something actually goes wrong with an event - not at the point you set it.
 *   2. Wrap it into a flow event:  Object event = eventFactory.newEvent(identifier, payload);
-*   3. Dispatch it into the flow:  eventListener.invoke(event);
+*   3. Dispatch it into the flow, inside a transaction if one is available - see dispatch() below.
 * If reading from the underlying technology fails, report the failure the same way: eventListener.invoke(throwable);
 */
 private void poll()
@@ -93,12 +103,37 @@ try
 eventCount++;
 String identifier = "event-" + eventCount;
 Object event = eventFactory.newEvent(identifier, "Hello from myGenericConsumer, event #" + eventCount);
-eventListener.invoke(event);
+dispatch(event);
 }
 catch (Throwable throwable)
 {
 eventListener.invoke(throwable);
 }
+}
+
+/**
+* Dispatches a single event into the flow, wrapping it in a transaction when a transaction manager bean is
+* available (see the transactionManager field above) - required for a downstream FTP/SFTP/JMS/DB endpoint to
+* work, harmless otherwise. Without this, such an endpoint fails with a NullPointerException or similar deep
+* inside its own connection handling, since it expects a transaction to already be active on this thread.
+*/
+private void dispatch(Object event)
+{
+if (transactionManager == null)
+{
+eventListener.invoke(event);
+return;
+}
+new org.springframework.transaction.support.TransactionTemplate(transactionManager).execute(
+new org.springframework.transaction.support.TransactionCallbackWithoutResult()
+{
+@Override
+protected void doInTransactionWithoutResult(org.springframework.transaction.TransactionStatus status)
+{
+eventListener.invoke(event);
+}
+}
+);
 }
 
 @Override
