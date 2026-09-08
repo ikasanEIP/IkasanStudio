@@ -70,13 +70,14 @@ final class ConversionRecipeEditor {
             explain.run();
             if (changed != null) changed.actionEvent();
         });
-        // Default only a new component's draft. Null on an existing component means Custom,
-        // and multiple exact matches express different semantics that the developer must choose.
-        String source = value(rows, "fromType");
-        String target = value(rows, "toType");
-        if (componentInitialisation && initial == null && !source.isBlank() && !target.isBlank()) {
-            var exactMatches = recipes.stream().filter(recipe -> recipe.matches(source, target)).toList();
-            if (exactMatches.size() == 1) combo.setSelectedItem(exactMatches.get(0).getId());
+        // Default only a new component's draft - null on an existing component means Custom, and this must never
+        // override an already-chosen recipe. With exactly one suggestion it's the obvious choice; with several
+        // (e.g. email body vs attachment) leaving the dropdown on blank Custom was worse than picking one, since
+        // a freshly dropped Converter would otherwise generate no conversion at all until the developer noticed
+        // and opened its properties - preselect the top-ranked suggestion instead, still one click away from
+        // changing to whichever the developer actually wants.
+        if (componentInitialisation && initial == null && !recommended.isEmpty()) {
+            combo.setSelectedItem(recommended.get(0).getId());
         }
         explain.run();
     }

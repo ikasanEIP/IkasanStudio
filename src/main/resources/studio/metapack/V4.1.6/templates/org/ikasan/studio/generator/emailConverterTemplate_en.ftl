@@ -24,8 +24,12 @@ import org.ikasan.spec.component.transformation.TransformationException;
 @org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}")
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Converter<${fromType}, EmailPayload>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}.class);
+
 public EmailPayload convert(${fromType} payload) throws TransformationException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 DefaultEmailPayload emailPayload = (DefaultEmailPayload) EmailPayload.newInstance();
 emailPayload.setEmailBody(payload.toString());
 // TODO review the default body above, and populate any attachments, from the incoming payload, e.g.

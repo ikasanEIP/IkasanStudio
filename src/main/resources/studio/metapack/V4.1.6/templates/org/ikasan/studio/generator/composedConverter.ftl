@@ -8,8 +8,12 @@ import org.ikasan.spec.component.transformation.TransformationException;
 /** ${conversionRecipe.displayName}. Unsupported content is rejected; provide a custom mapping when needed. */
 @org.springframework.stereotype.Component("${studioPackageTag}.${className}")
 public class ${className} implements Converter<${conversionRecipe.sourceType}, ${conversionRecipe.targetType}> {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${className}.class);
+
     @Override
     public ${conversionRecipe.targetType} convert(${conversionRecipe.sourceType} source) throws TransformationException {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", source == null ? "null" : source.getClass().getName());
         if (source == null) throw new TransformationException("Cannot convert null content");
         try {
             // Blank unless the developer has explicitly configured a fixed name - each construction template

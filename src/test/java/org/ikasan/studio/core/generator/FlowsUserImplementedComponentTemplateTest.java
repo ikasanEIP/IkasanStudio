@@ -16,6 +16,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FlowsUserImplementedComponentTemplateTest extends AbstractGeneratorTestFixtures {
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void customComponentsIncludeOptInLogging(String version) throws Exception {
+        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        for (var component : java.util.List.of(TestFixtures.getGenericConsumer(version),
+                TestFixtures.getGenericProducer(version), TestFixtures.getBroker(version),
+                TestFixtures.getCustomConverter(version), TestFixtures.getEmailConverter(version))) {
+            String generated = generateUserImplementedComponentTemplate(version, module, component);
+            assertTrue(generated.contains("private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("));
+            assertTrue(generated.contains("// LOG.debug("));
+            assertFalse(generated.contains("System.out.println"));
+            assertFalse(generated.lines().anyMatch(line -> line.stripLeading().startsWith("LOG.")));
+        }
+    }
+
     //  ------------------------------- BROKER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyBroker.java
@@ -75,7 +90,14 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         converter.setPropertyValue("conversionRecipeId", matches.stream().filter(r -> r.getId().equals("file-transfer-payload-to-email-attachment")).findFirst().orElseThrow().getId());
         String generated = generateUserImplementedComponentTemplate(metaPackVersion, module, converter);
         assertTrue(generated.contains("implements Converter<org.ikasan.filetransfer.Payload, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
-        assertTrue(generated.contains("result.addAttachment(filename, \"application/octet-stream\", bytes(body, charset))"));
+        // Attachment is generated commented out - the Email Producer's own "hasAttachments" property, not this
+        // Converter, gates whether an attachment is actually sent (see construct-email-attachment.ftl) - and the
+        // default body only names the file rather than claiming one is attached.
+        assertTrue(generated.contains("// result.addAttachment(filename, \"application/octet-stream\", attachmentContent)"));
+        assertFalse(generated.contains("\n            result.addAttachment("));
+        assertTrue(generated.contains("hasAttachments"));
+        assertTrue(generated.contains("result.setEmailBody(\"Source file: \" + filename)"));
+        assertFalse(generated.toLowerCase().contains("please see the attached file"));
         assertTrue(generated.contains("source.getAttribute(\"fileName\")"));
         assertTrue(generated.contains("throw new TransformationException"));
         org.junit.jupiter.api.Assertions.assertFalse(generated.contains("payload.toString()"));

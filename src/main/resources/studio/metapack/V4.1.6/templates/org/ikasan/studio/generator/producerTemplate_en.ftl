@@ -12,6 +12,8 @@ package ${studioPackageTag};
 
 public class ${flowElement.getPropertyValue("userImplementedClassName")} implements ${flowElement.getComponentMeta().getComponentType()}<${flowElement.getPropertyValue("fromType")}>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${flowElement.getPropertyValue("userImplementedClassName")}.class);
+
 /**
 * Push the payload to your protocol endpoint.
 *
@@ -21,6 +23,8 @@ public class ${flowElement.getPropertyValue("userImplementedClassName")} impleme
 @Override
 public void invoke(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.endpoint.EndpointException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 //@TODO implement your producer logic here e.g. push the payload to your protocol endpoint
 }
 }

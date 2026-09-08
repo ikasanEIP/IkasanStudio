@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -364,10 +365,6 @@ public class DesignerCanvas extends JPanel {
         // Right-click - popup menus
         if (me.getButton() == MouseEvent.BUTTON3) {
             DesignCanvasContextMenu.showPopupAndNavigateMenu(project, this, me, ikasanBasicElement);
-//            if (selectedComponent != null) {
-//            } else {
-//                DesignCanvasContextMenu.showPopupMenu(project,this, me);
-//            }
         } // Left-click on the Send Test Message / Trigger badge
         else if (me.getButton() == MouseEvent.BUTTON1 && sendTestMessageOwner != null) {
             if (IkasanFlowRouteViewHandler.usesTriggerBadge(sendTestMessageOwner)) {
@@ -1955,6 +1952,7 @@ public class DesignerCanvas extends JPanel {
             g2d.draw(path);
         }
 
+        paintExternalSystemCard(g2d, nodeBounds);
         ComponentIconProvider.getFtpServerIcon().paintIcon(this, graphics, nodeBounds.x, nodeBounds.y);
         StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_FTP_SERVER_LABEL,
                 nodeBounds.x + (TEST_FTP_SERVER_NODE_WIDTH / 2),
@@ -1996,6 +1994,34 @@ public class DesignerCanvas extends JPanel {
     private static final int TEST_MAIL_SERVER_NODE_HEIGHT = 60;
     private static final int TEST_MAIL_SERVER_LABEL_GAP = 4;
     private static final String TEST_MAIL_SERVER_LABEL = "Test Mail Server";
+
+    // Shared "external test infrastructure" card painted behind every harness node's own icon (Test FTP Server,
+    // Test Mail Server). Real Ikasan components never get a canvas-drawn background - they render as bare icons
+    // whose own SVG supplies the familiar white/black component box - so this soft dashed card is deliberately
+    // the one visual real components can never have, marking these nodes as Studio-provided test scaffolding
+    // rather than part of the generated flow. testftpserver.svg/mailserver.svg (and their _dark variants) had
+    // their own baked-in component-box rect removed to match - painting both would double up the frame.
+    private static final JBColor EXTERNAL_SYSTEM_CARD_FILL = new JBColor(Gray._245.withAlpha(200), Gray._60.withAlpha(200));
+    private static final JBColor EXTERNAL_SYSTEM_CARD_BORDER = new JBColor(Gray._140, Gray._170);
+    private static final int EXTERNAL_SYSTEM_CARD_PADDING = 5;
+    private static final int EXTERNAL_SYSTEM_CARD_ARC = 8;
+
+    private void paintExternalSystemCard(Graphics2D graphics, Rectangle iconBounds) {
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            int x = iconBounds.x - EXTERNAL_SYSTEM_CARD_PADDING;
+            int y = iconBounds.y - EXTERNAL_SYSTEM_CARD_PADDING;
+            int width = iconBounds.width + EXTERNAL_SYSTEM_CARD_PADDING * 2;
+            int height = iconBounds.height + EXTERNAL_SYSTEM_CARD_PADDING * 2;
+            g2d.setColor(EXTERNAL_SYSTEM_CARD_FILL);
+            g2d.fillRoundRect(x, y, width, height, EXTERNAL_SYSTEM_CARD_ARC, EXTERNAL_SYSTEM_CARD_ARC);
+            g2d.setColor(EXTERNAL_SYSTEM_CARD_BORDER);
+            g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{4}, 0));
+            g2d.drawRoundRect(x, y, width, height, EXTERNAL_SYSTEM_CARD_ARC, EXTERNAL_SYSTEM_CARD_ARC);
+        } finally {
+            g2d.dispose();
+        }
+    }
 
     /**
      * Draws the shared "Test Mail Server" node immediately to the right of the first flow (in module order)
@@ -2080,7 +2106,7 @@ public class DesignerCanvas extends JPanel {
             g2d.draw(path);
         }
 
-        paintTestMailServerIcon(graphics, nodeLeftX, nodeTopY);
+        paintTestMailServerIcon(graphics, g2d, nodeLeftX, nodeTopY);
     }
 
     /** @return the element of {@code candidates} belonging to the flow that comes first in {@code module.getFlows()}. */
@@ -2095,7 +2121,8 @@ public class DesignerCanvas extends JPanel {
         return null;
     }
 
-    private void paintTestMailServerIcon(Graphics graphics, int nodeLeftX, int nodeTopY) {
+    private void paintTestMailServerIcon(Graphics graphics, Graphics2D g2d, int nodeLeftX, int nodeTopY) {
+        paintExternalSystemCard(g2d, new Rectangle(nodeLeftX, nodeTopY, TEST_MAIL_SERVER_NODE_WIDTH, TEST_MAIL_SERVER_NODE_HEIGHT));
         Icon icon = ComponentIconProvider.getMailServerIcon();
         icon.paintIcon(this, graphics, nodeLeftX, nodeTopY);
         StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_MAIL_SERVER_LABEL,

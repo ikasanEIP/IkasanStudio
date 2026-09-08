@@ -8,6 +8,7 @@ Requires javac/java and the supported Ikasan artifacts in ~/.m2/repository; neve
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -29,6 +30,18 @@ for pack, release, jms in [('V3.3.9', '11', 'javax.jms'), ('V4.1.6', '17', 'jaka
     recipes = json.loads((ROOT / 'src/main/resources/studio/metapack' / pack /
                           'library/Converter/components/Converter/component-meta_en_GB.json').read_text())['conversionRecipes']
     sources = [folder / ('Recipe' + str(i) + '.java') for i in range(len(recipes))]
+    # Attachment code is meant to ship commented out (see construct-email-attachment.ftl) until the developer
+    # also enables the Email Producer's "hasAttachments" property - guard against someone quietly re-enabling
+    # the call, or dropping the warning that explains why it's off, without updating this check to match.
+    for i, r in enumerate(recipes):
+        if r['id'].endswith('email-attachment'):
+            text = sources[i].read_text()
+            if not re.search(r'^\s*//\s*result\.addAttachment\(', text, re.MULTILINE):
+                raise SystemExit(pack + ': ' + r['id'] + ' - expected a commented-out addAttachment call')
+            if re.search(r'^\s*result\.addAttachment\(', text, re.MULTILINE):
+                raise SystemExit(pack + ': ' + r['id'] + ' - addAttachment call is active, not commented out')
+            if 'hasAttachments' not in text:
+                raise SystemExit(pack + ': ' + r['id'] + ' - missing the hasAttachments warning comment')
     subprocess.run(['javac', '-proc:none', '--release', release, '-cp', classpath, '-d', str(classes)]
                    + list(map(str, sources)), check=True)
     cases = '\n'.join('        check(%d, %s, %s, %s);' %
@@ -101,9 +114,12 @@ public class VerifyRecipes {
             // upstream/explicit name was preserved (see construct-email-attachment.ftl).
             String attachmentFilename = filename.equals(GENERATED) ? "message.dat" : filename;
             if (id.endsWith("email-attachment")) {
-                require(Arrays.equals(CONTENT, email.getAttachment(attachmentFilename)));
-                require("application/octet-stream".equals(email.getAttachmentType(attachmentFilename)));
-                require("Please see the attached file.".equals(email.getEmailBody()));
+                // The attachment call is generated commented out (see construct-email-attachment.ftl) - the
+                // Email Producer's own "hasAttachments" property, not this Converter, gates whether an
+                // attachment is actually sent, so nothing should be attached here by default.
+                require(email.getAttachmentNames() == null || email.getAttachmentNames().isEmpty());
+                require(email.getEmailBody() != null && email.getEmailBody().contains(attachmentFilename)
+                        && !email.getEmailBody().toLowerCase().contains("attach"));
             } else require("café".equals(email.getEmailBody()));
         }
     }

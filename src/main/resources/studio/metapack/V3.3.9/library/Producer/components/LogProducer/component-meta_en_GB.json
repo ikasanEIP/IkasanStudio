@@ -3,7 +3,7 @@
   "builder": "",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "flowBuilderMethod": "producer",
-  "helpText": "<p>Logs the result of calling <code>toString()</code> on any Java object. It produces no downstream payload.</p>",
+  "helpText": "<p>Logs the result of calling <code>toString()</code> on any Java object. It produces no downstream payload.</p><p>Use this producer to log at a step in the flow. Your own Consumers, Converters, Brokers and Producers can also log directly through SLF4J; new custom component stubs include a logger and commented examples. See the project Readme.txt for log levels and enabling debug output.</p>",
   "ikasanComponentFactoryMethod": "logProducer",
   "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
   "usesBuilderInFactory": true,

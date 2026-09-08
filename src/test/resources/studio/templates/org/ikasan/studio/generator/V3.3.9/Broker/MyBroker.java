@@ -25,10 +25,14 @@ import org.ikasan.spec.component.endpoint.EndpointException;
 @org.springframework.stereotype.Component("org.ikasan.MyBroker")
 public class MyBroker implements Broker<java.lang.String, java.lang.Integer>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(MyBroker.class);
+
 
 @Override
 public java.lang.Integer invoke(java.lang.String payload) throws EndpointException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 return java.lang.Integer.valueOf(payload);
 }
 }

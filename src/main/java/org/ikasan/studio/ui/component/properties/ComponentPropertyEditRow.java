@@ -662,11 +662,7 @@ public class ComponentPropertyEditRow {
                 returnValue = false;
             }
         } else if (meta.getUsageDataType().equals(STRING_LIST)) {
-            String rawValue = (String)propertyValueField.getValue();
-            // Bug workaround
-            if (rawValue == null) {
-                rawValue = propertyValueField.getText();
-            }
+            String rawValue = propertyValueField.getText();
 
             // An emptied field must report as genuinely unset, not a value - "".split(",") still yields a single
             // blank element ([""]), which downstream code (e.g. componentFactory_en.ftl, which only skips
@@ -925,6 +921,13 @@ public class ComponentPropertyEditRow {
      */
     public boolean propertyValueHasChanged() {
         Object enteredValue = getValue();
+        // Legacy model files store string lists as bracketed text, while the editor returns a List.
+        // Compare their contents so simply selecting a component does not count as an edit.
+        if (isList && initialValue instanceof String text) {
+            String displayed = getListAsText(text);
+            Object initialList = displayed.isBlank() ? null : Arrays.asList(displayed.split("\\s*,\\s*"));
+            return !java.util.Objects.equals(initialList, enteredValue);
+        }
         return ((initialValue == null && editBoxHasValue()) ||
                 (initialValue != null && !initialValue.equals(enteredValue)));
     }

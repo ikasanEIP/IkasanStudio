@@ -18,8 +18,12 @@ import org.ikasan.spec.component.transformation.TransformationException;
 @org.springframework.stereotype.Component("org.ikasan.MyConverter")
 public class MyConverter implements Converter<java.lang.String, java.lang.Integer>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(MyConverter.class);
+
 public java.lang.Integer convert(java.lang.String payload) throws TransformationException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 // TODO Implement the conversion. The target may be an interface or have no compatible constructor.
 throw new UnsupportedOperationException("Conversion has not been implemented");
 }

@@ -44,12 +44,15 @@ class ConversionRecipeEditorTest {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
-    void defaultsOnlyAnUnambiguousNewDraft(String pack) throws Exception {
+    void defaultsToTheTopSuggestionOnANewDraft(String pack) throws Exception {
         var converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
             assertDefault(converter, true, null, "java.lang.String", "org.ikasan.filetransfer.Payload", "string-to-file-transfer-payload");
             assertDefault(converter, false, null, "java.lang.String", "org.ikasan.filetransfer.Payload", null);
-            assertDefault(converter, true, null, "java.lang.String", "org.ikasan.component.endpoint.email.producer.EmailPayload", null);
+            // Multiple suggestions (email body vs attachment) used to leave this null - a freshly dropped
+            // Converter would otherwise generate no conversion at all until the developer opened its properties.
+            // The top-ranked suggestion is preselected instead; still one click away from the other choice.
+            assertDefault(converter, true, null, "java.lang.String", "org.ikasan.component.endpoint.email.producer.EmailPayload", "string-to-email-payload");
             assertDefault(converter, true, null, "com.acme.Unknown", "org.ikasan.filetransfer.Payload", null);
             assertDefault(converter, true, "removed-recipe", "java.lang.String", "org.ikasan.filetransfer.Payload", "removed-recipe");
             assertNull(converter.getPropertyValue("conversionRecipeId"));

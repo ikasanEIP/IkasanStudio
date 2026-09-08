@@ -22,8 +22,12 @@ import org.ikasan.spec.component.transformation.TransformationException;
 @org.springframework.stereotype.Component("org.ikasan.MyEmailConverter")
 public class MyEmailConverter implements Converter<java.lang.String, EmailPayload>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(MyEmailConverter.class);
+
 public EmailPayload convert(java.lang.String payload) throws TransformationException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 DefaultEmailPayload emailPayload = (DefaultEmailPayload) EmailPayload.newInstance();
 emailPayload.setEmailBody(payload.toString());
 // TODO review the default body above, and populate any attachments, from the incoming payload, e.g.

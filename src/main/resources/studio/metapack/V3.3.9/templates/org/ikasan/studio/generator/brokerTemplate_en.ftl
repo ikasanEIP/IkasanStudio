@@ -26,10 +26,14 @@ import org.ikasan.spec.component.endpoint.EndpointException;
 @org.springframework.stereotype.Component("${studioPackageTag}.${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}")
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Broker<${flowElement.getPropertyValue('fromType')!'java.lang.Object'}, ${flowElement.getPropertyValue('toType')!'java.lang.Object'}>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))}.class);
+
 
 @Override
 public ${flowElement.getPropertyValue('toType')} invoke(${flowElement.getPropertyValue('fromType')} payload) throws EndpointException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 return ${flowElement.getPropertyValue('toType')}.valueOf(payload);
 }
 }

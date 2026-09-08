@@ -12,6 +12,8 @@ package org.ikasan;
 
 public class myGenericProducer implements org.ikasan.spec.component.endpoint.Producer<java.lang.String>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(myGenericProducer.class);
+
 /**
 * Push the payload to your protocol endpoint.
 *
@@ -21,6 +23,8 @@ public class myGenericProducer implements org.ikasan.spec.component.endpoint.Pro
 @Override
 public void invoke(java.lang.String payload) throws org.ikasan.spec.component.endpoint.EndpointException
 {
+// Uncomment for diagnostics without logging message contents.
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
 //@TODO implement your producer logic here e.g. push the payload to your protocol endpoint
 }
 }

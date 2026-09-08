@@ -23,6 +23,8 @@ package org.ikasan;
 
 public class myGenericConsumer implements org.ikasan.spec.component.endpoint.Consumer<org.ikasan.spec.event.EventListener, org.ikasan.spec.event.EventFactory>
 {
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(myGenericConsumer.class);
+
 /** The thing to invoke with each event this consumer produces. In a real deployment the framework replaces
 * this (via setListener(...) below) with the owning Flow - this defaults to SampleEventListener, defined at
 * the bottom of this class, purely so the demo poller below has something real to call. Calling
@@ -106,6 +108,8 @@ try
 {
 eventCount++;
 String identifier = "event-" + eventCount;
+// Uncomment for diagnostics; log identifiers rather than message contents.
+// LOG.debug("Dispatching event {}", identifier);
 Object event = eventFactory.newEvent(identifier, "Hello from myGenericConsumer, event #" + eventCount);
 dispatch(event);
 }
@@ -171,19 +175,19 @@ private static class SampleEventListener implements org.ikasan.spec.event.EventL
 @Override
 public void invoke(Object event)
 {
-System.out.println("[sample] event received: " + event);
+// LOG.debug("Sample listener received an event");
 }
 
 @Override
 public void invoke(Throwable throwable)
 {
-System.out.println("[sample] error received: " + throwable);
+// LOG.error("Sample listener received an error", throwable);
 }
 
 @Override
 public void invoke(org.ikasan.spec.event.Resubmission event)
 {
-System.out.println("[sample] resubmission received: " + event);
+// LOG.debug("Sample listener received a resubmission");
 }
 }
 

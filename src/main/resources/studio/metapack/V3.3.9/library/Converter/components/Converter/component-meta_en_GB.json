@@ -47,7 +47,7 @@
         "recipeMediaType",
         "recipeEmailBody"
       ],
-      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body."
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachments property."
     },
     {
       "id": "string-to-bytes",
@@ -103,7 +103,7 @@
         "recipeMediaType",
         "recipeEmailBody"
       ],
-      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body."
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachments property."
     },
     {
       "id": "bytes-to-string",
@@ -145,7 +145,7 @@
         "recipeMediaType",
         "recipeEmailBody"
       ],
-      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body."
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachments property."
     },
     {
       "id": "file-transfer-payload-to-bytes",
@@ -214,7 +214,7 @@
         "recipeMediaType",
         "recipeEmailBody"
       ],
-      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body."
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachments property."
     },
     {
       "id": "auto-converted-jms-content-to-bytes",
@@ -283,7 +283,7 @@
         "recipeMediaType",
         "recipeEmailBody"
       ],
-      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body."
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachments property."
     },
     {
       "id": "jms-message-to-bytes",
@@ -349,7 +349,7 @@
         "recipeMediaType",
         "recipeEmailBody"
       ],
-      "helpText": "Requires exactly one file from the Local File Consumer; rejects larger batches instead of dropping files. Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body."
+      "helpText": "Requires exactly one file from the Local File Consumer; rejects larger batches instead of dropping files. Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachments property."
     },
     {
       "id": "single-local-file-to-bytes",
@@ -542,8 +542,7 @@
       "displayLabel": "Attachment email body",
       "propertyDisplayOrder": 13,
       "affectsUserImplementedClass": true,
-      "defaultValue": "Please see the attached file.",
-      "helpText": "Email body accompanying an attachment. Not used by the email-body recipe.",
+      "helpText": "Email body accompanying an attachment; the actual filename is appended automatically when left unset (deliberately no static default here - affectsUserImplementedClass properties are auto-filled with their default the moment a component is first configured, and a literal default couldn't contain the real, only-known-at-runtime filename anyway). Not used by the email-body recipe. Deliberately doesn't claim a file is attached - by default the generated attachment code is commented out (see the Email Producer's <strong>hasAttachments</strong> property), so a body implying one always exists would send developers chasing a bug that isn't there.",
       "usageDataType": "java.lang.String"
     }
   }
