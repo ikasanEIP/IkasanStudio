@@ -12,7 +12,7 @@ package org.ikasan;
 *
 * start() itself should return quickly - it just kicks off whatever generates events (a thread, a scheduled
 * task, a listening socket) rather than doing the work inline. This stub ships with a runnable default: a
-* poller that manufactures a dummy event every 5 seconds and dispatches it, purely so you can see the
+* poller that manufactures a dummy event every minute and dispatches it, purely so you can see the
 * eventFactory -> eventListener handoff working end to end before replacing it with your real technology.
 *
 * @author Ikasan Development Team
@@ -51,7 +51,10 @@ private boolean running = false;
 
 //@TODO this poller is the runnable default described above - delete it, along with poll() below, once you
 // replace start()/stop() with your real underlying technology (e.g. a JMS listener, an FTP poll, a file watch).
-private final java.util.concurrent.ScheduledExecutorService poller = java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
+// Not created until start() - a ScheduledExecutorService cannot be restarted once stop() shuts it down, and a
+// flow's consumer bean is a long-lived singleton that can genuinely be stopped and started again on the same
+// instance, so a fresh one must be created each time start() runs rather than once at construction.
+private java.util.concurrent.ScheduledExecutorService poller;
 private long eventCount = 0;
 
 @Override
@@ -81,7 +84,8 @@ public void start()
 //@TODO replace this scheduling with your real consumer logic e.g. open a connection, register a listener, or
 // schedule your own poll - the important thing is that start() kicks work off and returns, it should not
 // block. See poll() below for where each individual event actually gets built and dispatched.
-poller.scheduleWithFixedDelay(this::poll, 5, 5, java.util.concurrent.TimeUnit.SECONDS);
+poller = java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
+poller.scheduleWithFixedDelay(this::poll, 1, 1, java.util.concurrent.TimeUnit.MINUTES);
 running = true;
 }
 
@@ -149,7 +153,10 @@ return running;
 public void stop()
 {
 //@TODO also release any real underlying resources here e.g. close a connection/socket.
+if (poller != null)
+{
 poller.shutdownNow();
+}
 running = false;
 }
 

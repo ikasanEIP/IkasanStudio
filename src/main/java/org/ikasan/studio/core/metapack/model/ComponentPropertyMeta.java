@@ -90,6 +90,8 @@ public class ComponentPropertyMeta {
     @JsonKey
     private String propertyName;            // The name / identity of the property, e.g. 'name' (used only for flows and modules), 'componentName', 'description', 'configuredResourceId', 'port'
     private String displayLabel;            // Optional display label override; if set, shown in the UI instead of propertyName
+    /** Preserve literal whitespace when committing edits (credentials, patterns and message content). */
+    private boolean preserveWhitespace;
     private String trueLabel;               // For boolean properties: optional label shown next to the "true" checkbox instead of "True", e.g. "Topic"
     private String falseLabel;              // For boolean properties: optional label shown next to the "false" checkbox instead of "False", e.g. "Queue"
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
@@ -262,6 +264,7 @@ public class ComponentPropertyMeta {
         if (!(o instanceof ComponentPropertyMeta that)) return false;
         return affectsUserImplementedClass == that.affectsUserImplementedClass &&
                 choicesEditable == that.choicesEditable &&
+                preserveWhitespace == that.preserveWhitespace &&
                 hiddenProperty == that.hiddenProperty &&
                 ignoreProperty == that.ignoreProperty &&
                 mandatory == that.mandatory &&
@@ -289,8 +292,8 @@ public class ComponentPropertyMeta {
                 Objects.equals(userImplementClassFtlTemplate, that.userImplementClassFtlTemplate) &&
                 Objects.equals(validation, that.validation) &&
                 Objects.equals(validationMessage, that.validationMessage) &&
-                this.getValidationPattern() == null && that.getValidationPattern() == null ||
-                this.getValidationPattern() != null && this.getValidationPattern().pattern().equals(that.getValidationPattern().pattern());
+                Objects.equals(this.getValidationPattern() == null ? null : this.getValidationPattern().pattern(),
+                        that.getValidationPattern() == null ? null : that.getValidationPattern().pattern());
     }
 
     @Override
@@ -300,7 +303,7 @@ public class ComponentPropertyMeta {
                 mandatoryUnlessAnyOf, mandatoryIfTrue, mandatorySectionHeading, dataValidationType, defaultValue, helpText,
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
-                protectFromOverwrite, noStubRequired,
+                protectFromOverwrite, noStubRequired, preserveWhitespace,
                 validation, validationMessage,
                 validationPattern!= null ? validationPattern.pattern() : "");
     }

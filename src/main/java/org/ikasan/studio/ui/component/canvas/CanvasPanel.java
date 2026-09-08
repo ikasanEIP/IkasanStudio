@@ -117,12 +117,8 @@ public class CanvasPanel extends JBPanel implements Disposable {
         stopModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.StopModule"));
         addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
 
-        JBPanel moduleGroupPanel = titledButtonGroup(StudioBundle.message("label.Module"));
-        addButtonsToPanel(moduleGroupPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(moduleGroupPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
-        addButtonsToPanel(moduleGroupPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
-        canvasHeaderButtonPanel.add(moduleGroupPanel);
-
+        // Harness is placed left of Module because a harness (e.g. the test FTP server) needs to be started
+        // before the module that depends on it, matching the order the user actually has to click them in.
         HarnessControlActions harnessActions = new HarnessControlActions(project);
         harnessGroupPanel = titledButtonGroup(StudioBundle.message("label.Harness"));
         addButtonsToPanel(harnessGroupPanel, startHarnessButton, harnessActions.startAction(), StudioBundle.message("tooltip.StartHarnesses"));
@@ -131,6 +127,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
         stopHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StopHarnesses"));
         harnessGroupPanel.setVisible(harnessActions.isAvailable());
         canvasHeaderButtonPanel.add(harnessGroupPanel);
+
+        JBPanel moduleGroupPanel = titledButtonGroup(StudioBundle.message("label.Module"));
+        addButtonsToPanel(moduleGroupPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(moduleGroupPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
+        addButtonsToPanel(moduleGroupPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+        canvasHeaderButtonPanel.add(moduleGroupPanel);
 
         addButtonsToPanel(canvasHeaderButtonPanel, consoleButton, new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));

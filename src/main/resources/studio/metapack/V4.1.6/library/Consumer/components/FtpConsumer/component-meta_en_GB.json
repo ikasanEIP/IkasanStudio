@@ -200,6 +200,7 @@
     },
     "filenamePattern": {
       "propertyName": "filenamePattern",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -10,
       "defaultValue": ".*\\.txt",
       "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex). Defaults to '.*\\.txt' (any .txt file), matching the bundled test FTP server's sample content.",
@@ -264,6 +265,7 @@
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
+      "preserveWhitespace": true,
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 320,
       "helpText": "The password for the keystore file used to validate the server certificate. Mandatory once ftps is enabled - there is no fallback to a default Java keystore; the connection will fail to establish if this is left blank while ftps is true.",
@@ -399,6 +401,7 @@
     },
     "password": {
       "propertyName": "password",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -30,
       "defaultValue": "ikasan",
       "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename. Defaults to 'ikasan', matching the bundled test FTP server.",

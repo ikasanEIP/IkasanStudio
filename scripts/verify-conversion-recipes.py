@@ -34,6 +34,11 @@ for pack, release, jms in [('V3.3.9', '11', 'javax.jms'), ('V4.1.6', '17', 'jaka
     cases = '\n'.join('        check(%d, %s, %s, %s);' %
                       (i, json.dumps(r['sourceType']), json.dumps(r['targetType']), json.dumps(r['id']))
                       for i, r in enumerate(recipes))
+    # A recipe with no possible upstream filename (plain String/byte[] source, not a Payload/local-file source
+    # extract-file.ftl/extract-local-file.ftl would preserve a name from) - exercises the generated-filename
+    # fallback in construct-file.ftl, including that it's unique under rapid/concurrent calls.
+    uniqueness_index = next(i for i, r in enumerate(recipes)
+                            if r['targetType'] == 'org.ikasan.filetransfer.Payload' and r['sourceType'] in ('java.lang.String', 'byte[]'))
     runner = r'''
 import java.util.*;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +53,11 @@ import org.ikasan.component.endpoint.email.producer.DefaultEmailPayload;
 public class VerifyRecipes {
     static final byte[] CONTENT = "café".getBytes(StandardCharsets.UTF_8);
     static final Map<String,Object> MAP = Collections.singletonMap("key", "value");
+    // Sentinel meaning "no upstream or explicitly-configured filename" - distinct from any real filename, so
+    // verify() below knows to check the generated-fallback shape instead of an exact expected value.
+    static final String GENERATED = "__GENERATED__";
+    static final java.util.regex.Pattern GENERATED_FILE_PATTERN =
+        java.util.regex.Pattern.compile(".*-\\d{8}-\\d{6}-\\d{3}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\.dat");
     static int checks;
     static void require(boolean result) { checks++; if (!result) throw new AssertionError(); }
     static void rejects(Converter converter, Object value) throws Exception {
@@ -80,12 +90,19 @@ public class VerifyRecipes {
         else if (target.equals("java.util.Map")) require(MAP.equals(result));
         else if (result instanceof Payload) {
             require(Arrays.equals(CONTENT, ((Payload)result).getContent()));
-            require(filename.equals(((Payload)result).getAttribute("fileName")));
+            String actual = ((Payload)result).getAttribute("fileName");
+            // FTP/SFTP: no upstream/explicit name means construct-file.ftl generated one - check its shape
+            // (sanitised flow/converter name, timestamp, UUID) rather than an exact literal.
+            if (filename.equals(GENERATED)) require(actual != null && GENERATED_FILE_PATTERN.matcher(actual).matches());
+            else require(filename.equals(actual));
         } else {
             DefaultEmailPayload email = (DefaultEmailPayload) result;
+            // Email attachment naming stays independent of the FTP/SFTP policy above - "message.dat" unless an
+            // upstream/explicit name was preserved (see construct-email-attachment.ftl).
+            String attachmentFilename = filename.equals(GENERATED) ? "message.dat" : filename;
             if (id.endsWith("email-attachment")) {
-                require(Arrays.equals(CONTENT, email.getAttachment(filename)));
-                require("application/octet-stream".equals(email.getAttachmentType(filename)));
+                require(Arrays.equals(CONTENT, email.getAttachment(attachmentFilename)));
+                require("application/octet-stream".equals(email.getAttachmentType(attachmentFilename)));
                 require("Please see the attached file.".equals(email.getEmailBody()));
             } else require("café".equals(email.getEmailBody()));
         }
@@ -93,7 +110,7 @@ public class VerifyRecipes {
     static void check(int index, String source, String target, String id) throws Exception {
         Converter converter = (Converter) Class.forName("org.ikasan.Recipe" + index).getConstructor().newInstance();
         Object input;
-        String filename = "message.dat";
+        String filename = GENERATED;
         Path file = null;
         if (source.equals("java.lang.String")) input = "café";
         else if (source.equals("byte[]")) input = CONTENT;
@@ -126,12 +143,36 @@ public class VerifyRecipes {
                 rejects(converter, new byte[]{(byte)0xff});
         } finally { if (file != null) Files.deleteIfExists(file); }
     }
+    // Rapid and concurrent calls must never generate the same fallback filename - collectors like a strict FTP
+    // test emulator refuse to overwrite an existing file, so a collision here would stop the flow just like the
+    // fixed "message.dat" default this replaced.
+    static void checkUniqueness(int index) throws Exception {
+        Converter converter = (Converter) Class.forName("org.ikasan.Recipe" + index).getConstructor().newInstance();
+        String first = ((Payload) converter.convert("café")).getAttribute("fileName");
+        String second = ((Payload) converter.convert("café")).getAttribute("fileName");
+        require(!first.equals(second));
+        int threadCount = 8;
+        Set<String> names = Collections.synchronizedSet(new HashSet<>());
+        List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
+        Thread[] threads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            threads[i] = new Thread(() -> {
+                try { names.add(((Payload) converter.convert("café")).getAttribute("fileName")); }
+                catch (Throwable t) { failures.add(t); }
+            });
+        }
+        for (Thread t : threads) t.start();
+        for (Thread t : threads) t.join();
+        require(failures.isEmpty());
+        require(names.size() == threadCount);
+    }
     public static void main(String[] args) throws Exception {
 CASES
+        checkUniqueness(UNIQUENESS_INDEX);
         System.out.println("Runtime assertions passed: " + checks);
     }
 }
-'''.replace('JMS.', jms + '.').replace('CASES', cases)
+'''.replace('JMS.', jms + '.').replace('CASES', cases).replace('UNIQUENESS_INDEX', str(uniqueness_index))
     runner_file = folder / 'VerifyRecipes.java'
     runner_file.write_text(runner)
     classpath = str(classes) + os.pathsep + classpath

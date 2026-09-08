@@ -18,7 +18,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
     },
     {
       "id": "string-to-email-payload",
@@ -74,7 +74,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
     },
     {
       "id": "bytes-to-email-payload",
@@ -185,7 +185,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
     },
     {
       "id": "auto-converted-jms-content-to-email-payload",
@@ -254,7 +254,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
     },
     {
       "id": "jms-message-to-email-payload",
@@ -524,8 +524,7 @@
       "displayLabel": "Fallback filename",
       "propertyDisplayOrder": 11,
       "affectsUserImplementedClass": true,
-      "defaultValue": "message.dat",
-      "helpText": "Filename for file output or attachments when the incoming payload has no fileName attribute. Default message.dat.",
+      "helpText": "Filename to use when the incoming payload has no fileName attribute. Leave blank for automatic naming: FTP/SFTP output gets a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file already on the server; email attachments use message.dat. Set a value here to use a fixed name instead. If this component already has a value here from before automatic naming existed, it is kept as-is (including message.dat) and used as a fixed name - clear it to switch to automatic naming.",
       "usageDataType": "java.lang.String"
     },
     "recipeMediaType": {
@@ -539,6 +538,7 @@
     },
     "recipeEmailBody": {
       "propertyName": "recipeEmailBody",
+      "preserveWhitespace": true,
       "displayLabel": "Attachment email body",
       "propertyDisplayOrder": 13,
       "affectsUserImplementedClass": true,

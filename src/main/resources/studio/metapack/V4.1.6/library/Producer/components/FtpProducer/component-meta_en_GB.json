@@ -155,6 +155,7 @@
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
+      "preserveWhitespace": true,
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 320,
       "helpText": "The password for the keystore file used to validate the server certificate. Mandatory once ftps is enabled - there is no fallback to a default Java keystore; the connection will fail to establish if this is left blank while ftps is true.",
@@ -204,9 +205,9 @@
     "outputDirectory": {
       "propertyName": "outputDirectory",
       "propertyDisplayOrder": 10,
-      "defaultValue": ".",
+      "defaultValue": "/",
       "mandatory": true,
-      "helpText": "Remote directory where to deliver the file.",
+      "helpText": "Remote directory where to deliver the file. Default('/') is the FTP session's root as seen after login, which on a jailed/chrooted account (including the bundled test FTP server) is the account's home directory, not the real filesystem root - '.' (the previous default) also refers to the same directory in principle, but was found to fail the connection against the bundled test FTP server.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.ftp.producer.outputDirectory"
     },
@@ -221,6 +222,7 @@
     },
     "password": {
       "propertyName": "password",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -30,
       "defaultValue": "ikasan",
       "helpText": "Password used to login to (S)FTP server where consumer needs to connect. Takes precedences over privateKeyFilename. If both provided user/password combination will be used to login rather then user/privateKeyFilename. Defaults to 'ikasan', matching the bundled test FTP server.",

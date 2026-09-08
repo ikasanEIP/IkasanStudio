@@ -650,7 +650,9 @@ public class ComponentPropertyEditRow {
         }
         Object returnValue = null;
         if (isChoiceProperty()) {
-            Object selected = propertyChoiceValueField.getSelectedItem();
+            Object selected = meta.isChoicesEditable() ? propertyChoiceValueField.getEditor().getItem()
+                    : propertyChoiceValueField.getSelectedItem();
+            if (selected instanceof String text && meta.isChoicesEditable()) selected = normalizeEditedText(text);
             returnValue = (selected == null || "".equals(selected)) ? null : selected;
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             // It is possible that neither are currently selected i.e. the property is unset
@@ -684,11 +686,20 @@ public class ComponentPropertyEditRow {
             }
         } else if (meta.getPropertyDataType() == java.lang.String.class) {
             // The formatter would be null if this was a standard text field.
-            returnValue = propertyValueField.getText();
+            returnValue = normalizeEditedText(propertyValueField.getText());
         } else {
             returnValue = getLiveNumericValue();
         }
         return returnValue;
+    }
+
+    /**
+     * Validate the eventual saved value without changing the document during typing.
+     * Untouched existing values remain verbatim when another property is updated.
+     */
+    private String normalizeEditedText(String text) {
+        return meta.isPreserveWhitespace() || meta.isReadOnlyProperty()
+                || java.util.Objects.equals(text, initialValue) ? text : text.strip();
     }
 
     /** JFormattedTextField does not update getValue() until focus is committed; parse its document instead. */
@@ -895,7 +906,16 @@ public class ComponentPropertyEditRow {
      * Usually the final step of edit, update the original value object with the entered data
      */
     public ComponentProperty updateValueObjectWithEnteredValues() {
-        componentProperty.setValue(getValue());
+        Object value = getValue();
+        componentProperty.setValue(value);
+        if (value instanceof String text) {
+            if (isChoiceProperty() && meta.isChoicesEditable()) {
+                propertyChoiceValueField.setSelectedItem(text);
+            } else if (!isChoiceProperty() && propertyValueField != null
+                    && !text.equals(propertyValueField.getText())) {
+                propertyValueField.setValue(text);
+            }
+        }
         return componentProperty;
     }
 

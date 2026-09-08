@@ -20,7 +20,16 @@ Both V3.3.9 and V4.1.6 contain 29 explicit recipes, using the correct `javax.jms
 
 Reusable sources are String, byte array, file-transfer Payload, JMS Message, already extracted JMS content, and a single-file Local File Consumer batch. Local-file recipes reject empty or multi-file batches rather than dropping files. Split a batch first or supply custom batch logic. Scheduled job contexts, arbitrary generic-consumer events, structured application objects and unsupported producer types require a custom mapping. Studio does not invent a business document from a timer event.
 
-Text defaults to UTF-8; the charset is configurable. File output and attachments retain an incoming filename, otherwise use the configurable fallback (`message.dat`). Attachment recipes expose the MIME type (default `application/octet-stream`) and accompanying email body. Irrelevant settings are hidden and preserved when switching recipes. The explanatory text is labelled **Recipe description**. These are literal values, escaped when generating Java, not executable expressions. Naming files dynamically or producing JSON/XML from domain objects belongs in a custom converter.
+Text defaults to UTF-8; the charset is configurable. Attachment recipes expose the MIME type (default `application/octet-stream`) and accompanying email body. Irrelevant settings are hidden and preserved when switching recipes. The explanatory text is labelled **Recipe description**. These are literal values, escaped (`?j_string`) when generating Java, not executable expressions. Producing JSON/XML from domain objects belongs in a custom converter.
+
+### Filename policy
+
+An incoming filename is always preserved when one is available (an existing `Payload`'s `fileName` attribute, or a Local File Consumer's real filename). Beyond that, FTP/SFTP output and email attachments intentionally differ, because only file output risks colliding with something already delivered:
+
+- **FTP/SFTP output**: no incoming filename → the **Fallback filename** property if set → otherwise a name generated fresh on every call, from the sanitised flow and converter name, a timestamp and a UUID (e.g. `MyFlow-MyConverter-20260908-143012-501-3fa8...dat`). This is deliberately never reused, since many FTP/SFTP servers - including strict test emulators - refuse to overwrite an existing file and would stop the flow the moment a fixed or repeated name collided with one already delivered. The timestamp doubles as a delivery history, and the flow/converter name lets you tell which converter produced a given file when several deliver into the same directory.
+- **Email attachments**: no incoming filename → the **Fallback filename** property if set → otherwise `message.dat`, unchanged from before. An attachment isn't written to a directory that could reject a repeated name, so there's nothing to generate around.
+
+**Existing models**: a component saved before automatic naming existed may already have **Fallback filename** explicitly set to `message.dat` (its old default). That value is never silently reinterpreted - it's honoured as a fixed name exactly as before. To switch such a component to automatic FTP/SFTP naming, open its properties and clear **Fallback filename**, then regenerate.
 
 Nulls and unsupported content raise `TransformationException`. Maps are not implicitly converted using `toString()`, and JMS ObjectMessage deserialization is not attempted. Malformed text is rejected rather than replaced. JMS byte messages are read in a loop, including partial reads, and their read cursor is reset. Supplied JMS and local-file recipes are intended for small messages, with a 16 MiB check; use custom streaming logic for large files.
 
@@ -45,6 +54,6 @@ STUDIO_RECIPE_EXPORT=/tmp/studio-recipe-sources ./gradlew test --tests '*Compose
 python3 scripts/verify-conversion-recipes.py /tmp/studio-recipe-sources
 ```
 
-The script requires `java`, `javac` and the corresponding artifacts in `~/.m2/repository`; it never downloads dependencies. It checks every recipe, filename/content preservation, email attachments, partial JMS byte reads, map forwarding, nulls, unsupported objects, malformed text and multi-file rejection. Generated code is compiled with `--release 11` for 3.3.9 and `--release 17` for 4.1.6.
+The script requires `java`, `javac` and the corresponding artifacts in `~/.m2/repository`; it never downloads dependencies. It checks every recipe, filename/content preservation, generated-filename shape and uniqueness under rapid and concurrent calls, email attachments, partial JMS byte reads, map forwarding, nulls, unsupported objects, malformed text and multi-file rejection. Generated code is compiled with `--release 11` for 3.3.9 and `--release 17` for 4.1.6.
 
 Before release, exercise insertion in a live IntelliJ editor, selection changes followed by Cancel/Apply, the regeneration confirmation, and keyboard navigation in both themes. Automated widget checks do not replace that IDE review.

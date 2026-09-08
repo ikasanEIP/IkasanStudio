@@ -76,6 +76,7 @@
       "properties": {
         "propertyName": { "type": "string", "minLength": 1 },
         "displayLabel": { "type": "string" },
+        "preserveWhitespace": { "type": "boolean", "default": false, "description": "Preserve leading and trailing whitespace in edited literal content, patterns or credentials. Other edited strings are trimmed before validation and saving." },
         "helpText": { "type": "string" },
         "propertyDisplayOrder": { "type": "integer" },
         "propertyDataType": { "type": "string" },

@@ -7,19 +7,24 @@ through Find Action). You can also right-click the module in the designer and ch
 
 ## Workflow
 
-1. Save open project files and apply or discard pending Studio property edits. Wait for
+1. Commit or back up the project and stop the running module. Save open project files and apply or discard pending Studio property edits. Wait for
    source generation and indexing to finish. The canvas must agree with the saved model.
 2. Select the target version. Studio analyses an isolated copy of `model.json` and renders
    the proposed generated files and root Maven POM without writing them.
 3. Review the migration report and the **File changes** tab. Unsupported components,
    missing required properties, incompatible choices, and structures that would lose data
    block Apply. Correct those issues in the source model and preview again.
+   Select the target JDK in the review dialog: **Java 11 for V3.3.9** or **Java 17 for V4.1.6**.
+   If none is listed, cancel, install/register the JDK in **File → Project Structure → SDKs**,
+   then reopen migration. Preparing the JDK does not require changing the project SDK first.
+   Apply is unavailable without a matching JDK.
 4. Apply. Studio saves a recovery snapshot under `.ikasan-studio/migrations/`, checks that
    the reviewed files have not changed, and writes the reviewed contents. A write failure
-   triggers restoration of previously written files.
+   triggers restoration of previously written files. After the file commit, Studio switches
+   the project SDK, Maven module SDKs, Maven importer/runner and existing Studio Application
+   Run/Debug configurations to the selected JDK.
 5. By default Studio requests Maven import and an IntelliJ build, reporting build success,
-   errors or cancellation through a notification. Install/select the target JDK in Project
-   Structure: the shipped contracts specify Java 11 for V3.3.9 and Java 17 for V4.1.6.
+   errors or cancellation through a notification. Review developer-owned code for API changes.
    Run application tests and check runtime behaviour before deploying.
 
 The conversion itself is offline. Maven import or compilation can need downloads when
@@ -57,6 +62,8 @@ and leaves unrelated files alone. Team instructions added to `AGENTS.md` after m
 are retained. Review carefully: subsequent edits to the affected generated
 files and root POM are replaced. A new snapshot preserves the state before restoration, so the
 restoration itself can be reversed. All snapshots remain in the history directory.
+IDE SDK settings are not stored in these file snapshots; the restore review asks for a JDK
+matching the restored version and applies it using the same process.
 
 To keep new flows and other subsequent model edits while returning to the previous Ikasan
 version, use **Migrate…** again and choose that version. This runs reverse conversion rules

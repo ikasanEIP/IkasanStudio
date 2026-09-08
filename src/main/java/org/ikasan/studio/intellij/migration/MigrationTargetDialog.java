@@ -5,6 +5,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.*;
 import java.awt.*;
 
@@ -16,16 +17,16 @@ final class MigrationTargetDialog extends DialogWrapper {
         super(project);
         this.current = current;
         versions = new ComboBox<>(targets);
-        setTitle("Migrate Ikasan version");
-        setOKButtonText("Preview migration");
+        setTitle(StudioBundle.message("dialog.MigrateIkasanVersion"));
+        setOKButtonText(StudioBundle.message("button.PreviewMigration"));
         init();
     }
     String targetVersion() { return (String) versions.getSelectedItem(); }
     @Override public JComponent getPreferredFocusedComponent() { return versions; }
     @Override protected JComponent createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout(JBUI.scale(8), JBUI.scale(8)));
-        panel.add(new JBLabel("Current version: " + current), BorderLayout.NORTH);
-        JBLabel target = new JBLabel("Target Ikasan version:");
+        panel.add(new JBLabel(StudioBundle.message("label.CurrentVersion", current)), BorderLayout.NORTH);
+        JBLabel target = new JBLabel(StudioBundle.message("label.TargetIkasanVersion"));
         target.setLabelFor(versions);
         panel.add(target, BorderLayout.WEST);
         panel.add(versions, BorderLayout.CENTER);

@@ -16,6 +16,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Not many components result in the need for adsitional elements in the pom.
  */
 public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"SFTP Consumer", "SFTP Producer"})
+    void java11SftpComponentsDeclareEd25519Provider(String componentName) throws Exception {
+        var component = org.ikasan.studio.core.metapack.ComponentLibrary
+                .getIkasanComponentByKeyMandatory("V3.3.9", componentName);
+        var providers = component.getJarDependencies().stream()
+                .filter(dependency -> "org.bouncycastle".equals(dependency.getGroupId())
+                        && "bcprov-jdk18on".equals(dependency.getArtifactId()))
+                .toList();
+        assertEquals(1, providers.size());
+        assertEquals("1.85.2", providers.get(0).getVersion());
+        org.junit.jupiter.api.Assertions.assertFalse(Boolean.parseBoolean(providers.get(0).getOptional()),
+                "The provider must reach the generated application's runtime classpath");
+    }
+
     /**
      * See also application_emptyFlow.properties
      * @throws IOException if the template cant be generated

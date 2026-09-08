@@ -52,6 +52,7 @@
     },
     "emailBody": {
       "propertyName": "emailBody",
+      "preserveWhitespace": true,
       "helpText": "Text body for the email, used only as a fallback - if the upstream <strong>Email Converter</strong> has already set a body on the EmailPayload, that value is sent instead of this one.",
       "propertyGroup": "Popular",
       "propertyDisplayOrder": -30,
@@ -186,6 +187,7 @@
     },
     "mailPassword": {
       "propertyName": "mailPassword",
+      "preserveWhitespace": true,
       "helpText": "Password for the mail server.",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 360,

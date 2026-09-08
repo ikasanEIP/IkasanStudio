@@ -177,6 +177,7 @@
     },
     "filenamePattern": {
       "propertyName": "filenamePattern",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -10,
       "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex).",
       "mandatory": true,
@@ -290,6 +291,7 @@
     },
     "password": {
       "propertyName": "password",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -35,
       "displayLabel": "Password",
       "mandatoryUnlessAnyOf": [

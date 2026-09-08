@@ -12,7 +12,12 @@ public class ${className} implements Converter<${conversionRecipe.sourceType}, $
     public ${conversionRecipe.targetType} convert(${conversionRecipe.sourceType} source) throws TransformationException {
         if (source == null) throw new TransformationException("Cannot convert null content");
         try {
-            String filename = "${((flowElement.getPropertyValue('recipeFilename'))!'message.dat')?j_string}";
+            // Blank unless the developer has explicitly configured a fixed name - each construction template
+            // (see construct-file.ftl/construct-email-attachment.ftl) applies its own independent fallback when
+            // this is still blank at the point it's used, since FTP/SFTP and email attachments need different
+            // fallback behaviour. Extraction templates (e.g. extract-file.ftl) may also overwrite this with a
+            // filename preserved from the incoming payload, which always takes priority over both.
+            String filename = "${((flowElement.getPropertyValue('recipeFilename'))!'')?j_string}";
             java.nio.charset.Charset charset = java.nio.charset.Charset.forName("<#if conversionRecipe.configurationProperties?seq_contains('recipeCharset')>${((flowElement.getPropertyValue('recipeCharset'))!'UTF-8')?j_string}<#else>UTF-8</#if>");
 <#include conversionRecipe.extractionTemplate>
 <#include conversionRecipe.constructionTemplate>

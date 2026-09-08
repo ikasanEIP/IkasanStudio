@@ -7,10 +7,16 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/endpoint/filetransfer/sftp/consumer.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "jarDependencies_comment": "JSch requires Bouncy Castle for Ed25519/Ed448 authentication on Java 11 (native support starts at Java 15). Without it, a valid Ed25519 key can fail with Auth fail even when OpenSSH succeeds. See https://github.com/mwiede/jsch#faq. Version 1.85.2 verified with Ikasan 3.3.9/JSch 0.2.17 on Java 11.",
   "jarDependencies": [
     {
       "groupId": "org.ikasan",
       "artifactId": "ikasan-sftp-endpoint"
+    },
+    {
+      "groupId": "org.bouncycastle",
+      "artifactId": "bcprov-jdk18on",
+      "version": "1.85.2"
     }
   ],
   "importResources": [
@@ -177,8 +183,10 @@
     },
     "filenamePattern": {
       "propertyName": "filenamePattern",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -10,
-      "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex).",
+      "defaultValue": ".*\\.txt",
+      "helpText": "A full Java regular expression (not a shell glob) matched against candidate filenames on the remote server - e.g. '.*\\.csv' matches any CSV file. A shell-style glob like '*.tmp' will fail at runtime with a PatternSyntaxException (a bare '*' has nothing to repeat) - use '.*\\.tmp' instead. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex). Defaults to '.*\\.txt' (any .txt file).",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.sftp.consumer.filename-pattern",
       "setterProperty": true,
@@ -290,6 +298,7 @@
     },
     "password": {
       "propertyName": "password",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -35,
       "displayLabel": "Password",
       "mandatoryUnlessAnyOf": [

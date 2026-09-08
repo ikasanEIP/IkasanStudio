@@ -149,6 +149,7 @@
     },
     "password": {
       "propertyName": "password",
+      "preserveWhitespace": true,
       "propertyDisplayOrder": -35,
       "displayLabel": "Password",
       "mandatoryUnlessAnyOf": [

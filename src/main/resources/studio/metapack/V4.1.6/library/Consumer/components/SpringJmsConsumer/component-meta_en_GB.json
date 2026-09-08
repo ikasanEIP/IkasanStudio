@@ -72,6 +72,7 @@
     },
     "connectionFactoryPassword": {
       "propertyName": "connectionFactoryPassword",
+      "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 120,
       "defaultValue": "admin",
@@ -110,6 +111,7 @@
     },
     "connectionFactoryJndiPropertySecurityCredentials": {
       "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
+      "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 160,
       "helpText": "The credentials of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_CREDENTIALS.",
@@ -152,6 +154,7 @@
     },
     "connectionPassword": {
       "propertyName": "connectionPassword",
+      "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 210,
       "helpText": "Authentication credential paired with connectionUsername. This value is masked on all GUI views.",
@@ -219,6 +222,7 @@
     },
     "destinationJndiPropertySecurityCredentials": {
       "propertyName": "destinationJndiPropertySecurityCredentials",
+      "preserveWhitespace": true,
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 360,
       "defaultValue": "admin",

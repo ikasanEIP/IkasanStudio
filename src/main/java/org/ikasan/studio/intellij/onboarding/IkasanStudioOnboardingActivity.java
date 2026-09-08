@@ -3,6 +3,14 @@ package org.ikasan.studio.intellij.onboarding;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.intellij.openapi.startup.ProjectActivity;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
@@ -27,21 +35,41 @@ public final class IkasanStudioOnboardingActivity implements ProjectActivity {
         if (project.isDisposed()) {
             return Unit.INSTANCE;
         }
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            boolean studioProject = !project.isDisposed() && isIkasanStudioProject(project);
-            ApplicationManager.getApplication().invokeLater(() -> {
-                if (!studioProject || project.isDisposed()) return;
-                IkasanStudioEditorService editorService = project.getService(IkasanStudioEditorService.class);
-                if (!hasCompletedOnboarding(project)) {
-                    editorService.open();
-                    PropertiesComponent.getInstance(project)
-                            .setValue(ONBOARDING_VERSION_PROPERTY, CURRENT_ONBOARDING_VERSION, 0);
-                } else if (editorService.shouldRestore()) {
-                    editorService.open();
-                }
-            });
+        AtomicBoolean handled = new AtomicBoolean();
+        Runnable tryOpen = () -> ReadAction.nonBlocking(() ->
+                        !handled.get() && isIkasanStudioProject(project)
+                                && StudioProjectFiles.hasGeneratedContentRoot(project))
+                .expireWith(project)
+                .finishOnUiThread(ModalityState.nonModal(), ready -> {
+                    if (!ready || project.isDisposed() || handled.get()) return;
+                    DumbService.getInstance(project).runWhenSmart(() ->
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (project.isDisposed() || !handled.compareAndSet(false, true)) return;
+                                openAfterImport(project);
+                            }, ModalityState.nonModal()));
+                })
+                .submit(AppExecutorUtil.getAppExecutorService());
+        // Archetype generation may finish after startup. Retry when Maven adds its content roots.
+        project.getMessageBus().connect(project).subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
+            @SuppressWarnings("NullableProblems")
+            @Override
+            public void rootsChanged(ModuleRootEvent event) {
+                if (!handled.get()) tryOpen.run();
+            }
         });
+        tryOpen.run();
         return Unit.INSTANCE;
+    }
+
+    private void openAfterImport(Project project) {
+        IkasanStudioEditorService editorService = project.getService(IkasanStudioEditorService.class);
+        if (!hasCompletedOnboarding(project)) {
+            editorService.open();
+            PropertiesComponent.getInstance(project)
+                    .setValue(ONBOARDING_VERSION_PROPERTY, CURRENT_ONBOARDING_VERSION, 0);
+        } else if (editorService.shouldRestore()) {
+            editorService.open();
+        }
     }
 
     private boolean isIkasanStudioProject(Project project) {

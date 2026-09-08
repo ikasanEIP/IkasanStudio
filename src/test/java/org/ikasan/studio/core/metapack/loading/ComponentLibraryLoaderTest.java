@@ -42,7 +42,11 @@ class ComponentLibraryLoaderTest {
             assertThat(components.values()).allSatisfy(component -> {
                 if (component.getJarDependencies() != null) {
                     assertThat(component.getJarDependencies())
-                            .allMatch(dependency -> dependency.getVersion() == null);
+                            .allMatch(dependency -> dependency.getVersion() == null
+                                    || manifest.compatibilityOverrides().stream().anyMatch(override ->
+                                            override.groupId().equals(dependency.getGroupId())
+                                                    && override.artifactId().equals(dependency.getArtifactId())
+                                                    && override.version().equals(dependency.getVersion())));
                 }
             });
         }
