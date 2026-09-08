@@ -331,7 +331,18 @@ public class DesignerCanvas extends JPanel {
             }
             TestJmsHarnessLinks.Link jmsHarnessLink = getJmsHarnessLinkAtXY(x, y);
             if (jmsHarnessLink != null) {
-                DesignCanvasContextMenu.showRemoveJmsHarnessMenu(project, this, me, jmsHarnessLink.harnessFlow());
+                DesignCanvasContextMenu.showRemoveJmsHarnessMenu(project, this, me, jmsHarnessLink);
+                return;
+            }
+            // A click on a component's own external endpoint pill (e.g. its FTP/Channel/Email/File Endpoint,
+            // drawn outside the flow's border - see IkasanFlowRouteViewHandler#displayExternalEndpointIfExists)
+            // resolves back to the same owning FlowElement getComponentAtXY() would find for its main icon box
+            // further down, but that full component menu (Delete/Edit/Wiretap/Help/etc.) doesn't belong on a
+            // click that visually targets "the external system", not "this step in the flow" - checked here,
+            // ahead of the generic fallthrough, so only the endpoint-relevant subset is shown instead.
+            FlowElement endpointOwner = getOwnerForEndpointAtXY(x, y);
+            if (endpointOwner != null) {
+                DesignCanvasContextMenu.showEndpointMenu(project, this, me, endpointOwner);
                 return;
             }
         }
@@ -494,14 +505,32 @@ public class DesignerCanvas extends JPanel {
                     ? error.summary() + " — " + StudioBundle.message("tooltip.ClickForFullErrorDetails") : "");
             return;
         }
+        TestJmsHarnessLinks.Link harnessLink = getJmsHarnessLinkAtXY(mouseX, mouseY);
+        if (harnessLink != null) {
+            this.setToolTipText(isRestartPendingFor(harnessLink.harnessFlow())
+                    ? StudioBundle.message("tooltip.ModuleRestartRequiredForChange") : "");
+            return;
+        }
         IkasanComponent mouseSelectedComponent = getComponentAtXY(mouseX, mouseY);
         if (mouseSelectedComponent instanceof Flow && ((Flow) mouseSelectedComponent).getFlowIntegrityStatus() != null) {
             this.setToolTipText(((Flow) mouseSelectedComponent).getFlowIntegrityStatus());
         } else if (mouseSelectedComponent instanceof FlowElement flowElement) {
-            this.setToolTipText(buildInputOutputTooltip(flowElement));
+            String tooltip = buildInputOutputTooltip(flowElement);
+            this.setToolTipText(isRestartPendingFor(flowElement) ? appendRestartWarning(tooltip) : tooltip);
         } else {
             this.setToolTipText("");
         }
+    }
+
+    /**
+     * Appends the "restart required" warning to a component tooltip, keeping the existing HTML envelope intact.
+     */
+    private String appendRestartWarning(String tooltip) {
+        String warning = StudioBundle.message("tooltip.ModuleRestartRequiredForChange");
+        if (tooltip == null || tooltip.isBlank()) {
+            return warning;
+        }
+        return tooltip + "<br><b>" + warning + "</b>";
     }
 
     /**
@@ -1011,6 +1040,9 @@ public class DesignerCanvas extends JPanel {
                     } else {
                         ((FlowElement) newComponent).defaultUnsetMandatoryProperties();
                         insertNewComponentBetweenSurroundingPair(containingFlow, containingFlowRoute, (FlowElement) newComponent, x, y);
+                        if (((FlowElement) newComponent).getComponentMeta().isDebug()) {
+                            markRestartPendingIfModuleRunning((FlowElement) newComponent);
+                        }
                         if (newComponent.getComponentMeta().isRouter()) {
                             syncChildRoutesForRouter((FlowElement) newComponent);
                         }
@@ -1527,6 +1559,7 @@ public class DesignerCanvas extends JPanel {
         }
 
         StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(containingFlow));
+        markRestartPendingIfModuleRunning(debugComponent);
         initialiseAllDimensions = true;
         repaint();
         return debugComponent;
@@ -2193,6 +2226,16 @@ public class DesignerCanvas extends JPanel {
                 nodeLeftX + (TEST_JMS_HARNESS_NODE_WIDTH / 2),
                 nodeTopY + TEST_JMS_HARNESS_NODE_HEIGHT + TEST_JMS_HARNESS_LABEL_GAP,
                 TEST_JMS_HARNESS_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
+        if (isRestartPendingFor(link.harnessFlow()) && flowErrorFlashOn) {
+            paintRestartPendingOutline(g2d, new Rectangle(nodeLeftX, nodeTopY, TEST_JMS_HARNESS_NODE_WIDTH, TEST_JMS_HARNESS_NODE_HEIGHT));
+        }
+    }
+
+    /** Flashing attention outline drawn around elements added while the module was still running. */
+    private void paintRestartPendingOutline(Graphics2D g2d, Rectangle bounds) {
+        g2d.setColor(StudioUIUtils.getAttentionColor());
+        g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2d.drawRoundRect(bounds.x - 3, bounds.y - 3, bounds.width + 6, bounds.height + 6, 10, 10);
     }
 
     /** The owning Producer's own real Channel Endpoint pill's right connector point, or null if not resolvable. */
@@ -2269,7 +2312,35 @@ public class DesignerCanvas extends JPanel {
             return;
         }
         FlowErrorStates errorStates = project.getService(FlowErrorMonitorService.class).getErrorStates();
-        updateFlowErrorFlashTimer(errorStates.hasAnyFlagged());
+        // The same 500ms tick also drives the "restart required" flash on elements added while the module was
+        // running (see UiContext#markRestartPending) - stop it only once neither error flags nor restart-pending
+        // elements remain.
+        boolean restartPending = project.getService(UiContext.class).hasRestartPendingElements();
+        updateFlowErrorFlashTimer(errorStates.hasAnyFlagged() || restartPending);
+    }
+
+    /** The shared 500ms on/off tick used by error-status text and restart-pending outlines. */
+    public boolean isAttentionFlashOn() {
+        return flowErrorFlashOn;
+    }
+
+    public boolean isRestartPendingFor(Flow flow) {
+        return flow != null && project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flow));
+    }
+
+    public boolean isRestartPendingFor(FlowElement flowElement) {
+        return flowElement != null
+                && project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement));
+    }
+
+    /**
+     * Records that {@code flowElement} was added while the module process was still running, so the canvas can
+     * flash it and its menus/tooltips can warn that a restart is required. Cleared when the module stops.
+     */
+    private void markRestartPendingIfModuleRunning(FlowElement flowElement) {
+        if (!project.getService(IkasanDebugSessionService.class).isModuleStopped()) {
+            project.getService(UiContext.class).markRestartPending(UiContext.restartPendingKey(flowElement));
+        }
     }
 
     private void updateFlowErrorFlashTimer(boolean anyFlagged) {

@@ -9,6 +9,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.ui.StudioBundle;
@@ -45,6 +46,11 @@ public class DesignCanvasContextMenu {
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
             menu.addSeparator();
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {
+            if (flowElement.getComponentMeta().isDebug()
+                    && project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement))) {
+                menu.add(createModuleRestartRequiredMenuItem(project));
+                menu.addSeparator();
+            }
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
             if (!flowElement.getComponentMeta().isProducer() && !flowElement.getComponentMeta().isDebug()) {
@@ -56,10 +62,16 @@ public class DesignCanvasContextMenu {
                         ? createTriggerScheduledConsumerMenuItem(project, ikasanBasicElement)
                         : createSendTestMessageMenuItem(project, ikasanBasicElement));
             }
-            if (flowElement.getComponentMeta().isLocalFileConsumer()) {
+            if (flowElement.getComponentMeta().isTimeEventConsumer()
+                    && (flowElement.getComponentMeta().isLocalFileConsumer()
+                    || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER
+                    .equals(flowElement.getComponentMeta().getTestPayloadAdapter()))) {
                 JMenuItem scan = new JMenuItem(StudioBundle.message("menu.TriggerLocalFileScan"));
                 scan.addActionListener(new TriggerScheduledConsumerAction(project, flowElement));
                 menu.add(scan);
+                menu.add(createTriggerNowLimitationsMenuItem(project));
+            }
+            if (flowElement.getComponentMeta().isLocalFileConsumer()) {
                 JMenuItem directory = new JMenuItem(StudioBundle.message("menu.ShowLocalFileScanDirectory"));
                 directory.addActionListener(new ShowLocalFileScanDirectoryAction(project, flowElement));
                 menu.add(directory);
@@ -134,17 +146,21 @@ public class DesignCanvasContextMenu {
 
     /**
      * Minimal popup for a right-click on the compact "Test JMS harness" canvas node (see
-     * {@code DesignerCanvas#paintTestJmsHarnessNode}) - just the one Remove item, mirroring
-     * {@link #showStopTestMailServerMenu}. Removing deletes the hidden harness Flow itself (Consumer + Debug +
-     * Dev Null sink) via the normal {@link DeleteComponentAction} whole-flow path, including its generated
-     * Debug class and Undo support - the harness node is the only on-canvas handle to that flow once it's
-     * hidden from normal rendering, so it needs its own delete entry point here.
+     * {@code DesignerCanvas#paintTestJmsHarnessNode}) - the consumption warning, "Jump to Debug Component" (the
+     * same navigation a double-click on the node already performs - see {@code DesignerCanvas#mouseClickAction}
+     * - given a right-click entry point too, since it's otherwise not discoverable), and Remove. Removing
+     * deletes the hidden harness Flow itself (Consumer + Debug + Dev Null sink) via the normal
+     * {@link DeleteComponentAction} whole-flow path, including its generated Debug class and Undo support - the
+     * harness node is the only on-canvas handle to that flow once it's hidden from normal rendering, so it
+     * needs its own delete entry point here.
      */
-    public static void showRemoveJmsHarnessMenu(Project project, DesignerCanvas canvas, MouseEvent event, Flow harnessFlow) {
+    public static void showRemoveJmsHarnessMenu(Project project, DesignerCanvas canvas, MouseEvent event, TestJmsHarnessLinks.Link link) {
         JPopupMenu menu = new JPopupMenu();
         menu.add(createShowJmsHarnessConsumptionWarningMenuItem(project));
         menu.addSeparator();
-        menu.add(createRemoveJmsHarnessMenuItem(project, harnessFlow));
+        menu.add(createJumpToJmsHarnessDebugMenuItem(project, link));
+        menu.addSeparator();
+        menu.add(createRemoveJmsHarnessMenuItem(project, link.harnessFlow()));
         menu.show(canvas, event.getX(), event.getY());
     }
 
@@ -167,6 +183,101 @@ public class DesignCanvasContextMenu {
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.RemoveTestJmsHarness"));
         item.addActionListener(new DeleteComponentAction(project, harnessFlow));
         return item;
+    }
+
+    /**
+     * Attention-coloured "Restart required" warning item shown when an element (a Test JMS harness flow, or a
+     * Debug component) was added while the module was still running - the running instance cannot contain it
+     * until the next launch.
+     */
+    private static JMenuItem createModuleRestartRequiredMenuItem(Project project) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.ModuleRestartRequired"));
+        item.setForeground(StudioUIUtils.getAttentionColor());
+        item.addActionListener(event -> Messages.showWarningDialog(project,
+                StudioBundle.message("message.ModuleRestartRequired"),
+                StudioBundle.message("menu.ModuleRestartRequired").replace("...", "")));
+        return item;
+    }
+
+    /**
+     * Same navigation a double-click on the harness node performs (see
+     * {@code DesignerCanvas#mouseClickAction}) - given a right-click entry point too, since double-click isn't
+     * otherwise discoverable from the menu alone. Disabled, rather than omitted, when the harness flow's own
+     * Debug component can't be resolved (e.g. it was since deleted), so the option is still visible but explains
+     * why it doesn't work instead of silently disappearing.
+     */
+    private static JMenuItem createJumpToJmsHarnessDebugMenuItem(Project project, TestJmsHarnessLinks.Link link) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.JumpToDebugComponent"));
+        FlowElement debugComponent = link.debugComponent();
+        if (debugComponent == null) {
+            item.setEnabled(false);
+            item.setToolTipText(StudioBundle.message("message.CouldNotNavigateToDebugComponentForJmsHarness"));
+        } else {
+            item.addActionListener(new NavigateToCodeAction(project, debugComponent, true));
+        }
+        return item;
+    }
+
+    /**
+     * Right-click on a component's own external endpoint pill (see
+     * {@code IkasanFlowRouteViewHandler#displayExternalEndpointIfExists}) - a click there resolves back to the
+     * same owning FlowElement {@link #showPopupAndNavigateMenu} would act on for a click on the component's own
+     * icon box, but showing that full menu here duplicated every structural item (Delete, Edit, Add Debug,
+     * Wiretap/Logging, Help, Jump to code/properties) on a target that visually reads as "the external system
+     * this wire connects to", not "this step in the flow". This popup instead includes only the items that
+     * actually relate to that external system: testing/triggering it, and starting or stopping the local test
+     * server standing in for it - exactly the same conditions {@link #showPopupAndNavigateMenu} already used
+     * for those same items, just relocated here and left out of the component's own menu. Shows nothing at all
+     * (rather than an empty popup) when none of those conditions apply, e.g. a Generic Producer's endpoint.
+     */
+    public static void showEndpointMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, FlowElement flowElement) {
+        JPopupMenu menu = new JPopupMenu();
+        if (flowElement.getComponentMeta().supportsSendTestMessage()
+                && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
+            menu.add(IkasanFlowRouteViewHandler.usesTriggerBadge(flowElement)
+                    ? createTriggerScheduledConsumerMenuItem(project, flowElement)
+                    : createSendTestMessageMenuItem(project, flowElement));
+        }
+        if (flowElement.getComponentMeta().isTimeEventConsumer()
+                && (flowElement.getComponentMeta().isLocalFileConsumer()
+                || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER
+                .equals(flowElement.getComponentMeta().getTestPayloadAdapter()))) {
+            JMenuItem scan = new JMenuItem(StudioBundle.message("menu.TriggerLocalFileScan"));
+            scan.addActionListener(new TriggerScheduledConsumerAction(project, flowElement));
+            menu.add(scan);
+            menu.add(createTriggerNowLimitationsMenuItem(project));
+        }
+        if (flowElement.getComponentMeta().isLocalFileConsumer()) {
+            JMenuItem directory = new JMenuItem(StudioBundle.message("menu.ShowLocalFileScanDirectory"));
+            directory.addActionListener(new ShowLocalFileScanDirectoryAction(project, flowElement));
+            menu.add(directory);
+        }
+        if (JmsFlowConnections.isJmsProducer(flowElement)
+                && CreateTestJmsConsumerFlowAction.supports(flowElement)
+                && !JmsFlowConnections.hasMatchingConsumer(project.getService(UiContext.class).getIkasanModule(), flowElement)) {
+            addSeparatorIfNotEmpty(menu);
+            menu.add(createTestJmsConsumerFlowMenuItem(project, flowElement));
+        }
+        if (flowElement.getComponentMeta().supportsTestMailServer()) {
+            addSeparatorIfNotEmpty(menu);
+            menu.add(createStartTestMailServerMenuItem(project, flowElement));
+            menu.add(createStopTestMailServerMenuItem(project, flowElement));
+        }
+        if (flowElement.getComponentMeta().supportsTestFtpServer()) {
+            addSeparatorIfNotEmpty(menu);
+            menu.add(createStartTestFtpServerMenuItem(project, flowElement));
+            menu.add(createStopTestFtpServerMenuItem(project, flowElement));
+            menu.add(createShowTestFtpOverwriteLimitationMenuItem(project));
+        }
+        if (menu.getComponentCount() > 0) {
+            menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
+        }
+    }
+
+    private static void addSeparatorIfNotEmpty(JPopupMenu menu) {
+        if (menu.getComponentCount() > 0) {
+            menu.addSeparator();
+        }
     }
 
     static JPopupMenu createTestMailServerMenu(Project project, BasicElement element) {
@@ -255,6 +366,21 @@ public class DesignCanvasContextMenu {
         item.addActionListener(event -> Messages.showWarningDialog(project,
                 "<html>" + StudioBundle.message("message.TestFtpServerOverwriteLimitation") + "</html>",
                 StudioBundle.message("menu.ShowTestFtpOverwriteLimitation").replace("...", "")));
+        return item;
+    }
+
+    /**
+     * Explains, from the context menu itself, why a Trigger scan now click can deliver nothing: the real scan is
+     * still subject to the consumer's own acquisition rules (minimum file age, duplicate detection on name +
+     * last-modified, and the filename pattern). Shown directly under Trigger scan now, mirroring the FTP overwrite
+     * limitation item's attention-coloured menu entry.
+     */
+    private static JMenuItem createTriggerNowLimitationsMenuItem(Project project) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.TriggerNowLimitations"));
+        item.setForeground(StudioUIUtils.getAttentionColor());
+        item.addActionListener(event -> Messages.showWarningDialog(project,
+                StudioBundle.message("message.TriggerNowLimitations"),
+                StudioBundle.message("menu.TriggerNowLimitations").replace("...", "")));
         return item;
     }
 

@@ -72,8 +72,17 @@ public class TriggerScheduledConsumerAction implements ActionListener {
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());
                         String identifier = responseBody.path("identifier").asText("");
+                        String criteriaText = formatCriteria(responseBody.path("criteria"));
+                        // Deliberately info (not warn): this is operational transparency for a feature whose whole
+                        // point is helping developers see why a triggered scan delivered nothing - see
+                        // TriggerNowLimitations bundle message. The criteria are configured component values
+                        // (pattern, min age, duplicate flags), never payloads or credentials.
+                        LOG.info("STUDIO: Triggered scheduled consumer for flow " + flowName
+                                + " identifier " + identifier + " criteria [" + criteriaText + "]");
                         ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.ScheduledConsumerTriggered", identifier)));
+                                StudioUIUtils.displayIdeaInfoMessage(project,
+                                        StudioBundle.message("message.ScheduledConsumerTriggeredWithCriteria",
+                                                identifier, criteriaText)));
                     } else if (response.statusCode() == 401) {
                         ApplicationManager.getApplication().invokeLater(() ->
                                 StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMessageAuthenticationFailed")));
@@ -98,5 +107,29 @@ public class TriggerScheduledConsumerAction implements ActionListener {
                 }
             }
         });
+    }
+
+    /**
+     * Flattens the module-reported scan criteria (a small JSON object of configured consumer values such as
+     * minimumAgeSeconds, filterDuplicates and filenamePattern) into a single display/log line. Older generated
+     * modules that predate criteria reporting return the unavailable placeholder.
+     */
+    private static String formatCriteria(JsonNode criteriaNode) {
+        if (criteriaNode == null || !criteriaNode.isObject() || criteriaNode.isEmpty()) {
+            return StudioBundle.message("message.ScanCriteriaUnavailable");
+        }
+        java.util.List<String> entries = new java.util.ArrayList<>();
+        criteriaNode.fields().forEachRemaining(entry ->
+                entries.add(entry.getKey() + "=" + nodeToText(entry.getValue())));
+        return String.join(", ", entries);
+    }
+
+    private static String nodeToText(JsonNode node) {
+        if (node.isArray()) {
+            java.util.List<String> items = new java.util.ArrayList<>();
+            node.forEach(item -> items.add(item.asText()));
+            return String.join(", ", items);
+        }
+        return node.asText();
     }
 }

@@ -2,6 +2,7 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
@@ -12,6 +13,7 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.component.ScrollableGridbagPanel;
 
@@ -110,6 +112,7 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
             updateCodeButton.addActionListener(e -> {
                     okActionListener(e);
                     if (dataValid) {
+                        warnIfModuleIsRunningBeforeUpdateCode();
                         doOKAction();
                     }
                }
@@ -150,6 +153,34 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
             dataValid = true;
         }
     }
+    /**
+     * Warns the developer, once per Update Code click, that a currently running module (Run or Debug) must be
+     * restarted before the regenerated code takes effect. Only shown when the panel actually has changes to apply,
+     * so a dialog OK pressed with no edits stays silent. Called both from the persistent sidebar button and, via
+     * {@code PropertiesPopupDialogue#doOKAction()}, from the first-time configuration popup whose OK button is
+     * labelled "Update Code".
+     */
+    protected void warnIfModuleIsRunningBeforeUpdateCode() {
+        if (!dataHasChangedAndOKToProcess()) {
+            return;
+        }
+        IkasanDebugSessionService sessionService = project.getService(IkasanDebugSessionService.class);
+        if (sessionService.isRunModuleRunning() || sessionService.isDebugModuleRunning()) {
+            Messages.showWarningDialog(project,
+                    StudioBundle.message("message.ModuleMustBeRestartedAfterUpdateCode"),
+                    StudioBundle.message("dialog.Warning"));
+        }
+    }
+
+    /**
+     * Whether the popup OK button represents the Update Code action and therefore should show the restart warning.
+     * Subclasses whose dialog OK button is a different action (e.g. ExceptionResolutionPanel's "Add") override this
+     * to false so the warning is not shown before generation has actually been requested.
+     */
+    protected boolean showModuleRestartWarningOnOk() {
+        return true;
+    }
+
     /**
      * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
      */

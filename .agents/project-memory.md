@@ -21,14 +21,20 @@ Practical translation: developer product (not just diagram renderer/code generat
 - The project language is **English**; all discussions, documentation, comments, and user-facing text must be in English.
 - The Japanese i18n resource files are for an overseas client only — keep English and Japanese action/message resources synchronized (per `docs/DiagnosticsAndPrivacy.md`), but never treat Japanese as the project language.
 
-## 4. Terminology that matters
+## 4. Project boundaries and edit policy (IMPORTANT)
+
+- **Test/generated projects** (e.g. `/home/hidavi/IdeaProjects/allConsumerAndProducers`): diagnose and advise only. **Never edit them unless the user explicitly asks.** When a test project has a problem, the preferred fix path is the user manually recreating the offending component in the Studio designer with corrected configuration.
+- **Plugin development project** = `/home/hidavi/dev/ws/IkasanStudio_main`. This is where code and template corrections are made when fixing issues.
+- When a test-project problem reveals a real plugin defect, propose and (when agreed) implement the fix in the plugin project, then the user verifies by recreating the component in the test project.
+
+## 5. Terminology that matters
 
 - **Blue Console** (button label: **Console**): module-local developer console shipped with every module — start/stop flows, error states, module REST API, admin tasks. Tooltip/guidance must call it Blue Console, **never** Ikasan Dashboard. Local login `admin` / `admin`.
 - **Ikasan Dashboard**: central control point for multiple modules — aggregate error view, replay rejected messages, remote module REST. Distinct product.
 - **generated/** = Studio-owned output (regeneratable). **user/** = developer-owned stubs/implementation (never overwrite without explicit consent).
 - **Meta-pack** = version-specific compatibility layer (component library JSON + icons + FreeMarker templates + `metapack.json` manifest). The directory name is the stable model identifier (e.g. `V3.3.9`, `V4.1.6`); the manifest records exact Ikasan version and Java version.
 
-## 4. Current implemented state (August–September 2026)
+## 6. Current implemented state (August–September 2026)
 
 - Editor-based onboarding: `IkasanStudioFileEditor` is the exclusive owner of `DesignerUI`; project-scoped virtual file in main editor area; right-stripe squid icon = one-click launcher (opens/focuses editor, hides empty tool window); **Tools → Open Ikasan Studio** and Find Action are fallbacks; deliberate tab closure is respected; reopen preserves the model.
 - Top controls: **Run module** and **Console**. Run module creates/reuses a standard Java Application run config for `generated/src/main/java/org/ikasan/studio/boot/Application.java`, selects it, launches via normal execution APIs. Workspace module discovery uses non-blocking read action.
@@ -41,7 +47,7 @@ Practical translation: developer product (not just diagram renderer/code generat
 - Testing infrastructure: ArchUnit boundary tests; failure-injection suite; performance benchmark (`performanceTest`); accessibility automated review + interactive release matrix.
 - Known release-blocker-grade items: interactive a11y sign-off incomplete; initial generation is slow (~10 s first commit) with synchronous PSI work; `TerminalView` scheduled-removal usage in `LaunchH2Action`.
 
-## 5. Build / test / verification commands
+## 7. Build / test / verification commands
 
 ```bash
 ./gradlew test                          # full automated suite
@@ -60,7 +66,7 @@ Practical translation: developer product (not just diagram renderer/code generat
 
 Migration compile fixtures (when emitted by tests): `mvn -B -f build/migration-compile/{V4.1.6|V3.3.9}/pom.xml -DskipTests compile`.
 
-## 6. Architecture map
+## 8. Architecture map
 
 - `core` (framework-independent; no IntelliJ/Swing deps allowed):
   - `core.model.ikasan.instance` — `Module`, `Flow`, `FlowElement`, `FlowRoute`, `ExceptionResolver`, `ComponentProperty` (persisted to `model.json`).
@@ -78,9 +84,9 @@ Migration compile fixtures (when emitted by tests): `mvn -B -f build/migration-c
   - `ui.intellij.StudioProjectInitialisationService` — startup states inside editor.
 - Meta-packs: `src/main/resources/studio/metapack/{V3.3.9,V4.1.6}/` each with `metapack.json`, `library/` (category `component-type-meta_en_GB.json` + per-component `component-meta.json`), `templates/` (package-path mirror), `migrations/` (V4.1.6 & V3.3.9). Shared docs: `METAPACK.md`, `METAPACK_COMPLIANCE.md`, `schema/`.
 - Ancillary Maven projects (`ikasan-studio-ancillary/`, independent SDLC): `ikasan-studio-ide-mediator` (IDE↔core bridge) and `ikasan-studio-project-archetype` (Maven archetype producing new Studio projects).
-- Approved reference Ikasan source trees (read-only): `/home/hidavi/dev/ws/ik3/ikasan3`, `/home/hidavi/dev/ws/ik4/ikasan4`, `/home/hidavi/dev/ws/ik5/ikasan5`.
+- **Ikasan ESB core code** (the product this plugin makes easier to use): `/home/hidavi/dev/ws/ik3` (Ikasan 3.x, repo inside `ikasan3/`), `/home/hidavi/dev/ws/ik4` (4.x, `ikasan4/`), `/home/hidavi/dev/ws/ik5` (5.x, `ikasan5/`). Read freely as reference; **do not edit** — core Ikasan changes are difficult and must go through committee. The plugin repo `/home/hidavi/dev/ws/IkasanStudio_main` is where we can change code freely, so fixes/enhancements (e.g. scan-trigger transparency) go in the plugin/templates, not core Ikasan.
 
-## 7. Critical coding rules (plugin survival)
+## 9. Critical coding rules (plugin survival)
 
 1. **No exceptions bubble to IntelliJ** — catch, log stack trace, recover/abort; else IDE suggests disabling the plugin.
 2. **Never use `@NotNull`** — surfaces as plugin error to users.
@@ -94,7 +100,7 @@ Migration compile fixtures (when emitted by tests): `mvn -B -f build/migration-c
 10. FreeMarker style: prefer Java getter style `${getMeta().getName()}` (readme note in template dirs).
 11. Do not modify unrelated working-tree changes (repo may hold WIP; e.g. untracked `rename.sh`, pre-existing uncommitted metapack work).
 
-## 8. ArchUnit boundary rules (executable, `ArchUnitBoundaryTest`)
+## 10. ArchUnit boundary rules (executable, `ArchUnitBoundaryTest`)
 
 - `org.ikasan.studio.core..` must not depend on `ui..`, `intellij..`, `com.intellij..`.
 - `core.model..` must not depend on persistence/view adapters (serialisation config → `core.persistence..`).
@@ -103,7 +109,7 @@ Migration compile fixtures (when emitted by tests): `mvn -B -f build/migration-c
 - Static fields must not retain projects/modules/Studio modules/virtual files/paths/files/classloaders (incl. generic type args). Project state → project-level service.
 - Test imports `build/classes/java/main` explicitly (runs after `compileJava`).
 
-## 9. Meta-pack contract essentials
+## 11. Meta-pack contract essentials
 
 - `metapack.json`: `schemaVersion:1`, `id` == directory name, exact `ikasanVersion` (never range/x), `javaVersion`, `dependencyManagement` (BOM == ikasanVersion), `compatibilityOverrides` (exact version + reason only).
 - Component metadata declares deps without versions where BOM manages them; direct third-party versions are exceptional and must appear in overrides.
@@ -111,7 +117,7 @@ Migration compile fixtures (when emitted by tests): `mvn -B -f build/migration-c
 - Release verification: `validateMetaPacks`, maximal + minimal fixture modules, Maven dependency convergence, no `org.ikasan` dep resolving off-version, full Gradle suite.
 - Meta-pack security (roadmap): templates are executable codegen inputs; need signed official packs, trust model, restricted FreeMarker wrapper, helper allow-list, path-traversal prevention, dependency allow/deny, preview before first use.
 
-## 10. Roadmap status (docs/IkasanStudioRoadmap.md, reviewed 30 Jul 2026)
+## 12. Roadmap status (docs/IkasanStudioRoadmap.md, reviewed 30 Jul 2026)
 
 Four phases all "Not started" formally, with immediate next actions defined:
 1. **Trustworthy foundation** — formal `metapack.json` + JSON Schemas, stable component/property IDs, structured validation diagnostics, transactional pack loading, standalone `metapack-validator` CLI, compile fixtures vs Ikasan 3.3.8, V3.3.8 metadata/API audit, deterministic `GenerationPlan`, fix known generator/canvas defects.
@@ -123,11 +129,11 @@ Architectural principles: visual model is source of truth; stable IDs; pack = ve
 
 Known defects to fix early (roadmap §Codebase robustness): `Stream.peek()` without terminal op in selection/deselection; debug action can delete selected component; RuntimeExceptions escaping Swing callbacks; button-local start/stop booleans instead of process state; hard-coded generated paths/class names; shared mutable static meta-pack caches; generate only changed files; central Java-literal escaping; reliable JAR/external pack discovery; explicit file ownership.
 
-## 11. Open handoff task (.agents/component-drag-move-handoff.md, 2026-08-28)
+## 13. Open handoff task (.agents/component-drag-move-handoff.md, 2026-08-28)
 
 User asked for in-canvas component drag/move (same flow/route or cross-flow) **without delete/recreate**, preserving exact `FlowElement` instance + config + user-class associations; neighbours reconnect on success; invalid drop restores exact original position; grey translucent ghost while dragging; keep valid/invalid flow highlighting. Read-only investigation done; no code changed at handoff. Key facts gathered: canvas = `DesignerCanvas.java`; palette path (`CanvasImportTransferHandler` → `requestToAddComponent`) is the copy path and must stay so; existing `mouseDragAction` only mutates temp x/y (cosmetic); `mouseReleaseAction` just repaints; `componentDraggedToFlowAction` already highlights targets; `insertNewComponentBetweenSurroundingPair`/`getSurroundingComponents` handle new-item positioning; consumer on `Flow.consumer`, exceptionResolver on `Flow.exceptionResolver`, elements in `FlowRoute.flowElements`; `Flow.removeFlowElement` returns `FlowElementRemoval` with `undo()`; routers cascade child routes; undo pattern = `DeleteComponentUndoableAction`; recommended approach = keep model unchanged while dragging, validate source-excluded move transaction, commit by relocating same instance, register one global undoable action, regenerate with flow-scoped vs full generation request. Tests to add enumerated in the handoff doc.
 
-## 12. Docs index (all Markdown reviewed)
+## 14. Docs index (all Markdown reviewed)
 
 **Root**
 - `README.md` — user/dev intro; install from disk or Marketplace; archetype project creation (IntelliJ Maven Archetype or CLI; manual fallback Appendix A); simple flow walkthrough; high-level motivations; version-neutral model rationale; application split Core/Metapack/UI; epics; known issues (build needs consumer+producer; Maven re-pull after creation; deleted-component bug workaround); reporting problems (Marketplace error reporter, diagnostics action); plugin dev guidelines (the critical rules above).
@@ -139,7 +145,7 @@ User asked for in-canvas component drag/move (same flow/route or cross-flow) **w
 - `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1.
 
 **docs/**
-- `IkasanStudioRoadmap.md` — deepest technical/product roadmap (see §10).
+- `IkasanStudioRoadmap.md` — deepest technical/product roadmap (see §12).
 - `IkasanVersionMigration.md` — V3.3.9↔V4.1.6 migration workflow, what changes, restore vs migrate-back, snapshot format, maintenance/verification.
 - `MarketplaceReleaseManualChecklist.md` — threading/lifecycle release blockers, external process/harness checks, automated gates.
 - `DiagnosticsAndPrivacy.md` — error reporting, diagnostics ZIP contents, structured events, leak fixes, verification.
@@ -168,19 +174,20 @@ User asked for in-canvas component drag/move (same flow/route or cross-flow) **w
 **.github / .agents**
 - `.github/copilot-instructions.md` — Copilot variant of CLAUDE.md; **same staleness** (IU 2025.3, V3.3.8/V4.0.x).
 - `.github/pull_request_template.md` — PR template (summary/approach/verification/screenshots/checklist incl. no secrets).
-- `.agents/component-drag-move-handoff.md` — open feature handoff (see §11).
+- `.agents/component-drag-move-handoff.md` — open feature handoff (see §13).
 
-## 13. Document discrepancies to keep in mind
+## 15. Document discrepancies to keep in mind
 
 1. `CLAUDE.md` + `.github/copilot-instructions.md` say **IU 2025.3**; `gradle.properties`/`AGENTS.md`/`CONTRIBUTING.md` say **IC 2024.3.7** (authoritative).
 2. Older docs (`CLAUDE.md`, copilot, roadmap history, README quickstart) mention metapacks **V3.3.8 / V4.0.x / VHS3.3.x**; actual shipped packs are **V3.3.9 and V4.1.6** (plus test packs TestV1/TestV2).
 3. `README.md` "Template ToDo list" and Marketplace badge placeholders remain unfilled (pre-release).
 4. Test counts in docs vary by date (646 / 651 / 659 tests) — snapshots of different review dates, not contradictions.
 
-## 14. Quick decision defaults
+## 16. Quick decision defaults
 
 - New feature → prefer core model + focused tests first; keep UI thin; never leak meta-pack complexity into first-run UX.
 - Version-specific work → check the matching pack and, where relevant, the approved local Ikasan source tree; never infer from another major version.
 - Regeneration → preserve `user/`; make `generated/` overwrites explicit and previewable; treat generation as transactional (GenerationPlan direction).
 - Failure UX → recoverable notification/editor state; structured `StudioDiagnosticEvent` with fixed enum id; no raw values in logs.
 - Multi-project → project-scoped `UiContext`; be alert to static caches (`IkasanComponentLibrary` etc.).
+- Test/generated projects → diagnose and advise only; never edit unless explicitly asked. Code and template fixes go in `/home/hidavi/dev/ws/IkasanStudio_main` (see §4).

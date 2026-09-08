@@ -99,6 +99,58 @@ private static Object inspectionTarget(Object component) {
     return null;
 }
 
+/**
+ * Best-effort, reflection-based summary of a scheduled/file consumer's acquisition criteria, returned in the
+ * "Trigger scan now" response so the IDE can explain why a triggered scan may deliver nothing. Reads the common
+ * Ikasan provider configuration getters without a compile-time dependency on any specific provider class, so it
+ * works for FTP, SFTP and Local File consumers across supported Ikasan versions. Missing getters are skipped,
+ * never fatal to the trigger itself.
+ */
+private static java.util.Map<String, Object> scanCriteria(Object consumer) {
+    java.util.Map<String, Object> criteria = new java.util.LinkedHashMap<>();
+    try {
+        consumer = inspectionTarget(consumer);
+        if (!(consumer instanceof org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer)) {
+            return criteria;
+        }
+        Object provider = inspectionTarget(((org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer) consumer).getMessageProvider());
+        if (provider == null) return criteria;
+        Object config = readViaGetter(provider, "getConfiguration");
+        if (config == null) return criteria;
+        readInto(criteria, config, "minimumAgeSeconds", "getMinAge");
+        readInto(criteria, config, "filterDuplicates", "getFilterDuplicates");
+        readInto(criteria, config, "filterOnFilename", "getFilterOnFilename");
+        readInto(criteria, config, "filterOnLastModifiedDate", "getFilterOnLastModifiedDate");
+        readInto(criteria, config, "chronological", "getChronological");
+        readInto(criteria, config, "filenamePattern", "getFilenamePattern");
+        readInto(criteria, config, "filenamePatterns", "getFilenames");
+        readInto(criteria, config, "sourceDirectory", "getSourceDirectory");
+        readInto(criteria, config, "scanDirectory", "getFilePath");
+        readInto(criteria, config, "directoryDepth", "getDirectoryDepth");
+    } catch (Exception e) {
+        // Expected for provider types without these getters; the trigger itself proceeds regardless.
+    }
+    return criteria;
+}
+
+private static Object readViaGetter(Object target, String methodName) {
+    try {
+        java.lang.reflect.Method method = target.getClass().getMethod(methodName);
+        if (!method.canAccess(target)) method.setAccessible(true);
+        return method.invoke(target);
+    } catch (Exception e) {
+        return null;
+    }
+}
+
+private static void readInto(java.util.Map<String, Object> target, Object source, String key, String methodName) {
+    Object value = readViaGetter(source, methodName);
+    if (value instanceof Number || value instanceof Boolean || value instanceof CharSequence
+            || value instanceof java.util.Collection) {
+        target.put(key, value);
+    }
+}
+
 @org.springframework.web.bind.annotation.PostMapping("/{flowName}")
 public org.springframework.http.ResponseEntity<?> inject(
         // Explicit "flowName" name rather than relying on reflection/debug-symbol parameter name discovery
@@ -126,7 +178,9 @@ public org.springframework.http.ResponseEntity<?> inject(
         if (selectedLocalFiles && localFileConfiguration(rawConsumer) == null) {
             return org.springframework.http.ResponseEntity.badRequest().body("Selected files require a standard Local File Consumer");
         }
-        if (rawConsumer instanceof org.ikasan.scheduler.ScheduledComponent && !selectedLocalFiles) {
+        // Explicit file tests bypass acquisition. A request without a file adapter triggers the real scan.
+        boolean selectedTransferFile = "ikasan-file-transfer-payload".equals(request.getPayloadAdapter());
+        if (rawConsumer instanceof org.ikasan.scheduler.ScheduledComponent && !selectedLocalFiles && !selectedTransferFile) {
             // Not "instanceof ScheduledComponent<?> scheduledComponent" - pattern-matching instanceof is a
             // Java 16+ language feature, but this template also generates for the V3.3.9 metapack's JDK11
             // target, so a plain instanceof check plus an explicit cast is used instead.
@@ -140,9 +194,10 @@ public org.springframework.http.ResponseEntity<?> inject(
             // trigger is queued, not once the flow has actually run - "identifier" here is just a correlation
             // token for the IDE's confirmation popup, not the real event id (the flow's own EventFactory mints
             // that only once the job actually fires).
-            java.util.Map<String, String> triggeredResponseBody = new java.util.HashMap<>();
+            java.util.Map<String, Object> triggeredResponseBody = new java.util.HashMap<>();
             triggeredResponseBody.put("status", "triggered");
             triggeredResponseBody.put("identifier", identifier);
+            triggeredResponseBody.put("criteria", scanCriteria(rawConsumer));
             return org.springframework.http.ResponseEntity.ok(triggeredResponseBody);
         }
 

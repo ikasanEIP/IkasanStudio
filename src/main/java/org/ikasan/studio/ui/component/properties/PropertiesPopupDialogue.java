@@ -80,6 +80,9 @@ public class PropertiesPopupDialogue extends DialogWrapper {
     @Override
     protected void doOKAction() {
         if (getOKAction().isEnabled()) {
+            if (propertiesPanel.showModuleRestartWarningOnOk()) {
+                propertiesPanel.warnIfModuleIsRunningBeforeUpdateCode();
+            }
             propertiesPanel.updateComponentsWithNewValues();
             close(OK_EXIT_CODE);
         }

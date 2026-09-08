@@ -197,6 +197,16 @@ public class ExceptionResolutionPanel extends PropertiesPanel {
     }
 
     /**
+     * This panel's popup OK button is labelled "Add" and only stages a new exception/action mapping; the actual
+     * Update Code generation happens later from the parent ExceptionResolverPanel, so the module-restart warning
+     * must not be shown at this point.
+     */
+    @Override
+    protected boolean showModuleRestartWarningOnOk() {
+        return false;
+    }
+
+    /**
      * Get the field that should be given the focus in popup or inscreen form
      * @return the component that should be given focus or null
      */

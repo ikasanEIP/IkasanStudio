@@ -111,7 +111,8 @@ public class SendTestMessageAction implements ActionListener {
 
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());
-                        if ("studio-local-file-list".equals(preparedPayload.payloadAdapter())
+                        if (("studio-local-file-list".equals(preparedPayload.payloadAdapter())
+                                || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(preparedPayload.payloadAdapter()))
                                 && !"invoked".equals(responseBody.path("status").asText())) {
                             ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
                                     StudioBundle.message("message.LocalFileTestNeedsRegeneration")));

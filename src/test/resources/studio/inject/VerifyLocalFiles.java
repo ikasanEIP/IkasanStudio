@@ -49,6 +49,24 @@ public class VerifyLocalFiles {
    check(((Map<?,?>)controller.scanDirectories("flow4").getBody()).get("directories").toString().contains(file.getParent().toString()),"Override ignored");
    config.setDynamicFileName(true);
    check(controller.scanDirectories("flow4").getStatusCode().value()==400,"Dynamic path guessed");
+   // FTP/SFTP use the same ScheduledConsumer but a different provider. Selected bytes must bypass
+   // Quartz on every attempt, even when the same filename was already tested.
+   consumer.setMessageProvider((org.ikasan.component.endpoint.quartz.consumer.MessageProvider)proxy(
+       org.ikasan.component.endpoint.quartz.consumer.MessageProvider.class,(m,a)->null));
+   request.setPayloadAdapter("ikasan-file-transfer-payload");
+   request.setPayloadFilename("selected.txt");
+   for (String content : List.of("first attempt", "second attempt")) {
+    received=null;
+    byte[] bytes=content.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    request.setPayload(Base64.getEncoder().encodeToString(bytes));
+    var sent=controller.inject("flow2",request);
+    check(sent.getStatusCode().value()==200,sent.getBody());
+    check(received instanceof org.ikasan.filetransfer.Payload,"Expected file-transfer Payload");
+    var payload=(org.ikasan.filetransfer.Payload)received;
+    check(Arrays.equals(bytes,payload.getContent()),"Chosen bytes were lost");
+    check("selected.txt".equals(payload.getAttribute("fileName")),"Chosen filename was lost");
+   }
+   received=null;
    request.setPayloadAdapter(null);
    check(controller.inject("flow4",request).getStatusCode().value()!=200,"Normal scan bypassed missing scheduler");
    check(received==null,"Normal scan injected payload");

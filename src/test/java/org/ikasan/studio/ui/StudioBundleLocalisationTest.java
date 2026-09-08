@@ -1,0 +1,61 @@
+package org.ikasan.studio.ui;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Properties;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/** Guards Studio-added user-facing text that must exist in both the English and Japanese bundles. */
+class StudioBundleLocalisationTest {
+    private static final String ENGLISH = "messages/studioBundle.properties";
+    private static final String JAPANESE = "messages/studioBundle_ja.properties";
+
+    private static Properties load(String resource) throws Exception {
+        Properties properties = new Properties();
+        try (InputStream in = StudioBundleLocalisationTest.class.getClassLoader().getResourceAsStream(resource)) {
+            assertNotNull(in, "missing classpath resource " + resource);
+            properties.load(in);
+        }
+        return properties;
+    }
+
+    @Test
+    void updateCodeRestartWarningIsLocalised() throws Exception {
+        Properties english = load(ENGLISH);
+        Properties japanese = load(JAPANESE);
+        String key = "message.ModuleMustBeRestartedAfterUpdateCode";
+
+        assertEquals("You will need to restart the module for these changes to take effect.",
+                english.getProperty(key));
+        assertLocalised(japanese, key);
+    }
+
+    @Test
+    void triggerScanNowTransparencyTextIsLocalised() throws Exception {
+        Properties english = load(ENGLISH);
+        Properties japanese = load(JAPANESE);
+
+        assertEquals("Trigger now limitations...", english.getProperty("menu.TriggerNowLimitations"));
+        assertTrue(english.getProperty("message.TriggerNowLimitations").contains("Duplicate detection"));
+        assertTrue(english.getProperty("message.ScheduledConsumerTriggeredWithCriteria").contains("{1}"));
+
+        for (String key : List.of(
+                "menu.TriggerNowLimitations",
+                "message.TriggerNowLimitations",
+                "message.ScheduledConsumerTriggeredWithCriteria",
+                "message.ScanCriteriaUnavailable")) {
+            assertLocalised(japanese, key);
+        }
+    }
+
+    private static void assertLocalised(Properties japanese, String key) {
+        assertTrue(japanese.containsKey(key), "Japanese bundle must define " + key);
+        assertFalse(japanese.getProperty(key).isBlank(), "Japanese translation must not be blank for " + key);
+    }
+}
