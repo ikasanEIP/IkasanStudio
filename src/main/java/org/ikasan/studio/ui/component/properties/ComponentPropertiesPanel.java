@@ -471,7 +471,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             descriptions.add(affectedClass.description());
         }
         String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed",
-                String.join(", ", changedPropertyLabels), String.join("\n", descriptions));
+                String.join(", ", changedPropertyLabels), String.join("\n\n", descriptions));
         return confirmWithOptionalBackup(message, affected);
     }
 
@@ -492,7 +492,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         for (AffectedUserImplementedClass affectedClass : affected) {
             descriptions.add(affectedClass.description());
         }
-        String message = StudioBundle.message("message.ConfirmForceRegenerateUserImplementedClassNamed", String.join("\n", descriptions));
+        String message = StudioBundle.message("message.ConfirmForceRegenerateUserImplementedClassNamed", String.join("\n\n", descriptions));
         return confirmWithOptionalBackup(message, affected);
     }
 
@@ -613,11 +613,27 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (className == null) {
             return null;
         }
-        String description = flow.getIdentity() + ": " + className + ".java";
+        String componentType = component.getComponentMeta().getComponentTypeMeta().getComponentShortType();
+        String description = formatAffectedClassDescription(flow.getIdentity(), componentType, className);
         UserClassReference userClassReference = module != null
                 ? new UserClassReference(GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
                 : null;
         return new AffectedUserImplementedClass(flow, className, description, userClassReference);
+    }
+
+    /**
+     * "Flow:" / "Component (Type):" as two aligned, labelled lines rather than one "flowName: ClassName.java"
+     * line - so a developer scanning several affected classes at once can tell at a glance which flow and
+     * which kind of component each one belongs to, not just the flow name and file name run together.
+     * Package-private (not private) purely so this can be exercised directly from a same-package test without
+     * needing a full ComponentPropertiesPanel/Project to construct.
+     */
+    static String formatAffectedClassDescription(String flowIdentity, String componentType, String className) {
+        String flowLabel = "Flow:";
+        String componentLabel = "Component (" + componentType + "):";
+        int labelWidth = componentLabel.length();
+        return String.format("%-" + labelWidth + "s %s", flowLabel, flowIdentity)
+                + "\n" + String.format("%-" + labelWidth + "s %s", componentLabel, className);
     }
 
     /**
@@ -1279,7 +1295,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             if (componentPropertyEditRow.getDefaultValueButton() != null) componentPropertyEditRow.getDefaultValueButton().setEnabled(false);
         }
-        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getChooseClassButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
+        addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getChooseValueButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
         return componentPropertyEditRow;
     }
 
@@ -1298,7 +1314,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         return uiProperty;
     }
 
-    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JButton chooseClassButton, JCheckBox overwriteCheckBox, JLabel affectsUserImplementedClassIndicator, ComponentInput componentInput, ComponentPropertyMeta meta) {
+    private void addLabelAndParamInput(JBPanel propertiesEditorPanel, GridBagConstraints gc, int tabley, JLabel propertyLabel, JButton helpButton, JButton defaultValueButton, JButton chooseValueButton, JCheckBox overwriteCheckBox, JLabel affectsUserImplementedClassIndicator, ComponentInput componentInput, ComponentPropertyMeta meta) {
         gc.weightx = 0.0;
         gc.gridx = 0;
         gc.gridy = tabley;
@@ -1307,7 +1323,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         List<JComponent> auxiliaryWidgets = new ArrayList<>();
         if (helpButton != null) auxiliaryWidgets.add(helpButton);
         if (defaultValueButton != null) auxiliaryWidgets.add(defaultValueButton);
-        if (chooseClassButton != null) auxiliaryWidgets.add(chooseClassButton);
+        if (chooseValueButton != null) auxiliaryWidgets.add(chooseValueButton);
         if (overwriteCheckBox != null) auxiliaryWidgets.add(overwriteCheckBox);
         if (affectsUserImplementedClassIndicator != null) auxiliaryWidgets.add(affectsUserImplementedClassIndicator);
         if (auxiliaryWidgets.size() > 1) {

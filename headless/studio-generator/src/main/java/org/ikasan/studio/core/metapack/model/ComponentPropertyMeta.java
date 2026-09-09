@@ -78,6 +78,8 @@ public class ComponentPropertyMeta {
     // parameter/method parameter type, not a Class argument) only picks up effect 2 - toJavaLiteral is never
     // called on it, so no ".class" ever gets appended.
     public static final String CLASS_LITERAL = "classLiteral";
+    // Comma-separated package names stored as a String; offers an additive package chooser in the UI.
+    public static final String PACKAGE_NAME_LIST = "packageNameList";
 
     public static final String PROPERTY_GROUP_ADVANCED = "advanced";           // Rendered last of all groups in the Optional Properties section
     public static final String PROPERTY_GROUP_MISCELLANEOUS = "Miscellaneous"; // Catch-all for non-mandatory properties with no explicit propertyGroup

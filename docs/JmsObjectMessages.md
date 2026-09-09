@@ -65,3 +65,5 @@ invalid package lists. The standalone runtime tests compile the generated helper
 (V3) and Java 17 (V4), using each pack's BOM-managed ActiveMQ client in an isolated classloader.
 They verify JNDI/XA selection, retained defaults, rejection without a package allowance and
 successful deserialization of an Order once its package is allowed. They do not launch a broker.
+
+Use **Add package...** beside **Trusted object packages (ActiveMQ)** to select a package from the project. Each selection appends to the list and skips packages already present. You can still type packages manually (including dependency packages), edit the comma-separated list, or clear the field. Package selection is available after indexing completes. This applies to both JMS consumers and producers in the V3 and V4 packs.

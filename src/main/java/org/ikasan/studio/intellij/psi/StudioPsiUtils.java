@@ -39,6 +39,16 @@ public final class StudioPsiUtils {
         return selected != null ? selected.getQualifiedName() : null;
     }
 
+    /** Shows the native package chooser; cancellation leaves the caller's value unchanged. */
+    public static String chooseProjectPackageQualifiedName(Project project, String dialogTitle) {
+        var chooser = new com.intellij.ide.util.PackageChooserDialog(dialogTitle, project);
+        if (!chooser.showAndGet()) {
+            return null;
+        }
+        var selected = chooser.getSelectedPackage();
+        return selected != null ? selected.getQualifiedName() : null;
+    }
+
     /**
      * Resolves {@code qualifiedClassName} and reports whether it is assignable to {@code java.io.Serializable}.
      * @param includeLibrariesAndSdk true to also search libraries/SDK classes (matches

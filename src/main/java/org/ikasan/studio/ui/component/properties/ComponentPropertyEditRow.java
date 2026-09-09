@@ -54,7 +54,7 @@ public class ComponentPropertyEditRow {
     // showingDefaultOnly is cleared, so a deliberate override is never silently clobbered by further auto-sync.
     private boolean autoDerivedValue = false;
     private JButton defaultValueButton;
-    private JButton chooseClassButton;
+    private JButton chooseValueButton;
     private JCheckBox rowOverwriteCheckBox;
     private final ComponentPropertyMeta meta;
     private final ComponentProperty componentProperty;
@@ -243,8 +243,14 @@ public class ComponentPropertyEditRow {
             // an existing project class, exactly like SendTestMessagePayloadDialog's payload class field - offer
             // the same project-scope TreeClassChooser rather than requiring the fully-qualified name to be typed.
             if (CLASS_LITERAL.equals(meta.getUsageDataType())) {
-                chooseClassButton = new JButton(StudioBundle.message("button.ChooseClass"));
-                chooseClassButton.addActionListener(e -> chooseClass());
+                chooseValueButton = new JButton(StudioBundle.message("button.ChooseClass"));
+                chooseValueButton.addActionListener(e -> chooseClass());
+            }
+
+            if (ComponentPropertyMeta.PACKAGE_NAME_LIST.equals(meta.getUsageDataType())) {
+                chooseValueButton = new JButton(StudioBundle.message("button.AddPackage"));
+                chooseValueButton.setToolTipText(StudioBundle.message("tooltip.AddPackage"));
+                chooseValueButton.addActionListener(e -> choosePackage());
             }
 
             if (listenerFoAnyEditChanges != null) {
@@ -425,6 +431,42 @@ public class ComponentPropertyEditRow {
         }
     }
 
+    private void choosePackage() {
+        if (project == null || project.isDisposed()) {
+            return;
+        }
+        if (com.intellij.openapi.project.DumbService.isDumb(project)) {
+            com.intellij.openapi.project.DumbService.getInstance(project)
+                    .showDumbModeNotification(StudioBundle.message("message.PackageChooserIndexing"));
+            return;
+        }
+        try {
+            String selected = StudioPsiUtils.chooseProjectPackageQualifiedName(project,
+                    StudioBundle.message("dialog.AddPackage"));
+            appendSelectedPackage(selected);
+        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+            throw cancelled;
+        } catch (Exception failure) {
+            LOG.warn("Unable to open package chooser", failure);
+            com.intellij.openapi.ui.Messages.showWarningDialog(project,
+                    StudioBundle.message("message.PackageChooserFailed"), StudioBundle.message("dialog.AddPackage"));
+        }
+    }
+
+    void appendSelectedPackage(String selected) {
+        if (selected == null || selected.isBlank()) {
+            return;
+        }
+        String existing = propertyValueField.getText().trim();
+        boolean alreadyPresent = java.util.Arrays.stream(existing.split(","))
+                .map(String::trim).anyMatch(selected::equals);
+        if (!alreadyPresent) {
+            // Goes through the document listener so the normal unsaved-edit and validation behavior applies.
+            propertyValueField.setText(existing.isEmpty() ? selected
+                    : existing + (existing.endsWith(",") ? " " : ", ") + selected);
+        }
+    }
+
     private void doDataValidationHelperPopup() {
         CronPanel cronPanel = new CronPanel(project, (String)getValue());
             CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(
@@ -472,7 +514,7 @@ public class ComponentPropertyEditRow {
         }
         if (componentInput != null) {
             String name = propertyTitleField.getText();
-            for (JButton button : new JButton[] {defaultValueButton, chooseClassButton}) {
+            for (JButton button : new JButton[] {defaultValueButton, chooseValueButton}) {
                 if (button != null) button.getAccessibleContext().setAccessibleDescription(name);
             }
             if (rowOverwriteCheckBox != null) rowOverwriteCheckBox.getAccessibleContext().setAccessibleName(
@@ -885,8 +927,8 @@ public class ComponentPropertyEditRow {
         if (defaultValueButton != null) {
             defaultValueButton.setVisible(visible);
         }
-        if (chooseClassButton != null) {
-            chooseClassButton.setVisible(visible);
+        if (chooseValueButton != null) {
+            chooseValueButton.setVisible(visible);
         }
         if (rowOverwriteCheckBox != null) {
             rowOverwriteCheckBox.setVisible(visible);
@@ -944,8 +986,8 @@ public class ComponentPropertyEditRow {
     public JButton getDefaultValueButton() {
         return defaultValueButton;
     }
-    public JButton getChooseClassButton() {
-        return chooseClassButton;
+    public JButton getChooseValueButton() {
+        return chooseValueButton;
     }
     public JFormattedTextField getOverridingInputField() {
         return propertyValueField;
