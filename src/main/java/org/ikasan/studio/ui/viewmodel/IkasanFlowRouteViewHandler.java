@@ -44,13 +44,8 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     private final Flow flow;
     private final FlowRoute flowRoute;
     private final List<IkasanFlowRouteViewHandler> childFlowRouteViewHandlers = new ArrayList<>();
-    // Populated during each paint pass so that click detection can resolve an endpoint click back to its owner.
-    private final Map<FlowElement, FlowElement> cachedEndpointToOwner = new HashMap<>();
-    // The forward direction of the same relationship, populated at the same point - lets a consumer/producer's
-    // externally-drawn "channel endpoint" pill (a separate, positioned FlowElement/ViewHandler distinct from
-    // the owner's own in-route box - see displayExternalEndpointIfExists) be found from the owner, e.g. so a
-    // connector line drawn elsewhere on the canvas can touch the pill's actual edge rather than the owner's.
-    private final Map<FlowElement, FlowElement> cachedOwnerToEndpoint = new HashMap<>();
+    // Temporary endpoint views belong to the current paint, not the project-wide model view cache.
+    private final Map<FlowElement, IkasanFlowComponentViewHandler> cachedOwnerToEndpoint = new IdentityHashMap<>();
     // Populated during each paint pass so that click detection can resolve a Send Test Message badge click back to its owner.
     private final Map<FlowElement, Rectangle> cachedSendTestMessageBadge = new HashMap<>();
 
@@ -131,7 +126,9 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     }
 
     protected void paintRoute(JPanel canvas, Graphics g, FlowRoute flowRoute, FlowRoute parent) {
-        cachedSendTestMessageBadge.clear();
+        if (parent == null) {
+            clearPaintedTargets();
+        }
         List<FlowElement> flowAndConsumerElementList = flowRoute.getConsumerAndFlowRouteElements();
         int flowSize = flowAndConsumerElementList.size();
         StudioUIUtils.setLine(g, 2f);
@@ -198,13 +195,12 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
                 }
             }
         } else {
-            cachedEndpointToOwner.put(endpointFlowElement, targetFlowElement);
-            cachedOwnerToEndpoint.put(targetFlowElement, endpointFlowElement);
             // Position and draw the endpoint
             IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
-            IkasanFlowComponentViewHandler endpointViewHandler = getOrCreateFlowComponentViewHandler(project, endpointFlowElement);
+            IkasanFlowComponentViewHandler endpointViewHandler = new IkasanFlowComponentViewHandler(endpointFlowElement);
             if (targetFlowElementViewHandler != null && endpointViewHandler != null) {
 
+                cachedOwnerToEndpoint.put(targetFlowElement, endpointViewHandler);
                 endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
                 endpointViewHandler.setTopY(targetFlowElementViewHandler.getTopY());
                 if (targetFlowElement.getComponentMeta().isConsumer()) {
@@ -241,10 +237,9 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * The cache is populated (and refreshed) during each paint pass by displayExternalEndpointIfExists.
      */
     public FlowElement getOwnerForEndpointAtXY(int x, int y) {
-        for (Map.Entry<FlowElement, FlowElement> entry : cachedEndpointToOwner.entrySet()) {
-            IkasanFlowComponentViewHandler endpointVH = ViewHandlerCache.getFlowComponentViewHandler(project, entry.getKey());
-            if (endpointVH != null && endpointVH.isComponentAtXY(x, y)) {
-                return entry.getValue();
+        for (Map.Entry<FlowElement, IkasanFlowComponentViewHandler> entry : cachedOwnerToEndpoint.entrySet()) {
+            if (entry.getValue().isComponentAtXY(x, y)) {
+                return entry.getKey();
             }
         }
         for (IkasanFlowRouteViewHandler child : childFlowRouteViewHandlers) {
@@ -266,9 +261,9 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @param owner the consumer or producer FlowElement whose endpoint pill is wanted
      */
     public IkasanFlowComponentViewHandler getEndpointViewHandlerForOwner(FlowElement owner) {
-        FlowElement endpoint = cachedOwnerToEndpoint.get(owner);
+        IkasanFlowComponentViewHandler endpoint = cachedOwnerToEndpoint.get(owner);
         if (endpoint != null) {
-            return ViewHandlerCache.getFlowComponentViewHandler(project, endpoint);
+            return endpoint;
         }
         for (IkasanFlowRouteViewHandler child : childFlowRouteViewHandlers) {
             IkasanFlowComponentViewHandler found = child.getEndpointViewHandlerForOwner(owner);
@@ -526,8 +521,16 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     /**
      * Perform any tidy up during deletion of this element
      */
+    private void clearPaintedTargets() {
+        cachedOwnerToEndpoint.values().forEach(IkasanFlowComponentViewHandler::dispose);
+        cachedOwnerToEndpoint.clear();
+        cachedSendTestMessageBadge.clear();
+    }
+
     @Override
     public void dispose() {
-
+        clearPaintedTargets();
+        childFlowRouteViewHandlers.forEach(IkasanFlowRouteViewHandler::dispose);
+        childFlowRouteViewHandlers.clear();
     }
 }

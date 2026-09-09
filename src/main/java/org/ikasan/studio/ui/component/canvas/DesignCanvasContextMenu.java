@@ -33,6 +33,13 @@ public class DesignCanvasContextMenu {
     }
 
     public static void showPopupAndNavigateMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
+        JPopupMenu menu = createCanvasMenu(project, mouseEvent, ikasanBasicElement);
+        if (menu.getComponentCount() > 0) {
+            menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
+        }
+    }
+
+    static JPopupMenu createCanvasMenu(Project project, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
 
         if (ikasanBasicElement instanceof Flow flow) {
@@ -44,7 +51,6 @@ public class DesignCanvasContextMenu {
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, false));
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
-            menu.addSeparator();
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {
             if (flowElement.getComponentMeta().isDebug()
                     && project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement))) {
@@ -108,7 +114,6 @@ public class DesignCanvasContextMenu {
             menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             menu.add(createNavigateToCode(project, ikasanBasicElement, true));
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
-            menu.addSeparator();
         }
         if (ikasanBasicElement instanceof Module module) {
             JMenuItem migrate = new JMenuItem(StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
@@ -117,13 +122,18 @@ public class DesignCanvasContextMenu {
             migrate.addActionListener(event -> MigrationController.open(project, false));
             menu.add(migrate);
             menu.addSeparator();
+            JMenuItem importModel = new JMenuItem(StudioBundle.message("button.ImportModelJson"));
+            importModel.setToolTipText(StudioBundle.message("tooltip.ImportModelJson"));
+            importModel.addActionListener(event ->
+                    org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project));
+            menu.add(importModel);
+            menu.add(createSaveAsMenuItem(project));
+            menu.add(createLoadMenuItem(project));
+            menu.add(createLaunchDashboardMenuItem(project));
+            menu.add(createLaunchH2MenuItem(project));
+            menu.add(createDebugMenuItem(project));
         }
-        menu.add(createSaveAsMenuItem(project));
-        menu.add(createLoadMenuItem(project));
-        menu.add(createLaunchDashboardMenuItem(project));
-        menu.add(createLaunchH2MenuItem(project));
-        menu.add(createDebugMenuItem(project));
-        menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
+        return menu;
     }
 
     /**

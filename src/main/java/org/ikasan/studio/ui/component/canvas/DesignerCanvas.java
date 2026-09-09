@@ -542,12 +542,15 @@ public class DesignerCanvas extends JPanel {
     /**
      * Appends the "restart required" warning to a component tooltip, keeping the existing HTML envelope intact.
      */
-    private String appendRestartWarning(String tooltip) {
+    static String appendRestartWarning(String tooltip) {
         String warning = StudioBundle.message("tooltip.ModuleRestartRequiredForChange");
         if (tooltip == null || tooltip.isBlank()) {
             return warning;
         }
-        return tooltip + "<br><b>" + warning + "</b>";
+        String content = tooltip.startsWith("<html>") && tooltip.endsWith("</html>")
+                ? tooltip.substring(0, tooltip.length() - "</html>".length())
+                : "<html>" + StudioUIUtils.escapeHtml(tooltip);
+        return content + "<br><b>" + StudioUIUtils.escapeHtml(warning) + "</b></html>";
     }
 
     /**

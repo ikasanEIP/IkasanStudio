@@ -25,6 +25,49 @@ import static org.mockito.Mockito.when;
 
 class DesignerCanvasTest {
 
+    @Test
+    void moduleActionsAreConfinedToTheCanvasBackgroundMenu() {
+        Project project = mock(Project.class);
+        var context = mock(org.ikasan.studio.ui.UiContext.class);
+        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
+        when(context.getViewHandlerFactory()).thenReturn(mock(org.ikasan.studio.ui.viewmodel.ViewHandlerCache.class));
+        Module module = mock(Module.class);
+        when(module.isInitialised()).thenReturn(true);
+        var moduleMenu = DesignCanvasContextMenu.createCanvasMenu(project, null, module);
+        List<String> moduleLabels = java.util.Arrays.stream(moduleMenu.getComponents())
+                .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
+        assertThat(moduleLabels).contains(StudioBundle.message("button.ImportModelJson"),
+                StudioBundle.message("menu.SaveImage"), StudioBundle.message("label.Load"),
+                StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
+
+        Flow flow = mock(Flow.class);
+        FlowElement component = mock(FlowElement.class);
+        when(component.getComponentMeta()).thenReturn(mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class));
+        for (var element : List.of(flow, component)) {
+            var menu = DesignCanvasContextMenu.createCanvasMenu(project, null, element);
+            List<String> labels = java.util.Arrays.stream(menu.getComponents())
+                    .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
+            assertThat(labels).contains(StudioBundle.message("menu.EditComponent"), StudioBundle.message("menu.JumpToCode"))
+                    .doesNotContainAnyElementsOf(moduleLabels);
+            assertThat(menu.getComponent(menu.getComponentCount() - 1)).isInstanceOf(JMenuItem.class);
+        }
+    }
+
+
+    @Test
+    void restartWarningIsVisibleInTheRenderedPayloadTooltip() throws Exception {
+        String tooltip = DesignerCanvas.appendRestartWarning(
+                "<html>Input: java.lang.String<br>Output: java.lang.String</html>");
+        var html = new javax.swing.text.html.HTMLEditorKit();
+        var document = html.createDefaultDocument();
+        html.read(new java.io.StringReader(tooltip), document, 0);
+
+        assertThat(document.getText(0, document.getLength()))
+                .contains("Input: java.lang.String", "Output: java.lang.String",
+                        StudioBundle.message("tooltip.ModuleRestartRequiredForChange"));
+    }
+
+
     @BeforeAll
     static void warmUpMetaPack() throws StudioBuildException {
         // Opening a packaged meta-pack lazily starts JVM filesystem threads. Do that before
@@ -144,7 +187,7 @@ class DesignerCanvasTest {
 
         assertThat(((JMenuItem) menu.getComponent(0)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestFtpServerDetails"));
         assertThat(((JMenuItem) menu.getComponent(1)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestFtpOverwriteLimitation"));
-        assertThat(((JMenuItem) menu.getComponent(1)).getForeground()).isNotNull();
+        assertThat(menu.getComponent(1).getForeground()).isNotNull();
         assertThat(((JMenuItem) menu.getComponent(2)).getText()).isEqualTo(StudioBundle.message("menu.OpenTestFtpFile"));
         assertThat(((JMenuItem) menu.getComponent(3)).getText()).isEqualTo(StudioBundle.message("menu.ShowTestFtpDirectory"));
         assertThat(((JMenuItem) menu.getComponent(5)).getText()).isEqualTo(StudioBundle.message("menu.StopTestFtpServer"));

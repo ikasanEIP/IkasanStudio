@@ -136,9 +136,6 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
         addButtonsToPanel(canvasHeaderButtonPanel, consoleButton, new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.ImportModelJson")),
-                event -> org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project),
-                StudioBundle.message("tooltip.ImportModelJson"));
         refreshAdvancedControlsVisibility();
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.RegenerateCode"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Migrate…"),
